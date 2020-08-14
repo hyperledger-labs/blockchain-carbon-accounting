@@ -1,0 +1,31 @@
+fabric:
+  cas:
+  - "ca1.auditor1.com"
+  - "ca1.auditor2.org"
+  peers: 
+  - "peer1.auditor1.com"
+  - "peer1.auditor2.org"
+  orderers:
+# This did not work
+# Error: got unexpected status: FORBIDDEN -- implicit policy evaluation failed - 0 sub-policies were satisfied, but this policy requires 1 of the 'Writers' sub-policies to be satisfied: permission denied 
+#  - "orderer1.auditor1.com"
+#  - "orderer1.auditor2.org"
+# This worked
+   - "orderer1.operator.com"
+   - "orderer2.operator.com"
+# This did not work
+#   Error: got unexpected status: SERVICE_UNAVAILABLE -- no Raft leader
+#  - "order.order.auditor1.com"
+#  - "order.order.auditor2.org"
+  settings:
+    ca:
+      FABRIC_LOGGING_SPEC: DEBUG
+    peer:
+      FABRIC_LOGGING_SPEC: DEBUG
+    orderer:
+      FABRIC_LOGGING_SPEC: DEBUG
+  ### use go proxy when default go proxy is restricted in some of the regions.
+  ### the default goproxy
+  # goproxy: "https://proxy.golang.org,direct"
+  ### the goproxy in China area
+  # goproxy: "https://goproxy.cn,direct"
