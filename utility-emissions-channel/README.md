@@ -7,8 +7,8 @@ Running the Code
 
 First, install [minifabric](https://github.com/litong01/minifabric).  If you're new to minifabric, these [training videos](https://www.youtube.com/playlist?list=PL0MZ85B_96CExhq0YdHLPS5cmSBvSmwyO) are very helpful for getting familiar with it.
 
-Then, copy the file ``spec.yaml`` from this repository to the ``minifabric/`` directory and use minifabric to set up your network and channels::
-
+Then, copy the file ``spec.yaml`` from this repository to the ``minifabric/`` directory and use minifabric to set up your network and channels:
+::
    $ ./minifab up -o auditor1.com
    $ ./minifab create -c utilityemissions
    $ ./minifab join
