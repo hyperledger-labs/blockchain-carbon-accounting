@@ -1,0 +1,25 @@
+PeerOrgs:
+  - Name: Autidor1
+    Domain: auditor1.carbonAccounting.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer0
+      - Hostname: peer0
+    Users:
+      Count: 1
+  - Name: Autidor2
+    Domain: auditor2.carbonAccounting.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer0
+      - Hostname: peer0
+    Users:
+      Count: 1
+  - Name: Autidor3
+    Domain: auditor3.carbonAccounting.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer0
+      - Hostname: peer0
+    Users:
+      Count: 1
