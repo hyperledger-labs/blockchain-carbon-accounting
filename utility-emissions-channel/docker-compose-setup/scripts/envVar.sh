@@ -1,10 +1,4 @@
-#
-# Copyright IBM Corp All Rights Reserved
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
-# This is a collection of bash functions used by different scripts
+#!/bin/bash
 
 export CORE_PEER_TLS_ENABLED=true
 export ORDERER_AUDITOR1_CA=${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp/tlscacerts/tlsca.auditor1.carbonAccounting.com-cert.pem

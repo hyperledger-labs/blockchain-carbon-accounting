@@ -10,7 +10,7 @@ Organizations:
           Rule: OR('auditor1.admin', 'auditor1.peer', 'auditor1.client', 'auditor1.orderer')
         Writers:
           Type: Signature
-          Rule: OR('auditor1.admin', 'auditor1.client', 'auditor1.orderer', 'auditor1.member')
+          Rule: OR('auditor1.admin', 'auditor1.client', 'auditor1.orderer')
         Admins:
           Type: Signature
           Rule: OR('auditor1.admin')
@@ -34,7 +34,7 @@ Organizations:
           Rule: OR('auditor2.admin', 'auditor2.peer', 'auditor2.client', 'auditor2.orderer')
         Writers:
           Type: Signature
-          Rule: OR('auditor2.admin', 'auditor2.client', 'auditor2.orderer', 'auditor2.member')
+          Rule: OR('auditor2.admin', 'auditor2.client', 'auditor2.orderer')
         Admins:
           Type: Signature
           Rule: OR('auditor2.admin')
@@ -58,7 +58,7 @@ Organizations:
           Rule: OR('auditor3.admin', 'auditor3.peer', 'auditor3.client', 'auditor3.orderer')
         Writers:
           Type: Signature
-          Rule: OR('auditor3.admin', 'auditor3.client', 'auditor3.orderer', 'auditor3.member')
+          Rule: OR('auditor3.admin', 'auditor3.client', 'auditor3.orderer')
         Admins:
           Type: Signature
           Rule: OR('auditor3.admin')
