@@ -34,7 +34,7 @@ function createAuditor1 {
 	echo "Register peer1"
   echo
   set -x
-	fabric-ca-client register --caname ca-auditor1 --id.name peer1 --id.secret peer1pw --id.type peer --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+	fabric-ca-client register --caname ca-auditor1 --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   echo
@@ -112,7 +112,7 @@ function createAuditor1 {
 	echo "Register orderer"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor1 --id.name orderer1 --id.secret orderer1pw --id.type orderer --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client register --caname ca-auditor1 --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
   set +x
 
@@ -179,7 +179,7 @@ function createAuditor2 {
 	echo "Register peer1"
   echo
   set -x
-	fabric-ca-client register --caname ca-auditor2 --id.name peer1 --id.secret peer1pw --id.type peer --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+	fabric-ca-client register --caname ca-auditor2 --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   echo
@@ -257,7 +257,7 @@ function createAuditor2 {
 	echo "Register orderer"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor2 --id.name orderer1 --id.secret orderer1pw --id.type orderer --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client register --caname ca-auditor2 --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
   set +x
 
@@ -323,7 +323,7 @@ function createAuditor3 {
 	echo "Register peer1"
   echo
   set -x
-	fabric-ca-client register --caname ca-auditor3 --id.name peer1 --id.secret peer1pw --id.type peer --tls.certfiles ${PWD}/organizations/fabric-ca/auditor3/tls-cert.pem
+	fabric-ca-client register --caname ca-auditor3 --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor3/tls-cert.pem
   set +x
 
   echo
@@ -401,7 +401,7 @@ function createAuditor3 {
 	echo "Register orderer"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor3 --id.name orderer1 --id.secret orderer1pw --id.type orderer --tls.certfiles ${PWD}/organizations/fabric-ca/auditor3/tls-cert.pem
+  fabric-ca-client register --caname ca-auditor3 --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor3/tls-cert.pem
   set +x
   set +x
 

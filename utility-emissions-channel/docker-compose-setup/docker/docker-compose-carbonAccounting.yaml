@@ -25,9 +25,9 @@ services:
       - FABRIC_LOGGING_SPEC=INFO
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
       - ORDERER_GENERAL_LISTENPORT=7050
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=auditor1
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
       # enabled TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
@@ -55,10 +55,10 @@ services:
     environment:
       - FABRIC_LOGGING_SPEC=INFO
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-      - ORDERER_GENERAL_LISTENPORT=7050
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LISTENPORT=8050
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=auditor2
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
       # enabled TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
@@ -86,10 +86,10 @@ services:
     environment:
       - FABRIC_LOGGING_SPEC=INFO
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
-      - ORDERER_GENERAL_LISTENPORT=7050
-      - ORDERER_GENERAL_GENESISMETHOD=file
-      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
-      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LISTENPORT=9050
+      - ORDERER_GENERAL_BOOTSTRAPMETHOD=file
+      - ORDERER_GENERAL_BOOTSTRAPFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=auditor3
       - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
       # enabled TLS
       - ORDERER_GENERAL_TLS_ENABLED=true
@@ -136,11 +136,11 @@ services:
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.auditor1.carbonAccounting.com:7051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.auditor1.carbonAccounting.com:7051
-      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_LOCALMSPID=auditor1
     volumes:
         - /var/run/:/host/var/run/
         - ../organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/msp:/etc/hyperledger/fabric/msp
-        - ../organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/msp:/etc/hyperledger/fabric/tls
+        - ../organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls:/etc/hyperledger/fabric/tls
         - peer1.auditor1.carbonAccounting.com:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
@@ -174,11 +174,11 @@ services:
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.auditor2.carbonAccounting.com:8051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.auditor2.carbonAccounting.com:8051
-      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_LOCALMSPID=auditor2
     volumes:
         - /var/run/:/host/var/run/
         - ../organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/msp:/etc/hyperledger/fabric/msp
-        - ../organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/msp:/etc/hyperledger/fabric/tls
+        - ../organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls:/etc/hyperledger/fabric/tls
         - peer1.auditor2.carbonAccounting.com:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
@@ -212,11 +212,11 @@ services:
       - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
       - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.auditor3.carbonAccounting.com:9051
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.auditor3.carbonAccounting.com:9051
-      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_LOCALMSPID=auditor3
     volumes:
         - /var/run/:/host/var/run/
         - ../organizations/peerOrganizations/auditor3.carbonAccounting.com/peers/peer1.auditor3.carbonAccounting.com/msp:/etc/hyperledger/fabric/msp
-        - ../organizations/peerOrganizations/auditor3.carbonAccounting.com/peers/peer1.auditor3.carbonAccounting.com/msp:/etc/hyperledger/fabric/tls
+        - ../organizations/peerOrganizations/auditor3.carbonAccounting.com/peers/peer1.auditor3.carbonAccounting.com/tls:/etc/hyperledger/fabric/tls
         - peer1.auditor3.carbonAccounting.com:/var/hyperledger/production
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
