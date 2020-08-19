@@ -24,3 +24,14 @@ See all your docker contains
 This will create your channel configuration file in ``./vars/utilityemissions_config.json``
 
     $ ./minifab channelquery
+
+Next install the chaincode.  You can start with the Node.js chaincode.  Go to the ``minifabric`` directory and follow these steps:
+
+    $ mkdir vars/chaincode/emissions
+    $ cp -r ~/hyperledger/blockchain-carbon-accounting/utility-emissions-channel/chaincode/node vars/chaincode/emissions/
+    $ ./minifab install -n emissions -l node
+    $ ./minifab approve -n emissions
+    $ ./minifab commit -n emissions
+    $ ./minifab initialize
+    $ ./minifab invoke -p '"recordEmissions", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30", "15000", "KWH"'
+  
