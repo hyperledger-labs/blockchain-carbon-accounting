@@ -119,4 +119,51 @@ func (s *EmissionContract) getRecord(stub shim.ChaincodeStubInterface, args []st
 		return shim.Error(err.Error())
 	}
 	iterator.Close()
+
+
+	//buffer is a Json array containing queryresults
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	bArrayMemberAlreadyWritten := false
+	for iterator.HasNext() {
+		queryResponse, err := iterator.Next()
+		if err != nil {
+			shim.Error(err.Error())
+		}
+		// Add a comma before array members, suppress it for the first array member
+		if bArrayMemberAlreadyWritten == true {
+			buffer.WriteString(",")
+		}
+		buffer.WriteString("{\"TxId\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(queryResponse.TxId)
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"Value\":")
+		// if it was a delete operation on given key, then we need to set the
+		//corresponding value null. Else, we will write the response.Value
+		if queryResponse.IsDelete {
+			buffer.WriteString("null")
+		} else {
+			buffer.WriteString(string(queryResponse.Value))
+		}
+
+		buffer.WriteString(", \"Timestamp\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(time.Unix(queryResponse.Timestamp.Seconds, int64(queryResponse.Timestamp.Nanos)).String())
+		buffer.WriteString("\"")
+
+		buffer.WriteString(", \"IsDelete\":")
+		buffer.WriteString("\"")
+		buffer.WriteString(strconv.FormatBool(queryResponse.IsDelete))
+		buffer.WriteString("\"")
+
+		buffer.WriteString("}")
+		bArrayMemberAlreadyWritten = true
+	}
+	buffer.WriteString("]")
+
+	fmt.Printf("getHistory:\n%s\n", buffer.String())
+
+	return shim.Success(buffer.Bytes())
 }
