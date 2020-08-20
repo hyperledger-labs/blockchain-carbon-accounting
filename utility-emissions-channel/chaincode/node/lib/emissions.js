@@ -12,7 +12,7 @@ const State = require('./../ledger-api/state.js');
  * Class will be used by application and smart contract to define a paper
  */
 class EmissionsRecord extends State {
-
+    
     constructor(obj) {
         super(EmissionsRecord.getClass(), [obj.utilityId, obj.partyId, obj.fromDate, obj.thruDate]);
         Object.assign(this, obj);

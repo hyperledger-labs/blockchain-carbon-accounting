@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 // Fabric smart contract classes
 const { Contract, Context } = require('fabric-contract-api');
 
-// PaperNet specifc classes
+// EmissionsRecord specifc classes
 const EmissionsRecord = require('./emissions.js');
 const EmissionsList = require('./emissionslist.js');
 
@@ -18,7 +18,7 @@ class EmissionsRecordContext extends Context {
 
     constructor() {
         super();
-        // All papers are held in a list of papers
+        // All emissions records are held in a list
         this.emissionsList = new EmissionsList(this);
     }
 
@@ -43,13 +43,12 @@ class EmissionsRecordContract extends Contract {
     }
 
     /**
-     * Instantiate to perform any setup of the ledger that might be required.
+     * Initialize any setup of the ledger that might be required.
      * @param {Context} ctx the transaction context
      */
-    async instantiate(ctx) {
-        // No implementation required with this example
-        // It could be where data migration is performed, if necessary
-        console.log('Instantiate the contract');
+    async init(ctx) {
+        // No initialization right now
+        console.log('Initializing the contract');
     }
 
     /**
@@ -60,14 +59,14 @@ class EmissionsRecordContract extends Contract {
      * @param {String} Id for the party (company) which buys power from utility
      * @param {String} from date of the time period
      * @param {String} thru date of the time period
-     * @param {String} maturityDateTime paper maturity date
      * @param {Double} energy usage amount
      * @param {String} UOM of energy usage amount -- ie kwh
     */
     async recordEmissions(ctx, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
 
         // do some calculation
-        emissionsAmount = energyUseAmount * 0.1;
+        //emissionsAmount = parseFloat(energyUseAmount) * 0.1;
+        emissionsAmount = 100.0;
         emissionsUom = "TONS";
         
         // create an instance of the emissions record
@@ -76,8 +75,8 @@ class EmissionsRecordContract extends Contract {
         // Add the emissions record to the list of all similar emissions records in the ledger world state
         await ctx.emissionsList.addEmissionsRecord(emissionsRecord);
 
-        // Must return a serialized paper to caller of smart contract
-        return paper;
+        // Must return a serialized emissionsRecord to caller of smart contract
+        return emissionsRecord;
     }
 
     /**
@@ -91,7 +90,7 @@ class EmissionsRecordContract extends Contract {
      */
     async getEmissionsData(ctx, utilityId, partyId, fromDate, thruDate) {
 
-        // Retrieve the current paper using key fields provided
+        // Retrieve the current emissions record using key fields provided
         let emissionsRecordKey = EmissionsRecord.makeKey([ utilityId, partyId, fromDate, thruDate]);
         let emissionsRecord = await ctx.emissionsList.getEmissionsRecord(emissionsRecordKey);
 
