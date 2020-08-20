@@ -88,5 +88,18 @@ func (s *EmissionContract) addValue(stub shim.ChaincodeStubInterface, args []str
 	energyUSeUo := args[5]
 
 	//Fetch State from ledger
+	valuesAsBytes, _ := stub.GetState(utilityID)
+	value := Value{}
+	json.Unmarshal(valuesAsBytes, &value)
+	fmt.Println(value)
+
+
+	// Check if the parameters is set in request, if not, use fetched value
+	
+	//Always update the timestamp
+	value.Time = time
+
+	fmt.Println(value)
+
 	
 }
