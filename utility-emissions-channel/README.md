@@ -30,11 +30,11 @@ Next install the chaincode.  You can start with the Node.js chaincode.  Go to th
     $ mkdir vars/chaincode/emissions/node
     $ cp -r ~/hyperledger/blockchain-carbon-accounting/utility-emissions-channel/chaincode/node vars/chaincode/emissions/node
     $ ./minifab install -n emissions -l node
-    $ ./minifab approve -n emissions
-    $ ./minifab commit -n emissions
+    $ ./minifab approve -n emissions -l node
+    $ ./minifab commit -n emissions -l node
 
 This doesn't work yet::
 
-    $ ./minifab initialize
+    $ ./minifab initialize -p '"instantiate"'
     $ ./minifab invoke -p '"recordEmissions", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30", "15000", "KWH"'
   
