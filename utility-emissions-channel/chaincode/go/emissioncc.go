@@ -101,5 +101,22 @@ func (s *EmissionContract) addValue(stub shim.ChaincodeStubInterface, args []str
 
 	fmt.Println(value)
 
-	
+	// pack and store updated values
+	valuesByBytes, _ :=json.Marshal(value)
+	stub.PutState(utilityID, valueByBytes)
+
+	return shim.Success(nil)
+}
+
+func (s *EmissionContract) getRecord(stub shim.ChaincodeStubInterface, args []string) peer.Response{
+	if len(args) !=1 {
+		return shim.Error("Invalid number of arguments")
+	}
+	utilityID := args[0]
+
+	iterator, err :=stub.GetHistoryForKey(utilityID)
+	if err!=nil {
+		return shim.Error(err.Error())
+	}
+	iterator.Close()
 }
