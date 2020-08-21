@@ -30,7 +30,7 @@ This will create your channel configuration file in ``./vars/utilityemissions_co
 
     $ minifab channelquery
 
-You can start and stop the blockchain explorer (see [minifabric - Hook up Explorer to your fabric network](https://github.com/litong01/minifabric/blob/master/docs/README.md#explorer-your-fabric-network):
+You can start and stop the blockchain explorer (see [minifabric - Hook up Explorer to your fabric network](https://github.com/litong01/minifabric/blob/master/docs/README.md#explorer-your-fabric-network))
 
     $ minifab explorerup
     $ minifab explorerdown
