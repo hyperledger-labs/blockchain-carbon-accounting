@@ -35,8 +35,9 @@ You can start and stop the blockchain explorer (see [minifabric - Hook up Explor
     $ minifab explorerup
     $ minifab explorerdown
 
-This doesn't work yet
+Then try running it
 
-    $ ./minifab invoke -p '"recordEmissions", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30", "15000", "KWH"'
+    $ minifab invoke -p '"recordEmissions", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30", "15000", "KWH"'
+    $ minifab invoke -p '"getEmissionsData", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30"
  
  

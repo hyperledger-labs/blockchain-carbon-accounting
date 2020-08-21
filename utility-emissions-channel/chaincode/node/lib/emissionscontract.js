@@ -66,8 +66,8 @@ class EmissionsRecordContract extends Contract {
 
         // do some calculation
         //emissionsAmount = parseFloat(energyUseAmount) * 0.1;
-        emissionsAmount = 100.0;
-        emissionsUom = "TONS";
+        var emissionsAmount = energyUseAmount * 0.1;
+        var emissionsUom = "TONS";
         
         // create an instance of the emissions record
         let emissionsRecord = EmissionsRecord.createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom);
