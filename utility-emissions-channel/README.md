@@ -30,7 +30,13 @@ This will create your channel configuration file in ``./vars/utilityemissions_co
 
     $ minifab channelquery
 
-This doesn't work yet::
+You can start and stop the blockchain explorer (see [minifabric - Hook up Explorer to your fabric network](https://github.com/litong01/minifabric/blob/master/docs/README.md#explorer-your-fabric-network):
+
+    $ minifab explorerup
+    $ minifab explorerdown
+
+This doesn't work yet
 
     $ ./minifab invoke -p '"recordEmissions", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30", "15000", "KWH"'
-  
+ 
+ 
