@@ -87,7 +87,7 @@ joinChannel() {
 	done
 	cat log.txt
 	echo
-	verifyResult $res "After $MAX_RETRY attempts, peer0.org${ORG} has failed to join channel '$CHANNEL_NAME' "
+	verifyResult $res "After $MAX_RETRY attempts, peer.auditor${ORG} has failed to join channel '$CHANNEL_NAME' "
 }
 
 updateAnchorPeers() {

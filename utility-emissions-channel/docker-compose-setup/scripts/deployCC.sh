@@ -184,8 +184,8 @@ queryInstalled() {
 	set +x
 	cat log.txt
 	PACKAGE_ID=$(sed -n "/${CC_NAME}_${CC_VERSION}/{s/^Package ID: //; s/, Label:.*$//; p;}" log.txt)
-	verifyResult $res "Query installed on peer0.org${ORG} has failed"
-	echo "===================== Query installed successful on peer0.org${ORG} on channel ===================== "
+	verifyResult $res "Query installed on peer.auditor${ORG} has failed"
+	echo "===================== Query installed successful on peer.auditor${ORG} on channel ===================== "
 	echo
 }
 
@@ -197,8 +197,8 @@ approveForMyOrg() {
 	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	set +x
 	cat log.txt
-	verifyResult $res "Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME' failed"
-	echo "===================== Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+	verifyResult $res "Chaincode definition approved on peer.auditor${ORG} on channel '$CHANNEL_NAME' failed"
+	echo "===================== Chaincode definition approved on peer.auditor${ORG} on channel '$CHANNEL_NAME' ===================== "
 	echo
 }
 
@@ -207,14 +207,14 @@ checkCommitReadiness() {
 	ORG=$1
 	shift 1
 	setGlobals $ORG
-	echo "===================== Checking the commit readiness of the chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
+	echo "===================== Checking the commit readiness of the chaincode definition on peer.auditor${ORG} on channel '$CHANNEL_NAME'... ===================== "
 	local rc=1
 	local COUNTER=1
 	# continue to poll
 	# we either get a successful response, or reach MAX RETRY
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
 		sleep $DELAY
-		echo "Attempting to check the commit readiness of the chaincode definition on peer0.org${ORG}, Retry after $DELAY seconds."
+		echo "Attempting to check the commit readiness of the chaincode definition on peer.auditor${ORG}, Retry after $DELAY seconds."
 		set -x
 		peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} --output json >&log.txt
 		res=$?
@@ -227,10 +227,10 @@ checkCommitReadiness() {
 	done
 	cat log.txt
 	if test $rc -eq 0; then
-		echo "===================== Checking the commit readiness of the chaincode definition successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+		echo "===================== Checking the commit readiness of the chaincode definition successful on peer.auditor${ORG} on channel '$CHANNEL_NAME' ===================== "
 	else
 		echo
-		echo $'\e[1;31m'"!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Check commit readiness result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"$'\e[0m'
+		echo $'\e[1;31m'"!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Check commit readiness result on peer.auditor${ORG} is INVALID !!!!!!!!!!!!!!!!"$'\e[0m'
 		echo
 		exit 1
 	fi
@@ -250,7 +250,7 @@ commitChaincodeDefinition() {
 	res=$?
 	set +x
 	cat log.txt
-	verifyResult $res "Chaincode definition commit failed on peer0.org${ORG} on channel '$CHANNEL_NAME' failed"
+	verifyResult $res "Chaincode definition commit failed on peer.auditor${ORG} on channel '$CHANNEL_NAME' failed"
 	echo "===================== Chaincode definition committed on channel '$CHANNEL_NAME' ===================== "
 	echo
 }
@@ -260,14 +260,14 @@ queryCommitted() {
 	ORG=$1
 	setGlobals $ORG
 	EXPECTED_RESULT="Version: ${CC_VERSION}, Sequence: ${CC_SEQUENCE}, Endorsement Plugin: escc, Validation Plugin: vscc"
-	echo "===================== Querying chaincode definition on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
+	echo "===================== Querying chaincode definition on peer.auditor${ORG} on channel '$CHANNEL_NAME'... ===================== "
 	local rc=1
 	local COUNTER=1
 	# continue to poll
 	# we either get a successful response, or reach MAX RETRY
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
 		sleep $DELAY
-		echo "Attempting to Query committed status on peer0.org${ORG}, Retry after $DELAY seconds."
+		echo "Attempting to Query committed status on peer.auditor${ORG}, Retry after $DELAY seconds."
 		set -x
 		peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name ${CC_NAME} >&log.txt
 		res=$?
@@ -279,11 +279,11 @@ queryCommitted() {
 	echo
 	cat log.txt
 	if test $rc -eq 0; then
-		echo "===================== Query chaincode definition successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+		echo "===================== Query chaincode definition successful on peer.auditor${ORG} on channel '$CHANNEL_NAME' ===================== "
 		echo
 	else
 		echo
-		echo $'\e[1;31m'"!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query chaincode definition result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"$'\e[0m'
+		echo $'\e[1;31m'"!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query chaincode definition result on peer.auditor${ORG} is INVALID !!!!!!!!!!!!!!!!"$'\e[0m'
 		echo
 		exit 1
 	fi
@@ -329,14 +329,14 @@ chaincodeInvoke() {
 chaincodeQuery() {
 	ORG=$1
 	setGlobals $ORG
-	echo "===================== Querying on peer0.org${ORG} on channel '$CHANNEL_NAME'... ===================== "
+	echo "===================== Querying on peer.auditor${ORG} on channel '$CHANNEL_NAME'... ===================== "
 	local rc=1
 	local COUNTER=1
 	# continue to poll
 	# we either get a successful response, or reach MAX RETRY
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ]; do
 		sleep $DELAY
-		echo "Attempting to Query peer0.org${ORG}, Retry after $DELAY seconds."
+		echo "Attempting to Query peer.auditor${ORG}, Retry after $DELAY seconds."
 		set -x
 		peer chaincode query -C $CHANNEL_NAME -n ${CC_NAME} -c '{"Args":["queryAllCars"]}' >&log.txt
 		res=$?
@@ -347,11 +347,11 @@ chaincodeQuery() {
 	echo
 	cat log.txt
 	if test $rc -eq 0; then
-		echo "===================== Query successful on peer0.org${ORG} on channel '$CHANNEL_NAME' ===================== "
+		echo "===================== Query successful on peer.auditor${ORG} on channel '$CHANNEL_NAME' ===================== "
 		echo
 	else
 		echo
-		echo $'\e[1;31m'"!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query result on peer0.org${ORG} is INVALID !!!!!!!!!!!!!!!!"$'\e[0m'
+		echo $'\e[1;31m'"!!!!!!!!!!!!!!! After $MAX_RETRY attempts, Query result on peer.auditor${ORG} is INVALID !!!!!!!!!!!!!!!!"$'\e[0m'
 		echo
 		exit 1
 	fi
