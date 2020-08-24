@@ -64,10 +64,10 @@ class EmissionsRecordContract extends Contract {
     */
     async recordEmissions(ctx, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
 
-        // do some calculation
-        //emissionsAmount = parseFloat(energyUseAmount) * 0.1;
-        emissionsAmount = 100.0;
-        emissionsUom = "TONS";
+        // TODO: get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
+        var emissionsAmount = energyUseAmount * 0.1;
+        // TODO: use a constants file
+        var emissionsUom = "TONS";
         
         // create an instance of the emissions record
         let emissionsRecord = EmissionsRecord.createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom);
