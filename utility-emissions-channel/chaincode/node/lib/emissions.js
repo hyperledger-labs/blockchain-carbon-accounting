@@ -14,6 +14,7 @@ const State = require('./../ledger-api/state.js');
 class EmissionsRecord extends State {
     
     constructor(obj) {
+        // TODO: convert from and thru dates to numeric value, ie Date.now()
         super(EmissionsRecord.getClass(), [obj.utilityId, obj.partyId, obj.fromDate, obj.thruDate]);
         Object.assign(this, obj);
     }
