@@ -1,7 +1,7 @@
-CHANNEL_NAME=${1:-"mychannel"}
-CC_NAME=${2:-"basic"}
+CHANNEL_NAME=${1:-"utilityemissionchannel"}
+CC_NAME=${2:-"emissionscontract"}
 CC_SRC_PATH=${3:-"NA"}
-CC_SRC_LANGUAGE=${4:-"go"}
+CC_SRC_LANGUAGE=${4:-"javascript"}
 CC_VERSION=${5:-"1.0"}
 CC_SEQUENCE=${6:-"1"}
 CC_INIT_FCN=${7:-"NA"}
@@ -27,7 +27,7 @@ echo   - VERBOSE:$'\e[0;32m'$VERBOSE$'\e[0m'
 
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 
-FABRIC_CFG_PATH=$PWD/../config/
+FABRIC_CFG_PATH=$PWD/config/
 
 
 
@@ -37,23 +37,25 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 	echo Determining the path to the chaincode
 	# first see which chaincode we have. This will be based on the
 	# short name of the known chaincode sample
-	if [ "$CC_NAME" = "basic" ]; then
-		echo $'\e[0;32m'asset-transfer-basic$'\e[0m' chaincode
-		CC_SRC_PATH="../asset-transfer-basic"
-	elif [ "$CC_NAME" = "secure" ]; then
-		echo $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
-		CC_SRC_PATH="../asset-transfer-secured-agreement"
-	elif [ "$CC_NAME" = "ledger" ]; then
-		echo $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
-		CC_SRC_PATH="../asset-transfer-ledger-queries"
-	elif [ "$CC_NAME" = "private" ]; then
-		echo $'\e[0;32m'asset-transfer-private-data$'\e[0m' chaincode
-		CC_SRC_PATH="../asset-transfer-private-data"
+	if [ "$CC_NAME" = "emissionscontract" ]; then
+		echo $'\e[0;32m'emissionscontract$'\e[0m' chaincode
+		CC_SRC_PATH="../chaincode"
+	# elif [ "$CC_NAME" = "secure" ]; then
+	# 	echo $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
+	# 	CC_SRC_PATH="../asset-transfer-secured-agreement"
+	# elif [ "$CC_NAME" = "ledger" ]; then
+	# 	echo $'\e[0;32m'asset-transfer-secured-agreeement$'\e[0m' chaincode
+	# 	CC_SRC_PATH="../asset-transfer-ledger-queries"
+	# elif [ "$CC_NAME" = "private" ]; then
+	# 	echo $'\e[0;32m'asset-transfer-private-data$'\e[0m' chaincode
+	# 	CC_SRC_PATH="../asset-transfer-private-data"
 	else
 		echo The chaincode name ${CC_NAME} is not supported by this script
 		echo Supported chaincode names are: basic, secure, and private
 		exit 1
 	fi
+
+
 
 	# now see what language it is written in
 	if [ "$CC_SRC_LANGUAGE" = "go" ]; then
@@ -61,7 +63,7 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 	elif [ "$CC_SRC_LANGUAGE" = "java" ]; then
 		CC_SRC_PATH="$CC_SRC_PATH/chaincode-java/"
 	elif [ "$CC_SRC_LANGUAGE" = "javascript" ]; then
-		CC_SRC_PATH="$CC_SRC_PATH/chaincode-javascript/"
+		CC_SRC_PATH="$CC_SRC_PATH/node/"
 	elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
 		CC_SRC_PATH="$CC_SRC_PATH/chaincode-typescript/"
 	fi
@@ -69,7 +71,7 @@ if [ "$CC_SRC_PATH" = "NA" ]; then
 	# check that the language is available for the sample chaincode
 	if [ ! -d "$CC_SRC_PATH" ]; then
 		echo The smart contract language "$CC_SRC_LANGUAGE" is not yet available for
-		echo the "$CC_NAME" sample smart contract
+		echo the "$CC_NAME" smart contract
 		exit 1
 	fi
 ## Make sure that the path the chaincode exists if provided
@@ -117,6 +119,7 @@ else
 	exit 1
 fi
 
+
 INIT_REQUIRED="--init-required"
 # check if the init fcn should be called
 if [ "$CC_INIT_FCN" = "NA" ]; then
@@ -152,8 +155,8 @@ packageChaincode() {
 	res=$?
 	set +x
 	cat log.txt
-	verifyResult $res "Chaincode packaging on peer0.org${ORG} has failed"
-	echo "===================== Chaincode is packaged on peer0.org${ORG} ===================== "
+	verifyResult $res "Chaincode packaging on peer1.auditor${ORG} has failed"
+	echo "===================== Chaincode is packaged on peer1.auditor${ORG} ===================== "
 	echo
 }
 
@@ -166,8 +169,8 @@ installChaincode() {
 	res=$?
 	set +x
 	cat log.txt
-	verifyResult $res "Chaincode installation on peer0.org${ORG} has failed"
-	echo "===================== Chaincode is installed on peer0.org${ORG} ===================== "
+	verifyResult $res "Chaincode installation on peer1.auditor${ORG} has failed"
+	echo "===================== Chaincode is installed on peer1.auditor${ORG} ===================== "
 	echo
 }
 
@@ -191,7 +194,7 @@ approveForMyOrg() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	set +x
 	cat log.txt
 	verifyResult $res "Chaincode definition approved on peer0.org${ORG} on channel '$CHANNEL_NAME' failed"
@@ -243,7 +246,7 @@ commitChaincodeDefinition() {
 	# peer (if join was successful), let's supply it directly as we know
 	# it using the "-o" option
 	set -x
-	peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -297,7 +300,24 @@ chaincodeInvokeInit() {
 	set -x
 	fcn_call='{"function":"'${CC_INIT_FCN}'","Args":[]}'
 	echo invoke fcn call:${fcn_call}
-	peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS --isInit -c ${fcn_call} >&log.txt
+	peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS --isInit -c ${fcn_call} >&log.txt
+	res=$?
+	set +x
+	cat log.txt
+	verifyResult $res "Invoke execution on $PEERS failed "
+	echo "===================== Invoke transaction successful on $PEERS on channel '$CHANNEL_NAME' ===================== "
+	echo
+}
+chaincodeInvoke() {
+	fcn_call=$1
+	shift
+	parsePeerConnectionParameters $@
+	res=$?
+	verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
+
+	set -x
+	echo invoke fcn call:${fcn_call}
+	peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS -c ${fcn_call} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -337,40 +357,54 @@ chaincodeQuery() {
 	fi
 }
 
-## package the chaincode
+# package the chaincode
 packageChaincode 1
 
-## Install chaincode on peer0.org1 and peer0.org2
-echo "Installing chaincode on peer0.org1..."
+# Install chaincode on peer1.auditor1, peer1.auditor2, and peer1.auditor3
+echo "Installing chaincode on peer1.auditor1..."
 installChaincode 1
-echo "Install chaincode on peer0.org2..."
+echo "Install chaincode on peer1.auditor2..."
 installChaincode 2
+echo "Install chaincode on peer1.auditor3..."
+installChaincode 3
 
 ## query whether the chaincode is installed
 queryInstalled 1
 
-## approve the definition for org1
+## approve the definition for auditor1
 approveForMyOrg 1
 
 ## check whether the chaincode definition is ready to be committed
 ## expect org1 to have approved and org2 not to
-checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": false"
-checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": false"
+checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
+checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
+checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
 
-## now approve also for org2
+## now approve also for auditor2
 approveForMyOrg 2
 
 ## check whether the chaincode definition is ready to be committed
 ## expect them both to have approved
-checkCommitReadiness 1 "\"Org1MSP\": true" "\"Org2MSP\": true"
-checkCommitReadiness 2 "\"Org1MSP\": true" "\"Org2MSP\": true"
+checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
+checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
+checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
+
+## now approve also for auditor3
+approveForMyOrg 3
+
+## check whether the chaincode definition is ready to be committed
+## expect them both to have approved
+checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
+checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
+checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
 
 ## now that we know for sure both orgs have approved, commit the definition
-commitChaincodeDefinition 1 2
+commitChaincodeDefinition 1 2 3
 
 ## query on both orgs to see that the definition committed successfully
 queryCommitted 1
 queryCommitted 2
+queryCommitted 3
 
 ## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
 ## method defined
@@ -380,5 +414,15 @@ if [ "$CC_INIT_FCN" = "NA" ]; then
 else
 	chaincodeInvokeInit 1 2
 fi
+
+
+### Invoke and Play with chaincode
+echo "===================== Invoke Chaincode: recordEmissions ===================== "
+echo
+chaincodeInvoke '{"function":"'recordEmissions'","Args":["BigUtility","MyCompany","2020-06-01","2020-06-30","15000","KWH"]}' 1 2 3
+
+echo "===================== Invoke Chaincode: recordEmissions ===================== "
+echo
+chaincodeInvoke '{"function":"'getEmissionsData'","Args":["BigUtility","MyCompany","2020-06-01","2020-06-30"]}' 1
 
 exit 0

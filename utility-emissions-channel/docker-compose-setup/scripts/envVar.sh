@@ -32,7 +32,6 @@ setGlobals() {
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR2_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp
     export CORE_PEER_ADDRESS=localhost:8051
-
   elif [ $USING_ORG -eq 3 ]; then
     export CORE_PEER_LOCALMSPID="auditor3"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR3_CA
@@ -56,12 +55,12 @@ parsePeerConnectionParameters() {
   PEERS=""
   while [ "$#" -gt 0 ]; do
     setGlobals $1
-    PEER="peer0.org$1"
+    PEER="peer1.auditor$1"
     ## Set peer adresses
     PEERS="$PEERS $PEER"
     PEER_CONN_PARMS="$PEER_CONN_PARMS --peerAddresses $CORE_PEER_ADDRESS"
     ## Set path to TLS certificate
-    TLSINFO=$(eval echo "--tlsRootCertFiles \$PEER0_ORG$1_CA")
+    TLSINFO=$(eval echo "--tlsRootCertFiles \$PEER1_AUDITOR$1_CA")
     PEER_CONN_PARMS="$PEER_CONN_PARMS $TLSINFO"
     # shift by one to get to the next organization
     shift
