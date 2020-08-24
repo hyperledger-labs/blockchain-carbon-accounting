@@ -1,0 +1,59 @@
+{
+	"name": "first-network",
+	"version": "1.0.0",
+	"client": {
+		"tlsEnable": true,
+		"adminCredential": {
+			"id": "exploreradmin",
+			"password": "exploreradminpw"
+		},
+		"enableAuthentication": true,
+		"organization": "auditor1",
+		"connection": {
+			"timeout": {
+				"peer": {
+					"endorser": "300"
+				},
+				"orderer": "300"
+			}
+		}
+	},
+	"channels": {
+		"utilityemissionchannel": {
+			"peers": {
+				"peer1.auditor1.carbonAccounting.com": {}
+			},
+			"connection": {
+				"timeout": {
+					"peer": {
+						"endorser": "6000",
+						"eventHub": "6000",
+						"eventReg": "6000"
+					}
+				}
+			}
+		}
+	},
+	"organizations": {
+		"auditor1": {
+			"mspid": "auditor1",
+			"adminPrivateKey": {
+				"path": "/tmp/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/keystore/priv_sk"
+			},
+			"peers": [
+				"peer1.auditor1.carbonAccounting.com"
+			],
+			"signedCert": {
+				"path": "/tmp/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/signcerts/cert.pem"
+			}
+		}
+	},
+	"peers": {
+		"peer1.auditor1.carbonAccounting.com": {
+			"tlsCACerts": {
+				"path": "/tmp/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt"
+			},
+			"url": "grpcs://peer1.auditor1.carbonAccounting.com:7051"
+		}
+	}
+}
