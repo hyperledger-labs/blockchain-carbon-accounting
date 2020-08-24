@@ -1,0 +1,49 @@
+{
+    "name": "carbonAccounting-autidor${ORG}",
+    "version": "1.0.0",
+    "client": {
+        "organization": "auditor${ORG}",
+        "connection": {
+            "timeout": {
+                "peer": {
+                    "endorser": "300"
+                }
+            }
+        }
+    },
+    "organizations": {
+        "auditor${ORG}": {
+            "mspid": "auditor${ORG}",
+            "peers": [
+                "peer1.auditor${ORG}.carbonAccounting.com"
+            ],
+            "certificateAuthorities": [
+                "ca.auditor${ORG}.carbonAccounting.com"
+            ]
+        }
+    },
+    "peers": {
+        "peer1.auditor${ORG}.carbonAccounting.com": {
+            "url": "grpcs://localhost:${P0PORT}",
+            "tlsCACerts": {
+                "pem": "${PEERPEM}"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "peer1.auditor${ORG}.carbonAccounting.com",
+                "hostnameOverride": "peer1.auditor${ORG}.carbonAccounting.com"
+            }
+        }
+    },
+    "certificateAuthorities": {
+        "ca.auditor${ORG}.carbonAccounting.com": {
+            "url": "https://localhost:${CAPORT}",
+            "caName": "ca-auditor${ORG}",
+            "tlsCACerts": {
+                "pem": ["${CAPEM}"]
+            },
+            "httpOptions": {
+                "verify": false
+            }
+        }
+    }
+}

@@ -252,7 +252,7 @@ function createOrgs() {
 
     . organizations/fabric-ca/registerEnroll.sh
 
-    sleep 10
+    sleep 5
 
     echo "##########################################################"
     echo "############ Create Auditor1 Identities ##################"
@@ -277,7 +277,7 @@ function createOrgs() {
 
   # echo
   # echo "Generate CCP files for Org1 and Org2"
-  # ./organizations/ccp-generate.sh
+  ./organizations/ccp-generate.sh
 }
 
 # Once you create the organization crypto material, you need to create the
@@ -437,9 +437,9 @@ MAX_RETRY=5
 # default for delay between commands
 CLI_DELAY=3
 # channel name defaults to "mychannel"
-CHANNEL_NAME="mychannel"
+CHANNEL_NAME="utilityemissionchannel"
 # chaincode name defaults to "basic"
-CC_NAME="basic"
+CC_NAME="emissionscontract"
 # chaincode path defaults to "NA"
 CC_SRC_PATH="NA"
 # endorsement policy defaults to "NA". This would allow chaincodes to use the majority default policy.
@@ -460,15 +460,15 @@ COMPOSE_FILE_CA=docker/docker-compose-ca.yaml
 # COMPOSE_FILE_ORG3=addOrg3/docker/docker-compose-org3.yaml
 #
 # use go as the default language for chaincode
-CC_SRC_LANGUAGE="go"
+CC_SRC_LANGUAGE="javascript"
 # Chaincode version
 CC_VERSION="1.0"
 # Chaincode definition sequence
 CC_SEQUENCE=1
 # default image tag
-IMAGETAG="latest"
+IMAGETAG="2.2.0"
 # default ca image tag
-CA_IMAGETAG="latest"
+CA_IMAGETAG="1.4.8"
 # default database
 DATABASE="leveldb"
 
