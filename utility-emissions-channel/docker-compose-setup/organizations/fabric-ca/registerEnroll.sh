@@ -93,6 +93,10 @@ function createAuditor1() {
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp/config.yaml
 
+  cd ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp/keystore/
+  mv $(ls) priv_sk
+  cd -
+
   mkdir -p organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com
 
   echo
@@ -238,6 +242,10 @@ function createAuditor2() {
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/User1@auditor2.carbonAccounting.com/msp/config.yaml
 
+  cd ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/User1@auditor2.carbonAccounting.com/msp/keystore/
+  mv $(ls) priv_sk
+  cd -
+
   mkdir -p organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com
 
   echo
@@ -381,6 +389,10 @@ function createAuditor3() {
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor3.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor3.carbonAccounting.com/users/User1@auditor3.carbonAccounting.com/msp/config.yaml
+
+  cd ${PWD}/organizations/peerOrganizations/auditor3.carbonAccounting.com/users/User1@auditor3.carbonAccounting.com/msp/keystore/
+  mv $(ls) priv_sk
+  cd -
 
   mkdir -p organizations/peerOrganizations/auditor3.carbonAccounting.com/users/Admin@auditor3.carbonAccounting.com
 
