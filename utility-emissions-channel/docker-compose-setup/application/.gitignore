@@ -5,6 +5,9 @@
 # wallet
 wallet/
 
+# package-log
+package-lock.json
+
 # Logs
 logs
 *.log
