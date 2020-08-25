@@ -24,12 +24,12 @@ type Value struct {
 	ThruDate      					string `json:"thruDate"`
 	EnergUseAmount 					string `json:"energyUseAmount"`
 	EnergyUSeUom 					string `json:"energyUSeUom"`
-	CO2equivalentemissions 			string `json:"cO2equivalentemissions"`
+	CO2equivalentemissions 				string `json:"cO2equivalentemissions"`
 	NetGeneration				 	string `json:"netGeneration"`
-	Usage				 			string `json:"usage"`
-	UsageuOM				 		string `json:"usageuOM"`
+	Usage				 		string `json:"usage"`
+	UsageuOM				 	string `json:"usageuOM"`
 	NetGenerationuOM				string `json:"netGenerationuOM"`
-	CO2equivalentemissionsuOM		string `json:"eO2equivalentemissionsuOM"`
+	CO2equivalentemissionsuOM			string `json:"eO2equivalentemissionsuOM"`
 	EmissionsuOM				 	string `json:"emissionsuOM"`
 }
 
@@ -57,31 +57,6 @@ func (s *EmissionsContract) Invoke(APIstub shim.ChaincodeStubInterface) pb.Respo
 		return s.compEmissionAmount(APIstub, args)
 	}
 	return shim.Error("Invalid Chaincode function name.")
-}
-
-/* Compute Emission Amount */ 
-
-func (s *EmissionsContract) compEmissionAmount(APIstub shim.ChaincodeStubInterface, args []string) pb.Response{
-	if len(args) !=1 {
-		return shim.Error("Utility ID is required")
-	}
-
-	utilityID := args[0]
-	valuesAsBytes, _ := APIstub.GetState(args[0])
-	co2amount := Value{}
-	json.UnMarshal(valuesAsBytes, co2amount)
-
-	cO2equivalentemissions 		  := args[6]
-	netGeneration 		  		  := args[7]
-	usage				 		  := args[8]
-	usageuOM 			 		  := args[9]
-	netGenerationuOM 	 		  := args[10]
-	cO2equivalentemissionsuOM	  := args[11]
-	emissionsuOM 				  := args[12]
-
-	var emissionAmount = ((cO2equivalentemissions/netGeneration)*usage*(usageuOM/netGenerationuOM)*(cO2equivalentemissionsuOM/emissionsuOM))
-
-	return emissionAmount
 }
 
 /* InitLegder */
@@ -129,6 +104,31 @@ func (s *EmissionsContract) getEmissionRecord(APIstub shim.ChaincodeStubInterfac
 
 	valuesAsBytes, _ := APIstub.GetState(args[0])
 	return shim.Success(valuesAsBytes)
+}
+
+/* Compute Emission Amount */ 
+
+func (s *EmissionsContract) compEmissionAmount(APIstub shim.ChaincodeStubInterface, args []string) pb.Response{
+	if len(args) !=1 {
+		return shim.Error("Utility ID is required")
+	}
+
+	utilityID 		:= args[0]
+	valuesAsBytes, _ 	:= APIstub.GetState(args[0])
+	co2amount 		:= Value{}
+	json.UnMarshal(valuesAsBytes, co2amount)
+
+	cO2equivalentemissions 		  := args[6]
+	netGeneration 		  	  := args[7]
+	usage				  := args[8]
+	usageuOM 			  := args[9]
+	netGenerationuOM 	 	  := args[10]
+	cO2equivalentemissionsuOM	  := args[11]
+	emissionsuOM 			  := args[12]
+
+	var emissionAmount = ((cO2equivalentemissions/netGeneration)*usage*(usageuOM/netGenerationuOM)*(cO2equivalentemissionsuOM/emissionsuOM))
+
+	return emissionAmount
 }
 
 /* main function */
