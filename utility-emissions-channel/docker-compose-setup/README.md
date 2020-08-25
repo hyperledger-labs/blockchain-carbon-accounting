@@ -25,10 +25,10 @@ Running the Code
 1. cd to application
 2. Install npm packages: Run `npm i`
 3. Create wallet for User1 of org auditor 1: Run `node createWallet.js`
-4. Invoke chaincode (at the moment static function): 
+4. Invoke chaincode (at the moment a static function): 
 ```shell
 # Invoke chaincode 
-node invoke.js`
+node invoke.js
 
 # Should print similar output
 Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/application/wallet
