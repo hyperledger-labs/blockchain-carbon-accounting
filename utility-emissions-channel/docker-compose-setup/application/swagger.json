@@ -1,0 +1,176 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "REST-API for connecting to Carbon Accounting network of Hyperledger CA2 SIG.",
+    "version": "1.0.0",
+    "title": "Carbon Accounting",
+    "contact": {
+      "email": "r.klemens@yahoo.de"
+    }
+  },
+  "host": "localhost:9000",
+  "basePath": "/api/v1/utilityemissionchannel",
+  "tags": [
+    {
+      "name": "emissionscontract",
+      "description": "Functions related to the emissionscontract chaincode"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/emissionscontract/recordEmissions": {
+      "post": {
+        "tags": [
+          "emissionscontract"
+        ],
+        "summary": "Record emissions of utility to utilityEmissionsChannel",
+        "description": "",
+        "operationId": "recordEmissions",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Emission object to store to the blockchain",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecordEmissions"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success. Emissions recorded"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    },
+    "/emissionscontract/getEmissionsData/{utilityId}/{partyId}/{fromDate}/{thruDate}": {
+      "get": {
+        "tags": [
+          "emissionscontract"
+        ],
+        "summary": "Get emissions data of utility",
+        "description": "Get emissions data of utility by ID of party, from and thru data",
+        "operationId": "getEmissionsData",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "utilityId",
+            "in": "path",
+            "description": "ID of Utiltiy",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "description": "ID of party",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fromDate",
+            "in": "path",
+            "description": "From date of data",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "thruDate",
+            "in": "path",
+            "description": "Thru date of data",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/EmissionsData"
+            }
+          },"400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "RecordEmissions": {
+      "type": "object",
+      "properties": {
+        "utilityId": {
+          "type": "string"
+        },
+        "partyId": {
+          "type": "string"
+        },
+        "fromDate": {
+          "type": "string"
+        },
+        "thruDate": {
+          "type": "string"
+        },
+        "energyUseAmount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "energyUseUom": {
+          "type": "string"
+        }
+      }
+    },
+    "EmissionsData": {
+      "type": "object",
+      "properties": {
+        "utilityId": {
+          "type": "string"
+        },
+        "partyId": {
+          "type": "string"
+        },
+        "fromDate": {
+          "type": "string"
+        },
+        "thruDate": {
+          "type": "string"
+        },
+        "emissionsAmount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "emissionsUom": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+

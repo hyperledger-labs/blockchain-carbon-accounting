@@ -48,7 +48,12 @@ async function main() {
 
     // ###### Get Emissions Data ######
     const result = await contract.evaluateTransaction('getEmissionsData', 'MediumUtility', 'MyCompany', '2020-06-01', '2020-06-30');
-    console.log(result.toString())
+    const stringResult = result.toString('utf8')
+    const JsonResult = JSON.parse(stringResult)
+    console.log (JsonResult)
+
+
+
 
 
     // Disconnect from the gateway.

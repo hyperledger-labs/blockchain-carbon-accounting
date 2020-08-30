@@ -5,7 +5,7 @@ const fs = require('fs');
 async function createWallet() {
   const wallet = await Wallets.newFileSystemWallet("wallet");
 
-  const credPath = path.resolve(__dirname, "../organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp");
+  const credPath = path.resolve(__dirname, "../../../../organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp");
   const cert = fs.readFileSync(path.join(credPath, "signcerts/cert.pem")).toString();
   const key = fs.readFileSync(path.join(credPath, "keystore/priv_sk")).toString();
 
@@ -20,5 +20,6 @@ async function createWallet() {
   };
 
   await wallet.put(identityLabel, identity);
+  console.log("++++++++++++++ Wallet created +++++++++++++++")
 }
 createWallet();
