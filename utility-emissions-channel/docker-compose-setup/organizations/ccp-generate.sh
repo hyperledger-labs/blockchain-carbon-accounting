@@ -32,9 +32,18 @@ CAPORT=7054
 PEERPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/tlsca/tlsca.auditor1.carbonAccounting.com-cert.pem
 CAPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/ca/ca.auditor1.carbonAccounting.com-cert.pem
 
+echo "+++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++++++++++++++++"
+echo $(one_line_pem $PEERPEM)
+echo "+++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++++++++++++++++"
+echo "+++++++++++++++++++++++++++++++"
+
 echo "$(json_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json
 echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.yaml
 
+exit 1
 ORG=2
 P0PORT=8051
 CAPORT=8054
