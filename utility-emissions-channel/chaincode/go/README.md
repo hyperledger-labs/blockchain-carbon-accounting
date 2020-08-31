@@ -54,7 +54,7 @@ Get the Emission Record with specific Utility ID
 
     $minifab invoke -p '"getEmissionRecord", "UtilityX"'
 
-"X" can be from 1 to "n", where n is the sequence of Utility 
+"X" can be from 1,2,3 to "n", where n is the sequence of Utility 
 
 To compute the amount of emissions corresponding to each Utility 
 
@@ -63,4 +63,6 @@ To compute the amount of emissions corresponding to each Utility
 The amount of emission is computed as follow: 
     Calculate Emissions = Utility Emissions Factors.CO2_Equivalent_Emissions / Net_Generation * Usage * (Usage_UOM/Net_Generation_UOM) * (CO2_Equivalent_Emissions_UOM / Emissions_UOM)
 
+To get the history of transaction executed with an Utility
 
+    $minifab invoke -p '"getHistory", "UtilityX"'
