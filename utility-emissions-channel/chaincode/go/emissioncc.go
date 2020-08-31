@@ -15,25 +15,38 @@ import (
 
 /* Define the structure of Chaincode */
 
-type EmissionsContract struct {
-}
+type EmissionsContract struct {}
 
-/*Define structure of Carbon Accounting with 13 properties, these structures are used by encoding/json */
-
-type Value struct {
+// this is the input for emissions calculation
+type EmissionsCalcInput struct {
 	UtilityID                 string `json:"utilityID"`
 	PartyID                   string `json:"partyID"`
 	FromDate                  string `json:"fromDate"`
 	ThruDate                  string `json:"thruDate"`
 	EnergUseAmount            string `json:"energyUseAmount"`
-	EnergyUSeUom              string `json:"energyUSeUom"`
-	CO2equivalentemissions    string `json:"cO2equivalentemissions"`
-	NetGeneration             string `json:"netGeneration"`
-	Usage                     string `json:"usage"`
-	UsageuOM                  string `json:"usageuOM"`
-	NetGenerationuOM          string `json:"netGenerationuOM"`
-	CO2equivalentemissionsuOM string `json:"eO2equivalentemissionsuOM"`
-	EmissionsuOM              string `json:"emissionsuOM"`
+	EnergyUseUom              string `json:"energyUseUom"`
+}
+
+// this is seed data for emissions factors used to calculate emissions based on audited utility data
+type UtilityEmissionsFactors struct {
+	Year                      string `json:"year"`
+	Country                   string `json:"country"`
+	DivisionType              string `json:"divisionType"`
+	DivisionId                string `json:"divisionId"`
+	DivisionName              string `json:"divisionName"`
+	NetGeneration             float32 `json:"netGeneration"`
+	NetGenerationUOM          string `json:"netGenerationUOM"`
+	CO2EquivalentEmissions    float32 `json:"CO2EquivalentEmissions"`
+	EmissionsUOM              string `json:"emissionsUOM"`
+}
+
+// this is a lookup of utilities
+type UtilityLookup struct {
+	UtilityID                 string `json:"utilityID"`
+	Name                      string `json:"name"`
+	StateProvince             string `json:"stateProvince"`
+	Country                   string `json:"country"`
+	Division                  map[string]string
 }
 
 /* Compute Emission Amount */
@@ -69,6 +82,12 @@ func (s *EmissionsContract) Invoke(APIstub shim.ChaincodeStubInterface) pb.Respo
 
 /* InitLegder */
 func (s *EmissionsContract) initLedger(APIstub shim.ChaincodeStubInterface) pb.Response {
+
+// initial values
+// UtilityEmissionsFactors{Year: "2018", Country: "USA",  DivisionType: "NERC", DivisionId: "WECC", DivisionName: "Western Electricity Coordinating Council", NetGeneration: 743291275, NetGenerationUOM: "MWH", CO2EquivalentEmissions: 288,021,204, EmissionsUOM: "TONS"
+// UtilityLookup{UtilityID: "14328", Name: "Pacific Gas & Electric Co.", StateProvince: "CA", Country: "USA", Division["NERC"]: "WECC"}
+
+
 	values := []Value{
 		Value{UtilityID: "Utility1", PartyID: "MyCOmpany1", FromDate: "2020-01-02", ThruDate: "2020-20-01", EnergUseAmount: "1650", EnergyUSeUom: "KWH", CO2equivalentemissions: "2543", NetGeneration: "5362", Usage: "3067", UsageuOM: "4676", NetGenerationuOM: "4676", CO2equivalentemissionsuOM: "257", EmissionsuOM: "140"},
 		Value{UtilityID: "Utility2", PartyID: "MyCOmpany2", FromDate: "2020-01-02", ThruDate: "2020-20-01", EnergUseAmount: "1750", EnergyUSeUom: "KWH", CO2equivalentemissions: "1062", NetGeneration: "235", Usage: "328", UsageuOM: "1846", NetGenerationuOM: "1946", CO2equivalentemissionsuOM: "1338", EmissionsuOM: "484"},
@@ -140,6 +159,12 @@ func (s *EmissionsContract) compEmissionAmount(APIstub shim.ChaincodeStubInterfa
 	v5AsInt, _ := strconv.Atoi(netGenerationuOM)
 	v6AsInt, _ := strconv.Atoi(cO2equivalentemissionsuOM)
 	v7AsInt, _ := strconv.Atoi(emissionsuOM)
+
+// find UtilityEmissionsFactors from UtilityID
+// convertValues function should take value, fromUom, toUom, and return value converted from fromUom to toUom.  
+// it could be implemented as a Map [fromUom][toUom] = conversionFactor
+// For example, in this case we're converting energyUseUom in KWH to MWH so the conversion factor is 0.001
+// amount := convertValues(EmissionsCalcInput.EnergyUseAmount, EmissionsCalcInput.EnergyUseUom, UtilityEmissionsFactors.NetGenerationUOM) / UtilityEmissionsFactors.NetGeneration * UtilityEmissionsFactors.CO2EquivalentEmissions
 
 	amount := v1AsInt / v2AsInt * v3AsInt * v4AsInt / v5AsInt * v6AsInt / v7AsInt
 
