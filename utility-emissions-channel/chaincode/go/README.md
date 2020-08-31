@@ -16,7 +16,7 @@ Then, add the path to minifab to your $PATH, so you can run it from this directo
 
 Use minifabric to set up your network and channels, install, approve, commit, and initialize your chain code all in one::
 
-    $ minifab up -o auditor1.com -n emissions -l node -c utilityemissions -s couchdb
+    $ minifab up -o auditor1.com -n emissions -l go -c utilityemissions -s couchdb
 
 You can then check the status of your network with
 
