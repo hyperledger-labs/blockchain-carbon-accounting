@@ -29,6 +29,8 @@ type EmissionsCalcInput struct {
 
 // this is seed data for emissions factors used to calculate emissions based on audited utility data
 type UtilityEmissionsFactors struct {
+	UtilityID                 string `json:"utilityID"`
+	UtilityName               string `json:"utilitName"`
 	Year                      string `json:"year"`
 	Country                   string `json:"country"`
 	DivisionType              string `json:"divisionType"`
@@ -40,14 +42,6 @@ type UtilityEmissionsFactors struct {
 	EmissionsUOM              string `json:"emissionsUOM"`
 }
 
-// this is a lookup of utilities
-type UtilityLookup struct {
-	UtilityID                 string `json:"utilityID"`
-	Name                      string `json:"name"`
-	StateProvince             string `json:"stateProvince"`
-	Country                   string `json:"country"`
-	Division                  map[string]string
-}
 
 /* Compute Emission Amount */
 
@@ -83,10 +77,8 @@ func (s *EmissionsContract) Invoke(APIstub shim.ChaincodeStubInterface) pb.Respo
 /* InitLegder */
 func (s *EmissionsContract) initLedger(APIstub shim.ChaincodeStubInterface) pb.Response {
 
-// initial values
-// UtilityEmissionsFactors{Year: "2018", Country: "USA",  DivisionType: "NERC", DivisionId: "WECC", DivisionName: "Western Electricity Coordinating Council", NetGeneration: 743291275, NetGenerationUOM: "MWH", CO2EquivalentEmissions: 288,021,204, EmissionsUOM: "TONS"
-// UtilityLookup{UtilityID: "14328", Name: "Pacific Gas & Electric Co.", StateProvince: "CA", Country: "USA", Division["NERC"]: "WECC"}
-
+// initial values - we assume there is some other service which got us this emission factor reading
+// UtilityEmissionsFactors{UtilityID: "14328", Name: "Pacific Gas & Electric Co.", Year: "2018", Country: "USA",  DivisionType: "NERC", DivisionId: "WECC", DivisionName: "Western Electricity Coordinating Council", NetGeneration: 743291275, NetGenerationUOM: "MWH", CO2EquivalentEmissions: 288,021,204, EmissionsUOM: "TONS"
 
 	values := []Value{
 		Value{UtilityID: "Utility1", PartyID: "MyCOmpany1", FromDate: "2020-01-02", ThruDate: "2020-20-01", EnergUseAmount: "1650", EnergyUSeUom: "KWH", CO2equivalentemissions: "2543", NetGeneration: "5362", Usage: "3067", UsageuOM: "4676", NetGenerationuOM: "4676", CO2equivalentemissionsuOM: "257", EmissionsuOM: "140"},
@@ -160,7 +152,7 @@ func (s *EmissionsContract) compEmissionAmount(APIstub shim.ChaincodeStubInterfa
 	v6AsInt, _ := strconv.Atoi(cO2equivalentemissionsuOM)
 	v7AsInt, _ := strconv.Atoi(emissionsuOM)
 
-// find UtilityEmissionsFactors from UtilityID
+// use UtilityEmissionsFactors for the UtilityID
 // convertValues function should take value, fromUom, toUom, and return value converted from fromUom to toUom.  
 // it could be implemented as a Map [fromUom][toUom] = conversionFactor
 // For example, in this case we're converting energyUseUom in KWH to MWH so the conversion factor is 0.001
