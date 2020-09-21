@@ -41,8 +41,25 @@ yargs
   }, (argv) => {
     import_utility_identifiers(argv.file, argv)
   })
+  .command('get_emmissions_factor <utility> <thru_date>', 'get Utility Emissions Factors', (yargs) => {
+    yargs
+      .positional('utility', {
+        describe: 'the Utility Number',
+      })
+      .positional('thru_date', {
+        describe: 'name of the worksheet to load from',
+      })
+  }, (argv) => {
+    get_emmissions_factor(argv.utility, argv.thru_date, argv)
+  })
+  .option('database', {
+    alias: 'd',
+    default: DB_NAME,
+    description: 'CouchDB Database name'
+  })
   .option('username', {
     alias: 'u',
+    default: 'admin',
     description: 'CouchDB username'
   })
   .option('password', {
@@ -77,8 +94,8 @@ function connectdb(opts) {
 function initdb(opts) {
     const db = connectdb(opts);
     opts.verbose && console.log('Creating DB...');
-    db.createDatabase(DB_NAME).then(() => {
-        console.log('Created CouchDB Database: ' + DB_NAME);
+    db.createDatabase(opts.database).then(() => {
+        console.log('Created CouchDB Database: ' + opts.database);
         return;
     }, err => {
         console.error(err);
@@ -88,8 +105,8 @@ function initdb(opts) {
 function deletedb(opts) {
     const db = connectdb(opts);
     opts.verbose && console.log('Deleting DB...');
-    db.dropDatabase(DB_NAME).then(() => {
-        console.log('Deleted CouchDB Database: ' + DB_NAME);
+    db.dropDatabase(opts.database).then(() => {
+        console.log('Deleted CouchDB Database: ' + opts.database);
         return;
     }, err => {
         console.error(err);
@@ -166,7 +183,7 @@ function import_utility_emissions(file_name, opts) {
             if (!row || !row['Data Year']) return callback();
             // skip header rows
             if (row['Data Year'] == 'YEAR') return callback();
-            opts.verbose && console.log('-- Prepare to insert from ', row);
+            //opts.verbose && console.log('-- Prepare to insert from ', row);
 
             var d = {};
             d['DocType'] = 'UTILITY_EMISSION_FACTORS';
@@ -199,13 +216,12 @@ function import_utility_identifiers(file_name, opts) {
             // Utility_Name = value from 'Utility Name'
             // State_Province = value from 'State'
             // Country = USA
-            // Divisions = an array of bojects
+            // Divisions = an array of ojects
             // -- Division_type = NERC_REGION
             // -- Division_id = value from 'NERC Region'
         async.eachSeries(data, function iterator(row, callback) {
             if (!row || !row['Data Year']) return callback();
-
-            opts.verbose && console.log('-- Prepare to insert from ', row);
+            //opts.verbose && console.log('-- Prepare to insert from ', row);
 
             var d = {};
             d['DocType'] = 'UTILITY_LOOKUP';
@@ -215,11 +231,10 @@ function import_utility_identifiers(file_name, opts) {
             d['State_Province'] = row['State'];
             d['Divisions'] = [{
                 'Division_type': 'NERC_REGION',
-                'Division_id': row['NERC region']
+                'Division_id': row['NERC Region']
             }];
             // generate a unique for the row
             d['_id'] = d['DocType'] + '_' + d['Utility_Number'];
-            opts.verbose && console.log('-- TRY INSERT ', d);
 
             couchdb_insert(db, opts, d, callback);
 
@@ -228,11 +243,96 @@ function import_utility_identifiers(file_name, opts) {
     });
 }
 
+function _get_emmissions_factor(utility, thru_date, opts, cb) {
+    const db = connectdb(opts);
+    // Find Utility using #3
+    opts.verbose && console.log('Get Utility ' + utility + ' ...');
+    var utility_id = 'UTILITY_LOOKUP_' + utility;
+    db.get(opts.database, utility_id).then(({data, headers, status}) => {
+        opts.verbose && console.log('Found Utility ', data);
+        var division = null;
+        // if Division_type=BALANCING_AUTHORITY is available
+        // then Division_type = BALANCING_AUTHORITY
+        // else if Division_type=NERC_REGION is available
+        // then Division_type = NERC_REGION
+        // could have others here like COUNTRY, STATE_PROVINCE, etc.
+        if (data.Divisions && data.Divisions.length) {
+
+            division = (x => {
+                var d = x.find(e => e.Division_type == 'BALANCING_AUTHORITY');
+                if (d) return d;
+                d = x.find(e => e.Division_type == 'NERC_REGION');
+                if (d) return d;
+                return x.find(e => e.Division_type);
+            })(data.Divisions);
+            opts.verbose && console.log('-- found Utility Division = ', division);
+
+            if (division.Division_id) {
+                // extract the year from thru_date ..
+                var year = null;
+                if (typeof thru_date === 'number') {
+                    year = thru_date;
+                } else if (thru_date.length) {
+                    // for YYYY-mm-dd or YYYY-dd-mm or YYYY/mm/dd ...
+                    var r = /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/;
+                    // for reverse: mm-dd-YYYY
+                    var r2 = /^\d{1,2}[\/\-]\d{1,2}[\/\-\d{4}]$/;
+                    if (r.test(thru_date)) {
+                        year = thru_date.substring(thru_date.length-4);
+                    }
+                }
+                // Get Utility Emissions Factors from #2 with Division_type and Year of Thru_date
+                const sel = {  DocType: 'UTILITY_EMISSION_FACTORS', Division_type: division.Division_type, Division_id: division.Division_id  };
+                if (year) {
+                    sel.Year = year;
+                }
+                opts.verbose && console.log('** Query Utility Emissions Factors', sel);
+                db.mango(opts.database, {selector: sel}, {}).then(({data, headers, status}) => {
+                    opts.verbose && console.log('** Got Utility Emissions Factors for utility [' + utility + ']', status, data);
+                    if (data.docs && data.docs.length) {
+                        return cb(null, data.docs[0]);
+                    } else {
+                        opts.verbose && console.log('** No Utility Emissions Factors for utility [' + utility + '] found');
+                        return cb();
+                    }
+                }, err => {
+                    console.error('Cannot get Utility Emissions Factors for utility [' + utility + ']', err);
+                    return cb(err);
+                });
+                
+            } else {
+                return cb('Utility [' + utility + '] does not have a Division ID');
+            }
+
+        } else {
+            return cb('Utility [' + utility + '] does not have a Division Type');
+        }
+    }, err => {
+        // either request error occured
+        // ...or err.code=EDOCMISSING if document is missing
+        // ...or err.code=EUNKNOWN if statusCode is unexpected
+        console.error(err);
+        return cb('Error Getting Utility [' + utility + ']');
+    });
+}
+
+function get_emmissions_factor(utility, thru_date, opts) {
+    _get_emmissions_factor(utility, thru_date, opts, (res, err) => {
+        if (err) {
+            console.error(err);
+        } else if (res) {
+            console.log('Got Utility Emissions Factors for utility [' + utility + '] : ', res);
+        } else {
+            console.log('No Utility Emissions Factors for utility [' + utility + '] found');
+        }
+    });
+}
+
 
 function list_data(opts) {
     const db = connectdb(opts);
     opts.verbose && console.log('Listing data ...  ');
-    db.mango(DB_NAME, {selector: {}}, {}).then(({data, headers, status}) => {
+    db.mango(opts.database, {selector: {}}, {}).then(({data, headers, status}) => {
         // data is json response
         // headers is an object with all response headers
         // status is statusCode number
@@ -246,6 +346,7 @@ function list_data(opts) {
 }
 
 function _couchdb_insert(db, opts, d, callback) {
+    opts.verbose && console.log('-- TRY INSERT ', d);
     db.insert(DB_NAME, d).then(({data, headers, status}) => {
         // data is json response
         // headers is an object with all response headers
