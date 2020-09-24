@@ -47,5 +47,5 @@ Query for CO2 emssions factor for a given utility given the usage, for example::
 
     $ node index.js get_co2_emissions 34 2018 1500 -u <couchdb_username> -p <couchdb_password>
     
-    $ node index.js get_emmissions_factor 11208 2018 -u <couchdb_username> -p <couchdb_password>
+    $ node index.js get_co2_emissions 11208 2018 3000 MWh KG -u <couchdb_username> -p <couchdb_password>
 
