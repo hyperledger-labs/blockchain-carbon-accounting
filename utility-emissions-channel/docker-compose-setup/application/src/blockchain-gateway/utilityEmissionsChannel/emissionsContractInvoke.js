@@ -64,7 +64,7 @@ async function recordEmissions(utilityId, partyId, fromDate, thruDate, energyUse
 
   } catch (error) {
     console.error(`Failed to submit transaction: ${error}`);
-    process.exit(1);
+    //process.exit(1);
   }
 }
 
@@ -124,7 +124,7 @@ async function getEmissionsData(utilityId, partyId, fromDate, thruDate) {
     return result;
   } catch (error) {
     console.error(`Failed to evaluate transaction: ${error}`);
-    process.exit(1);
+    //process.exit(1);
   }
 }
 
