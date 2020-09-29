@@ -4,38 +4,39 @@
 
 "use strict";
 
-const { Gateway, Wallets } = require("fabric-network");
-const path = require("path");
-const fs = require('fs')
 
-async function recordEmissions(utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
+const { Gateway, Wallets } = require('fabric-network');
+const FabricCAServices = require('fabric-ca-client');
+const path = require('path');
+const { setOrgDataCA } = require('../utils/caUtils.js');
+const { buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3, buildWallet, setWalletPathByOrg } = require('../utils/gatewayUtils.js');
+
+async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
+  
   try {
-    // Create a new file system based wallet for managing identities.
-    const walletPath = path.join(process.cwd(), "wallet");
-    const wallet = await Wallets.newFileSystemWallet(walletPath);
+    let response = "";
 
-    // Check to see if we've already enrolled the user.
-    const identity = await wallet.get("User1@auditor1.carbonAccounting.com");
-    if (!identity) {
-      console.log(
-        'An identity for the user "User1" does not exist in the wallet'
-      );
-      console.log("Register user before retrying");
-      return;
-    }
+    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
-    const connectionProfileJson = (await fs.promises.readFile('../organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json')).toString();
-    const connectionProfile = JSON.parse(connectionProfileJson, 'utf8');
+    const walletPath = setWalletPathByOrg(orgName);
+    console.log("+++++++++++++++++ Walletpath: " + walletPath)
+    const wallet = await buildWallet(Wallets, walletPath);
+
     const gateway = new Gateway();
+    
     try {
-      await gateway.connect(connectionProfile, {
+      await gateway.connect(ccp, {
         wallet,
-        identity: "User1@auditor1.carbonAccounting.com",
+        identity: userId,
         discovery: { "enabled": true, "asLocalhost": true }
       });
+
+      
     }
     catch (err) {
-      console.log("ERROR: " + err)
+      response = `ERROR: ${err}`
+      console.log(response)
+      return response
     }
 
     const network = await gateway.getNetwork('utilityemissionchannel');
@@ -48,6 +49,7 @@ async function recordEmissions(utilityId, partyId, fromDate, thruDate, energyUse
     // TODO: Add contract listener to wait for event of chaincode. 
 
     // Disconnect from the gateway.
+    // finally --> {}
     await gateway.disconnect();
 
     // Return result
@@ -63,40 +65,43 @@ async function recordEmissions(utilityId, partyId, fromDate, thruDate, energyUse
     return result;
 
   } catch (error) {
+    let result = new Object(); 
+    result["info"] = `Failed to submit transaction: ${error}`;
+    result["utilityId"] = utilityId;
+    result["partyId"] = partyId;
+    result["fromDate"] = fromDate;
+    result["thruDate"] = thruDate;
+    result["energyUseAmount"] = energyUseAmount;
+    result["energyUseUom"] = energyUseUom;
     console.error(`Failed to submit transaction: ${error}`);
-    process.exit(1);
+    console.log(result)
+    return result
+    // process.exit(1);
   }
 }
 
 
-async function getEmissionsData(utilityId, partyId, fromDate, thruDate) {
+async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, thruDate) {
   try {
-    // Create a new file system based wallet for managing identities.
-    const walletPath = path.join(process.cwd(), "wallet");
-    const wallet = await Wallets.newFileSystemWallet(walletPath);
+    let response = "";
+    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
-    // Check to see if we've already enrolled the user.
-    const identity = await wallet.get("User1@auditor1.carbonAccounting.com");
-    if (!identity) {
-      console.log(
-        'An identity for the user "User1" does not exist in the wallet'
-      );
-      console.log("Register user before retrying");
-      return;
-    }
+    const walletPath = setWalletPathByOrg(orgName);
+    console.log("+++++++++++++++++ Walletpath: " + walletPath)
+    const wallet = await buildWallet(Wallets, walletPath);
 
-    const connectionProfileJson = (await fs.promises.readFile('../organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json')).toString();
-    const connectionProfile = JSON.parse(connectionProfileJson, 'utf8');
     const gateway = new Gateway();
     try {
-      await gateway.connect(connectionProfile, {
+      await gateway.connect(ccp, {
         wallet,
-        identity: "User1@auditor1.carbonAccounting.com",
+        identity: userId,
         discovery: { "enabled": true, "asLocalhost": true }
       });
     }
     catch (err) {
-      console.log("ERROR: " + err)
+      response = `ERROR: ${err}`
+      console.log(response)
+      return response
     }
 
     const network = await gateway.getNetwork('utilityemissionchannel');
@@ -123,8 +128,16 @@ async function getEmissionsData(utilityId, partyId, fromDate, thruDate) {
     console.log(result)
     return result;
   } catch (error) {
+    let result = new Object(); 
+    result["info"] = `Failed to evaluate transaction: ${error}`;
+    result["utilityId"] = utilityId;
+    result["partyId"] = partyId;
+    result["fromDate"] = fromDate;
+    result["thruDate"] = thruDate;
     console.error(`Failed to evaluate transaction: ${error}`);
-    process.exit(1);
+    console.log(result)
+    return result
+    // process.exit(1);
   }
 }
 

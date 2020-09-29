@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 require('dotenv').config();
 const { log } = require("./src/utils/log");
+const { registerUser } = require("./src/blockchain-gateway/utilityEmissionsChannel/registerEnroll");
 
 const app = express();
 
@@ -40,3 +41,4 @@ app.listen(PORT, function () {
  */
 
 app.use(require('./src/routers/utilityEmissionsChannel/ivokeEmissionscontract.v0.js'));
+app.use(require('./src/routers/utilityEmissionsChannel/registerEnroll.v0.js'))

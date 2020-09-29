@@ -14,6 +14,10 @@
     {
       "name": "emissionscontract",
       "description": "Functions related to the emissionscontract chaincode"
+    },
+    {
+      "name": "registerEnroll",
+      "description": "Functions to register an org admin as well as multiple users"
     }
   ],
   "schemes": [
@@ -61,7 +65,7 @@
         }
       }
     },
-    "/emissionscontract/getEmissionsData/{utilityId}/{partyId}/{fromDate}/{thruDate}": {
+    "/emissionscontract/getEmissionsData/{userId}/{orgName}/{utilityId}/{partyId}/{fromDate}/{thruDate}": {
       "get": {
         "tags": [
           "emissionscontract"
@@ -73,6 +77,20 @@
           "application/json"
         ],
         "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of User",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgName",
+            "in": "path",
+            "description": "Org that registered user",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "utilityId",
             "in": "path",
@@ -119,12 +137,100 @@
           }
         }
       }
+    },
+    "/registerEnroll/admin": {
+      "post": {
+        "tags": [
+          "registerEnroll"
+        ],
+        "summary": "Registers an org admin",
+        "description": "Only call this function once per org.",
+        "operationId": "registerOrgAdmin",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Org admin object to register org admin of ca",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterOrgAdmin"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success. Admin registered"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    },
+    "/registerEnroll/user": {
+      "post": {
+        "tags": [
+          "registerEnroll"
+        ],
+        "summary": "Registers a user.",
+        "description": "Registers a user by orgName, userId and affiliation",
+        "operationId": "registerUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User object to register",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterUser"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success. User registered"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
     }
   },
   "definitions": {
     "RecordEmissions": {
       "type": "object",
       "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "orgName": {
+          "type": "string"
+        },
         "utilityId": {
           "type": "string"
         },
@@ -149,6 +255,12 @@
     "EmissionsData": {
       "type": "object",
       "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "orgName": {
+          "type": "string"
+        },
         "utilityId": {
           "type": "string"
         },
@@ -166,6 +278,28 @@
           "format": "int32"
         },
         "emissionsUom": {
+          "type": "string"
+        }
+      }
+    },
+    "RegisterOrgAdmin": {
+      "type": "object",
+      "properties": {
+        "orgName": {
+          "type": "string"
+        }
+      }
+    },
+    "RegisterUser": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "orgName": {
+          "type": "string"
+        },
+        "affiliation": {
           "type": "string"
         }
       }
