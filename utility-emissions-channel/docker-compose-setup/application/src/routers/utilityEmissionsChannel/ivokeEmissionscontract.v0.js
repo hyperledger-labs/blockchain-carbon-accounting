@@ -13,6 +13,8 @@ const RECORD_EMISSIONS = "/api/" + APP_VERSION + "/utilityemissionchannel/emissi
 router.post(
   RECORD_EMISSIONS,
   [
+    body("userId").isString(),
+    body("orgName").isString(),
     body("utilityId").isString(),
     body("partyId").isString(),
     body("fromDate").isString(),
@@ -26,6 +28,8 @@ router.post(
       return res.status(412).json({ errors: errors.array() });
     }
     try {
+      const userId = req.body.userId;
+      const orgName = req.body.orgName;
       const utilityId = req.body.utilityId;
       const partyId = req.body.partyId;
       const fromDate = req.body.fromDate;
@@ -39,6 +43,8 @@ router.post(
 
       // Record Emission to utilityEmissions Channel
       const blockchainResponse = await emissionsContractInvoke.recordEmissions(
+        userId,
+        orgName,
         utilityId,
         partyId,
         fromDate,
@@ -62,10 +68,12 @@ router.post(
 
 // http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/getEmissionsData/:utilityId/:partyId/:fromDate/:thruDate";
 
-const GET_EMISSIONS_DATA = "/api/" + APP_VERSION + "/utilityemissionchannel/emissionscontract/getEmissionsData/:utilityId/:partyId/:fromDate/:thruDate";
+const GET_EMISSIONS_DATA = "/api/" + APP_VERSION + "/utilityemissionchannel/emissionscontract/getEmissionsData/:userId/:orgName/:utilityId/:partyId/:fromDate/:thruDate";
 router.get(
   GET_EMISSIONS_DATA,
   [
+    param("userId").isString(),
+    param("orgName").isString(),
     param("utilityId").isString(),
     param("partyId").isString(),
     param("fromDate").isString(),
@@ -77,6 +85,8 @@ router.get(
       return res.status(412).json({ errors: errors.array() });
     }
     try {
+      const userId = req.params.userId;
+      const orgName = req.params.orgName;
       const utilityId = req.params.utilityId;
       const partyId = req.params.partyId;
       const fromDate = req.params.fromDate;
@@ -88,6 +98,8 @@ router.get(
 
       // Get Emmission Data from utilityEmissions Channel 
       const blockchainResponse = await emissionsContractInvoke.getEmissionsData(
+        userId, 
+        orgName,
         utilityId,
         partyId,
         fromDate,
