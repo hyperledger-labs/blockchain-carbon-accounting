@@ -33,9 +33,13 @@ exports.get_year_from_date = function(date) {
         // for YYYY-mm-dd or YYYY-dd-mm or YYYY/mm/dd ...
         var r = /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/;
         // for reverse: mm-dd-YYYY
-        var r2 = /^\d{1,2}[\/\-]\d{1,2}[\/\-\d{4}]$/;
+        var r2 = /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}$/;
         if (r.test(date)) {
+            year = date.substring(0,4);
+        } else if (r2.test(date)) {
             year = date.substring(date.length-4);
+        } else {
+            year = Number(date);
         }
     }
     return year;
@@ -45,62 +49,62 @@ exports.get_year_from_date = function(date) {
 exports.get_emmissions_factor = function(db, utility, thru_date, opts) {
     // Find Utility using #3
     opts.verbose && console.log('Get Utility ' + utility + ' ...');
-    var utility_id = 'UTILITY_LOOKUP_' + utility;
     return new Promise(function(resolve, reject) {
-        db.get(opts.database, utility_id).then(({data, headers, status}) => {
+        db.getItem({ TableName: 'UTILITY_LOOKUP', Key: {'_id' : { S : ''+utility } } }, function(err, data) {
+            if (err) {
+                console.error(err);
+                return reject('Error Getting Utility [' + utility + ']');
+            }
             opts.verbose && console.log('Found Utility ', data);
             var division = null;
-            // if Division_type=BALANCING_AUTHORITY is available
-            // then Division_type = BALANCING_AUTHORITY
-            // else if Division_type=NERC_REGION is available
-            // then Division_type = NERC_REGION
-            // could have others here like COUNTRY, STATE_PROVINCE, etc.
-            if (data.Divisions && data.Divisions.length) {
-
-                division = (x => {
-                    var d = x.find(e => e.Division_type == 'BALANCING_AUTHORITY');
-                    if (d) return d;
-                    d = x.find(e => e.Division_type == 'NERC_REGION');
-                    if (d) return d;
-                    return x.find(e => e.Division_type);
-                })(data.Divisions);
-                opts.verbose && console.log('-- found Utility Division = ', division);
-
-                if (division.Division_id) {
-                    // extract the year from thru_date ..
-                    var year = exports.get_year_from_date(thru_date);
-                    // Get Utility Emissions Factors from #2 with Division_type and Year of Thru_date
-                    const sel = {  DocType: 'UTILITY_EMISSION_FACTORS', Division_type: division.Division_type, Division_id: division.Division_id  };
-                    if (year) {
-                        sel.Year = year;
-                    }
-                    opts.verbose && console.log('** Query Utility Emissions Factors', sel);
-                    db.mango(opts.database, {selector: sel}, {}).then(({data, headers, status}) => {
-                        opts.verbose && console.log('** Got Utility Emissions Factors for utility [' + utility + ']', status, data);
-                        if (data.docs && data.docs.length) {
-                            return resolve(data.docs[0]);
-                        } else {
-                            opts.verbose && console.log('** No Utility Emissions Factors for utility [' + utility + '] found');
-                            return resolve();
-                        }
-                    }, err => {
-                        console.error('Cannot get Utility Emissions Factors for utility [' + utility + ']', err);
-                        return reject(err);
-                    });
-                    
-                } else {
-                    return reject('Utility [' + utility + '] does not have a Division ID');
-                }
-
-            } else {
+            if (!data.Item || !data.Item.Divisions) {
                 return reject('Utility [' + utility + '] does not have a Division Type');
             }
-        }, err => {
-            // either request error occured
-            // ...or err.code=EDOCMISSING if document is missing
-            // ...or err.code=EUNKNOWN if statusCode is unexpected
-            console.error(err);
-            return reject('Error Getting Utility [' + utility + ']');
+            opts.verbose && console.log('-- found Utility Divisions = ', data.Item.Divisions);
+
+            division = data.Item.Divisions.M;
+            opts.verbose && console.log('-- found Utility Division = ', division);
+
+            if (!division.Division_id) {
+                return reject('Utility [' + utility + '] does not have a Division ID');
+            }
+            // extract the year from thru_date ..
+            var year = exports.get_year_from_date(thru_date);
+            // Get Utility Emissions Factors from #2 with Division_type and Year of Thru_date
+            var params = {
+                TableName: 'UTILITY_EMISSION_FACTORS',
+                IndexName: 'DIVISON_LOOKUP',
+                KeyConditionExpression: "Division_id = :divId and Division_type = :divType",
+                ExpressionAttributeValues: {
+                    ':divId': division.Division_id,
+                    ':divType': division.Division_type,
+                }
+            };
+            if (year) {
+                params.FilterExpression = '#y = :year';
+                params.ExpressionAttributeNames = {'#y': 'Year'};
+                params.ExpressionAttributeValues[':year'] = { 'N' : ''+year };
+            }
+            opts.verbose && console.log('** Query Utility Emissions Factors', params);
+            db.query(params, function(err, data) {
+                if (err) {
+                    console.error(err);
+                    return reject('Error Getting Utility [' + utility + ']');
+                }
+                opts.verbose && console.log('** Got Utility Emissions Factors for utility [' + utility + ']', data);
+                if (data.Items && data.Items.length) {
+                    // convert odd DynamoDB format to a "normal" JS object
+                    let res = data.Items[0];
+                    var r = {};
+                    for (var f in res) {
+                        r[f] = res[f].S || (res[f].N ? Number(res[f].N) : '');
+                    }
+                    return resolve(r);
+                } else {
+                    opts.verbose && console.log('** No Utility Emissions Factors for utility [' + utility + '] found');
+                    return resolve();
+                }
+            });
         });
     });
 }
@@ -114,7 +118,7 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
                 let Division_type = res.Division_type;
                 let usage_uom_conversion = exports.get_uom_factor(opts.usage_uom) / exports.get_uom_factor(res.Net_Generation_UOM);
                 let emissions_uom_conversion = exports.get_uom_factor(res.CO2_Equivalent_Emissions_UOM) / exports.get_uom_factor(opts.emssions_uom);
-                let Emissions = res.CO2_Equivalent_Emissions / res.Net_Generation * usage * usage_uom_conversion * emissions_uom_conversion;
+                let Emissions = Number(res.CO2_Equivalent_Emissions) / Number(res.Net_Generation) * usage * usage_uom_conversion * emissions_uom_conversion;
                 return resolve({
                     Emissions: {
                         value: Emissions,
