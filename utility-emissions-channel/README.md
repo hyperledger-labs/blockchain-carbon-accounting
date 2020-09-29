@@ -11,8 +11,8 @@ First, install [minifabric](https://github.com/litong01/minifabric).  If you're 
 
 Then, add the path to minifab to your $PATH, so you can run it from this directory.  You will need to copy your code to the minifab ``vars/`` directory::  
 
-    $ mkdir vars/chaincode/emissions/node
-    $ cp -r ~/hyperledger/blockchain-carbon-accounting/utility-emissions-channel/chaincode/node/ vars/chaincode/emissions/node/
+    $ mkdir vars/chaincode/emissions -p
+    $ cp -r chaincode/node vars/chaincode/emissions/
 
 Use minifabric to set up your network and channels, install, approve, commit, and initialize your chain code all in one::
 

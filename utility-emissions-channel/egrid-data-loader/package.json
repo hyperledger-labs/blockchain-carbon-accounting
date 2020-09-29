@@ -1,0 +1,27 @@
+{
+    "name": "egrid-data-loader",
+    "version": "0.0.1",
+    "description": "EGrid Data Loader",
+    "main": "index.js",
+    "engines": {
+        "node": ">=8",
+        "npm": ">=5"
+    },
+    "scripts": {
+        "lint": "eslint .",
+        "pretest": "npm run lint"
+    },
+    "engineStrict": true,
+    "author": "opentaps",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "async": "^3.2.0",
+        "aws-sdk": "^2.761.0",
+        "fabric-shim": "^2.0.0",
+        "xlsx": "^0.16.7",
+        "yargs": "^16.0.3"
+    },
+    "devDependencies": {
+        "eslint": "^4.19.1"
+    }
+}
