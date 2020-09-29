@@ -1,23 +1,29 @@
 const XLSX = require('xlsx');
-const NodeCouchDb = require('node-couchdb');
+const AWS = require("aws-sdk");
 const async = require('async');
-
-const DB_NAME = 'egrid_db';
-
 const yargs = require('yargs');
 
 const EmissionsCalc = require('./emissions-calc.js');
+
+const AWS_ACCESS_KEY = '...';
+const AWS_SECRET = '...';
+const AWS_REGION = 'us-east-1';
+const AWS_ENDPOINT = 'https://dynamodb.' + AWS_REGION + '.amazonaws.com';
 
 yargs
   .command('initdb', 'initialize the Database', (yargs) => {
   }, (argv) => {
     initdb(argv)
   })
-  .command('deletedb', 'initialize the Database', (yargs) => {
+  .command('deletedb', 'delete the Database', (yargs) => {
   }, (argv) => {
     deletedb(argv)
   })
-  .command('list', 'list the data from the Database', (yargs) => {
+  .command('list [table]', 'list the data from the Database', (yargs) => {
+    yargs
+      .positional('table', {
+        describe: 'the DB table to list from',
+      })
   }, (argv) => {
     list_data(argv)
   })
@@ -49,7 +55,7 @@ yargs
         describe: 'the Utility Number',
       })
       .positional('thru_date', {
-        describe: 'name of the worksheet to load from',
+        describe: 'thru date in YYYY-mm-dd, dd-mm-YYYY, YYYY/mm/dd or dd/mm/YYYY',
       })
   }, (argv) => {
     get_emmissions_factor(argv.utility, argv.thru_date, argv)
@@ -60,10 +66,10 @@ yargs
         describe: 'the Utility Number',
       })
       .positional('thru_date', {
-        describe: 'name of the worksheet to load from',
+        describe: 'thru date in YYYY-mm-dd, dd-mm-YYYY, YYYY/mm/dd or dd/mm/YYYY',
       })
       .positional('usage', {
-        describe: 'the utility usage energy',
+        describe: 'the Utility usage energy',
       })
       .positional('usage_uom', {
         describe: 'the usage unit of measure',
@@ -76,26 +82,11 @@ yargs
   }, (argv) => {
     get_co2_emissions(argv.utility, argv.thru_date, argv.usage, argv)
   })
-  .option('database', {
-    alias: 'd',
-    default: DB_NAME,
-    description: 'CouchDB Database name'
-  })
-  .option('username', {
-    alias: 'u',
-    default: 'admin',
-    description: 'CouchDB username'
-  })
-  .option('password', {
-    alias: 'p',
-    description: 'CouchDB password'
-  })
   .option('verbose', {
     alias: 'v',
     type: 'boolean',
     description: 'Run with verbose logging'
   })
-  .demandOption(['u','p'])
   .demandCommand()
   .recommendCommands()
   .showHelpOnFail(true)
@@ -104,36 +95,140 @@ yargs
 
 
 function connectdb(opts) {
-    opts.verbose && console.log('Connecting to CouchDB ...');
-    const db = new NodeCouchDb({
-        auth: {
-            user: opts.username,
-            pass: opts.password
-        }
+    opts.verbose && console.log('Connecting to AWS DynamoDB ...');
+    AWS.config.update({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET,
+      region: AWS_REGION,
+      endpoint: AWS_ENDPOINT
     });
-    opts.verbose && console.log('Connected to CouchDB.');
+    var db = new AWS.DynamoDB();
+    opts.verbose && console.log('Connected to DynamoDB.');
     return db;
 }
 
-function initdb(opts) {
-    const db = connectdb(opts);
-    opts.verbose && console.log('Creating DB...');
-    db.createDatabase(opts.database).then(() => {
-        console.log('Created CouchDB Database: ' + opts.database);
-        return;
-    }, err => {
-        console.error(err);
+function _create_db_table(db, opts, params, updateParams) {
+
+    return new Promise(function(resolve, reject) {
+        opts.verbose && console.log("-- Creating Table " + params.TableName + " ...");
+        db.createTable(params, function(err, data) {
+            if (err) {
+                if (updateParams && err && err.code === 'ResourceInUseException') {
+                    opts.verbose && console.log("-- Table exists, running the update instead...");
+                    db.updateTable(updateParams, function(err, data) {
+                        if (err) {
+                            console.error("Unable to create table " + params.TableName + ". Error:", err);
+                            return reject(err);
+                        } else {
+                            opts.verbose && console.log("-- Updated Table description:", data);
+                            return resolve(data);
+                        }
+                    });
+                } else {
+                    console.error("Table " + params.TableName + " already exists.");
+                    return resolve();
+                }
+            } else {
+                console.log("Created table " + params.TableName + ".");
+                opts.verbose && console.log("-- Table description:", data);
+                return resolve(data);
+            }
+        });
     });
+}
+
+async function initdb(opts) {
+    const db = connectdb(opts);
+    opts.verbose && console.log('Creating DB tables...');
+
+    try {
+        await _create_db_table(db, opts, {
+            TableName: "UTILITY_EMISSION_FACTORS",
+            AttributeDefinitions: [
+                { AttributeName: "_id", AttributeType: "S" },
+                { AttributeName: "Division_id", AttributeType: "S" },
+                { AttributeName: "Division_type", AttributeType: "S" },
+            ], 
+            KeySchema: [       
+                { AttributeName: "_id", KeyType: "HASH"}
+            ],
+            BillingMode: 'PAY_PER_REQUEST',
+            GlobalSecondaryIndexes: [
+                {
+                    IndexName: 'DIVISON_LOOKUP',
+                    KeySchema: [
+                      { AttributeName: 'Division_id', KeyType: 'HASH' },
+                      { AttributeName: 'Division_type', KeyType: 'RANGE' }
+                    ],
+                    Projection: { ProjectionType: 'ALL' }
+                }
+            ]
+        }, {
+            TableName: "UTILITY_EMISSION_FACTORS",
+            AttributeDefinitions: [
+                { AttributeName: "_id", AttributeType: "S" },
+                { AttributeName: "Division_id", AttributeType: "S" },
+                { AttributeName: "Division_type", AttributeType: "S" },
+            ], 
+            BillingMode: 'PAY_PER_REQUEST',
+            GlobalSecondaryIndexUpdates: [
+                {
+                  Create:
+                    {
+                        IndexName: 'DIVISON_LOOKUP',
+                        KeySchema: [
+                          { AttributeName: 'Division_id', KeyType: 'HASH' },
+                          { AttributeName: 'Division_type', KeyType: 'RANGE' }
+                        ],
+                        Projection: { ProjectionType: 'ALL' }
+                    }
+                }
+            ]
+        });
+    } catch (err) {
+
+    }
+
+    try {
+        await _create_db_table(db, opts, {
+            TableName: "UTILITY_LOOKUP",
+            AttributeDefinitions: [
+                { AttributeName: "_id", AttributeType: "S" }
+            ], 
+            KeySchema: [       
+                { AttributeName: "_id", KeyType: "HASH"}
+            ],
+            BillingMode: 'PAY_PER_REQUEST'
+        }, {
+            TableName: "UTILITY_LOOKUP",
+            AttributeDefinitions: [
+                { AttributeName: "_id", AttributeType: "S" }
+            ], 
+            BillingMode: 'PAY_PER_REQUEST'
+        });
+    } catch (err) {
+        
+    }
 }
 
 function deletedb(opts) {
     const db = connectdb(opts);
     opts.verbose && console.log('Deleting DB...');
-    db.dropDatabase(opts.database).then(() => {
-        console.log('Deleted CouchDB Database: ' + opts.database);
-        return;
-    }, err => {
-        console.error(err);
+    db.deleteTable({TableName : "UTILITY_EMISSION_FACTORS"}, function(err, data) {
+        if (err) {
+            console.error("Unable to delete table UTILITY_EMISSION_FACTORS. Error:", err);
+        } else {
+            console.log("Deleted table UTILITY_EMISSION_FACTORS.");
+            opts.verbose && console.log("-- Table description:", data);
+        }
+    });
+    db.deleteTable({TableName : "UTILITY_LOOKUP"}, function(err, data) {
+        if (err) {
+            console.error("Unable to delete table UTILITY_LOOKUP. Error:", err);
+        } else {
+            console.log("Deleted table UTILITY_LOOKUP.");
+            opts.verbose && console.log("-- Table description:", data);
+        }
     });
 }
 
@@ -209,23 +304,23 @@ function import_utility_emissions(file_name, opts) {
             if (row['Data Year'] == 'YEAR') return callback();
             //opts.verbose && console.log('-- Prepare to insert from ', row);
 
-            var d = {};
-            d['DocType'] = 'UTILITY_EMISSION_FACTORS';
-            d['Year'] = row['Data Year'];
-            d['Country'] = 'USA';
-            d['Division_type'] = 'NERC_REGION';
-            d['Division_id'] = row['NERC region acronym'];
-            d['Division_name'] = row['NERC region name'];
-            d['Net_Generation'] = row['NERC region annual net generation (MWh)'];
-            d['Net_Generation_UOM'] = 'MWH';
-            d['CO2_Equivalent_Emissions'] = row['NERC region annual CO2 equivalent emissions (tons)'];
-            d['CO2_Equivalent_Emissions_UOM'] = 'tons';
-            d['Source'] = 'https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip';
             // generate a unique for the row
-            var document_id = d['DocType'] + '_' + d['Country'] + '_' + d['Year'] + '_' + d['Division_type'] + '_' + d['Division_id'];
-            d['_id'] = document_id;
+            var document_id = 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
+            var d = {
+                '_id': { S : document_id },
+                'Year': { N : '' + row['Data Year'] },
+                'Country': { S : 'USA' },
+                'Division_type': { S : 'NERC_REGION' },
+                'Division_id': { S : row['NERC region acronym'] },
+                'Division_name': { S : row['NERC region name'] || '' },
+                'Net_Generation': { N : '' + row['NERC region annual net generation (MWh)'] },
+                'Net_Generation_UOM': { S : 'MWH' },
+                'CO2_Equivalent_Emissions': { N : '' + row['NERC region annual CO2 equivalent emissions (tons)'] },
+                'CO2_Equivalent_Emissions_UOM': { S : 'tons' },
+                'Source': { S : 'https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip' }
+            };
 
-            couchdb_insert(db, opts, d, callback);
+            db_insert(db, opts, {TableName: 'UTILITY_EMISSION_FACTORS', Item: d}, callback);
         });
 
     });
@@ -247,20 +342,19 @@ function import_utility_identifiers(file_name, opts) {
             if (!row || !row['Data Year']) return callback();
             //opts.verbose && console.log('-- Prepare to insert from ', row);
 
-            var d = {};
-            d['DocType'] = 'UTILITY_LOOKUP';
-            d['Utility_Number'] = row['Utility Number'];
-            d['Utility_Name'] = row['Utility Name'];
-            d['Country'] = 'USA';
-            d['State_Province'] = row['State'];
-            d['Divisions'] = [{
-                'Division_type': 'NERC_REGION',
-                'Division_id': row['NERC Region']
-            }];
-            // generate a unique for the row
-            d['_id'] = d['DocType'] + '_' + d['Utility_Number'];
+            var d = {
+                '_id' : { S : '' + row['Utility Number'] },
+                'Utility_Number' : { N : '' + row['Utility Number'] },
+                'Utility_Name' : { S : row['Utility Name'] },
+                'Country' : { S : 'USA' },
+                'State_Province' : { S : row['State'] },
+                'Divisions' : { M : {
+                    'Division_type': { S : 'NERC_REGION' },
+                    'Division_id': { S : row['NERC Region'] }
+                } }
+            }
 
-            couchdb_insert(db, opts, d, callback);
+            db_insert(db, opts, {TableName: 'UTILITY_LOOKUP', Item: d}, callback);
 
         });
 
@@ -288,43 +382,40 @@ function get_emmissions_factor(utility, thru_date, opts) {
 
 function list_data(opts) {
     const db = connectdb(opts);
-    opts.verbose && console.log('Listing data ...  ');
-    db.mango(opts.database, {selector: {}}, {}).then(({data, headers, status}) => {
-        // data is json response
-        // headers is an object with all response headers
-        // status is statusCode number
-        console.log('** ', status, data, headers);
-    }, err => {
-        // either request error occured
-        // ...or err.code=EDOCMISSING if document is missing
-        // ...or err.code=EUNKNOWN if statusCode is unexpected
-        console.error(err);
-    });
+    if (opts.table) {
+        opts.verbose && console.log('Listing data tables ...');
+        console.log('UTILITY_EMISSION_FACTORS');
+        console.log('UTILITY_LOOKUP');
+    } else {
+        opts.verbose && console.log('Listing data from [' + opts.table + '] ...');        
+    }
+    if (opts.table) {
+        db.scan({TableName: opts.table}, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else     console.log(data);           // successful response
+        });
+
+    } else {
+        db.listTables({}, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else     console.log(data);           // successful response
+        });
+    }
 }
 
-function _couchdb_insert(db, opts, d, callback) {
+function _db_insert(db, opts, d, callback) {
     opts.verbose && console.log('-- TRY INSERT ', d);
-    db.insert(DB_NAME, d).then(({data, headers, status}) => {
-        // data is json response
-        // headers is an object with all response headers
-        // status is statusCode number
-        opts.verbose && console.log('** INSERT: ', status, data, headers);
-        console.log('Imported document [' + d['_id']  + ']')
-        return callback();
-    }, err => {
-        // either request error occured
-        // ...or err.code=EDOCCONFLICT if document with the same id already exists
-        if (err.code == 'EDOCCONFLICT') {
-            console.error('Document [' + d['_id']  + '] already exists');
-        } else {
-            console.error('ERROR Inserting Document [' + d['_id']  + '] -- Retrying');
-            return callback(err);
-        }
-        return callback();
+    db.putItem(d, function(err, data) {
+         if (err) {
+             console.error("Unable to insert", d.Item._id.S, ". Error:", err);
+         } else {
+             console.log("Imported document [", d.Item._id.S + ']');
+         }
+         return callback();
     });
 }
 
-function couchdb_insert(db, opts, d, callback) {
+function db_insert(db, opts, d, callback) {
     // Note: on large imports this can overload the DB with opened file as
     // the data is written to disk, to workaround that wrap the insert into 
     // a retry loop
@@ -335,7 +426,7 @@ function couchdb_insert(db, opts, d, callback) {
       interval: function(retryCount) {
         return 50 * Math.pow(2, retryCount);
       }
-    }, cb => { _couchdb_insert(db, opts,d, cb) }, err => {
+    }, cb => { _db_insert(db, opts,d, cb) }, err => {
         if (err) console.error('ERROR Inserting Document [' + d['_id']  + ']', err);
         return callback(err);
     });
