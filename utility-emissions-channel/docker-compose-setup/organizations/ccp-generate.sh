@@ -43,7 +43,6 @@ echo "+++++++++++++++++++++++++++++++"
 echo "$(json_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json
 echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.yaml
 
-exit 1
 ORG=2
 P0PORT=8051
 CAPORT=8054

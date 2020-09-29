@@ -6,7 +6,7 @@
 
 const { Gateway, Wallets } = require("fabric-network");
 const path = require("path");
-const fs = require('fs')
+const fs = require('fs');
 
 
 async function main() {
