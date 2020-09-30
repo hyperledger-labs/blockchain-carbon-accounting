@@ -40,10 +40,12 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 ## Start Express server (REST API)
 1. cd to `docker-compose-setup/application`
 2. Install node modules: RUN `npm i` 
-3. Create wallet for User1 of org auditor 1: Run `node ./src/blockchain-gateway/utilityEmissionsChannel/createWallet.js`
-4. Start express sever:  Run `node index.js`
-5. Invoke chaincode. Go to `http://localhost:9000/api-docs/`to access swagger file from where you can interact with the `emissionscontract` chaincode.
-Note: As of 08/30/2020 the REST API a static, doesn't include a proper error handling and just works with the credentials of `User1@auditor1.carbonAccounting.com`. Contributions are welcome :)
+(Not neceasary anymore 09/29/20. Create wallet for User1 of org auditor 1: Run `node ./src/blockchain-gateway/utilityEmissionsChannel/createWallet.js`)
+3. Start express sever:  Run `node index.js`
+4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
+    --> Register org admin and users
+    --> Interact with the `emissionscontract` chaincode.
+Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
 
     
 ## Stop the blockchain network and remove container
