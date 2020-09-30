@@ -7,11 +7,11 @@ Running the Code
 
 ## Get the blockchain network up and running
 1. Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. Setup AWS credentials in and copy `egrid-data-loader/emissions-calc.js` into `chaincode/node/lib/`.
-2. cd to `docker-compose-setup`
-3. Start network: Run `./network.sh up createChannel`
-4. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`
-5. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+2. Setup AWS credentials in and copy `egrid-data-loader/emissions-calc.js` into `chaincode/node/lib/`
+3. cd to `docker-compose-setup`
+4. Start network: Run `./network.sh up createChannel`
+5. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`
+6. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
 
 
 ##### Play with the chaincode and have a look at the blockchain-explorer. 
