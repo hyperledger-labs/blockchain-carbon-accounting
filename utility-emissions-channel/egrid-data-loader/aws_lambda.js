@@ -1,35 +1,22 @@
+/**
+ * This is a sample of how to use this as a AWS Lambda function.
+ * Copy this file in the lambda index.js and copy the emissions-calc.js into a file of the same name in the lambda.
+ * Using a Lambda allows to connect it to an AWS API Gateway nad make the functionalities available as a REST api (hence the operation argument here)
+ */
+
 const AWS = require("aws-sdk");
 
 const EmissionsCalc = require('./emissions-calc.js');
 
-const AWS_ACCESS_KEY = '...';
-const AWS_SECRET = '...';
-const AWS_REGION = 'us-east-1';
-const AWS_ENDPOINT = 'https://dynamodb.' + AWS_REGION + '.amazonaws.com';
-
 const opts = {};
-
-function connectdb(opts) {
-    opts.verbose && console.log('Connecting to AWS DynamoDB ...');
-    AWS.config.update({
-      accessKeyId: AWS_ACCESS_KEY,
-      secretAccessKey: AWS_SECRET,
-      region: AWS_REGION,
-      endpoint: AWS_ENDPOINT
-    });
-    var db = new AWS.DynamoDB();
-    opts.verbose && console.log('Connected to DynamoDB.');
-    return db;
-}
 
 async function list_data(db, table) {
     return db.scan({TableName: table}).promise();
 }
 
-
 exports.handler = async (event) => {
 
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     var operation = event.operation;
     var resCode = 200;
     var res = 'Unknown error';
