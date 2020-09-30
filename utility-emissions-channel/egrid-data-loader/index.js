@@ -1,14 +1,26 @@
+/**
+ * This is to manage the Database and test the method get_co2_emissions from the command line.
+ *
+ * Start by setting up the AWS credentials by either:
+ *  - set the Environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+ *  - in emissions-calc.js for an account that has DynamoDB access.
+ *
+ * Download the eGRID2 data, for example in a data/ directory
+ * - eGRID2018_Data_v2.xlsx
+ * - Utility_Data_2019_Data_Early_Release.xlsx
+ * 
+ * - Run "node index.js initdb" to create the tables
+ * - Run "node index.js load_utility_emissions data/eGRID2018_Data_v2.xlsx NRL18" to load the utility emissions data
+ * - Run "node index.js load_utility_identifiers data/Utility_Data_2019_Data_Early_Release.xlsx" to load the utility lookup data
+ * - Run "node index.js get_co2_emissions 11208 2018-05-21 3000" to test
+ */
+
 const XLSX = require('xlsx');
 const AWS = require("aws-sdk");
 const async = require('async');
 const yargs = require('yargs');
 
 const EmissionsCalc = require('./emissions-calc.js');
-
-const AWS_ACCESS_KEY = '...';
-const AWS_SECRET = '...';
-const AWS_REGION = 'us-east-1';
-const AWS_ENDPOINT = 'https://dynamodb.' + AWS_REGION + '.amazonaws.com';
 
 yargs
   .command('initdb', 'initialize the Database', (yargs) => {
@@ -93,20 +105,6 @@ yargs
   .strict()
   .argv
 
-
-function connectdb(opts) {
-    opts.verbose && console.log('Connecting to AWS DynamoDB ...');
-    AWS.config.update({
-      accessKeyId: AWS_ACCESS_KEY,
-      secretAccessKey: AWS_SECRET,
-      region: AWS_REGION,
-      endpoint: AWS_ENDPOINT
-    });
-    var db = new AWS.DynamoDB();
-    opts.verbose && console.log('Connected to DynamoDB.');
-    return db;
-}
-
 function _create_db_table(db, opts, params, updateParams) {
 
     return new Promise(function(resolve, reject) {
@@ -138,7 +136,7 @@ function _create_db_table(db, opts, params, updateParams) {
 }
 
 async function initdb(opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     opts.verbose && console.log('Creating DB tables...');
 
     try {
@@ -212,7 +210,7 @@ async function initdb(opts) {
 }
 
 function deletedb(opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     opts.verbose && console.log('Deleting DB...');
     db.deleteTable({TableName : "UTILITY_EMISSION_FACTORS"}, function(err, data) {
         if (err) {
@@ -284,7 +282,7 @@ function parse_worksheet(file_name, opts, cb) {
 }
 
 function import_utility_emissions(file_name, opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     var data = parse_worksheet(file_name, opts, function(data) {
         // import data for each valid row, eg:
             // Year = 2018 from 'Data Year'
@@ -327,7 +325,7 @@ function import_utility_emissions(file_name, opts) {
 }
 
 function import_utility_identifiers(file_name, opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     opts.skip_rows = 2
     var data = parse_worksheet(file_name, opts, function(data) {
         // import data for each valid row, eg:
@@ -362,14 +360,14 @@ function import_utility_identifiers(file_name, opts) {
 }
 
 function get_co2_emissions(utility, thru_date, usage, opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     EmissionsCalc.get_co2_emissions(db, utility, thru_date, usage, opts).then(res => {
         console.log('Got Utility CO2 Emissions for ' + usage + ' ' + opts.usage_uom + ' for utility [' + utility + '] and date ' + thru_date + ': ', res);
     }).catch(err => console.error(err));
 }
 
 function get_emmissions_factor(utility, thru_date, opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     EmissionsCalc.get_emmissions_factor(db, utility, thru_date, opts).then(res => {
         if (res) {
             console.log('Got Utility Emissions Factors for utility [' + utility + '] and date ' + thru_date + ': ', res);
@@ -381,7 +379,7 @@ function get_emmissions_factor(utility, thru_date, opts) {
 
 
 function list_data(opts) {
-    const db = connectdb(opts);
+    const db = EmissionsCalc.connectdb(opts);
     if (opts.table) {
         opts.verbose && console.log('Listing data tables ...');
         console.log('UTILITY_EMISSION_FACTORS');

@@ -7,20 +7,21 @@ Running the Code
 
 ## Get the blockchain network up and running
 1. Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. cd to `docker-compose-setup`
-3. Start network: Run `./network.sh up createChannel`
-4. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`
-5. Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+2. Setup AWS credentials in and copy `egrid-data-loader/emissions-calc.js` into `chaincode/node/lib/`
+3. cd to `docker-compose-setup`
+4. Start network: Run `./network.sh up createChannel`
+5. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`
+6. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
 
 
 ##### Play with the chaincode and have a look at the blockchain-explorer. 
 1. Invoke chaincode with peer binaries
 ```shell
 # Record emission to utilityemissionchannel
-./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["SmallUtility","MyCompany","2020-06-01","2020-06-30","150","KWH"]}' 1 2 3
+./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["11208","MyCompany","2018-06-01","2018-06-30","150","KWH"]}' 1 2 3
 
 # Query emission data 
-./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["SmallUtility","MyCompany","2020-06-01","2020-06-30"]}' 1
+./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["11208","MyCompany","2018-06-01","2018-06-30"]}' 1
 ```
 2. Invoke chaincode with nodeJS
 2.1. cd to `docker-compose-setup/application`
