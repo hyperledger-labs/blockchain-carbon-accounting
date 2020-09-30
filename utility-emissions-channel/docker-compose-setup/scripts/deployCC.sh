@@ -415,14 +415,4 @@ else
 	chaincodeInvokeInit 1 2
 fi
 
-
-### Invoke and Play with chaincode
-echo "===================== Invoke Chaincode: recordEmissions ===================== "
-echo
-chaincodeInvoke '{"function":"'recordEmissions'","Args":["BigUtility","MyCompany","2020-06-01","2020-06-30","15000","KWH"]}' 1 2 3
-
-echo "===================== Invoke Chaincode: recordEmissions ===================== "
-echo
-chaincodeInvoke '{"function":"'getEmissionsData'","Args":["BigUtility","MyCompany","2020-06-01","2020-06-30"]}' 1
-
 exit 0
