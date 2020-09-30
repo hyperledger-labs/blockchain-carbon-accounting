@@ -144,7 +144,7 @@
           "registerEnroll"
         ],
         "summary": "Registers an org admin",
-        "description": "Only call this function once per org.",
+        "description": "Only call this function once per org. Three organizations are currently implemented. auditor1, auditor2, and auditor3.",
         "operationId": "registerOrgAdmin",
         "consumes": [
           "application/json"
