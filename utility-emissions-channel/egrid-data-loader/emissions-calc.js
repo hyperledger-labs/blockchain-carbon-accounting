@@ -1,3 +1,4 @@
+const AWS = require("aws-sdk");
 
 const UOM_FACTORS = {
     'wh': 1.0,
@@ -14,6 +15,26 @@ const UOM_FACTORS = {
     'mt': 1000000000.0,
     'pg': 1000000000.0,
     'gt': 1000000000000.0,
+}
+
+const AWS_ACCESS_KEY_ID = null;
+const AWS_SECRET_ACCESS_KEY = null;
+const AWS_REGION = 'us-east-1';
+const AWS_ENDPOINT = 'https://dynamodb.' + AWS_REGION + '.amazonaws.com';
+
+exports.connectdb = function(opts) {
+    opts && opts.verbose && console.log('Connecting to AWS DynamoDB ...');
+    var conf = {
+      region: AWS_REGION,
+      endpoint: AWS_ENDPOINT
+    };
+    opts && opts.verbose && console.log('Connecting to AWS DynamoDB config ', conf);
+    if (AWS_ACCESS_KEY_ID) conf.accessKeyId = AWS_ACCESS_KEY_ID;
+    if (AWS_SECRET_ACCESS_KEY) conf.secretAccessKey = AWS_SECRET_ACCESS_KEY;
+    AWS.config.update(conf);
+    var db = new AWS.DynamoDB();
+    opts && opts.verbose && console.log('Connected to DynamoDB.');
+    return db;
 }
 
 exports.get_uom_factor = function(uom) {
@@ -48,22 +69,22 @@ exports.get_year_from_date = function(date) {
 
 exports.get_emmissions_factor = function(db, utility, thru_date, opts) {
     // Find Utility using #3
-    opts.verbose && console.log('Get Utility ' + utility + ' ...');
+    opts && opts.verbose && console.log('Get Utility ' + utility + ' ...');
     return new Promise(function(resolve, reject) {
         db.getItem({ TableName: 'UTILITY_LOOKUP', Key: {'_id' : { S : ''+utility } } }, function(err, data) {
             if (err) {
                 console.error(err);
-                return reject('Error Getting Utility [' + utility + ']');
+                return reject('Error Getting Utility [' + utility + '] ' + err);
             }
-            opts.verbose && console.log('Found Utility ', data);
+            opts && opts.verbose && console.log('Found Utility ', data);
             var division = null;
             if (!data.Item || !data.Item.Divisions) {
                 return reject('Utility [' + utility + '] does not have a Division Type');
             }
-            opts.verbose && console.log('-- found Utility Divisions = ', data.Item.Divisions);
+            opts && opts.verbose && console.log('-- found Utility Divisions = ', data.Item.Divisions);
 
             division = data.Item.Divisions.M;
-            opts.verbose && console.log('-- found Utility Division = ', division);
+            opts && opts.verbose && console.log('-- found Utility Division = ', division);
 
             if (!division.Division_id) {
                 return reject('Utility [' + utility + '] does not have a Division ID');
@@ -85,13 +106,13 @@ exports.get_emmissions_factor = function(db, utility, thru_date, opts) {
                 params.ExpressionAttributeNames = {'#y': 'Year'};
                 params.ExpressionAttributeValues[':year'] = { 'N' : ''+year };
             }
-            opts.verbose && console.log('** Query Utility Emissions Factors', params);
+            opts && opts.verbose && console.log('** Query Utility Emissions Factors', params);
             db.query(params, function(err, data) {
                 if (err) {
                     console.error(err);
-                    return reject('Error Getting Utility [' + utility + ']');
+                    return reject('Error Getting Utility [' + utility + '] ' + err);
                 }
-                opts.verbose && console.log('** Got Utility Emissions Factors for utility [' + utility + ']', data);
+                opts && opts.verbose && console.log('** Got Utility Emissions Factors for utility [' + utility + ']', data);
                 if (data.Items && data.Items.length) {
                     // convert odd DynamoDB format to a "normal" JS object
                     let res = data.Items[0];
@@ -101,7 +122,7 @@ exports.get_emmissions_factor = function(db, utility, thru_date, opts) {
                     }
                     return resolve(r);
                 } else {
-                    opts.verbose && console.log('** No Utility Emissions Factors for utility [' + utility + '] found');
+                    opts && opts.verbose && console.log('** No Utility Emissions Factors for utility [' + utility + '] found');
                     return resolve();
                 }
             });
@@ -115,14 +136,18 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
     return new Promise(function(resolve, reject) {
         exports.get_emmissions_factor(db, utility, thru_date, opts).then(res => {
             if (res) {
+                let usage_uom = 'KWH';
+                if (opts && opts.usage_uom) usage_uom = opts.usage_uom;
+                let emssions_uom = 'tons';
+                if (opts && opts.emssions_uom) emssions_uom = opts.emssions_uom;
                 let Division_type = res.Division_type;
-                let usage_uom_conversion = exports.get_uom_factor(opts.usage_uom) / exports.get_uom_factor(res.Net_Generation_UOM);
-                let emissions_uom_conversion = exports.get_uom_factor(res.CO2_Equivalent_Emissions_UOM) / exports.get_uom_factor(opts.emssions_uom);
+                let usage_uom_conversion = exports.get_uom_factor(usage_uom) / exports.get_uom_factor(res.Net_Generation_UOM);
+                let emissions_uom_conversion = exports.get_uom_factor(res.CO2_Equivalent_Emissions_UOM) / exports.get_uom_factor(emssions_uom);
                 let Emissions = Number(res.CO2_Equivalent_Emissions) / Number(res.Net_Generation) * usage * usage_uom_conversion * emissions_uom_conversion;
                 return resolve({
                     Emissions: {
                         value: Emissions,
-                        uom: opts.emssions_uom
+                        uom: emssions_uom
                     },
                     Division_type: Division_type
                 });
@@ -131,7 +156,7 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
             }
         }).catch(err => {
             console.error(err)
-            return reject('Error Getting Utility Emissions Factor for [' + utility + ']');
+            return reject('Error Getting Utility Emissions Factor for [' + utility + '] ' + err);
         });
     });
 }

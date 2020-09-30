@@ -13,6 +13,9 @@ Then, add the path to minifab to your $PATH, so you can run it from this directo
 
     $ mkdir vars/chaincode/emissions -p
     $ cp -r chaincode/node vars/chaincode/emissions/
+    $ cp egrid-data-loader/emissions-calc.js vars/chaincode/emissions/node/lib/
+
+Make sure to setup the AWS credentials in `vars/chaincode/emissions/emissions-calc.js`
 
 Use minifabric to set up your network and channels, install, approve, commit, and initialize your chain code all in one::
 
@@ -37,7 +40,7 @@ You can start and stop the blockchain explorer (see [minifabric - Hook up Explor
 
 Then try running it
 
-    $ minifab invoke -p '"recordEmissions", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30", "15000", "KWH"'
-    $ minifab invoke -p '"getEmissionsData", "BigUtility", "MyCompany", "2020-06-01", "2020-06-30"'
+    $ minifab invoke -p '"recordEmissions", "11208", "MyCompany", "2018-06-01", "2018-06-30", "15000", "KWH"'
+    $ minifab invoke -p '"getEmissionsData", "11208", "MyCompany", "2018-06-01", "2018-06-30"'
  
  
