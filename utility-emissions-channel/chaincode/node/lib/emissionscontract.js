@@ -10,7 +10,7 @@ const { Contract, Context } = require('fabric-contract-api');
 // EmissionsRecord specifc classes
 const EmissionsRecord = require('./emissions.js');
 const EmissionsList = require('./emissionslist.js');
-const https = require('https');
+const EmissionsCalc = require('./emissions-calc.js');
 
 /**
  * A custom context provides easy access to list of all emissions records
@@ -52,38 +52,6 @@ class EmissionsRecordContract extends Contract {
         console.log('Initializing the contract');
     }
 
-    async get_co2_emissions(utilityId, thruDate, energyUseAmount, energyUseUom, emissionsUom) {
-
-        return new Promise(function(resolve, reject) {
-            let url = 'https://3qiouxr7yk.execute-api.us-east-1.amazonaws.com/dev/get-co2-emissions?utility=' + utilityId;
-            url += '&thru_date=' + thruDate;
-            url += '&usage=' + energyUseAmount;
-            url += '&emssions_uom=' + emissionsUom;
-            url += '&usage_uom=' + energyUseUom;
-            https.get(url, (resp) => {
-              let data = '';
-
-              // A chunk of data has been recieved.
-              resp.on('data', (chunk) => {
-                data += chunk;
-              });
-
-              // The whole response has been received. Print out the result.
-              resp.on('end', () => {
-                let d = JSON.parse(data);
-                if (d.statusCode === 200) {
-                    return resolve(d.body);
-                } else {
-                    return reject(JSON.stringify(d));
-                }
-              });
-
-            }).on("error", (err) => {
-              return reject(JSON.stringify(err));
-            });
-        });
-    }
-
     /**
      * Store the emissions record
      *
@@ -101,7 +69,8 @@ class EmissionsRecordContract extends Contract {
         var emissionsUom = "TONS";
 
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
-        let calc = await this.get_co2_emissions(utilityId, thruDate, energyUseAmount, energyUseUom, emissionsUom);
+        const db = EmissionsCalc.connectdb();
+        let calc = await EmissionsCalc.get_co2_emissions(db, utilityId, thruDate, energyUseAmount, {usage_uom: energyUseUom, emssions_uom: emissionsUom});
         var emissionsAmount = calc.Emissions.value;
         
         // create an instance of the emissions record
