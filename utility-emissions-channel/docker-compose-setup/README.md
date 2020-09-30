@@ -44,8 +44,9 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 (Not neceasary anymore 09/29/20. Create wallet for User1 of org auditor 1: Run `node ./src/blockchain-gateway/utilityEmissionsChannel/createWallet.js`)
 3. Start express sever:  Run `node index.js`
 4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
-    --> Register org admin and users
-    --> Interact with the `emissionscontract` chaincode.
+5. Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
+6. Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
+7. Interact with the `emissionscontract` chaincode.
 Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
 
     
