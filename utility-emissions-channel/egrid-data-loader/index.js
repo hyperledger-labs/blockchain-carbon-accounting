@@ -1,9 +1,8 @@
 /**
  * This is to manage the Database and test the method get_co2_emissions from the command line.
  *
- * Start by setting up the AWS credentials by either:
- *  - set the Environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
- *  - in emissions-calc.js for an account that has DynamoDB access.
+ * Start by setting up the AWS credentials
+ *  - in ../chaincode/node/lib/aws-config.js for an account that has DynamoDB access.
  *
  * Download the eGRID2 data, for example in a data/ directory
  * - eGRID2018_Data_v2.xlsx
@@ -20,7 +19,7 @@ const AWS = require("aws-sdk");
 const async = require('async');
 const yargs = require('yargs');
 
-const EmissionsCalc = require('./emissions-calc.js');
+const EmissionsCalc = require('../chaincode/node/lib/emissions-calc.js');
 
 yargs
   .command('initdb', 'initialize the Database', (yargs) => {
@@ -136,7 +135,7 @@ function _create_db_table(db, opts, params, updateParams) {
 }
 
 async function initdb(opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     opts.verbose && console.log('Creating DB tables...');
 
     try {
@@ -210,7 +209,7 @@ async function initdb(opts) {
 }
 
 function deletedb(opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     opts.verbose && console.log('Deleting DB...');
     db.deleteTable({TableName : "UTILITY_EMISSION_FACTORS"}, function(err, data) {
         if (err) {
@@ -282,7 +281,7 @@ function parse_worksheet(file_name, opts, cb) {
 }
 
 function import_utility_emissions(file_name, opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     var data = parse_worksheet(file_name, opts, function(data) {
         // import data for each valid row, eg:
             // Year = 2018 from 'Data Year'
@@ -325,7 +324,7 @@ function import_utility_emissions(file_name, opts) {
 }
 
 function import_utility_identifiers(file_name, opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     opts.skip_rows = 2
     var data = parse_worksheet(file_name, opts, function(data) {
         // import data for each valid row, eg:
@@ -360,14 +359,14 @@ function import_utility_identifiers(file_name, opts) {
 }
 
 function get_co2_emissions(utility, thru_date, usage, opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     EmissionsCalc.get_co2_emissions(db, utility, thru_date, usage, opts).then(res => {
         console.log('Got Utility CO2 Emissions for ' + usage + ' ' + opts.usage_uom + ' for utility [' + utility + '] and date ' + thru_date + ': ', res);
     }).catch(err => console.error(err));
 }
 
 function get_emmissions_factor(utility, thru_date, opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     EmissionsCalc.get_emmissions_factor(db, utility, thru_date, opts).then(res => {
         if (res) {
             console.log('Got Utility Emissions Factors for utility [' + utility + '] and date ' + thru_date + ': ', res);
@@ -379,7 +378,7 @@ function get_emmissions_factor(utility, thru_date, opts) {
 
 
 function list_data(opts) {
-    const db = EmissionsCalc.connectdb(opts);
+    const db = EmissionsCalc.connectdb(AWS, opts);
     if (opts.table) {
         opts.verbose && console.log('Listing data tables ...');
         console.log('UTILITY_EMISSION_FACTORS');
