@@ -2,46 +2,19 @@
 
 This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) use case.
 
+Loading the Data
+================
+
+You will need to use Amazon DynamoDB to load the utility emissions factor data.  Set up an Amazon AWS account with DynamoDB access.  Then follow the 
+steps in ``egrid-data-loader/README.md``
+
 Running the Code
 ================
 
-This example uses the Node.js chaincode.  You can change it to the Go version by changing ``node`` to ``go`` in the commands below and copying the code from the right directory.
-
-First, install [minifabric](https://github.com/litong01/minifabric).  If you're new to minifabric, these [training videos](https://www.youtube.com/playlist?list=PL0MZ85B_96CExhq0YdHLPS5cmSBvSmwyO) are very helpful for getting familiar with it.
-
-Make sure to setup the AWS credentials in `chaincode/node/lib/aws-config.js`::
+Create a file in `chaincode/node/lib/aws-config.js` and paste your credentials there::
     exports.AWS_ACCESS_KEY_ID = 'your_access_key';
     exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
 
-Then, add the path to minifab to your $PATH, so you can run it from this directory.  You will need to copy your code to the minifab ``vars/`` directory::  
-
-    $ mkdir vars/chaincode/emissions -p
-    $ cp -r chaincode/node vars/chaincode/emissions/
-
-Use minifabric to set up your network and channels, install, approve, commit, and initialize your chain code all in one::
-
-    $ minifab up -o auditor1.com -n emissions -l node -c utilityemissions -s couchdb
-
-You can then check the status of your network with
-
-    $ minifab stats
-
-See all your docker contains
-
-    $ docker ps
-
-This will create your channel configuration file in ``./vars/utilityemissions_config.json``
-
-    $ minifab channelquery
-
-You can start and stop the blockchain explorer (see [minifabric - Hook up Explorer to your fabric network](https://github.com/litong01/minifabric/blob/master/docs/README.md#explorer-your-fabric-network))
-
-    $ minifab explorerup
-    $ minifab explorerdown
-
-Then try running it
-
-    $ minifab invoke -p '"recordEmissions", "11208", "MyCompany", "2018-06-01", "2018-06-30", "15000", "KWH"'
-    $ minifab invoke -p '"getEmissionsData", "11208", "MyCompany", "2018-06-01", "2018-06-30"'
+Follow the steps in ``docker-compose-setup/README.md``
  
  
