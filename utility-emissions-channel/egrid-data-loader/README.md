@@ -1,12 +1,10 @@
 # egrid-data-loader
 
-This project imports the Data from https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip into a local CouchDB.
+This project imports the Data from https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip into Amazon DynamoDB.
 
 
 Requirements
 ============
-
-You must have a CouchDB running locally and know the username and passord setup in local.ini
 
 Install the dependencies with `npm`::
 
@@ -16,7 +14,9 @@ Install the dependencies with `npm`::
 Running the Code
 ================
 
-Setup AWS credentials (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) for DynamoDB in `emissions-calc.js`.  
+Make sure to setup the AWS credentials in `chaincode/node/lib/aws-config.js`::
+    exports.AWS_ACCESS_KEY_ID = 'your_access_key';
+    exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
 
 Initialize the database::  
 
@@ -35,7 +35,7 @@ Download the utility identifiers from https://www.eia.gov/electricity/data/eia86
 
     $ node index.js load_utility_identifiers Utility_Data_2019_Data_Early_Release.xlsx
 
-See the data that was loaded in CouchDB::
+See the data that was loaded::
 
     $ node index.js list
 

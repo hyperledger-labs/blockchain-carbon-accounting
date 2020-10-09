@@ -1,5 +1,3 @@
-const AWS = require("aws-sdk");
-
 const UOM_FACTORS = {
     'wh': 1.0,
     'kwh': 1000.0,
@@ -17,20 +15,20 @@ const UOM_FACTORS = {
     'gt': 1000000000000.0,
 }
 
-const AWS_ACCESS_KEY_ID = null;
-const AWS_SECRET_ACCESS_KEY = null;
-const AWS_REGION = 'us-east-1';
+const AWS_CONFIG = require('./aws-config');
+
+const AWS_REGION = AWS_CONFIG.AWS_REGION || 'us-east-1';
 const AWS_ENDPOINT = 'https://dynamodb.' + AWS_REGION + '.amazonaws.com';
 
-exports.connectdb = function(opts) {
+exports.connectdb = function(AWS, opts) {
     opts && opts.verbose && console.log('Connecting to AWS DynamoDB ...');
     var conf = {
       region: AWS_REGION,
       endpoint: AWS_ENDPOINT
     };
     opts && opts.verbose && console.log('Connecting to AWS DynamoDB config ', conf);
-    if (AWS_ACCESS_KEY_ID) conf.accessKeyId = AWS_ACCESS_KEY_ID;
-    if (AWS_SECRET_ACCESS_KEY) conf.secretAccessKey = AWS_SECRET_ACCESS_KEY;
+    if (AWS_CONFIG.AWS_ACCESS_KEY_ID) conf.accessKeyId = AWS_CONFIG.AWS_ACCESS_KEY_ID;
+    if (AWS_CONFIG.AWS_SECRET_ACCESS_KEY) conf.secretAccessKey = AWS_CONFIG.AWS_SECRET_ACCESS_KEY;
     AWS.config.update(conf);
     var db = new AWS.DynamoDB();
     opts && opts.verbose && console.log('Connected to DynamoDB.');
