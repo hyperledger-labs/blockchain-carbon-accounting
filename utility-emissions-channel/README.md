@@ -9,13 +9,14 @@ This example uses the Node.js chaincode.  You can change it to the Go version by
 
 First, install [minifabric](https://github.com/litong01/minifabric).  If you're new to minifabric, these [training videos](https://www.youtube.com/playlist?list=PL0MZ85B_96CExhq0YdHLPS5cmSBvSmwyO) are very helpful for getting familiar with it.
 
+Make sure to setup the AWS credentials in `chaincode/node/lib/aws-config.js`::
+    exports.AWS_ACCESS_KEY_ID = 'your_access_key';
+    exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
+
 Then, add the path to minifab to your $PATH, so you can run it from this directory.  You will need to copy your code to the minifab ``vars/`` directory::  
 
     $ mkdir vars/chaincode/emissions -p
     $ cp -r chaincode/node vars/chaincode/emissions/
-    $ cp egrid-data-loader/emissions-calc.js vars/chaincode/emissions/node/lib/
-
-Make sure to setup the AWS credentials in `vars/chaincode/emissions/emissions-calc.js`
 
 Use minifabric to set up your network and channels, install, approve, commit, and initialize your chain code all in one::
 
