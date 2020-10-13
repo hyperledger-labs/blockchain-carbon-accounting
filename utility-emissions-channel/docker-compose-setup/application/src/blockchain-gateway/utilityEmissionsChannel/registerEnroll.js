@@ -38,8 +38,9 @@ async function registerOrgAdmin(orgName) {
         return result;
 
     } catch (error) {
-        console.error(`Failed register org admin: ${error}`);
-        process.exit(1);
+        let errorDetails = `Failed register org admin: ${error}`
+        console.error(errorDetails);
+        return errorDetails;
     }
 }
 
