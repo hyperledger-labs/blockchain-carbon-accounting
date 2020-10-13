@@ -125,6 +125,9 @@ exports.setOrgDataCA = (orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAud
             msp = "auditor3";
 			caName = "ca.auditor3.carbonAccounting.com"
 			break;
+		default:
+			throw `Requested orgName ${orgName} is not allowed.`
+			break;
 	}
 	
 	return { ccp, msp, caName }
