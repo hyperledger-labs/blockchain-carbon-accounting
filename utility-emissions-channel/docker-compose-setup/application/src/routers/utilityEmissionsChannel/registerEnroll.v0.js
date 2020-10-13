@@ -83,6 +83,8 @@ router.post(
     } catch (e) {
       res.status(400).send(e);
       log("error", "DONE.");
+    } finally {
+      process.exit(1);
     }
   }
 );
