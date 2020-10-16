@@ -110,7 +110,7 @@ async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, t
 
     // ###### Get Emissions Data ######
     const blockchainResult = await contract.evaluateTransaction('getEmissionsData', utilityId, partyId, fromDate, thruDate);
-    const stringResult = blockchainResult.toString('utf8')
+    const stringResult = JSON.stringify(blockchainResult)
     const jsonResult = JSON.parse(stringResult)
 
     // Disconnect from the gateway.
