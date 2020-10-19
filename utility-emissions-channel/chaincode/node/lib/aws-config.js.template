@@ -1,2 +1,2 @@
-exports.AWS_ACCESS_KEY_ID = 'AKIA3AVEA5HCVRN3XOUP';
-exports.AWS_SECRET_ACCESS_KEY = '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';
+exports.AWS_ACCESS_KEY_ID = '';
+exports.AWS_SECRET_ACCESS_KEY = '';
