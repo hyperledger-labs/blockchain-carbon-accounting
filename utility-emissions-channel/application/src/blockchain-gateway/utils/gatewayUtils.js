@@ -9,7 +9,7 @@ const path = require('path');
 
 exports.buildCCPAuditor1 = () => {
 	// load the common connection configuration file
-	const ccpPath = path.resolve(__dirname, '..', '..', '..', '..', 'organizations', 'peerOrganizations', 'auditor1.carbonAccounting.com', 'connection-auditor1.json');
+	const ccpPath = path.resolve(__dirname, '..', '..', '..', '..', 'docker-compose-setup', 'organizations', 'peerOrganizations', 'auditor1.carbonAccounting.com', 'connection-auditor1.json');
 	const fileExists = fs.existsSync(ccpPath);
 	if (!fileExists) {
 		throw new Error(`no such file or directory: ${ccpPath}`);
@@ -26,7 +26,7 @@ exports.buildCCPAuditor1 = () => {
 exports.buildCCPAuditor2 = () => {
 	console.log("++++++++++++++++++++++++++++")
 	// load the common connection configuration file
-	const ccpPath = path.resolve(__dirname, '..', '..', '..', '..', 'organizations', 'peerOrganizations', 'auditor2.carbonAccounting.com', 'connection-auditor2.json')
+	const ccpPath = path.resolve(__dirname, '..', '..', '..', '..', 'docker-compose-setup', 'organizations', 'peerOrganizations', 'auditor2.carbonAccounting.com', 'connection-auditor2.json')
 	
 	const fileExists = fs.existsSync(ccpPath);
 	if (!fileExists) {
@@ -45,7 +45,7 @@ exports.buildCCPAuditor2 = () => {
 
 exports.buildCCPAuditor3 = () => {
 	// load the common connection configuration file
-	const ccpPath = path.resolve(__dirname, '..', '..', '..', '..', 'organizations', 'peerOrganizations', 'auditor3.carbonAccounting.com', 'connection-auditor3.json')
+	const ccpPath = path.resolve(__dirname, '..', '..', '..', '..', 'docker-compose-setup','organizations', 'peerOrganizations', 'auditor3.carbonAccounting.com', 'connection-auditor3.json')
 	const fileExists = fs.existsSync(ccpPath);
 	if (!fileExists) {
 		throw new Error(`no such file or directory: ${ccpPath}`);

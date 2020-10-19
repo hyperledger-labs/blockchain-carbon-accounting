@@ -31,7 +31,7 @@ function printHelp() {
   echo "    Used with "$'\e[0;32m'network.sh deployCC$'\e[0m'
   echo "    -c <channel name> - deploy chaincode to channel"
   echo "    -ccn <name> - the short name of the chaincode to deploy: basic (default),ledger, private, secured"
-  echo "    -ccl <language> - the programming language of the chaincode to deploy: go (default), java, javascript, typescript"
+  echo "    -ccl <language> - the programming language of the chaincode to deploy: go, java, javascript (default), typescript"
   echo "    -ccv <version>  - chaincode version. 1.0 (default)"
   echo "    -ccs <sequence>  - chaincode definition sequence. Must be an integer, 1 (default), 2, 3, etc"
   echo "    -ccp <path>  - Optional, path to the chaincode. When provided the -ccn will be used as the deployed name and not the short name of the known chaincodes."
@@ -47,6 +47,7 @@ function printHelp() {
   echo "   "$'\e[0;32m'createChannel$'\e[0m' -c -r -d -verbose
   echo "   "$'\e[0;32m'deployCC$'\e[0m' -ccn -ccl -ccv -ccs -ccp -cci -r -d -verbose
   echo "   "$'\e[0;32m'startBlockchainExplorer$'\e[0m'
+  echo "   "$'\e[0;32m'stopBlockchainExplorer$'\e[0m'
   echo
   echo " Taking all defaults:"
   echo "   network.sh up"
@@ -57,6 +58,7 @@ function printHelp() {
   echo "   network.sh deployCC -ccn basic -ccl javascript"
   echo "   network.sh deployCC -ccn mychaincode -ccp ./user/mychaincode -ccv 1 -ccl javascript"
   echo "   network.sh startBlockchainExplorer"
+  echo "   network.sh down"
 }
 
 # Obtain CONTAINER_IDS and remove them
@@ -415,6 +417,19 @@ function startBlockchainExplorer() {
 	echo 
 }
 
+## Stop blockchain explorer and remove docker container
+function stopBlockchainExplorer() {
+
+  COMPOSE_FILES="-f ${COMPOSE_FILE_BLOCKCHAIN_EXPLORER}"
+  docker-compose ${COMPOSE_FILES} down 2>&1
+
+  docker ps -a
+
+  echo
+	echo "===================== Blockchain Explorer stopped ===================== "
+	echo 
+}
+
 
 # Tear down running network
 function networkDown() {
@@ -623,6 +638,9 @@ elif [ "$MODE" == "deployCC" ]; then
 elif [ "$MODE" == "startBlockchainExplorer" ]; then
   echo "starting blockchain explorer at http://localhost:8080/ with username: exploreradmin and password: exploreradminpw"
   echo
+elif [ "$MODE" == "stopBlockchainExplorer" ]; then
+  echo "stopping blockchain explorer"
+  echo
 else
   printHelp
   exit 1
@@ -641,6 +659,8 @@ elif [ "${MODE}" == "restart" ]; then
   networkUp
 elif [ "${MODE}" == "startBlockchainExplorer" ]; then
   startBlockchainExplorer
+elif [ "${MODE}" == "stopBlockchainExplorer" ]; then
+  stopBlockchainExplorer
 else
   printHelp
   exit 1
