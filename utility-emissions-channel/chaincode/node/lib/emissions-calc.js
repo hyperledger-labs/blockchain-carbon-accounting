@@ -15,7 +15,7 @@ const UOM_FACTORS = {
     'gt': 1000000000000.0,
 }
 
-const AWS_CONFIG = require('./aws-config');
+const AWS_CONFIG = require('./aws-config.js.template');
 
 const AWS_REGION = AWS_CONFIG.AWS_REGION || 'us-east-1';
 const AWS_ENDPOINT = 'https://dynamodb.' + AWS_REGION + '.amazonaws.com';
