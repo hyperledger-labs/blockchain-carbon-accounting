@@ -501,9 +501,9 @@ CC_VERSION="1.0"
 # Chaincode definition sequence
 CC_SEQUENCE=1
 # default image tag
-IMAGETAG="2.2.0"
+IMAGETAG="2.2.1"
 # default ca image tag
-CA_IMAGETAG="1.4.8"
+CA_IMAGETAG="1.4.9"
 # default database
 DATABASE="couchdb"
 

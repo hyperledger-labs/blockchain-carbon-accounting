@@ -11,7 +11,7 @@ networks:
 services:
 
   ca_auditor1:
-    image: hyperledger/fabric-ca:1.4.8
+    image: hyperledger/fabric-ca:1.4.9
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-auditor1
@@ -27,7 +27,7 @@ services:
       - carbonAccounting
 
   ca_auditor2:
-    image: hyperledger/fabric-ca:1.4.8
+    image: hyperledger/fabric-ca:1.4.9
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-auditor2
@@ -43,7 +43,7 @@ services:
       - carbonAccounting
 
   ca_auditor3:
-    image: hyperledger/fabric-ca:1.4.8
+    image: hyperledger/fabric-ca:1.4.9
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca-auditor3
