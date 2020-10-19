@@ -7,7 +7,9 @@ Running the Code
 
 ## Get the blockchain network up and running
 1. Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. Setup AWS credentials in and copy `egrid-data-loader/emissions-calc.js` into `chaincode/node/lib/`
+2. Setup AWS credentials in `chaincode/node/lib/aws-config.js`::
+    exports.AWS_ACCESS_KEY_ID = 'your_access_key';
+    exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
 3. cd to `docker-compose-setup`
 4. Start network: Run `./network.sh up createChannel`
 5. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`

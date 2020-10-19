@@ -3,6 +3,7 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 'use strict';
+const AWS = require("aws-sdk");
 
 // Fabric smart contract classes
 const { Contract, Context } = require('fabric-contract-api');
@@ -69,7 +70,7 @@ class EmissionsRecordContract extends Contract {
         var emissionsUom = "TONS";
 
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
-        const db = EmissionsCalc.connectdb();
+        const db = EmissionsCalc.connectdb(AWS);
         let calc = await EmissionsCalc.get_co2_emissions(db, utilityId, thruDate, energyUseAmount, {usage_uom: energyUseUom, emssions_uom: emissionsUom});
         var emissionsAmount = calc.Emissions.value;
         
