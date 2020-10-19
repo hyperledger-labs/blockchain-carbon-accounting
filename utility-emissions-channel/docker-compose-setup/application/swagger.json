@@ -286,7 +286,8 @@
       "type": "object",
       "properties": {
         "orgName": {
-          "type": "string"
+          "type": "string",
+          "enum": [ "auditor1", "auditor2", "auditor3" ]
         }
       }
     },
@@ -297,7 +298,8 @@
           "type": "string"
         },
         "orgName": {
-          "type": "string"
+          "type": "string",
+          "enum": [ "auditor1", "auditor2", "auditor3" ]
         },
         "affiliation": {
           "type": "string"
