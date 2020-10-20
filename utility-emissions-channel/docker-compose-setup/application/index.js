@@ -8,6 +8,8 @@ const { log } = require("./src/utils/log");
 const { registerUser } = require("./src/blockchain-gateway/utilityEmissionsChannel/registerEnroll");
 
 const app = express();
+var cors = require('cors')
+app.use(cors())
 
 const PORT = process.env.PORT || 9000;
 
