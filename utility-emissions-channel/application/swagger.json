@@ -1,0 +1,312 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "REST-API for connecting to Carbon Accounting network of Hyperledger CA2 SIG.",
+    "version": "1.0.0",
+    "title": "Carbon Accounting",
+    "contact": {
+      "email": "r.klemens@yahoo.de"
+    }
+  },
+  "host": "localhost:9000",
+  "basePath": "/api/v1/utilityemissionchannel",
+  "tags": [
+    {
+      "name": "emissionscontract",
+      "description": "Functions related to the emissionscontract chaincode"
+    },
+    {
+      "name": "registerEnroll",
+      "description": "Functions to register an org admin as well as multiple users"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/emissionscontract/recordEmissions": {
+      "post": {
+        "tags": [
+          "emissionscontract"
+        ],
+        "summary": "Record emissions of utility to utilityEmissionsChannel",
+        "description": "",
+        "operationId": "recordEmissions",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Emission object to store to the blockchain",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecordEmissions"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success. Emissions recorded"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    },
+    "/emissionscontract/getEmissionsData/{userId}/{orgName}/{utilityId}/{partyId}/{fromDate}/{thruDate}": {
+      "get": {
+        "tags": [
+          "emissionscontract"
+        ],
+        "summary": "Get emissions data of utility",
+        "description": "Get emissions data of utility by ID of party, from and thru data",
+        "operationId": "getEmissionsData",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of User",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgName",
+            "in": "path",
+            "description": "Org that registered user",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "utilityId",
+            "in": "path",
+            "description": "ID of Utiltiy",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "description": "ID of party",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fromDate",
+            "in": "path",
+            "description": "From date of data",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "thruDate",
+            "in": "path",
+            "description": "Thru date of data",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/EmissionsData"
+            }
+          },"400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/registerEnroll/admin": {
+      "post": {
+        "tags": [
+          "registerEnroll"
+        ],
+        "summary": "Registers an org admin",
+        "description": "Only call this function once per org. Three organizations are currently implemented. auditor1, auditor2, and auditor3.",
+        "operationId": "registerOrgAdmin",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Org admin object to register org admin of ca",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterOrgAdmin"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success. Admin registered"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    },
+    "/registerEnroll/user": {
+      "post": {
+        "tags": [
+          "registerEnroll"
+        ],
+        "summary": "Registers a user.",
+        "description": "Registers a user by orgName, userId and affiliation",
+        "operationId": "registerUser",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "description": "User object to register",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RegisterUser"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success. User registered"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "RecordEmissions": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "orgName": {
+          "type": "string"
+        },
+        "utilityId": {
+          "type": "string"
+        },
+        "partyId": {
+          "type": "string"
+        },
+        "fromDate": {
+          "type": "string"
+        },
+        "thruDate": {
+          "type": "string"
+        },
+        "energyUseAmount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "energyUseUom": {
+          "type": "string"
+        }
+      }
+    },
+    "EmissionsData": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "orgName": {
+          "type": "string"
+        },
+        "utilityId": {
+          "type": "string"
+        },
+        "partyId": {
+          "type": "string"
+        },
+        "fromDate": {
+          "type": "string"
+        },
+        "thruDate": {
+          "type": "string"
+        },
+        "emissionsAmount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "emissionsUom": {
+          "type": "string"
+        }
+      }
+    },
+    "RegisterOrgAdmin": {
+      "type": "object",
+      "properties": {
+        "orgName": {
+          "type": "string",
+          "enum": [ "auditor1", "auditor2", "auditor3" ]
+        }
+      }
+    },
+    "RegisterUser": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "orgName": {
+          "type": "string",
+          "enum": [ "auditor1", "auditor2", "auditor3" ]
+        },
+        "affiliation": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+
+

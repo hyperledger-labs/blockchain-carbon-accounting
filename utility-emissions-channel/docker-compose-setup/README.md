@@ -51,10 +51,22 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 7. Interact with the `emissionscontract` chaincode.
 Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
 
-    
+
+## Update emissioncontact Chaincode
+1. cd to `docker-compose-setup`
+2. Update Chaincode: 
+Run `./network.sh deployCC -ccv 'VERSION' -ccs 'SEQUENCE'`
+e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
+3. Check help, if further infomation is needed. Run: `./network.sh -h`
+
+
 ## Stop the blockchain network and remove container
 1. cd to `docker-compose-setup`
 2. Run `./network.sh down`
+
+#### Stop blockchain explorer
+1. cd to `docker-compose-setup`
+2. Run `./network.sh stopBlockchainExplorer`
 
 
 ## Troubleshooting
