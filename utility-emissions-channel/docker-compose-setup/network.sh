@@ -17,6 +17,7 @@ function printHelp() {
   echo "      "$'\e[0;32m'deployCC$'\e[0m' - deploy the asset transfer basic chaincode on the channel or specify
   echo "      "$'\e[0;32m'down$'\e[0m' - clear the network with docker-compose down
   echo "      "$'\e[0;32m'restart$'\e[0m' - restart the network
+  echo "      "$'\e[0;32m'resetAllData$'\e[0m' - removes wallets and fabric-ca-server.db for all auditors
   echo
   echo "    Flags:"
   echo "    Used with "$'\e[0;32m'network.sh up$'\e[0m', $'\e[0;32m'network.sh createChannel$'\e[0m':
@@ -459,6 +460,30 @@ function networkDown() {
   fi
 }
 
+function resetWallets() {
+  if [[ -d ${WALLET_PATH} ]]; then
+    rm -r ${WALLET_PATH}
+    echo "Removed wallets at ${WALLET_PATH}"
+  else
+    echo "Wallets at ${WALLET_PATH} do not exist, skipping."
+  fi
+}
+
+function resetFabricCaServerDb() {
+  all_auditors=("auditor1" "auditor2" "auditor3")
+  for auditor in ${all_auditors[@]}; do
+    db_to_remove="./organizations/fabric-ca/$auditor/fabric-ca-server.db"
+    if [[ -f "$db_to_remove" ]]; then
+      rm ${db_to_remove}
+      echo "Removed fabric-ca-server.db for $auditor"
+      echo "$FILE exists."
+    else
+      echo "db for $auditor does not exist, skipping."
+    fi
+  done
+  echo "Finished removing all fabric-ca-server dbs."
+}
+
 # Obtain the OS and Architecture string that will be used to select the correct
 # native binaries for your platform, e.g., darwin-amd64 or linux-amd64
 OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
@@ -506,6 +531,8 @@ IMAGETAG="2.2.1"
 CA_IMAGETAG="1.4.9"
 # default database
 DATABASE="couchdb"
+# Path to wallets
+WALLET_PATH="./application/src/blockchain-gateway/wallets"
 
 # Parse commandline args
 
@@ -621,6 +648,8 @@ fi
 if [ "$MODE" == "up" ]; then
   echo "Starting nodes with CLI timeout of '${MAX_RETRY}' tries and CLI delay of '${CLI_DELAY}' seconds and using database '${DATABASE}' ${CRYPTO_MODE}"
   echo
+elif [ "${MODE}" == "resetAllData" ]; then
+  echo "Resetting wallets and fabric-ca-server dbs..."
 elif [ "$MODE" == "createChannel" ]; then
   echo "Creating channel '${CHANNEL_NAME}'."
   echo
@@ -646,8 +675,13 @@ else
   exit 1
 fi
 
+
+
 if [ "${MODE}" == "up" ]; then
   networkUp
+elif [ "${MODE}" == "resetAllData" ]; then
+  resetWallets
+  resetFabricCaServerDb
 elif [ "${MODE}" == "createChannel" ]; then
   createChannel
 elif [ "${MODE}" == "deployCC" ]; then
