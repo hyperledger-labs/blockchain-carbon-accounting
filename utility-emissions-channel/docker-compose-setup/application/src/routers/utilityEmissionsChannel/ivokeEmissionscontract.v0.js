@@ -17,8 +17,24 @@ router.post(
     body("orgName").isString(),
     body("utilityId").isString(),
     body("partyId").isString(),
-    body("fromDate").isString(),
-    body("thruDate").isString(),
+    body("fromDate").custom((value, { req }) => {
+      let matches = value.match(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/)
+      if (!matches) {
+        throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
+      }
+      
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
+    body("thruDate").custom((value, { req }) => {
+      let matches = value.match(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/)
+      if (!matches) {
+        throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
+      }
+      
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
     body("energyUseAmount").isNumeric(),
     body("energyUseUom").isString(),
   ],
@@ -76,8 +92,24 @@ router.get(
     param("orgName").isString(),
     param("utilityId").isString(),
     param("partyId").isString(),
-    param("fromDate").isString(),
-    param("thruDate").isString()
+    param("fromDate").custom((value, { req }) => {
+      let matches = value.match(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/)
+      if (!matches) {
+        throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
+      }
+      
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
+    param("thruDate").custom((value, { req }) => {
+      let matches = value.match(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/)
+      if (!matches) {
+        throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
+      }
+      
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
   ],
   async (req, res) => {
     const errors = validationResult(req);

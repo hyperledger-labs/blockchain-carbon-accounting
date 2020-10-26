@@ -476,7 +476,6 @@ function resetFabricCaServerDb() {
     if [[ -f "$db_to_remove" ]]; then
       rm ${db_to_remove}
       echo "Removed fabric-ca-server.db for $auditor"
-      echo "$FILE exists."
     else
       echo "db for $auditor does not exist, skipping."
     fi
