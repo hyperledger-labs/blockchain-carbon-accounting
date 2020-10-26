@@ -38,20 +38,20 @@
 		"auditor1": {
 			"mspid": "auditor1",
 			"adminPrivateKey": {
-				"path": "/tmp/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/keystore/priv_sk"
+				"path": "/tmp/crypto/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/keystore/priv_sk"
 			},
 			"peers": [
 				"peer1.auditor1.carbonAccounting.com"
 			],
 			"signedCert": {
-				"path": "/tmp/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/signcerts/cert.pem"
+				"path": "/tmp/crypto/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/signcerts/cert.pem"
 			}
 		}
 	},
 	"peers": {
 		"peer1.auditor1.carbonAccounting.com": {
 			"tlsCACerts": {
-				"path": "/tmp/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt"
+				"path": "/tmp/crypto/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt"
 			},
 			"url": "grpcs://peer1.auditor1.carbonAccounting.com:7051"
 		}

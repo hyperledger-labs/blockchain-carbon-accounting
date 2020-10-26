@@ -46,9 +46,8 @@ services:
     volumes:
       - ../blockchain-explorer/config.json:/opt/explorer/app/platform/fabric/config.json
       - ../blockchain-explorer/connection-profile:/opt/explorer/app/platform/fabric/connection-profile
-      - ../organizations:/tmp/organizations
+      - ../organizations:/tmp/crypto
       - walletstore:/opt/wallet
-    command: sh -c "node /opt/explorer/main.js && tail -f /dev/null"
     ports:
       - 8080:8080
     depends_on:
