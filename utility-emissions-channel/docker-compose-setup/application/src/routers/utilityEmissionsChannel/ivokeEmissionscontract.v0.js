@@ -152,4 +152,47 @@ router.get(
 );
 
 
+const GET_ALL_EMISSIONS_DATA = "/api/" + APP_VERSION + "/utilityemissionchannel/emissionscontract/getAllEmissionsData/:userId/:orgName/:utilityId/:partyId";
+router.get(
+  GET_ALL_EMISSIONS_DATA,
+  [
+    param("userId").isString(),
+    param("orgName").isString(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(412).json({ errors: errors.array() });
+    }
+    try {
+      const userId = req.params.userId;
+      const orgName = req.params.orgName;
+      const utilityId = req.params.utilityId;
+      const partyId = req.params.partyId;
+
+      console.log(
+        `# GETTING EMISSIONS DATA FROM UTILITYEMISSIONS CHANNEL`
+      );
+
+      // Get Emmission Data from utilityEmissions Channel 
+      const blockchainResponse = await emissionsContractInvoke.getAllEmissionsData(
+        userId, 
+        orgName,
+        utilityId,
+        partyId
+      );
+
+      if (blockchainResponse[0]["info"] === "UTILITY EMISSIONS DATA") {
+        res.status(200).send(blockchainResponse);
+      } else {
+        res.status(409).send(blockchainResponse);
+      }
+      log("info", "DONE.");
+    } catch (e) {
+      res.status(400).send(e);
+      log("error", "DONE.");
+    }
+  }
+);
+
 module.exports = router;

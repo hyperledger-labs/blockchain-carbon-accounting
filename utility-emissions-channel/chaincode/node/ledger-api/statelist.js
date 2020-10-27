@@ -50,6 +50,26 @@ class StateList {
         }
     }
 
+    async getAllState(utilityId, partyId) {
+        const allResults = [];
+        // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
+        const iterator = await this.ctx.stub.getStateByPartialCompositeKey(this.name, [`\"${utilityId}\"`, `\"${partyId}\"`]);
+        let result = await iterator.next();
+        while (!result.done) {
+            const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
+            let record;
+            try {
+                record = JSON.parse(strValue);
+            } catch (err) {
+                console.log(err);
+                record = strValue;
+            }
+            allResults.push({Key: result.value.key, Record: record});
+            result = await iterator.next();
+        }
+        return JSON.stringify(allResults);
+    }
+
     /**
      * Update a state in the list. Puts the new state in world state with
      * appropriate composite key.  Note that state defines its own key.
