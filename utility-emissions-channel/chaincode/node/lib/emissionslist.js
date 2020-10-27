@@ -27,6 +27,10 @@ class EmissionsList extends StateList {
     async updateEmissionsRecord(emissionsRecord) {
         return this.updateState(emissionsRecord);
     }
+
+    async getAllEmissionRecords(utilityId, partyId) {
+        return this.getAllState(utilityId, partyId);
+    }
 }
 
 

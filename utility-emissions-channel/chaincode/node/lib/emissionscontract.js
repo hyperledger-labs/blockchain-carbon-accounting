@@ -102,6 +102,21 @@ class EmissionsRecordContract extends Contract {
         return emissionsRecord;
     }
 
+
+    /**
+     * Get all the emissions records
+     * @param {Context} ctx the transaction context
+     * @param {String} Id for the utility
+     * @param {String} Id for the party (company) which buys power from utility
+     */
+    async getAllEmissionsData(ctx, utilityId, partyId) {
+
+        // Retrieve the current emissions record using key fields provided
+        let allEmissionsRecords = await ctx.emissionsList.getAllEmissionRecords(utilityId, partyId);
+
+        return allEmissionsRecords;
+    }
+
 }
 
 module.exports = EmissionsRecordContract;
