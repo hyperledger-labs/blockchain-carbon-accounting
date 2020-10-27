@@ -41,7 +41,7 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 
 
 ## Start Express server (REST API)
-1. cd to `docker-compose-setup/application`
+1. cd to `utility-emissions-channel/application`
 2. Install node modules: RUN `npm i` 
 (Not neceasary anymore 09/29/20. Create wallet for User1 of org auditor 1: Run `node ./src/blockchain-gateway/utilityEmissionsChannel/createWallet.js`)
 3. Start express sever:  Run `node index.js`
