@@ -68,14 +68,17 @@ class EmissionsRecordContract extends Contract {
 
         // TODO: use a constants file
         var emissionsUom = "TONS";
-
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
         const db = EmissionsCalc.connectdb(AWS);
         let calc = await EmissionsCalc.get_co2_emissions(db, utilityId, thruDate, energyUseAmount, {usage_uom: energyUseUom, emssions_uom: emissionsUom});
         var emissionsAmount = calc.Emissions.value;
+        let renewable_energy_use_amount = calc.renewableEnergyUseAmount;
+        let nonrenewable_energy_use_amount = calc.nonRenewableEnergyUseAmount;
+        let division_type = calc.Division_type;
+        let division_id = calc.divisionId;
         
         // create an instance of the emissions record
-        let emissionsRecord = EmissionsRecord.createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom);
+        let emissionsRecord = EmissionsRecord.createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewable_energy_use_amount, nonrenewable_energy_use_amount, division_type, division_id);
 
         // Add the emissions record to the list of all similar emissions records in the ledger world state
         await ctx.emissionsList.addEmissionsRecord(emissionsRecord);

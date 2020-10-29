@@ -144,7 +144,7 @@
           "emissionscontract"
         ],
         "summary": "Get all emissions data from the past year of utility",
-        "description": "Get all emissions data of utility by ID of party",
+        "description": "Get all emissions data of utility by ID of utility and party",
         "operationId": "getAllEmissionsData",
         "produces": [
           "application/json"
@@ -183,7 +183,7 @@
           "200": {
             "description": "Successful operation",
             "schema": {
-              "$ref": "#/definitions/EmissionsData"
+              "$ref": "#/definitions/allEmissionsData"
             }
           },"400": {
             "description": "Error"
@@ -338,15 +338,68 @@
         },
         "emissionsUom": {
           "type": "string"
+        },
+        "renewableEnergyUseAmount": {
+          "type": "number"
+        },
+        "nonrenewableEnergyUseAmount": {
+          "type": "number"
+        },
+        "divisionType": {
+          "type": "string"
+        },
+        "divisionId": {
+          "type": "string"
         }
+      }
+    },
+    "allEmissionsData": {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+              "orgName": {
+                "type": "string"
+              },
+              "utilityId": {
+                "type": "string"
+              },
+              "partyId": {
+                "type": "string"
+              },
+              "fromDate": {
+                "type": "string"
+              },
+              "thruDate": {
+                "type": "string"
+              },
+              "emissionsAmount": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "emissionsUom": {
+                "type": "string"
+              },
+              "renewableEnergyUseAmount": {
+                "type": "number"
+              },
+              "nonrenewableEnergyUseAmount": {
+                "type": "number"
+              },
+              "divisionType": {
+                "type": "string"
+              },
+              "divisionId": {
+                "type": "string"
+              }      
+          }
       }
     },
     "RegisterOrgAdmin": {
       "type": "object",
       "properties": {
         "orgName": {
-          "type": "string",
-          "enum": [ "auditor1", "auditor2", "auditor3" ]
+          "type": "string"
         }
       }
     },
@@ -357,8 +410,7 @@
           "type": "string"
         },
         "orgName": {
-          "type": "string",
-          "enum": [ "auditor1", "auditor2", "auditor3" ]
+          "type": "string"
         },
         "affiliation": {
           "type": "string"
@@ -367,5 +419,3 @@
     }
   }
 }
-
-

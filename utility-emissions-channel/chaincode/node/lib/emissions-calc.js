@@ -139,15 +139,22 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
                 let emssions_uom = 'tons';
                 if (opts && opts.emssions_uom) emssions_uom = opts.emssions_uom;
                 let Division_type = res.Division_type;
+                let division_id = res.Division_id
                 let usage_uom_conversion = exports.get_uom_factor(usage_uom) / exports.get_uom_factor(res.Net_Generation_UOM);
                 let emissions_uom_conversion = exports.get_uom_factor(res.CO2_Equivalent_Emissions_UOM) / exports.get_uom_factor(emssions_uom);
                 let Emissions = Number(res.CO2_Equivalent_Emissions) / Number(res.Net_Generation) * usage * usage_uom_conversion * emissions_uom_conversion;
+                let total_generation = res.Non_Renewables + res.Renewables
+                let renewable_energy_use_amount = usage * (res.Renewables/total_generation)
+                let nonrenewable_energy_use_amount = usage * (res.Non_Renewables/total_generation)
                 return resolve({
                     Emissions: {
                         value: Emissions,
                         uom: emssions_uom
                     },
-                    Division_type: Division_type
+                    Division_type: Division_type,
+                    divisionId: division_id,
+                    renewableEnergyUseAmount: renewable_energy_use_amount,
+                    nonRenewableEnergyUseAmount: nonrenewable_energy_use_amount
                 });
             } else {
                 return reject('No Utility Emissions Factors for utility [' + utility + '] and date ' + thru_date + ' found');
