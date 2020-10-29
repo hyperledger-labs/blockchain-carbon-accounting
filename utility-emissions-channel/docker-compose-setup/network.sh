@@ -531,7 +531,7 @@ CA_IMAGETAG="1.4.9"
 # default database
 DATABASE="couchdb"
 # Path to wallets
-WALLET_PATH="./application/src/blockchain-gateway/wallets"
+WALLET_PATH="../application/src/blockchain-gateway/wallets"
 
 # Parse commandline args
 

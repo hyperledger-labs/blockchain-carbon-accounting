@@ -69,6 +69,38 @@ class EmissionsRecord extends State {
     setEmissionsUom(newEmissionsUom) {
         this.emissionsUom = newEmissionsUom;
     }
+
+    getRenewableEnergyUseAmount() {
+        return this.renewableEnergyUseAmount;
+    }
+
+    setRenewableEnergyUseAmount(newRenewableEnergyUseAmount) {
+        this.renewableEnergyUseAmount = newRenewableEnergyUseAmount;
+    }
+
+    getNonrenewableEnergyUseAmount() {
+        return this.nonrenewableEnergyUseAmount;
+    }
+
+    setNonrenewableEnergyUseAmount(newNonrenewableEnergyUseAmount) {
+        this.nonrenewableEnergyUseAmount = newNonrenewableEnergyUseAmount;
+    }
+
+    getDivisionType() {
+        return this.divisionType;
+    }
+
+    setDivisionType(newDivisionType) {
+        this.divisionType = newDivisionType;
+    }
+
+    getDivisionId() {
+        return this.divisionId;
+    }
+
+    setDivisionId(newDivisionId) {
+        this.divisionId = newDivisionId;
+    }
     
     static fromBuffer(buffer) {
         return EmissionsRecord.deserialize(buffer);
@@ -89,8 +121,8 @@ class EmissionsRecord extends State {
     /**
      * Factory method to create an Emissions Record object
      */
-    static createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom) {
-        return new EmissionsRecord({ utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom });
+    static createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, divisionType, divisionId) {
+        return new EmissionsRecord({ utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, divisionType, divisionId });
     }
 
     static getClass() {
