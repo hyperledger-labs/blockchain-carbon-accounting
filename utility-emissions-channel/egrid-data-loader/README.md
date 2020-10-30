@@ -33,7 +33,7 @@ Load utility emssions data from the XLSX files, for now only this one is support
 
 Download the utility identifiers from https://www.eia.gov/electricity/data/eia861/  Unzip and load utility lookup data from the XLSX file Utility_Data_2019_Data_Early_Release.xlsx ::
 
-    $ node index.js load_utility_identifiers Utility_Data_2019_Data_Early_Release.xlsx
+    $ node index.js load_utility_identifiers Utility_Data_2019.xlsx
 
 See the data that was loaded::
 
