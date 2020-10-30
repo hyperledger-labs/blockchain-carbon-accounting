@@ -93,6 +93,14 @@ class EmissionsRecord extends State {
     setFactorSource(newfactorSource) {
         this.factorSource = newfactorSource;
     }
+
+    setEnergyUseUom() {
+        return this.energyUseUom;
+
+    }
+    getEnergyUseUom(newEnergyUseUom) {
+        this.energyUseUom = newEnergyUseUom
+    }
     
     static fromBuffer(buffer) {
         return EmissionsRecord.deserialize(buffer);
@@ -113,8 +121,8 @@ class EmissionsRecord extends State {
     /**
      * Factory method to create an Emissions Record object
      */
-    static createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, factorSource) {
-        return new EmissionsRecord({ utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, factorSource });
+    static createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, energyUseUom, factorSource) {
+        return new EmissionsRecord({ utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, energyUseUom, factorSource });
     }
 
     static getClass() {
