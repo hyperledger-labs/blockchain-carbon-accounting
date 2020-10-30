@@ -61,8 +61,8 @@ async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, th
     result["partyId"] = jsonResult.partyId;
     result["fromDate"] = jsonResult.fromDate;
     result["thruDate"] = jsonResult.thruDate;
-    result["energyUseAmount"] = jsonResult.energyUseAmount;
-    result["energyUseUom"] = jsonResult.energyUseUom;
+    result["energyUseAmount"] = jsonResult.emissionsAmount;
+    result["energyUseUom"] = jsonResult.emissionsUom;
     result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount
     result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount
     result["divisionType"] = jsonResult.divisionType
