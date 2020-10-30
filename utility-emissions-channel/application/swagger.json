@@ -20,24 +20,16 @@
       "description": "Functions to register an org admin as well as multiple users"
     }
   ],
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/emissionscontract/recordEmissions": {
       "post": {
-        "tags": [
-          "emissionscontract"
-        ],
+        "tags": ["emissionscontract"],
         "summary": "Record emissions of utility to utilityEmissionsChannel",
         "description": "",
         "operationId": "recordEmissions",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -67,15 +59,11 @@
     },
     "/emissionscontract/getEmissionsData/{userId}/{orgName}/{utilityId}/{partyId}/{fromDate}/{thruDate}": {
       "get": {
-        "tags": [
-          "emissionscontract"
-        ],
+        "tags": ["emissionscontract"],
         "summary": "Get emissions data of utility",
         "description": "Get emissions data of utility by ID of party, from and thru data",
         "operationId": "getEmissionsData",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "userId",
@@ -126,7 +114,8 @@
             "schema": {
               "$ref": "#/definitions/EmissionsData"
             }
-          },"400": {
+          },
+          "400": {
             "description": "Error"
           },
           "409": {
@@ -140,15 +129,11 @@
     },
     "/emissionscontract/getAllEmissionsData/{userId}/{orgName}/{utilityId}/{partyId}": {
       "get": {
-        "tags": [
-          "emissionscontract"
-        ],
+        "tags": ["emissionscontract"],
         "summary": "Get all emissions data from the past year of utility",
         "description": "Get all emissions data of utility by ID of utility and party",
         "operationId": "getAllEmissionsData",
-        "produces": [
-          "application/json"
-        ],
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "userId",
@@ -185,7 +170,8 @@
             "schema": {
               "$ref": "#/definitions/allEmissionsData"
             }
-          },"400": {
+          },
+          "400": {
             "description": "Error"
           },
           "409": {
@@ -199,18 +185,12 @@
     },
     "/registerEnroll/admin": {
       "post": {
-        "tags": [
-          "registerEnroll"
-        ],
+        "tags": ["registerEnroll"],
         "summary": "Registers an org admin",
         "description": "Only call this function once per org. Three organizations are currently implemented. auditor1, auditor2, and auditor3.",
         "operationId": "registerOrgAdmin",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -240,18 +220,12 @@
     },
     "/registerEnroll/user": {
       "post": {
-        "tags": [
-          "registerEnroll"
-        ],
+        "tags": ["registerEnroll"],
         "summary": "Registers a user.",
         "description": "Registers a user by orgName, userId and affiliation",
         "operationId": "registerUser",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -345,48 +319,54 @@
         "nonrenewableEnergyUseAmount": {
           "type": "number"
         },
+        "energyUseUom": {
+          "type": "number"
+        },
         "factorSource": {
           "type": "string"
         }
       }
     },
     "allEmissionsData": {
-        "type": "array",
-        "items": {
-            "type": "object",
-            "properties": {
-              "orgName": {
-                "type": "string"
-              },
-              "utilityId": {
-                "type": "string"
-              },
-              "partyId": {
-                "type": "string"
-              },
-              "fromDate": {
-                "type": "string"
-              },
-              "thruDate": {
-                "type": "string"
-              },
-              "emissionsAmount": {
-                "type": "integer",
-                "format": "int32"
-              },
-              "emissionsUom": {
-                "type": "string"
-              },
-              "renewableEnergyUseAmount": {
-                "type": "number"
-              },
-              "nonrenewableEnergyUseAmount": {
-                "type": "number"
-              },
-              "factorSource": {
-                "type": "string"
-              }     
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "orgName": {
+            "type": "string"
+          },
+          "utilityId": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string"
+          },
+          "fromDate": {
+            "type": "string"
+          },
+          "thruDate": {
+            "type": "string"
+          },
+          "emissionsAmount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "emissionsUom": {
+            "type": "string"
+          },
+          "renewableEnergyUseAmount": {
+            "type": "number"
+          },
+          "nonrenewableEnergyUseAmount": {
+            "type": "number"
+          },
+          "energyUseUom": {
+            "type": "number"
+          },
+          "factorSource": {
+            "type": "string"
           }
+        }
       }
     },
     "RegisterOrgAdmin": {

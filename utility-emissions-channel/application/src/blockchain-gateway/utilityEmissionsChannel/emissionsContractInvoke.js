@@ -65,6 +65,7 @@ async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, th
     result["energyUseUom"] = jsonResult.emissionsUom;
     result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount
     result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount
+    result["energyUseUom"] = jsonResult.energyUseUom;
     result["factorSource"] = jsonResult.factorSource
 
     console.log(result)
@@ -134,6 +135,7 @@ async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, t
     result["emissionsUom"] = jsonResult.emissionsUom;
     result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount
     result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount
+    result["energyUseUom"] = jsonResult.energyUseUom;
     result["factorSource"] = jsonResult.factorSource
 
 
@@ -211,6 +213,7 @@ async function getAllEmissionsData(userId, orgName, utilityId, partyId) {
       result["emissionsUom"] = record.emissionsUom;
       result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount
       result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount
+      result["energyUseUom"] = record.energyUseUom;
       result["factorSource"] = record.factorSource
 
       all_emissions.push(result)
