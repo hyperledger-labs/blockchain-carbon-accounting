@@ -91,6 +91,7 @@ export class EmissionsContractInvoke {
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] =
         jsonResult.nonrenewableEnergyUseAmount;
+      result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
 
       console.log(result);
@@ -176,6 +177,7 @@ export class EmissionsContractInvoke {
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] =
         jsonResult.nonrenewableEnergyUseAmount;
+      result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
 
       console.log(result);
@@ -260,6 +262,7 @@ export class EmissionsContractInvoke {
         result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
         result["nonrenewableEnergyUseAmount"] =
           record.nonrenewableEnergyUseAmount;
+        result["energyUseUom"] = record.energyUseUom;
         result["factorSource"] = record.factorSource;
 
         all_emissions.push(result);

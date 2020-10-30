@@ -80,7 +80,7 @@ class EmissionsRecordContract extends Contract {
         let factor_source = `eGrid ${year} ${division_type} ${division_id}`
         
         // create an instance of the emissions record
-        let emissionsRecord = EmissionsRecord.createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewable_energy_use_amount, nonrenewable_energy_use_amount, factor_source);
+        let emissionsRecord = EmissionsRecord.createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewable_energy_use_amount, nonrenewable_energy_use_amount, energyUseUom, factor_source);
 
         // Add the emissions record to the list of all similar emissions records in the ledger world state
         await ctx.emissionsList.addEmissionsRecord(emissionsRecord);
