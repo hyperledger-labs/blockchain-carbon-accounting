@@ -345,10 +345,7 @@
         "nonrenewableEnergyUseAmount": {
           "type": "number"
         },
-        "divisionType": {
-          "type": "string"
-        },
-        "divisionId": {
+        "factorSource": {
           "type": "string"
         }
       }
@@ -386,12 +383,9 @@
               "nonrenewableEnergyUseAmount": {
                 "type": "number"
               },
-              "divisionType": {
+              "factorSource": {
                 "type": "string"
-              },
-              "divisionId": {
-                "type": "string"
-              }      
+              }     
           }
       }
     },

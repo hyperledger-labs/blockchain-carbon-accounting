@@ -342,6 +342,7 @@ function import_utility_identifiers(file_name, opts) {
             //opts.verbose && console.log('-- Prepare to insert from ', row);
             var d = {
                 '_id' : { S : '' + row['Utility Number'] },
+                'Year': { N : '' + row['Data Year'] },
                 'Utility_Number' : { N : '' + row['Utility Number'] },
                 'Utility_Name' : { S : row['Utility Name'] },
                 'Country' : { S : 'USA' },

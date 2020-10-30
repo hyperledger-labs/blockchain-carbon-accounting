@@ -146,6 +146,7 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
                 let total_generation = res.Non_Renewables + res.Renewables
                 let renewable_energy_use_amount = usage * (res.Renewables/total_generation)
                 let nonrenewable_energy_use_amount = usage * (res.Non_Renewables/total_generation)
+                let year = res.Year
                 return resolve({
                     Emissions: {
                         value: Emissions,
@@ -154,7 +155,8 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
                     Division_type: Division_type,
                     divisionId: division_id,
                     renewableEnergyUseAmount: renewable_energy_use_amount,
-                    nonRenewableEnergyUseAmount: nonrenewable_energy_use_amount
+                    nonRenewableEnergyUseAmount: nonrenewable_energy_use_amount,
+                    year: year
                 });
             } else {
                 return reject('No Utility Emissions Factors for utility [' + utility + '] and date ' + thru_date + ' found');
