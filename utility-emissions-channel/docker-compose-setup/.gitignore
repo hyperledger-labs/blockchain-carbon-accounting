@@ -4,6 +4,7 @@
 /ledgers-backup
 /channel-artifacts/*.json
 /org3-artifacts/crypto-config/*
+/application
 organizations/fabric-ca/auditor1/*
 organizations/fabric-ca/auditor2/*
 organizations/fabric-ca/auditor3/*
