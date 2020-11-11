@@ -8,7 +8,7 @@
       "email": "r.klemens@yahoo.de"
     }
   },
-  "host": "localhost:9000",
+  "host": "api:9000",
   "basePath": "/api/v1/utilityemissionchannel",
   "tags": [
     {

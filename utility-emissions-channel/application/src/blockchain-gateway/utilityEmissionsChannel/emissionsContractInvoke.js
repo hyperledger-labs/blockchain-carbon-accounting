@@ -4,51 +4,74 @@
 
 "use strict";
 
+const { Gateway, Wallets } = require("fabric-network");
+const FabricCAServices = require("fabric-ca-client");
+const path = require("path");
+const { setOrgDataCA } = require("../utils/caUtils.js");
+const {
+  buildCCPAuditor1,
+  buildCCPAuditor2,
+  buildCCPAuditor3,
+  buildWallet,
+  setWalletPathByOrg,
+} = require("../utils/gatewayUtils.js");
 
-const { Gateway, Wallets } = require('fabric-network');
-const FabricCAServices = require('fabric-ca-client');
-const path = require('path');
-const { setOrgDataCA } = require('../utils/caUtils.js');
-const { buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3, buildWallet, setWalletPathByOrg } = require('../utils/gatewayUtils.js');
-
-async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
-  
+async function recordEmissions(
+  userId,
+  orgName,
+  utilityId,
+  partyId,
+  fromDate,
+  thruDate,
+  energyUseAmount,
+  energyUseUom
+) {
   try {
     let response = "";
 
-    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+    let { ccp, msp, caName } = setOrgDataCA(
+      orgName,
+      buildCCPAuditor1,
+      buildCCPAuditor2,
+      buildCCPAuditor3
+    );
 
     const walletPath = setWalletPathByOrg(orgName);
-    console.log("+++++++++++++++++ Walletpath: " + walletPath)
+    console.log("+++++++++++++++++ Walletpath: " + walletPath);
     const wallet = await buildWallet(Wallets, walletPath);
 
     const gateway = new Gateway();
-    
+
     try {
       await gateway.connect(ccp, {
         wallet,
         identity: userId,
-        discovery: { "enabled": true, "asLocalhost": true }
+        discovery: { enabled: true, asLocalhost: false },
       });
-
-      
-    }
-    catch (err) {
-      response = `ERROR: ${err}`
-      console.log(response)
-      return response
+    } catch (err) {
+      response = `ERROR: ${err}`;
+      console.log(response);
+      return response;
     }
 
-    const network = await gateway.getNetwork('utilityemissionchannel');
+    const network = await gateway.getNetwork("utilityemissionchannel");
 
-    const contract = network.getContract('emissionscontract');
+    const contract = network.getContract("emissionscontract");
 
     // ###### Record Emissions ######
-    const blockchainResult = await contract.submitTransaction('recordEmissions', utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom);
-    const stringResult = blockchainResult.toString("utf-8")
-    const jsonResult = JSON.parse(stringResult)
+    const blockchainResult = await contract.submitTransaction(
+      "recordEmissions",
+      utilityId,
+      partyId,
+      fromDate,
+      thruDate,
+      energyUseAmount,
+      energyUseUom
+    );
+    const stringResult = blockchainResult.toString("utf-8");
+    const jsonResult = JSON.parse(stringResult);
 
-    // TODO: Add contract listener to wait for event of chaincode. 
+    // TODO: Add contract listener to wait for event of chaincode.
 
     // Disconnect from the gateway.
     // finally --> {}
@@ -63,16 +86,15 @@ async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, th
     result["thruDate"] = jsonResult.thruDate;
     result["energyUseAmount"] = jsonResult.emissionsAmount;
     result["energyUseUom"] = jsonResult.emissionsUom;
-    result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount
-    result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount
+    result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
+    result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
     result["energyUseUom"] = jsonResult.energyUseUom;
-    result["factorSource"] = jsonResult.factorSource
+    result["factorSource"] = jsonResult.factorSource;
 
-    console.log(result)
+    console.log(result);
     return result;
-
   } catch (error) {
-    let result = new Object(); 
+    let result = new Object();
     result["info"] = `Failed to submit transaction: ${error}`;
     result["utilityId"] = utilityId;
     result["partyId"] = partyId;
@@ -80,22 +102,26 @@ async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, th
     result["thruDate"] = thruDate;
     result["energyUseAmount"] = energyUseAmount;
     result["energyUseUom"] = energyUseUom;
-    
+
     console.error(`Failed to submit transaction: ${error}`);
-    console.log(result)
-    return result
+    console.log(result);
+    return result;
     // process.exit(1);
   }
 }
 
-
 async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, thruDate) {
   try {
     let response = "";
-    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+    let { ccp, msp, caName } = setOrgDataCA(
+      orgName,
+      buildCCPAuditor1,
+      buildCCPAuditor2,
+      buildCCPAuditor3
+    );
 
     const walletPath = setWalletPathByOrg(orgName);
-    console.log("+++++++++++++++++ Walletpath: " + walletPath)
+    console.log("+++++++++++++++++ Walletpath: " + walletPath);
     const wallet = await buildWallet(Wallets, walletPath);
 
     const gateway = new Gateway();
@@ -103,23 +129,28 @@ async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, t
       await gateway.connect(ccp, {
         wallet,
         identity: userId,
-        discovery: { "enabled": true, "asLocalhost": true }
+        discovery: { enabled: true, asLocalhost: false },
       });
-    }
-    catch (err) {
-      response = `ERROR: ${err}`
-      console.log(response)
-      return response
+    } catch (err) {
+      response = `ERROR: ${err}`;
+      console.log(response);
+      return response;
     }
 
-    const network = await gateway.getNetwork('utilityemissionchannel');
+    const network = await gateway.getNetwork("utilityemissionchannel");
 
-    const contract = network.getContract('emissionscontract');
+    const contract = network.getContract("emissionscontract");
 
     // ###### Get Emissions Data ######
-    const blockchainResult = await contract.evaluateTransaction('getEmissionsData', utilityId, partyId, fromDate, thruDate);
-    const stringResult = blockchainResult.toString("utf-8")
-    const jsonResult = JSON.parse(stringResult)
+    const blockchainResult = await contract.evaluateTransaction(
+      "getEmissionsData",
+      utilityId,
+      partyId,
+      fromDate,
+      thruDate
+    );
+    const stringResult = blockchainResult.toString("utf-8");
+    const jsonResult = JSON.parse(stringResult);
 
     // Disconnect from the gateway.
     await gateway.disconnect();
@@ -133,24 +164,23 @@ async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, t
     result["thruDate"] = jsonResult.thruDate;
     result["emissionsAmount"] = jsonResult.emissionsAmount;
     result["emissionsUom"] = jsonResult.emissionsUom;
-    result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount
-    result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount
+    result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
+    result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
     result["energyUseUom"] = jsonResult.energyUseUom;
-    result["factorSource"] = jsonResult.factorSource
+    result["factorSource"] = jsonResult.factorSource;
 
-
-    console.log(result)
+    console.log(result);
     return result;
   } catch (error) {
-    let result = new Object(); 
+    let result = new Object();
     result["info"] = `Failed to evaluate transaction: ${error}`;
     result["utilityId"] = utilityId;
     result["partyId"] = partyId;
     result["fromDate"] = fromDate;
     result["thruDate"] = thruDate;
     console.error(`Failed to evaluate transaction: ${error}`);
-    console.log(result)
-    return result
+    console.log(result);
+    return result;
     // process.exit(1);
   }
 }
@@ -158,10 +188,15 @@ async function getEmissionsData(userId, orgName, utilityId, partyId, fromDate, t
 async function getAllEmissionsData(userId, orgName, utilityId, partyId) {
   try {
     let response = "";
-    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+    let { ccp, msp, caName } = setOrgDataCA(
+      orgName,
+      buildCCPAuditor1,
+      buildCCPAuditor2,
+      buildCCPAuditor3
+    );
 
     const walletPath = setWalletPathByOrg(orgName);
-    console.log("+++++++++++++++++ Walletpath: " + walletPath)
+    console.log("+++++++++++++++++ Walletpath: " + walletPath);
     const wallet = await buildWallet(Wallets, walletPath);
 
     const gateway = new Gateway();
@@ -169,39 +204,41 @@ async function getAllEmissionsData(userId, orgName, utilityId, partyId) {
       await gateway.connect(ccp, {
         wallet,
         identity: userId,
-        discovery: { "enabled": true, "asLocalhost": true }
+        discovery: { enabled: true, asLocalhost: false },
       });
-    }
-    catch (err) {
-      response = `ERROR: ${err}`
-      console.log(response)
-      return response
+    } catch (err) {
+      response = `ERROR: ${err}`;
+      console.log(response);
+      return response;
     }
 
-    const network = await gateway.getNetwork('utilityemissionchannel');
+    const network = await gateway.getNetwork("utilityemissionchannel");
 
-    const contract = network.getContract('emissionscontract');
+    const contract = network.getContract("emissionscontract");
 
     // ###### Get Emissions Data ######
-    const blockchainResult = await contract.evaluateTransaction('getAllEmissionsData', utilityId, partyId);
-    const stringResult = blockchainResult.toString()
-    const jsonResult = JSON.parse(stringResult)
-
+    const blockchainResult = await contract.evaluateTransaction(
+      "getAllEmissionsData",
+      utilityId,
+      partyId
+    );
+    const stringResult = blockchainResult.toString();
+    const jsonResult = JSON.parse(stringResult);
 
     // Disconnect from the gateway.
     await gateway.disconnect();
 
     // Return result
-    let all_emissions = []
+    let all_emissions = [];
     let current_year = new Date().getFullYear();
     for (let emission_item of jsonResult) {
       let result = new Object();
-      let record = emission_item.Record
+      let record = emission_item.Record;
 
       // Do not include entries outside of the past year
       // var current_year = current_date.getFullYear();
-      if (parseInt(record.fromDate.slice(0, 4)) < current_year-1) {
-        continue
+      if (parseInt(record.fromDate.slice(0, 4)) < current_year - 1) {
+        continue;
       }
 
       result["info"] = "UTILITY EMISSIONS DATA";
@@ -211,20 +248,20 @@ async function getAllEmissionsData(userId, orgName, utilityId, partyId) {
       result["thruDate"] = record.thruDate;
       result["emissionsAmount"] = record.emissionsAmount;
       result["emissionsUom"] = record.emissionsUom;
-      result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount
-      result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount
+      result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
+      result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = record.energyUseUom;
-      result["factorSource"] = record.factorSource
+      result["factorSource"] = record.factorSource;
 
-      all_emissions.push(result)
+      all_emissions.push(result);
     }
-    console.log(all_emissions)
+    console.log(all_emissions);
     return all_emissions;
   } catch (error) {
     result["info"] = `Failed to evaluate transaction: ${error}`;
 
     console.error(`Failed to evaluate transaction: ${error}`);
-    return all_emissions
+    return all_emissions;
     // process.exit(1);
   }
 }
@@ -232,5 +269,5 @@ async function getAllEmissionsData(userId, orgName, utilityId, partyId) {
 module.exports = {
   recordEmissions,
   getEmissionsData,
-  getAllEmissionsData
+  getAllEmissionsData,
 };
