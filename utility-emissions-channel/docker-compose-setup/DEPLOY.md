@@ -50,4 +50,4 @@ For this section, you will find a collection of utility scripts in docker-compos
 
 1. On Server A, run ./scripts/deploy/node-one/startApi.sh. This will spin up a containerized version of the API, install dependencies, join the network, and then start API using nodemon for refresh on change. It will also mount the API window to the current terminal session.
 
-2. Assuming you have opened up all ports/traffic in the network, navigate to http://<SERVER A URL>:9000/api-docs to interact with the swagger UI, or connect this same url to an opentaps repo to access the ledger.
+2. Assuming you have opened up all ports/traffic in the network, navigate to http://EC2_INSTANCE_IP_HERE:9000/api-docs to interact with the swagger UI, or connect this same url to an opentaps repo to access the ledger.
