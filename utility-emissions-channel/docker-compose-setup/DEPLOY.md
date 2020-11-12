@@ -1,14 +1,14 @@
 # blockchain-carbon-accounting deployment
 
-Now that the app has been restructured, deployment is much more seamless to the development environment. By containerizing the API and creating custom client container using an Ubuntu image, we are able to run the whole app and binary commands in a docker swarm network. Now that we have adopted this setup, there is no need for dynamic URL/IP values, IP SANS, or access to the local machine from containers.
+Now that the app has been restructured, deployment is much more seamless to the development environment. By containerizing the API and creating custom client container using an Ubuntu image, we are able to run the whole app and binary commands in a docker swarm network. Now that we have adopted this setup, there is no need for dynamic URL/IP values, IP SANS, or access to the local machine from containers. To reset and start over at any time during this process, run ./scripts/reset.sh.
 
 # Preparing your EC2 nodes
 
 For this deployment, we will need two servers. For the purpose of this documentation, we will be referring to them as server A and server B. Server A will run the API/peer1/auditor1/orderer1/couch0, server B will run peer2/auditor2/orderer2/couch0.
 
-1. Create server A, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You will want a decent amount of RAM on this server, probably 6-8.
+1. Create server A, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You will want a decent amount of RAM on this server, probably 6-8. (t2.large)
 2. Create server B, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You can most likely get away with using a t2 micro instance for this server.
-3. SSH into both servers and git clone https://github.com/opentaps/blockchain-carbon-accounting/tree/deployment
+3. SSH into both servers and git clone https://github.com/opentaps/blockchain-carbon-accounting/tree/deployment. Fill out the AWS credentials in a seperate file called aws-config.js based on utility-emissions-channel/chaincode/node/lib/aws-config.js.template.
 4. Install docker on both machines by running ./scripts/deploy/install-docker.sh
 5. Exit and re-enter the SSH session on both servers to activate changes
 
