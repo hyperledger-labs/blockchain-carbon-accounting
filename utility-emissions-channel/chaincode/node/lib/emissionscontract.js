@@ -63,7 +63,7 @@ class EmissionsRecordContract extends Contract {
    */
   async recordEmissions(ctx, uuid, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
     // TODO: use a constants file
-    var emissionsUom = "TONS";
+    var emissionsUom = "MtCO2e";
     // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
     const db = EmissionsCalc.connectdb(AWS);
     let calc = await EmissionsCalc.get_co2_emissions(db, utilityId, thruDate, energyUseAmount, {
