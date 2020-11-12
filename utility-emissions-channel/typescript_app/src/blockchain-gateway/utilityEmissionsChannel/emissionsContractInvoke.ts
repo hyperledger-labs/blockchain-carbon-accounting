@@ -14,29 +14,16 @@ import {
   buildWallet,
   setWalletPathByOrg,
 } from "../utils/gatewayUtils";
+import { getNewUuid } from "../utils/uuid";
 
 export class EmissionsContractInvoke {
   constructor(message: string) {}
 
-  static async recordEmissions(
-    userId,
-    orgName,
-    utilityId,
-    partyId,
-    fromDate,
-    thruDate,
-    energyUseAmount,
-    energyUseUom
-  ) {
+  static async recordEmissions(userId, orgName, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
     try {
       let response = "";
 
-      let { ccp, msp, caName } = setOrgDataCA(
-        orgName,
-        buildCCPAuditor1,
-        buildCCPAuditor2,
-        buildCCPAuditor3
-      );
+      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
       const walletPath = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -59,10 +46,11 @@ export class EmissionsContractInvoke {
       const network = await gateway.getNetwork("utilityemissionchannel");
 
       const contract = network.getContract("emissionscontract");
-
+      let uuid = getNewUuid();
       // ###### Record Emissions ######
       const blockchainResult = await contract.submitTransaction(
         "recordEmissions",
+        uuid,
         utilityId,
         partyId,
         fromDate,
@@ -89,8 +77,7 @@ export class EmissionsContractInvoke {
       result["energyUseAmount"] = jsonResult.emissionsAmount;
       result["energyUseUom"] = jsonResult.emissionsUom;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
-      result["nonrenewableEnergyUseAmount"] =
-        jsonResult.nonrenewableEnergyUseAmount;
+      result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
 
@@ -113,22 +100,10 @@ export class EmissionsContractInvoke {
     }
   }
 
-  static async getEmissionsData(
-    userId,
-    orgName,
-    utilityId,
-    partyId,
-    fromDate,
-    thruDate
-  ) {
+  static async getEmissionsData(userId, orgName, uuid) {
     try {
       let response = "";
-      let { ccp, msp, caName } = setOrgDataCA(
-        orgName,
-        buildCCPAuditor1,
-        buildCCPAuditor2,
-        buildCCPAuditor3
-      );
+      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
       const walletPath = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -152,13 +127,7 @@ export class EmissionsContractInvoke {
       const contract = network.getContract("emissionscontract");
 
       // ###### Get Emissions Data ######
-      const blockchainResult = await contract.evaluateTransaction(
-        "getEmissionsData",
-        utilityId,
-        partyId,
-        fromDate,
-        thruDate
-      );
+      const blockchainResult = await contract.evaluateTransaction("getEmissionsData", uuid);
       const stringResult = blockchainResult.toString("utf-8");
       const jsonResult = JSON.parse(stringResult);
 
@@ -175,8 +144,7 @@ export class EmissionsContractInvoke {
       result["emissionsAmount"] = jsonResult.emissionsAmount;
       result["emissionsUom"] = jsonResult.emissionsUom;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
-      result["nonrenewableEnergyUseAmount"] =
-        jsonResult.nonrenewableEnergyUseAmount;
+      result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
 
@@ -185,10 +153,7 @@ export class EmissionsContractInvoke {
     } catch (error) {
       let result = new Object();
       result["info"] = `Failed to evaluate transaction: ${error}`;
-      result["utilityId"] = utilityId;
-      result["partyId"] = partyId;
-      result["fromDate"] = fromDate;
-      result["thruDate"] = thruDate;
+      result["uuid"] = uuid;
       console.error(`Failed to evaluate transaction: ${error}`);
       console.log(result);
       return result;
@@ -199,12 +164,7 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsData(userId, orgName, utilityId, partyId) {
     try {
       let response = "";
-      let { ccp, msp, caName } = setOrgDataCA(
-        orgName,
-        buildCCPAuditor1,
-        buildCCPAuditor2,
-        buildCCPAuditor3
-      );
+      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
       const walletPath = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -228,11 +188,7 @@ export class EmissionsContractInvoke {
       const contract = network.getContract("emissionscontract");
 
       // ###### Get Emissions Data ######
-      const blockchainResult = await contract.evaluateTransaction(
-        "getAllEmissionsData",
-        utilityId,
-        partyId
-      );
+      const blockchainResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
       const stringResult = blockchainResult.toString();
       const jsonResult = JSON.parse(stringResult);
 
@@ -260,8 +216,7 @@ export class EmissionsContractInvoke {
         result["emissionsAmount"] = record.emissionsAmount;
         result["emissionsUom"] = record.emissionsUom;
         result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
-        result["nonrenewableEnergyUseAmount"] =
-          record.nonrenewableEnergyUseAmount;
+        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
         result["energyUseUom"] = record.energyUseUom;
         result["factorSource"] = record.factorSource;
 
