@@ -8,7 +8,7 @@ const FabricCAServices = require("fabric-ca-client");
 const path = require("path");
 const { setOrgDataCA } = require("../utils/caUtils.js");
 const { getNewUuid } = require("../utils/uuid.js");
-
+const { checkDateConflict } = require("../utils/checkDateConflict.js");
 const {
   buildCCPAuditor1,
   buildCCPAuditor2,
@@ -44,8 +44,30 @@ async function recordEmissions(userId, orgName, utilityId, partyId, fromDate, th
     const network = await gateway.getNetwork("utilityemissionchannel");
 
     const contract = network.getContract("emissionscontract");
-    let uuid = getNewUuid();
+
+    // Check for date overlap
+
+    // Get Emissions for utilityID and partyId to compare
+    const allEmissionsResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
+    const allEmissionsString = allEmissionsResult.toString();
+    const jsonEmissionsResult = JSON.parse(allEmissionsString);
+    // Compare each entry against incoming emissions record
+    for (let emission_item of jsonEmissionsResult) {
+      let record = emission_item.Record;
+
+      let fromDateToCheck = record.fromDate;
+      let thruDateToCheck = record.thruDate;
+
+      let overlap = checkDateConflict(fromDateToCheck, thruDateToCheck, fromDate, thruDate);
+      if (overlap) {
+        throw new Error(
+          `Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${fromDateToCheck} to ${thruDateToCheck}.`
+        );
+      }
+    }
+
     // ###### Record Emissions ######
+    let uuid = getNewUuid();
     const blockchainResult = await contract.submitTransaction(
       "recordEmissions",
       uuid,
