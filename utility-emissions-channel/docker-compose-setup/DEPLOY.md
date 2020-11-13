@@ -14,7 +14,7 @@ For this deployment, we will need two servers. For the purpose of this documenta
 
 # Setting up the network
 
-For this section, you will find a collection of utility scripts in docker-compose-setup/scripts/deploy. The folder node-one refers to server A's scripts, and node-two refers to server B's scripts. Work from the docker-compose-setup directory when executing these commands.
+For this section, you will find a collection of utility scripts in docker-compose-setup/scripts/deploy. The folder node-one refers to server A's scripts, and node-two refers to server B's scripts. Work from the docker-compose-setup directory when executing these commands. If there are ever permissions issues, sudo chown -R \$USER ~/blockchain-carbon-accounting.
 
 1. On server A, run ./scripts/deploy/node-one/start.sh. This will create a doker swarm, network, create the Cli, create the CA, and connect them all to the network.
 
@@ -28,13 +28,15 @@ For this section, you will find a collection of utility scripts in docker-compos
 
 6. On Server A, SCP -r the system genesis block directory ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/system-genesis-block to server B.
 
-7. On Server A, run ./scripts/deploy/node-one/startAndConnectNetwork.sh. This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will also generate the proper certs for auditor1.carbonAccounting.com under organizations/peerOrganizations.
+7. On Server A, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com to the same directory in server B.
 
-8. On Server B, run ./scripts/deploy/node-two/startAndConnectNetwork.sh. This will bring up peer1.auditor2, orderer1.auditor2, and couchdb1. This will also generate the proper certs for auditor2.carbonAccounting.com under organizations/peerOrganizations.
+8. On Server A, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1 to the same directory in server B.
 
-9. On Server B, SCP -r the generated certs under ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com to the same directory on server A.
+9. On Server A, run ./scripts/deploy/node-one/startAndConnectNetwork.sh. This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will also generate the proper certs for auditor1.carbonAccounting.com under organizations/peerOrganizations.
 
-10. On Server A, now that all the proper certs are in place, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations to the same directory on server B so that both servers have them.
+10. On Server B, run ./scripts/deploy/node-two/startAndConnectNetwork.sh. This will bring up peer1.auditor2, orderer1.auditor2, and couchdb1. This will also generate the proper certs for auditor2.carbonAccounting.com under organizations/peerOrganizations.
+
+11. On Server B, now that all the proper certs are in place, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations to the same directory on server A so that both servers have them.
 
 # Creating the channel, deploying the chaincode
 
@@ -42,7 +44,7 @@ For this section, you will find a collection of utility scripts in docker-compos
 
 2. On Server A, deploy the CC by running ./scripts/deploy/node-one/deployCC.sh. This will deploy the CC over the network by execing the script into the client container.
 
-3. On Server A, test that the CC has been properly installed by running the following command INSIDE of the cli container:
+3. On Server A, test that the CC has been properly installed by running the following command INSIDE of the cli container by running: docker exec -ti cli bash
 
 - ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["11208","MyCompany","2018-06-01","2018-06-30","150","KWH"]}' 1 2
 
