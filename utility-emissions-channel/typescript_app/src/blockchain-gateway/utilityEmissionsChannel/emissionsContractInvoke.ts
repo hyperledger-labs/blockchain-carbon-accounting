@@ -15,6 +15,7 @@ import {
   setWalletPathByOrg,
 } from "../utils/gatewayUtils";
 import { getNewUuid } from "../utils/uuid";
+import { checkDateConflict } from "../utils/checkDateConflict";
 
 export class EmissionsContractInvoke {
   constructor(message: string) {}
@@ -44,10 +45,32 @@ export class EmissionsContractInvoke {
       }
 
       const network = await gateway.getNetwork("utilityemissionchannel");
-
       const contract = network.getContract("emissionscontract");
-      let uuid = getNewUuid();
+
+      // Check for date overlap
+
+      // Get Emissions for utilityID and partyId to compare
+      const allEmissionsResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
+      const allEmissionsString = allEmissionsResult.toString();
+      const jsonEmissionsResult = JSON.parse(allEmissionsString);
+
+      // Compare each entry against incoming emissions record
+      for (let emission_item of jsonEmissionsResult) {
+        let record = emission_item.Record;
+
+        let fromDateToCheck = record.fromDate;
+        let thruDateToCheck = record.thruDate;
+
+        let overlap = checkDateConflict(fromDateToCheck, thruDateToCheck, fromDate, thruDate);
+        if (overlap) {
+          throw new Error(
+            `Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${fromDateToCheck} to ${thruDateToCheck}.`
+          );
+        }
+      }
+
       // ###### Record Emissions ######
+      let uuid = getNewUuid();
       const blockchainResult = await contract.submitTransaction(
         "recordEmissions",
         uuid,
