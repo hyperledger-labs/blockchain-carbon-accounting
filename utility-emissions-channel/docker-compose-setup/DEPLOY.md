@@ -1,6 +1,10 @@
 # blockchain-carbon-accounting deployment
 
-Now that the app has been restructured, deployment is much more seamless to the development environment. By containerizing the API and creating custom client container using an Ubuntu image, we are able to run the whole app and binary commands in a docker swarm network. Now that we have adopted this setup, there is no need for dynamic URL/IP values, IP SANS, or access to the local machine from containers. To reset and start over at any time during this process, run ./scripts/reset.sh.
+Now that the app has been restructured, deployment is much more seamless to the development environment. By containerizing the API and creating custom client container using an Ubuntu image, we are able to run the whole app and binary commands in a docker swarm network. Now that we have adopted this setup, there is no need for dynamic URL/IP values, IP SANS, or access to the local machine from containers. To reset and start over at any time during this process, run:
+
+```bash
+./scripts/reset.sh
+```
 
 # Preparing your EC2 nodes
 
@@ -19,7 +23,7 @@ For this section, you will find a collection of utility scripts in docker-compos
 1. On server A, run:
 
 ```bash
-./scripts/deploy/node-one/start.sh.
+./scripts/deploy/node-one/start.sh
 ```
 
 This will create a doker swarm, network, create the Cli, create the CA, and connect them all to the network.
@@ -35,7 +39,7 @@ Copy the command and use it to join the swarm on server B.
 3. On server B, run:
 
 ```bash
-./scripts/deploy/node-two/start.sh.
+./scripts/deploy/node-two/start.sh
 ```
 
 This will create CA for this server.
@@ -49,7 +53,7 @@ scp -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-s
 5. On Server A, run:
 
 ```bash
-./scripts/deploy/node-one/generateCryptoCreateOrgs.sh.
+./scripts/deploy/node-one/generateCryptoCreateOrgs.sh
 ```
 
 This will register/enroll admins/users, generate the system genesis block, and create the CCP for the API.
@@ -75,7 +79,7 @@ scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-
 9. On Server A, run:
 
 ```bash
-./scripts/deploy/node-one/startAndConnectNetwork.sh.
+./scripts/deploy/node-one/startAndConnectNetwork.sh
 ```
 
 This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will also generate the proper certs for auditor1.carbonAccounting.com under organizations/peerOrganizations.
@@ -99,7 +103,7 @@ scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-
 1. Everything should now be in place to create the channel. On Server A, run:
 
 ```bash
-./scripts/deploy/node-one/createChannel.sh.
+./scripts/deploy/node-one/createChannel.sh
 ```
 
 This will generate the utilityEmissions channel by execing the script into the client container.
@@ -107,7 +111,7 @@ This will generate the utilityEmissions channel by execing the script into the c
 2. On Server A, deploy the CC by running:
 
 ```bash
-./scripts/deploy/node-one/deployCC.sh.
+./scripts/deploy/node-one/deployCC.sh
 ```
 
 This will deploy the CC over the network by execing the script into the client container.
@@ -129,7 +133,7 @@ Once inside, run:
 1. On Server A, run:
 
 ```bash
-./scripts/deploy/node-one/startApi.sh.
+./scripts/deploy/node-one/startApi.sh
 ```
 
 This will spin up a containerized version of the API, install dependencies, join the network, and then start API using nodemon for refresh on change. It will also mount the API window to the current terminal session.
