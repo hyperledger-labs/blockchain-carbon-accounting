@@ -74,6 +74,7 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 
 ## Running AWS dynamodb locally
 
+1. Setup credentials based on aws-config.js.template. Be sure to set AWS_REGION to "local" and AWS_ENDPOINT to "http://localdynamodb:8000".
 1. Start dynamodb:
 
 ```bash
