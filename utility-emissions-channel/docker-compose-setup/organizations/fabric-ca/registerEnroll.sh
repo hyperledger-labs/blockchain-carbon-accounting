@@ -14,43 +14,43 @@ function createAuditor1() {
   #  rm -rf $FABRIC_CA_CLIENT_HOME/msp
 
   set -x
-  fabric-ca-client enroll -u https://admin:adminpw@$CA_1_HOST:7054 --caname ca-auditor1 --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://admin:adminpw@$CA_1_HOST:7054 --caname $CA_1_HOST --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   echo "NodeOUs:
   Enable: true
   ClientOUIdentifier:
-    Certificate: cacerts/${CA_1_HOST//./-}-7054-ca-auditor1.pem
+    Certificate: cacerts/${CA_1_HOST//./-}-7054-auditor1-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: client
   PeerOUIdentifier:
-    Certificate: cacerts/${CA_1_HOST//./-}-7054-ca-auditor1.pem
+    Certificate: cacerts/${CA_1_HOST//./-}-7054-auditor1-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: peer
   AdminOUIdentifier:
-    Certificate: cacerts/${CA_1_HOST//./-}-7054-ca-auditor1.pem
+    Certificate: cacerts/${CA_1_HOST//./-}-7054-auditor1-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: admin
   OrdererOUIdentifier:
-    Certificate: cacerts/${CA_1_HOST//./-}-7054-ca-auditor1.pem
+    Certificate: cacerts/${CA_1_HOST//./-}-7054-auditor1-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: orderer" >${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/msp/config.yaml
 
   echo
   echo "Register peer1"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor1 --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client register --caname $CA_1_HOST --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   echo
   echo "Register user"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor1 --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client register --caname $CA_1_HOST --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   echo
   echo "Register the org admin"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor1 --id.name auditor1admin --id.secret auditor1adminpw --id.type admin --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client register --caname $CA_1_HOST --id.name auditor1admin --id.secret auditor1adminpw --id.type admin --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   mkdir -p organizations/peerOrganizations/auditor1.carbonAccounting.com/peers
@@ -60,7 +60,7 @@ function createAuditor1() {
   echo "## Generate the peer1 msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_1_HOST:7054 --caname ca-auditor1 -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/msp --csr.hosts peer1.auditor1.carbonAccounting.com --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_1_HOST:7054 --caname $CA_1_HOST -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/msp --csr.hosts peer1.auditor1.carbonAccounting.com --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/msp/config.yaml
@@ -69,7 +69,7 @@ function createAuditor1() {
   echo "## Generate the peer1-tls certificates"
   echo
   set -x
-  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_1_HOST:7054 --caname ca-auditor1 -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts peer1.auditor1.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_1_HOST:7054 --caname $CA_1_HOST -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts peer1.auditor1.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/tlscacerts/* ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt
@@ -92,7 +92,7 @@ function createAuditor1() {
   echo "## Generate the user msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://user1:user1pw@$CA_1_HOST:7054 --caname ca-auditor1 -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://user1:user1pw@$CA_1_HOST:7054 --caname $CA_1_HOST -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp/config.yaml
@@ -107,7 +107,7 @@ function createAuditor1() {
   echo "## Generate the org admin msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://auditor1admin:auditor1adminpw@$CA_1_HOST:7054 --caname ca-auditor1 -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://auditor1admin:auditor1adminpw@$CA_1_HOST:7054 --caname $CA_1_HOST -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/config.yaml
@@ -120,7 +120,7 @@ function createAuditor1() {
   echo "Register orderer"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor1 --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client register --caname $CA_1_HOST --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
   set +x
 
@@ -128,7 +128,7 @@ function createAuditor1() {
   echo "## Generate the orderer msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_1_HOST:7054 --caname ca-auditor1 -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp --csr.hosts orderer1.auditor1.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_1_HOST:7054 --caname $CA_1_HOST -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp --csr.hosts orderer1.auditor1.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp/config.yaml
@@ -137,7 +137,7 @@ function createAuditor1() {
   echo "## Generate the orderer-tls certificates"
   echo
   set -x
-  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_1_HOST:7054 --caname ca-auditor1 -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts orderer1.auditor1.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
+  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_1_HOST:7054 --caname $CA_1_HOST -M ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts orderer1.auditor1.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor1/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls/tlscacerts/* ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls/ca.crt
@@ -163,43 +163,43 @@ function createAuditor2() {
   #  rm -rf $FABRIC_CA_CLIENT_HOME/msp
 
   set -x
-  fabric-ca-client enroll -u https://admin:adminpw@$CA_2_HOST:8054 --csr.hosts auditor2.carbonAccounting.com --caname ca-auditor2 --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://admin:adminpw@$CA_2_HOST:8054 --csr.hosts auditor2.carbonAccounting.com --caname $CA_2_HOST --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   echo "NodeOUs:
   Enable: true
   ClientOUIdentifier:
-    Certificate: cacerts/${CA_2_HOST//./-}-8054-ca-auditor2.pem
+    Certificate: cacerts/${CA_2_HOST//./-}-8054-auditor2-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: client
   PeerOUIdentifier:
-    Certificate: cacerts/${CA_2_HOST//./-}-8054-ca-auditor2.pem
+    Certificate: cacerts/${CA_2_HOST//./-}-8054-auditor2-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: peer
   AdminOUIdentifier:
-    Certificate: cacerts/${CA_2_HOST//./-}-8054-ca-auditor2.pem
+    Certificate: cacerts/${CA_2_HOST//./-}-8054-auditor2-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: admin
   OrdererOUIdentifier:
-    Certificate: cacerts/${CA_2_HOST//./-}-8054-ca-auditor2.pem
+    Certificate: cacerts/${CA_2_HOST//./-}-8054-auditor2-carbonAccounting-com.pem
     OrganizationalUnitIdentifier: orderer" >${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/msp/config.yaml
 
   echo
   echo "Register peer1"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor2 --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client register --caname $CA_2_HOST --id.name peer1 --id.secret peer1pw --id.type peer --id.attrs "hf.Registrar.Roles=peer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   echo
   echo "Register user"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor2 --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client register --caname $CA_2_HOST --id.name user1 --id.secret user1pw --id.type client --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   echo
   echo "Register the org admin"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor2 --id.name auditor2admin --id.secret auditor2adminpw --id.type admin --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client register --caname $CA_2_HOST --id.name auditor2admin --id.secret auditor2adminpw --id.type admin --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   mkdir -p organizations/peerOrganizations/auditor2.carbonAccounting.com/peers
@@ -209,7 +209,7 @@ function createAuditor2() {
   echo "## Generate the peer1 msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_2_HOST:8054 --caname ca-auditor2 -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/msp --csr.hosts peer1.auditor2.carbonAccounting.com --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_2_HOST:8054 --caname $CA_2_HOST -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/msp --csr.hosts peer1.auditor2.carbonAccounting.com --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/msp/config.yaml
@@ -218,7 +218,7 @@ function createAuditor2() {
   echo "## Generate the peer1-tls certificates"
   echo
   set -x
-  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_2_HOST:8054 --caname ca-auditor2 -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts peer1.auditor2.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://peer1:peer1pw@$CA_2_HOST:8054 --caname $CA_2_HOST -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts peer1.auditor2.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls/tlscacerts/* ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls/ca.crt
@@ -241,7 +241,7 @@ function createAuditor2() {
   echo "## Generate the user msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://user1:user1pw@$CA_2_HOST:8054 --caname ca-auditor2 -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/User1@auditor2.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://user1:user1pw@$CA_2_HOST:8054 --caname $CA_2_HOST -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/User1@auditor2.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/User1@auditor2.carbonAccounting.com/msp/config.yaml
@@ -256,7 +256,7 @@ function createAuditor2() {
   echo "## Generate the org admin msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://auditor2admin:auditor2adminpw@$CA_2_HOST:8054 --caname ca-auditor2 -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://auditor2admin:auditor2adminpw@$CA_2_HOST:8054 --caname $CA_2_HOST -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp/config.yaml
@@ -269,7 +269,7 @@ function createAuditor2() {
   echo "Register orderer"
   echo
   set -x
-  fabric-ca-client register --caname ca-auditor2 --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client register --caname $CA_2_HOST --id.name orderer1 --id.secret orderer1pw --id.type orderer --id.attrs "hf.Registrar.Roles=orderer" --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
   set +x
 
@@ -277,7 +277,7 @@ function createAuditor2() {
   echo "## Generate the orderer msp"
   echo
   set -x
-  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_2_HOST:8054 --caname ca-auditor2 -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/msp --csr.hosts orderer1.auditor2.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_2_HOST:8054 --caname $CA_2_HOST -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/msp --csr.hosts orderer1.auditor2.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/msp/config.yaml ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/msp/config.yaml
@@ -286,7 +286,7 @@ function createAuditor2() {
   echo "## Generate the orderer-tls certificates"
   echo
   set -x
-  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_2_HOST:8054 --caname ca-auditor2 -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts orderer1.auditor2.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
+  fabric-ca-client enroll -u https://orderer1:orderer1pw@$CA_2_HOST:8054 --caname $CA_2_HOST -M ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls --enrollment.profile tls --csr.hosts orderer1.auditor2.carbonAccounting.com --csr.hosts localhost --tls.certfiles ${PWD}/organizations/fabric-ca/auditor2/tls-cert.pem
   set +x
 
   cp ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/tlscacerts/* ${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/ca.crt
