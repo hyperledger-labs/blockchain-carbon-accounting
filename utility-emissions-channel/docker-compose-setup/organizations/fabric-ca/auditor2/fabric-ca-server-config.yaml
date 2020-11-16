@@ -318,9 +318,7 @@ csr:
       O: auditor2.carbonAccounting.com
       OU: Fabric
   hosts:
-    - 3.19.242.38
-    - localhost
-    - ca_auditor2
+    - auditor2.carbonAccounting.com
   ca:
     expiry: 131400h
     pathlength: 1

@@ -45,7 +45,7 @@
   "certificateAuthorities": {
     "ca.auditor${ORG}.carbonAccounting.com": {
       "url": "https://auditor${ORG}.carbonAccounting.com:${CAPORT}",
-      "caName": "ca-auditor${ORG}",
+      "caName": "auditor${ORG}.carbonAccounting.com",
       "tlsCACerts": {
         "pem": ["${CAPEM}"]
       },

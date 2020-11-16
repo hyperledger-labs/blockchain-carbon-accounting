@@ -38,7 +38,7 @@ CAPORT=7054
 ORDPORT=7050
 PEERPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/tlsca/tlsca.auditor1.carbonAccounting.com-cert.pem
 CAPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/ca/ca.auditor1.carbonAccounting.com-cert.pem
-ORDERERPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls/tlscacerts/tls-auditor1-carbonAccounting-com-7054-ca-auditor1.pem
+ORDERERPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls/tlscacerts/tls-auditor1-carbonAccounting-com-7054-auditor1-carbonAccounting-com.pem
 
 echo "+++++++++++++++++++++++++++++++"
 echo "+++++++++++++++++++++++++++++++"
@@ -57,7 +57,7 @@ CAPORT=8054
 ORDPORT=8050
 PEERPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/tlsca/tlsca.auditor2.carbonAccounting.com-cert.pem
 CAPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/ca/ca.auditor2.carbonAccounting.com-cert.pem
-ORDERERPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/tlscacerts/tls-auditor2-carbonAccounting-com-8054-ca-auditor2.pem
+ORDERERPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/tlscacerts/tls-auditor2-carbonAccounting-com-8054-auditor2-carbonAccounting-com.pem
 
 echo "$(json_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM $ORDERERPEM)" > organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.json
 echo "$(yaml_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM $ORDERERPEM)" > organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.yaml
