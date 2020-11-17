@@ -2,6 +2,7 @@ import express from "express";
 import { log } from "../../utils/log";
 import { body, param, validationResult } from "express-validator";
 import { EmissionsContractInvoke } from "../../blockchain-gateway/utilityEmissionsChannel/emissionsContractInvoke";
+import { uploadToS3 } from "../../blockchain-gateway/utils/aws";
 
 const APP_VERSION = "v1";
 export const router = express.Router();
@@ -54,6 +55,26 @@ router.post(
       const thruDate = req.body.thruDate;
       const energyUseAmount = req.body.energyUseAmount;
       const energyUseUom = req.body.energyUseUom;
+      let url = "";
+
+      // check for overlapping dates before uploading to s3
+      const overlapResponse = await EmissionsContractInvoke.checkDateOverlap(
+        userId,
+        orgName,
+        utilityId,
+        partyId,
+        fromDate,
+        thruDate
+      );
+      // upload doc to s3 if exists
+      if (req.file) {
+        let fileBin = req.file.buffer;
+        let upload = await uploadToS3(
+          fileBin,
+          `${userId}-${orgName}-${utilityId}-${partyId}-${fromDate}-${thruDate}.pdf`
+        );
+        url = upload.Location;
+      }
 
       console.log(`# RECORDING EMISSIONS DATA TO UTILITYEMISSIONS CHANNEL`);
 
@@ -66,7 +87,8 @@ router.post(
         fromDate,
         thruDate,
         energyUseAmount,
-        energyUseUom
+        energyUseUom,
+        url
       );
 
       if (blockchainResponse["info"] === "EMISSION RECORDED TO LEDGER") {
