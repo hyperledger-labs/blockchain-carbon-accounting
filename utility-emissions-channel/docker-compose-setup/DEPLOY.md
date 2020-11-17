@@ -12,9 +12,11 @@ For this deployment, we will need two servers. For the purpose of this documenta
 
 1. Create server A, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You will want a decent amount of RAM on this server, probably 6-8. (t2.large)
 2. Create server B, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You can most likely get away with using a t2 micro instance for this server.
-3. SSH into both servers and git clone https://github.com/opentaps/blockchain-carbon-accounting/tree/deployment. Fill out the AWS credentials in a seperate file called aws-config.js based on utility-emissions-channel/chaincode/node/lib/aws-config.js.template.
+3. SSH into both servers and `git clone https://github.com/opentaps/blockchain-carbon-accounting` then `cd blockchain-carbon-accounting` and `git checkout deployment`. Fill out the AWS credentials in a separate file called aws-config.js based on utility-emissions-channel/chaincode/node/lib/aws-config.js.template.
 4. Install docker on both machines by running ./scripts/deploy/install-docker.sh
 5. Exit and re-enter the SSH session on both servers to activate changes
+6. Setup SSH keys needed to run SCP later on, copy the EC2 private key in `~/ssh_key` on both servers and `chmod 600 ~/ssh_key`
+7. Note the IP of both servers they will be referred to later x.x.x.x as Server A and y.y.y.y as Server B
 
 # Setting up the network
 
@@ -23,10 +25,13 @@ For this section, you will find a collection of utility scripts in docker-compos
 1. On server A, run:
 
 ```bash
+export BASE_PATH=~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+export SERVER_B_IP=y.y.y.y
+cd $BASE_PATH
 ./scripts/deploy/node-one/start.sh
 ```
 
-This will create a doker swarm, network, create the Cli, create the CA, and connect them all to the network.
+This will create a docker swarm, network, create the Cli, create the CA, and connect them all to the network.
 
 2. On Server A, run:
 
@@ -39,15 +44,18 @@ Copy the command and use it to join the swarm on server B.
 3. On server B, run:
 
 ```bash
+export BASE_PATH=~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+export SERVER_A_IP=x.x.x.x
+cd $BASE_PATH
 ./scripts/deploy/node-two/start.sh
 ```
 
 This will create CA for this server.
 
-4. On server B, SCP -r the contents of ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor2 to the same directory on server A. This will ensure that the proper certs are in place to register/enroll the admins/users and generate the system genesis block.
+4. On server B, SCP -r the contents of \$BASE_PATH/organizations/fabric-ca/auditor2 to the same directory on server A. This will ensure that the proper certs are in place to register/enroll the admins/users and generate the system genesis block.
 
 ```bash
-scp -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor2 SERVER_A_IP ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor2
+scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor2 $SERVER_A_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
 5. On Server A, run:
@@ -58,22 +66,22 @@ scp -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-s
 
 This will register/enroll admins/users, generate the system genesis block, and create the CCP for the API.
 
-6. On Server A, SCP -r the system genesis block directory ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/system-genesis-block to server B.
+6. On Server A, SCP -r the system genesis block directory \$BASE_PATH/system-genesis-block to server B.
 
 ```bash
-scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/system-genesis-block SERVER_B_IP ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/system-genesis-block
+scp -i ~/ssh_key -r $BASE_PATH/system-genesis-block $SERVER_B_IP:$BASE_PATH/
 ```
 
-7. On Server A, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com to the same directory in server B.
+7. On Server A, SCP -r \$BASE_PATH/organizations/peerOrganizations/auditor2.carbonAccounting.com to the same directory in server B.
 
 ```bash
-scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com SERVER_B_IP ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com
+scp -i ~/ssh_key -r $BASE_PATH/organizations/peerOrganizations/auditor2.carbonAccounting.com $SERVER_B_IP:$BASE_PATH/organizations/peerOrganizations/
 ```
 
-8. On Server A, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1 to the same directory in server B.
+8. On Server A, SCP -r \$BASE_PATH/organizations/fabric-ca/auditor1 to the same directory in server B.
 
 ```bash
-scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1 SERVER_B_IP ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1
+scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_B_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
 9. On Server A, run:
@@ -92,10 +100,10 @@ This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will al
 
 This will bring up peer1.auditor2, orderer1.auditor2, and couchdb1. This will also generate the proper certs for auditor2.carbonAccounting.com under organizations/peerOrganizations.
 
-11. On Server B, now that all the proper certs are in place, SCP -r ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations to the same directory on server A so that both servers have them.
+11. On Server B, now that all the proper certs are in place, SCP -r \$BASE_PATH/organizations to the same directory on server A so that both servers have them.
 
 ```bash
-scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1 SERVER_A_IP ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1
+scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_A_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
 # Creating the channel, deploying the chaincode
@@ -106,7 +114,7 @@ scp -r  ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-
 ./scripts/deploy/node-one/createChannel.sh
 ```
 
-This will generate the utilityEmissions channel by execing the script into the client container.
+This will generate the utilityEmissions channel by executing the script into the client container.
 
 2. On Server A, deploy the CC by running:
 
@@ -114,7 +122,7 @@ This will generate the utilityEmissions channel by execing the script into the c
 ./scripts/deploy/node-one/deployCC.sh
 ```
 
-This will deploy the CC over the network by execing the script into the client container.
+This will deploy the CC over the network by executing the script into the client container.
 
 3. On Server A, test that the CC has been properly installed by running the following command INSIDE of the cli container by running:
 
@@ -138,4 +146,4 @@ Once inside, run:
 
 This will spin up a containerized version of the API, install dependencies, join the network, and then start API using nodemon for refresh on change. It will also mount the API window to the current terminal session.
 
-2. Assuming you have opened up all ports/traffic in the network, navigate to http://EC2_INSTANCE_IP_HERE:9000/api-docs to interact with the swagger UI, or connect this same url to an opentaps repo to access the ledger.
+2. Assuming you have opened up all ports/traffic in the network, navigate to http://EC2_INSTANCE_IP_HERE:9000/api-docs to interact with the swagger UI, or connect this same url to an Opentaps repo to access the ledger.
