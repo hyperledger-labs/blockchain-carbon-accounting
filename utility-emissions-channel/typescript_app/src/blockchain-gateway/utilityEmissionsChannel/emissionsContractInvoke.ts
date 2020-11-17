@@ -20,7 +20,17 @@ import { checkDateConflict } from "../utils/checkDateConflict";
 export class EmissionsContractInvoke {
   constructor(message: string) {}
 
-  static async recordEmissions(userId, orgName, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
+  static async recordEmissions(
+    userId,
+    orgName,
+    utilityId,
+    partyId,
+    fromDate,
+    thruDate,
+    energyUseAmount,
+    energyUseUom,
+    url
+  ) {
     try {
       let response = "";
 
@@ -47,28 +57,6 @@ export class EmissionsContractInvoke {
       const network = await gateway.getNetwork("utilityemissionchannel");
       const contract = network.getContract("emissionscontract");
 
-      // Check for date overlap
-
-      // Get Emissions for utilityID and partyId to compare
-      const allEmissionsResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
-      const allEmissionsString = allEmissionsResult.toString();
-      const jsonEmissionsResult = JSON.parse(allEmissionsString);
-
-      // Compare each entry against incoming emissions record
-      for (let emission_item of jsonEmissionsResult) {
-        let record = emission_item.Record;
-
-        let fromDateToCheck = record.fromDate;
-        let thruDateToCheck = record.thruDate;
-
-        let overlap = checkDateConflict(fromDateToCheck, thruDateToCheck, fromDate, thruDate);
-        if (overlap) {
-          throw new Error(
-            `Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${fromDateToCheck} to ${thruDateToCheck}.`
-          );
-        }
-      }
-
       // ###### Record Emissions ######
       let uuid = getNewUuid();
       const blockchainResult = await contract.submitTransaction(
@@ -79,7 +67,8 @@ export class EmissionsContractInvoke {
         fromDate,
         thruDate,
         energyUseAmount,
-        energyUseUom
+        energyUseUom,
+        url
       );
       const stringResult = blockchainResult.toString("utf-8");
       const jsonResult = JSON.parse(stringResult);
@@ -103,6 +92,7 @@ export class EmissionsContractInvoke {
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
+      result["url"] = jsonResult.url;
 
       console.log(result);
       return result;
@@ -170,6 +160,7 @@ export class EmissionsContractInvoke {
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
+      result["url"] = jsonResult.url;
 
       console.log(result);
       return result;
@@ -242,6 +233,7 @@ export class EmissionsContractInvoke {
         result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
         result["energyUseUom"] = record.energyUseUom;
         result["factorSource"] = record.factorSource;
+        result["url"] = record.url;
 
         all_emissions.push(result);
       }
@@ -256,6 +248,55 @@ export class EmissionsContractInvoke {
       console.error(`Failed to evaluate transaction: ${error}`);
       return all_emissions;
       // process.exit(1);
+    }
+  }
+
+  static async checkDateOverlap(userId, orgName, utilityId, partyId, fromDate, thruDate) {
+    let response = "";
+
+    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+
+    const walletPath = setWalletPathByOrg(orgName);
+    console.log("+++++++++++++++++ Walletpath: " + walletPath);
+    const wallet = await buildWallet(Wallets, walletPath);
+
+    const gateway = new Gateway();
+
+    try {
+      await gateway.connect(ccp, {
+        wallet,
+        identity: userId,
+        discovery: { enabled: true, asLocalhost: true },
+      });
+    } catch (err) {
+      response = `ERROR: ${err}`;
+      console.log(response);
+      return response;
+    }
+
+    const network = await gateway.getNetwork("utilityemissionchannel");
+    const contract = network.getContract("emissionscontract");
+
+    // Check for date overlap
+
+    // Get Emissions for utilityID and partyId to compare
+    const allEmissionsResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
+    const allEmissionsString = allEmissionsResult.toString();
+    const jsonEmissionsResult = JSON.parse(allEmissionsString);
+
+    // Compare each entry against incoming emissions record
+    for (let emission_item of jsonEmissionsResult) {
+      let record = emission_item.Record;
+
+      let fromDateToCheck = record.fromDate;
+      let thruDateToCheck = record.thruDate;
+
+      let overlap = checkDateConflict(fromDateToCheck, thruDateToCheck, fromDate, thruDate);
+      if (overlap) {
+        throw new Error(
+          `Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${fromDateToCheck} to ${thruDateToCheck}.`
+        );
+      }
     }
   }
 }

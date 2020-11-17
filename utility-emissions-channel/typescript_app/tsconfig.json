@@ -5,6 +5,7 @@
     "pretty": true,
     "sourceMap": true,
     "target": "es6",
+    "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "outDir": "./dist"

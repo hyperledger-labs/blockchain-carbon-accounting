@@ -61,7 +61,7 @@ class EmissionsRecordContract extends Contract {
    * @param {Double} energy usage amount
    * @param {String} UOM of energy usage amount -- ie kwh
    */
-  async recordEmissions(ctx, uuid, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom) {
+  async recordEmissions(ctx, uuid, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom, url) {
     // TODO: use a constants file
     var emissionsUom = "MtCO2e";
     // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
@@ -89,7 +89,8 @@ class EmissionsRecordContract extends Contract {
       renewable_energy_use_amount,
       nonrenewable_energy_use_amount,
       energyUseUom,
-      factor_source
+      factor_source,
+      url
     );
 
     // Add the emissions record to the list of all similar emissions records in the ledger world state
