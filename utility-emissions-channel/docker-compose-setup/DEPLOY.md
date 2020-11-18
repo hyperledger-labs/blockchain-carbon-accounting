@@ -3,6 +3,7 @@
 Now that the app has been restructured, deployment is much more seamless to the development environment. By containerizing the API and creating custom client container using an Ubuntu image, we are able to run the whole app and binary commands in a docker swarm network. Now that we have adopted this setup, there is no need for dynamic URL/IP values, IP SANS, or access to the local machine from containers. To reset and start over at any time during this process, run:
 
 ```bash
+cd ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
 ./scripts/reset.sh
 ```
 
@@ -11,80 +12,85 @@ Now that the app has been restructured, deployment is much more seamless to the 
 For this deployment, we will need two servers. For the purpose of this documentation, we will be referring to them as server A and server B. Server A will run the API/peer1/auditor1/orderer1/couch0, server B will run peer2/auditor2/orderer2/couch0.
 
 1. Create server A, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You will want a decent amount of RAM on this server, probably 6-8. (t2.large)
-2. Create server B, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You can most likely get away with using a t2 micro instance for this server.
-3. SSH into both servers and `git clone https://github.com/opentaps/blockchain-carbon-accounting` then `cd blockchain-carbon-accounting` and `git checkout deployment`. Fill out the AWS credentials in a separate file called aws-config.js based on utility-emissions-channel/chaincode/node/lib/aws-config.js.template.
-4. Install docker on both machines by running ./scripts/deploy/install-docker.sh
-5. Exit and re-enter the SSH session on both servers to activate changes
-6. Setup SSH keys needed to run SCP later on, copy the EC2 private key in `~/ssh_key` on both servers and `chmod 600 ~/ssh_key`
-7. Note the IP of both servers they will be referred to later x.x.x.x as Server A and y.y.y.y as Server B
+1. Create server B, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You can most likely get away with using a t2 micro instance for this server.
+1. SSH into both servers and `git clone https://github.com/opentaps/blockchain-carbon-accounting ; cd blockchain-carbon-accounting ; git checkout deployment`.
+1. Fill out the AWS credentials in a separate file called `aws-config.js` based on `utility-emissions-channel/chaincode/node/lib/aws-config.js.template`.
+1. Install docker on both machines by running `cd ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup ; ./scripts/deploy/install-docker.sh`
+1. Exit and re-enter the SSH session on both servers to activate changes
+1. Setup SSH keys needed to run SCP later on, copy the EC2 private key in `~/ssh_key` on both servers and `chmod 600 ~/ssh_key`
+1. Note the IP of both servers they will be referred to later **x.x.x.x** as Server A and **y.y.y.y** as Server B
 
 # Setting up the network
 
 For this section, you will find a collection of utility scripts in docker-compose-setup/scripts/deploy. The folder node-one refers to server A's scripts, and node-two refers to server B's scripts. Work from the docker-compose-setup directory when executing these commands. If there are ever permissions issues, sudo chown -R \$USER ~/blockchain-carbon-accounting.
 
-1. On server A, run:
+## 1. On Server A, run:
 
 ```bash
 export BASE_PATH=~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
 export SERVER_B_IP=y.y.y.y
 cd $BASE_PATH
 ./scripts/deploy/node-one/start.sh
+sudo chown -R ubuntu:ubuntu ~/blockchain-carbon-accounting
 ```
 
 This will create a docker swarm, network, create the Cli, create the CA, and connect them all to the network.
 
-2. On Server A, run:
+Then:
 
 ```bash
 docker swarm join-token worker
 ```
 
-Copy the command and use it to join the swarm on server B.
+Finally, copy the command returned which looks like `docker swarm join --token some-long-token <ip>:<port>`. And save it for the next step.
 
-3. On server B, run:
+## 2. On Server B, run:
 
 ```bash
 export BASE_PATH=~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
 export SERVER_A_IP=x.x.x.x
 cd $BASE_PATH
+```
+
+Use the command you copied from Server A to join the docker swarm:
+
+```bash
+docker swarm join --token some-long-token <ip>:<port>
+```
+
+Then:
+
+```bash
 ./scripts/deploy/node-two/start.sh
+sudo chown -R ubuntu:ubuntu ~/blockchain-carbon-accounting
 ```
 
 This will create CA for this server.
 
-4. On server B, SCP -r the contents of \$BASE_PATH/organizations/fabric-ca/auditor2 to the same directory on server A. This will ensure that the proper certs are in place to register/enroll the admins/users and generate the system genesis block.
+Then copy them to Server A. This will ensure that the proper certs are in place to register/enroll the admins/users and generate the system genesis block.
 
 ```bash
 scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor2 $SERVER_A_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
-5. On Server A, run:
+## 3. On Server A, run:
 
 ```bash
 ./scripts/deploy/node-one/generateCryptoCreateOrgs.sh
+sudo chown -R ubuntu:ubuntu ~/blockchain-carbon-accounting
 ```
 
 This will register/enroll admins/users, generate the system genesis block, and create the CCP for the API.
 
-6. On Server A, SCP -r the system genesis block directory \$BASE_PATH/system-genesis-block to server B.
+Then copy some of the needed files to Server B:
 
 ```bash
 scp -i ~/ssh_key -r $BASE_PATH/system-genesis-block $SERVER_B_IP:$BASE_PATH/
-```
-
-7. On Server A, SCP -r \$BASE_PATH/organizations/peerOrganizations/auditor2.carbonAccounting.com to the same directory in server B.
-
-```bash
 scp -i ~/ssh_key -r $BASE_PATH/organizations/peerOrganizations/auditor2.carbonAccounting.com $SERVER_B_IP:$BASE_PATH/organizations/peerOrganizations/
-```
-
-8. On Server A, SCP -r \$BASE_PATH/organizations/fabric-ca/auditor1 to the same directory in server B.
-
-```bash
 scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_B_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
-9. On Server A, run:
+Then:
 
 ```bash
 ./scripts/deploy/node-one/startAndConnectNetwork.sh
@@ -92,7 +98,7 @@ scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_B_IP:$BA
 
 This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will also generate the proper certs for auditor1.carbonAccounting.com under organizations/peerOrganizations.
 
-10. On Server B, run:
+## 4. On Server B, run:
 
 ```bash
 ./scripts/deploy/node-two/startAndConnectNetwork.sh
@@ -100,7 +106,7 @@ This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will al
 
 This will bring up peer1.auditor2, orderer1.auditor2, and couchdb1. This will also generate the proper certs for auditor2.carbonAccounting.com under organizations/peerOrganizations.
 
-11. On Server B, now that all the proper certs are in place, SCP -r \$BASE_PATH/organizations to the same directory on server A so that both servers have them.
+Then, now that all the proper certs are in place, SCP -r \$BASE_PATH/organizations to the same directory on server A so that both servers have them.
 
 ```bash
 scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_A_IP:$BASE_PATH/organizations/fabric-ca/
