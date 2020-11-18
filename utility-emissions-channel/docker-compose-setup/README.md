@@ -74,14 +74,17 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 
 ## Running AWS dynamodb locally
 
-1. Setup credentials based on aws-config.js.template. Be sure to set AWS_REGION to "local" and AWS_ENDPOINT to "http://localdynamodb:8000".
 1. Start dynamodb:
 
 ```bash
 ./scripts/startDynamo.sh
 ```
 
-2. See docs in blockchain-carbon-accounting/utility-emissions-channel/egrid-data-loader/README.md for seeding the db
+2. Seed the DB - See docs in blockchain-carbon-accounting/utility-emissions-channel/egrid-data-loader/README.md for seeding the db
+
+3. Fill in AWS credentials based on aws-config.js.template. Fill in your secret key/access key and be sure to set AWS_REGION to "local" and AWS_ENDPOINT to "http://localdynamodb:8000"
+
+4. Bring up network, create channel/deploy chaincode.
 
 ## Troubleshooting
 

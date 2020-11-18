@@ -8,7 +8,9 @@ This project imports the Data from https://www.epa.gov/sites/production/files/20
 
    \$ npm install
 
-2. Set AWS_ENDPOINT in emissions-calc.js to http://localhost:8000
+# Setup AWS credentials
+
+1. If running locally, set AWS_ENDPOINT in aws-config.js to http://localhost:8000. Otherwise, set to your respective dynamodb endpoint.
 
 # Running the Code
 
