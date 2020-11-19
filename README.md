@@ -5,4 +5,3 @@ sub-folder is for a different project of the Working Group and has its own code 
 
  * utility-emissions-channel: [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel)
 
-
