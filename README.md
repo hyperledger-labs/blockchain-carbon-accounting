@@ -16,5 +16,13 @@ Now that we're part of hyperledger-labs, you will need to checkout to your own b
 
 Then you will need to create a pull-request, either by going to `https://github.com/hyperledger-labs/blockchain-carbon-accounting/pulls` or in the command line with
 
+ $ hub pull-request -m "message about your pull request"
+
+See https://hub.github.com/hub-pull-request.1.html.  You may also have to set up `hub` with `brew install hub` and get a token from github https://github.com/settings/tokens.
 
 The pull request must be reviewed and approved by a different committer than yourself. 
+
+Once the pull request is approved, you can go in and squash and merge into the master branch.  Then merge it back to your branch with::
+
+ $ git fetch
+ $ git merge origin/master
