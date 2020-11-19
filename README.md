@@ -7,14 +7,8 @@ sub-folder is for a different project of the Working Group and has its own code 
 
 ## Git Notes
 
-Now that we're part of hyperledger-labs, you will need to checkout to your own branch and create pull requests::
+Now that we're part of hyperledger-labs, please create a branch of the hyperledger-labs master branch.  Make sure you sign off all your commits.  This can be done with
 
- $ git checkout -b <your-branch>
- // make your changes, then commit with a sign-off using the -s
- $ git commit -s -m "your message"
- $ git push origin <your-branch>
-
-Then you will need to create a pull-request, either by going to `https://github.com/hyperledger-labs/blockchain-carbon-accounting/pulls` or in the command line with
-
-
-The pull request must be reviewed and approved by a different committer than yourself. 
+    $ git commit -s -m "your message"
+    
+Then create pull requests to the hyperledger-labs master branch.
