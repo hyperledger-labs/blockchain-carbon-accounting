@@ -72,20 +72,6 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 1. cd to `docker-compose-setup`
 2. Run `./network.sh stopBlockchainExplorer`
 
-## Running AWS dynamodb locally
-
-1. Start dynamodb:
-
-```bash
-./scripts/startDynamo.sh
-```
-
-2. Seed the DB - See docs in blockchain-carbon-accounting/utility-emissions-channel/egrid-data-loader/README.md for seeding the db
-
-3. Fill in AWS credentials based on aws-config.js.template. Fill in your secret key/access key and be sure to set AWS_REGION to "local" and AWS_ENDPOINT to "http://localdynamodb:8000"
-
-4. Bring up network, create channel/deploy chaincode.
-
 ## Troubleshooting
 
 If any error in `Get the blockchain network up and running` please run the commands of `Stop the blockchain network and remove container` and retry starting the network. If you still run into errors open an issue with the error logs, please.
