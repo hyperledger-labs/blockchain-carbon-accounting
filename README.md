@@ -7,8 +7,7 @@ sub-folder is for a different project of the Working Group and has its own code 
 
 ## Git Notes
 
-Now that we're part of hyperledger-labs, please create a branch of the hyperledger-labs master branch.  Make sure you sign off all your commits.  This can be done with
+Please sign off all your commits.  This can be done with
 
     $ git commit -s -m "your message"
     
-Then create pull requests to the hyperledger-labs master branch.
