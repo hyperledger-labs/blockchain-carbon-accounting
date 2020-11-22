@@ -20,7 +20,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: do-block-storage
+  volumeName: pv-static-fabric-ca
 ---
 apiVersion: apps/v1
 kind: Deployment
