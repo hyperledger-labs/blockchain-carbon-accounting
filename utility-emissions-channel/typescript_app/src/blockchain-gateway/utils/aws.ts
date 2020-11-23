@@ -2,14 +2,32 @@ import * as fs from "fs";
 import * as AWS from "aws-sdk";
 import * as AWS_CONFIG from "../../../../chaincode/node/lib/aws-config";
 
-const BUCKET_NAME = "blockchain-carbon-accounting";
 const IAM_USER_KEY = AWS_CONFIG.AWS_ACCESS_KEY_ID;
 const IAM_USER_SECRET = AWS_CONFIG.AWS_SECRET_ACCESS_KEY;
 
-const s3bucket = new AWS.S3({
-  accessKeyId: IAM_USER_KEY,
-  secretAccessKey: IAM_USER_SECRET,
-});
+function getS3Bucket() {
+  let s3bucket;
+  let BUCKET_NAME;
+  if (AWS_CONFIG.S3_LOCAL) {
+    s3bucket = new AWS.S3({
+      s3ForcePathStyle: true,
+      accessKeyId: "S3RVER",
+      secretAccessKey: "S3RVER",
+      endpoint: new AWS.Endpoint("http://127.0.0.1:4569"),
+      s3BucketEndpoint: true,
+    });
+    BUCKET_NAME = "local-bucket";
+  } else {
+    s3bucket = new AWS.S3({
+      accessKeyId: IAM_USER_KEY,
+      secretAccessKey: IAM_USER_SECRET,
+    });
+    BUCKET_NAME = "blockchain-carbon-accounting";
+  }
+  return { s3bucket, BUCKET_NAME };
+}
+
+let { s3bucket, BUCKET_NAME } = getS3Bucket();
 
 export function uploadToS3(fileBin: string, fileName: string): Promise<any> {
   const params = {
