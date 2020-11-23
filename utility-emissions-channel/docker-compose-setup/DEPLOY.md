@@ -163,3 +163,13 @@ Once inside, run:
 This will spin up a containerized version of the API, install dependencies, join the network, and then start API using nodemon for refresh on change. It will also mount the API window to the current terminal session.
 
 2. Assuming you have opened up all ports/traffic in the network, navigate to http://EC2_INSTANCE_IP_HERE:9000/api-docs to interact with the swagger UI, or connect this same url to an Opentaps repo to access the ledger.
+
+## Additional Restrictions on the API
+
+Currently, there is no API key built in to the express server. For now, traffic can be restricted by limiting the IPs allowed to access your server. In the case of AWS, this can be done with the follow steps:
+
+1. Go to your security group for your servers
+
+2. Click "edit inbound rules"
+
+3. Adjust the source under "all traffic" to reflect only the IPs desired.
