@@ -73,6 +73,12 @@ Then copy them to Server A. This will ensure that the proper certs are in place 
 scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor2 $SERVER_A_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
+Create required directory
+
+```bash
+mkdir $BASE_PATH/organizations/peerOrganizations/
+```
+
 ## 3. On Server A, run:
 
 ```bash
@@ -87,7 +93,6 @@ Then copy some of the needed files to Server B:
 ```bash
 scp -i ~/ssh_key -r $BASE_PATH/system-genesis-block $SERVER_B_IP:$BASE_PATH/
 scp -i ~/ssh_key -r $BASE_PATH/organizations/peerOrganizations/auditor2.carbonAccounting.com $SERVER_B_IP:$BASE_PATH/organizations/peerOrganizations/
-scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_B_IP:$BASE_PATH/organizations/fabric-ca/
 ```
 
 Then:
@@ -97,6 +102,11 @@ Then:
 ```
 
 This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will also generate the proper certs for auditor1.carbonAccounting.com under organizations/peerOrganizations.
+
+Copy CA to Server B:
+```bash
+scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_B_IP:$BASE_PATH/organizations/fabric-ca/
+```
 
 ## 4. On Server B, run:
 
