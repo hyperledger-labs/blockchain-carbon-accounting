@@ -16,6 +16,8 @@ import {
 } from "../utils/gatewayUtils";
 import { getNewUuid } from "../utils/uuid";
 import { checkDateConflict } from "../utils/checkDateConflict";
+import { Md5 } from "ts-md5/dist/md5";
+import { downloadFromS3 } from "../../blockchain-gateway/utils/aws";
 
 export class EmissionsContractInvoke {
   constructor(message: string) {}
@@ -29,7 +31,8 @@ export class EmissionsContractInvoke {
     thruDate,
     energyUseAmount,
     energyUseUom,
-    url
+    url,
+    md5
   ) {
     try {
       let response = "";
@@ -68,7 +71,8 @@ export class EmissionsContractInvoke {
         thruDate,
         energyUseAmount,
         energyUseUom,
-        url
+        url,
+        md5
       );
       const stringResult = blockchainResult.toString("utf-8");
       const jsonResult = JSON.parse(stringResult);
@@ -93,6 +97,7 @@ export class EmissionsContractInvoke {
       result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
       result["url"] = jsonResult.url;
+      result["md5"] = jsonResult.md5;
 
       console.log(result);
       return result;
@@ -144,6 +149,17 @@ export class EmissionsContractInvoke {
       const stringResult = blockchainResult.toString("utf-8");
       const jsonResult = JSON.parse(stringResult);
 
+      // compare md5 in ledger against one being returned in url
+      let incomingBinary = await downloadFromS3(
+        `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
+      );
+      let incomingMd5 = Md5.hashStr(incomingBinary);
+      if (incomingMd5 != jsonResult.md5) {
+        throw new Error(
+          `The retrieved document ${jsonResult.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+        );
+      }
+
       // Disconnect from the gateway.
       await gateway.disconnect();
 
@@ -161,6 +177,7 @@ export class EmissionsContractInvoke {
       result["energyUseUom"] = jsonResult.energyUseUom;
       result["factorSource"] = jsonResult.factorSource;
       result["url"] = jsonResult.url;
+      result["md5"] = jsonResult.md5;
 
       console.log(result);
       return result;
@@ -216,6 +233,17 @@ export class EmissionsContractInvoke {
         let result = new Object();
         let record = emission_item.Record;
 
+        // compare md5 in ledger against one being returned in url
+        let incomingBinary = await downloadFromS3(
+          `${userId}-${orgName}-${record.utilityId}-${record.partyId}-${record.fromDate}-${record.thruDate}.pdf`
+        );
+        let incomingMd5 = Md5.hashStr(incomingBinary);
+        if (incomingMd5 != record.md5) {
+          throw new Error(
+            `The retrieved document ${record.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+          );
+        }
+
         // Do not include entries outside of the past year
         // var current_year = current_date.getFullYear();
         if (parseInt(record.fromDate.slice(0, 4)) < current_year - 1) {
@@ -234,6 +262,7 @@ export class EmissionsContractInvoke {
         result["energyUseUom"] = record.energyUseUom;
         result["factorSource"] = record.factorSource;
         result["url"] = record.url;
+        result["md5"] = record.md5;
 
         all_emissions.push(result);
       }

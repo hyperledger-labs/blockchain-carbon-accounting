@@ -28,3 +28,19 @@ export function uploadToS3(fileBin: string, fileName: string): Promise<any> {
     });
   });
 }
+
+export function downloadFromS3(fileName: string): Promise<any> {
+  const params = {
+    Bucket: BUCKET_NAME,
+    Key: fileName,
+  };
+
+  return new Promise((resolve, reject) => {
+    s3bucket.getObject(params, function(err, data) {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(data.Body.toString());
+    });
+  });
+}
