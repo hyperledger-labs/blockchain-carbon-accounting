@@ -30,5 +30,7 @@
     "ts-md5": "^1.2.7",
     "uuid": "^8.3.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "serverless-s3-local": "^0.6.7"
+  }
 }

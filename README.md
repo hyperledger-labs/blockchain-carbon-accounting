@@ -19,6 +19,30 @@ Please sign off all your commits. This can be done with
 
 2. Fill it out with your credentials for AWS based on the fields requested in aws-config.js.template.
 
+## Set up S3
+
+### Running Locally
+
+1. Install serverless:
+
+```bash
+npm install -g serverless
+```
+
+2. cd blockchain-carbon-accounting/utility-emissions-channel/typescript_app
+
+```bash
+serverless s3 start
+```
+
+3. Be sure that S3_LOCAL is set to true in aws-config.js
+
+### Running Remotely
+
+1. Set up an S3 bucket named blockchain-carbon-accounting on your AWS account
+
+2. Set S3_LOCAL to false in aws-config.js
+
 ## Set up the dynamodb
 
 ### Running Locally
