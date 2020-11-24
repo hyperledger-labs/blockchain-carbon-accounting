@@ -4,9 +4,15 @@
 
 ## Set up AWS credentials
 
-1. Create a new file in utility-emissions-channel/chaincode/node/lib called aws-config.js
+The utility emissions channel can be run locally or remotely using Amazon S3 and DynamoDB.  In either case you will need a configuration file for AWS.  
 
-2. Fill it out with your credentials for AWS based on the fields requested in aws-config.js.template.
+First, create a new file in `chaincode/node/lib called aws-config.js` by copying from `aws-config.js.template`
+
+```bash
+$ cp chaincode/node/lib called aws-config.js.template chaincode/node/lib called aws-config.js
+```
+
+If you're running with remote AWS, then fill it out with your credentials for AWS based on the fields requested in `aws-config.js.template`.  Otherwise, you can leave the credentials blank but set the other fields based on directions below.
 
 ## Set up S3
 
@@ -15,7 +21,7 @@
 1. Install serverless:
 
 ```bash
-npm install -g serverless
+$ npm install -g serverless
 ```
 
 2. cd blockchain-carbon-accounting/utility-emissions-channel/typescript_app
@@ -24,13 +30,13 @@ npm install -g serverless
 serverless s3 start
 ```
 
-3. Be sure that S3_LOCAL is set to true in aws-config.js
+3. Be sure that S3_LOCAL is set to true in `aws-config.js`
 
 ### Running Remotely
 
 1. Set up an S3 bucket named blockchain-carbon-accounting on your AWS account
 
-2. Set S3_LOCAL to false in aws-config.js
+2. Set `S3_LOCAL` to false in `aws-config.js`
 
 ## Set up the dynamodb
 
@@ -42,13 +48,13 @@ serverless s3 start
 ./scripts/startDynamo.sh
 ```
 
-2. Seed the db, see eGrid Loader documentation in utility-emissions-channel/egrid-data-loader/README.md
+2. Seed the db, see eGrid Loader documentation in egrid-data-loader/README.md
 
 ### Running remotely
 
 1. Set AWS_ENDPOINT to the endpoint of your remote dynamodb
 
-2. Seed the db, see eGrid Loader documentation in utility-emissions-channel/egrid-data-loader/README.md
+2. Seed the db, see eGrid Loader documentation in egrid-data-loader/README.md
 
 ## Get the blockchain network up and running
 
