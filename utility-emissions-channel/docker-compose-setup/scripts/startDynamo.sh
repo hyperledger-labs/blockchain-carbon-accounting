@@ -6,5 +6,5 @@ if [ "$( docker container inspect -f '{{.State.Status}}' localdynamodb )" == "ex
     docker start localdynamodb
 else
     echo "Could not find localdynamodb, creating a new container..."
-    docker run --detach -p 8000:8000 --name localdynamodb --network=$NETWORK_NAME amazon/dynamodb-local
+    docker run --detach -p 8001:8001 --name localdynamodb --network=$NETWORK_NAME amazon/dynamodb-local -jar DynamoDBLocal.jar -port 8001
 fi

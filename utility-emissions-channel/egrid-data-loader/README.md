@@ -12,9 +12,9 @@ This project imports the Data from https://www.epa.gov/sites/production/files/20
 
 ### Running Locally
 
-1. If running locally, the only config change is to set AWS_ENDPOINT in aws-config.js to http://localhost:8000.
+1. If running locally, the only config change is to set AWS_ENDPOINT in aws-config.js to http://localhost:8001
 
-2. After following the seeding instructions under "Running the Code", set AWS_ENDPOINT back to "http://localdynamodb:8000".
+2. After following the seeding instructions under "Running the Code", set AWS_ENDPOINT back to "http://localdynamodb:8001"
 
 ### Running Remotely
 

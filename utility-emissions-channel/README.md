@@ -4,7 +4,7 @@
 
 ## Set up AWS credentials
 
-The utility emissions channel can be run locally or remotely using Amazon S3 and DynamoDB.  In either case you will need a configuration file for AWS.  
+The utility emissions channel can be run locally or remotely using Amazon S3 and DynamoDB. In either case you will need a configuration file for AWS.
 
 First, create a new file in `chaincode/node/lib called aws-config.js` by copying from `aws-config.js.template`
 
@@ -12,7 +12,7 @@ First, create a new file in `chaincode/node/lib called aws-config.js` by copying
 $ cp chaincode/node/lib called aws-config.js.template chaincode/node/lib called aws-config.js
 ```
 
-If you're running with remote AWS, then fill it out with your credentials for AWS based on the fields requested in `aws-config.js.template`.  Otherwise, you can leave the credentials blank but set the other fields based on directions below.
+If you're running with remote AWS, then fill it out with your credentials for AWS based on the fields requested in `aws-config.js.template`. Otherwise, you can leave the credentials blank but set the other fields based on directions below.
 
 ## Set up S3
 
@@ -25,6 +25,10 @@ $ npm install -g serverless
 ```
 
 2. cd blockchain-carbon-accounting/utility-emissions-channel/typescript_app
+
+```bash
+npm install
+```
 
 ```bash
 serverless s3 start
