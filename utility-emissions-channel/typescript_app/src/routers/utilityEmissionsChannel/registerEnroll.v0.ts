@@ -1,16 +1,16 @@
-const express = require("express");
-const chalk = require("chalk");
-const { log } = require("../../utils/log");
-const { body, query, check, param, validationResult } = require("express-validator");
-const {registerOrgAdmin, registerUser} = require("../../blockchain-gateway/utilityEmissionsChannel/registerEnroll");
+import express from "express";
+import { log } from "../../utils/log";
+import { body, validationResult } from "express-validator";
+import { EmissionsContractInvoke } from "../../blockchain-gateway/utilityEmissionsChannel/registerEnroll";
 
 const APP_VERSION = "v1";
-const router = new express.Router();
+export const router = express.Router();
 
 // http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll/user
-const REGISER_ENROLL_USER = "/api/" + APP_VERSION + "/utilityemissionchannel/registerEnroll/user";
+export const REGISTER_ENROLL_USER =
+  "/api/" + APP_VERSION + "/utilityemissionchannel/registerEnroll/user";
 router.post(
-    REGISER_ENROLL_USER,
+  REGISTER_ENROLL_USER,
   [
     body("userId").isString(),
     body("orgName").isString(),
@@ -26,12 +26,10 @@ router.post(
       const orgName = req.body.orgName;
       const affiliation = req.body.affiliation;
 
-      console.log(
-        `# REGISTERING AND ENROLLING USER `
-      );
+      console.log(`# REGISTERING AND ENROLLING USER `);
 
       // Record Emission to utilityEmissions Channel
-      const blockchainResponse = await registerUser(
+      const blockchainResponse = await EmissionsContractInvoke.registerUser(
         userId,
         orgName,
         affiliation
@@ -51,12 +49,11 @@ router.post(
 );
 
 // http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll/admin
-const REGISER_ORG_ADMIN = "/api/" + APP_VERSION + "/utilityemissionchannel/registerEnroll/admin";
+export const REGISTER_ORG_ADMIN =
+  "/api/" + APP_VERSION + "/utilityemissionchannel/registerEnroll/admin";
 router.post(
-    REGISER_ORG_ADMIN,
-  [
-    body("orgName").isString(),
-  ],
+  REGISTER_ORG_ADMIN,
+  [body("orgName").isString()],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -65,12 +62,10 @@ router.post(
     try {
       const orgName = req.body.orgName;
 
-      console.log(
-        `# REGISTERING ORG ADMIN `
-      );
+      console.log(`# REGISTERING ORG ADMIN `);
 
       // Register org admin
-      const blockchainResponse = await registerOrgAdmin(
+      const blockchainResponse = await EmissionsContractInvoke.registerOrgAdmin(
         orgName
       );
 
@@ -88,5 +83,3 @@ router.post(
     }
   }
 );
-
-module.exports = router;

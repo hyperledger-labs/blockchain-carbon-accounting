@@ -309,12 +309,14 @@ function import_utility_emissions(file_name, opts) {
                 'Country': { S : 'USA' },
                 'Division_type': { S : 'NERC_REGION' },
                 'Division_id': { S : row['NERC region acronym'] },
-                'Division_name': { S : row['NERC region name'] || '' },
+                'Division_name': { S : row['NERC region name '] || '' },
                 'Net_Generation': { N : '' + row['NERC region annual net generation (MWh)'] },
                 'Net_Generation_UOM': { S : 'MWH' },
                 'CO2_Equivalent_Emissions': { N : '' + row['NERC region annual CO2 equivalent emissions (tons)'] },
                 'CO2_Equivalent_Emissions_UOM': { S : 'tons' },
-                'Source': { S : 'https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip' }
+                'Source': { S : 'https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip' },
+                'Non_Renewables': { N: row['NERC region annual total nonrenewables net generation (MWh)'].toString()},
+                'Renewables': { N: row['NERC region annual total renewables net generation (MWh)'].toString()},
             };
 
             db_insert(db, opts, {TableName: 'UTILITY_EMISSION_FACTORS', Item: d}, callback);
@@ -325,7 +327,7 @@ function import_utility_emissions(file_name, opts) {
 
 function import_utility_identifiers(file_name, opts) {
     const db = EmissionsCalc.connectdb(AWS, opts);
-    opts.skip_rows = 2
+    opts.skip_rows = 1
     var data = parse_worksheet(file_name, opts, function(data) {
         // import data for each valid row, eg:
             // Utility_Number = value from 'Utility Number'
@@ -338,9 +340,9 @@ function import_utility_identifiers(file_name, opts) {
         async.eachSeries(data, function iterator(row, callback) {
             if (!row || !row['Data Year']) return callback();
             //opts.verbose && console.log('-- Prepare to insert from ', row);
-
             var d = {
                 '_id' : { S : '' + row['Utility Number'] },
+                'Year': { N : '' + row['Data Year'] },
                 'Utility_Number' : { N : '' + row['Utility Number'] },
                 'Utility_Name' : { S : row['Utility Name'] },
                 'Country' : { S : 'USA' },
@@ -389,7 +391,7 @@ function list_data(opts) {
     if (opts.table) {
         db.scan({TableName: opts.table}, function(err, data) {
             if (err) console.log(err, err.stack); // an error occurred
-            else     console.log(data);           // successful response
+            else     console.log(data.Items);           // successful response
         });
 
     } else {

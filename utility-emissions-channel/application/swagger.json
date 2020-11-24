@@ -20,24 +20,16 @@
       "description": "Functions to register an org admin as well as multiple users"
     }
   ],
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/emissionscontract/recordEmissions": {
       "post": {
-        "tags": [
-          "emissionscontract"
-        ],
+        "tags": ["emissionscontract"],
         "summary": "Record emissions of utility to utilityEmissionsChannel",
         "description": "",
         "operationId": "recordEmissions",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -65,17 +57,62 @@
         }
       }
     },
-    "/emissionscontract/getEmissionsData/{userId}/{orgName}/{utilityId}/{partyId}/{fromDate}/{thruDate}": {
+    "/emissionscontract/getEmissionsData/{userId}/{orgName}/{uuid}": {
       "get": {
-        "tags": [
-          "emissionscontract"
-        ],
+        "tags": ["emissionscontract"],
         "summary": "Get emissions data of utility",
         "description": "Get emissions data of utility by ID of party, from and thru data",
         "operationId": "getEmissionsData",
-        "produces": [
-          "application/json"
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of User",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgName",
+            "in": "path",
+            "description": "Org that registered user",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "uuid",
+            "in": "path",
+            "description": "UUID of emission record",
+            "required": true,
+            "type": "string"
+          }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/EmissionsData"
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/emissionscontract/getAllEmissionsData/{userId}/{orgName}/{utilityId}/{partyId}": {
+      "get": {
+        "tags": ["emissionscontract"],
+        "summary": "Get all emissions data from the past year of utility",
+        "description": "Get all emissions data of utility by ID of utility and party",
+        "operationId": "getAllEmissionsData",
+        "produces": ["application/json"],
         "parameters": [
           {
             "name": "userId",
@@ -104,29 +141,16 @@
             "description": "ID of party",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "fromDate",
-            "in": "path",
-            "description": "From date of data",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "thruDate",
-            "in": "path",
-            "description": "Thru date of data",
-            "required": true,
-            "type": "string"
           }
         ],
         "responses": {
           "200": {
             "description": "Successful operation",
             "schema": {
-              "$ref": "#/definitions/EmissionsData"
+              "$ref": "#/definitions/allEmissionsData"
             }
-          },"400": {
+          },
+          "400": {
             "description": "Error"
           },
           "409": {
@@ -140,18 +164,12 @@
     },
     "/registerEnroll/admin": {
       "post": {
-        "tags": [
-          "registerEnroll"
-        ],
+        "tags": ["registerEnroll"],
         "summary": "Registers an org admin",
         "description": "Only call this function once per org. Three organizations are currently implemented. auditor1, auditor2, and auditor3.",
         "operationId": "registerOrgAdmin",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -181,18 +199,12 @@
     },
     "/registerEnroll/user": {
       "post": {
-        "tags": [
-          "registerEnroll"
-        ],
+        "tags": ["registerEnroll"],
         "summary": "Registers a user.",
         "description": "Registers a user by orgName, userId and affiliation",
         "operationId": "registerUser",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
         "parameters": [
           {
             "in": "body",
@@ -279,6 +291,60 @@
         },
         "emissionsUom": {
           "type": "string"
+        },
+        "renewableEnergyUseAmount": {
+          "type": "number"
+        },
+        "nonrenewableEnergyUseAmount": {
+          "type": "number"
+        },
+        "energyUseUom": {
+          "type": "number"
+        },
+        "factorSource": {
+          "type": "string"
+        }
+      }
+    },
+    "allEmissionsData": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "orgName": {
+            "type": "string"
+          },
+          "utilityId": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string"
+          },
+          "fromDate": {
+            "type": "string"
+          },
+          "thruDate": {
+            "type": "string"
+          },
+          "emissionsAmount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "emissionsUom": {
+            "type": "string"
+          },
+          "renewableEnergyUseAmount": {
+            "type": "number"
+          },
+          "nonrenewableEnergyUseAmount": {
+            "type": "number"
+          },
+          "energyUseUom": {
+            "type": "number"
+          },
+          "factorSource": {
+            "type": "string"
+          }
         }
       }
     },
@@ -286,8 +352,7 @@
       "type": "object",
       "properties": {
         "orgName": {
-          "type": "string",
-          "enum": [ "auditor1", "auditor2", "auditor3" ]
+          "type": "string"
         }
       }
     },
@@ -298,8 +363,7 @@
           "type": "string"
         },
         "orgName": {
-          "type": "string",
-          "enum": [ "auditor1", "auditor2", "auditor3" ]
+          "type": "string"
         },
         "affiliation": {
           "type": "string"
@@ -308,5 +372,3 @@
     }
   }
 }
-
-

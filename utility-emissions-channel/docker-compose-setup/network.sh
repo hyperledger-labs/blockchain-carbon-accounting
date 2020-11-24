@@ -476,7 +476,6 @@ function resetFabricCaServerDb() {
     if [[ -f "$db_to_remove" ]]; then
       rm ${db_to_remove}
       echo "Removed fabric-ca-server.db for $auditor"
-      echo "$FILE exists."
     else
       echo "db for $auditor does not exist, skipping."
     fi
@@ -532,7 +531,7 @@ CA_IMAGETAG="1.4.9"
 # default database
 DATABASE="couchdb"
 # Path to wallets
-WALLET_PATH="./application/src/blockchain-gateway/wallets"
+WALLET_PATH="../typescript_app/dist/typescript_app/src/blockchain-gateway/wallets"
 
 # Parse commandline args
 
