@@ -7,7 +7,6 @@ const IAM_USER_SECRET = AWS_CONFIG.AWS_SECRET_ACCESS_KEY;
 
 function getS3Bucket() {
   let s3bucket;
-  let BUCKET_NAME;
   if (AWS_CONFIG.S3_LOCAL) {
     s3bucket = new AWS.S3({
       s3ForcePathStyle: true,
@@ -16,18 +15,17 @@ function getS3Bucket() {
       endpoint: new AWS.Endpoint("http://127.0.0.1:4569"),
       s3BucketEndpoint: true,
     });
-    BUCKET_NAME = "local-bucket";
   } else {
     s3bucket = new AWS.S3({
       accessKeyId: IAM_USER_KEY,
       secretAccessKey: IAM_USER_SECRET,
     });
-    BUCKET_NAME = "blockchain-carbon-accounting";
   }
-  return { s3bucket, BUCKET_NAME };
+  return s3bucket;
 }
 
-let { s3bucket, BUCKET_NAME } = getS3Bucket();
+const BUCKET_NAME = AWS_CONFIG.BUCKET_NAME;
+let s3bucket = getS3Bucket();
 
 export function uploadToS3(fileBin: string, fileName: string): Promise<any> {
   const params = {

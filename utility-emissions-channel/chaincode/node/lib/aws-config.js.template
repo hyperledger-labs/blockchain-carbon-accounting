@@ -2,4 +2,5 @@ exports.AWS_ACCESS_KEY_ID = 'secret-id';
 exports.AWS_SECRET_ACCESS_KEY = 'secre-key';
 exports.AWS_REGION = "local";
 exports.AWS_ENDPOINT = "http://localdynamodb:8001";
-exports.S3_LOCAL = true
+exports.S3_LOCAL = true;
+exports.BUCKET_NAME = "local-bucket";

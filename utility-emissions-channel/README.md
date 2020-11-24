@@ -9,7 +9,7 @@ The utility emissions channel can be run locally or remotely using Amazon S3 and
 First, create a new file in `chaincode/node/lib called aws-config.js` by copying from `aws-config.js.template`
 
 ```bash
-$ cp chaincode/node/lib called aws-config.js.template chaincode/node/lib called aws-config.js
+cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js
 ```
 
 If you're running with remote AWS, then fill it out with your credentials for AWS based on the fields requested in `aws-config.js.template`. Otherwise, you can leave the credentials blank but set the other fields based on directions below.
@@ -21,24 +21,42 @@ If you're running with remote AWS, then fill it out with your credentials for AW
 1. Install serverless:
 
 ```bash
-$ npm install -g serverless
+npm install -g serverless
 ```
 
-2. cd blockchain-carbon-accounting/utility-emissions-channel/typescript_app
+2. From the typescript_app directory, install dependencies:
 
 ```bash
 npm install
 ```
 
+3. From the typescript_app directory, start the S3 emulation:
+
 ```bash
 serverless s3 start
 ```
 
-3. Be sure that S3_LOCAL is set to true in `aws-config.js`
+3. Be sure that the following line is present in `aws-config.js`:
+
+```bash
+exports.S3_LOCAL = true;
+```
+
+4. Set the value of `BUCKET_NAME` in `aws-config.js` to `local-bucket` if it is not already set.
+
+#### About S3 local storage
+
+Serverless S3 stores pdfs in /tmp of your local machine.
+
+To reset this bucket at any time, run:
+
+```bash
+rm -r /tmp/local-bucket
+```
 
 ### Running Remotely
 
-1. Set up an S3 bucket named blockchain-carbon-accounting on your AWS account
+1. Set up an S3 bucket and set the value of `BUCKET_NAME` in `aws-config.js` to the name of the newly created bucket.
 
 2. Set `S3_LOCAL` to false in `aws-config.js`
 
@@ -46,19 +64,19 @@ serverless s3 start
 
 ### Running Locally
 
-1. From the blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup directory, start dynamodb:
+1. From the docker-compose-setup directory, start dynamodb:
 
 ```bash
 ./scripts/startDynamo.sh
 ```
 
-2. Seed the db, see eGrid Loader documentation in egrid-data-loader/README.md
+2. Seed the db, see eGrid Loader documentation [here](egrid-data-loader/README.md).
 
 ### Running remotely
 
 1. Set AWS_ENDPOINT to the endpoint of your remote dynamodb
 
-2. Seed the db, see eGrid Loader documentation in egrid-data-loader/README.md
+2. Seed the db, see eGrid Loader documentation [here](egrid-data-loader/README.md).
 
 ## Get the blockchain network up and running
 
