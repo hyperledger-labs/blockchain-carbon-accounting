@@ -15,4 +15,4 @@ echo
 echo $COMPOSE_VOLUME
 echo $API_VOLUME
 
-docker run -it --rm --publish 9000:9000 --network=$NETWORK_NAME --name api -e CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=$NETWORK_NAME  -v $COMPOSE_VOLUME:/docker-compose-setup -v $API_VOLUME:/application -w /application api /bin/sh -c 'nodemon index.js'
+docker run -it --rm --publish 9000:9000 --network=$NETWORK_NAME --name api -e CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=$NETWORK_NAME -v $COMPOSE_VOLUME:/docker-compose-setup -v $API_VOLUME:/application -w /application api /bin/sh -c 'npm install && nodemon index.js'
