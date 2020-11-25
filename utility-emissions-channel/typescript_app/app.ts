@@ -5,15 +5,20 @@ import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "./swagger.json";
 import { router as emissions_router } from "./src/routers/utilityEmissionsChannel/ivokeEmissionscontract.v0";
 import { router as register_enroll_router } from "./src/routers/utilityEmissionsChannel/registerEnroll.v0.js";
+import multer from "multer";
 
 // require('dotenv').config();
 
 const app = express();
-
+const upload = multer();
 const PORT = process.env.PORT || 9000;
 
-// parse application/json
+// parse application/json, allow forms and uploads
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(upload.single("emissionsDoc"));
+app.use(express.static("public"));
+
 // Swagger Document
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
@@ -22,16 +27,10 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
  */
 app.listen(PORT, function() {
   console.clear();
-  console.log(
-    `++++++++++++++++ Hyperledger CA2 SIG /// Carbon Accouncting API ++++++++++++++++`
-  );
+  console.log(`++++++++++++++++ Hyperledger CA2 SIG /// Carbon Accouncting API ++++++++++++++++`);
   console.log(`++ REST API PORT : ${chalk.cyanBright(PORT)}`);
-  console.log(
-    `++ ACCESS SWAGGER : ${chalk.cyanBright("http://localhost:9000/api-docs/")}`
-  );
-  console.log(
-    `++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++`
-  );
+  console.log(`++ ACCESS SWAGGER : ${chalk.cyanBright("http://localhost:9000/api-docs/")}`);
+  console.log(`++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++`);
 });
 
 // Something to test connection?? e.g. Query current block number?

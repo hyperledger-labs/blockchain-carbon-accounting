@@ -2,15 +2,14 @@ import express from "express";
 import { log } from "../../utils/log";
 import { body, param, validationResult } from "express-validator";
 import { EmissionsContractInvoke } from "../../blockchain-gateway/utilityEmissionsChannel/emissionsContractInvoke";
+import { uploadToS3 } from "../../blockchain-gateway/utils/aws";
+import { Md5 } from "ts-md5/dist/md5";
 
 const APP_VERSION = "v1";
 export const router = express.Router();
 
 // http://localhost:9000/api/v1//utilityemissionchannel/emissionscontract/recordEmissions
-export const RECORD_EMISSIONS =
-  "/api/" +
-  APP_VERSION +
-  "/utilityemissionchannel/emissionscontract/recordEmissions";
+export const RECORD_EMISSIONS = "/api/" + APP_VERSION + "/utilityemissionchannel/emissionscontract/recordEmissions";
 router.post(
   RECORD_EMISSIONS,
   [
@@ -23,9 +22,7 @@ router.post(
         /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
       );
       if (!matches) {
-        throw new Error(
-          "Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)"
-        );
+        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
       }
 
       // Indicates the success of this synchronous custom validator
@@ -36,9 +33,7 @@ router.post(
         /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
       );
       if (!matches) {
-        throw new Error(
-          "Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)"
-        );
+        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
       }
 
       // Indicates the success of this synchronous custom validator
@@ -61,6 +56,28 @@ router.post(
       const thruDate = req.body.thruDate;
       const energyUseAmount = req.body.energyUseAmount;
       const energyUseUom = req.body.energyUseUom;
+      let url = "";
+      let md5: string | Int32Array = "";
+
+      // check for overlapping dates before uploading to s3
+      const overlapResponse = await EmissionsContractInvoke.checkDateOverlap(
+        userId,
+        orgName,
+        utilityId,
+        partyId,
+        fromDate,
+        thruDate
+      );
+      // upload doc to s3 if exists
+      if (req.file) {
+        let fileBin = req.file.buffer;
+        let upload = await uploadToS3(
+          fileBin,
+          `${userId}-${orgName}-${utilityId}-${partyId}-${fromDate}-${thruDate}.pdf`
+        );
+        url = upload.Location;
+        md5 = Md5.hashStr(fileBin.toString());
+      }
 
       console.log(`# RECORDING EMISSIONS DATA TO UTILITYEMISSIONS CHANNEL`);
 
@@ -73,7 +90,9 @@ router.post(
         fromDate,
         thruDate,
         energyUseAmount,
-        energyUseUom
+        energyUseUom,
+        url,
+        md5
       );
 
       if (blockchainResponse["info"] === "EMISSION RECORDED TO LEDGER") {
@@ -92,43 +111,10 @@ router.post(
 // http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/getEmissionsData/:utilityId/:partyId/:fromDate/:thruDate";
 
 export const GET_EMISSIONS_DATA =
-  "/api/" +
-  APP_VERSION +
-  "/utilityemissionchannel/emissionscontract/getEmissionsData/:userId/:orgName/:utilityId/:partyId/:fromDate/:thruDate";
+  "/api/" + APP_VERSION + "/utilityemissionchannel/emissionscontract/getEmissionsData/:userId/:orgName/:uuid";
 router.get(
   GET_EMISSIONS_DATA,
-  [
-    param("userId").isString(),
-    param("orgName").isString(),
-    param("utilityId").isString(),
-    param("partyId").isString(),
-    param("fromDate").custom((value, { req }) => {
-      let matches = value.match(
-        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-      );
-      if (!matches) {
-        throw new Error(
-          "Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)"
-        );
-      }
-
-      // Indicates the success of this synchronous custom validator
-      return true;
-    }),
-    param("thruDate").custom((value, { req }) => {
-      let matches = value.match(
-        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-      );
-      if (!matches) {
-        throw new Error(
-          "Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)"
-        );
-      }
-
-      // Indicates the success of this synchronous custom validator
-      return true;
-    }),
-  ],
+  [param("userId").isString(), param("orgName").isString(), param("uuid").isString()],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -137,22 +123,12 @@ router.get(
     try {
       const userId = req.params.userId;
       const orgName = req.params.orgName;
-      const utilityId = req.params.utilityId;
-      const partyId = req.params.partyId;
-      const fromDate = req.params.fromDate;
-      const thruDate = req.params.thruDate;
+      const uuid = req.params.uuid;
 
       console.log(`# GETTING EMISSIONS DATA FROM UTILITYEMISSIONS CHANNEL`);
 
       // Get Emmission Data from utilityEmissions Channel
-      const blockchainResponse = await EmissionsContractInvoke.getEmissionsData(
-        userId,
-        orgName,
-        utilityId,
-        partyId,
-        fromDate,
-        thruDate
-      );
+      const blockchainResponse = await EmissionsContractInvoke.getEmissionsData(userId, orgName, uuid);
 
       if (blockchainResponse["info"] === "UTILITY EMISSIONS DATA") {
         res.status(200).send(blockchainResponse);
@@ -171,38 +147,29 @@ export const GET_ALL_EMISSIONS_DATA =
   "/api/" +
   APP_VERSION +
   "/utilityemissionchannel/emissionscontract/getAllEmissionsData/:userId/:orgName/:utilityId/:partyId";
-router.get(
-  GET_ALL_EMISSIONS_DATA,
-  [param("userId").isString(), param("orgName").isString()],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(412).json({ errors: errors.array() });
-    }
-    try {
-      const userId = req.params.userId;
-      const orgName = req.params.orgName;
-      const utilityId = req.params.utilityId;
-      const partyId = req.params.partyId;
-
-      console.log(`# GETTING EMISSIONS DATA FROM UTILITYEMISSIONS CHANNEL`);
-
-      // Get Emmission Data from utilityEmissions Channel
-      const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsData(
-        userId,
-        orgName,
-        utilityId,
-        partyId
-      );
-      if (blockchainResponse.length > 0) {
-        res.status(200).send(blockchainResponse);
-      } else {
-        res.status(409).send(blockchainResponse);
-      }
-      log("info", "DONE.");
-    } catch (e) {
-      res.status(400).send(e);
-      log("error", "DONE.");
-    }
+router.get(GET_ALL_EMISSIONS_DATA, [param("userId").isString(), param("orgName").isString()], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(412).json({ errors: errors.array() });
   }
-);
+  try {
+    const userId = req.params.userId;
+    const orgName = req.params.orgName;
+    const utilityId = req.params.utilityId;
+    const partyId = req.params.partyId;
+
+    console.log(`# GETTING EMISSIONS DATA FROM UTILITYEMISSIONS CHANNEL`);
+
+    // Get Emmission Data from utilityEmissions Channel
+    const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsData(userId, orgName, utilityId, partyId);
+    if (blockchainResponse.length > 0) {
+      res.status(200).send(blockchainResponse);
+    } else {
+      res.status(409).send(blockchainResponse);
+    }
+    log("info", "DONE.");
+  } catch (e) {
+    res.status(400).send(e);
+    log("error", "DONE.");
+  }
+});

@@ -16,6 +16,7 @@ export function buildCCPAuditor1() {
     "..",
     "..",
     "..",
+    "..",
     "docker-compose-setup",
     "organizations",
     "peerOrganizations",

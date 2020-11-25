@@ -17,6 +17,7 @@
     "express-validator": "^6.6.1",
     "fabric-ca-client": "^2.2.0",
     "fabric-network": "^2.2.0",
-    "swagger-ui-express": "^4.1.4"
+    "swagger-ui-express": "^4.1.4",
+    "uuid": "^8.3.1"
   }
 }
