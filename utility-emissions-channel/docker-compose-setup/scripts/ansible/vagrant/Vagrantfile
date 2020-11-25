@@ -7,9 +7,9 @@ Vagrant.configure("2") do |config|
   # since ansible can provision both in // and same some time
   N = 2
   (1..N).each do |machine_id|
-    config.vm.network "private_network", type: "dhcp"
     config.vm.define "server#{machine_id}" do |server|
       server.vm.box = "bento/ubuntu-18.04"
+      server.vm.network "private_network", ip: "172.16.0.#{machine_id+1}"
       if machine_id == 1
         server.vm.hostname = "ServerA"
       else
