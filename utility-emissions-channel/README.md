@@ -69,7 +69,7 @@ To reset this bucket at any time, simply remove the folder.
    exports.AWS_ACCESS_KEY_ID = 'your_access_key';
    exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
 3. cd to `docker-compose-setup`
-4. Start network: Run `sh start.sh`
+4. Start network, create channel, and deployCC: Run `sh start.sh`
 5. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
 
 ##### Play with the chaincode and have a look at the blockchain-explorer.
