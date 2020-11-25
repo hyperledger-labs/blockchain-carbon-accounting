@@ -2,132 +2,170 @@
 SPDX-License-Identifier: Apache-2.0
 */
 
-'use strict';
+"use strict";
 
 // Utility class for ledger state
-const State = require('./../ledger-api/state.js');
+const State = require("./../ledger-api/state.js");
 
 /**
  * EmissionsRecord class extends State class
  * Class will be used by application and smart contract to define a paper
  */
 class EmissionsRecord extends State {
-    
-    constructor(obj) {
-        // TODO: convert from and thru dates to numeric value, ie Date.now()
-        super(EmissionsRecord.getClass(), [obj.utilityId, obj.partyId, obj.fromDate, obj.thruDate]);
-        Object.assign(this, obj);
-    }
+  constructor(obj) {
+    // TODO: convert from and thru dates to numeric value, ie Date.now()
+    super(EmissionsRecord.getClass(), [obj.utilityId, obj.partyId, obj.fromDate, obj.thruDate]);
+    Object.assign(this, obj);
+  }
 
-    /**
-     * Basic getters and setters
-    */
-    getFromDate() {
-        return this.fromDate;
-    }
+  /**
+   * Basic getters and setters
+   */
+  getFromDate() {
+    return this.fromDate;
+  }
 
-    setFromDate(newFromDate) {
-        this.fromDate = newFromDate;
-    }
+  setFromDate(newFromDate) {
+    this.fromDate = newFromDate;
+  }
 
-    getThruDate() {
-        return this.thruDate;
-    }
+  getThruDate() {
+    return this.thruDate;
+  }
 
-    setThruDate(newThruDate) {
-        this.thruDate = newThruDate;
-    }
-    
-    getUtilityId() {
-        return this.utilityId;
-    }
+  setThruDate(newThruDate) {
+    this.thruDate = newThruDate;
+  }
 
-    setUtilityId(newUtilityId) {
-        this.utilityId = newUtilityId;
-    }
+  getUtilityId() {
+    return this.utilityId;
+  }
 
-    getPartyId() {
-        return this.partyId;
-    }
+  setUtilityId(newUtilityId) {
+    this.utilityId = newUtilityId;
+  }
 
-    setPartyId(newPartyId) {
-        this.partyId = newPartyId;
-    }
+  getPartyId() {
+    return this.partyId;
+  }
 
-    getEmissionsAmount() {
-        return this.emissionsAmount;
-    }
+  setPartyId(newPartyId) {
+    this.partyId = newPartyId;
+  }
 
-    setEmissionsAmount(newEmissionsAmount) {
-        this.emissionsAmount = newEmissionsAmount;
-    }
-    
-    getEmissionsUom() {
-        return this.emissionsUom;
-    }
+  getEmissionsAmount() {
+    return this.emissionsAmount;
+  }
 
-    setEmissionsUom(newEmissionsUom) {
-        this.emissionsUom = newEmissionsUom;
-    }
+  setEmissionsAmount(newEmissionsAmount) {
+    this.emissionsAmount = newEmissionsAmount;
+  }
 
-    getRenewableEnergyUseAmount() {
-        return this.renewableEnergyUseAmount;
-    }
+  getEmissionsUom() {
+    return this.emissionsUom;
+  }
 
-    setRenewableEnergyUseAmount(newRenewableEnergyUseAmount) {
-        this.renewableEnergyUseAmount = newRenewableEnergyUseAmount;
-    }
+  setEmissionsUom(newEmissionsUom) {
+    this.emissionsUom = newEmissionsUom;
+  }
 
-    getNonrenewableEnergyUseAmount() {
-        return this.nonrenewableEnergyUseAmount;
-    }
+  getRenewableEnergyUseAmount() {
+    return this.renewableEnergyUseAmount;
+  }
 
-    setNonrenewableEnergyUseAmount(newNonrenewableEnergyUseAmount) {
-        this.nonrenewableEnergyUseAmount = newNonrenewableEnergyUseAmount;
-    }
+  setRenewableEnergyUseAmount(newRenewableEnergyUseAmount) {
+    this.renewableEnergyUseAmount = newRenewableEnergyUseAmount;
+  }
 
-    getFactorSource() {
-        return this.factorSource;
-    }
+  getNonrenewableEnergyUseAmount() {
+    return this.nonrenewableEnergyUseAmount;
+  }
 
-    setFactorSource(newfactorSource) {
-        this.factorSource = newfactorSource;
-    }
+  setNonrenewableEnergyUseAmount(newNonrenewableEnergyUseAmount) {
+    this.nonrenewableEnergyUseAmount = newNonrenewableEnergyUseAmount;
+  }
 
-    setEnergyUseUom() {
-        return this.energyUseUom;
+  getFactorSource() {
+    return this.factorSource;
+  }
 
-    }
-    getEnergyUseUom(newEnergyUseUom) {
-        this.energyUseUom = newEnergyUseUom
-    }
-    
-    static fromBuffer(buffer) {
-        return EmissionsRecord.deserialize(buffer);
-    }
+  setFactorSource(newfactorSource) {
+    this.factorSource = newfactorSource;
+  }
 
-    toBuffer() {
-        return Buffer.from(JSON.stringify(this));
-    }
+  setEnergyUseUom() {
+    return this.energyUseUom;
+  }
+  getEnergyUseUom(newEnergyUseUom) {
+    this.energyUseUom = newEnergyUseUom;
+  }
 
-    /**
-     * Deserialize a state data to commercial paper
-     * @param {Buffer} data to form back into the object
-     */
-    static deserialize(data) {
-        return State.deserializeClass(data, EmissionsRecord);
-    }
+  getUrl() {
+    return this.url;
+  }
+  setUrl(newUrl) {
+    this.url = newUrl;
+  }
 
-    /**
-     * Factory method to create an Emissions Record object
-     */
-    static createInstance(utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, energyUseUom, factorSource) {
-        return new EmissionsRecord({ utilityId, partyId, fromDate, thruDate, emissionsAmount, emissionsUom, renewableEnergyUseAmount, nonrenewableEnergyUseAmount, energyUseUom, factorSource });
-    }
+  getMd5() {
+    return this.md5;
+  }
+  setMd5(newMd5) {
+    this.md5 = newMd5;
+  }
 
-    static getClass() {
-        return 'org.hyperledger.blockchain-carbon-accounting.emissionsrecord';
-    }
+  static fromBuffer(buffer) {
+    return EmissionsRecord.deserialize(buffer);
+  }
+
+  toBuffer() {
+    return Buffer.from(JSON.stringify(this));
+  }
+
+  /**
+   * Deserialize a state data to commercial paper
+   * @param {Buffer} data to form back into the object
+   */
+  static deserialize(data) {
+    return State.deserializeClass(data, EmissionsRecord);
+  }
+
+  /**
+   * Factory method to create an Emissions Record object
+   */
+  static createInstance(
+    utilityId,
+    partyId,
+    fromDate,
+    thruDate,
+    emissionsAmount,
+    emissionsUom,
+    renewableEnergyUseAmount,
+    nonrenewableEnergyUseAmount,
+    energyUseUom,
+    factorSource,
+    url,
+    md5
+  ) {
+    return new EmissionsRecord({
+      utilityId,
+      partyId,
+      fromDate,
+      thruDate,
+      emissionsAmount,
+      emissionsUom,
+      renewableEnergyUseAmount,
+      nonrenewableEnergyUseAmount,
+      energyUseUom,
+      factorSource,
+      url,
+      md5,
+    });
+  }
+
+  static getClass() {
+    return "org.hyperledger.blockchain-carbon-accounting.emissionsrecord";
+  }
 }
 
 module.exports = EmissionsRecord;
