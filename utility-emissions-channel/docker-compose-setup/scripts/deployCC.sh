@@ -165,7 +165,7 @@ installChaincode() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode install ${CC_NAME}.tar.gz >&log.txt
+	peer lifecycle chaincode install ${CC_NAME}.tar.gz -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -194,7 +194,7 @@ approveForMyOrg() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	peer lifecycle chaincode approveformyorg -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	set +x
 	cat log.txt
 	verifyResult $res "Chaincode definition approved on peer.auditor${ORG} on channel '$CHANNEL_NAME' failed"
@@ -246,7 +246,7 @@ commitChaincodeDefinition() {
 	# peer (if join was successful), let's supply it directly as we know
 	# it using the "-o" option
 	set -x
-	peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	peer lifecycle chaincode commit -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -300,7 +300,7 @@ chaincodeInvokeInit() {
 	set -x
 	fcn_call='{"function":"'${CC_INIT_FCN}'","Args":[]}'
 	echo invoke fcn call:${fcn_call}
-	peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS --isInit -c ${fcn_call} >&log.txt
+	peer chaincode invoke -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS --isInit -c ${fcn_call} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -317,7 +317,7 @@ chaincodeInvoke() {
 
 	set -x
 	echo invoke fcn call:${fcn_call}
-	peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS -c ${fcn_call} >&log.txt
+	peer chaincode invoke -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS -c ${fcn_call} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -360,13 +360,13 @@ chaincodeQuery() {
 # package the chaincode
 packageChaincode 1
 
-# Install chaincode on peer1.auditor1, peer1.auditor2, and peer1.auditor3
+# # Install chaincode on peer1.auditor1, peer1.auditor2, and peer1.auditor3
 echo "Installing chaincode on peer1.auditor1..."
 installChaincode 1
 echo "Install chaincode on peer1.auditor2..."
 installChaincode 2
-echo "Install chaincode on peer1.auditor3..."
-installChaincode 3
+# echo "Install chaincode on peer1.auditor3..."
+# installChaincode 3
 
 ## query whether the chaincode is installed
 queryInstalled 1
@@ -376,35 +376,35 @@ approveForMyOrg 1
 
 ## check whether the chaincode definition is ready to be committed
 ## expect org1 to have approved and org2 not to
-checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
-checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
-checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
+checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": false"
+checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": false"
+# checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": false" "\"auditor3\": false"
 
 ## now approve also for auditor2
 approveForMyOrg 2
 
 ## check whether the chaincode definition is ready to be committed
 ## expect them both to have approved
-checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
-checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
-checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
+checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": true"
+checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": true"
+# checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": false"
 
 ## now approve also for auditor3
-approveForMyOrg 3
+# approveForMyOrg 3
 
 ## check whether the chaincode definition is ready to be committed
 ## expect them both to have approved
-checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
-checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
-checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
+# checkCommitReadiness 1 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
+# checkCommitReadiness 2 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
+# checkCommitReadiness 3 "\"auditor1\": true" "\"auditor2\": true" "\"auditor3\": true"
 
 ## now that we know for sure both orgs have approved, commit the definition
-commitChaincodeDefinition 1 2 3
+commitChaincodeDefinition 1 2
 
 ## query on both orgs to see that the definition committed successfully
 queryCommitted 1
 queryCommitted 2
-queryCommitted 3
+# queryCommitted 3
 
 ## Invoke the chaincode - this does require that the chaincode have the 'initLedger'
 ## method defined

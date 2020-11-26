@@ -107,6 +107,13 @@ class EmissionsRecord extends State {
     this.url = newUrl;
   }
 
+  getMd5() {
+    return this.md5;
+  }
+  setMd5(newMd5) {
+    this.md5 = newMd5;
+  }
+
   static fromBuffer(buffer) {
     return EmissionsRecord.deserialize(buffer);
   }
@@ -137,7 +144,8 @@ class EmissionsRecord extends State {
     nonrenewableEnergyUseAmount,
     energyUseUom,
     factorSource,
-    url
+    url,
+    md5
   ) {
     return new EmissionsRecord({
       utilityId,
@@ -151,6 +159,7 @@ class EmissionsRecord extends State {
       energyUseUom,
       factorSource,
       url,
+      md5,
     });
   }
 
