@@ -14,6 +14,7 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 4. Start network: Run `./network.sh up createChannel`
 5. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`
 6. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+   '{"Args":["invoke","a","b","10"]}'
 
 ##### Play with the chaincode and have a look at the blockchain-explorer.
 
@@ -71,20 +72,6 @@ Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/u
 
 1. cd to `docker-compose-setup`
 2. Run `./network.sh stopBlockchainExplorer`
-
-## Running AWS dynamodb locally
-
-1. Start dynamodb:
-
-```bash
-./scripts/startDynamo.sh
-```
-
-2. Seed the DB - See docs in blockchain-carbon-accounting/utility-emissions-channel/egrid-data-loader/README.md for seeding the db
-
-3. Fill in AWS credentials based on aws-config.js.template. Fill in your secret key/access key and be sure to set AWS_REGION to "local" and AWS_ENDPOINT to "http://localdynamodb:8000"
-
-4. Bring up network, create channel/deploy chaincode.
 
 ## Troubleshooting
 

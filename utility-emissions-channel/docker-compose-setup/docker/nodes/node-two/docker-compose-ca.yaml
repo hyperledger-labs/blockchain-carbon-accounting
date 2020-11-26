@@ -1,0 +1,24 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: "2.1"
+
+networks:
+  carbonAccounting:
+
+services:
+  ca_auditor2:
+    image: hyperledger/fabric-ca:1.4.9
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=auditor2.carbonAccounting.com
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_PORT=8054
+    ports:
+      - "8054:8054"
+    command: sh -c 'fabric-ca-server start --csr.hosts auditor2.carbonAccounting.com -b admin:adminpw -d'
+    volumes:
+      - ../../../organizations/fabric-ca/auditor2:/etc/hyperledger/fabric-ca-server
+    container_name: auditor2.carbonAccounting.com

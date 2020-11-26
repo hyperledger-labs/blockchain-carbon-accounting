@@ -6,29 +6,38 @@ client:
   connection:
     timeout:
       peer:
-        endorser: '300'
+        endorser: "300"
 organizations:
   auditor${ORG}:
     mspid: auditor${ORG}
     peers:
-    - peer1.auditor${ORG}.carbonAccounting.com
+      - peer1.auditor${ORG}.carbonAccounting.com
     certificateAuthorities:
-    - ca.auditor${ORG}.carbonAccounting.com
-peers:
-  peer1.auditor${ORG}.carbonAccounting.com:
-    url: grpcs://localhost:${P0PORT}
+      - ca.auditor${ORG}.carbonAccounting.com
+orderers:
+  orderer1.auditor${ORG}.carbonAccounting.com:
+    url: grpcs://orderer1.auditor${ORG}.carbonAccounting.com:${ORDPORT}
     tlsCACerts:
       pem: |
-          ${PEERPEM}
+        ${ORDERERPEM}
+    grpcOptions:
+      ssl-target-name-override: "orderer1.auditor${ORG}.carbonAccounting.com"
+      hostnameOverride: "orderer1.auditor${ORG}.carbonAccounting.com"
+peers:
+  peer1.auditor${ORG}.carbonAccounting.com:
+    url: grpcs://peer1.auditor${ORG}.carbonAccounting.com:${P0PORT}
+    tlsCACerts:
+      pem: |
+        ${PEERPEM}
     grpcOptions:
       ssl-target-name-override: peer1.auditor${ORG}.carbonAccounting.com
       hostnameOverride: peer1.auditor${ORG}.carbonAccounting.com
 certificateAuthorities:
   ca.auditor${ORG}.carbonAccounting.com:
-    url: https://localhost:${CAPORT}
+    url: https://auditor${ORG}.carbonAccounting.com:${CAPORT}
     caName: ca-auditor${ORG}
     tlsCACerts:
-      pem: 
+      pem:
         - |
           ${CAPEM}
     httpOptions:
