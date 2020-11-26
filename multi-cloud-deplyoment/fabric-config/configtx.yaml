@@ -1,0 +1,205 @@
+Organizations:
+  - &sampleorg
+      Name: sampleorg
+      ID: sampleorg
+      SkipAsForeign: false
+      MSPDir: ../crypto-material/emissionsaccounting.sampleorg.com/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: OR('sampleorg.admin', 'sampleorg.peer', 'sampleorg.client', 'sampleorg.orderer')
+        Writers:
+          Type: Signature
+          Rule: OR('sampleorg.admin', 'sampleorg.client', 'sampleorg.orderer')
+        Admins:
+          Type: Signature
+          Rule: OR('sampleorg.admin')
+        Endorsement:
+          Type: Signature
+          Rule: OR('sampleorg.peer')
+        Orderer:
+          Type: Signature
+          Rule: OR('sampleorg.orderer')
+      OrdererEndpoints:
+        - fabric-orderer1.emissionsaccounting.sampleorg.com:443
+      AnchorPeers:
+        - Host: fabric-peer1.emissionsaccounting.sampleorg.com
+          Port: 443
+
+  # - &auditor2
+  #     Name: auditor2
+  #     ID: auditor2
+  #     SkipAsForeign: false
+  #     MSPDir: ../organizations/peerOrganizations/auditor2.carbonAccounting.com/msp
+  #     Policies:
+  #       Readers:
+  #         Type: Signature
+  #         Rule: OR('auditor2.admin', 'auditor2.peer', 'auditor2.client', 'auditor2.orderer')
+  #       Writers:
+  #         Type: Signature
+  #         Rule: OR('auditor2.admin', 'auditor2.client', 'auditor2.orderer')
+  #       Admins:
+  #         Type: Signature
+  #         Rule: OR('auditor2.admin')
+  #       Endorsement:
+  #         Type: Signature
+  #         Rule: OR('auditor2.peer')
+  #       Orderer:
+  #         Type: Signature
+  #         Rule: OR('auditor2.orderer')
+  #     OrdererEndpoints:
+  #       - orderer1.auditor2.carbonAccounting.com:8050
+  #     AnchorPeers:
+  #       - Host: peer1.auditor2.carbonAccounting.com
+  #         Port: 8051
+
+  # - &auditor3
+  #     Name: auditor3
+  #     ID: auditor3
+  #     SkipAsForeign: false
+  #     MSPDir: ../organizations/peerOrganizations/auditor3.carbonAccounting.com/msp
+  #     Policies:
+  #       Readers:
+  #         Type: Signature
+  #         Rule: OR('auditor3.admin', 'auditor3.peer', 'auditor3.client', 'auditor3.orderer')
+  #       Writers:
+  #         Type: Signature
+  #         Rule: OR('auditor3.admin', 'auditor3.client', 'auditor3.orderer')
+  #       Admins:
+  #         Type: Signature
+  #         Rule: OR('auditor3.admin')
+  #       Endorsement:
+  #         Type: Signature
+  #         Rule: OR('auditor3.peer')
+  #       Orderer:
+  #         Type: Signature
+  #         Rule: OR('auditor3.orderer')
+  #     OrdererEndpoints:
+  #       - orderer1.auditor3.carbonAccounting.com:9050
+  #     AnchorPeers:
+  #       - Host: peer1.auditor3.carbonAccounting.com
+  #         Port: 9051
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  BatchTimeout: 2
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 98 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  EtcdRaft:
+    Consenters:
+      - Host: fabric-orderer1.emissionsaccounting.sampleorg.com
+        Port: 443
+        ClientTLSCert: ../crypto-material/emissionsaccounting.sampleorg.com/orderers/fabric-orderer1.emissionsaccounting.sampleorg.com/tls/server.crt
+        ServerTLSCert: ../crypto-material/emissionsaccounting.sampleorg.com/orderers/fabric-orderer1.emissionsaccounting.sampleorg.com/tls/server.crt
+      # - Host: orderer1.auditor2.carbonAccounting.com
+      #   Port: 8050
+      #   ClientTLSCert: ../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/server.crt
+      #   ServerTLSCert: ../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/server.crt
+      # - Host: orderer1.auditor3.carbonAccounting.com
+      #   Port: 9050
+      #   ClientTLSCert: ../organizations/peerOrganizations/auditor3.carbonAccounting.com/orderers/orderer1.auditor3.carbonAccounting.com/tls/server.crt
+      #   ServerTLSCert: ../organizations/peerOrganizations/auditor3.carbonAccounting.com/orderers/orderer1.auditor3.carbonAccounting.com/tls/server.crt
+    Options:
+      TickInterval: 500ms
+      ElectionTick: 10
+      HeartbeatTick: 1
+      MaxInflightBlocks : 5
+      SnapshotIntervalSize : 16 MB
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: ANY Admins
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: ANY Orderer
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+  MultipleOrgsChannel:
+    Consortium: CarbonAccountingConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+          - *sampleorg
+          # - *auditor2
+          # - *auditor3
+      Capabilities:
+          <<: *ApplicationCapabilities
+
+  MultiNodeEtcdRaft:
+    <<: *ChannelDefaults
+    Capabilities:
+      <<: *ChannelCapabilities
+    Orderer:
+      <<: *OrdererDefaults
+      OrdererType: etcdraft
+      Organizations:
+        - <<: *sampleorg
+        # - <<: *auditor2
+        # - <<: *auditor3
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - <<: *sampleorg
+        # - <<: *auditor2
+        # - <<: *auditor3
+    Consortiums:
+      CarbonAccountingConsortium:
+        Organizations:
+          - *sampleorg
+          # - *auditor2
+          # - *auditor3
