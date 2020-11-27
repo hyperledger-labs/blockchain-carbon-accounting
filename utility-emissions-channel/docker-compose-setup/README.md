@@ -16,9 +16,15 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 6. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
    '{"Args":["invoke","a","b","10"]}'
 
-##### Play with the chaincode and have a look at the blockchain-explorer.
+#### Play with the chaincode and have a look at the blockchain-explorer.
 
-1. Invoke chaincode with peer binaries
+1. With the app running, exec into the Cli container:
+
+```bash
+docker exec -ti cli bash
+```
+
+2. Invoke chaincode with peer binaries
 
 ```shell
 # Record emission to utilityemissionchannel
@@ -28,27 +34,11 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["11208","MyCompany","2018-06-01","2018-06-30"]}' 1
 ```
 
-2. Invoke chaincode with nodeJS
-   2.1. cd to `docker-compose-setup/application`
-   2.2. Install node modules: RUN `npm i`
-   2.3. Create wallet: Run `node invokeChaincodeManually/createWallet.js`
-   2.2. Invoke chaincode:
-
-```shell
-# Invoke chaincode
-node invokeChaincodeManually/invoke.js
-
-# Should print similar output
-Wallet path: /Users/robinklemens/Documents/GitHub/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/application/wallet
-{"class":"org.hyperledger.blockchain-carbon-accounting.emissionsrecord","key":"\"MediumUtility\":\"MyCompany\":\"2020-06-01\":\"2020-06-30\"","currentState":null,"emissionsAmount":150,"emissionsUom":"TONS","fromDate":"2020-06-01","partyId":"MyCompany","thruDate":"2020-06-30","utilityId":"MediumUtility"}
-```
-
 ## Start Express server (REST API)
 
-1. cd to `utility-emissions-channel/application`
+1. cd to `utility-emissions-channel/typescript_app`
 2. Install node modules: RUN `npm i`
-   (Not neceasary anymore 09/29/20. Create wallet for User1 of org auditor 1: Run `node ./src/blockchain-gateway/utilityEmissionsChannel/createWallet.js`)
-3. Start express sever: Run `node index.js`
+3. Start express sever: Run `sh start.sh`
 4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
 5. Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
 6. Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
