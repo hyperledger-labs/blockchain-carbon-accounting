@@ -4,7 +4,7 @@
 
 "use strict";
 
-import { Gateway, Wallets } from "fabric-network";
+import { Contract, Gateway, Network, Wallet, Wallets } from "fabric-network";
 const path = require("path");
 import { setOrgDataCA } from "../utils/caUtils";
 import {
@@ -23,27 +23,27 @@ export class EmissionsContractInvoke {
   constructor(message: string) {}
 
   static async recordEmissions(
-    userId,
-    orgName,
-    utilityId,
-    partyId,
-    fromDate,
-    thruDate,
-    energyUseAmount,
-    energyUseUom,
-    url,
-    md5
+    userId: any,
+    orgName: any,
+    utilityId: string,
+    partyId: string,
+    fromDate: string,
+    thruDate: string,
+    energyUseAmount: string,
+    energyUseUom: string,
+    url: string,
+    md5: string
   ) {
     try {
       let response = "";
 
       let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
-      const walletPath = setWalletPathByOrg(orgName);
+      const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
-      const wallet = await buildWallet(Wallets, walletPath);
+      const wallet: Wallet = await buildWallet(Wallets, walletPath);
 
-      const gateway = new Gateway();
+      const gateway: Gateway = new Gateway();
 
       try {
         await gateway.connect(ccp, {
@@ -62,7 +62,7 @@ export class EmissionsContractInvoke {
 
       // ###### Record Emissions ######
       let uuid = getNewUuid();
-      const blockchainResult = await contract.submitTransaction(
+      const blockchainResult: Buffer = await contract.submitTransaction(
         "recordEmissions",
         uuid,
         utilityId,
@@ -74,8 +74,8 @@ export class EmissionsContractInvoke {
         url,
         md5
       );
-      const stringResult = blockchainResult.toString("utf-8");
-      const jsonResult = JSON.parse(stringResult);
+      const stringResult: string = blockchainResult.toString("utf-8");
+      const jsonResult: any = JSON.parse(stringResult);
 
       // TODO: Add contract listener to wait for event of chaincode.
 
@@ -118,16 +118,16 @@ export class EmissionsContractInvoke {
     }
   }
 
-  static async getEmissionsData(userId, orgName, uuid) {
+  static async getEmissionsData(userId: any, orgName: any, uuid: string) {
     try {
-      let response = "";
+      let response: string = "";
       let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
-      const walletPath = setWalletPathByOrg(orgName);
+      const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
-      const wallet = await buildWallet(Wallets, walletPath);
+      const wallet: Wallet = await buildWallet(Wallets, walletPath);
 
-      const gateway = new Gateway();
+      const gateway: Gateway = new Gateway();
       try {
         await gateway.connect(ccp, {
           wallet,
@@ -140,19 +140,18 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network = await gateway.getNetwork("utilityemissionchannel");
+      const network: Network = await gateway.getNetwork("utilityemissionchannel");
 
-      const contract = network.getContract("emissionscontract");
+      const contract: Contract = network.getContract("emissionscontract");
 
       // ###### Get Emissions Data ######
-      const blockchainResult = await contract.evaluateTransaction("getEmissionsData", uuid);
-      const stringResult = blockchainResult.toString("utf-8");
-      const jsonResult = JSON.parse(stringResult);
-      console.log("json result here\n\n\n\n\n\n");
-      console.log(jsonResult);
+      const blockchainResult: Buffer = await contract.evaluateTransaction("getEmissionsData", uuid);
+      const stringResult: string = blockchainResult.toString("utf-8");
+      const jsonResult: any = JSON.parse(stringResult);
+
       if (jsonResult.url.length > 0) {
         // compare md5 in ledger against one being returned in url
-        let incomingBinary = await downloadFromS3(
+        let incomingBinary: any = await downloadFromS3(
           `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
         );
         let incomingMd5 = Md5.hashStr(incomingBinary);
@@ -167,7 +166,7 @@ export class EmissionsContractInvoke {
       await gateway.disconnect();
 
       // Return result
-      let result = new Object();
+      let result: Object = new Object();
       result["info"] = "UTILITY EMISSIONS DATA";
       result["utilityId"] = jsonResult.utilityId;
       result["partyId"] = jsonResult.partyId;
@@ -195,16 +194,16 @@ export class EmissionsContractInvoke {
     }
   }
 
-  static async getAllEmissionsData(userId, orgName, utilityId, partyId) {
+  static async getAllEmissionsData(userId: any, orgName: any, utilityId: string, partyId: string) {
     try {
-      let response = "";
+      let response: string = "";
       let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
-      const walletPath = setWalletPathByOrg(orgName);
+      const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
-      const wallet = await buildWallet(Wallets, walletPath);
+      const wallet: Wallet = await buildWallet(Wallets, walletPath);
 
-      const gateway = new Gateway();
+      const gateway: Gateway = new Gateway();
       try {
         await gateway.connect(ccp, {
           wallet,
@@ -217,23 +216,23 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network = await gateway.getNetwork("utilityemissionchannel");
+      const network: Network = await gateway.getNetwork("utilityemissionchannel");
 
-      const contract = network.getContract("emissionscontract");
+      const contract: Contract = network.getContract("emissionscontract");
 
       // ###### Get Emissions Data ######
-      const blockchainResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
-      const stringResult = blockchainResult.toString();
-      const jsonResult = JSON.parse(stringResult);
+      const blockchainResult: Buffer = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
+      const stringResult: string = blockchainResult.toString();
+      const jsonResult: any = JSON.parse(stringResult);
 
       // Disconnect from the gateway.
       await gateway.disconnect();
 
       // Return result
-      let all_emissions = [];
-      let current_year = new Date().getFullYear();
+      let all_emissions: any[] = [];
+      let current_year: number = new Date().getFullYear();
       for (let emission_item of jsonResult) {
-        let result = new Object();
+        let result: Object = new Object();
         let record = emission_item.Record;
         if (record.url.length > 0) {
           // compare md5 in ledger against one being returned in url
@@ -284,16 +283,23 @@ export class EmissionsContractInvoke {
     }
   }
 
-  static async checkDateOverlap(userId, orgName, utilityId, partyId, fromDate, thruDate) {
+  static async checkDateOverlap(
+    userId: any,
+    orgName: any,
+    utilityId: string,
+    partyId: string,
+    fromDate: any,
+    thruDate: any
+  ) {
     let response = "";
 
     let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
 
-    const walletPath = setWalletPathByOrg(orgName);
+    const walletPath: string = setWalletPathByOrg(orgName);
     console.log("+++++++++++++++++ Walletpath: " + walletPath);
-    const wallet = await buildWallet(Wallets, walletPath);
+    const wallet: any = await buildWallet(Wallets, walletPath);
 
-    const gateway = new Gateway();
+    const gateway: Gateway = new Gateway();
 
     try {
       await gateway.connect(ccp, {
@@ -307,15 +313,15 @@ export class EmissionsContractInvoke {
       return response;
     }
 
-    const network = await gateway.getNetwork("utilityemissionchannel");
-    const contract = network.getContract("emissionscontract");
+    const network: Network = await gateway.getNetwork("utilityemissionchannel");
+    const contract: Contract = network.getContract("emissionscontract");
 
     // Check for date overlap
 
     // Get Emissions for utilityID and partyId to compare
-    const allEmissionsResult = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
-    const allEmissionsString = allEmissionsResult.toString();
-    const jsonEmissionsResult = JSON.parse(allEmissionsString);
+    const allEmissionsResult: Buffer = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
+    const allEmissionsString: string = allEmissionsResult.toString();
+    const jsonEmissionsResult: any = JSON.parse(allEmissionsString);
 
     // Compare each entry against incoming emissions record
     for (let emission_item of jsonEmissionsResult) {
@@ -324,7 +330,7 @@ export class EmissionsContractInvoke {
       let fromDateToCheck = record.fromDate;
       let thruDateToCheck = record.thruDate;
 
-      let overlap = checkDateConflict(fromDateToCheck, thruDateToCheck, fromDate, thruDate);
+      let overlap: boolean = checkDateConflict(fromDateToCheck, thruDateToCheck, fromDate, thruDate);
       if (overlap) {
         throw new Error(
           `Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${fromDateToCheck} to ${thruDateToCheck}.`

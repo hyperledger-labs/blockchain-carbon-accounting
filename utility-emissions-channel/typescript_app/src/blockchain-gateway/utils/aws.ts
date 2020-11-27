@@ -6,7 +6,7 @@ const IAM_USER_KEY = AWS_CONFIG.AWS_ACCESS_KEY_ID;
 const IAM_USER_SECRET = AWS_CONFIG.AWS_SECRET_ACCESS_KEY;
 
 function getS3Bucket() {
-  let s3bucket;
+  let s3bucket: AWS.S3;
   if (AWS_CONFIG.S3_LOCAL) {
     s3bucket = new AWS.S3({
       s3ForcePathStyle: true,
@@ -24,8 +24,8 @@ function getS3Bucket() {
   return s3bucket;
 }
 
-const BUCKET_NAME = AWS_CONFIG.BUCKET_NAME;
-let s3bucket = getS3Bucket();
+const BUCKET_NAME: string = AWS_CONFIG.BUCKET_NAME;
+let s3bucket: AWS.S3 = getS3Bucket();
 
 export function uploadToS3(fileBin: string, fileName: string): Promise<any> {
   const params = {

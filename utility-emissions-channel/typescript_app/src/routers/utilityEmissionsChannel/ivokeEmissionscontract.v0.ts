@@ -57,7 +57,7 @@ router.post(
       const energyUseAmount = req.body.energyUseAmount;
       const energyUseUom = req.body.energyUseUom;
       let url = "";
-      let md5: string | Int32Array = "";
+      let md5: string = "";
 
       // check for overlapping dates before uploading to s3
       const overlapResponse = await EmissionsContractInvoke.checkDateOverlap(
@@ -76,7 +76,7 @@ router.post(
           `${userId}-${orgName}-${utilityId}-${partyId}-${fromDate}-${thruDate}.pdf`
         );
         url = upload.Location;
-        md5 = Md5.hashStr(fileBin.toString());
+        md5 = Md5.hashStr(fileBin.toString()).toString();
       }
 
       console.log(`# RECORDING EMISSIONS DATA TO UTILITYEMISSIONS CHANNEL`);
