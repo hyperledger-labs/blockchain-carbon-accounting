@@ -1,22 +1,18 @@
-import { Wallets } from "fabric-network";
+import { Wallet, Wallets } from "fabric-network";
 import path from "path";
 import fs from "fs";
 
 async function createWallet() {
-  const wallet = await Wallets.newFileSystemWallet("wallet");
+  const wallet: Wallet = await Wallets.newFileSystemWallet("wallet");
 
-  const credPath = path.resolve(
+  const credPath: string = path.resolve(
     __dirname,
     "../../../../docker-compose-setup/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp"
   );
-  const cert = fs
-    .readFileSync(path.join(credPath, "signcerts/cert.pem"))
-    .toString();
-  const key = fs
-    .readFileSync(path.join(credPath, "keystore/priv_sk"))
-    .toString();
+  const cert: string = fs.readFileSync(path.join(credPath, "signcerts/cert.pem")).toString();
+  const key: string = fs.readFileSync(path.join(credPath, "keystore/priv_sk")).toString();
 
-  const identityLabel = "User1@auditor1.carbonAccounting.com";
+  const identityLabel: string = "User1@auditor1.carbonAccounting.com";
   const identity = {
     credentials: {
       certificate: cert,
