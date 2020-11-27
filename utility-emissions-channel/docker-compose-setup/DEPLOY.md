@@ -1,6 +1,8 @@
-# blockchain-carbon-accounting deployment
+# Utility Emissions Channel Cloud Deployment via Docker Swarm
 
-Now that the app has been restructured, deployment is much more seamless to the development environment. By containerizing the API and creating custom client container using an Ubuntu image, we are able to run the whole app and binary commands in a docker swarm network. Now that we have adopted this setup, there is no need for dynamic URL/IP values, IP SANS, or access to the local machine from containers. To reset and start over at any time during this process, run:
+This deployment uses Docker, Docker Swarm, and amazon EC2 to deploy the network across multiple hosts.
+
+To reset the process at any time during the deployment, run the following on both servers:
 
 ```bash
 cd ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
@@ -104,6 +106,7 @@ Then:
 This will bring up peer1.auditor1, orderer1.auditor1, and couchdb0. This will also generate the proper certs for auditor1.carbonAccounting.com under organizations/peerOrganizations.
 
 Copy CA to Server B:
+
 ```bash
 scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_B_IP:$BASE_PATH/organizations/fabric-ca/
 ```
