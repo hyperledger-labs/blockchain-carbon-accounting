@@ -26,7 +26,7 @@ Make sure to setup the AWS credentials in `chaincode/node/lib/aws-config.js`::
 exports.AWS_ACCESS_KEY_ID = 'your_access_key';
 exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
 
-Initialize the database- SKIP THIS STEP IF RUNNING LOCALLY::
+Initialize the database::
 
     $ node index.js initdb
 
