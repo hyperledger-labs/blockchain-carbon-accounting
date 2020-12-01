@@ -6,35 +6,30 @@
 
 The utility emissions channel can be run locally or remotely using Amazon S3 and DynamoDB. In either case you will need a configuration file for AWS.
 
-First, create a new file in `chaincode/node/lib called aws-config.js` by copying from `aws-config.js.template`
+You can copy the configuration file from our template
 
 ```bash
-cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js
+$ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js
 ```
 
 If you're running with remote AWS, then fill it out with your credentials for AWS based on the fields requested in `aws-config.js.template`. Otherwise, you can leave the credentials blank but set the other fields based on directions below.
 
-### Configure S3/DynamoDB Locally
+### Configure S3 and DynamoDB Locally
 
 #### S3
 
-1. Be sure that the following line is present in `aws-config.js`:
+Serverless S3 stores documents in a folder called `local-bucket` within the `typescript_app` directory.  To reset this bucket at any time, simply remove the folder.
+
+Set the following in `aws-config.js` if you're running locally:
 
 ```bash
 exports.S3_LOCAL = true;
+exports.BUCKET_NAME = "local-bucket";
 ```
-
-2. Set the value of `BUCKET_NAME` in `aws-config.js` to `local-bucket` if it is not already set.
-
-##### About S3 local storage
-
-Serverless S3 stores pdfs in a folder called local-bucket within the typescript_app directory.
-
-To reset this bucket at any time, simply remove the folder.
 
 #### DynamoDB
 
-1. See "Load the Data" below.
+1. See "Load the Data" below for setting `exports.AWS_ENDPOINT` to your local DynamoDB.
 
 ### Configure S3/DynamoDB Remotely
 
@@ -50,46 +45,36 @@ To reset this bucket at any time, simply remove the folder.
 
 ## Load the Data
 
-### Loading Locally
-
-#### DynamoDB
-
-1. If using the localdynamodb, execute the following from the docker-compose-setup directory to start dynamodb:
+If you're using the local dynamodb, execute the following from the `docker-compose-setup` directory to start dynamodb:
 
 ```bash
 ./scripts/startDynamo.sh
 ```
 
-2. Seed the db, see eGrid Loader documentation [here](egrid-data-loader/README.md).
-
-#### S3
-
-1. The api will start automatically at the end of `start.sh`, but alternatively, start the API from the docker-compose-setup directory:
-
-```bash
-sh ./scripts/startApi.sh
-```
-
-2. From the typescript_app directory, start the S3 emulation:
-
-```bash
-sh startLocalS3.sh
-```
-
-### Loading Remotely
-
-#### DynamoDB
-
-1. Seed the db, see eGrid Loader documentation [here](egrid-data-loader/README.md).
+Then, for local or remote dynamodb, follow instructions from eGrid Loader documentation [here](egrid-data-loader/README.md).
 
 ## Get the blockchain network up and running
 
-1. Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. cd to `docker-compose-setup`
-3. Start network, create channel, and deployCC: Run `sh start.sh`
-4. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
 
-##### Play with the chaincode and have a look at the blockchain-explorer.
+```bash
+$ cd to docker-compose-setup
+```
+
+Start network, create channel, and deployCC: 
+```bash
+$ sh start.sh
+```
+
+Optionally, start Hyperledger Explorer (): 
+
+```bash
+$ ./network.sh startBlockchainExplorer`
+```
+
+Now go to http://localhost:8080 with username `exploreradmin` and password `exploreradminpw`
+
+### Test the chaincode and the blockchain-explorer.
 
 1. With the app running, exec into the Cli container:
 
@@ -109,14 +94,33 @@ docker exec -ti cli bash
 
 ## Start Express server (REST API)
 
-1. cd to `utility-emissions-channel/typescript_app`
-2. Install node modules: RUN `npm i`
-3. Start express sever: Run `sh start.sh`
-4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
-5. Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
-6. Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
-7. Interact with the `emissionscontract` chaincode.
-   Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
+```bash
+$ cd utility-emissions-channel/typescript_app
+# install node modules if you don't have it
+$ npm i
+$ sh start.sh
+```
+
+Now you can go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.  You can test it by registering org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"}), and then register and enroll users.  First register org admin, then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )  Once you've done that, you can try the `emissionscontract` chaincode.  Note that there is some error handling but may not be complete if your inputs are not correct.  
+
+### Local DynamoDB
+
+If you're using the local dynamodb, make sure it's been started (see instructions above.)
+
+### S3
+
+Running serverless s3 locally requires the api to be started first.  The api will start automatically at the end of `start.sh`, but alternatively, start the API from the `docker-compose-setup` directory:
+
+```bash
+$ sh ./scripts/startApi.sh
+```
+
+Then, from the typescript_app directory, start the S3 emulation:
+
+```bash
+$ sh startLocalS3.sh
+```
+
 
 ## Update emissioncontact Chaincode
 
@@ -128,14 +132,17 @@ docker exec -ti cli bash
 
 ## Stop the blockchain network and remove container
 
-1. cd to `docker-compose-setup`
-2. Run `./scripts/reset.sh`
+```bash
+$ cd docker-compose-setup
+$ ./scripts/reset.sh
+```
 
 #### Stop blockchain explorer
 
-1. cd to `docker-compose-setup`
-2. Run `./network.sh stopBlockchainExplorer`
-
+```bash
+$ cd docker-compose-setup
+$ ./network.sh stopBlockchainExplorer
+```
 ## Troubleshooting
 
 If any error in `Get the blockchain network up and running` please run the commands of `Stop the blockchain network and remove container` and retry starting the network. If you still run into errors open an issue with the error logs, please.
