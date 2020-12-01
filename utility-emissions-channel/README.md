@@ -26,7 +26,13 @@ exports.S3_LOCAL = true;
 
 2. Set the value of `BUCKET_NAME` in `aws-config.js` to `local-bucket` if it is not already set.
 
-3. With the app running, from the typescript_app directory, start the S3 emulation:
+3. The api will start automatically at the end of `start.sh`, but alternatively, start the API from the docker-compose-setup directory:
+
+```bash
+sh ./scripts/startApi.sh
+```
+
+4. From the typescript_app directory, start the S3 emulation:
 
 ```bash
 sh startLocalS3.sh
