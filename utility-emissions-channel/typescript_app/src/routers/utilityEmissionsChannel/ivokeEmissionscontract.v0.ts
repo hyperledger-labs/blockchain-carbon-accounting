@@ -162,10 +162,8 @@ router.get(GET_ALL_EMISSIONS_DATA, [param("userId").isString(), param("orgName")
 
     // Get Emmission Data from utilityEmissions Channel
     const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsData(userId, orgName, utilityId, partyId);
-    console.log("response\n\n\n\n\n");
-    console.log(blockchainResponse);
+
     if (Array.isArray(blockchainResponse)) {
-      console.log("hit in here\n\n\n\n");
       res.status(200).send(blockchainResponse);
     } else {
       res.status(409).send(blockchainResponse);
