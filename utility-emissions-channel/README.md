@@ -18,7 +18,7 @@ If you're running with remote AWS, then fill it out with your credentials for AW
 
 #### S3
 
-Serverless S3 stores documents in a folder called `local-bucket` within the `typescript_app` directory.  To reset this bucket at any time, simply remove the folder.
+Serverless S3 stores documents in a folder called `local-bucket` within the `typescript_app` directory.  To reset this bucket at any time, simply remove the folder.  You can also test the integrity of the documents store by replacing some files with other copies.  The emissions records will no longer be retrievable if you try to do this. 
 
 Set the following in `aws-config.js` if you're running locally:
 
@@ -29,7 +29,7 @@ exports.BUCKET_NAME = "local-bucket";
 
 #### DynamoDB
 
-1. See "Load the Data" below for setting `exports.AWS_ENDPOINT` to your local DynamoDB.
+See "Load the Data" below for setting `exports.AWS_ENDPOINT` to your local DynamoDB.
 
 ### Configure S3/DynamoDB Remotely
 
@@ -41,7 +41,7 @@ exports.BUCKET_NAME = "local-bucket";
 
 #### DynamoDB
 
-1. Set AWS_ENDPOINT to the endpoint of your remote dynamodb
+Set AWS_ENDPOINT to the endpoint of your remote dynamodb
 
 ## Load the Data
 
@@ -143,6 +143,10 @@ $ ./scripts/reset.sh
 $ cd docker-compose-setup
 $ ./network.sh stopBlockchainExplorer
 ```
+## CouchDB
+
+You can look around couchdb to see the records being stored on the ledger.  Go to http://localhost:5984/_utils/  The default username and password are `admin` and `adminpw`  Once you login, look in the `utilityemissionchannel_emissionscontract` table to see the emissions records, including links to the documents.
+
 ## Troubleshooting
 
 If any error in `Get the blockchain network up and running` please run the commands of `Stop the blockchain network and remove container` and retry starting the network. If you still run into errors open an issue with the error logs, please.
