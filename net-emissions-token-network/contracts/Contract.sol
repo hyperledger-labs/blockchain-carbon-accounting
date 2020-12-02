@@ -12,7 +12,7 @@ pragma solidity >=0.4.21 <0.7.0;
 import "./openzeppelin-solidity/contracts/access/Roles.sol"; 
 import "./openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
 
-contract EmissionsTokenNetwork is ERC1155 {
+contract NetEmissionsTokenNetwork is ERC1155 {
 	address public owner;	  // owner of this contract (Central Bank)
 	using Roles for Roles.Role; // We intend to use the Roles library
 
@@ -43,7 +43,6 @@ contract EmissionsTokenNetwork is ERC1155 {
     // mapping (uint256 => TokenDetails) private _tokenDetails;    // tokenId to tokenDefinition
     mapping (uint256 => CarbonTokenDetails) private _tokenDetails;    // tokenId to tokenDefinition
 	uint256[] private _tokenIds;    // array of tokens
-	uint256[] private _carbonTokenIds;    // array of tokens
 
     event TokenDefined( uint256 tokenId, string tokenName, string ttfURL );
     event CarbonTokenDefined(uint256 tokenId);
@@ -64,8 +63,8 @@ contract EmissionsTokenNetwork is ERC1155 {
 	 */
 	function tokenExists( uint256 tokenId ) private view returns( bool ) {
 		uint256 idx;
-		for( idx = 0; idx < _carbonTokenIds.length; idx++ ) {
-			if( _carbonTokenIds[idx] == tokenId )
+		for( idx = 0; idx < _tokenIds.length; idx++ ) {
+			if( _tokenIds[idx] == tokenId )
 				return true;
 		}
 		return false; // no matching tokenId
@@ -75,10 +74,10 @@ contract EmissionsTokenNetwork is ERC1155 {
     * @dev returns ids of all tokens
     */
 	function getAllTokenIds( ) public view returns ( uint256[] memory ) {
-		return _carbonTokenIds;
+		return _tokenIds;
 	}
 
-	function addRewewableEnergyCertificate( uint256 tokenId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest) public onlyOwner {
+	function addCarbonToken( uint256 tokenId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest) public onlyOwner {
         require( ( tokenExists( tokenId ) == false ), "eThaler: tokenId is already defined ");
 		CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
 		tokenInfo.tokenId = tokenId;
@@ -93,7 +92,7 @@ contract EmissionsTokenNetwork is ERC1155 {
 		tokenInfo.retired = false;
 
 
-		_carbonTokenIds.push( tokenId );   // add to array of tokens
+		_tokenIds.push( tokenId );   // add to array of tokens
     	emit CarbonTokenDefined( tokenId);
 	}
 
