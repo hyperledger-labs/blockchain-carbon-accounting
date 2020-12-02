@@ -7,10 +7,10 @@ http://www.apache.org/licenses/LICENSE-2.0
 */
 
 
-pragma solidity >=0.4.21 <0.7.0;
+pragma solidity ^0.6.2;
 
-import "./openzeppelin-solidity/contracts/access/Roles.sol"; 
-import "./openzeppelin-solidity/contracts/token/ERC1155/ERC1155.sol";
+import "./Roles.sol"; 
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 contract NetEmissionsTokenNetwork is ERC1155 {
 	address public owner;	  // owner of this contract (Central Bank)
@@ -49,7 +49,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
     event RegisteredDealer(address indexed account );
     event UnregisteredDealer(address indexed account );
 
-	constructor( ) public {
+	constructor( ) ERC1155("localhost") public {
 		owner = msg.sender;
 	}
 
@@ -302,23 +302,23 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		this.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
     }
 
-	/** 
-	 * @dev returns the balance of the account for the given token
-     * @param account address for which balance to be checked
-     * @param tokenId tokenId for the balance query
-	 * Balance will be provided only for registered account
-	 */
-    function balanceOf( address account, uint256 tokenId ) public view onlyOwner returns (uint256) {
-	// 	require( _tokenDetails[tokenId].registeredDealers.has( account ), 
-	// 		"eThaler: dealer account must be registered first" );
-    	return super.balanceOf( account, tokenId );
-	}
+	// /** 
+	//  * @dev returns the balance of the account for the given token
+    //  * @param account address for which balance to be checked
+    //  * @param tokenId tokenId for the balance query
+	//  * Balance will be provided only for registered account
+	//  */
+    // function balanceOf( address account, uint256 tokenId ) public view override onlyOwner returns (uint256) {
+	// // 	require( _tokenDetails[tokenId].registeredDealers.has( account ), 
+	// // 		"eThaler: dealer account must be registered first" );
+    // 	return super.balanceOf( account, tokenId );
+	// }
 
-    function balanceOf( uint256 tokenId ) external view returns (uint256) {
-		require( _tokenDetails[tokenId].registeredDealers.has( msg.sender ), 
-			"eThaler: dealer account must be registered first" );
-    	return super.balanceOf( msg.sender, tokenId );
-	}
+    // function balanceOf( uint256 tokenId ) external view returns (uint256) {
+	// 	require( _tokenDetails[tokenId].registeredDealers.has( msg.sender ), 
+	// 		"eThaler: dealer account must be registered first" );
+    // 	return super.balanceOf( msg.sender, tokenId );
+	// }
 
 /*****
  * Can't implement this function as only libraries are allowed to use the 
