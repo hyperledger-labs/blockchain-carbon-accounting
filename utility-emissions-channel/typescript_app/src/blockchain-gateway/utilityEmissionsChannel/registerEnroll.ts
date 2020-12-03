@@ -88,7 +88,6 @@ export class EmissionsContractInvoke {
       return result;
     } catch (error) {
       console.error(`Failed register user: ${error}`);
-      process.exit(1);
     }
   }
 }
