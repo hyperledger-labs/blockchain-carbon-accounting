@@ -46,6 +46,7 @@ export function buildCCPAuditor2() {
     "..",
     "..",
     "..",
+    "..",
     "docker-compose-setup",
     "organizations",
     "peerOrganizations",
@@ -72,6 +73,7 @@ export function buildCCPAuditor3() {
   // load the common connection configuration file
   const ccpPath: string = path.resolve(
     __dirname,
+    "..",
     "..",
     "..",
     "..",
