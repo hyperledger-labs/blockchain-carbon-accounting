@@ -39,7 +39,8 @@
     "react-dom": "16.14.0",
     "react-scripts": "3.4.3",
     "styled-components": "^5.2.0",
-    "web3modal": "^1.9.1"
+    "web3modal": "^1.9.1",
+    "wouter": "^2.6.0"
   },
   "eslintConfig": {
     "extends": "react-app"
