@@ -1,6 +1,6 @@
 # Net Emissions Tokens Network
 
-The net emissions tokens network represents the net emissions of an entity, which could be an organization, a building, or even a person.  It is the sum of all the emissions from different channels such as the [utility emissions channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel), plus offsetting Renewable Energy Certificates and carbon offsets.  Each token represents either an emissions debt, which you incur through activities that emit greenhouse gases, or an emissions credit, which offset the debt by removing emissions from the atmosphere.
+The net emissions tokens network represents the net emissions of an entity, which could be an organization, a building, or even a person. It is the sum of all the emissions from different channels such as the [utility emissions channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel), plus offsetting Renewable Energy Certificates and carbon offsets. Each token represents either an emissions debt, which you incur through activities that emit greenhouse gases, or an emissions credit, which offset the debt by removing emissions from the atmosphere.
 
 Read more on the [Hyperledger Climate Action SIG website](https://wiki.hyperledger.org/display/CASIG/Net+Emissions+Tokens+Network).
 
@@ -33,7 +33,62 @@ Hardhat implements its own Ethereum local testnet called Hardhat Network. In ord
 2. Run the interface in `net-emissions-token-network/interface` with `yarn react-app:start`
 3. In a separate terminal, run the Hardhat Network in `net-emissions-token-network` with `npx hardhat node`
 4. In another separate terminal, deploy the contracts to the local Hardhat Network with `npx hardhat run --network localhost scripts/sample-script.js`
-5. Back in the interface, press *Connect Wallet* to connect to your MetaMask wallet
-6. In the MetaMask extension, change the network from Ethereum Mainnet to *Localhost 8545*
+5. Back in the interface, press _Connect Wallet_ to connect to your MetaMask wallet
+6. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_
 
 You should now be connected to your local testnet and be able to interact with contracts deployed on it.
+
+### Token User Flow
+
+In the net-emissions-token-network contract, we currently support this functionality:
+
+- Defining a new token
+- Minting this token and verifying that it's type is valid
+- Registering/unregistering dealers
+- Registering/unregistering consumers
+- Transferring tokens
+- Retiring tokens
+
+#### An example of a user consuming these services would look similar to the following:
+
+1. Registering a token definiton by calling addCarbonToken. This function expects the following arguments:
+
+```bash
+function addCarbonToken( uint256 tokenId, string memory tokenTypeId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest, string memory description)
+```
+
+The tokenTypeId argument must be one of the valid token types defined in the contract:
+
+```bash
+string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
+```
+
+2. Minting the token. The mint function expects the following arguments:
+
+```bash
+function mint( uint256 tokenId, uint256 amount, bytes calldata callbackData )
+```
+
+For the callbackData, unless another use case is needed, an empty list can be passed:
+
+```bash
+[]
+```
+
+3. Register two addresses as dealers. This is required in order for the parties to be able to transfer tokens. The registerDealer function expects the following arguments:
+
+```bash
+   function registerDealer( address account, uint256 tokenId )
+```
+
+4. After a the parties are registered, a transfer is allowed through the transfer function:
+
+```bash
+    function transfer(address to, uint256 tokenId, uint256 value)
+```
+
+5. Retiring a token. When a token is marked as "retired," it is counted towards the emissions reduction of the retiring organization and cannot be transferred again. The retire function requires the following arguments:
+
+```bash
+function retire( uint256 tokenId, uint256 amount)
+```
