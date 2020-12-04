@@ -4,6 +4,7 @@ This repository contains the code for the [Hyperledger Carbon Accounting and Neu
 sub-folder is for a different project of the Working Group and has its own code and instructions:
 
 - utility-emissions-channel: [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel)
+- net-emissions-token-network: [Net Emissions Token Network](https://wiki.hyperledger.org/display/CASIG/Net+Emissions+Tokens+Network)
 
 ## Git Notes
 
