@@ -1,0 +1,87 @@
+{
+  "name": "first-network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "auditor1",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    }
+  },
+  "channels": {
+    "utilityemissionchannel": {
+      "peers": {
+        "peer1.auditor1.carbonAccounting.com": {}
+      },
+      "connection": {
+        "timeout": {
+          "peer": {
+            "endorser": "6000",
+            "eventHub": "6000",
+            "eventReg": "6000"
+          }
+        }
+      }
+    }
+  },
+  "organizations": {
+    "auditor1": {
+      "mspid": "auditor1",
+      "adminPrivateKey": {
+        "path": "../organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/keystore/priv_sk"
+      },
+      "peers": [
+        "peer1.auditor1.carbonAccounting.com"
+      ],
+      "signedCert": {
+        "path": "../organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp/signcerts/cert.pem"
+      }
+    },
+    "auditor2": {
+      "mspid": "auditor2",
+      "adminPrivateKey": {
+        "path": "../organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp/keystore/priv_sk"
+      },
+      "peers": [
+        "peer1.auditor2.carbonAccounting.com"
+      ],
+      "signedCert": {
+        "path": "../organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp/signcerts/cert.pem"
+      }
+    }
+  },
+  "peers": {
+    "peer1.auditor1.carbonAccounting.com": {
+      "tlsCACerts": {
+        "path": "../organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt"
+      },
+      "url": "grpcs://localhost:7051"
+    },
+    "peer1.auditor2.carbonAccounting.com": {
+      "tlsCACerts": {
+        "path": "../organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls/ca.crt"
+      },
+      "url": "grpcs://localhost:8051"
+    }
+  },
+  "certificateAuthorities": {
+    "ca-auditor1": {
+      "url": "https://localhost:7054",
+      "caName": "ca-auditor1",
+      "tlsCACerts": {
+        "path": "../organizations/fabric-ca/auditor1/tls-cert.pem"
+      },
+      "registrar": {
+        "enrollId": "admin",
+        "enrollSecret": "adminpw"
+      },
+      "httpOptions": {
+        "verify": true
+      }
+    }
+  }
+}
