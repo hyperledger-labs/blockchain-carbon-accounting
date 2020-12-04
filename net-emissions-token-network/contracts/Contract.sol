@@ -26,7 +26,8 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	}
 	
 	struct CarbonTokenDetails {
-	    uint256 tokenId;   // token Id   (must be unique)
+		uint256 tokenId;   // token Id   (must be unique)
+	    string tokenTypeId;
 		string issuerId;   // token Id   (must be unique)
 		string recipientId;   // token Id   (must be unique)
 		string assetType;
@@ -35,6 +36,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		string dateStamp;
 		string metadata;
 		string manifest;
+		string description;
 		bool retired;
 		Roles.Role   registeredDealers; // Everyone must register first to initiate token transfers
 		Roles.Role   registeredConsumers; // Everyone must register first to initiate token transfers
@@ -43,7 +45,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
     // mapping (uint256 => TokenDetails) private _tokenDetails;    // tokenId to tokenDefinition
     mapping (uint256 => CarbonTokenDetails) private _tokenDetails;    // tokenId to tokenDefinition
 	uint256[] private _tokenIds;    // array of tokens
-
+    string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
     event TokenDefined( uint256 tokenId, string tokenName, string ttfURL );
     event CarbonTokenDefined(uint256 tokenId);
     event RegisteredDealer(address indexed account );
@@ -69,6 +71,15 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		}
 		return false; // no matching tokenId
 	}
+	
+	function tokenTypeIdIsValid( string memory tokenTypeId ) private view returns( bool ) {
+		uint256 idx;
+		for( idx = 0; idx < _validTokenTypeIds.length; idx++ ) {
+			if( keccak256(bytes(_validTokenTypeIds[idx])) == keccak256(bytes(tokenTypeId)) )
+				return true;
+		}
+		return false; // no matching tokenId
+	}
 
 	/**
     * @dev returns ids of all tokens
@@ -77,10 +88,11 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		return _tokenIds;
 	}
 
-	function addCarbonToken( uint256 tokenId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest) public onlyOwner {
+	function addCarbonToken( uint256 tokenId, string memory tokenTypeId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest, string memory description) public onlyOwner {
         require( ( tokenExists( tokenId ) == false ), "eThaler: tokenId is already defined ");
 		CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
 		tokenInfo.tokenId = tokenId;
+		tokenInfo.tokenTypeId = tokenTypeId;
 		tokenInfo.quantity = quantity;
 		tokenInfo.issuerId = issuerId;
 		tokenInfo.recipientId = recipientId;
@@ -89,6 +101,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		tokenInfo.dateStamp = dateStamp;
 		tokenInfo.metadata = metadata;
 		tokenInfo.manifest = manifest;
+		tokenInfo.description = description;
 		tokenInfo.retired = false;
 
 
@@ -107,7 +120,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
      */
     function mint( uint256 tokenId, uint256 amount, bytes calldata callbackData ) external onlyOwner {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-// 		require( ( isPaused( tokenId ) == false ), "eThaler: Token is paused. Minting is not permitted" );
+        require( tokenTypeIdIsValid ( _tokenDetails[tokenId].tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
 		super._mint( msg.sender, tokenId, amount, callbackData  );
 		// minter = address( msg.sender );    or minter = msg.sender;
 	}
@@ -174,21 +187,11 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	* @param tokenId token to set in pause state
 	*   Only contract owner can pause or resume tokens
     */
-	function retire( uint256 tokenId ) external onlyOwner {
+	function retire( uint256 tokenId, uint256 amount) external onlyOwner {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
         require( (_tokenDetails[tokenId].retired == false), "eThaler: token is already retired");
 		_tokenDetails[tokenId].retired = true;
-	}
-
-   /** 
-    * @dev removes the token from the pause state to enable transfers, mints and burns
-	* @param tokenId token to remove the pause state
-	*   Only contract owner can pause or resume tokens
-    */
-	function resume( uint256 tokenId ) external onlyOwner {
-        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-        require( _tokenDetails[tokenId].retired, "eThaler: token is not in retired state");
-		_tokenDetails[tokenId].retired = false;
+		super._burn( msg.sender, tokenId, amount );
 	}
 
    /** 
@@ -384,5 +387,3 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 
 
 }
-
-
