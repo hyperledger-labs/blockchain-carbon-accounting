@@ -13,12 +13,16 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
-  // We get the contract to deploy
+  // We get the contracts to deploy
+  const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+  const netEmissionsTokenNetwork = await NetEmissionsTokenNetwork.deploy();
   const Greeter = await hre.ethers.getContractFactory("Greeter");
   const greeter = await Greeter.deploy("Hello, Hardhat!");
 
+  await netEmissionsTokenNetwork.deployed();
   await greeter.deployed();
 
+  console.log("Net Emissions Token Network deployed to:", netEmissionsTokenNetwork.address);
   console.log("Greeter deployed to:", greeter.address);
 }
 
