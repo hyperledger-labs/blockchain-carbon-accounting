@@ -58,7 +58,7 @@ Then, for local or remote dynamodb, follow instructions from eGrid Loader docume
 Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
 
 ```bash
-$ cd to docker-compose-setup
+$ cd docker-compose-setup
 ```
 
 Start network, create channel, and deployCC: 
