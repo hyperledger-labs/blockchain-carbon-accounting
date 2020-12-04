@@ -1,9 +1,6 @@
 import React from "react";
-import { Contract } from "@ethersproject/contracts";
-import { getDefaultProvider } from "@ethersproject/providers";
 import { useQuery } from "@apollo/react-hooks";
 
-import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
@@ -11,29 +8,12 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 import { NavigationBar } from "./components/navigation-bar";
+import { GreeterTest } from "./components/greeter-test";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect } from "wouter"
 
-import { addresses, abis } from "@project/contracts";
 import GET_TRANSFERS from "./graphql/subgraph";
-
-async function readOnChainData(w3provider) {
-  // Create an instance of an ethers.js Contract
-  // The address below is copied after deploying the greeter contract to the local hardhat network
-  const contract_greeter = new Contract("0x5FbDB2315678afecb367f032d93F642f64180aa3", abis.greeter.abi, w3provider);
-  const greeting = await contract_greeter.greet(); // returns error
-  console.log({ greeting: greeting.toString() });
-
-  // Get balance of test address on hardhat
-  //
-  // console.log(w3provider);
-  // let balancePromise = w3provider.getBalance("0xdd2fd4581271e230360230f9337d5c0430bf44c0");
-  // // let balancePromise = w3provider.getBlockNumber();
-  // balancePromise.then(function(balance) {
-  //   console.log(balance);
-  // });
-}
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
@@ -54,7 +34,7 @@ function App() {
           <Row>
             <Col sm={3}>
               <Nav variant="pills" className="flex-column">
-                <Link href="test"><Nav.Link eventKey="test">Test</Nav.Link></Link>
+                <Link href="test"><Nav.Link eventKey="test">Test Greeter contract</Nav.Link></Link>
                 <Link href="mint"><Nav.Link eventKey="mint">Mint</Nav.Link></Link>
               </Nav>
             </Col>
@@ -63,9 +43,7 @@ function App() {
                 <Switch>
                   <Route exact path="/"><Redirect to="/test" /></Route>
                   <Route path="/test">
-                    <Button onClick={() => readOnChainData(provider)}>
-                      Return greeting
-                    </Button>
+                    <GreeterTest provider={provider} />
                   </Route>
                   <Route path="/mint">...</Route>
                 </Switch>
