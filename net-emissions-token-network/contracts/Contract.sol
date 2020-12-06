@@ -157,10 +157,10 @@ contract NetEmissionsTokenNetwork is ERC1155 {
     * @dev returns the token name for the given token
 	* @param tokenId token to check 
     */
-	function getTokenName( uint256 tokenId ) external view returns( string memory ) {
+	function getTokenType( uint256 tokenId ) external view returns( string memory ) {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		string memory tokenName = _tokenDetails[tokenId].issuerId;
-		return tokenName;
+		string memory tokenTypeId = _tokenDetails[tokenId].tokenTypeId;
+		return tokenTypeId;
 	}
 
    /** 
