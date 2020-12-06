@@ -1,0 +1,12 @@
+// export { tokenDefinitionData };
+exports.tokenId = 1;
+exports.tokenTypeId = "Renewable Energy Certificate";
+exports.quantity = 10;
+exports.issuerId = "issuer";
+exports.recipientId = "recipient";
+exports.assetType = "type";
+exports.uom = "uom";
+exports.dateStamp = "1/20/20";
+exports.metadata = "metaData";
+exports.manifest = "manifest";
+exports.description = "description";
