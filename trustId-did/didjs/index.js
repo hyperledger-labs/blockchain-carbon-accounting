@@ -1,3 +1,4 @@
+
 const Sdk = require('coren-id-sdk');
 const fs = require('fs')
 const wal = Sdk.Wallet.Instance;
@@ -49,21 +50,29 @@ async function createDID(){
     console.log("[*] Get registered identity\n", res)
 }
 
+async function serviceDID(){
+    let access = {policy: Sdk.PolicyType.PublicPolicy};
+    const did = await wal.generateDID("RSA", "openclimate", "password")
+    console.log("[*] Generated DID: \n", did)
+    await did.unlockAccount("password")
+    // Register in the platform.
+    await wal.networks.hf.createSelfIdentity(did)
+    console.log("[*] Self identity registered")
+    wal.setDefault(did)
+    await wal.networks.hf.createService(did, `emissions-ser`, "emissionscontract", access, "utilityemissionchannel");
+    await serviceInteraction(did)
+}
+
 // Interact with a service in the platform (you need to create a service before
 // being able to call it).
-async function serviceInteraction(){
-    const did = await wal.getDID("test2")
+async function serviceInteraction(did){
     // Get service
-    let res = await wal.networks.hf.getService(did, "coren-trackscc-v2")
+    let res = await wal.networks.hf.getService(did, `emissions-ser`)
     console.log("[*] Service info:\n", res)
-    // Create an asset in the service
-    const asset = {assetId: "test"+Date.now(), data:{"a":1, "b":2}, metadata: {"c": 4}}
-    const assetStr = JSON.stringify(asset)
-    res = await wal.networks.hf.invoke(did, "coren-trackscc-v2",["createAsset", assetStr], "channel1")
-    console.log("[*] Asset creation:\n", res)
-    // Get the created asset.
-    res = await wal.networks.hf.invoke(did, "coren-trackscc-v2",["getAsset", JSON.stringify({assetId: asset.assetId})], "channel1")
-    console.log("[*] Asset registered\n", res)
+    // Get Recorded emissions
+    const args = ["11208","MyCompany"]
+    res = await wal.networks.hf.invoke(did, "emissions-ser",["getAllEmissionsData", args], "utilityemissionchannel")
+    console.log("[*] Record emissions:\n", res)
 }
 
 // Use the wallet to make offchain interactions with your DID
@@ -84,7 +93,8 @@ async function walletInteraction(){
 
 async function main(){
     await configureNetwork()
-    await createDID()
+    // await createDID()
+    await serviceDID()
     // await serviceInteraction()
     // await walletInteraction()
 }
