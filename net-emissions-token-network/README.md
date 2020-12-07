@@ -86,3 +86,31 @@ function issue( uint256 tokenId, uint256 quantity, string memory issuerId, strin
 ```bash
 function retire( uint256 tokenId, uint256 amount)
 ```
+
+#### Testing the contract in remix
+
+For interacting with the contract in development, the current solution is to use the Remix IDE.
+
+First, the remixd plugin must be installed globally via NPM to create a volume from your local machine to Remix in browser.
+
+```bash
+npm install -g remixd
+```
+
+To start the volume, run the following from the root directory of this repo:
+
+```bash
+remixd -s ./net-emissions-token-network --remix-ide https://remix.ethereum.org
+```
+
+After installing, navigate to https://remix.ethereum.org/ in the browser of your choice. (Currently only tested in Chrome)
+
+Find the "plugins" tab on the left of the IDE user interface. Select remixd and connect. You will now see the entire net-emissions-token-network folder in the file explorer within remixd.
+
+Under localhost -> contracts, select Contract.sol in the file explorer.
+
+Go to the compiler tab, change the compiler version to 0.6.2, and compile the contract.
+
+Next, select the "Deploy and run transactions tab", change the gas limit to "9999999", select "NetEmissionsTokenNetwork" from the drop down, and deploy the contract.
+
+You can now interact with the contract's functions via the user interface in Remix.
