@@ -26,18 +26,19 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	}
 	
 	struct CarbonTokenDetails {
-		uint256 tokenId;   // token Id   (must be unique)
+	    uint256 tokenId;   // token Id   (must be unique)
 	    string tokenTypeId;
 		string issuerId;   // token Id   (must be unique)
 		string recipientId;   // token Id   (must be unique)
-		string assetType;
-		uint8 quantity;
 		string uom;
-		string dateStamp;
+		string fromDate;
+		string thruDate;
+		uint256 dateCreated;
 		string metadata;
 		string manifest;
 		string description;
 		bool retired;
+		string automaticRetireDate;
 		Roles.Role   registeredDealers; // Everyone must register first to initiate token transfers
 		Roles.Role   registeredConsumers; // Everyone must register first to initiate token transfers
 	}
@@ -88,25 +89,19 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		return _tokenIds;
 	}
 
-	function addCarbonToken( uint256 tokenId, string memory tokenTypeId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest, string memory description) public onlyOwner {
+	function defineToken( uint256 tokenId, string memory tokenTypeId, string memory description) public onlyOwner returns (uint256){
         require( ( tokenExists( tokenId ) == false ), "eThaler: tokenId is already defined ");
 		CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
 		tokenInfo.tokenId = tokenId;
 		tokenInfo.tokenTypeId = tokenTypeId;
-		tokenInfo.quantity = quantity;
-		tokenInfo.issuerId = issuerId;
-		tokenInfo.recipientId = recipientId;
-		tokenInfo.assetType = assetType;
-		tokenInfo.uom = uom;
-		tokenInfo.dateStamp = dateStamp;
-		tokenInfo.metadata = metadata;
-		tokenInfo.manifest = manifest;
 		tokenInfo.description = description;
 		tokenInfo.retired = false;
 
 
 		_tokenIds.push( tokenId );   // add to array of tokens
     	emit CarbonTokenDefined( tokenId);
+    	
+    	return tokenId;
 	}
 
     /**
@@ -114,14 +109,29 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	 * Only contract owner can call this function
 	 * This function can be called any number of times to add to the current total for a given tokenId
      * @param tokenId of the token to mint
-     * @param amount of the token to mint For ex: if one needs 100 full tokens, the caller 
+     * @param quantity of the token to mint For ex: if one needs 100 full tokens, the caller 
 	 * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
-     * @param callbackData if smartcontract calling this function
      */
-    function mint( uint256 tokenId, uint256 amount, bytes calldata callbackData ) external onlyOwner {
+     
+    function issue( uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate ) public onlyOwner {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
         require( tokenTypeIdIsValid ( _tokenDetails[tokenId].tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
-		super._mint( msg.sender, tokenId, amount, callbackData  );
+        bytes memory callData;
+        
+        
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
+		tokenInfo.issuerId = issuerId;
+		tokenInfo.recipientId = recipientId;
+		tokenInfo.uom = uom;
+		tokenInfo.fromDate = fromDate;
+		tokenInfo.thruDate = thruDate;
+		tokenInfo.metadata = metadata;
+		tokenInfo.manifest = manifest;
+		tokenInfo.dateCreated = now;
+		tokenInfo.automaticRetireDate = automaticRetireDate;
+        
+        
+		super._mint( msg.sender, tokenId, quantity, callData);
 		// minter = address( msg.sender );    or minter = msg.sender;
 	}
 
@@ -157,10 +167,10 @@ contract NetEmissionsTokenNetwork is ERC1155 {
     * @dev returns the token name for the given token
 	* @param tokenId token to check 
     */
-	function getTokenType( uint256 tokenId ) external view returns( string memory ) {
+	function getTokenName( uint256 tokenId ) external view returns( string memory ) {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		string memory tokenTypeId = _tokenDetails[tokenId].tokenTypeId;
-		return tokenTypeId;
+		string memory tokenName = _tokenDetails[tokenId].issuerId;
+		return tokenName;
 	}
 
    /** 
