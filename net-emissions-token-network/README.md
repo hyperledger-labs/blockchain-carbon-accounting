@@ -97,6 +97,12 @@ First, the remixd plugin must be installed globally via NPM to create a volume f
 npm install -g remixd
 ```
 
+If you have not already, install the dependencies for the contract in the net-emissions-token-network directory:
+
+```bash
+npm install
+```
+
 To start the volume, run the following from the root directory of this repo:
 
 ```bash
