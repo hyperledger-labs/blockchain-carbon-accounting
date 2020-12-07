@@ -174,4 +174,15 @@ describe("Net Emissions Token Network", function() {
     let unregisterConsumer = await contract.unregisterConsumer(allAddresses[2].address, tokenId);
     expect(unregisterConsumer);
   });
+
+  it("confirm that burn operation is removed", async function() {
+    let contract = await deployContract();
+
+    const [owner, addr1] = await ethers.getSigners();
+    try {
+      let burn = await contract.burn();
+    } catch (err) {
+      expect(err.toString()).to.equal("TypeError: contract.burn is not a function");
+    }
+  });
 });
