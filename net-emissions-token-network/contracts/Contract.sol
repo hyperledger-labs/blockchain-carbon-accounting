@@ -9,12 +9,13 @@ http://www.apache.org/licenses/LICENSE-2.0
 
 pragma solidity ^0.6.2;
 
-import "./Roles.sol"; 
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
-contract NetEmissionsTokenNetwork is ERC1155 {
+contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 	address public owner;	  // owner of this contract (Central Bank)
-	using Roles for Roles.Role; // We intend to use the Roles library
+	bytes32 public constant REGISTERED_DEALER = keccak256("REGISTERED_DEALER");
+	bytes32 public constant REGISTERED_CONSUMER = keccak256("REGISTERED_CONSUMER");
 
 	struct TokenDetails {
 		uint256 id;   // token Id   (must be unique)
@@ -22,7 +23,6 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		uint8 decimals;   // number of decimals
 		bool   isPaused;  // can be paused (true) and resumed (false) by owner of this contract
 		string TTF_url;   // url to the TTF definition of this token
-		Roles.Role   registeredDealers; // Everyone must register first to initiate token transfers
 	}
 	
 	struct CarbonTokenDetails {
@@ -39,8 +39,6 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		string description;
 		bool retired;
 		string automaticRetireDate;
-		Roles.Role   registeredDealers; // Everyone must register first to initiate token transfers
-		Roles.Role   registeredConsumers; // Everyone must register first to initiate token transfers
 	}
 
     // mapping (uint256 => TokenDetails) private _tokenDetails;    // tokenId to tokenDefinition
@@ -52,14 +50,31 @@ contract NetEmissionsTokenNetwork is ERC1155 {
     event RegisteredDealer(address indexed account );
     event UnregisteredDealer(address indexed account );
 
-	constructor( ) ERC1155("localhost") public {
+	constructor() ERC1155("localhost") public {
 		owner = msg.sender;
+		_setupRole(DEFAULT_ADMIN_ROLE, owner);
+	    _setupRole(REGISTERED_DEALER, owner);
+
+	}
+	
+	modifier consumerOrDealer () {
+	    bool isConsumer = hasRole(REGISTERED_CONSUMER, msg.sender);
+	    bool isDealer = hasRole(REGISTERED_DEALER, msg.sender);
+	    require(isConsumer || isDealer, "You must be either a consumer or a dealer.");
+
+        _;
+	}
+	
+	modifier onlyDealer() {
+	    require(hasRole(REGISTERED_DEALER, msg.sender), "You are not a dealer");
+        _;
 	}
 
 	modifier onlyOwner() {
 		require(msg.sender == owner, "You are not the owner.");
 		_;
 	}
+
 
     /**
      * @dev returns true if the tokenId already exists (already defined by contract owner)
@@ -89,7 +104,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		return _tokenIds;
 	}
 
-	function defineToken( uint256 tokenId, string memory tokenTypeId, string memory description) public onlyOwner returns (uint256){
+	function defineToken( uint256 tokenId, string memory tokenTypeId, string memory description) public consumerOrDealer returns (uint256){
         require( ( tokenExists( tokenId ) == false ), "eThaler: tokenId is already defined ");
 		CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
 		tokenInfo.tokenId = tokenId;
@@ -113,7 +128,8 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	 * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
      
-    function issue( uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate ) public onlyOwner {
+    function issue( address account, uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate ) public onlyDealer {
+        require(hasRole(REGISTERED_CONSUMER, account), "The token address supplied must be a registered consumer.");
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
         require( tokenTypeIdIsValid ( _tokenDetails[tokenId].tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
         bytes memory callData;
@@ -131,7 +147,7 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		tokenInfo.automaticRetireDate = automaticRetireDate;
         
         
-		super._mint( msg.sender, tokenId, quantity, callData);
+		super._mint( account, tokenId, quantity, callData);
 		// minter = address( msg.sender );    or minter = msg.sender;
 	}
 
@@ -207,33 +223,30 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	* @param tokenId token to set in pause state
 	*   Only contract owner can pause or resume tokens
     */
-	function retire( uint256 tokenId, uint256 amount) external onlyOwner {
+	function retire( address account, uint256 tokenId, uint256 amount) external onlyDealer {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
         require( (_tokenDetails[tokenId].retired == false), "eThaler: token is already retired");
 		_tokenDetails[tokenId].retired = true;
-		super._burn( msg.sender, tokenId, amount );
+		super._burn( account, tokenId, amount );
 	}
 
    /** 
     * @dev returns true if Dealer's account is registered for the given token
     * @param account address of the dealer 
-	* @param tokenId token for registration check
 	*   Only contract owner can check for dealer registration
     */
-	function isDealerRegistered( address account, uint256 tokenId ) external onlyOwner view returns( bool ) {
-		return _tokenDetails[tokenId].registeredDealers.has( account );
+	function isDealerRegistered( address account ) external onlyOwner view returns( bool ) {
+        return hasRole(REGISTERED_DEALER, account);
 	}
 
    /** 
     * @dev Only CB (Owner or address(0)) can register Dealers
     * @param account address of the dealer to register
-	* @param tokenId token for registration
     * Only registered Dealers can transfer tokens 
     */
-   function registerDealer( address account, uint256 tokenId ) external onlyOwner {
-        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		_tokenDetails[tokenId].registeredDealers.add( account );
-		this.setApprovalForAll( account, true );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
+   function registerDealer( address account ) external onlyOwner {
+        grantRole(REGISTERED_DEALER, account);
+        grantRole(DEFAULT_ADMIN_ROLE, account);
     	emit RegisteredDealer( account );
 	}
 	
@@ -242,24 +255,16 @@ contract NetEmissionsTokenNetwork is ERC1155 {
    /** 
     * @dev returns true if Consumer's account is registered for the given token
     * @param account address of the consumer 
-	* @param tokenId token for registration check
 	*   Only contract owner can check for consumer registration
     */
-	function isConsumerRegistered( address account, uint256 tokenId ) external onlyOwner view returns( bool ) {
-		return _tokenDetails[tokenId].registeredConsumers.has( account );
+     function registerConsumer( address account ) external onlyDealer {
+        grantRole(REGISTERED_CONSUMER, account);
+    	emit RegisteredDealer( account );
 	}
 	
-	
-	   /** 
-    * @dev Only CB (Owner or address(0)) can register Consumers
-    * @param account address of the dealer to register
-	* @param tokenId token for registration
-    */
-   function registerConsumer( address account, uint256 tokenId ) external onlyOwner {
-        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		_tokenDetails[tokenId].registeredConsumers.add( account );
-		this.setApprovalForAll( account, true );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
-    	emit RegisteredDealer( account );
+	function isConsumerRegistered( address account ) external onlyDealer view returns( bool ) {
+        // require(hasRole(REGISTERED_CONSUMER, account), "Consumer is not registed");
+        return hasRole(REGISTERED_CONSUMER, account);
 	}
 
 	/** 
@@ -293,30 +298,22 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 	/** 
 	 * @dev Only CB (Owner or address(0)) can unregister Dealers
      * @param account address to be unregistered
-     * @param tokenId tokenId for the transfer
 	 *  Only accounts with 0 balance can be unregistered 
 	 */
-    function unregisterDealer( address account, uint256 tokenId ) external onlyOwner {
-        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		// before unregistering a dealer, ensure that the dealer has no balances for the token
-        require( checkBalance( account, tokenId ), "eThaler: unregistration permitted only when there is no balance in the account");
-		_tokenDetails[tokenId].registeredDealers.remove( account );
+    function unregisterDealer( address account ) external onlyOwner {
 		this.setApprovalForAll( account, false );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
+		super.revokeRole("REGISTERED_DEALER", account);
     	emit UnregisteredDealer( account );
 	}
 
 	/** 
 	 * @dev Only CB (Owner or address(0)) can unregister Consumers
      * @param account address to be unregistered
-     * @param tokenId tokenId for the transfer
 	 *  Only accounts with 0 balance can be unregistered 
 	 */
-    function unregisterConsumer( address account, uint256 tokenId ) external onlyOwner {
-        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		// before unregistering a dealer, ensure that the dealer has no balances for the token
-        require( checkBalance( account, tokenId ), "eThaler: unregistration permitted only when there is no balance in the account");
-		_tokenDetails[tokenId].registeredConsumers.remove( account );
+	function unregisterConsumer( address account ) external onlyDealer {
 		this.setApprovalForAll( account, false );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
+		super.revokeRole("REGISTERED_CONSUMER", account);
     	emit UnregisteredDealer( account );
 	}
 
@@ -333,9 +330,9 @@ contract NetEmissionsTokenNetwork is ERC1155 {
         uint256 value
     ) external {
         require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
-		require( ( isRetired( tokenId ) == false ), "eThaler: Token is paused. Transfer is not permitted" );
-		require( _tokenDetails[tokenId].registeredDealers.has( msg.sender ), "eThaler: sender must be registered first" );
-		require( _tokenDetails[tokenId].registeredDealers.has( to ), "eThaler: receiver must be registered first" );
+		require( ( isRetired( tokenId ) == false ), "eThaler: Token is retired. Transfer is not permitted" );
+		require(hasRole(REGISTERED_DEALER, msg.sender), "Caller is not a minter");
+        require(hasRole(REGISTERED_DEALER,to), "Caller is not a minter");
 		require( ( msg.sender != to), "eThaler: sender and receiver cannot be the same" );
 		this.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
     }
