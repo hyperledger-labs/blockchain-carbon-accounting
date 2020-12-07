@@ -1,16 +1,17 @@
 const { expect } = require("chai");
 const {
   tokenId,
-  tokenTypeId,
+  allTokenTypeId,
   quantity,
   issuerId,
   recipientId,
-  assetType,
+  fromDate,
+  thruDate,
   uom,
-  dateStamp,
   metadata,
   manifest,
   description,
+  automaticRetireDate,
 } = require("./constants.js");
 
 async function deployContract() {
@@ -33,29 +34,28 @@ describe("Net Emissions Token Network", function() {
     expect(isOwnerDifferentAddress).to.equal(false);
   });
 
-  it("should create a token with the arguments supplied", async function() {
+  it("should define a Renewable Energy Certificate token, verify issue/transfer logic, register/unregister consumer and dealer with tokenId", async function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let token = await contract.addCarbonToken(
-      tokenId,
-      tokenTypeId,
-      quantity,
-      issuerId,
-      recipientId,
-      assetType,
-      uom,
-      dateStamp,
-      metadata,
-      manifest,
-      description
-    );
+    let token = await contract.defineToken(tokenId, allTokenTypeId[0], description);
 
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
-    expect(definedTokenType).to.equal(tokenTypeId);
+    expect(definedTokenType).to.equal("Renewable Energy Certificate");
 
-    let mint = await contract.mint(tokenId, quantity, []);
+    let mint = await contract.issue(
+      tokenId,
+      quantity,
+      issuerId,
+      recipientId,
+      uom,
+      fromDate,
+      thruDate,
+      metadata,
+      manifest,
+      automaticRetireDate
+    );
     // Check to be certain mint did not return errors
     expect(mint);
 
@@ -73,22 +73,105 @@ describe("Net Emissions Token Network", function() {
 
     let registerConsumer = await contract.registerConsumer(allAddresses[2].address, tokenId);
     expect(registerConsumer);
+
+    let unregisterDealer = await contract.unregisterDealer(allAddresses[1].address, tokenId);
+    expect(unregisterDealer);
+
+    let unregisterConsumer = await contract.unregisterConsumer(allAddresses[2].address, tokenId);
+    expect(unregisterConsumer);
   });
 
-  // it("should fail to transfer a token because token has not been minted and dealers have not been registered", async function() {
-  //   let contract = await deployContract();
+  it("should define a Renewable Energy Certificate token, verify issue/transfer logic, register/unregister consumer and dealer with tokenId", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
 
-  //   let address = contract.address;
-  //   // let transfer = contract.transfer(1, address, )
-  //   let mint = await contract.mint(tokenId, quantity, []);
-  //   console.log(mint);
+    let token = await contract.defineToken(tokenId, allTokenTypeId[1], description);
 
-  //   // let name = await contract.getTokenName(1);
+    // TODO: define a function to get all properties of a token for this test
+    let definedTokenType = await contract.getTokenType(tokenId);
+    expect(definedTokenType).to.equal("Carbon Emissions Offset");
 
-  //   expect(address).to.equal("test");
-  // });
+    let mint = await contract.issue(
+      tokenId,
+      quantity,
+      issuerId,
+      recipientId,
+      uom,
+      fromDate,
+      thruDate,
+      metadata,
+      manifest,
+      automaticRetireDate
+    );
+    // Check to be certain mint did not return errors
+    expect(mint);
+
+    // test to make sure token cannot be transferred without registered dealers
+    try {
+      let transfer = await contract.transfer(allAddresses[1].address, tokenId, quantity);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert eThaler: sender must be registered first"
+      );
+    }
+
+    let registerDealer = await contract.registerDealer(allAddresses[1].address, tokenId);
+    expect(registerDealer);
+
+    let registerConsumer = await contract.registerConsumer(allAddresses[2].address, tokenId);
+    expect(registerConsumer);
+
+    let unregisterDealer = await contract.unregisterDealer(allAddresses[1].address, tokenId);
+    expect(unregisterDealer);
+
+    let unregisterConsumer = await contract.unregisterConsumer(allAddresses[2].address, tokenId);
+    expect(unregisterConsumer);
+  });
+
+  it("should define an Audited Emissions token, verify issue/transfer logic, register/unregister consumer and dealer with tokenId", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let token = await contract.defineToken(tokenId, allTokenTypeId[2], description);
+
+    // TODO: define a function to get all properties of a token for this test
+    let definedTokenType = await contract.getTokenType(tokenId);
+    expect(definedTokenType).to.equal("Audited Emissions");
+
+    let mint = await contract.issue(
+      tokenId,
+      quantity,
+      issuerId,
+      recipientId,
+      uom,
+      fromDate,
+      thruDate,
+      metadata,
+      manifest,
+      automaticRetireDate
+    );
+    // Check to be certain mint did not return errors
+    expect(mint);
+
+    // test to make sure token cannot be transferred without registered dealers
+    try {
+      let transfer = await contract.transfer(allAddresses[1].address, tokenId, quantity);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert eThaler: sender must be registered first"
+      );
+    }
+
+    let registerDealer = await contract.registerDealer(allAddresses[1].address, tokenId);
+    expect(registerDealer);
+
+    let registerConsumer = await contract.registerConsumer(allAddresses[2].address, tokenId);
+    expect(registerConsumer);
+
+    let unregisterDealer = await contract.unregisterDealer(allAddresses[1].address, tokenId);
+    expect(unregisterDealer);
+
+    let unregisterConsumer = await contract.unregisterConsumer(allAddresses[2].address, tokenId);
+    expect(unregisterConsumer);
+  });
 });
-
-// let name = await contract.getTokenName(1);
-
-// console.log(name);

@@ -173,6 +173,16 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		return tokenName;
 	}
 
+	   /** 
+    * @dev returns the token name for the given token
+	* @param tokenId token to check 
+    */
+	function getTokenType( uint256 tokenId ) external view returns( string memory ) {
+        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
+		string memory tokenType = _tokenDetails[tokenId].tokenTypeId;
+		return tokenType;
+	}
+
    /** 
     * @dev returns the TTF (Token Taxonomy Framework) token specs URL for the given token
 	* @param tokenId token to check 
@@ -291,6 +301,21 @@ contract NetEmissionsTokenNetwork is ERC1155 {
 		// before unregistering a dealer, ensure that the dealer has no balances for the token
         require( checkBalance( account, tokenId ), "eThaler: unregistration permitted only when there is no balance in the account");
 		_tokenDetails[tokenId].registeredDealers.remove( account );
+		this.setApprovalForAll( account, false );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
+    	emit UnregisteredDealer( account );
+	}
+
+	/** 
+	 * @dev Only CB (Owner or address(0)) can unregister Consumers
+     * @param account address to be unregistered
+     * @param tokenId tokenId for the transfer
+	 *  Only accounts with 0 balance can be unregistered 
+	 */
+    function unregisterConsumer( address account, uint256 tokenId ) external onlyOwner {
+        require( tokenExists( tokenId ), "eThaler: tokenId does not exist");
+		// before unregistering a dealer, ensure that the dealer has no balances for the token
+        require( checkBalance( account, tokenId ), "eThaler: unregistration permitted only when there is no balance in the account");
+		_tokenDetails[tokenId].registeredConsumers.remove( account );
 		this.setApprovalForAll( account, false );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
     	emit UnregisteredDealer( account );
 	}
