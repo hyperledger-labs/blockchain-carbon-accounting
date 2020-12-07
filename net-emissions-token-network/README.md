@@ -51,40 +51,40 @@ In the net-emissions-token-network contract, we currently support this functiona
 
 #### An example of a user consuming these services would look similar to the following:
 
-1. Registering a token definiton by calling defineToken. This function expects the following arguments:
+Using the contract owner, register a new dealer. The registerDealer function expects the following arguments:
+
+```bash
+function registerDealer( address account )
+```
+
+A dealer can consume all services within the contract. In order to allow a dealer's customers or consumers to define a token, they must be first registered. The registerConsumer function expects the following:
+
+```bash
+function registerConsumer( address account )
+```
+
+After a consumer is registered, they may define a token with the defineToken function:
 
 ```bash
 function defineToken( uint256 tokenId, string memory tokenTypeId, string memory description)
 ```
 
-The tokenTypeId argument must be one of the valid token types defined in the contract:
+After defining the token, the dealer will be able to issue it to the consumer with the issue function:
 
 ```bash
-string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
+function issue( address account, uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )
 ```
 
-2. Issue the token. The issue function expects the following arguments:
+Dealers and consumers may also be unregistered within the network. Only the contract owner can unregister a dealer:
 
 ```bash
-function issue( uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )
+function unregisterDealer( address account )
 ```
 
-3. Register two addresses as dealers. This is required in order for the parties to be able to transfer tokens. The registerDealer function expects the following arguments:
+A dealer may unregister its consumers with the unregisterConsumer function:
 
 ```bash
-   function registerDealer( address account, uint256 tokenId )
-```
-
-4. After a the parties are registered, a transfer is allowed through the transfer function:
-
-```bash
-    function transfer(address to, uint256 tokenId, uint256 value)
-```
-
-5. Retiring a token. When a token is marked as "retired," it is counted towards the emissions reduction of the retiring organization and cannot be transferred again. The retire function requires the following arguments:
-
-```bash
-function retire( uint256 tokenId, uint256 amount)
+function unregisterConsumer( address account )
 ```
 
 #### Testing the contract in remix
