@@ -51,10 +51,10 @@ In the net-emissions-token-network contract, we currently support this functiona
 
 #### An example of a user consuming these services would look similar to the following:
 
-1. Registering a token definiton by calling addCarbonToken. This function expects the following arguments:
+1. Registering a token definiton by calling defineToken. This function expects the following arguments:
 
 ```bash
-function addCarbonToken( uint256 tokenId, string memory tokenTypeId, uint8 quantity, string memory issuerId, string memory recipientId, string memory assetType, string memory uom, string memory dateStamp, string memory metadata, string memory manifest, string memory description)
+function defineToken( uint256 tokenId, string memory tokenTypeId, string memory description)
 ```
 
 The tokenTypeId argument must be one of the valid token types defined in the contract:
@@ -63,16 +63,10 @@ The tokenTypeId argument must be one of the valid token types defined in the con
 string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
 ```
 
-2. Minting the token. The mint function expects the following arguments:
+2. Issue the token. The issue function expects the following arguments:
 
 ```bash
-function mint( uint256 tokenId, uint256 amount, bytes calldata callbackData )
-```
-
-For the callbackData, unless another use case is needed, an empty list can be passed:
-
-```bash
-[]
+function issue( uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )
 ```
 
 3. Register two addresses as dealers. This is required in order for the parties to be able to transfer tokens. The registerDealer function expects the following arguments:
