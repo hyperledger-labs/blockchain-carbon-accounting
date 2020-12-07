@@ -18,7 +18,7 @@ If you're running with remote AWS, then fill it out with your credentials for AW
 
 #### S3
 
-Serverless S3 stores documents in a folder called `local-bucket` within the `typescript_app` directory.  To reset this bucket at any time, simply remove the folder.  You can also test the integrity of the documents store by replacing some files with other copies.  The emissions records will no longer be retrievable if you try to do this. 
+Serverless S3 stores documents in a folder called `local-bucket` within the `typescript_app` directory. To reset this bucket at any time, simply remove the folder. You can also test the integrity of the documents store by replacing some files with other copies. The emissions records will no longer be retrievable if you try to do this.
 
 Set the following in `aws-config.js` if you're running locally:
 
@@ -61,12 +61,13 @@ Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/
 $ cd docker-compose-setup
 ```
 
-Start network, create channel, and deployCC: 
+Start network, create channel, and deployCC:
+
 ```bash
 $ sh start.sh
 ```
 
-Optionally, start Hyperledger Explorer (): 
+Optionally, start Hyperledger Explorer ():
 
 ```bash
 $ ./network.sh startBlockchainExplorer`
@@ -101,7 +102,7 @@ $ npm i
 $ sh start.sh
 ```
 
-Now you can go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.  You can test it by registering org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"}), and then register and enroll users.  First register org admin, then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )  Once you've done that, you can try the `emissionscontract` chaincode.  Note that there is some error handling but may not be complete if your inputs are not correct.  
+Now you can go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain. You can test it by registering org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"}), and then register and enroll users. First register org admin, then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} ) Once you've done that, you can try the `emissionscontract` chaincode. Note that there is some error handling but may not be complete if your inputs are not correct.
 
 ### Local DynamoDB
 
@@ -109,7 +110,7 @@ If you're using the local dynamodb, make sure it's been started (see instruction
 
 ### S3
 
-Running serverless s3 locally requires the api to be started first.  The api will start automatically at the end of `start.sh`, but alternatively, start the API from the `docker-compose-setup` directory:
+Running serverless s3 locally requires the api to be started first. The api will start automatically at the end of `start.sh`, but alternatively, start the API from the `docker-compose-setup` directory:
 
 ```bash
 $ sh ./scripts/startApi.sh
@@ -120,7 +121,6 @@ Then, from the typescript_app directory, start the S3 emulation:
 ```bash
 $ sh startLocalS3.sh
 ```
-
 
 ## Update emissioncontact Chaincode
 
@@ -143,9 +143,31 @@ $ ./scripts/reset.sh
 $ cd docker-compose-setup
 $ ./network.sh stopBlockchainExplorer
 ```
+
 ## CouchDB
 
-You can look around couchdb to see the records being stored on the ledger.  Go to http://localhost:5984/_utils/  The default username and password are `admin` and `adminpw`  Once you login, look in the `utilityemissionchannel_emissionscontract` table to see the emissions records, including links to the documents.
+You can look around couchdb to see the records being stored on the ledger. Go to http://localhost:5984/_utils/ The default username and password are `admin` and `adminpw` Once you login, look in the `utilityemissionchannel_emissionscontract` table to see the emissions records, including links to the documents.
+
+## Testing the network
+
+We currently have a small test suite that will run the following tests via the API:
+
+- Registering an auditor
+- Registering a user under this auditor
+- Recording an emission with this user
+- Retrieve this emission and verify that all of the appropriate fields have been upserted to the ledger
+
+For the tests to pass, you must first reset and restart the entire network. From the docker-compose-setup directory:
+
+```bash
+sh ./scripts/reset.sh && sh start.sh
+```
+
+When the network/API has fully started, run the tests by navigating to the typescript_app directory and executing the tests into the docker container:
+
+```bash
+sh runTests.sh
+```
 
 ## Troubleshooting
 
