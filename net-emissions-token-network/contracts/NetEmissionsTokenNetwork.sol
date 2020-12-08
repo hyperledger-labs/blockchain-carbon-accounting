@@ -32,9 +32,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     event RegisteredDealer(address indexed account );
     event UnregisteredDealer(address indexed account );
 
-    constructor(address minter) ERC1155("localhost") public {
-        _setupRole(DEFAULT_ADMIN_ROLE, minter);
-        _setupRole(REGISTERED_DEALER, minter);
+    constructor() ERC1155("localhost") public {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTERED_DEALER, msg.sender);
 
     }
     
