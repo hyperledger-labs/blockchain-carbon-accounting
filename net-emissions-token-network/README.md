@@ -10,7 +10,8 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 
 ### Installation and use
 
-- To install, clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
+- First, install Hardhat globally with `npm install --save-dev hardhat`
+- Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
 - To test, run `npx hardhat test`
 - To compile, run `npx hardhat compile`
 - To see all commands, run `npx hardhat`
@@ -91,7 +92,7 @@ First, the remixd plugin must be installed globally via NPM to create a volume f
 npm install -g remixd
 ```
 
-If you have not already, install the dependencies for the contract in the net-emissions-token-network directory:
+If you have not already, make sure Hardhat is installed globally to your machine (see above) and install the dependencies for the contract in the net-emissions-token-network directory:
 
 ```bash
 npm install
