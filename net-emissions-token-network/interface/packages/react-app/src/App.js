@@ -9,7 +9,7 @@ import Col from 'react-bootstrap/Col';
 
 import { NavigationBar } from "./components/navigation-bar";
 import { GreeterTest } from "./components/greeter-test";
-import { AddCarbonToken } from "./components/add-carbon-token";
+import { IssueForm } from "./components/issue-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect } from "wouter"
@@ -36,7 +36,7 @@ function App() {
             <Col sm={3}>
               <Nav variant="pills" className="flex-column">
                 <Link href="test"><Nav.Link eventKey="test">Test greeter contract</Nav.Link></Link>
-                <Link href="add-carbon-token"><Nav.Link eventKey="add-carbon-token">Add carbon token</Nav.Link></Link>
+                <Link href="issue"><Nav.Link eventKey="mint">Issue</Nav.Link></Link>
               </Nav>
             </Col>
             <Col sm={9}>
@@ -46,8 +46,8 @@ function App() {
                   <Route path="/test">
                     <GreeterTest provider={provider} />
                   </Route>
-                  <Route path="/add-carbon-token">
-                    <AddCarbonToken provider={provider} />
+                  <Route path="/issue">
+                    <IssueForm provider={provider} />
                   </Route>
                 </Switch>
               </Tab.Content>
