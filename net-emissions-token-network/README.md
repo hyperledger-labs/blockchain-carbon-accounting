@@ -107,7 +107,7 @@ After installing, navigate to https://remix.ethereum.org/ in the browser of your
 
 Find the "plugins" tab on the left of the IDE user interface. Select remixd and connect. You will now see the entire net-emissions-token-network folder in the file explorer within remixd.
 
-Under localhost -> contracts, select Contract.sol in the file explorer.
+Under localhost -> contracts, select NetEmissionsTokenNetwork.sol in the file explorer.
 
 Go to the compiler tab, change the compiler version to 0.6.2, and compile the contract.
 
