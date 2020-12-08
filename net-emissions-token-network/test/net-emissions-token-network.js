@@ -65,6 +65,9 @@ describe("Net Emissions Token Network", function() {
     // Check to be certain mint did not return errors
     expect(issue);
 
+    let balance = await contract.balanceOf(consumerAddress.address, tokenId);
+    expect(balance);
+
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Renewable Energy Certificate");
@@ -116,6 +119,9 @@ describe("Net Emissions Token Network", function() {
     // Check to be certain mint did not return errors
     expect(issue);
 
+    let balance = await contract.balanceOf(consumerAddress.address, tokenId);
+    expect(balance);
+
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Carbon Emissions Offset");
@@ -166,6 +172,9 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    let balance = await contract.balanceOf(consumerAddress.address, tokenId);
+    expect(balance);
 
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
