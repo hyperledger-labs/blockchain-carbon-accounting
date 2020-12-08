@@ -67,7 +67,7 @@ function registerConsumer( address account )
 After registering a consumer, the dealer will be able to issue this consumer a token with the issue function:
 
 ```bash
-function issue( address account, uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )
+function issue( address account, uint256 tokenId, uint256 quantity, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )
 ```
 
 Dealers and consumers may also be unregistered within the network. Only the contract owner can unregister a dealer:
