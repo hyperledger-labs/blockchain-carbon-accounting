@@ -106,11 +106,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory tokenTypeId,
         uint256 quantity,
         string memory uom,
-        uint256 memory fromDate,
-        uint256 memory thruDate,
+        uint256 fromDate,
+        uint256 thruDate,
         string memory metadata,
         string memory manifest,
-        uint256 memory automaticRetireDate,
+        uint256 automaticRetireDate,
         string memory description
     ) public onlyDealer {
         require( isDealerOrConsumer( account ), "The token address supplied must be a registered consumer.");
