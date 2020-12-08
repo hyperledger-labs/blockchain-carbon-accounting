@@ -9,26 +9,23 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     bytes32 public constant REGISTERED_CONSUMER = keccak256("REGISTERED_CONSUMER");
     
     struct CarbonTokenDetails {
-        uint256 tokenId;   // token Id   (must be unique)
-        string tokenTypeId;
-        string issuerId;
-        string recipientId;
-        string uom;
-        string fromDate;
-        string thruDate;
-        uint256 dateCreated;
+        uint256 tokenId;              // One of [0,1,2]
+        string tokenTypeId;           // One of ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"]
+        string uom;                   // Unit of measurement
+        uint256 fromDate;             // Unix time
+        uint256 thruDate;             // Unix time
+        uint256 dateCreated;          // Unix time
         string metadata;
         string manifest;
         string description;
         bool retired;
-        string automaticRetireDate;
+        uint256 automaticRetireDate;  // Unix time
     }
 
-    mapping (uint256 => CarbonTokenDetails) private _tokenDetails;    // tokenId to tokenDefinition
+    mapping (uint256 => CarbonTokenDetails) private _tokenDetails;
     uint256[] private _tokenIds;    // array of tokens
     string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
     
-    event TokenDefined( uint256 tokenId, string tokenName, string ttfURL );
     event RegisteredDealer(address indexed account );
     event UnregisteredDealer(address indexed account );
 
@@ -103,7 +100,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
      
-    function issue( address account, uint256 tokenId, string memory tokenTypeId, uint256 quantity, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate, string memory description ) public onlyDealer {
+    function issue( 
+        address account, 
+        uint256 tokenId,
+        string memory tokenTypeId,
+        uint256 quantity,
+        string memory uom,
+        uint256 memory fromDate,
+        uint256 memory thruDate,
+        string memory metadata,
+        string memory manifest,
+        uint256 memory automaticRetireDate,
+        string memory description
+    ) public onlyDealer {
         require( isDealerOrConsumer( account ), "The token address supplied must be a registered consumer.");
         require( tokenTypeIdIsValid ( tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
         bytes memory callData;
@@ -343,28 +352,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             tokBalA[i] = tokBal;
         }
         return tokBalA;
-    }
-
-    // deprecated: all allocations are now handled via transfer
-    function allocate(
-        address to,
-        uint256 tokenId,
-        uint256 value
-    ) private onlyOwner {
-        require( _tokenDetails[tokenId].registeredDealers.has( to ), "receiver must be registered first" );
-        require( ( to != owner), "receiver must not be contract owner" );
-        this.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
-    }
-
-    // deprecated: all unallocations are now handled via transfer
-    function unallocate (
-        address from,
-        uint256 tokenId,
-        uint256 value
-    ) private onlyOwner {
-        require( _tokenDetails[tokenId].registeredDealers.has( from ), "from dealer account must be registered first" );
-        require( ( from != owner), "sender must not be contract owner" );
-        this.safeTransferFrom( from, msg.sender, tokenId, value, '0x00' );
     }
 
  ******/
