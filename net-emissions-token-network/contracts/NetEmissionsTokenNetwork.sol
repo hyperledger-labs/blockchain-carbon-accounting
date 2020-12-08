@@ -103,25 +103,32 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
      
-    function issue( address account, uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate ) public onlyDealer {
+    function issue( address account, uint256 tokenId, string memory tokenTypeId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate, string memory description ) public onlyDealer {
         require( isDealerOrConsumer( account ), "The token address supplied must be a registered consumer.");
-        require( tokenTypeIdIsValid ( _tokenDetails[tokenId].tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
-        
+        require( tokenTypeIdIsValid ( tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
         bytes memory callData;
         
-        CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
-        tokenInfo.issuerId = issuerId;
-        tokenInfo.recipientId = recipientId;
-        tokenInfo.uom = uom;
-        tokenInfo.fromDate = fromDate;
-        tokenInfo.thruDate = thruDate;
-        tokenInfo.metadata = metadata;
-        tokenInfo.manifest = manifest;
-        tokenInfo.dateCreated = now;
-        tokenInfo.automaticRetireDate = automaticRetireDate;
         
-        super._mint( account, tokenId, quantity, callData);
-    }
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
+        tokenInfo.tokenId = tokenId;
+        tokenInfo.tokenTypeId = tokenTypeId;
+		tokenInfo.issuerId = issuerId;
+		tokenInfo.recipientId = recipientId;
+		tokenInfo.uom = uom;
+		tokenInfo.fromDate = fromDate;
+		tokenInfo.thruDate = thruDate;
+		tokenInfo.metadata = metadata;
+		tokenInfo.manifest = manifest;
+		tokenInfo.dateCreated = now;
+		tokenInfo.retired = false;
+		tokenInfo.automaticRetireDate = automaticRetireDate;
+		tokenInfo.description = description;
+        
+        _tokenIds.push( tokenId );
+        
+		super._mint( account, tokenId, quantity, callData);
+		// minter = address( msg.sender );    or minter = msg.sender;
+	}
 
    /** 
     * @dev returns if the caller is the owner
@@ -205,6 +212,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     * Only registered Dealers can transfer tokens 
     */
    function registerDealer( address account ) external onlyOwner {
+        grantRole(DEFAULT_ADMIN_ROLE, account);
         grantRole(REGISTERED_DEALER, account);
         emit RegisteredDealer( account );
     }
