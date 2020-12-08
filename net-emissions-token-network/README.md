@@ -57,19 +57,13 @@ Using the contract owner, register a new dealer. The registerDealer function exp
 function registerDealer( address account )
 ```
 
-A dealer can consume all services within the contract. In order to allow a dealer's customers or consumers to define a token, they must be first registered. The registerConsumer function expects the following:
+A dealer can consume all services within the contract. In order to allow a dealer's customers or consumers to be issued a token, they must be first registered. The registerConsumer function expects the following:
 
 ```bash
 function registerConsumer( address account )
 ```
 
-After a consumer is registered, they may define a token with the defineToken function:
-
-```bash
-function defineToken( uint256 tokenId, string memory tokenTypeId, string memory description)
-```
-
-After defining the token, the dealer will be able to issue it to the consumer with the issue function:
+After registering a consumer, the dealer will be able to issue this consumer a token with the issue function:
 
 ```bash
 function issue( address account, uint256 tokenId, uint256 quantity, string memory issuerId, string memory recipientId, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )

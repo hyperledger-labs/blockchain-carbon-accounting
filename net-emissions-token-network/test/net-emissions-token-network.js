@@ -22,7 +22,7 @@ async function deployContract() {
 }
 
 describe("Net Emissions Token Network", function() {
-  it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
+  it("should test contract owner", async function() {
     let contract = await deployContract();
 
     const [owner, addr1] = await ethers.getSigners();
@@ -34,7 +34,7 @@ describe("Net Emissions Token Network", function() {
     expect(isOwnerDifferentAddress).to.equal(false);
   });
 
-  it("should define a Renewable Energy Certificate token, verify issue/transfer logic, register/unregister consumer and dealer with tokenId", async function() {
+  it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
@@ -47,17 +47,12 @@ describe("Net Emissions Token Network", function() {
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
-    let token = await contract.connect(consumerAddress).defineToken(tokenId, allTokenTypeId[0], description);
-
-    // TODO: define a function to get all properties of a token for this test
-    let definedTokenType = await contract.getTokenType(tokenId);
-    expect(definedTokenType).to.equal("Renewable Energy Certificate");
-
     let issue = await contract
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
         tokenId,
+        allTokenTypeId[0],
         quantity,
         issuerId,
         recipientId,
@@ -66,10 +61,15 @@ describe("Net Emissions Token Network", function() {
         thruDate,
         metadata,
         manifest,
-        automaticRetireDate
+        automaticRetireDate,
+        description
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    // TODO: define a function to get all properties of a token for this test
+    let definedTokenType = await contract.getTokenType(tokenId);
+    expect(definedTokenType).to.equal("Renewable Energy Certificate");
 
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
@@ -100,17 +100,12 @@ describe("Net Emissions Token Network", function() {
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
-    let token = await contract.connect(consumerAddress).defineToken(tokenId, allTokenTypeId[1], description);
-
-    // TODO: define a function to get all properties of a token for this test
-    let definedTokenType = await contract.getTokenType(tokenId);
-    expect(definedTokenType).to.equal("Carbon Emissions Offset");
-
     let issue = await contract
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
         tokenId,
+        allTokenTypeId[1],
         quantity,
         issuerId,
         recipientId,
@@ -119,10 +114,15 @@ describe("Net Emissions Token Network", function() {
         thruDate,
         metadata,
         manifest,
-        automaticRetireDate
+        automaticRetireDate,
+        description
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    // TODO: define a function to get all properties of a token for this test
+    let definedTokenType = await contract.getTokenType(tokenId);
+    expect(definedTokenType).to.equal("Carbon Emissions Offset");
 
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
@@ -153,17 +153,12 @@ describe("Net Emissions Token Network", function() {
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
-    let token = await contract.connect(consumerAddress).defineToken(tokenId, allTokenTypeId[2], description);
-
-    // TODO: define a function to get all properties of a token for this test
-    let definedTokenType = await contract.getTokenType(tokenId);
-    expect(definedTokenType).to.equal("Audited Emissions");
-
     let issue = await contract
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
         tokenId,
+        allTokenTypeId[2],
         quantity,
         issuerId,
         recipientId,
@@ -172,10 +167,15 @@ describe("Net Emissions Token Network", function() {
         thruDate,
         metadata,
         manifest,
-        automaticRetireDate
+        automaticRetireDate,
+        description
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    // TODO: define a function to get all properties of a token for this test
+    let definedTokenType = await contract.getTokenType(tokenId);
+    expect(definedTokenType).to.equal("Audited Emissions");
 
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
