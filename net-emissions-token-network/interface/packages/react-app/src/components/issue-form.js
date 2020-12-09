@@ -9,7 +9,7 @@ import Form from 'react-bootstrap/Form';
 export function IssueForm({ provider }) {
 
   const [address, setAddress] = useState("");
-  const [tokenId, setTokenId] = useState("");
+  const [tokenTypeId, setTokenTypeId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [issuerId, setIssuerId] = useState("");
   const [recipientId, setRecipientId] = useState("");
@@ -22,7 +22,6 @@ export function IssueForm({ provider }) {
   const [result, setResult] = useState("");
 
   function onAddressChange(event) { setAddress(event.target.value); };
-  function onTokenIdChange(value) { setTokenId(value); };
   function onQuantityChange(event) { setQuantity(event.target.value); };
   function onIssuerIdChange(event) { setIssuerId(event.target.value); };
   function onRecipientIdChange(event) { setRecipientId(event.target.value); };
@@ -37,11 +36,10 @@ export function IssueForm({ provider }) {
     let signer = w3provider.getSigner();
     let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
     let signed = await contract.connect(signer);
-    let addcarbontoken_result;
+    let issue_result;
     try {
-      let addcarbontoken_result_raw = await signed.addCarbonToken(
+      let addcarbontoken_result_raw = await signed.issue(
         address,
-        tokenId,
         quantity,
         issuerId,
         recipientId,
@@ -52,27 +50,27 @@ export function IssueForm({ provider }) {
         manifest,
         automaticRetireDate
       );
-      addcarbontoken_result = addcarbontoken_result_raw.message;
+      issue_result = addcarbontoken_result_raw.message;
     } catch (error) {
-      console.error("Error calling addCarbonToken()")
-      addcarbontoken_result = error.message;
+      console.error("Error calling issue()")
+      issue_result = error.message;
     }
-    console.log(addcarbontoken_result)
-    setResult(addcarbontoken_result.toString());
+    console.log(issue_result)
+    setResult(issue_result.toString());
   }
 
   return (
     <>
       <Form.Group>
         <Form.Label>Address</Form.Label>
-        <Form.Control type="input" placeholder="0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa" value={address} onChange={onAddressChange} />
+        <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select">
-          <option onClick={() => {setTokenId(0)}}>Renewable Energy Certificate</option>
-          <option onClick={() => {setTokenId(1)}}>Carbon Emissions Offset</option>
-          <option onClick={() => {setTokenId(2)}}>Audited Emissions</option>
+          <option onClick={() => {setTokenTypeId("Renewable Energy Certificate")}}>Renewable Energy Certificate</option>
+          <option onClick={() => {setTokenTypeId("Carbon Emissions Offset")}}>Carbon Emissions Offset</option>
+          <option onClick={() => {setTokenTypeId("Audited Emissions")}}>Audited Emissions</option>
         </Form.Control>
       </Form.Group>
       <Form.Group>
@@ -81,11 +79,11 @@ export function IssueForm({ provider }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Issuer ID</Form.Label>
-        <Form.Control type="input" placeholder="0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa" value={issuerId} onChange={onIssuerIdChange} />
+        <Form.Control type="input" placeholder="0x000..." value={issuerId} onChange={onIssuerIdChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Recipient ID</Form.Label>
-        <Form.Control type="input" placeholder="0x477573f212a7bdd5f7c12889bd1ad0aa44fb82aa" value={recipientId} onChange={onRecipientIdChange} />
+        <Form.Control type="input" placeholder="0x000..." value={recipientId} onChange={onRecipientIdChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>UOM</Form.Label>
