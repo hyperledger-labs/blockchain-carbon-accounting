@@ -51,7 +51,7 @@ describe("Net Emissions Token Network", function() {
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
-        tokenId,
+        // tokenId,
         allTokenTypeId[0],
         quantity,
         uom,
@@ -66,6 +66,7 @@ describe("Net Emissions Token Network", function() {
     expect(issue);
 
     let balance = await contract.balanceOf(consumerAddress.address, tokenId);
+    console.log(balance);
     expect(balance);
 
     // TODO: define a function to get all properties of a token for this test
@@ -105,7 +106,6 @@ describe("Net Emissions Token Network", function() {
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
-        tokenId,
         allTokenTypeId[1],
         quantity,
         uom,
