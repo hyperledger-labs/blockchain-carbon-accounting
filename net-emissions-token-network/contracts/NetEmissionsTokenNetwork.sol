@@ -9,7 +9,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     bytes32 public constant REGISTERED_CONSUMER = keccak256("REGISTERED_CONSUMER");
     
     struct CarbonTokenDetails {
-        uint256 tokenId;              // One of [0,1,2]
+        uint256 tokenId;              // Auto-increments whenever new tokens are issued
         string tokenTypeId;           // One of ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"]
         string uom;                   // Unit of measurement
         uint256 fromDate;             // Unix time
