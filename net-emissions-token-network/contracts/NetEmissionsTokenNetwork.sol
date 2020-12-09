@@ -23,9 +23,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     mapping (uint256 => CarbonTokenDetails) private _tokenDetails;
-    uint256[] private _tokenIds;    // array of tokens
+
+    uint256 private _numOfUniqueTokens = 0; // Keeps count of number of unique token IDs
     string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
     
+    event TokenCreated(uint256);
     event RegisteredDealer(address indexed account );
     event UnregisteredDealer(address indexed account );
 
@@ -55,17 +57,17 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
 
     /**
-     * @dev returns true if the tokenId already exists (already defined by contract owner)
+     * @dev returns true if the tokenId exists
      */
     function tokenExists( uint256 tokenId ) private view returns( bool ) {
-        uint256 idx;
-        for( idx = 0; idx < _tokenIds.length; idx++ ) {
-            if( _tokenIds[idx] == tokenId )
-                return true;
-        }
+        if( _numOfUniqueTokens >= tokenId )
+            return true;
         return false; // no matching tokenId
     }
     
+    /**
+     * @dev returns true if the tokenTypeId is one of _validTokenTypeIds[]
+     */
     function tokenTypeIdIsValid( string memory tokenTypeId ) private view returns( bool ) {
         uint256 idx;
         for( idx = 0; idx < _validTokenTypeIds.length; idx++ ) {
@@ -76,10 +78,10 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-    * @dev returns ids of all tokens
+    * @dev returns number of unique tokens
     */
-    function getAllTokenIds( ) public view returns ( uint256[] memory ) {
-        return _tokenIds;
+    function getNumOfUniqueTokens( ) public view returns ( uint256 ) {
+        return _numOfUniqueTokens;
     }
 
     function isDealerOrConsumer( address account ) private view returns( bool ) {
@@ -92,17 +94,14 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
 
     /**
-     * @dev External function to mint an amount of a token for the given tokenId
+     * @dev External function to mint an amount of a token
      * Only contract owner can call this function
-     * This function can be called any number of times to add to the current total for a given tokenId
-     * @param tokenId of the token to mint
      * @param quantity of the token to mint For ex: if one needs 100 full tokens, the caller 
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
      
     function issue( 
         address account, 
-        uint256 tokenId,
         string memory tokenTypeId,
         uint256 quantity,
         string memory uom,
@@ -116,10 +115,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require( isDealerOrConsumer( account ), "The token address supplied must be a registered consumer.");
         require( tokenTypeIdIsValid ( tokenTypeId ), "Failed to mint: tokenTypeId is invalid.");
         bytes memory callData;
+
+        _numOfUniqueTokens += 1;
         
-        
-        CarbonTokenDetails storage tokenInfo = _tokenDetails[ tokenId ];
-        tokenInfo.tokenId = tokenId;
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[ _numOfUniqueTokens ];
+        tokenInfo.tokenId = _numOfUniqueTokens;
         tokenInfo.tokenTypeId = tokenTypeId;
 		tokenInfo.uom = uom;
 		tokenInfo.fromDate = fromDate;
@@ -131,10 +131,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 		tokenInfo.automaticRetireDate = automaticRetireDate;
 		tokenInfo.description = description;
         
-        _tokenIds.push( tokenId );
-        
-		super._mint( account, tokenId, quantity, callData);
-		// minter = address( msg.sender );    or minter = msg.sender;
+		super._mint( account, _numOfUniqueTokens, quantity, callData);
+        TokenCreated(_numOfUniqueTokens);
 	}
 
    /** 
@@ -172,16 +170,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory tokenType = _tokenDetails[tokenId].tokenTypeId;
         return tokenType;
     }
-
-   /** 
-    * @dev returns the TTF (Token Taxonomy Framework) token specs URL for the given token
-    * @param tokenId token to check 
-    */
-//  function getTTF_URL( uint256 tokenId ) external view returns( string memory ) {
-//         require( tokenExists( tokenId ), "tokenId does not exist");
-//      string memory ttfUrl = _tokenDetails[tokenId].TTF_url;
-//      return( ttfUrl );
-//  }
 
    /** 
     * @dev checks if the token is in retired state 
@@ -245,26 +233,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      */
     function checkAllBalancesAreZero( address account ) private view returns( bool ) {
         uint256 idx;
-        for( idx = 0; idx < _tokenIds.length; idx++ ) {
-            if( super.balanceOf( account, _tokenIds[idx] ) != 0 )
+        for( idx = 0; idx <= _numOfUniqueTokens; idx++ ) {
+            if( super.balanceOf( account, idx ) != 0 )
                 return false;
         }
         return true; // all token balances are 0 
-    }
-
-    /** 
-     * @dev returns true if the token balance for the account & tolem is 0
-     * @param account address of the account for which token balance to be checked
-     * @param tokenId tokenId for which balance to be checked
-     */
-    function checkBalance( address account, uint256 tokenId ) private view returns( bool ) {
-        uint256 idx;
-        for( idx = 0; idx < _tokenIds.length; idx++ ) {
-            if( _tokenIds[idx] == tokenId ) {
-                return ( super.balanceOf( account, _tokenIds[idx] ) == 0 );
-            }
-        }
-        return true; // no matching token: token balance is 0 by defailt
     }
 
     /** 
