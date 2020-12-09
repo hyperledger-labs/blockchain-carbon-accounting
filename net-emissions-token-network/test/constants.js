@@ -1,5 +1,3 @@
-// export { tokenDefinitionData };
-exports.tokenId = 1;
 exports.allTokenTypeId = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
 exports.quantity = 10;
 exports.issuerId = "issuer";

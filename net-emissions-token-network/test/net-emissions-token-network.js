@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const {
-  tokenId,
   allTokenTypeId,
   quantity,
   issuerId,
@@ -51,7 +50,6 @@ describe("Net Emissions Token Network", function() {
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
-        // tokenId,
         allTokenTypeId[0],
         quantity,
         uom,
@@ -65,8 +63,13 @@ describe("Net Emissions Token Network", function() {
     // Check to be certain mint did not return errors
     expect(issue);
 
+    // Get ID of token just issued
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop()
+    let tokenId = (issueEvent.args[0]).toNumber();
+    expect(tokenId).to.equal(1);
+
     let balance = await contract.balanceOf(consumerAddress.address, tokenId);
-    console.log(balance);
     expect(balance);
 
     // TODO: define a function to get all properties of a token for this test
@@ -87,6 +90,7 @@ describe("Net Emissions Token Network", function() {
         "Error: VM Exception while processing transaction: revert ERC1155: caller is not owner nor approved"
       );
     }
+
   });
 
   it("should define a Carbon Emissions Offset, go through userflow with token", async function() {
@@ -118,6 +122,12 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    // Get ID of token just issued
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop()
+    let tokenId = (issueEvent.args[0]).toNumber();
+    expect(tokenId).to.equal(1);
 
     let balance = await contract.balanceOf(consumerAddress.address, tokenId);
     expect(balance);
@@ -159,7 +169,6 @@ describe("Net Emissions Token Network", function() {
       .connect(dealerAddress)
       .issue(
         consumerAddress.address,
-        tokenId,
         allTokenTypeId[2],
         quantity,
         uom,
@@ -172,6 +181,12 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    // Get ID of token just issued
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop()
+    let tokenId = (issueEvent.args[0]).toNumber();
+    expect(tokenId).to.equal(1);
 
     let balance = await contract.balanceOf(consumerAddress.address, tokenId);
     expect(balance);
@@ -195,4 +210,64 @@ describe("Net Emissions Token Network", function() {
       );
     }
   });
+
+  it("should auto-increment tokenId on two subsequent issuances", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let ownerAddress = allAddresses[0];
+    let dealerAddress = allAddresses[1];
+    let consumerAddress = allAddresses[2];
+
+    let registerDealer = await contract.registerDealer(dealerAddress.address);
+    expect(registerDealer);
+    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    expect(registerConsumer);
+
+    let issue = await contract
+      .connect(dealerAddress)
+      .issue(
+        consumerAddress.address,
+        allTokenTypeId[1],
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        metadata,
+        manifest,
+        automaticRetireDate,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+    let issue2 = await contract
+      .connect(dealerAddress)
+      .issue(
+        consumerAddress.address,
+        allTokenTypeId[2],
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        metadata,
+        manifest,
+        automaticRetireDate,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue2);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop()
+    let tokenId = (issueEvent.args[0]).toNumber();
+    expect(tokenId).to.equal(1);
+
+    // Get ID of second issued token
+    let transactionReceipt2 = await issue2.wait(0);
+    let issueEvent2 = transactionReceipt2.events.pop()
+    let tokenId2 = (issueEvent2.args[0]).toNumber();
+    expect(tokenId2).to.equal(2);
+  });
+
 });

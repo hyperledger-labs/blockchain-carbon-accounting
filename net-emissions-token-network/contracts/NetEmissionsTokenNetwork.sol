@@ -121,19 +121,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         CarbonTokenDetails storage tokenInfo = _tokenDetails[ _numOfUniqueTokens ];
         tokenInfo.tokenId = _numOfUniqueTokens;
         tokenInfo.tokenTypeId = tokenTypeId;
-		tokenInfo.uom = uom;
-		tokenInfo.fromDate = fromDate;
-		tokenInfo.thruDate = thruDate;
-		tokenInfo.metadata = metadata;
-		tokenInfo.manifest = manifest;
-		tokenInfo.dateCreated = now;
-		tokenInfo.retired = false;
-		tokenInfo.automaticRetireDate = automaticRetireDate;
-		tokenInfo.description = description;
+        tokenInfo.uom = uom;
+        tokenInfo.fromDate = fromDate;
+        tokenInfo.thruDate = thruDate;
+        tokenInfo.metadata = metadata;
+        tokenInfo.manifest = manifest;
+        tokenInfo.dateCreated = now;
+        tokenInfo.retired = false;
+        tokenInfo.automaticRetireDate = automaticRetireDate;
+        tokenInfo.description = description;
         
-		super._mint( account, _numOfUniqueTokens, quantity, callData);
+        super._mint( account, _numOfUniqueTokens, quantity, callData);
         TokenCreated(_numOfUniqueTokens);
-	}
+    }
 
    /** 
     * @dev returns if the caller is the owner
