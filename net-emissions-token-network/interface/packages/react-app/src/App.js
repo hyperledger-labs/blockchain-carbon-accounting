@@ -8,7 +8,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 import { NavigationBar } from "./components/navigation-bar";
-import { GreeterTest } from "./components/greeter-test";
+import { Dashboard } from "./components/dashboard";
 import { IssueForm } from "./components/issue-form";
 import { RegisterConsumerForm } from "./components/register-consumer-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
@@ -32,11 +32,11 @@ function App() {
       <NavigationBar provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal}/>
       <Container className="mt-2">
 
-        <Tab.Container defaultActiveKey="test">
+        <Tab.Container defaultActiveKey="dashboard">
           <Row>
             <Col sm={3}  className="mb-2">
               <Nav variant="pills" className="flex-column">
-                <Link href="test"><Nav.Link eventKey="test">Test greeter contract</Nav.Link></Link>
+                <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
                 <Link href="issue"><Nav.Link eventKey="mint">Issue</Nav.Link></Link>
                 <Link href="register-consumer"><Nav.Link eventKey="register-consumer">Register consumer</Nav.Link></Link>
               </Nav>
@@ -44,9 +44,9 @@ function App() {
             <Col sm={9}>
               <Tab.Content animation="true">
                 <Switch>
-                  <Route exact path="/"><Redirect to="/test" /></Route>
-                  <Route path="/test">
-                    <GreeterTest provider={provider} />
+                  <Route exact path="/"><Redirect to="/dashboard" /></Route>
+                  <Route path="/dashboard">
+                    <Dashboard provider={provider} />
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
