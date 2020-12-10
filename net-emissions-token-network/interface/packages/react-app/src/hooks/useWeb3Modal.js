@@ -11,6 +11,7 @@ const NETWORK_NAME = "mainnet";
 
 function useWeb3Modal(config = {}) {
   const [provider, setProvider] = useState();
+  const [signedInAddress, setSignedInAddress] = useState("");
   const { autoLoad = true, infuraId = INFURA_ID, NETWORK = NETWORK_NAME } = config;
 
   // Web3Modal also supports many other wallets.
@@ -32,10 +33,12 @@ function useWeb3Modal(config = {}) {
   const loadWeb3Modal = useCallback(async () => {
     const newProvider = await web3Modal.connect();
     setProvider(new Web3Provider(newProvider));
+    setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
   const logoutOfWeb3Modal = useCallback(
     async function () {
+      setSignedInAddress("");
       await web3Modal.clearCachedProvider();
       window.location.reload();
     },
@@ -49,7 +52,7 @@ function useWeb3Modal(config = {}) {
     }
   }, [autoLoad, loadWeb3Modal, web3Modal.cachedProvider]);
 
-  return [provider, loadWeb3Modal, logoutOfWeb3Modal];
+  return [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress];
 }
 
 export default useWeb3Modal;
