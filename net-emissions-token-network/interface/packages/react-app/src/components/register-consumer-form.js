@@ -5,6 +5,8 @@ import { addresses, abis } from "@project/contracts";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 export function RegisterConsumerForm({ provider }) {
 
@@ -13,7 +15,7 @@ export function RegisterConsumerForm({ provider }) {
 
   function onAddressChange(event) { setAddress(event.target.value); };
 
-  async function submit(w3provider) {
+  async function register(w3provider) {
     let signer = w3provider.getSigner();
     let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
     let signed = await contract.connect(signer);
@@ -31,16 +33,43 @@ export function RegisterConsumerForm({ provider }) {
     setResult(registerConsumer_result.toString());
   }
 
+  async function unregister(w3provider) {
+    let signer = w3provider.getSigner();
+    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+    let signed = await contract.connect(signer);
+    let unregisterConsumer_result;
+    try {
+      let registerConsumer_result_raw = await signed.unregisterConsumer(
+        address
+      );
+      unregisterConsumer_result = registerConsumer_result_raw.message;
+    } catch (error) {
+      console.error("Error calling registerConsumer()")
+      unregisterConsumer_result = error.message;
+    }
+    console.log(unregisterConsumer_result)
+    setResult(unregisterConsumer_result.toString());
+  }
+
   return (
     <>
-      <h2>Register consumer</h2>
+      <h2>Register/unregister consumer</h2>
       <Form.Group>
         <Form.Label>Address</Form.Label>
         <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
       </Form.Group>
-      <Button variant="primary" size="lg" block onClick={() => submit(provider)}>
-        Submit
-      </Button>
+      <Row>
+        <Col>
+          <Button variant="success" size="lg" block onClick={() => register(provider)}>
+            Register
+          </Button>
+        </Col>
+        <Col>
+          <Button variant="danger" size="lg" block onClick={() => unregister(provider)}>
+            Unregister
+          </Button>
+        </Col>
+      </Row>
       {result &&
         <>
           <hr/>
