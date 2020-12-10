@@ -34,14 +34,14 @@ function App() {
 
         <Tab.Container defaultActiveKey="test">
           <Row>
-            <Col sm={3}>
+            <Col sm={3}  className="mb-2">
               <Nav variant="pills" className="flex-column">
                 <Link href="test"><Nav.Link eventKey="test">Test greeter contract</Nav.Link></Link>
                 <Link href="issue"><Nav.Link eventKey="mint">Issue</Nav.Link></Link>
                 <Link href="register-consumer"><Nav.Link eventKey="register-consumer">Register consumer</Nav.Link></Link>
               </Nav>
             </Col>
-            <Col sm={9} className="mt-2">
+            <Col sm={9}>
               <Tab.Content animation="true">
                 <Switch>
                   <Route exact path="/"><Redirect to="/test" /></Route>

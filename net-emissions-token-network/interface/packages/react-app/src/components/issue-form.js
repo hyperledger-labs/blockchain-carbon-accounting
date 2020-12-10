@@ -5,6 +5,8 @@ import { addresses, abis } from "@project/contracts";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 
@@ -69,6 +71,9 @@ export function IssueForm({ provider }) {
       <Form.Group>
         <Form.Label>Address</Form.Label>
         <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
+        <Form.Text className="text-muted">
+          Must be a registered consumer.
+        </Form.Text>
       </Form.Group>
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
@@ -83,27 +88,29 @@ export function IssueForm({ provider }) {
         <Form.Control type="input" placeholder="100" value={quantity} onChange={onQuantityChange} />
       </Form.Group>
       <Form.Group>
-        <Form.Label>UOM</Form.Label>
-        <Form.Control type="input" placeholder="" value={uom} onChange={onUomChange} />
+        <Form.Label>Unit of measurement</Form.Label>
+        <Form.Control type="input" placeholder="E.g. MWH, MtCO2e, ..." value={uom} onChange={onUomChange} />
       </Form.Group>
-      <Form.Group>
-        <Form.Label>From Date</Form.Label>
+      <Form.Row>
+      <Form.Group as={Col}>
+        <Form.Label>From date</Form.Label>
         <Datetime onChange={onFromDateChange}/>
       </Form.Group>
-      <Form.Group>
-        <Form.Label>Through Date</Form.Label>
+      <Form.Group as={Col}>
+        <Form.Label>Through date</Form.Label>
         <Datetime onChange={onThruDateChange}/>
       </Form.Group>
+      </Form.Row>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
-        <Form.Control as="textarea" placeholder="" value={metadata} onChange={onMetadataChange} />
+        <Form.Control as="textarea" placeholder="E.g. region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Manifest</Form.Label>
-        <Form.Control as="textarea" placeholder="" value={manifest} onChange={onManifestChange} />
+        <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, or emissions tokens/assets used to prepare this net emissions" value={manifest} onChange={onManifestChange} />
       </Form.Group>
       <Form.Group>
-        <Form.Label>Automatic Retire Date</Form.Label>
+        <Form.Label>Automatic retire date</Form.Label>
         <Datetime onChange={onAutomaticRetireDateChange}/>
       </Form.Group>
       <Form.Group>
