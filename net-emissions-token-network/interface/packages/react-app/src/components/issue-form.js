@@ -5,11 +5,13 @@ import { addresses, abis } from "@project/contracts";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Datetime from "react-datetime";
+import "react-datetime/css/react-datetime.css";
 
 export function IssueForm({ provider }) {
 
   const [address, setAddress] = useState("");
-  const [tokenTypeId, setTokenTypeId] = useState("");
+  const [tokenTypeId, setTokenTypeId] = useState("Renewable Energy Certificate");
   const [quantity, setQuantity] = useState("");
   const [uom, setUom] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -23,12 +25,16 @@ export function IssueForm({ provider }) {
   function onAddressChange(event) { setAddress(event.target.value); };
   function onQuantityChange(event) { setQuantity(event.target.value); };
   function onUomChange(event) { setUom(event.target.value); };
-  function onFromDateChange(event) { setFromDate(event.target.value); };
-  function onThruDateChange(event) { setThruDate(event.target.value); };
+  function onFromDateChange(event) { setFromDate(event._d); };
+  function onThruDateChange(event) { setThruDate(event._d); };
   function onMetadataChange(event) { setMetadata(event.target.value); };
   function onManifestChange(event) { setManifest(event.target.value); };
-  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event.target.value); };
+  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d) };
   function onDescriptionChange(event) { setDescription(event.target.value); };
+
+  function toUnixTime(date) {
+    return parseInt((date.getTime() / 1000).toFixed(0));
+  }
 
   async function submit(w3provider) {
     let signer = w3provider.getSigner();
@@ -41,11 +47,11 @@ export function IssueForm({ provider }) {
         tokenTypeId,
         quantity,
         uom,
-        fromDate,
-        thruDate,
+        toUnixTime(fromDate),
+        toUnixTime(thruDate),
         metadata,
         manifest,
-        automaticRetireDate,
+        toUnixTime(automaticRetireDate),
         description
       );
       issue_result = issue_result_raw.message;
@@ -82,11 +88,11 @@ export function IssueForm({ provider }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>From Date</Form.Label>
-        <Form.Control type="input" placeholder="" value={fromDate} onChange={onFromDateChange} />
+        <Datetime onChange={onFromDateChange}/>
       </Form.Group>
       <Form.Group>
         <Form.Label>Through Date</Form.Label>
-        <Form.Control type="input" placeholder="" value={thruDate} onChange={onThruDateChange} />
+        <Datetime onChange={onThruDateChange}/>
       </Form.Group>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
@@ -98,7 +104,7 @@ export function IssueForm({ provider }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Automatic Retire Date</Form.Label>
-        <Form.Control type="input" placeholder="" value={automaticRetireDate} onChange={onAutomaticRetireDateChange} />
+        <Datetime onChange={onAutomaticRetireDateChange}/>
       </Form.Group>
       <Form.Group>
         <Form.Label>Description</Form.Label>
