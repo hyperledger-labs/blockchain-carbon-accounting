@@ -41,11 +41,15 @@ describe("Net Emissions Token Network", function() {
     let dealerAddress = allAddresses[1];
     let consumerAddress = allAddresses[2];
 
+    // register dealer 1 to issue Audited Emissions tokens
+    // register dealer 2 to issue Renewable Energy Certificate
+    // register dealer 3 to issue Carbon Emissions Offset
     let registerDealer = await contract.registerDealer(dealerAddress.address);
     expect(registerDealer);
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
+    // verify only dealer 2 can issue Renewable Energy Certificate tokens.  Dealer 1 and 3 issuing would fail.
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -101,11 +105,15 @@ describe("Net Emissions Token Network", function() {
     let dealerAddress = allAddresses[1];
     let consumerAddress = allAddresses[2];
 
+    // register dealer 1 to issue Audited Emissions tokens
+    // register dealer 2 to issue Renewable Energy Certificate
+    // register dealer 3 to issue Carbon Emissions Offset
     let registerDealer = await contract.registerDealer(dealerAddress.address);
     expect(registerDealer);
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
-
+   
+    // verify only dealer 3 can issue Carbon Emissions Offset tokens.  Dealer 1 and 2 or any consumer issuing would fail.
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -129,6 +137,7 @@ describe("Net Emissions Token Network", function() {
     let tokenId = (issueEvent.args[0]).toNumber();
     expect(tokenId).to.equal(1);
 
+    // verify balance is all available to transfer, none is retired
     let balance = await contract.balanceOf(consumerAddress.address, tokenId);
     expect(balance);
 
@@ -136,6 +145,24 @@ describe("Net Emissions Token Network", function() {
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Carbon Emissions Offset");
 
+    // transfer part of balance to another consumer
+    
+    // verify balances after transfer to both consumers
+    
+    // retire part of the balance
+    
+    // verify balance after retiring.  The available to transfer balance should be reduced and retired balance is increased
+    
+    // try to transfer balance greater than the available balance
+    
+    // verify it fails -- cannot transfer balance greater than available balance.  Retired balance is not available for transfer
+    
+    // issue more tokens to the same consumer
+    
+    // retire some of the newly issued tokens
+    
+    // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
+    
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
 
@@ -160,11 +187,17 @@ describe("Net Emissions Token Network", function() {
     let dealerAddress = allAddresses[1];
     let consumerAddress = allAddresses[2];
 
+    // register dealer 1 to issue Audited Emissions tokens
+    // register dealer 2 to issue Renewable Energy Certificates
+    // register dealer 3 to issue Carbon Emissions Offsets
     let registerDealer = await contract.registerDealer(dealerAddress.address);
     expect(registerDealer);
+    
+    // register 2 consumers
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
+    // verify only dealer 1 can issue Audited Emissions tokens.  Dealer 2 and 3 or any consumer issuing would fail.
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -188,6 +221,7 @@ describe("Net Emissions Token Network", function() {
     let tokenId = (issueEvent.args[0]).toNumber();
     expect(tokenId).to.equal(1);
 
+    // verify that the balance is all retired, there is no available balance
     let balance = await contract.balanceOf(consumerAddress.address, tokenId);
     expect(balance);
 
@@ -195,6 +229,9 @@ describe("Net Emissions Token Network", function() {
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Audited Emissions");
 
+    // try to transfer the Audited Emissions token to another consumer
+    // verify the transfer fails
+    
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
 
