@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
+import SubmissionModal from "./submission-modal";
+
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
@@ -10,7 +12,9 @@ import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 
-export function IssueForm({ provider }) {
+export default function IssueForm({ provider }) {
+
+  const [modalShow, setModalShow] = useState(false);
 
   // Form inputs
   const [address, setAddress] = useState("");
@@ -46,6 +50,11 @@ export function IssueForm({ provider }) {
     return parseInt((date.getTime() / 1000).toFixed(0));
   }
 
+  function handleSubmit() {
+    submit(provider);
+    setModalShow(true);
+  }
+
   async function submit(w3provider) {
     let signer = w3provider.getSigner();
     let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
@@ -55,19 +64,34 @@ export function IssueForm({ provider }) {
       let issue_result_raw = await signed.issue(
         address,
         tokenTypeId,
-        quantity,
+        quantity.toString(),
         uom,
-        toUnixTime(fromDate),
-        toUnixTime(thruDate),
+        toUnixTime(fromDate).toString(),
+        toUnixTime(thruDate).toString(),
         metadata,
         manifest,
-        toUnixTime(automaticRetireDate),
+        toUnixTime(automaticRetireDate).toString(),
         description
       );
-      issue_result = issue_result_raw.message;
+
+      // Format success message
+      if (!issue_result_raw) {
+        issue_result = "Success! Transaction has been submitted to the network. Please check your dashboard to see issued tokens.";
+      }
+      
     } catch (error) {
-      console.error("Error calling issue()")
-      issue_result = error.message;
+      console.error("Error calling issue()");
+      console.error(["error.message: ", error.message]);
+
+      // Format error message
+      if (error.message.startsWith("resolver or addr is not configured for ENS name")) {
+        issue_result = "Error: Invalid address. Please enter a valid address of the format 0x000...";
+      // } else if (error.message.startsWith("invalid BigNumber string (argument=\"value\"")) {
+        // issue_result = "Error: Invalid quantity. Please enter a valid quantity of tokens to issue."
+      } else {
+        issue_result = error.message;
+      }
+
     }
     console.log(issue_result)
     setResult(issue_result.toString());
@@ -80,6 +104,14 @@ export function IssueForm({ provider }) {
 
   return (
     <>
+
+      <SubmissionModal
+        show={modalShow}
+        title="Issue tokens"
+        body={result}
+        onHide={() => {setModalShow(false); setResult("")} }
+      />
+
       <h2>Issue tokens</h2>
       <Form.Group>
         <Form.Label>Address</Form.Label>
@@ -88,7 +120,7 @@ export function IssueForm({ provider }) {
           placeholder="0x000..."
           value={address}
           onChange={onAddressChange}
-          onFocus={() => setInitializedAddressInput(true)}
+          onBlur={() => setInitializedAddressInput(true)}
           style={(address || !initializedAddressInput) ? {} : inputError}
         />
         <Form.Text className="text-muted">
@@ -110,7 +142,7 @@ export function IssueForm({ provider }) {
           placeholder="100"
           value={quantity}
           onChange={onQuantityChange}
-          onFocus={() => setInitializedQuantityInput(true)}
+          onBlur={() => setInitializedQuantityInput(true)}
           style={(quantity || !initializedQuantityInput) ? {} : inputError}
         />
       </Form.Group>
@@ -144,20 +176,9 @@ export function IssueForm({ provider }) {
         <Form.Label>Description</Form.Label>
         <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
       </Form.Group>
-      <Button variant="primary" size="lg" block onClick={() => submit(provider)}>
+      <Button variant="primary" size="lg" block onClick={handleSubmit}>
         Submit
       </Button>
-      {result &&
-        <>
-          <hr/>
-          <h5>Result:</h5>
-          <pre className="pre-scrollable" style={{"whiteSpace": "pre-wrap"}}>
-            <code>
-              {result}
-            </code>
-          </pre>
-        </>
-      }
     </>
   );
 }

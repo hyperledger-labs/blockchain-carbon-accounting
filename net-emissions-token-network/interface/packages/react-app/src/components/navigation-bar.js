@@ -20,7 +20,7 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   );
 }
 
-export function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress }) {
+export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress }) {
   
   function truncateAddress(addr) {
     let prefix = addr.substring(0,6);
