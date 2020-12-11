@@ -273,12 +273,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         address to,
         uint256 tokenId,
         uint256 value
-    ) external {
+    ) external consumerOrDealer {
         require( tokenExists( tokenId ), "tokenId does not exist");
         require( ( isRetired( tokenId ) == false ), "Token is retired. Transfer is not permitted" );
-        require(hasRole(REGISTERED_DEALER, msg.sender), "Caller is not a minter");
-        require(hasRole(REGISTERED_DEALER,to), "Caller is not a minter");
-        require( ( msg.sender != to), "sender and receiver cannot be the same" );
+        require( hasRole(REGISTERED_CONSUMER,to), "Recipient must be a registered consumer");
+        require( ( msg.sender != to), "Sender and receiver cannot be the same" );
         this.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
     }
 
