@@ -8,7 +8,7 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-export function RegisterConsumerForm({ provider }) {
+export default function RegisterConsumerForm({ provider }) {
 
   const [address, setAddress] = useState("");
   const [result, setResult] = useState("");

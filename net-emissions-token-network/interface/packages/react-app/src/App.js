@@ -7,10 +7,10 @@ import Tab from 'react-bootstrap/Tab';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-import { NavigationBar } from "./components/navigation-bar";
-import { Dashboard } from "./components/dashboard";
-import { IssueForm } from "./components/issue-form";
-import { RegisterConsumerForm } from "./components/register-consumer-form";
+import NavigationBar from "./components/navigation-bar";
+import Dashboard from "./components/dashboard";
+import IssueForm from "./components/issue-form";
+import RegisterConsumerForm from "./components/register-consumer-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect } from "wouter"
