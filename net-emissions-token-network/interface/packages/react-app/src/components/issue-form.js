@@ -55,22 +55,28 @@ export default function IssueForm({ provider }) {
     setModalShow(true);
   }
 
+  // Helper function to prevent ambiguous failure message when dates aren't passed
+  function convertToZeroIfBlank(num) {
+    return parseInt(num) || 0;
+  }
+
   async function submit(w3provider) {
     let signer = w3provider.getSigner();
     let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
     let signed = await contract.connect(signer);
+    console.log(convertToZeroIfBlank(toUnixTime(fromDate)));
     let issue_result;
     try {
       let issue_result_raw = await signed.issue(
         address,
         tokenTypeId,
-        quantity.toString(),
+        quantity,
         uom,
-        toUnixTime(fromDate).toString(),
-        toUnixTime(thruDate).toString(),
+        convertToZeroIfBlank(toUnixTime(fromDate)),
+        convertToZeroIfBlank(toUnixTime(thruDate)),
         metadata,
         manifest,
-        toUnixTime(automaticRetireDate).toString(),
+        convertToZeroIfBlank(toUnixTime(automaticRetireDate)),
         description
       );
 
@@ -86,8 +92,8 @@ export default function IssueForm({ provider }) {
       // Format error message
       if (error.message.startsWith("resolver or addr is not configured for ENS name")) {
         issue_result = "Error: Invalid address. Please enter a valid address of the format 0x000...";
-      // } else if (error.message.startsWith("invalid BigNumber string (argument=\"value\"")) {
-        // issue_result = "Error: Invalid quantity. Please enter a valid quantity of tokens to issue."
+      } else if (error.message.startsWith("invalid BigNumber string (argument=\"value\"")) {
+        issue_result = "Error: Invalid quantity. Please enter a valid quantity of tokens to issue."
       } else {
         issue_result = error.message;
       }
