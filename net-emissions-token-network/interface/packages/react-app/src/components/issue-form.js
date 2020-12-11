@@ -12,6 +12,7 @@ import "react-datetime/css/react-datetime.css";
 
 export function IssueForm({ provider }) {
 
+  // Form inputs
   const [address, setAddress] = useState("");
   const [tokenTypeId, setTokenTypeId] = useState("Renewable Energy Certificate");
   const [quantity, setQuantity] = useState("");
@@ -24,6 +25,10 @@ export function IssueForm({ provider }) {
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
+  // After initial onFocus for required inputs, display red outline if invalid
+  const [initializedAddressInput, setInitializedAddressInput] = useState(false);
+  const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
+
   function onAddressChange(event) { setAddress(event.target.value); };
   function onQuantityChange(event) { setQuantity(event.target.value); };
   function onUomChange(event) { setUom(event.target.value); };
@@ -35,6 +40,9 @@ export function IssueForm({ provider }) {
   function onDescriptionChange(event) { setDescription(event.target.value); };
 
   function toUnixTime(date) {
+    // Return date if not a Date object
+    if (Object.prototype.toString.call(date) !== '[object Date]')
+      return date;
     return parseInt((date.getTime() / 1000).toFixed(0));
   }
 
@@ -65,12 +73,24 @@ export function IssueForm({ provider }) {
     setResult(issue_result.toString());
   }
 
+  const inputError = {
+    boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
+    borderColor: '#dc3545'
+  };
+
   return (
     <>
       <h2>Issue tokens</h2>
       <Form.Group>
         <Form.Label>Address</Form.Label>
-        <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
+        <Form.Control
+          type="input"
+          placeholder="0x000..."
+          value={address}
+          onChange={onAddressChange}
+          onFocus={() => setInitializedAddressInput(true)}
+          style={(address || !initializedAddressInput) ? {} : inputError}
+        />
         <Form.Text className="text-muted">
           Must be a registered consumer.
         </Form.Text>
@@ -85,11 +105,18 @@ export function IssueForm({ provider }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Quantity</Form.Label>
-        <Form.Control type="input" placeholder="100" value={quantity} onChange={onQuantityChange} />
+        <Form.Control
+          type="input"
+          placeholder="100"
+          value={quantity}
+          onChange={onQuantityChange}
+          onFocus={() => setInitializedQuantityInput(true)}
+          style={(quantity || !initializedQuantityInput) ? {} : inputError}
+        />
       </Form.Group>
       <Form.Group>
         <Form.Label>Unit of measurement</Form.Label>
-        <Form.Control type="input" placeholder="E.g. MWH, MtCO2e, ..." value={uom} onChange={onUomChange} />
+        <Form.Control type="input" placeholder="E.g. MWH, MtCO2e" value={uom} onChange={onUomChange} />
       </Form.Group>
       <Form.Row>
       <Form.Group as={Col}>
@@ -103,11 +130,11 @@ export function IssueForm({ provider }) {
       </Form.Row>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
-        <Form.Control as="textarea" placeholder="E.g. region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
+        <Form.Control as="textarea" placeholder="E.g. Region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Manifest</Form.Label>
-        <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, or emissions tokens/assets used to prepare this net emissions" value={manifest} onChange={onManifestChange} />
+        <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Automatic retire date</Form.Label>
