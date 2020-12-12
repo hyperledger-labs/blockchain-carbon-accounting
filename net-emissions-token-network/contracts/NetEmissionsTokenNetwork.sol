@@ -19,12 +19,24 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string manifest;
         string description;
         bool retired;
+        uint256 retiredAmount;
         uint256 automaticRetireDate;  // Unix time
     }
 
     mapping (uint256 => CarbonTokenDetails) private _tokenDetails;
 
     uint256 private _numOfUniqueTokens = 0; // Keeps count of number of unique token IDs
+
+    // Track all available balances to save gas instead of iterating
+    uint256 private totalRenewableEnergyCertificateAmount = 0;
+    uint256 private totalCarbonEmissionsOffsetAmount = 0;
+    uint256 private totalAuditedEmissionsAmount = 0;
+
+    // Track all retired balances to save gas instead of iterating
+    uint256 private totalRetiredRenewableEnergyCertificateAmount = 0;
+    uint256 private totalRetiredCarbonEmissionsOffsetAmount = 0;
+    uint256 private totalRetiredAuditedEmissionsAmount = 0;
+
     string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
     
     event TokenCreated(uint256);
@@ -130,6 +142,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.retired = false;
         tokenInfo.automaticRetireDate = automaticRetireDate;
         tokenInfo.description = description;
+
+        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+            totalRenewableEnergyCertificateAmount += quantity;
+        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+            totalCarbonEmissionsOffsetAmount += quantity;
+
+        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+            totalAuditedEmissionsAmount += quantity;
+        }
+
         
         super._mint( account, _numOfUniqueTokens, quantity, callData);
         TokenCreated(_numOfUniqueTokens);
@@ -180,6 +202,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         return( _tokenDetails[tokenId].retired );
     }
 
+    /** 
+    * @dev returns the retired amount on a token
+    * @param tokenId token to check 
+    */
+    function getTokenRetiredAmount( uint256 tokenId ) external view returns( uint256 ) {
+        require( tokenExists( tokenId ), "tokenId does not exist");
+        uint256 amount = _tokenDetails[tokenId].retiredAmount;
+        return amount;
+    }
+
    /** 
     * @dev sets the token to the retire state to disable transfers, mints and burns
     * @param tokenId token to set in pause state
@@ -189,6 +221,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require( tokenExists( tokenId ), "tokenId does not exist");
         require( (_tokenDetails[tokenId].retired == false), "token is already retired");
         _tokenDetails[tokenId].retired = true;
+        _tokenDetails[tokenId].retiredAmount += amount;
+
+        if (compareStringValue(_tokenDetails[tokenId].tokenTypeId, "Renewable Energy Certificate")) {
+            totalRetiredCarbonEmissionsOffsetAmount += amount;
+            totalRenewableEnergyCertificateAmount -= amount;
+        } else if (compareStringValue(_tokenDetails[tokenId].tokenTypeId, "Carbon Emissions Offset")) {
+            totalRetiredCarbonEmissionsOffsetAmount += amount;
+            totalCarbonEmissionsOffsetAmount -= amount;
+        } else if (compareStringValue(_tokenDetails[tokenId].tokenTypeId, "Audited Emissions")) {
+            totalRetiredAuditedEmissionsAmount += amount;
+            totalAuditedEmissionsAmount -= amount;
+        }
+
         super._burn( account, tokenId, amount );
     }
 
@@ -276,7 +321,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     ) external consumerOrDealer {
         require( tokenExists( tokenId ), "tokenId does not exist");
         require( ( isRetired( tokenId ) == false ), "Token is retired. Transfer is not permitted" );
-        require( hasRole(REGISTERED_CONSUMER,to), "Recipient must be a registered consumer");
+        require( isDealerOrConsumer( to ), "Recipient must be consumer or dealer.");
+        // require( hasRole(REGISTERED_CONSUMER,to), "Recipient must be a registered consumer");
         require( ( msg.sender != to), "Sender and receiver cannot be the same" );
         this.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
     }
@@ -292,6 +338,76 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     // //       "dealer account must be registered first" );
     //  return super.balanceOf( account, tokenId );
     // }
+
+
+    /** 
+     * @dev returns the balance of the account for the given token
+     * @param account address for which balance to be checked
+     * @param tokenId tokenId for the balance query
+     * Balance will be provided only for registered account
+     */
+    function getBalance (address account, uint256 tokenId) external view returns( uint256 ) {
+        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        return super.balanceOf(account, tokenId);
+    }
+
+    /**
+     * @dev returns the total available amount by tokenTypeId
+     * @param tokenTypeId tokenTypeId to check
+     */
+    function getAvailableBalanceByTokenTypeId (string calldata tokenTypeId) external view returns( uint256 ) {
+        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+            return totalRenewableEnergyCertificateAmount;
+        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+            return totalCarbonEmissionsOffsetAmount;
+        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+            return totalAuditedEmissionsAmount;
+        }
+    }
+
+
+    /**
+     * @dev returns the total retired amount by tokenTypeId
+     * @param tokenTypeId tokenTypeId to check
+     */
+    function getRetiredBalanceByTokenTypeId (string calldata tokenTypeId) external view returns( uint256 ) {
+        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+            return totalRetiredCarbonEmissionsOffsetAmount;
+        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+            return totalRetiredCarbonEmissionsOffsetAmount;
+        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+            return totalRetiredAuditedEmissionsAmount;
+        }
+    }
+
+
+    /**
+     * @dev returns the total retired and available amount by tokenTypeId
+     * @param tokenTypeId tokenTypeId to check
+     */
+    function getBothBalanceByTokenId (string calldata tokenTypeId) external view returns( uint256, uint256 ) {
+        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+            return (totalRenewableEnergyCertificateAmount, totalRetiredCarbonEmissionsOffsetAmount);
+        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+            return (totalCarbonEmissionsOffsetAmount, totalRetiredCarbonEmissionsOffsetAmount);
+        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+            return (totalAuditedEmissionsAmount, totalRetiredAuditedEmissionsAmount);
+        }
+    }
+
+    
+
+    function compareStringValue(string memory stringA, string memory stringB) public pure returns ( bool ) {
+        if (keccak256(bytes(stringA)) == keccak256(bytes(stringB))) {
+            return true;
+        }
+        return false;
+    }
+
+
 
     // function balanceOf( uint256 tokenId ) external view returns (uint256) {
     //  require( _tokenDetails[tokenId].registeredDealers.has( msg.sender ), 

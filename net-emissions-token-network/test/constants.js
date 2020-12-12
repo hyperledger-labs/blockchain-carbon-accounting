@@ -1,5 +1,7 @@
 exports.allTokenTypeId = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
 exports.quantity = 10;
+exports.transferAmount = 5;
+exports.retireAmount = 3;
 exports.issuerId = "issuer";
 exports.recipientId = "recipient";
 exports.uom = "uom";
