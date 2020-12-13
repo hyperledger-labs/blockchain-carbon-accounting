@@ -324,7 +324,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require( isDealerOrConsumer( to ), "Recipient must be consumer or dealer.");
         // require( hasRole(REGISTERED_CONSUMER,to), "Recipient must be a registered consumer");
         require( ( msg.sender != to), "Sender and receiver cannot be the same" );
-        this.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
+        super.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
     }
 
     // /** 
