@@ -204,13 +204,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev returns if the caller is the owner
-     */
-    function isOwner() external view returns (bool) {
-        return (hasRole(DEFAULT_ADMIN_ROLE, msg.sender));
-    }
-
-    /**
      * @dev returns the token name for the given token as a string value
      * @param tokenId token to check
      */
@@ -309,6 +302,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
+     * @dev Helper function for returning tuple of bools of role membership
+     * @param account address to check roles
+     */
+    function getRoles(address account) external view returns (bool, bool, bool, bool, bool) {
+        bool isOwner = hasRole(DEFAULT_ADMIN_ROLE, account);
+        bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
+        bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, account);
+        bool isAeDealer = hasRole(REGISTERED_AE_DEALER, account);
+        bool isConsumer = hasRole(REGISTERED_CONSUMER, account);
+        return (isOwner, isRecDealer, isCeoDealer, isAeDealer, isConsumer);
+    }
+
+    /**
      * @dev Only contract owner can register Dealers
      * @param account address of the dealer to register
      * Only registered Dealers can transfer tokens
@@ -325,7 +331,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         } else if (tokenTypeId == 3) {
             grantRole(REGISTERED_AE_DEALER, account);
         }
-        grantRole(DEFAULT_ADMIN_ROLE, account);
+        grantRole(DEFAULT_ADMIN_ROLE, account); // @TODO: Remove me
         emit RegisteredDealer(account);
     }
 
@@ -342,8 +348,18 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev Only contract owner can unregister Dealers
      * @param account address to be unregistered
      */
-    function unregisterDealer(address account) external onlyOwner {
-        super.revokeRole("REGISTERED_DEALER", account);
+    function unregisterDealer(address account, uint8 tokenTypeId)
+        external
+        onlyOwner
+    {
+        require(tokenTypeIdIsValid(tokenTypeId), "Token type does not exist");
+        if (tokenTypeId == 1) {
+            super.revokeRole(REGISTERED_REC_DEALER, account);
+        } else if (tokenTypeId == 2) {
+            super.revokeRole(REGISTERED_CEO_DEALER, account);
+        } else if (tokenTypeId == 3) {
+            super.revokeRole(REGISTERED_AE_DEALER, account);
+        }
         emit UnregisteredDealer(account);
     }
 
@@ -352,7 +368,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param account address to be unregistered
      */
     function unregisterConsumer(address account) external onlyDealer {
-        super.revokeRole("REGISTERED_CONSUMER", account);
+        super.revokeRole(REGISTERED_CONSUMER, account);
         emit UnregisteredDealer(account);
     }
 
