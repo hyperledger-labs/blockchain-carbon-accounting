@@ -16,6 +16,12 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 - To compile, run `npx hardhat compile`
 - To see all commands, run `npx hardhat`
 
+You can also run the tests with no external dependencies other than docker with the script located in this directory:
+
+```bash
+sh runDockerTests.sh
+```
+
 ## Interface
 
 The interface is created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app).
