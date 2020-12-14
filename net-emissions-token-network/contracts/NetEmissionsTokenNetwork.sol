@@ -112,17 +112,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         return _numOfUniqueTokens;
     }
 
-    function isDealerOrConsumer( address account ) private view returns( bool ) {
-        bool isConsumer = hasRole(REGISTERED_CONSUMER, account);
-        bool isRecDealer = hasRole(REGISTERED_REC_DEALER, msg.sender);
-        bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, msg.sender);
-        bool isAeDealer = hasRole(REGISTERED_AE_DEALER, msg.sender);
-        if( isConsumer || isRecDealer || isCeoDealer || isAeDealer )
-            return true;
-        return false;
-    }
-
-
     /**
      * @dev External function to mint an amount of a token
      * Only contract owner can call this function
@@ -244,7 +233,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     * @dev returns true if Dealer's account is registered
     * @param account address of the dealer 
     */
-    function isDealerRegistered( address account ) external view returns( bool ) {
+    function isDealerRegistered( address account ) public view returns( bool ) {
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
         bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, account);
         bool isAeDealer = hasRole(REGISTERED_AE_DEALER, account);
@@ -257,8 +246,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     * @dev returns true if Consumers's account is registered
     * @param account address of the dealer 
     */
-    function isConsumerRegistered( address account ) external view returns( bool ) {
+    function isConsumerRegistered( address account ) public view returns( bool ) {
         return hasRole(REGISTERED_CONSUMER, account);
+    }
+
+   /** 
+    * @dev returns true if Consumers's or Dealer's account is registered
+    * @param account address of the consumer/dealer 
+    */
+    function isDealerOrConsumer( address account ) private view returns( bool ) {
+        return ( isDealerRegistered(account) || isConsumerRegistered(account) );
     }
 
    /** 
@@ -267,11 +264,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     * Only registered Dealers can transfer tokens 
     */
    function registerDealer( address account, uint8 tokenTypeId) external onlyOwner {
+        require( tokenTypeIdIsValid( tokenTypeId ), "Token type does not exist");
         if (tokenTypeId == 1) {
             grantRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
             grantRole(REGISTERED_CEO_DEALER, account);
-        } else {
+        } else if (tokenTypeId == 3) {
             grantRole(REGISTERED_AE_DEALER, account);
         }
         grantRole(DEFAULT_ADMIN_ROLE, account);
