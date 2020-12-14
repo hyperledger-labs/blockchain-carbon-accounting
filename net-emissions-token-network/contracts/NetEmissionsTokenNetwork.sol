@@ -7,10 +7,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     
     bytes32 public constant REGISTERED_DEALER = keccak256("REGISTERED_DEALER");
     bytes32 public constant REGISTERED_CONSUMER = keccak256("REGISTERED_CONSUMER");
-    
+
     struct CarbonTokenDetails {
         uint256 tokenId;              // Auto-increments whenever new tokens are issued
-        string tokenTypeId;           // One of ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"]
+        uint8 tokenTypeId;            // 1 => Renewable Energy Certificate
+                                      // 2 => Carbon Emissions Offset 
+                                      // 3 => Audited Emissions
         string uom;                   // Unit of measurement
         uint256 fromDate;             // Unix time
         uint256 thruDate;             // Unix time
@@ -25,7 +27,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
     mapping (uint256 => CarbonTokenDetails) private _tokenDetails;
 
-    uint256 private _numOfUniqueTokens = 0; // Keeps count of number of unique token IDs
+    uint256 private _numOfUniqueTokens = 0; // Counts number of unique token IDs (auto-incrementing)
+    string[] private TOKEN_TYPES = [
+        "Renewable Energy Certificate",     // Corresponds to tokenTypeId of 1
+        "Carbon Emissions Offset",          // Corresponds to tokenTypeId of 2
+        "Audited Emissions"                 // Corresponds to tokenTypeId of 3
+    ];
 
     // Track all available balances to save gas instead of iterating
     uint256 private totalRenewableEnergyCertificateAmount = 0;
@@ -36,8 +43,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     uint256 private totalRetiredRenewableEnergyCertificateAmount = 0;
     uint256 private totalRetiredCarbonEmissionsOffsetAmount = 0;
     uint256 private totalRetiredAuditedEmissionsAmount = 0;
-
-    string[] _validTokenTypeIds = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
     
     event TokenCreated(uint256);
     event RegisteredDealer(address indexed account );
@@ -78,13 +83,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
     
     /**
-     * @dev returns true if the tokenTypeId is one of _validTokenTypeIds[]
+     * @dev returns true if the tokenTypeId is valid
      */
-    function tokenTypeIdIsValid( string memory tokenTypeId ) private view returns( bool ) {
-        uint256 idx;
-        for( idx = 0; idx < _validTokenTypeIds.length; idx++ ) {
-            if( keccak256(bytes(_validTokenTypeIds[idx])) == keccak256(bytes(tokenTypeId)) )
-                return true;
+    function tokenTypeIdIsValid( uint8 tokenTypeId ) private view returns( bool ) {
+        if ( (tokenTypeId > 0) && (tokenTypeId <= TOKEN_TYPES.length) ) {
+            return true;
         }
         return false; // no matching tokenId
     }
@@ -114,7 +117,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      
     function issue( 
         address account, 
-        string memory tokenTypeId,
+        uint8 tokenTypeId,
         uint256 quantity,
         string memory uom,
         uint256 fromDate,
@@ -143,12 +146,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.automaticRetireDate = automaticRetireDate;
         tokenInfo.description = description;
 
-        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+        if (tokenTypeId == 1) {
             totalRenewableEnergyCertificateAmount += quantity;
-        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+        } else if (tokenTypeId == 2) {
             totalCarbonEmissionsOffsetAmount += quantity;
-
-        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+        } else {
             totalAuditedEmissionsAmount += quantity;
         }
 
@@ -164,32 +166,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         return(hasRole(DEFAULT_ADMIN_ROLE, msg.sender));
     }
 
-   /** 
-    * @dev returns the token decimals for the given token
-    * @param tokenId token to check 
-    */
-//  function getDecimals( uint256 tokenId ) external view returns( uint8 ) {
-//         require( tokenExists( tokenId ), "tokenId does not exist");
-//      return( _tokenDetails[tokenId].decimals );
-//  }
-
-   /** 
-    * @dev returns the token name for the given token
-    * @param tokenId token to check 
-    */
-    function getTokenName( uint256 tokenId ) external view returns( string memory ) {
-        require( tokenExists( tokenId ), "tokenId does not exist");
-        string memory tokenName = _tokenDetails[tokenId].tokenTypeId;
-        return tokenName;
-    }
-
-       /** 
-    * @dev returns the token name for the given token
+    /** 
+    * @dev returns the token name for the given token as a string value
     * @param tokenId token to check 
     */
     function getTokenType( uint256 tokenId ) external view returns( string memory ) {
         require( tokenExists( tokenId ), "tokenId does not exist");
-        string memory tokenType = _tokenDetails[tokenId].tokenTypeId;
+        string memory tokenType = TOKEN_TYPES[(_tokenDetails[tokenId].tokenTypeId - 1)];
         return tokenType;
     }
 
@@ -223,13 +206,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _tokenDetails[tokenId].retired = true;
         _tokenDetails[tokenId].retiredAmount += amount;
 
-        if (compareStringValue(_tokenDetails[tokenId].tokenTypeId, "Renewable Energy Certificate")) {
+        if (_tokenDetails[tokenId].tokenTypeId == 1) {
             totalRetiredCarbonEmissionsOffsetAmount += amount;
             totalRenewableEnergyCertificateAmount -= amount;
-        } else if (compareStringValue(_tokenDetails[tokenId].tokenTypeId, "Carbon Emissions Offset")) {
+        } else if (_tokenDetails[tokenId].tokenTypeId == 2) {
             totalRetiredCarbonEmissionsOffsetAmount += amount;
             totalCarbonEmissionsOffsetAmount -= amount;
-        } else if (compareStringValue(_tokenDetails[tokenId].tokenTypeId, "Audited Emissions")) {
+        } else {
             totalRetiredAuditedEmissionsAmount += amount;
             totalAuditedEmissionsAmount -= amount;
         }
@@ -355,13 +338,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns the total available amount by tokenTypeId
      * @param tokenTypeId tokenTypeId to check
      */
-    function getAvailableBalanceByTokenTypeId (string calldata tokenTypeId) external view returns( uint256 ) {
+    function getAvailableBalanceByTokenTypeId (uint8 tokenTypeId) external view returns( uint256 ) {
         require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
-        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+        if (tokenTypeId == 1) {
             return totalRenewableEnergyCertificateAmount;
-        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+        } else if (tokenTypeId == 2) {
             return totalCarbonEmissionsOffsetAmount;
-        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+        } else if (tokenTypeId == 3) {
             return totalAuditedEmissionsAmount;
         }
     }
@@ -371,13 +354,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns the total retired amount by tokenTypeId
      * @param tokenTypeId tokenTypeId to check
      */
-    function getRetiredBalanceByTokenTypeId (string calldata tokenTypeId) external view returns( uint256 ) {
+    function getRetiredBalanceByTokenTypeId (uint8 tokenTypeId) external view returns( uint256 ) {
         require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
-        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+        if (tokenTypeId == 1) {
             return totalRetiredCarbonEmissionsOffsetAmount;
-        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+        } else if (tokenTypeId == 2) {
             return totalRetiredCarbonEmissionsOffsetAmount;
-        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+        } else if (tokenTypeId == 3) {
             return totalRetiredAuditedEmissionsAmount;
         }
     }
@@ -387,27 +370,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns the total retired and available amount by tokenTypeId
      * @param tokenTypeId tokenTypeId to check
      */
-    function getBothBalanceByTokenId (string calldata tokenTypeId) external view returns( uint256, uint256 ) {
+    function getBothBalanceByTokenId (uint8 tokenTypeId) external view returns( uint256, uint256 ) {
         require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
-        if (compareStringValue(tokenTypeId, "Renewable Energy Certificate")) {
+        if (tokenTypeId == 1) {
             return (totalRenewableEnergyCertificateAmount, totalRetiredCarbonEmissionsOffsetAmount);
-        } else if (compareStringValue(tokenTypeId, "Carbon Emissions Offset")) {
+        } else if (tokenTypeId == 2) {
             return (totalCarbonEmissionsOffsetAmount, totalRetiredCarbonEmissionsOffsetAmount);
-        } else if (compareStringValue(tokenTypeId, "Audited Emissions")) {
+        } else if (tokenTypeId == 3) {
             return (totalAuditedEmissionsAmount, totalRetiredAuditedEmissionsAmount);
         }
     }
-
-    
-
-    function compareStringValue(string memory stringA, string memory stringB) public pure returns ( bool ) {
-        if (keccak256(bytes(stringA)) == keccak256(bytes(stringB))) {
-            return true;
-        }
-        return false;
-    }
-
-
 
     // function balanceOf( uint256 tokenId ) external view returns (uint256) {
     //  require( _tokenDetails[tokenId].registeredDealers.has( msg.sender ), 

@@ -1,4 +1,4 @@
-exports.allTokenTypeId = ["Renewable Energy Certificate", "Carbon Emissions Offset", "Audited Emissions"];
+exports.allTokenTypeId = [1, 2, 3];
 exports.quantity = 10;
 exports.transferAmount = 5;
 exports.retireAmount = 3;
