@@ -12,7 +12,7 @@ const {
   uom,
   metadata,
   manifest,
-  description
+  description,
 } = require("./constants.js");
 
 async function deployContract() {
@@ -41,20 +41,26 @@ describe("Net Emissions Token Network", function() {
 
     let ownerAddress = allAddresses[0];
     let dealerAddress = allAddresses[1];
+    let dealerAddressTwo = allAddresses[4];
     let consumerAddress = allAddresses[2];
     let consumerAddressTwo = allAddresses[3];
 
-    // register dealer 1 to issue Audited Emissions tokens
-    // register dealer 2 to issue Renewable Energy Certificate
-    // register dealer 3 to issue Carbon Emissions Offset
-    let registerDealer = await contract.registerDealer(dealerAddress.address);
-    expect(registerDealer);
+    // register dealer to issue Renewable Energy Certificate
+    let registerDealerRec = await contract.registerDealer(dealerAddress.address, allTokenTypeId[0]);
+    expect(registerDealerRec);
+    // register dealer to issue Carbon Emissions Offset
+    let registerDealerCeo = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[1]);
+    expect(registerDealerCeo);
+    // register dealer to issue Audited Emissions tokens
+    let registerDealerAea = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[2]);
+    expect(registerDealerAea);
+
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
     let registerConsumerTwo = await contract.connect(dealerAddress).registerConsumer(consumerAddressTwo.address);
     expect(registerConsumerTwo);
 
-    // verify only dealer 3 can issue Carbon Emissions Offset tokens.  Dealer 1 and 2 or any consumer issuing would fail.
+    // verify only dealer can issue Renewable Energy Certificate tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -71,6 +77,46 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    try {
+      let issueWithDealerTwo = await contract
+        .connect(dealerAddressTwo)
+        .issue(
+          consumerAddress.address,
+          allTokenTypeId[0],
+          quantity,
+          uom,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You are not a Renewable Energy Certificate dealer."
+      );
+    }
+
+    try {
+      let issueWithConsumer = await contract
+        .connect(consumerAddress)
+        .issue(
+          consumerAddress.address,
+          allTokenTypeId[0],
+          quantity,
+          uom,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer.");
+    }
 
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
@@ -180,20 +226,26 @@ describe("Net Emissions Token Network", function() {
 
     let ownerAddress = allAddresses[0];
     let dealerAddress = allAddresses[1];
+    let dealerAddressTwo = allAddresses[4];
     let consumerAddress = allAddresses[2];
     let consumerAddressTwo = allAddresses[3];
 
-    // register dealer 1 to issue Audited Emissions tokens
-    // register dealer 2 to issue Renewable Energy Certificate
-    // register dealer 3 to issue Carbon Emissions Offset
-    let registerDealer = await contract.registerDealer(dealerAddress.address);
-    expect(registerDealer);
+    // register dealer to issue Renewable Energy Certificate
+    let registerDealerRec = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[0]);
+    expect(registerDealerRec);
+    // register dealer to issue Carbon Emissions Offset
+    let registerDealerCeo = await contract.registerDealer(dealerAddress.address, allTokenTypeId[1]);
+    expect(registerDealerCeo);
+    // register dealer to issue Audited Emissions tokens
+    let registerDealerAea = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[2]);
+    expect(registerDealerAea);
+
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
     let registerConsumerTwo = await contract.connect(dealerAddress).registerConsumer(consumerAddressTwo.address);
     expect(registerConsumerTwo);
 
-    // verify only dealer 3 can issue Carbon Emissions Offset tokens.  Dealer 1 and 2 or any consumer issuing would fail.
+    // verify only dealer can issue Renewable Energy Certificate tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -210,6 +262,46 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    try {
+      let issueWithDealerTwo = await contract
+        .connect(dealerAddressTwo)
+        .issue(
+          consumerAddress.address,
+          allTokenTypeId[1],
+          quantity,
+          uom,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You are not a Carbon Emissions Offset dealer."
+      );
+    }
+
+    try {
+      let issueWithConsumer = await contract
+        .connect(consumerAddress)
+        .issue(
+          consumerAddress.address,
+          allTokenTypeId[1],
+          quantity,
+          uom,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer.");
+    }
 
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
@@ -319,20 +411,26 @@ describe("Net Emissions Token Network", function() {
 
     let ownerAddress = allAddresses[0];
     let dealerAddress = allAddresses[1];
+    let dealerAddressTwo = allAddresses[4];
     let consumerAddress = allAddresses[2];
     let consumerAddressTwo = allAddresses[3];
 
-    // register dealer 1 to issue Audited Emissions tokens
-    // register dealer 2 to issue Renewable Energy Certificate
-    // register dealer 3 to issue Carbon Emissions Offset
-    let registerDealer = await contract.registerDealer(dealerAddress.address);
-    expect(registerDealer);
+    // register dealer to issue Renewable Energy Certificate
+    let registerDealerRec = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[0]);
+    expect(registerDealerRec);
+    // register dealer to issue Carbon Emissions Offset
+    let registerDealerCeo = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[1]);
+    expect(registerDealerCeo);
+    // register dealer to issue Audited Emissions tokens
+    let registerDealerAea = await contract.registerDealer(dealerAddress.address, allTokenTypeId[2]);
+    expect(registerDealerAea);
+
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
     let registerConsumerTwo = await contract.connect(dealerAddress).registerConsumer(consumerAddressTwo.address);
     expect(registerConsumerTwo);
 
-    // verify only dealer 3 can issue Carbon Emissions Offset tokens.  Dealer 1 and 2 or any consumer issuing would fail.
+    // verify only dealer can issue Renewable Energy Certificate tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -349,6 +447,46 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue);
+
+    try {
+      let issueWithDealerTwo = await contract
+        .connect(dealerAddressTwo)
+        .issue(
+          consumerAddress.address,
+          allTokenTypeId[2],
+          quantity,
+          uom,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You are not an Audited Emissions Amount dealer."
+      );
+    }
+
+    try {
+      let issueWithConsumer = await contract
+        .connect(consumerAddress)
+        .issue(
+          consumerAddress.address,
+          allTokenTypeId[2],
+          quantity,
+          uom,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer.");
+    }
 
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
@@ -460,8 +598,9 @@ describe("Net Emissions Token Network", function() {
     let dealerAddress = allAddresses[1];
     let consumerAddress = allAddresses[2];
 
-    let registerDealer = await contract.registerDealer(dealerAddress.address);
+    let registerDealer = await contract.registerDealer(dealerAddress.address, allTokenTypeId[1]);
     expect(registerDealer);
+    let registerDealerTwo = await contract.registerDealer(dealerAddress.address, allTokenTypeId[2]);
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
