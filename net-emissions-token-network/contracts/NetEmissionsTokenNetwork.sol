@@ -19,12 +19,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         uint256 fromDate;             // Unix time
         uint256 thruDate;             // Unix time
         uint256 dateCreated;          // Unix time
+        uint256 automaticRetireDate;  // Unix time
         string metadata;
         string manifest;
         string description;
         bool retired;
         uint256 retiredAmount;
-        uint256 automaticRetireDate;  // Unix time
     }
 
     mapping (uint256 => CarbonTokenDetails) private _tokenDetails;
@@ -124,9 +124,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory uom,
         uint256 fromDate,
         uint256 thruDate,
+        uint256 automaticRetireDate,
         string memory metadata,
         string memory manifest,
-        uint256 automaticRetireDate,
         string memory description
     ) public onlyDealer {
         require( isDealerOrConsumer( account ), "The token address supplied must be a registered consumer.");

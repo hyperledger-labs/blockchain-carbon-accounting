@@ -8,11 +8,11 @@ const {
   transferAmount,
   fromDate,
   thruDate,
+  automaticRetireDate,
   uom,
   metadata,
   manifest,
-  description,
-  automaticRetireDate,
+  description
 } = require("./constants.js");
 
 async function deployContract() {
@@ -64,9 +64,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
     // Check to be certain mint did not return errors
@@ -134,9 +134,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
 
@@ -149,9 +149,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
 
@@ -203,9 +203,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
     // Check to be certain mint did not return errors
@@ -273,9 +273,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
 
@@ -288,9 +288,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
 
@@ -342,9 +342,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
     // Check to be certain mint did not return errors
@@ -412,9 +412,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
 
@@ -427,9 +427,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
 
@@ -474,9 +474,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
     // Check to be certain mint did not return errors
@@ -490,9 +490,9 @@ describe("Net Emissions Token Network", function() {
         uom,
         fromDate,
         thruDate,
+        automaticRetireDate,
         metadata,
         manifest,
-        automaticRetireDate,
         description
       );
     // Check to be certain mint did not return errors
