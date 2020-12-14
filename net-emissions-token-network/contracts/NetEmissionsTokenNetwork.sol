@@ -225,12 +225,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
    /** 
-    * @dev returns true if Dealer's account is registered for the given token
+    * @dev returns true if Dealer's account is registered
     * @param account address of the dealer 
-    *   Only contract owner can check for dealer registration
     */
-    function isDealerRegistered( address account ) external onlyOwner view returns( bool ) {
+    function isDealerRegistered( address account ) external view returns( bool ) {
         return hasRole(REGISTERED_DEALER, account);
+    }
+
+   /** 
+    * @dev returns true if Consumers's account is registered
+    * @param account address of the dealer 
+    */
+    function isConsumerRegistered( address account ) external view returns( bool ) {
+        return hasRole(REGISTERED_CONSUMER, account);
     }
 
    /** 
@@ -247,38 +254,17 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
    /** 
     * @dev returns true if Consumer's account is registered for the given token
     * @param account address of the consumer 
-    *   Only contract owner can check for consumer registration
     */
      function registerConsumer( address account ) external onlyDealer {
         grantRole(REGISTERED_CONSUMER, account);
         emit RegisteredDealer( account );
     }
     
-    function isConsumerRegistered( address account ) external onlyDealer view returns( bool ) {
-        // require(hasRole(REGISTERED_CONSUMER, account), "Consumer is not registed");
-        return hasRole(REGISTERED_CONSUMER, account);
-    }
-
-    /** 
-     * @dev returns true if all the token balances for the account are 0
-     * @param account address of the account to which all token balances to be checked
-     */
-    function checkAllBalancesAreZero( address account ) private view returns( bool ) {
-        uint256 idx;
-        for( idx = 0; idx <= _numOfUniqueTokens; idx++ ) {
-            if( super.balanceOf( account, idx ) != 0 )
-                return false;
-        }
-        return true; // all token balances are 0 
-    }
-
     /** 
      * @dev Only CB (Owner or address(0)) can unregister Dealers
      * @param account address to be unregistered
-     *  Only accounts with 0 balance can be unregistered 
      */
     function unregisterDealer( address account ) external onlyOwner {
-        this.setApprovalForAll( account, false );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
         super.revokeRole("REGISTERED_DEALER", account);
         emit UnregisteredDealer( account );
     }
@@ -286,10 +272,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     /** 
      * @dev Only CB (Owner or address(0)) can unregister Consumers
      * @param account address to be unregistered
-     *  Only accounts with 0 balance can be unregistered 
      */
     function unregisterConsumer( address account ) external onlyDealer {
-        this.setApprovalForAll( account, false );  // enable this contract as approved in ERC1155 contract for xacting with the owner address 
         super.revokeRole("REGISTERED_CONSUMER", account);
         emit UnregisteredDealer( account );
     }
@@ -299,7 +283,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param to recipient address 
      * @param tokenId tokenId for the transfer
      * @param value amount of transfer
-     *  Transfer can start only when both parties are registered and the token is not paused
+     * Transfer can start only when both parties are registered and the token is not paused
+     * Note: Token holders can arbitrarily call safeTransferFrom() without these checks
      */
     function transfer(
         address to,
@@ -309,23 +294,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require( tokenExists( tokenId ), "tokenId does not exist");
         require( ( isRetired( tokenId ) == false ), "Token is retired. Transfer is not permitted" );
         require( isDealerOrConsumer( to ), "Recipient must be consumer or dealer.");
-        // require( hasRole(REGISTERED_CONSUMER,to), "Recipient must be a registered consumer");
         require( ( msg.sender != to), "Sender and receiver cannot be the same" );
         super.safeTransferFrom( msg.sender, to, tokenId, value, '0x00' );
     }
-
-    // /** 
-    //  * @dev returns the balance of the account for the given token
-    //  * @param account address for which balance to be checked
-    //  * @param tokenId tokenId for the balance query
-    //  * Balance will be provided only for registered account
-    //  */
-    // function balanceOf( address account, uint256 tokenId ) public view override onlyOwner returns (uint256) {
-    // //   require( _tokenDetails[tokenId].registeredDealers.has( account ), 
-    // //       "dealer account must be registered first" );
-    //  return super.balanceOf( account, tokenId );
-    // }
-
 
     /** 
      * @dev returns the balance of the account for the given token
@@ -334,7 +305,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * Balance will be provided only for registered account
      */
     function getBalance (address account, uint256 tokenId) external view returns( uint256 ) {
-        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
         return super.balanceOf(account, tokenId);
     }
 
@@ -343,7 +313,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param tokenTypeId tokenTypeId to check
      */
     function getAvailableBalanceByTokenTypeId (uint8 tokenTypeId) external view returns( uint256 ) {
-        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        require( tokenTypeIdIsValid( tokenTypeId ), "Token type does not exist");
         if (tokenTypeId == 1) {
             return totalRenewableEnergyCertificateAmount;
         } else if (tokenTypeId == 2) {
@@ -359,7 +329,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param tokenTypeId tokenTypeId to check
      */
     function getRetiredBalanceByTokenTypeId (uint8 tokenTypeId) external view returns( uint256 ) {
-        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        require( tokenTypeIdIsValid( tokenTypeId ), "Token type does not exist");
         if (tokenTypeId == 1) {
             return totalRetiredCarbonEmissionsOffsetAmount;
         } else if (tokenTypeId == 2) {
@@ -375,7 +345,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param tokenTypeId tokenTypeId to check
      */
     function getBothBalanceByTokenId (uint8 tokenTypeId) external view returns( uint256, uint256 ) {
-        require( isDealerOrConsumer( msg.sender ), "You must be a dealer or consumer to get a balance.");
+        require( tokenTypeIdIsValid( tokenTypeId ), "Token type does not exist");
         if (tokenTypeId == 1) {
             return (totalRenewableEnergyCertificateAmount, totalRetiredCarbonEmissionsOffsetAmount);
         } else if (tokenTypeId == 2) {
@@ -384,41 +354,5 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             return (totalAuditedEmissionsAmount, totalRetiredAuditedEmissionsAmount);
         }
     }
-
-    // function balanceOf( uint256 tokenId ) external view returns (uint256) {
-    //  require( _tokenDetails[tokenId].registeredDealers.has( msg.sender ), 
-    //      "dealer account must be registered first" );
-    //  return super.balanceOf( msg.sender, tokenId );
-    // }
-
-   /**
-    struct TokenBalance {
-        uint256 tokenId;
-        uint256 balance;
-        string name; 
-    }
-    **/
-
-/**
-  * to enable the following function, we have to enable the pragma:
-  * new experimental ABI encoder. Use "pragma experimental ABIEncoderV2;" 
-  * 
-  * memory is expensive in terms of gas. However in private network gas cost is assumed 0. 
-    function getTokenBalances( ) public view returns ( TokenBalance[] memory ) {
-        uint256 numTokens = _tokenIds.length;
-        TokenBalance[] memory tokBalA = new TokenBalance[]( numTokens );
-        for( uint i= 0; i < numTokens; i++ ) {
-            uint256 tokenId = _tokenIds[i];
-            TokenBalance memory tokBal; // = new TokenBalance;
-            tokBal.tokenId = tokenId;
-            tokBal.balance = super.balanceOf( msg.sender, tokenId );
-            tokBal.name = _tokenDetails[tokenId].name;
-            tokBalA[i] = tokBal;
-        }
-        return tokBalA;
-    }
-
- ******/
-
 
 }
