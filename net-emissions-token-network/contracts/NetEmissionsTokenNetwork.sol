@@ -13,6 +13,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         uint8 tokenTypeId;            // 1 => Renewable Energy Certificate
                                       // 2 => Carbon Emissions Offset 
                                       // 3 => Audited Emissions
+        address issuer;               // Address of dealer issuing this token
+        address issuee;               // Address of original consumer being issued this token 
         string uom;                   // Unit of measurement
         uint256 fromDate;             // Unix time
         uint256 thruDate;             // Unix time
@@ -136,6 +138,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         CarbonTokenDetails storage tokenInfo = _tokenDetails[ _numOfUniqueTokens ];
         tokenInfo.tokenId = _numOfUniqueTokens;
         tokenInfo.tokenTypeId = tokenTypeId;
+        tokenInfo.issuer = msg.sender;
+        tokenInfo.issuee = account;
         tokenInfo.uom = uom;
         tokenInfo.fromDate = fromDate;
         tokenInfo.thruDate = thruDate;
