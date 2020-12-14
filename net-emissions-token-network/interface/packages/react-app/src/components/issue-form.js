@@ -18,7 +18,7 @@ export default function IssueForm({ provider }) {
 
   // Form inputs
   const [address, setAddress] = useState("");
-  const [tokenTypeId, setTokenTypeId] = useState("Renewable Energy Certificate");
+  const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
   const [uom, setUom] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -136,9 +136,9 @@ export default function IssueForm({ provider }) {
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select">
-          <option onClick={() => {setTokenTypeId("Renewable Energy Certificate")}}>Renewable Energy Certificate</option>
-          <option onClick={() => {setTokenTypeId("Carbon Emissions Offset")}}>Carbon Emissions Offset</option>
-          <option onClick={() => {setTokenTypeId("Audited Emissions")}}>Audited Emissions</option>
+          <option onClick={() => {setTokenTypeId(1)}}>Renewable Energy Certificate</option>
+          <option onClick={() => {setTokenTypeId(2)}}>Carbon Emissions Offset</option>
+          <option onClick={() => {setTokenTypeId(3)}}>Audited Emissions</option>
         </Form.Control>
       </Form.Group>
       <Form.Group>
