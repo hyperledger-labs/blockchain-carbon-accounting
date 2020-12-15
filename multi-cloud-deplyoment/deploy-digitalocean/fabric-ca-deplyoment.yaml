@@ -13,14 +13,14 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fabric-ca-pvc
+  name: fabric-ca
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
-  volumeName: pv-static-fabric-ca
+  storageClassName: do-block-storage
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,6 +60,6 @@ spec:
           name: fabric-ca-server-config
         name: fabric-ca-server-config-yaml
       - persistentVolumeClaim:
-          claimName: fabric-ca-pvc
+          claimName: fabric-ca
         name: fabric-ca-server-pvc
 
