@@ -64,7 +64,6 @@ export default function IssueForm({ provider }) {
     let signer = w3provider.getSigner();
     let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
     let signed = await contract.connect(signer);
-    console.log(convertToZeroIfBlank(toUnixTime(fromDate)));
     let issue_result;
     try {
       let issue_result_raw = await signed.issue(
