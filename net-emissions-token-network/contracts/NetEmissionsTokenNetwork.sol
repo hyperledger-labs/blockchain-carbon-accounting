@@ -154,6 +154,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory manifest,
         string memory description
     ) public onlyDealer {
+        _numOfUniqueTokens += 1;
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens];
         require(
             tokenTypeIdIsValid(tokenTypeId),
             "Failed to issue: tokenTypeId is invalid."
@@ -164,27 +166,29 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                 hasRole(REGISTERED_REC_DEALER, msg.sender),
                 "You are not a Renewable Energy Certificate dealer."
             );
+            tokenInfo.retired = false;
             totalRenewableEnergyCertificateAmount += quantity;
         } else if (tokenTypeId == 2) {
             require(
                 hasRole(REGISTERED_CEO_DEALER, msg.sender),
                 "You are not a Carbon Emissions Offset dealer."
             );
+            tokenInfo.retired = false;
             totalCarbonEmissionsOffsetAmount += quantity;
         } else {
             require(
                 hasRole(REGISTERED_AE_DEALER, msg.sender),
                 "You are not an Audited Emissions Amount dealer."
             );
-            totalAuditedEmissionsAmount += quantity;
+            tokenInfo.retired = true;
+            tokenInfo.retiredAmount += quantity;
+            totalRetiredAuditedEmissionsAmount += quantity;
+            quantity = 0;
         }
 
         bytes memory callData;
 
-        _numOfUniqueTokens += 1;
 
-        CarbonTokenDetails storage tokenInfo =
-            _tokenDetails[_numOfUniqueTokens];
         tokenInfo.tokenId = _numOfUniqueTokens;
         tokenInfo.tokenTypeId = tokenTypeId;
         tokenInfo.issuer = msg.sender;
@@ -195,7 +199,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.metadata = metadata;
         tokenInfo.manifest = manifest;
         tokenInfo.dateCreated = now;
-        tokenInfo.retired = false;
         tokenInfo.automaticRetireDate = automaticRetireDate;
         tokenInfo.description = description;
 
@@ -265,9 +268,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         } else if (_tokenDetails[tokenId].tokenTypeId == 2) {
             totalRetiredCarbonEmissionsOffsetAmount += amount;
             totalCarbonEmissionsOffsetAmount -= amount;
-        } else {
-            totalRetiredAuditedEmissionsAmount += amount;
-            totalAuditedEmissionsAmount -= amount;
         }
 
         super._burn(account, tokenId, amount);
