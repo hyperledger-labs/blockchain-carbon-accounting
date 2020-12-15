@@ -9,7 +9,7 @@ import path from "path";
 
 export function buildCCPAuditor1() {
   // load the common connection configuration file
-  const ccpPath = path.resolve(
+  const ccpPath: string = path.resolve(
     __dirname,
     "..",
     "..",
@@ -23,11 +23,11 @@ export function buildCCPAuditor1() {
     "auditor1.carbonAccounting.com",
     "connection-auditor1.json"
   );
-  const fileExists = fs.existsSync(ccpPath);
+  const fileExists: boolean = fs.existsSync(ccpPath);
   if (!fileExists) {
     throw new Error(`no such file or directory: ${ccpPath}`);
   }
-  const contents = fs.readFileSync(ccpPath, "utf8");
+  const contents: string = fs.readFileSync(ccpPath, "utf8");
 
   // build a JSON object from the file contents
   const ccp = JSON.parse(contents);
@@ -39,8 +39,9 @@ export function buildCCPAuditor1() {
 export function buildCCPAuditor2() {
   console.log("++++++++++++++++++++++++++++");
   // load the common connection configuration file
-  const ccpPath = path.resolve(
+  const ccpPath: string = path.resolve(
     __dirname,
+    "..",
     "..",
     "..",
     "..",
@@ -53,7 +54,7 @@ export function buildCCPAuditor2() {
     "connection-auditor2.json"
   );
 
-  const fileExists = fs.existsSync(ccpPath);
+  const fileExists: boolean = fs.existsSync(ccpPath);
   if (!fileExists) {
     throw new Error(`no such file or directory: ${ccpPath}`);
   }
@@ -70,8 +71,9 @@ export function buildCCPAuditor2() {
 
 export function buildCCPAuditor3() {
   // load the common connection configuration file
-  const ccpPath = path.resolve(
+  const ccpPath: string = path.resolve(
     __dirname,
+    "..",
     "..",
     "..",
     "..",
@@ -83,11 +85,11 @@ export function buildCCPAuditor3() {
     "auditor3.carbonAccounting.com",
     "connection-auditor3.json"
   );
-  const fileExists = fs.existsSync(ccpPath);
+  const fileExists: boolean = fs.existsSync(ccpPath);
   if (!fileExists) {
     throw new Error(`no such file or directory: ${ccpPath}`);
   }
-  const contents = fs.readFileSync(ccpPath, "utf8");
+  const contents: string = fs.readFileSync(ccpPath, "utf8");
 
   // build a JSON object from the file contents
   const ccp = JSON.parse(contents);
@@ -119,7 +121,7 @@ export function prettyJSONString(inputString) {
 }
 
 export function setWalletPathByOrg(orgName) {
-  let walletPath = "";
+  let walletPath: string = "";
   console.log("OrgName: " + orgName);
   switch (orgName) {
     case "auditor1":

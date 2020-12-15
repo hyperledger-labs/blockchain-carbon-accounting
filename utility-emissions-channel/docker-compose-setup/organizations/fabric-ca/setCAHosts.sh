@@ -1,0 +1,2 @@
+export CA_1_HOST=auditor1.carbonAccounting.com
+export CA_2_HOST=auditor2.carbonAccounting.com

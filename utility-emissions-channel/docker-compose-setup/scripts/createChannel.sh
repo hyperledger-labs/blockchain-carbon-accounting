@@ -33,7 +33,7 @@ createChannelTx() {
 
 createAncorPeerTx() {
 
-	for orgmsp in auditor1 auditor2 auditor3; do
+	for orgmsp in auditor1 auditor2; do
 
 	echo "#######    Generating anchor peer update transaction for ${orgmsp}  ##########"
 	set -x
@@ -56,7 +56,7 @@ createChannel() {
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
 		sleep $DELAY
 		set -x
-		peer channel create -o localhost:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
+		peer channel create -o orderer1.auditor1.carbonAccounting.com:7050 -c $CHANNEL_NAME --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com -f ./channel-artifacts/${CHANNEL_NAME}.tx --outputBlock ./channel-artifacts/${CHANNEL_NAME}.block --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
 		res=$?
 		set +x
 		let rc=$res
@@ -99,7 +99,7 @@ updateAnchorPeers() {
 	while [ $rc -ne 0 -a $COUNTER -lt $MAX_RETRY ] ; do
     sleep $DELAY
     set -x
-		peer channel update -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
+		peer channel update -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
     res=$?
     set +x
 		let rc=$res
@@ -141,16 +141,16 @@ echo "Join Auditor1 peers to the channel..."
 joinChannel 1
 echo "Join Auditor2 peers to the channel..."
 joinChannel 2
-echo "Join Auditor3 peers to the channel..."
-joinChannel 3
+# echo "Join Auditor3 peers to the channel..."
+# joinChannel 3
 
 ## Set the anchor peers for each org in the channel
 echo "Updating anchor peers for Auditor1..."
 updateAnchorPeers 1
 echo "Updating anchor peers for Auditor2..."
 updateAnchorPeers 2
-echo "Updating anchor peers for Auditor3..."
-updateAnchorPeers 3
+# echo "Updating anchor peers for Auditor3..."
+# updateAnchorPeers 3
 
 echo
 echo "========= Channel successfully joined =========== "

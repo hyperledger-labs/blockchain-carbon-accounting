@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fabric-orderer1
+spec:
+  type: ClusterIP
+  ports:
+  - port: 7050
+    name: port-7050
+    targetPort: 7050
+  - port: 8443
+    name: port-8443
+    targetPort: 8443
+  selector:
+    app: fabric-orderer1
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fabric-orderer1
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: do-block-storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fabric-orderer1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fabric-orderer1
+  template:
+    metadata:
+      labels:
+        app: fabric-orderer1
+    spec:
+      containers:
+      - name: fabric-orderer1
+        image: hyperledger/fabric-orderer:2.2.1
+        ports:
+        - containerPort: 7050
+        - containerPort: 8443
+        env:
+        - name: FABRIC_LOGGING_SPEC
+          value: DEBUG
+          #value: INFO
+        - name: ORDERER_GENERAL_LISTENADDRESS
+          value: 0.0.0.0
+        - name: ORDERER_GENERAL_LISTENPORT
+          value: "7050"
+        - name: ORDERER_GENERAL_GENESISMETHOD
+          value: file
+        - name: ORDERER_GENERAL_GENESISFILE
+          value: /var/hyperledger/orderer/orderer.genesis.block
+        - name: ORDERER_GENERAL_LOCALMSPID
+          value: emitras
+        - name: ORDERER_GENERAL_LOCALMSPDIR
+          value: /var/hyperledger/orderer/crypto-material/msp
+        - name: ORDERER_GENERAL_TLS_ENABLED
+          value: "true"
+        - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+          value: /var/hyperledger/orderer/crypto-material/tls/server.key
+        - name: ORDERER_GENERAL_TLS_CERTIFICATE
+          value: /var/hyperledger/orderer/crypto-material/tls/server.crt
+        - name: ORDERER_GENERAL_TLS_ROOTCAS
+          value: "[/var/hyperledger/orderer/crypto-material/tls/ca.crt]"
+        - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+          value: /var/hyperledger/orderer/crypto-material/tls/server.crt
+        - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+          value: /var/hyperledger/orderer/crypto-material/tls/server.key
+        - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+          value: "[/var/hyperledger/orderer/crypto-material/tls/ca.crt]"
+        - name: ORDERER_OPERATIONS_LISTENADDRESS
+          value: 0.0.0.0:8443
+        - name: ORDERER_METRICS_PROVIDER
+          value: prometheus
+        # - name: 
+        #   value: 
+        volumeMounts:
+          # - name: cm-configtx-yaml
+          #   mountPath: /etc/hyperledger/fabric/configtx.yaml
+          #   subPath: configtx.yaml
+          - name: system-genesis-block
+            mountPath: /var/hyperledger/orderer/orderer.genesis.block
+            subPath: orderer.genesis.block
+          - name: fabric-orderer1-pvc
+            mountPath: /var/hyperledger/production
+            subPath: production
+          - name: fabric-orderer1-pvc
+            mountPath: /var/hyperledger/orderer/crypto-material
+            subPath: crypto-material
+
+      initContainers:
+        # Extract and mount crypto-config
+        - name: init-container-orderer
+          image: busybox
+          command: ['sh', '-c', 'tar zxvf /etc/orderer-secret-tgz/orderer1-crypto -C /var/hyperledger/orderer/crypto-material']
+          volumeMounts:
+              - name: orderer1-crypto
+                mountPath: /etc/orderer-secret-tgz
+              - name: fabric-orderer1-pvc
+                mountPath: /var/hyperledger/orderer/crypto-material
+                subPath: crypto-material
+          
+      volumes:
+      - configMap:
+          name: system-genesis-block
+        name: system-genesis-block
+      - secret:
+          secretName: orderer1-crypto
+        name: orderer1-crypto
+      - persistentVolumeClaim:
+          claimName: fabric-orderer1
+        name: fabric-orderer1-pvc
+

@@ -1,0 +1,13 @@
+exports.allTokenTypeId = [1, 2, 3];
+exports.quantity = 10;
+exports.transferAmount = 5;
+exports.retireAmount = 3;
+exports.issuerId = "issuer";
+exports.recipientId = "recipient";
+exports.uom = "uom";
+exports.fromDate = "1607463809";
+exports.thruDate = "1607463909";
+exports.metadata = "metaData";
+exports.manifest = "manifest";
+exports.description = "description";
+exports.automaticRetireDate = "1607464809";

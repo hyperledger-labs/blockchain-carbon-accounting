@@ -25,7 +25,7 @@ verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to u
 
 set -x
 echo invoke fcn call:${fcn_call}
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS -c ${fcn_call} >&log.txt
+peer chaincode invoke -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA -C $CHANNEL_NAME -n ${CC_NAME} $PEER_CONN_PARMS -c ${fcn_call} >&log.txt
 res=$?
 set +x
 cat log.txt

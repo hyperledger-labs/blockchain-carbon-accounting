@@ -1,0 +1,36 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  # Note: this is a trick to wait for both servers to be up before provisioning
+  # since ansible can provision both in // and same some time
+  N = 2
+  (1..N).each do |machine_id|
+    config.vm.define "server#{machine_id}" do |server|
+      server.vm.box = "bento/ubuntu-18.04"
+      server.vm.network "private_network", ip: "172.16.0.#{machine_id+1}"
+      if machine_id == 1
+        server.vm.hostname = "ServerA"
+      else
+        server.vm.hostname = "ServerB"
+      end
+      server.vm.provider "virtualbox" do |vb|
+        vb.linked_clone = true
+        if machine_id == 1
+          vb.memory = 3072
+        else
+          vb.memory = 2048
+        end
+        vb.cpus = 2
+      end
+
+      if machine_id == N
+        server.vm.provision "ansible" do |ansible|
+          ansible.limit = "all"
+          ansible.playbook = "provision-playbook.yml"
+        end
+      end
+    end
+  end
+end

@@ -3,6 +3,7 @@ import { log } from "../../utils/log";
 import { body, param, validationResult } from "express-validator";
 import { EmissionsContractInvoke } from "../../blockchain-gateway/utilityEmissionsChannel/emissionsContractInvoke";
 import { uploadToS3 } from "../../blockchain-gateway/utils/aws";
+import { Md5 } from "ts-md5/dist/md5";
 
 const APP_VERSION = "v1";
 export const router = express.Router();
@@ -56,6 +57,7 @@ router.post(
       const energyUseAmount = req.body.energyUseAmount;
       const energyUseUom = req.body.energyUseUom;
       let url = "";
+      let md5: string = "";
 
       // check for overlapping dates before uploading to s3
       const overlapResponse = await EmissionsContractInvoke.checkDateOverlap(
@@ -74,6 +76,7 @@ router.post(
           `${userId}-${orgName}-${utilityId}-${partyId}-${fromDate}-${thruDate}.pdf`
         );
         url = upload.Location;
+        md5 = Md5.hashStr(fileBin.toString()).toString();
       }
 
       console.log(`# RECORDING EMISSIONS DATA TO UTILITYEMISSIONS CHANNEL`);
@@ -88,7 +91,8 @@ router.post(
         thruDate,
         energyUseAmount,
         energyUseUom,
-        url
+        url,
+        md5
       );
 
       if (blockchainResponse["info"] === "EMISSION RECORDED TO LEDGER") {
@@ -158,7 +162,8 @@ router.get(GET_ALL_EMISSIONS_DATA, [param("userId").isString(), param("orgName")
 
     // Get Emmission Data from utilityEmissions Channel
     const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsData(userId, orgName, utilityId, partyId);
-    if (blockchainResponse.length > 0) {
+
+    if (Array.isArray(blockchainResponse)) {
       res.status(200).send(blockchainResponse);
     } else {
       res.status(409).send(blockchainResponse);

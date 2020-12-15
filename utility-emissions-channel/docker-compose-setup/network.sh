@@ -206,6 +206,7 @@ function createOrgs() {
     echo "##########################################################"
 
     set -x
+    # docker exec -d cli cryptogen generate --output="organizations"
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org1.yaml --output="organizations"
     res=$?
     set +x
@@ -219,6 +220,7 @@ function createOrgs() {
     echo "##########################################################"
 
     set -x
+    # docker exec -d cli cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
     cryptogen generate --config=./organizations/cryptogen/crypto-config-org2.yaml --output="organizations"
     res=$?
     set +x
@@ -232,6 +234,7 @@ function createOrgs() {
     echo "##########################################################"
 
     set -x
+    # docker exec -d cli cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
     cryptogen generate --config=./organizations/cryptogen/crypto-config-orderer.yaml --output="organizations"
     res=$?
     set +x
@@ -249,9 +252,8 @@ function createOrgs() {
     echo "##########################################################"
     echo "##### Generate certificates using Fabric CA's ############"
     echo "##########################################################"
-
-    IMAGE_TAG=${CA_IMAGETAG} docker-compose -f $COMPOSE_FILE_CA up -d 2>&1
-
+    # docker exec -d cli . organizations/fabric-ca/setCAHosts.sh
+    # docker exec -d cli . organizations/fabric-ca/registerEnroll.sh
     . organizations/fabric-ca/registerEnroll.sh
 
     sleep 5
@@ -260,25 +262,28 @@ function createOrgs() {
     echo "############ Create Auditor1 Identities ##################"
     echo "##########################################################"
 
+    # docker exec -d cli bash scripts/createAuditors.sh
+
     createAuditor1
 
     echo "##########################################################"
     echo "############ Create Auditor2 Identities ##################"
     echo "##########################################################"
 
+    # docker exec -it cli sh . organizations/fabric-ca/registerEnroll.sh && createAuditor2
     createAuditor2
+    # echo "##########################################################"
+    # echo "############ Create Auditor3 Identities ##################"
+    # echo "##########################################################"
 
-    echo "##########################################################"
-    echo "############ Create Auditor3 Identities ##################"
-    echo "##########################################################"
-
-    createAuditor3
+    # createAuditor3
 
   fi
 
   # echo
   # echo "Generate CCP files for Org1 and Org2"
   ./organizations/ccp-generate.sh
+  # docker exec -d cli ./organizations/ccp-generate.sh
 }
 
 # Once you create the organization crypto material, you need to create the
@@ -339,22 +344,16 @@ function createConsortium() {
 # Bring up the peer and orderer nodes using docker compose.
 function networkUp() {
 
-  checkPrereqs
+  # checkPrereqs
   # generate artifacts if they don't exist
   if [ ! -d "organizations/peerOrganizations" ]; then
     createOrgs
     createConsortium
   fi
 
-  COMPOSE_FILES="-f ${COMPOSE_FILE_BASE}"
+  # scripts/startAndConnectNetwork.sh
 
-  if [ "${DATABASE}" == "couchdb" ]; then
-    COMPOSE_FILES="${COMPOSE_FILES} -f ${COMPOSE_FILE_COUCH}"
-  fi
-
-  IMAGE_TAG=$IMAGETAG docker-compose ${COMPOSE_FILES} up -d 2>&1
-
-  docker ps -a
+  # docker ps -a
   if [ $? -ne 0 ]; then
     echo "ERROR !!!! Unable to start network"
     exit 1
@@ -377,12 +376,28 @@ function createChannel() {
   # more to create the channel creation transaction and the anchor peer updates.
   # configtx.yaml is mounted in the cli container, which allows us to use it to
   # create the channel artifacts
+  echo "Calling"
+  configtxgen
   scripts/createChannel.sh $CHANNEL_NAME $CLI_DELAY $MAX_RETRY $VERBOSE
   if [ $? -ne 0 ]; then
     echo "Error !!! Create channel failed"
     exit 1
   fi
 
+}
+
+function startCliContainer() {
+  echo "Starting the Cli container"
+  echo
+
+  scripts/startCliContainer.sh
+}
+
+function startCA() {
+  echo "Starting CA with environment Development"
+  echo
+
+  scripts/startCA.sh
 }
 
 ## Call the script to isntall and instantiate a chaincode on the channel
@@ -435,6 +450,7 @@ function stopBlockchainExplorer() {
 # Tear down running network
 function networkDown() {
   # stop org3 containers also in addition to org1 and org2, in case we were running sample to add org3
+  docker stop cli
   docker-compose -f $COMPOSE_FILE_BASE -f $COMPOSE_FILE_COUCH -f $COMPOSE_FILE_CA -f $COMPOSE_FILE_BLOCKCHAIN_EXPLORER down --volumes --remove-orphans
   # docker-compose -f $COMPOSE_FILE_COUCH_ORG3 -f $COMPOSE_FILE_ORG3 down --volumes --remove-orphans
   # Don't remove the generated artifacts -- note, the ledgers are always removed

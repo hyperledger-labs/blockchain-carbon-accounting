@@ -10,7 +10,15 @@ This project imports the Data from https://www.epa.gov/sites/production/files/20
 
 # Setup AWS credentials
 
-1. If running locally, set AWS_ENDPOINT in aws-config.js to http://localhost:8000. Otherwise, set to your respective dynamodb endpoint.
+### Running Locally
+
+1. If running locally, the only config change is to set AWS_ENDPOINT in aws-config.js to http://localhost:8001
+
+2. After following the seeding instructions under "Running the Code", set AWS_ENDPOINT back to "http://localdynamodb:8001"
+
+### Running Remotely
+
+1. If running remotely, set AWS_ENDPOINT in aws-config.js to your respective aws dynamodb endpoint.
 
 # Running the Code
 
