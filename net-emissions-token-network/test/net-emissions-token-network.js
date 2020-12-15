@@ -38,6 +38,10 @@ describe("Net Emissions Token Network", function() {
     let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
     expect(registerConsumer);
 
+    // check number of unique tokens before issuance
+    let numUniqueTokensBefore = await contract.getNumOfUniqueTokens()
+    .then((response) => expect(response).to.equal(0));
+
     let issue = await contract
       .connect(dealerAddress)
       .issue(
@@ -70,6 +74,10 @@ describe("Net Emissions Token Network", function() {
       );
     // Check to be certain mint did not return errors
     expect(issue2);
+
+    // check number of unique tokens after issuance
+    let numUniqueTokensAfter = await contract.getNumOfUniqueTokens()
+    .then((response) => expect(response).to.equal(2));
 
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
