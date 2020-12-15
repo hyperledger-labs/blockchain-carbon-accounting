@@ -1,0 +1,116 @@
+version: 1.4.9
+port: 7054
+debug: false
+crlsizelimit: 512000
+
+tls:
+  enabled: true
+  certfile:
+  keyfile:
+  clientauth:
+    type: noclientcert
+    certfiles:
+
+ca:
+  name: fabric-ca.opensolarx.com
+  keyfile:
+  certfile:
+  chainfile:
+
+crl:
+  expiry: 24h
+
+registry:
+  maxenrollments: -1
+
+  identities:
+    - name: admin
+      pass: uaz0veu4Vei2theNgi
+      type: client
+      affiliation: ''
+      attrs:
+        hf.Registrar.Roles: '*'
+        hf.Registrar.DelegateRoles: '*'
+        hf.Revoker: true
+        hf.IntermediateCA: true
+        hf.GenCRL: true
+        hf.Registrar.Attributes: '*'
+        hf.AffiliationMgr: true
+
+db:
+  type: sqlite3
+  datasource: fabric-ca-server.db
+  tls:
+    enabled: false
+    certfiles:
+    client:
+      certfile:
+      keyfile:
+
+affiliations:
+  opensolarx:
+    - department1
+    - department2
+signing:
+  default:
+    usage:
+      - digital signature
+    expiry: 8760h
+  profiles:
+    ca:
+      usage:
+        - cert sign
+        - crl sign
+      expiry: 43800h
+      caconstraint:
+        isca: true
+        maxpathlen: 0
+    tls:
+      usage:
+        - signing
+        - key encipherment
+        - server auth
+        - client auth
+        - key agreement
+      expiry: 8760h
+
+csr:
+  cn: fabric-ca.opensolarx.com
+  names:
+    - C: DE
+      ST: RLP
+      L: Mainz
+      O: emiTraS
+      OU:
+  hosts:
+    - fabric-ca.opensolarx.com
+  ca:
+    expiry: 131400h
+    pathlength: 1
+
+bccsp:
+  default: SW
+  sw:
+    hash: SHA2
+    security: 256
+    filekeystore:
+      keystore: msp/keystore
+
+cacount:
+cafiles:
+
+intermediate:
+  parentserver:
+    url:
+    caname:
+
+  enrollment:
+    hosts:
+    profile:
+    label:
+
+  tls:
+    certfiles:
+    client:
+      certfile:
+      keyfile:
