@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-import { Contract } from "@ethersproject/contracts";
-import { addresses, abis } from "@project/contracts";
+import { issue } from "../services/contract-functions";
 
 import SubmissionModal from "./submission-modal";
 
@@ -23,9 +22,9 @@ export default function IssueForm({ provider }) {
   const [uom, setUom] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [thruDate, setThruDate] = useState("");
+  const [automaticRetireDate, setAutomaticRetireDate] = useState("");
   const [metadata, setMetadata] = useState("");
   const [manifest, setManifest] = useState("");
-  const [automaticRetireDate, setAutomaticRetireDate] = useState("");
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
@@ -38,68 +37,19 @@ export default function IssueForm({ provider }) {
   function onUomChange(event) { setUom(event.target.value); };
   function onFromDateChange(event) { setFromDate(event._d); };
   function onThruDateChange(event) { setThruDate(event._d); };
+  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d) };
   function onMetadataChange(event) { setMetadata(event.target.value); };
   function onManifestChange(event) { setManifest(event.target.value); };
-  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d) };
   function onDescriptionChange(event) { setDescription(event.target.value); };
 
-  function toUnixTime(date) {
-    // Return date if not a Date object
-    if (Object.prototype.toString.call(date) !== '[object Date]')
-      return date;
-    return parseInt((date.getTime() / 1000).toFixed(0));
-  }
-
   function handleSubmit() {
-    submit(provider);
+    submit();
     setModalShow(true);
   }
 
-  // Helper function to prevent ambiguous failure message when dates aren't passed
-  function convertToZeroIfBlank(num) {
-    return parseInt(num) || 0;
-  }
-
-  async function submit(w3provider) {
-    let signer = w3provider.getSigner();
-    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-    let signed = await contract.connect(signer);
-    let issue_result;
-    try {
-      let issue_result_raw = await signed.issue(
-        address,
-        tokenTypeId,
-        quantity,
-        uom,
-        convertToZeroIfBlank(toUnixTime(fromDate)),
-        convertToZeroIfBlank(toUnixTime(thruDate)),
-        metadata,
-        manifest,
-        convertToZeroIfBlank(toUnixTime(automaticRetireDate)),
-        description
-      );
-
-      // Format success message
-      if (!issue_result_raw) {
-        issue_result = "Success! Transaction has been submitted to the network. Please check your dashboard to see issued tokens.";
-      }
-      
-    } catch (error) {
-      console.error("Error calling issue()");
-      console.error(["error.message: ", error.message]);
-
-      // Format error message
-      if (error.message.startsWith("resolver or addr is not configured for ENS name")) {
-        issue_result = "Error: Invalid address. Please enter a valid address of the format 0x000...";
-      } else if (error.message.startsWith("invalid BigNumber string (argument=\"value\"")) {
-        issue_result = "Error: Invalid quantity. Please enter a valid quantity of tokens to issue."
-      } else {
-        issue_result = error.message;
-      }
-
-    }
-    console.log(issue_result)
-    setResult(issue_result.toString());
+  async function submit() {
+    let result = await issue(provider, address, tokenTypeId, quantity, uom, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
+    setResult(result.toString());
   }
 
   const inputError = {
@@ -156,15 +106,19 @@ export default function IssueForm({ provider }) {
         <Form.Control type="input" placeholder="E.g. MWH, MtCO2e" value={uom} onChange={onUomChange} />
       </Form.Group>
       <Form.Row>
-      <Form.Group as={Col}>
-        <Form.Label>From date</Form.Label>
-        <Datetime onChange={onFromDateChange}/>
-      </Form.Group>
-      <Form.Group as={Col}>
-        <Form.Label>Through date</Form.Label>
-        <Datetime onChange={onThruDateChange}/>
-      </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>From date</Form.Label>
+          <Datetime onChange={onFromDateChange}/>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Through date</Form.Label>
+          <Datetime onChange={onThruDateChange}/>
+        </Form.Group>
       </Form.Row>
+      <Form.Group>
+        <Form.Label>Automatic retire date</Form.Label>
+        <Datetime onChange={onAutomaticRetireDateChange}/>
+      </Form.Group>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. Region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
@@ -172,10 +126,6 @@ export default function IssueForm({ provider }) {
       <Form.Group>
         <Form.Label>Manifest</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Automatic retire date</Form.Label>
-        <Datetime onChange={onAutomaticRetireDateChange}/>
       </Form.Group>
       <Form.Group>
         <Form.Label>Description</Form.Label>

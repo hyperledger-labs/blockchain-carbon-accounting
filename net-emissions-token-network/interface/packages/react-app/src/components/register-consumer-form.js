@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 
-import { Contract } from "@ethersproject/contracts";
-import { addresses, abis } from "@project/contracts";
+import { registerConsumer, unregisterConsumer } from "../services/contract-functions";
+
+import SubmissionModal from "./submission-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -10,49 +11,43 @@ import Col from 'react-bootstrap/Col';
 
 export default function RegisterConsumerForm({ provider }) {
 
+  const [modalShow, setModalShow] = useState(false);
+
   const [address, setAddress] = useState("");
   const [result, setResult] = useState("");
 
   function onAddressChange(event) { setAddress(event.target.value); };
 
-  async function register(w3provider) {
-    let signer = w3provider.getSigner();
-    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-    let signed = await contract.connect(signer);
-    let registerConsumer_result;
-    try {
-      let registerConsumer_result_raw = await signed.registerConsumer(
-        address
-      );
-      registerConsumer_result = registerConsumer_result_raw.message;
-    } catch (error) {
-      console.error("Error calling registerConsumer()")
-      registerConsumer_result = error.message;
-    }
-    console.log(registerConsumer_result)
-    setResult(registerConsumer_result.toString());
+  function handleRegister() {
+    register();
+    setModalShow(true);
   }
 
-  async function unregister(w3provider) {
-    let signer = w3provider.getSigner();
-    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-    let signed = await contract.connect(signer);
-    let unregisterConsumer_result;
-    try {
-      let registerConsumer_result_raw = await signed.unregisterConsumer(
-        address
-      );
-      unregisterConsumer_result = registerConsumer_result_raw.message;
-    } catch (error) {
-      console.error("Error calling registerConsumer()")
-      unregisterConsumer_result = error.message;
-    }
-    console.log(unregisterConsumer_result)
-    setResult(unregisterConsumer_result.toString());
+  function handleUnregister() {
+    unregister();
+    setModalShow(true);
+  }
+
+  async function register() {
+    let result = await registerConsumer(provider, address);
+    setResult(result.toString());
+  }
+
+  async function unregister() {
+    let result = await unregisterConsumer(provider, address);
+    setResult(result.toString());
   }
 
   return (
     <>
+
+      <SubmissionModal
+        show={modalShow}
+        title="Register/unregister consumer"
+        body={result}
+        onHide={() => {setModalShow(false); setResult("")} }
+      />
+
       <h2>Register/unregister consumer</h2>
       <Form.Group>
         <Form.Label>Address</Form.Label>
@@ -60,12 +55,12 @@ export default function RegisterConsumerForm({ provider }) {
       </Form.Group>
       <Row>
         <Col>
-          <Button variant="success" size="lg" block onClick={() => register(provider)}>
+          <Button variant="success" size="lg" block onClick={handleRegister}>
             Register
           </Button>
         </Col>
         <Col>
-          <Button variant="danger" size="lg" block onClick={() => unregister(provider)}>
+          <Button variant="danger" size="lg" block onClick={handleUnregister}>
             Unregister
           </Button>
         </Col>

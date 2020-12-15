@@ -1,45 +1,29 @@
 import React, { useState, useEffect } from "react";
 
-import { Contract } from "@ethersproject/contracts";
-import { addresses, abis } from "@project/contracts";
+import { getRoles, getNumOfUniqueTokens } from "../services/contract-functions";
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
 export default function Dashboard({ provider, signedInAddress }) {
+
+  async function fetchGetRoles() {
+    let result = await getRoles(provider, signedInAddress);
+    setRoles(result);
+    setFetchingRoles(false);
+  }
+
+  async function fetchGetNumOfUniqueTokens() {
+    let result = await getNumOfUniqueTokens(provider);
+    setNumOfUniqueTokens(parseInt(result._hex, 10));
+    setFetchingNumOfUniqueTokens(false);
+  }
 
   const [roles, setRoles] = useState("");
   const [numOfUniqueTokens, setNumOfUniqueTokens] = useState("");
   const [fetchingRoles, setFetchingRoles] = useState(false);
   const [fetchingNumOfUniqueTokens, setFetchingNumOfUniqueTokens] = useState(false);
-
-  async function getRoles(w3provider) {
-    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-    let roles;
-    try {
-      roles = await contract.getRoles(
-        signedInAddress,
-      );
-    } catch (error) {
-      roles = error.message;
-    }
-    setRoles(roles);
-    setFetchingRoles(false);
-  }
-
-  async function getNumOfUniqueTokens(w3provider) {
-    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-    let uniqueTokens;
-    try {
-      uniqueTokens = await contract.getNumOfUniqueTokens();
-    } catch (error) {
-      uniqueTokens = error.message;
-    }
-    setNumOfUniqueTokens(parseInt(uniqueTokens._hex, 10));
-    setFetchingNumOfUniqueTokens(false);
-  }
 
   function xOrCheck(value) {
     if (value) {
@@ -54,11 +38,11 @@ export default function Dashboard({ provider, signedInAddress }) {
     if (provider && signedInAddress) {
       if (!roles && !fetchingRoles) {
         setFetchingRoles(true);
-        getRoles(provider);
+        fetchGetRoles();
       }
       if (!numOfUniqueTokens && !fetchingNumOfUniqueTokens) {
         setFetchingNumOfUniqueTokens(true);
-        getNumOfUniqueTokens(provider);
+        fetchGetNumOfUniqueTokens();
       }
     }
     
