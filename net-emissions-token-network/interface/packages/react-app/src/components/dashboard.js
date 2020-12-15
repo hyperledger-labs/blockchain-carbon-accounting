@@ -6,26 +6,39 @@ import { addresses, abis } from "@project/contracts";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Spinner from 'react-bootstrap/Spinner';
 
-export default function Dashboard({ provider }) {
+export default function Dashboard({ provider, signedInAddress }) {
 
   const [roles, setRoles] = useState("");
+  const [numOfUniqueTokens, setNumOfUniqueTokens] = useState("");
   const [fetchingRoles, setFetchingRoles] = useState(false);
+  const [fetchingNumOfUniqueTokens, setFetchingNumOfUniqueTokens] = useState(false);
 
   async function getRoles(w3provider) {
     let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-    let roles_result;
+    let roles;
     try {
-      roles_result = await contract.getRoles(
-        // w3provider.address,
-        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      roles = await contract.getRoles(
+        signedInAddress,
       );
     } catch (error) {
-        roles_result = error.message;
+      roles = error.message;
     }
-    console.log(roles_result)
-    setRoles(roles_result);
+    setRoles(roles);
     setFetchingRoles(false);
+  }
+
+  async function getNumOfUniqueTokens(w3provider) {
+    let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+    let uniqueTokens;
+    try {
+      uniqueTokens = await contract.getNumOfUniqueTokens();
+    } catch (error) {
+      uniqueTokens = error.message;
+    }
+    setNumOfUniqueTokens(parseInt(uniqueTokens._hex, 10));
+    setFetchingNumOfUniqueTokens(false);
   }
 
   function xOrCheck(value) {
@@ -38,12 +51,18 @@ export default function Dashboard({ provider }) {
 
   useEffect(() => {
 
-    if (provider && !roles && !fetchingRoles) {
-      setFetchingRoles(true);
-      getRoles(provider);
+    if (provider && signedInAddress) {
+      if (!roles && !fetchingRoles) {
+        setFetchingRoles(true);
+        getRoles(provider);
+      }
+      if (!numOfUniqueTokens && !fetchingNumOfUniqueTokens) {
+        setFetchingNumOfUniqueTokens(true);
+        getNumOfUniqueTokens(provider);
+      }
     }
     
-  }, [provider])
+  }, [signedInAddress])
 
 
   return (
@@ -52,11 +71,8 @@ export default function Dashboard({ provider }) {
       <Row>
         <Col>
           <h4>Roles</h4>
-          {/*<Button variant="primary" onClick={() => getRoles(provider)}>
-            get roles
-          </Button>*/}
           <p>{roles}</p>
-          {roles && 
+          {roles ? 
             <table className="table-borderless">
               <tbody>
                 <tr>
@@ -81,9 +97,19 @@ export default function Dashboard({ provider }) {
                 </tr>
               </tbody>
             </table>
+            : 
+            <div className="text-center mt-3">
+              <Spinner animation="border" role="status">
+                <span className="sr-only">Loading...</span>
+              </Spinner>
+            </div>
           }
         </Col>
-        <Col><h4>Your balances</h4></Col>
+        <Col>
+          <h4>Your balances</h4>
+          <p>Number of unique tokens:</p>
+          <p>{numOfUniqueTokens}</p>
+        </Col>
         <Col><h4>Issued tokens</h4></Col>
       </Row>
     </>
