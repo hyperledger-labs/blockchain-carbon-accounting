@@ -51,7 +51,7 @@ function App() {
                 <Switch>
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
                   <Route path="/dashboard">
-                    <Dashboard provider={provider} />
+                    <Dashboard provider={provider} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
