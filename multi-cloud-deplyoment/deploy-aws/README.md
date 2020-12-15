@@ -1,34 +1,50 @@
-# Multi-cloud deployment of Hyperledger Fabric as a testNet for emissions accounting
+# AWS deployment of Hyperledger Fabric
 
-## DOCUMENT IN PROGRESS
+This is AWS specific deployment steps in addition to the main guide
 
-
-## Index
-   1. [Overview](README.md#1-overview)
-   2. [Architecture](README.md#2-architecture)
-   3. [Configuration](README.md#3-configuration)
-   4. [Start Hyperledger Fabric network](README.md#5-start-hyperledger-fabric-network)
-   5. [Monitor Hyperledger Fabric network](README.md#5-monitor-hyperledger-fabric-network)
-
-## 1. Overview
-This document describes how to get your Hyperledger Fabric infrastructure ready to run on Kubernetes and connect with different organizations that host their infrastructure in their own Kubernetes cluster. (as of 2020-12-09)
-
-## 2. Architecture
-tbd
 
 ## 3. Prerequisites
 #### 3.1 Domain Names
-1.1. Create subdomains for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
+1.1. Create subdomains on Route 53 for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
+
 1.2. Link subdomains to nginx ingress IP address ( at cluster management level) after you you started the nginx ingress as describe in step 3.2.
+
+AWS: set up Route 53 to have your domain pointed to the NLB
+
+`fabric-ca.emissionsaccounting.<your-domain>.           A.    ALIAS abf3d14967d6511e9903d12aa583c79b-e3b2965682e9fbde.elb.us-east-1.amazonaws.com `
+
+
 #### 3.2 Kubernetes
 You need to have a running Kubernetes cluster. You need to deploy one nginx ingress controller to your Kubernetes cluster. 
 
+###### Create namespaces
+
+```bash
+kubectl create -f ./namespace-fabric-ca.json
+kubectl create -f ./namespace-fabric-orderer.json
+kubectl create -f ./namespace-fabric-peer.json
+```
+
 ###### Nginx Controller Config
 Go to https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider and copy the `deploy.yaml` file to your filesystem according to your cloud provider.
-In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/opentaps/blockchain-carbon-accounting/blob/c20466ec19018fb1afac31c50e58455b9db7a944/multi-cloud-deplyoment/deploy-digitalocean/kubernetes-ingress-controller-deploy.yaml#L353) of the nginx ingress for DigitalOcean (do). 
+
+In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. 
+
+**For AWS you may use `/deploy-aws/ kubernetes-ingress-controller-deploy.yaml`**
+
+```sh
+kubectl apply -f ./deploy-aws/kubernetes-ingress-controller-deploy.yaml
+```
 
 ##### Ingress Service Config
-Next, you need to prepare your ingress to route the the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. As a starting point you can use `deploy-digitalocean/ingress-fabric-services-deployment.yaml´. 
+Next, you need to prepare your ingress to route the the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. 
+
+**For AWS you can use `/deploy-aws/ingress-fabric-services-deployment.yaml`**
+
+```sh
+kubectl apply -f /deploy-aws/ingress-fabric-services-deployment.yaml
+```
+
 Set the following values according to your setup:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
@@ -36,15 +52,11 @@ Set the following values according to your setup:
 - host: sudomain-to-fabric-orderer
 Of course, you can add additional rules for e.g. a second peer node.
 
-AWS: set up Route 53 to have your domain pointed to the NLB
-
-`fabric-ca.emissionsaccounting.<your-domain>.           A.    ALIAS abf3d14967d6511e9903d12aa583c79b-e3b2965682e9fbde.elb.us-east-1.amazonaws.com `
-
 ## 4. Start Hyperledger Fabric network
 #### 4.1. Crypto-material
 The following step to accomplish to start the multi-cloud Hyperledger Fabric network or even your organizations' infrastructure is to generate the crypto-material. We use fabric certificate authority (ca) for this. Each organization has its own fabric-ca.
 
-1. Configure `./fabric-config/fabric-ca-server-config.yaml`
+1. Configure `./deploy-aws/fabric-config/fabric-ca-server-config.yaml`
 change the values of:
 - fabric-ca-subdomain
 - ca-admin
@@ -53,11 +65,13 @@ change the values of:
 2. Create configmap
 Change value of namespace.
 ```shell
-kubectl create cm fabric-ca-server-config --from-file=./fabric-config/fabric-ca-server-config.yaml -n yournamespace
+kubectl create cm fabric-ca-server-config --from-file=./deploy-aws/fabric-config/fabric-ca-server-config.yaml -n fabric-ca
 ```
-3. Adjust the deployment configuration of `./deploy-digitalocean/fabric-ca-deplyoment.yaml` according to your cloud provider. 
+   3.  Adjust the deployment configuration of `./deploy-aws/fabric-ca-deployment.yaml`. 
 
-Take a closer look at the PVC section. On AWS you would need to create a static ebs volume.
+Take a closer look at the PVC section.
+
+On AWS you would need to create a static ebs volume.
 
 https://rtfm.co.ua/en/kubernetes-persistentvolume-and-persistentvolumeclaim-an-overview-with-examples/
 
@@ -65,48 +79,55 @@ https://rtfm.co.ua/en/kubernetes-persistentvolume-and-persistentvolumeclaim-an-o
 ```bash
 aws ec2 --profile <aws_profile> --region <us-west-2> create-volume --availability-zone <us-west-2a> --size 20
 ```
-Update `pv-static.yaml` with volumeID of created ebs
+Update `pv-static-ca.yaml` with volumeID of created ebs
 
 ```bash
-kubectl apply -f fabric-config/pv-static.yaml
+kubectl apply -f ./deploy-aws/pv-static-ca.yaml
 ```
 
 4. Start fabric-ca
-Change value of namespace.
 ```shell
-kubectl apply -f absolute-path-to-fabric-ca-deplyoment.yaml -n yournamespace
+kubectl apply -f ./deploy-aws/fabric-ca-deployment.yaml -n fabric-ca
 ```
 5. Copy fabric-ca tls certificate
-Get the name of the fabric-ca pod. Copy tls certificate to local file system. Change value of namespace.
+
+ - Get the name of the fabric-ca pod
+
+- Copy tls certificate to local file system
 ```shell
 # Export fabric ca client home; change <your-domain>, e.g., `emissionsaccounting.sampleOrg.de`
 
-mkdir -p ${PWD}/crypto-material/<your-domain>/fabric-ca
+mkdir -p ${PWD}/crypto-material/opensolarx.com/fabric-ca
 
-e.g. ${PWD}/crypto-material/${ORG_DOMAIN}/fabric-ca/tls-cert.pem
+export FABRIC_CA_CLIENT_HOME=${PWD}/crypto-material/opensolarx.com/fabric-ca
 
-export FABRIC_CA_CLIENT_HOME=${PWD}/crypto-material/
-<your-domain>/fabric-ca
+export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/opensolarx.com/fabric-ca/tls-cert.pem
 
-export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/<your-domain>/fabric-ca/tls-cert.pem
-
-# Returns all pods of yournamespace
-kubectl get pod -n yournamespace
+# Returns fabric-ca pod of yournamespce
+kubectl get pod -n fabric-ca | grep fabric-ca
 
 # Copy tls-cert.pem
-kubectl cp "<fabric-ca-pod>:/etc/hyperledger/fabric-ca-server/tls-cert.pem" "${FABRIC_CA_CLIENT_HOME}/tls-cert.pem" -n yournamespace
+kubectl cp "<fabric-ca-pod>:/etc/hyperledger/fabric-ca-server/tls-cert.pem" "${FABRIC_CA_CLIENT_HOME}/tls-cert.pem" -n fabric-ca
 ```
 6. Configure ingress (Skip this step if this already happened)
-Adjust the deployment configuration of `./deploy-digitalocean/ingress-fabric-services-deployment.yaml` 
+Adjust the deployment configuration of `./deploy-aws/ingress-fabric-services-deployment.yaml` 
 Change:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
+
+Apply deployment configuration.
 ```shell
-# Apply deployment configuration. Change path and namespace.
-kubectl apply -f absolute-path-to-fabric-services-ingress-deplyoment.yaml -n yournamespace
+kubectl apply -f ./deploy-aws/ingress-fabric-services-deploy.yaml -n fabric-ca
 ```
 7. Generate crypto-material
 Set input variables of `registerEnroll.sh` according to your organizations configuration
+
+Get fabric binaries
+
+```bash
+curl -sSL https://bit.ly/2ysbOFE | bash -s -- -d -s
+```
+
 Run the script
 ```shell
 ./registerEnroll.sh
@@ -119,13 +140,13 @@ NOTE: For testing purposes, change the values of `configtx.yaml` in fabric-confi
 - Name of the organization (sampleorg)
 - Subdomain of peer and orderer
 
-Changes the values accordingly your setup, e.g., `-n yournamespace`
+Changes the values accordingly your setup, e.g., `-n fabric-orderer`
 ```shell
 # use configtxgen to create orderer.genesis.block
 ./bin/configtxgen -profile MultiNodeEtcdRaft -channelID system-channel -outputBlock ./system-genesis-block/orderer.genesis.block -configPath ./fabric-config
 
 # create configmap of orderer.genesis.block
-kubectl create cm system-genesis-block  --from-file=./system-genesis-block/orderer.genesis.block -n yournamespce
+kubectl create cm system-genesis-block  --from-file=./system-genesis-block/orderer.genesis.block -n fabric-orderer
 ```
 
 2. Create secret of crypto-material
@@ -134,17 +155,26 @@ Next we need to create a secret that contains all the crypto-material of the ord
 mkdir tmp-crypto
 cd tmp-crypto
 # pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/orderers/fabric-orderer1.emissionsaccounting.yourdomain.com")
-tar -zcf "orderer1-crypto.tgz" -C "absolute path to fabric-orderer1.emissionsaccounting.yourdomain.com" .
+tar -zcf "orderer4-crypto.tgz" -C "absolute path to fabric-orderer1.emissionsaccounting.yourdomain.com" .
 
 # create secret of *.tgz file
-kubectl create secret generic orderer1-crypto --from-file=orderer1-crypto=orderer1-crypto.tgz -n yournamespace
+kubectl create secret generic orderer4-crypto --from-file=orderer4-crypto=orderer4-crypto.tgz -n fabric-orderer
 cd -
 ```
 
 3. Start orderer
 Now it's time to start the orderer. Apply `fabric-orderer-deplyoment.yaml`to your cluster.  
+
+Update `pv-static-orderer.yaml` with volumeID of created ebs
+
+```bash
+kubectl apply -f ./deploy-aws/pv-static-orderer.yaml
+```
+
+Run orderer deployment 
+
 ```shell
-kubectl apply -f absolute-path-to-fabric-orderer-deplyoment.yaml -n yournamespace
+kubectl apply -f ./deploy-aws/fabric-orderer-deployment.yaml -n fabric-orderer
 ```
 #### 4.3. Peer
 Now it's time to start (and test) the peer node. 
@@ -232,5 +262,3 @@ Run the command `peer channel join`
 Channels peers has joined: 
 utilityemissionchannel
 ```
-- 
-## 5. Monitor Hyperledger Fabric network
