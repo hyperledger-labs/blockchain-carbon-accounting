@@ -57,30 +57,13 @@ export default function Dashboard({ provider, signedInAddress }) {
           <h4>Roles</h4>
           <p>{roles}</p>
           {roles ? 
-            <table className="table-borderless">
-              <tbody>
-                <tr>
-                  <td><small>Owner</small></td>
-                  <td>{xOrCheck(roles[0])}</td>
-                </tr>
-                <tr>
-                  <td><small>Renewable Energy Certificate Dealer</small></td>
-                  <td>{xOrCheck(roles[1])}</td>
-                </tr>
-                <tr>
-                  <td><small>Carbon Emissions Offset Dealer</small></td>
-                  <td>{xOrCheck(roles[2])}</td>
-                </tr>
-                <tr>
-                  <td><small>Audited Emissions</small></td>
-                  <td>{xOrCheck(roles[3])}</td>
-                </tr>
-                <tr>
-                  <td><small>Consumer</small></td>
-                  <td>{xOrCheck(roles[4])}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div>
+              <small>Owner</small> {xOrCheck(roles[0])}<br/>
+              <small>Renewable Energy Certificate Dealer</small> {xOrCheck(roles[1])}<br/>
+              <small>Carbon Emissions Offset Dealer</small> {xOrCheck(roles[2])}<br/>
+              <small>Audited Emissions Dealer</small> {xOrCheck(roles[3])}<br/>
+              <small>Consumer</small> {xOrCheck(roles[4])}<br/>
+            </div>
             : 
             <div className="text-center mt-3">
               <Spinner animation="border" role="status">
