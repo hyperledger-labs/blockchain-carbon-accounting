@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     bytes32 public constant REGISTERED_REC_DEALER =
         keccak256("REGISTERED_REC_DEALER");
-    bytes32 public constant REGISTERED_CEO_DEALER =
-        keccak256("REGISTERED_CEO_DEALER");
-    bytes32 public constant REGISTERED_AE_DEALER =
-        keccak256("REGISTERED_AE_DEALER");
+    bytes32 public constant REGISTERED_OFFSET_DEALER =
+        keccak256("REGISTERED_OFFSET_DEALER");
+    bytes32 public constant REGISTERED_EMISSIONS_AUDITOR =
+        keccak256("REGISTERED_EMISSIONS_AUDITOR");
 
     bytes32 public constant REGISTERED_CONSUMER =
         keccak256("REGISTERED_CONSUMER");
@@ -72,15 +72,15 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     constructor() public ERC1155("localhost") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTERED_REC_DEALER, msg.sender);
-        _setupRole(REGISTERED_CEO_DEALER, msg.sender);
-        _setupRole(REGISTERED_AE_DEALER, msg.sender);
+        _setupRole(REGISTERED_OFFSET_DEALER, msg.sender);
+        _setupRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
     }
 
     modifier consumerOrDealer() {
         bool isConsumer = hasRole(REGISTERED_CONSUMER, msg.sender);
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, msg.sender);
-        bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, msg.sender);
-        bool isAeDealer = hasRole(REGISTERED_AE_DEALER, msg.sender);
+        bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, msg.sender);
+        bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
 
         require(
             isConsumer || isRecDealer || isCeoDealer || isAeDealer,
@@ -92,8 +92,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
     modifier onlyDealer() {
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, msg.sender);
-        bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, msg.sender);
-        bool isAeDealer = hasRole(REGISTERED_AE_DEALER, msg.sender);
+        bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, msg.sender);
+        bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
 
         require(
             isRecDealer || isCeoDealer || isAeDealer,
@@ -170,14 +170,14 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             totalRenewableEnergyCertificateAmount += quantity;
         } else if (tokenTypeId == 2) {
             require(
-                hasRole(REGISTERED_CEO_DEALER, msg.sender),
+                hasRole(REGISTERED_OFFSET_DEALER, msg.sender),
                 "You are not a Carbon Emissions Offset dealer."
             );
             tokenInfo.retired = false;
             totalCarbonEmissionsOffsetAmount += quantity;
         } else {
             require(
-                hasRole(REGISTERED_AE_DEALER, msg.sender),
+                hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender),
                 "You are not an Audited Emissions Amount dealer."
             );
             tokenInfo.retired = true;
@@ -279,8 +279,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      */
     function isDealerRegistered(address account) public view returns (bool) {
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
-        bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, account);
-        bool isAeDealer = hasRole(REGISTERED_AE_DEALER, account);
+        bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, account);
+        bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, account);
         if (isRecDealer || isCeoDealer || isAeDealer) return true;
         return false;
     }
@@ -308,8 +308,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     function getRoles(address account) external view returns (bool, bool, bool, bool, bool) {
         bool isOwner = hasRole(DEFAULT_ADMIN_ROLE, account);
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
-        bool isCeoDealer = hasRole(REGISTERED_CEO_DEALER, account);
-        bool isAeDealer = hasRole(REGISTERED_AE_DEALER, account);
+        bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, account);
+        bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, account);
         bool isConsumer = hasRole(REGISTERED_CONSUMER, account);
         return (isOwner, isRecDealer, isCeoDealer, isAeDealer, isConsumer);
     }
@@ -327,9 +327,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         if (tokenTypeId == 1) {
             grantRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
-            grantRole(REGISTERED_CEO_DEALER, account);
+            grantRole(REGISTERED_OFFSET_DEALER, account);
         } else if (tokenTypeId == 3) {
-            grantRole(REGISTERED_AE_DEALER, account);
+            grantRole(REGISTERED_EMISSIONS_AUDITOR, account);
         }
         grantRole(DEFAULT_ADMIN_ROLE, account); // @TODO: Remove me
         emit RegisteredDealer(account);
@@ -356,9 +356,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         if (tokenTypeId == 1) {
             super.revokeRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
-            super.revokeRole(REGISTERED_CEO_DEALER, account);
+            super.revokeRole(REGISTERED_OFFSET_DEALER, account);
         } else if (tokenTypeId == 3) {
-            super.revokeRole(REGISTERED_AE_DEALER, account);
+            super.revokeRole(REGISTERED_EMISSIONS_AUDITOR, account);
         }
         emit UnregisteredDealer(account);
     }
