@@ -9,7 +9,7 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-export default function RegisterConsumerForm({ provider }) {
+export default function AccessControlForm({ provider }) {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -43,7 +43,7 @@ export default function RegisterConsumerForm({ provider }) {
 
       <SubmissionModal
         show={modalShow}
-        title="Register/unregister consumer"
+        title="Manage roles"
         body={result}
         onHide={() => {setModalShow(false); setResult("")} }
       />

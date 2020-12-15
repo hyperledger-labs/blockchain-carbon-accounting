@@ -10,7 +10,7 @@ import Col from 'react-bootstrap/Col';
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
 import IssueForm from "./components/issue-form";
-import RegisterConsumerForm from "./components/register-consumer-form";
+import AccessControlForm from "./components/access-control-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect } from "wouter"
@@ -42,8 +42,8 @@ function App() {
             <Col sm={3}  className="mb-2">
               <Nav variant="pills" className="flex-column">
                 <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
-                <Link href="issue"><Nav.Link eventKey="mint">Issue</Nav.Link></Link>
-                <Link href="register-consumer"><Nav.Link eventKey="register-consumer">Register consumer</Nav.Link></Link>
+                <Link href="issue"><Nav.Link eventKey="mint">Issue tokens</Nav.Link></Link>
+                <Link href="access-control"><Nav.Link eventKey="access-control">Manage roles</Nav.Link></Link>
               </Nav>
             </Col>
             <Col sm={9}>
@@ -56,8 +56,8 @@ function App() {
                   <Route path="/issue">
                     <IssueForm provider={provider} />
                   </Route>
-                  <Route path="/register-consumer">
-                    <RegisterConsumerForm provider={provider} />
+                  <Route path="/access-control">
+                    <AccessControlForm provider={provider} />
                   </Route>
                 </Switch>
               </Tab.Content>

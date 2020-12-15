@@ -114,11 +114,11 @@ export default function IssueForm({ provider }) {
           <Form.Label>Through date</Form.Label>
           <Datetime onChange={onThruDateChange}/>
         </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Automatic retire date</Form.Label>
+          <Datetime onChange={onAutomaticRetireDateChange}/>
+        </Form.Group>
       </Form.Row>
-      <Form.Group>
-        <Form.Label>Automatic retire date</Form.Label>
-        <Datetime onChange={onAutomaticRetireDateChange}/>
-      </Form.Group>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. Region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
