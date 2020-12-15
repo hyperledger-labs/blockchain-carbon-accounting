@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: fabric-ca-ingress
+  namespace: fabric-ca
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+  # Route to fabric-ca
+  - host: fabric-ca.opensolarx.com
+    http:
+      paths:
+      - path: /
+        backend:
+            serviceName: fabric-ca
+            servicePort: 7054
+# Route to peer
+  - host: fabric-peer4.opensolarx.com
+    http:
+      paths:
+      - path: /
+        backend:
+            serviceName: fabric-peer4
+            servicePort: 7051
+  # Route to orderer
+  - host: fabric-orderer4.opensolarx.com
+    http:
+      paths:
+      - path: /
+        backend:
+            serviceName: fabric-orderer4
+            servicePort: 7050
