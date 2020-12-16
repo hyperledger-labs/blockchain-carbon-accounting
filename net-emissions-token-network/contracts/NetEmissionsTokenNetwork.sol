@@ -264,7 +264,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _tokenDetails[tokenId].retiredAmount += amount;
 
         if (_tokenDetails[tokenId].tokenTypeId == 1) {
-            totalRetiredCarbonEmissionsOffsetAmount += amount;
+            totalRetiredRenewableEnergyCertificateAmount += amount;
             totalRenewableEnergyCertificateAmount -= amount;
         } else if (_tokenDetails[tokenId].tokenTypeId == 2) {
             totalRetiredCarbonEmissionsOffsetAmount += amount;
@@ -464,7 +464,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         if (tokenTypeId == 1) {
             return (
                 totalRenewableEnergyCertificateAmount,
-                totalRetiredCarbonEmissionsOffsetAmount
+                totalRetiredRenewableEnergyCertificateAmount
             );
         } else if (tokenTypeId == 2) {
             return (
