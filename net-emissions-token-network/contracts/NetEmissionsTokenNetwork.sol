@@ -1,4 +1,5 @@
 pragma solidity ^0.6.2;
+pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view functions
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
@@ -476,5 +477,18 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                 totalRetiredAuditedEmissionsAmount
             );
         }
+    }
+
+    /**
+     * @dev returns the entire details of a given tokenId
+     * @param tokenId token to check
+     */
+    function getTokenDetails(uint256 tokenId)
+        external
+        view
+        returns (CarbonTokenDetails memory)
+    {
+        require(tokenExists(tokenId), "tokenId does not exist");
+        return _tokenDetails[tokenId];
     }
 }

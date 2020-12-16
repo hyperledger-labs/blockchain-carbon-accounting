@@ -141,6 +141,52 @@ describe("Net Emissions Token Network", function() {
       .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
   });
 
+  it("should return all token details when getTokenDetails() is called", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let ownerAddress = allAddresses[0];
+
+    let issue = await contract
+      .connect(ownerAddress)
+      .issue(
+        ownerAddress.address,
+        allTokenTypeId[1],
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop();
+    let tokenId = issueEvent.args[0].toNumber();
+    expect(tokenId).to.equal(1);
+
+    let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
+      // console.log(response)
+      expect(response.tokenId.toNumber()).to.equal(tokenId);
+      expect(response.issuer).to.equal(ownerAddress.address);
+      expect(response.issuee).to.equal(ownerAddress.address);
+      expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
+      expect(response.uom).to.equal(uom);
+      expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
+      expect(response.thruDate.toNumber()).to.equal(Number(thruDate));
+      expect(response.automaticRetireDate.toNumber()).to.equal(Number(automaticRetireDate));
+      expect(response.metadata).to.equal(metadata);
+      expect(response.manifest).to.equal(manifest);
+      expect(response.description).to.equal(description);
+    });
+
+  });
+
   it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
