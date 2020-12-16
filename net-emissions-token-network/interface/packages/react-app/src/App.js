@@ -10,6 +10,7 @@ import Col from 'react-bootstrap/Col';
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
 import IssueForm from "./components/issue-form";
+import RetireForm from "./components/retire-form";
 import AccessControlForm from "./components/access-control-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
@@ -42,7 +43,8 @@ function App() {
             <Col sm={3}  className="mb-2">
               <Nav variant="pills" className="flex-column">
                 <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
-                <Link href="issue"><Nav.Link eventKey="mint">Issue tokens</Nav.Link></Link>
+                <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+                <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
                 <Link href="access-control"><Nav.Link eventKey="access-control">Manage roles</Nav.Link></Link>
               </Nav>
             </Col>
@@ -55,6 +57,9 @@ function App() {
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
+                  </Route>
+                  <Route path="/retire">
+                    <RetireForm provider={provider} />
                   </Route>
                   <Route path="/access-control">
                     <AccessControlForm provider={provider} />
