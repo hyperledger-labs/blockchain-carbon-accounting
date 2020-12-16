@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { getRoles, getNumOfUniqueTokens, getBalance } from "../services/contract-functions";
+import { getRoles, getNumOfUniqueTokens, getBalance, getTokenType } from "../services/contract-functions";
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -28,8 +28,10 @@ export default function Dashboard({ provider, signedInAddress }) {
     let bal = [];
     for (let i = 1; i <= numOfUniqueTokens; i++) {
       let b = (await getBalance(provider, signedInAddress, i)).toNumber();
+      let tt = await getTokenType(provider, i);
       bal.push({
-        tokenId: i, 
+        tokenId: i,
+        tokenType: tt,
         balance: b
       });
     }
@@ -90,6 +92,7 @@ export default function Dashboard({ provider, signedInAddress }) {
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Type</th>
                 <th>Balance</th>
               </tr>
             </thead>
@@ -98,6 +101,7 @@ export default function Dashboard({ provider, signedInAddress }) {
                 balances.map((token) => (
                   <tr>
                     <td>{token.tokenId}</td>
+                    <td>{token.tokenType}</td>
                     <td>{token.balance}</td>
                   </tr>
                 ))

@@ -48,6 +48,17 @@ export async function getBalance(w3provider, address, tokenId) {
   return balance;
 }
 
+export async function getTokenType(w3provider, tokenId) {
+  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let tokenType;
+  try {
+    tokenType = await contract.getTokenType(tokenId);
+  } catch (error) {
+    tokenType = error.message;
+  }
+  return tokenType;
+}
+
 export async function issue(w3provider, address, tokenTypeId, quantity, uom, fromDate, thruDate, automaticRetireDate, metadata, manifest, description) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
