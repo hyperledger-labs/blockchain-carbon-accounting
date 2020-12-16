@@ -6,9 +6,6 @@ import Spinner from 'react-bootstrap/Spinner';
 
 export default function SubmissionModal(props) {
 
-  // Form inputs
-  const [address, setAddress] = useState("");
-
   return (
     <Modal
       {...props}
