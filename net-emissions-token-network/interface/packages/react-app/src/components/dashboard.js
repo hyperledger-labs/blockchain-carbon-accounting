@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { getRoles, getNumOfUniqueTokens } from "../services/contract-functions";
+import { getRoles, getNumOfUniqueTokens, getBalance } from "../services/contract-functions";
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -8,22 +8,35 @@ import Spinner from 'react-bootstrap/Spinner';
 
 export default function Dashboard({ provider, signedInAddress }) {
 
+  const [roles, setRoles] = useState("");
+  const [balances, setBalances] = useState([]);
+
+  const [fetchingRoles, setFetchingRoles] = useState(false);
+  const [fetchingBalances, setFetchingBalances] = useState(false);
+
   async function fetchGetRoles() {
     let result = await getRoles(provider, signedInAddress);
     setRoles(result);
     setFetchingRoles(false);
   }
 
-  async function fetchGetNumOfUniqueTokens() {
-    let result = await getNumOfUniqueTokens(provider);
-    setNumOfUniqueTokens(parseInt(result._hex, 10));
-    setFetchingNumOfUniqueTokens(false);
-  }
+  async function fetchBalances() {
+    // First, fetch number of unique tokens
+    let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
 
-  const [roles, setRoles] = useState("");
-  const [numOfUniqueTokens, setNumOfUniqueTokens] = useState("");
-  const [fetchingRoles, setFetchingRoles] = useState(false);
-  const [fetchingNumOfUniqueTokens, setFetchingNumOfUniqueTokens] = useState(false);
+    // Iterate over each tokenId and find balance of signed in address
+    let bal = [];
+    for (let i = 1; i <= numOfUniqueTokens; i++) {
+      let b = (await getBalance(provider, signedInAddress, i)).toNumber();
+      bal.push({
+        tokenId: i, 
+        balance: b
+      });
+    }
+
+    setBalances(bal);
+    setFetchingBalances(false);
+  }
 
   function xOrCheck(value) {
     if (value) {
@@ -40,9 +53,9 @@ export default function Dashboard({ provider, signedInAddress }) {
         setFetchingRoles(true);
         fetchGetRoles();
       }
-      if (!numOfUniqueTokens && !fetchingNumOfUniqueTokens) {
-        setFetchingNumOfUniqueTokens(true);
-        fetchGetNumOfUniqueTokens();
+      if ((balances !== []) && !fetchingBalances) {
+        setFetchingBalances(true);
+        fetchBalances();
       }
     }
     
@@ -55,7 +68,6 @@ export default function Dashboard({ provider, signedInAddress }) {
       <Row>
         <Col>
           <h4>Roles</h4>
-          <p>{roles}</p>
           {roles ? 
             <div>
               <small>Owner</small> {xOrCheck(roles[0])}<br/>
@@ -74,8 +86,24 @@ export default function Dashboard({ provider, signedInAddress }) {
         </Col>
         <Col>
           <h4>Your balances</h4>
-          <p>Number of unique tokens:</p>
-          <p>{numOfUniqueTokens}</p>
+          <table className="table table-sm">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {balances !== [] && 
+                balances.map((token) => (
+                  <tr>
+                    <td>{token.tokenId}</td>
+                    <td>{token.balance}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+            </table>
         </Col>
         <Col><h4>Issued tokens</h4></Col>
       </Row>

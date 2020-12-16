@@ -37,6 +37,17 @@ export async function getNumOfUniqueTokens(w3provider) {
   return uniqueTokens;
 }
 
+export async function getBalance(w3provider, address, tokenId) {
+  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let balance;
+  try {
+    balance = await contract.getBalance(address, tokenId);
+  } catch (error) {
+    balance = error.message;
+  }
+  return balance;
+}
+
 export async function issue(w3provider, address, tokenTypeId, quantity, uom, fromDate, thruDate, automaticRetireDate, metadata, manifest, description) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
