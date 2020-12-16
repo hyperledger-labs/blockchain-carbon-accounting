@@ -146,11 +146,19 @@ describe("Net Emissions Token Network", function() {
     const allAddresses = await ethers.getSigners();
 
     let ownerAddress = allAddresses[0];
+    let dealerAddress = allAddresses[1];
+    let consumerAddress = allAddresses[2];
+
+    let registerDealer = await contract.registerDealer(dealerAddress.address, allTokenTypeId[1]);
+    expect(registerDealer);
+
+    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    expect(registerConsumer);
 
     let issue = await contract
-      .connect(ownerAddress)
+      .connect(dealerAddress)
       .issue(
-        ownerAddress.address,
+        consumerAddress.address,
         allTokenTypeId[1],
         quantity,
         uom,
@@ -173,8 +181,8 @@ describe("Net Emissions Token Network", function() {
     let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
       // console.log(response)
       expect(response.tokenId.toNumber()).to.equal(tokenId);
-      expect(response.issuer).to.equal(ownerAddress.address);
-      expect(response.issuee).to.equal(ownerAddress.address);
+      expect(response.issuer).to.equal(dealerAddress.address);
+      expect(response.issuee).to.equal(consumerAddress.address);
       expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
       expect(response.uom).to.equal(uom);
       expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
@@ -184,7 +192,6 @@ describe("Net Emissions Token Network", function() {
       expect(response.manifest).to.equal(manifest);
       expect(response.description).to.equal(description);
     });
-
   });
 
   it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
@@ -650,7 +657,7 @@ describe("Net Emissions Token Network", function() {
     let tokenId = issueEvent.args[0].toNumber();
     expect(tokenId).to.equal(1);
 
-    // verify balance is all available to transfer, none is retired
+    // verify balance is all retired. None is available to transfer.\
     let balance = await contract
       .getBalance(consumerAddress.address, tokenId)
       .then((response) => expect(response.toString()).to.equal("0".toString()));
