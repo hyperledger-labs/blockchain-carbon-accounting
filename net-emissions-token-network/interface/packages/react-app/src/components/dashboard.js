@@ -2,11 +2,16 @@ import React, { useState, useEffect } from "react";
 
 import { getRoles, getNumOfUniqueTokens, getBalance, getTokenType } from "../services/contract-functions";
 
+import TokenInfoModal from "./token-info-modal";
+
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Spinner from 'react-bootstrap/Spinner';
 
 export default function Dashboard({ provider, signedInAddress }) {
+
+  const [modalShow, setModalShow] = useState(false);
+  const [selectedToken, setSelectedToken] = useState();
 
   const [roles, setRoles] = useState("");
   const [balances, setBalances] = useState([]);
@@ -18,6 +23,11 @@ export default function Dashboard({ provider, signedInAddress }) {
     let result = await getRoles(provider, signedInAddress);
     setRoles(result);
     setFetchingRoles(false);
+  }
+
+  function handleOpenTokenInfoModal(tokenId) {
+    setSelectedToken(tokenId);
+    setModalShow(true);
   }
 
   async function fetchBalances() {
@@ -66,6 +76,15 @@ export default function Dashboard({ provider, signedInAddress }) {
 
   return (
     <>
+
+      <TokenInfoModal
+        show={modalShow}
+        provider={provider}
+        token={selectedToken}
+        body="hello"
+        onHide={() => {setModalShow(false); setSelectedToken()} }
+      />
+
       <h2>Dashboard</h2>
       <Row>
         <Col>
@@ -100,7 +119,7 @@ export default function Dashboard({ provider, signedInAddress }) {
               {balances !== [] && 
                 balances.map((token) => (
                   <tr>
-                    <td>{token.tokenId}</td>
+                    <td><a href="#" onClick={() => handleOpenTokenInfoModal(token.tokenId)}>{token.tokenId}</a></td>
                     <td>{token.tokenType}</td>
                     <td>{token.balance}</td>
                   </tr>
