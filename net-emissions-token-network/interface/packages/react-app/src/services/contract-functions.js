@@ -124,3 +124,37 @@ export async function unregisterConsumer(w3provider, address) {
   }
   return unregisterConsumer_result;
 }
+
+export async function registerDealer(w3provider, address, tokenTypeId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let registerDealer_result;
+  try {
+    await signed.registerDealer(
+      address,
+      tokenTypeId
+    );
+    registerDealer_result = "Success! Transaction has been submitted to the network.";
+  } catch (error) {
+    registerDealer_result = error.message;
+  }
+  return registerDealer_result;
+}
+
+export async function unregisterDealer(w3provider, address, tokenTypeId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let unregisterDealer_result;
+  try {
+    await signed.unregisterDealer(
+      address,
+      tokenTypeId
+    );
+    unregisterDealer_result = "Success! Transaction has been submitted to the network.";
+  } catch (error) {
+    unregisterDealer_result = error.message;
+  }
+  return unregisterDealer_result;
+}
