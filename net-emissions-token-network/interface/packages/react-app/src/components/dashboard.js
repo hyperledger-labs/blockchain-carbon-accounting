@@ -50,7 +50,7 @@ export default function Dashboard({ provider, signedInAddress }) {
         });
       }
 
-      if (issuer == signedInAddress) {
+      if (issuer === signedInAddress) {
         myIssued.push({
           tokenId: i,
           tokenType: type,
@@ -137,8 +137,8 @@ export default function Dashboard({ provider, signedInAddress }) {
               </tr>
             </thead>
             <tbody>
-              {myBalances !== [] && 
-                myBalances.map((token) => (
+              {myIssuedTokens !== [] && 
+                myIssuedTokens.map((token) => (
                   <tr
                     key={token}
                     onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}
