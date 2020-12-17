@@ -11,7 +11,7 @@ import Spinner from 'react-bootstrap/Spinner';
 export default function Dashboard({ provider, signedInAddress }) {
 
   const [modalShow, setModalShow] = useState(false);
-  const [selectedToken, setSelectedToken] = useState();
+  const [selectedToken, setSelectedToken] = useState({});
 
   const [roles, setRoles] = useState("");
   const [balances, setBalances] = useState([]);
@@ -25,8 +25,12 @@ export default function Dashboard({ provider, signedInAddress }) {
     setFetchingRoles(false);
   }
 
-  function handleOpenTokenInfoModal(tokenId) {
-    setSelectedToken(tokenId);
+  function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenType) {
+    setSelectedToken({
+      id: tokenId, 
+      balance: tokenBalance,
+      type: tokenType
+    });
     setModalShow(true);
   }
 
@@ -82,7 +86,7 @@ export default function Dashboard({ provider, signedInAddress }) {
         provider={provider}
         token={selectedToken}
         body="hello"
-        onHide={() => {setModalShow(false); setSelectedToken()} }
+        onHide={() => {setModalShow(false); setSelectedToken({})} }
       />
 
       <h2>Dashboard</h2>
@@ -118,8 +122,8 @@ export default function Dashboard({ provider, signedInAddress }) {
             <tbody>
               {balances !== [] && 
                 balances.map((token) => (
-                  <tr>
-                    <td><a href="#" onClick={() => handleOpenTokenInfoModal(token.tokenId)}>{token.tokenId}</a></td>
+                  <tr key={token}>
+                    <td><a href="#" onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}>{token.tokenId}</a></td>
                     <td>{token.tokenType}</td>
                     <td>{token.balance}</td>
                   </tr>
