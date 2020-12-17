@@ -10,7 +10,6 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 
 ### Installation and use
 
-- First, install Hardhat globally with `npm install --save-dev hardhat`
 - Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
 - To test, run `npx hardhat test`
 - To compile, run `npx hardhat compile`
@@ -49,8 +48,7 @@ You should now be connected to your local testnet and be able to interact with c
 
 In the net-emissions-token-network contract, we currently support this functionality:
 
-- Defining a new token
-- Minting this token and verifying that it's type is valid
+- Issuing tokens and verifying that its type is valid
 - Registering/unregistering dealers
 - Registering/unregistering consumers
 - Transferring tokens
@@ -73,7 +71,7 @@ function registerConsumer( address account )
 After registering a consumer, the dealer will be able to issue this consumer a token with the issue function:
 
 ```bash
-function issue( address account, uint256 tokenId, uint256 quantity, string memory uom, string memory fromDate, string memory thruDate, string memory metadata, string memory manifest, string memory automaticRetireDate )
+function issue( address account, uint8 tokenTypeId, uint256 quantity, string memory uom, string memory fromDate, string memory thruDate, string memory automaticRetireDate, string memory metadata, string memory manifest, string memory description )
 ```
 
 Dealers and consumers may also be unregistered within the network. Only the contract owner can unregister a dealer:
@@ -98,7 +96,7 @@ First, the remixd plugin must be installed globally via NPM to create a volume f
 npm install -g remixd
 ```
 
-If you have not already, make sure Hardhat is installed globally to your machine (see above) and install the dependencies for the contract in the net-emissions-token-network directory:
+Install the dependencies for the contract in the net-emissions-token-network directory:
 
 ```bash
 npm install
