@@ -31,18 +31,27 @@ The interface is created using [create-eth-app](https://github.com/PaulRBerg/cre
 - To run on your local environment, run `yarn react-app:start`
 - To build, run `yarn react-app:build`
 
-### Connecting to local testnet
+### Connecting to local testnet with React application
 
 Hardhat implements its own Ethereum local testnet called Hardhat Network. In order to connect the interface to this local testnet:
 
 1. Install the [MetaMask extension](https://metamask.io/)
-2. Run the interface in `net-emissions-token-network/interface` with `yarn react-app:start`
-3. In a separate terminal, run the Hardhat Network in `net-emissions-token-network` with `npx hardhat node`
-4. In another separate terminal, deploy the contracts to the local Hardhat Network with `npx hardhat run --network localhost scripts/deploy.js`
-5. Back in the interface, press _Connect Wallet_ to connect to your MetaMask wallet
-6. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_
+2. After installing `node_modules` with `yarn install`, run the interface in `net-emissions-token-network/interface` with
+```bash
+yarn react-app:start
+```
+3. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
+```bash
+npx hardhat node
+```
+4. In a separate terminal, deploy the contracts in `net-emissions-token-network/` to the local Hardhat Network with:
+```bash
+npx hardhat run --network localhost scripts/deploy.js
+```
+5. Back in the browser, navigate to `localhost:3000`. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_.
+6. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
 
-You should now be connected to your local testnet and be able to interact with contracts deployed on it.
+You should now be connected to your local testnet and be able to interact with contracts deployed on it through the React application.
 
 ### Token User Flow
 
