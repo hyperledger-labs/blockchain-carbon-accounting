@@ -53,6 +53,8 @@ npx hardhat run --network localhost scripts/deploy.js
 
 You should now be connected to your local testnet and be able to interact with contracts deployed on it through the React application.
 
+_Note: When restarting the Hardhat Network after interacting with the contracts through MetaMask, it might be necessary to reset the account's transactions otherwise an error might occur due to the way Ethereum prevents double-counting transactions. To reset transaction history in MetaMask, click the account icon in the top right, go to Settings, Advanced, and Reset Account._
+
 ### Token User Flow
 
 In the net-emissions-token-network contract, we currently support this functionality:
