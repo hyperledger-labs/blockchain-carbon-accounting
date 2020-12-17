@@ -27,7 +27,6 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let ownerAddress = allAddresses[0];
     let dealerAddress = allAddresses[1];
     let consumerAddress = allAddresses[2];
 
@@ -145,7 +144,6 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let ownerAddress = allAddresses[0];
     let dealerAddress = allAddresses[1];
     let consumerAddress = allAddresses[2];
 
@@ -360,11 +358,11 @@ describe("Net Emissions Token Network", function() {
     let retireThree = await contract.retire(consumerAddress.address, tokenId + 2, retireAmount);
 
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let totalRetired = (retireAmount * 3).toString();
-    let expectedTotalAvailable = (quantity * 3 - totalRetired).toString();
+    let expectedTotalRetired = (retireAmount * 3).toString();
+    let expectedTotalAvailable = (quantity * 3 - expectedTotalRetired).toString();
     let allBalances = await contract
       .getBothBalanceByTokenId(allTokenTypeId[0])
-      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${totalRetired}`));
+      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${expectedTotalRetired}`));
 
     // verify other tokenTypeId balances are empty
     let allBalancesTwo = await contract
@@ -546,11 +544,11 @@ describe("Net Emissions Token Network", function() {
     let retireThree = await contract.retire(consumerAddress.address, tokenId + 2, retireAmount);
 
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let totalRetired = (retireAmount * 3).toString();
-    let expectedTotalAvailable = (quantity * 3 - totalRetired).toString();
+    let expectedTotalRetired = (retireAmount * 3).toString();
+    let expectedTotalAvailable = (quantity * 3 - expectedTotalRetired).toString();
     let allBalances = await contract
       .getBothBalanceByTokenId(allTokenTypeId[1])
-      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${totalRetired}`));
+      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${expectedTotalRetired}`));
 
     // verify other tokenTypeId balances are empty
     let allBalancesTwo = await contract
@@ -704,11 +702,11 @@ describe("Net Emissions Token Network", function() {
       );
 
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let totalRetired = (quantity * 3).toString();
+    let expectedTotalRetired = (quantity * 3).toString();
     let expectedTotalAvailable = "0";
     let allBalances = await contract
       .getBothBalanceByTokenId(allTokenTypeId[2])
-      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${totalRetired}`));
+      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${expectedTotalRetired}`));
 
     // verify other tokenTypeId balances are empty
     let allBalancesTwo = await contract
