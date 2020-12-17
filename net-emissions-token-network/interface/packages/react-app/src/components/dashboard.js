@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { getRoles, getNumOfUniqueTokens, getBalance, getTokenType, getIssuer } from "../services/contract-functions";
+import { getNumOfUniqueTokens, getBalance, getTokenType, getIssuer } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
@@ -18,14 +18,7 @@ export default function Dashboard({ provider, signedInAddress }) {
   const [myBalances, setMyBalances] = useState([]);
   const [myIssuedTokens, setMyIssuedTokens] = useState([]);
 
-  const [fetchingRoles, setFetchingRoles] = useState(false);
-  const [fetchingTokens, setFetchingBalances] = useState(false);
-
-  async function fetchGetRoles() {
-    let result = await getRoles(provider, signedInAddress);
-    setRoles(result);
-    setFetchingRoles(false);
-  }
+  const [fetchingTokens, setFetchingTokens] = useState(false);
 
   function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenType) {
     setSelectedToken({
@@ -48,6 +41,7 @@ export default function Dashboard({ provider, signedInAddress }) {
       let issuer = (await getIssuer(provider, i));
       let type = await getTokenType(provider, i);
 
+
       if (bal > 0) {
         myBal.push({
           tokenId: i,
@@ -68,35 +62,19 @@ export default function Dashboard({ provider, signedInAddress }) {
 
     setMyBalances(myBal);
     setMyIssuedTokens(myIssued);
-    setFetchingBalances(false);
-  }
-
-  function xOrCheck(value) {
-    if (value) {
-      return <span className="text-success">✔</span>;
-    } else {
-      return <span className="text-danger">✖</span>;
-    }
+    setFetchingTokens(false);
   }
 
   useEffect(() => {
 
     if (provider && signedInAddress) {
-      if (!roles && !fetchingRoles) {
-        setFetchingRoles(true);
-        fetchGetRoles();
-      }
       if ((myBalances !== []) && !fetchingTokens) {
-        setFetchingBalances(true);
+        setFetchingTokens(true);
         fetchBalances();
       }
     }
     
   }, [signedInAddress]);
-
-  // const pointerHover = {
-  //   cursor: 'pointer';
-  // }
 
   function pointerHover(e) {
     e.target.style.cursor = 'pointer';
@@ -115,25 +93,15 @@ export default function Dashboard({ provider, signedInAddress }) {
       />
 
       <h2>Dashboard</h2>
+
+      {fetchingTokens &&
+        <Spinner animation="border" role="status">
+          <span className="sr-only">Loading...</span>
+        </Spinner>
+      }
+      
+
       <Row>
-        <Col>
-          <h4>Roles</h4>
-          {roles ? 
-            <div>
-              <small>Owner</small> {xOrCheck(roles[0])}<br/>
-              <small>Renewable Energy Certificate Dealer</small> {xOrCheck(roles[1])}<br/>
-              <small>Carbon Emissions Offset Dealer</small> {xOrCheck(roles[2])}<br/>
-              <small>Audited Emissions Dealer</small> {xOrCheck(roles[3])}<br/>
-              <small>Consumer</small> {xOrCheck(roles[4])}<br/>
-            </div>
-            : 
-            <div className="text-center mt-3">
-              <Spinner animation="border" role="status">
-                <span className="sr-only">Loading...</span>
-              </Spinner>
-            </div>
-          }
-        </Col>
         <Col>
           <h4>Your balances</h4>
           <Table hover size="sm">

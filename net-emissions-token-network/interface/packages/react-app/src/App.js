@@ -20,7 +20,7 @@ import GET_TRANSFERS from "./graphql/subgraph";
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
-  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress] = useWeb3Modal();
+  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles] = useWeb3Modal();
 
   React.useEffect(() => {
     if (!loading && !error && data && data.transfers) {
@@ -35,6 +35,7 @@ function App() {
         loadWeb3Modal={loadWeb3Modal}
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         signedInAddress={signedInAddress}
+        roles={roles}
       />
       <Container className="mt-2">
 
@@ -53,7 +54,7 @@ function App() {
                 <Switch>
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
                   <Route path="/dashboard">
-                    <Dashboard provider={provider} signedInAddress={signedInAddress} />
+                    <Dashboard provider={provider} signedInAddress={signedInAddress} roles={roles} />
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
