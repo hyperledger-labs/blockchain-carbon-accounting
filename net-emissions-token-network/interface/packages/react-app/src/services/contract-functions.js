@@ -26,6 +26,19 @@ export async function getRoles(w3provider, address) {
   return roles;
 }
 
+export async function getIssuer(w3provider, tokenId) {
+  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let issuer;
+  try {
+    issuer = await contract.getIssuer(
+      tokenId,
+    );
+  } catch (error) {
+    issuer = error.message;
+  }
+  return issuer;
+}
+
 export async function getTokenDetails(w3provider, tokenId) {
   let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
   let details;

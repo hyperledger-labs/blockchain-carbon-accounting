@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 
-import { getRoles, getNumOfUniqueTokens, getBalance, getTokenType } from "../services/contract-functions";
+import { getRoles, getNumOfUniqueTokens, getBalance, getTokenType, getIssuer } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Spinner from 'react-bootstrap/Spinner';
+import Table from 'react-bootstrap/Table';
 
 export default function Dashboard({ provider, signedInAddress }) {
 
@@ -14,10 +15,11 @@ export default function Dashboard({ provider, signedInAddress }) {
   const [selectedToken, setSelectedToken] = useState({});
 
   const [roles, setRoles] = useState("");
-  const [balances, setBalances] = useState([]);
+  const [myBalances, setMyBalances] = useState([]);
+  const [myIssuedTokens, setMyIssuedTokens] = useState([]);
 
   const [fetchingRoles, setFetchingRoles] = useState(false);
-  const [fetchingBalances, setFetchingBalances] = useState(false);
+  const [fetchingTokens, setFetchingBalances] = useState(false);
 
   async function fetchGetRoles() {
     let result = await getRoles(provider, signedInAddress);
@@ -39,18 +41,33 @@ export default function Dashboard({ provider, signedInAddress }) {
     let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
 
     // Iterate over each tokenId and find balance of signed in address
-    let bal = [];
+    let myBal = [];
+    let myIssued = [];
     for (let i = 1; i <= numOfUniqueTokens; i++) {
-      let b = (await getBalance(provider, signedInAddress, i)).toNumber();
-      let tt = await getTokenType(provider, i);
-      bal.push({
-        tokenId: i,
-        tokenType: tt,
-        balance: b
-      });
+      let bal = (await getBalance(provider, signedInAddress, i)).toNumber();
+      let issuer = (await getIssuer(provider, i));
+      let type = await getTokenType(provider, i);
+
+      if (bal > 0) {
+        myBal.push({
+          tokenId: i,
+          tokenType: type,
+          balance: bal
+        });
+      }
+
+      if (issuer == signedInAddress) {
+        myIssued.push({
+          tokenId: i,
+          tokenType: type,
+          balance: bal
+        })
+      }
+      
     }
 
-    setBalances(bal);
+    setMyBalances(myBal);
+    setMyIssuedTokens(myIssued);
     setFetchingBalances(false);
   }
 
@@ -69,13 +86,21 @@ export default function Dashboard({ provider, signedInAddress }) {
         setFetchingRoles(true);
         fetchGetRoles();
       }
-      if ((balances !== []) && !fetchingBalances) {
+      if ((myBalances !== []) && !fetchingTokens) {
         setFetchingBalances(true);
         fetchBalances();
       }
     }
     
-  }, [signedInAddress])
+  }, [signedInAddress]);
+
+  // const pointerHover = {
+  //   cursor: 'pointer';
+  // }
+
+  function pointerHover(e) {
+    e.target.style.cursor = 'pointer';
+  }
 
 
   return (
@@ -111,28 +136,54 @@ export default function Dashboard({ provider, signedInAddress }) {
         </Col>
         <Col>
           <h4>Your balances</h4>
-          <table className="table table-sm">
+          <Table hover size="sm">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Type</th>
                 <th>Balance</th>
               </tr>
             </thead>
             <tbody>
-              {balances !== [] && 
-                balances.map((token) => (
-                  <tr key={token}>
-                    <td><a href="#" onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}>{token.tokenId}</a></td>
+              {myBalances !== [] && 
+                myBalances.map((token) => (
+                  <tr
+                    key={token}
+                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}
+                    onMouseOver={pointerHover}
+                  >
                     <td>{token.tokenType}</td>
                     <td>{token.balance}</td>
                   </tr>
                 ))
               }
             </tbody>
-            </table>
+            </Table>
         </Col>
-        <Col><h4>Issued tokens</h4></Col>
+        <Col>
+          <h4>Issued tokens</h4>
+          <Table hover size="sm">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              {myBalances !== [] && 
+                myBalances.map((token) => (
+                  <tr
+                    key={token}
+                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}
+                    onMouseOver={pointerHover}
+                  >
+                    <td>{token.tokenId}</td>
+                    <td>{token.tokenType}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </Table>
+        </Col>
       </Row>
     </>
   );
