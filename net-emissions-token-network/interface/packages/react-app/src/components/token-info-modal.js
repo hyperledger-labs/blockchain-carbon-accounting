@@ -59,83 +59,81 @@ export default function TokenInfoModal(props) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <p>
-          {tokenDetails === ""
-          ? <>
-              <div className="text-center mt-3">
-                <Spinner animation="border" role="status">
-                  <span className="sr-only">Loading...</span>
-                </Spinner>
-              </div>
-            </>
-          : <>
-              <Row className="text-center my-2">
-                <Col>
-                  <h3 className="text-secondary">ID</h3>
-                  <h1>{tokenDetails.tokenId}</h1>
-                </Col>
-                <Col>
-                  <h3 className="text-secondary">Type</h3>
-                  <h3>{props.token.type}</h3>
-                </Col>
-                <Col>
-                  <h3 className="text-secondary">Your Balance</h3>
-                  <h1>{props.token.balance}</h1>
-                </Col>
-              </Row>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Property</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Issuer</td>
-                    <td>{tokenDetails.issuer}</td>
-                  </tr>
-                  <tr>
-                    <td>Issuee</td>
-                    <td>{tokenDetails.issuee}</td>
-                  </tr>
-                  <tr>
-                    <td>Total retired amount</td>
-                    <td>{tokenDetails.retiredAmount}</td>
-                  </tr>
-                  <tr>
-                    <td>UOM</td>
-                    <td>{tokenDetails.uom}</td>
-                  </tr>
-                  <tr>
-                    <td>From date</td>
-                    <td>{tokenDetails.fromDate}</td>
-                  </tr>
-                  <tr>
-                    <td>Through date</td>
-                    <td>{tokenDetails.thruDate}</td>
-                  </tr>
-                  <tr>
-                    <td>Automatic retire date</td>
-                    <td>{tokenDetails.automaticRetireDate}</td>
-                  </tr>
-                  <tr>
-                    <td>Metadata</td>
-                    <td>{tokenDetails.metadata}</td>
-                  </tr>
-                  <tr>
-                    <td>Manifest</td>
-                    <td>{tokenDetails.manifest}</td>
-                  </tr>
-                  <tr>
-                    <td>Description</td>
-                    <td>{tokenDetails.description}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </>
-          }
-        </p>
+        {tokenDetails === ""
+        ? <>
+            <div className="text-center mt-3">
+              <Spinner animation="border" role="status">
+                <span className="sr-only">Loading...</span>
+              </Spinner>
+            </div>
+          </>
+        : <>
+            <Row className="text-center my-2">
+              <Col>
+                <h3 className="text-secondary">ID</h3>
+                <h1>{tokenDetails.tokenId}</h1>
+              </Col>
+              <Col>
+                <h3 className="text-secondary">Type</h3>
+                <h3>{props.token.type}</h3>
+              </Col>
+              <Col>
+                <h3 className="text-secondary">Your Balance</h3>
+                <h1>{props.token.balance}</h1>
+              </Col>
+            </Row>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Issuer</td>
+                  <td>{tokenDetails.issuer}</td>
+                </tr>
+                <tr>
+                  <td>Issuee</td>
+                  <td>{tokenDetails.issuee}</td>
+                </tr>
+                <tr>
+                  <td>Total retired amount</td>
+                  <td>{tokenDetails.retiredAmount}</td>
+                </tr>
+                <tr>
+                  <td>UOM</td>
+                  <td>{tokenDetails.uom}</td>
+                </tr>
+                <tr>
+                  <td>From date</td>
+                  <td>{tokenDetails.fromDate}</td>
+                </tr>
+                <tr>
+                  <td>Through date</td>
+                  <td>{tokenDetails.thruDate}</td>
+                </tr>
+                <tr>
+                  <td>Automatic retire date</td>
+                  <td>{tokenDetails.automaticRetireDate}</td>
+                </tr>
+                <tr>
+                  <td>Metadata</td>
+                  <td>{tokenDetails.metadata}</td>
+                </tr>
+                <tr>
+                  <td>Manifest</td>
+                  <td>{tokenDetails.manifest}</td>
+                </tr>
+                <tr>
+                  <td>Description</td>
+                  <td>{tokenDetails.description}</td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        }
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={props.onHide}>Close</Button>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 import { issue } from "../services/contract-functions";
+import { getTestRequest } from "../services/fabric-api";
 
 import SubmissionModal from "./submission-modal";
 
@@ -56,6 +57,17 @@ export default function IssueForm({ provider }) {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+  React.useEffect(() => {
+    
+    async function apiCall() {
+      let result = await getTestRequest("https://jsonplaceholder.typicode.com/todos/1");
+      console.log(result.data);
+    }
+
+    apiCall();
+
+  }, []);
 
   return (
     <>
