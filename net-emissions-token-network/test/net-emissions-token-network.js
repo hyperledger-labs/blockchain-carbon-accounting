@@ -312,7 +312,7 @@ describe("Net Emissions Token Network", function() {
       .getTokenRetiredAmount(tokenId)
       .then((response) => expect(response.toString()).to.equal(retireAmount.toString()));
 
-    // test to make sure token cannot be transferred without being a dealer
+    // test to make sure retired token balance cannot be transferred 
     try {
       let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
     } catch (err) {
@@ -498,7 +498,7 @@ describe("Net Emissions Token Network", function() {
       .getTokenRetiredAmount(tokenId)
       .then((response) => expect(response.toString()).to.equal(retireAmount.toString()));
 
-    // test to make sure token cannot be transferred without being a dealer
+    // test to make sure retired token cannot be transferred 
     try {
       let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
     } catch (err) {
