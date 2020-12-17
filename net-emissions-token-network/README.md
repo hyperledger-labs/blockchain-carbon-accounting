@@ -74,6 +74,32 @@ After registering a consumer, the dealer will be able to issue this consumer a t
 function issue( address account, uint8 tokenTypeId, uint256 quantity, string memory uom, string memory fromDate, string memory thruDate, string memory automaticRetireDate, string memory metadata, string memory manifest, string memory description )
 ```
 
+Tokens for carbon offsets and renewable energy certificates can be retired:
+
+```bash
+function retire(address account, uint256 tokenId, uint256 amount)
+```
+
+Audited emissions are considered retired as soon as they're issued.
+
+The non-retired balance can be transferred:
+
+```bash
+function transfer(address to, uint256 tokenId, uint256 value)
+```
+
+You can get the balance for your tokens with:
+
+```bash
+function getBothBalanceByTokenId(uint8 tokenTypeId)
+```
+
+which returns a key-value pair like this:
+
+    { "0": "uint256: 0", "1": "uint256: 100" }
+
+The `0` index is the available balance, and the `1` index is the retired balance.  You can also separately get available and retired balances with `getAvailableBalanceByTokenTypeId` and `getRetiredBalanceByTokenTypeId`.
+
 Dealers and consumers may also be unregistered within the network. Only the contract owner can unregister a dealer:
 
 ```bash
@@ -114,7 +140,7 @@ Find the "plugins" tab on the left of the IDE user interface. Select remixd and 
 
 Under localhost -> contracts, select NetEmissionsTokenNetwork.sol in the file explorer.
 
-Go to the compiler tab, change the compiler version to 0.6.2, and compile the contract.
+Go to the compiler tab, change the compiler version to 0.6.2, check the box for "optimize", and compile the contract.
 
 Next, select the "Deploy and run transactions tab", change the gas limit to "9999999", select "NetEmissionsTokenNetwork" from the drop down, and deploy the contract.
 
