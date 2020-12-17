@@ -141,7 +141,7 @@ describe("Net Emissions Token Network", function() {
       .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
   });
 
-  it("should return all token details when getTokenDetails() is called", async function() {
+  it("should return all token details correctly", async function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
@@ -191,6 +191,10 @@ describe("Net Emissions Token Network", function() {
       expect(response.metadata).to.equal(metadata);
       expect(response.manifest).to.equal(manifest);
       expect(response.description).to.equal(description);
+    });
+
+    let getIssuer = await contract.getIssuer(tokenId).then((response) => {
+      expect(response).to.equal(dealerAddress.address);
     });
   });
 

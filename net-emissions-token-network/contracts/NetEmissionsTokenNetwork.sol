@@ -480,6 +480,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
+     * @dev returns issuer of a given tokenId
+     * @param tokenId token to check
+     */
+    function getIssuer(uint256 tokenId)
+        external
+        view
+        returns (address)
+    {
+        require(tokenExists(tokenId), "tokenId does not exist");
+        return _tokenDetails[tokenId].issuer;
+    }
+
+    /**
      * @dev returns the entire details of a given tokenId
      * @param tokenId token to check
      */
