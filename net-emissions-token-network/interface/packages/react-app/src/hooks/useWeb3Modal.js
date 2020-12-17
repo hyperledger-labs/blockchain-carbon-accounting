@@ -3,6 +3,8 @@ import { Web3Provider } from "@ethersproject/providers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
+import { getRoles } from "../services/contract-functions";
+
 // Enter a valid infura key here to avoid being rate limited
 // You can get a key for free at https://infura.io/register
 const INFURA_ID = "INVALID_INFURA_KEY";
@@ -12,6 +14,7 @@ const NETWORK_NAME = "mainnet";
 function useWeb3Modal(config = {}) {
   const [provider, setProvider] = useState();
   const [signedInAddress, setSignedInAddress] = useState("");
+  const [roles, setRoles] = useState([]);
   const { autoLoad = true, infuraId = INFURA_ID, NETWORK = NETWORK_NAME } = config;
 
   // Web3Modal also supports many other wallets.
@@ -36,6 +39,10 @@ function useWeb3Modal(config = {}) {
     setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
+  async function fetchRoles() {
+    setRoles(await getRoles(provider, signedInAddress));
+  };
+
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
@@ -52,7 +59,11 @@ function useWeb3Modal(config = {}) {
     }
   }, [autoLoad, loadWeb3Modal, web3Modal.cachedProvider]);
 
-  return [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress];
+  useEffect(() => {
+    fetchRoles();
+  }, [signedInAddress]);
+
+  return [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles];
 }
 
 export default useWeb3Modal;

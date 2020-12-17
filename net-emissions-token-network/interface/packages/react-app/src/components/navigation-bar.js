@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
@@ -20,8 +20,24 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   );
 }
 
-export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress }) {
+export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles }) {
   
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    if (roles.length === 5 && role === "") {
+      if (roles[0] === true) {
+        setRole("Owner (superuser)");
+      } else if (roles[1] === true || roles[2] === true || roles[3] === true) {
+        setRole("Dealer");
+      } else if (roles[4] === true) {
+        setRole("Consumer");
+      } else {
+        setRole("Unregistered");
+      }
+    }
+  }, [roles]);
+
   function truncateAddress(addr) {
     let prefix = addr.substring(0,6);
     let suffix = addr.substring(addr.length - 4);
@@ -34,7 +50,10 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       <Navbar.Toggle />
       <Navbar.Collapse className="justify-content-end">
         {(signedInAddress !== "") &&
-          <span className="mr-2 text-secondary">Your address: {truncateAddress(signedInAddress)}</span>
+          <>
+            <span className="mr-3 text-success">{role}</span>
+            <span className="mr-2 text-secondary">{truncateAddress(signedInAddress)}</span>
+          </>
         }
         <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
       </Navbar.Collapse>
