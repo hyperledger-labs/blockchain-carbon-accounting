@@ -17,7 +17,6 @@ export default function SubmissionModal(props) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <p>
           {props.body === ""
           ? <>
               <div className="text-center mt-3">
@@ -26,8 +25,7 @@ export default function SubmissionModal(props) {
                 </Spinner>
               </div>
             </>
-          : props.body}
-        </p>
+          : <p>{props.body}</p>}
       </Modal.Body>
       <Modal.Footer>
         <Button onClick={props.onHide}>Close</Button>
