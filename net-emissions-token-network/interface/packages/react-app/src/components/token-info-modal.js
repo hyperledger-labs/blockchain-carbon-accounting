@@ -5,6 +5,8 @@ import { getTokenDetails } from "../services/contract-functions";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 export default function TokenInfoModal(props) {
 
@@ -13,7 +15,7 @@ export default function TokenInfoModal(props) {
 
   async function fetchTokenDetails() {
     // Fetch raw token details
-    let details_raw = await getTokenDetails(props.provider, props.token);
+    let details_raw = await getTokenDetails(props.provider, props.token.id);
 
     // Format token type ID
     let tokenType;
@@ -38,7 +40,7 @@ export default function TokenInfoModal(props) {
       tokenId: details_raw.tokenId,
       issuer: details_raw.issuer,
       issuee: details_raw.issuee,
-      tokenTypeId: tokenType,
+      // tokenTypeId: tokenType,
       uom: details_raw.uom,
       fromDate: fromDateObj.toLocaleString(),
       thruDate: thruDateObj.toLocaleString(),
@@ -53,7 +55,7 @@ export default function TokenInfoModal(props) {
   }
 
   useEffect(() => {
-    if (props.token && tokenDetails !== "") {
+    if (props.token.id && tokenDetails !== "") {
       setFetchingTokenDetails(true);
       fetchTokenDetails();
     }
@@ -81,6 +83,20 @@ export default function TokenInfoModal(props) {
               </div>
             </>
           : <>
+              <Row className="text-center my-2">
+                <Col>
+                  <h3 className="text-secondary">ID</h3>
+                  <h1>{tokenDetails.tokenId}</h1>
+                </Col>
+                <Col>
+                  <h3 className="text-secondary">Type</h3>
+                  <h3>{props.token.type}</h3>
+                </Col>
+                <Col>
+                  <h3 className="text-secondary">Your Balance</h3>
+                  <h1>{props.token.balance}</h1>
+                </Col>
+              </Row>
               <table className="table">
                 <thead>
                   <tr>
@@ -90,20 +106,12 @@ export default function TokenInfoModal(props) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>ID</td>
-                    <td>{(tokenDetails.tokenId)}</td>
-                  </tr>
-                  <tr>
                     <td>Issuer</td>
                     <td>{tokenDetails.issuer}</td>
                   </tr>
                   <tr>
                     <td>Issuee</td>
                     <td>{tokenDetails.issuee}</td>
-                  </tr>
-                  <tr>
-                    <td>Token type</td>
-                    <td>{tokenDetails.tokenTypeId}</td>
                   </tr>
                   <tr>
                     <td>UOM</td>
