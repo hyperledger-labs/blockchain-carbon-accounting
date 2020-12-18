@@ -37,19 +37,27 @@ Hardhat implements its own Ethereum local testnet called Hardhat Network. In ord
 
 1. Install the [MetaMask extension](https://metamask.io/)
 2. After installing `node_modules` with `yarn install`, run the interface in `net-emissions-token-network/interface` with
+
 ```bash
 yarn react-app:start
 ```
+
 3. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
+
 ```bash
 npx hardhat node
 ```
+
 4. In a separate terminal, deploy the contracts in `net-emissions-token-network/` to the local Hardhat Network with:
+
 ```bash
 npx hardhat run --network localhost scripts/deploy.js
 ```
-5. Back in the browser, navigate to `localhost:3000`. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_.
-6. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
+
+5. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_.
+6. Within the settings for localhost in metamask, be sure that the Chain Id is set to 1337.
+7. Back in the browser, navigate to `localhost:3000`.
+8. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
 
 You should now be connected to your local testnet and be able to interact with contracts deployed on it through the React application.
 
@@ -109,7 +117,7 @@ which returns a key-value pair like this:
 
     { "0": "uint256: 0", "1": "uint256: 100" }
 
-The `0` index is the available balance, and the `1` index is the retired balance.  You can also separately get available and retired balances with `getAvailableBalanceByTokenTypeId` and `getRetiredBalanceByTokenTypeId`.
+The `0` index is the available balance, and the `1` index is the retired balance. You can also separately get available and retired balances with `getAvailableBalanceByTokenTypeId` and `getRetiredBalanceByTokenTypeId`.
 
 Dealers and consumers may also be unregistered within the network. Only the contract owner can unregister a dealer:
 
