@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 
-import { getNumOfUniqueTokens, getBalance, getTokenType, getIssuer } from "../services/contract-functions";
+import { getNumOfUniqueTokens, balanceOf, getTokenType, getIssuer } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
-import Spinner from 'react-bootstrap/Spinner';
-import Table from 'react-bootstrap/Table';
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Spinner from "react-bootstrap/Spinner";
+import Table from "react-bootstrap/Table";
 
 export default function Dashboard({ provider, signedInAddress }) {
-
   const [modalShow, setModalShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState({});
 
@@ -22,9 +21,9 @@ export default function Dashboard({ provider, signedInAddress }) {
 
   function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenType) {
     setSelectedToken({
-      id: tokenId, 
+      id: tokenId,
       balance: tokenBalance,
-      type: tokenType
+      type: tokenType,
     });
     setModalShow(true);
   }
@@ -37,16 +36,15 @@ export default function Dashboard({ provider, signedInAddress }) {
     let myBal = [];
     let myIssued = [];
     for (let i = 1; i <= numOfUniqueTokens; i++) {
-      let bal = (await getBalance(provider, signedInAddress, i)).toNumber();
-      let issuer = (await getIssuer(provider, i));
+      let bal = (await balanceOf(provider, signedInAddress, i)).toNumber();
+      let issuer = await getIssuer(provider, i);
       let type = await getTokenType(provider, i);
-
 
       if (bal > 0) {
         myBal.push({
           tokenId: i,
           tokenType: type,
-          balance: bal
+          balance: bal,
         });
       }
 
@@ -54,10 +52,9 @@ export default function Dashboard({ provider, signedInAddress }) {
         myIssued.push({
           tokenId: i,
           tokenType: type,
-          balance: bal
-        })
+          balance: bal,
+        });
       }
-      
     }
 
     setMyBalances(myBal);
@@ -66,40 +63,38 @@ export default function Dashboard({ provider, signedInAddress }) {
   }
 
   useEffect(() => {
-
     if (provider && signedInAddress) {
-      if ((myBalances !== []) && !fetchingTokens) {
+      if (myBalances !== [] && !fetchingTokens) {
         setFetchingTokens(true);
         fetchBalances();
       }
     }
-    
   }, [signedInAddress]);
 
   function pointerHover(e) {
-    e.target.style.cursor = 'pointer';
+    e.target.style.cursor = "pointer";
   }
-
 
   return (
     <>
-
       <TokenInfoModal
         show={modalShow}
         provider={provider}
         token={selectedToken}
         body="hello"
-        onHide={() => {setModalShow(false); setSelectedToken({})} }
+        onHide={() => {
+          setModalShow(false);
+          setSelectedToken({});
+        }}
       />
 
       <h2>Dashboard</h2>
 
-      {fetchingTokens &&
+      {fetchingTokens && (
         <Spinner animation="border" role="status">
           <span className="sr-only">Loading...</span>
         </Spinner>
-      }
-      
+      )}
 
       <Row>
         <Col>
@@ -112,7 +107,7 @@ export default function Dashboard({ provider, signedInAddress }) {
               </tr>
             </thead>
             <tbody>
-              {myBalances !== [] && 
+              {myBalances !== [] &&
                 myBalances.map((token) => (
                   <tr
                     key={token}
@@ -122,10 +117,9 @@ export default function Dashboard({ provider, signedInAddress }) {
                     <td>{token.tokenType}</td>
                     <td>{token.balance}</td>
                   </tr>
-                ))
-              }
+                ))}
             </tbody>
-            </Table>
+          </Table>
         </Col>
         <Col>
           <h4>Issued tokens</h4>
@@ -137,7 +131,7 @@ export default function Dashboard({ provider, signedInAddress }) {
               </tr>
             </thead>
             <tbody>
-              {myIssuedTokens !== [] && 
+              {myIssuedTokens !== [] &&
                 myIssuedTokens.map((token) => (
                   <tr
                     key={token}
@@ -147,8 +141,7 @@ export default function Dashboard({ provider, signedInAddress }) {
                     <td>{token.tokenId}</td>
                     <td>{token.tokenType}</td>
                   </tr>
-                ))
-              }
+                ))}
             </tbody>
           </Table>
         </Col>
