@@ -378,20 +378,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         super.safeTransferFrom(msg.sender, to, tokenId, value, "0x00");
     }
 
-    /**
-     * @dev returns the balance of the account for the given token
-     * @param account address for which balance to be checked
-     * @param tokenId tokenId for the balance query
-     * Balance will be provided only for registered account
-     */
-    function getBalance(address account, uint256 tokenId)
-        external
-        view
-        returns (uint256)
-    {
-        return super.balanceOf(account, tokenId);
-    }
-
     function getAvailableAndRetired(address account, uint256 tokenId)
         external
         view

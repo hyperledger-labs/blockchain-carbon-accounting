@@ -316,13 +316,13 @@ describe("Net Emissions Token Network", function() {
     // verify available balance after transfer for consumer one
     let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
     let afterTransferBalances = await contract
-      .getBalance(consumerAddress.address, tokenId)
+      .balanceOf(consumerAddress.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
 
     // verify balances after transfer for consumer two
     let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
     let afterTransferBalancesConsumerTwo = await contract
-      .getBalance(consumerAddressTwo.address, tokenId)
+      .balanceOf(consumerAddressTwo.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
@@ -524,13 +524,13 @@ describe("Net Emissions Token Network", function() {
     // verify available balance after transfer for consumer one
     let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
     let afterTransferBalances = await contract
-      .getBalance(consumerAddress.address, tokenId)
+      .balanceOf(consumerAddress.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
 
     // verify balances after transfer for consumer two
     let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
     let afterTransferBalancesConsumerTwo = await contract
-      .getBalance(consumerAddressTwo.address, tokenId)
+      .balanceOf(consumerAddressTwo.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
