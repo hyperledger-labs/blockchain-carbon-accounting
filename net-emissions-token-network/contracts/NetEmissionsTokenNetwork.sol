@@ -1,4 +1,4 @@
-pragma solidity ^0.6.2;
+pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view functions
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -70,7 +70,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     event RegisteredDealer(address indexed account);
     event UnregisteredDealer(address indexed account);
 
-    constructor() public ERC1155("localhost") {
+    constructor() ERC1155("localhost") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(REGISTERED_REC_DEALER, msg.sender);
         _setupRole(REGISTERED_OFFSET_DEALER, msg.sender);
@@ -199,7 +199,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.thruDate = thruDate;
         tokenInfo.metadata = metadata;
         tokenInfo.manifest = manifest;
-        tokenInfo.dateCreated = now;
+        tokenInfo.dateCreated = block.timestamp;
         tokenInfo.automaticRetireDate = automaticRetireDate;
         tokenInfo.description = description;
 
