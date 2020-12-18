@@ -23,7 +23,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
      * issuer - Address of dealer issuing this token
-     * issuee - Address of dealer issuing this token
+     * issuee - Address of original issued recipient this token
      * uom - Unit of measurement
      * fromDate - Unix timestamp
      * thruDate - Unix timestamp
@@ -238,10 +238,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      *   Only contract owner can pause or resume tokens
      */
     function retire(
-        address account,
         uint256 tokenId,
         uint256 amount
-    ) external onlyDealer {
+    ) external consumerOrDealer {
         require(tokenExists(tokenId), "tokenId does not exist");
         require(
             (_tokenDetails[tokenId].retired == false),
@@ -250,7 +249,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _tokenDetails[tokenId].retired = true;
         _tokenDetails[tokenId].retiredAmount += amount;
 
-        super._burn(account, tokenId, amount);
+        super._burn(msg.sender, tokenId, amount);
     }
 
     /**
