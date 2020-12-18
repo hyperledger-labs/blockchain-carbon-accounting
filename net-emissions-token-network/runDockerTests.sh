@@ -12,4 +12,4 @@ echo "Using volumes for hardhat-test container: "
 echo
 echo $VOLUME
 
-docker run -it --rm --name hardhat-test -v $VOLUME:/net-emissions-token-network -w /net-emissions-token-network hardhat-test /bin/sh -c 'npx hardhat test'
+docker run -it --rm --name hardhat-test -v $VOLUME:/net-emissions-token-network -w /net-emissions-token-network hardhat-test /bin/sh -c 'npx hardhat test --verbose'
