@@ -246,7 +246,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             (_tokenDetails[tokenId].retired == false),
             "token is already retired"
         );
-        _tokenDetails[tokenId].retired = true;
         _tokenDetails[tokenId].retiredAmount += amount;
 
         super._burn(msg.sender, tokenId, amount);
