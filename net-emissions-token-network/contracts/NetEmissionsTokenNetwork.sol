@@ -383,7 +383,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         view
         returns (uint256, uint256)
     {
-        uint256 available = this.getBalance(account, tokenId);
+        uint256 available = super.balanceOf(account, tokenId);
         uint256 retired = this.getTokenRetiredAmount(tokenId);
         return (available, retired);
     }
