@@ -285,6 +285,15 @@ describe("Net Emissions Token Network", function() {
     let tokenId = issueEvent.args[0].toNumber();
     expect(tokenId).to.equal(1);
 
+    // Get available/retire balance before transfer
+    let expectedTotalAvailableBefore = quantity.toString();
+    let expectedTotalRetiredBefore = "0";
+    let beforeTransferBalanceAmount = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(`${expectedTotalAvailableBefore},${expectedTotalRetiredBefore}`)
+      );
+
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Renewable Energy Certificate");
@@ -304,15 +313,31 @@ describe("Net Emissions Token Network", function() {
       .transfer(consumerAddressTwo.address, tokenId, transferAmount);
     expect(transfer);
 
+    // verify available balance after transfer for consumer one
+    let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
+    let afterTransferBalances = await contract
+      .getBalance(consumerAddress.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
+
+    // verify balances after transfer for consumer two
+    let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
+    let afterTransferBalancesConsumerTwo = await contract
+      .getBalance(consumerAddressTwo.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
+
     // retire part of the balance
     let retire = await contract.retire(consumerAddress.address, tokenId, retireAmount);
 
-    // verify balance after retiring.  The available to transfer balance should be reduced and retired balance is increased
-    let afterRetireBalance = await contract
-      .getTokenRetiredAmount(tokenId)
-      .then((response) => expect(response.toString()).to.equal(retireAmount.toString()));
+    // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
+    let expectedTotalAvailableAfterRetire = transferAmount.toString();
+    let expectedTotalRetireAfterRetire = retireAmount.toString();
+    let afterRetireAndTransferBalance = await contract
+      .getAvailableAndRetired(consumerAddressTwo.address, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
+      );
 
-    // test to make sure retired token balance cannot be transferred 
+    // test to make sure retired token balance cannot be transferred
     try {
       let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
     } catch (err) {
@@ -357,21 +382,18 @@ describe("Net Emissions Token Network", function() {
     let retireTwo = await contract.retire(consumerAddress.address, tokenId + 1, retireAmount);
     let retireThree = await contract.retire(consumerAddress.address, tokenId + 2, retireAmount);
 
-    // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let expectedTotalRetired = (retireAmount * 3).toString();
-    let expectedTotalAvailable = (quantity * 3 - expectedTotalRetired).toString();
-    let allBalances = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[0])
-      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${expectedTotalRetired}`));
+    // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
+    let expectedAvailableTwo = (quantity - retireAmount).toString();
+    let expectedRetireTwo = retireAmount.toString();
+    let afterRetireTwo = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId + 1)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
-    // verify other tokenTypeId balances are empty
-    let allBalancesTwo = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[1])
-      .then((response) => expect(response.toString()).to.equal("0,0"));
-
-    let allBalancesThree = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[2])
-      .then((response) => expect(response.toString()).to.equal("0,0"));
+    let expectedAvailableThree = (quantity - retireAmount).toString();
+    let expectedRetireThree = retireAmount.toString();
+    let afterRetireThree = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId + 2)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
@@ -471,6 +493,15 @@ describe("Net Emissions Token Network", function() {
     let tokenId = issueEvent.args[0].toNumber();
     expect(tokenId).to.equal(1);
 
+    // Get available/retired balance before transfer
+    let expectedTotalAvailableBefore = quantity.toString();
+    let expectedTotalRetiredBefore = "0";
+    let beforeTransferBalanceAmount = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(`${expectedTotalAvailableBefore},${expectedTotalRetiredBefore}`)
+      );
+
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Carbon Emissions Offset");
@@ -490,15 +521,31 @@ describe("Net Emissions Token Network", function() {
       .transfer(consumerAddressTwo.address, tokenId, transferAmount);
     expect(transfer);
 
+    // verify available balance after transfer for consumer one
+    let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
+    let afterTransferBalances = await contract
+      .getBalance(consumerAddress.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
+
+    // verify balances after transfer for consumer two
+    let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
+    let afterTransferBalancesConsumerTwo = await contract
+      .getBalance(consumerAddressTwo.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
+
     // retire part of the balance
     let retire = await contract.retire(consumerAddress.address, tokenId, retireAmount);
 
-    // verify balance after retiring.  The available to transfer balance should be reduced and retired balance is increased
-    let afterRetireBalance = await contract
-      .getTokenRetiredAmount(tokenId)
-      .then((response) => expect(response.toString()).to.equal(retireAmount.toString()));
+    // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
+    let expectedTotalAvailableAfterRetire = transferAmount.toString();
+    let expectedTotalRetireAfterRetire = retireAmount.toString();
+    let afterRetireAndTransferBalance = await contract
+      .getAvailableAndRetired(consumerAddressTwo.address, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
+      );
 
-    // test to make sure retired token cannot be transferred 
+    // test to make sure retired token cannot be transferred
     try {
       let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
     } catch (err) {
@@ -543,21 +590,18 @@ describe("Net Emissions Token Network", function() {
     let retireTwo = await contract.retire(consumerAddress.address, tokenId + 1, retireAmount);
     let retireThree = await contract.retire(consumerAddress.address, tokenId + 2, retireAmount);
 
-    // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let expectedTotalRetired = (retireAmount * 3).toString();
-    let expectedTotalAvailable = (quantity * 3 - expectedTotalRetired).toString();
-    let allBalances = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[1])
-      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${expectedTotalRetired}`));
+    // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
+    let expectedAvailableTwo = (quantity - retireAmount).toString();
+    let expectedRetireTwo = retireAmount.toString();
+    let afterRetireTwo = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId + 1)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
-    // verify other tokenTypeId balances are empty
-    let allBalancesTwo = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[0])
-      .then((response) => expect(response.toString()).to.equal("0,0"));
-
-    let allBalancesThree = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[2])
-      .then((response) => expect(response.toString()).to.equal("0,0"));
+    let expectedAvailableThree = (quantity - retireAmount).toString();
+    let expectedRetireThree = retireAmount.toString();
+    let afterRetireThree = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId + 2)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
@@ -657,6 +701,13 @@ describe("Net Emissions Token Network", function() {
     let tokenId = issueEvent.args[0].toNumber();
     expect(tokenId).to.equal(1);
 
+    // Get available/retire balance
+    let expectedAvailable = "0";
+    let expectedRetire = quantity.toString();
+    let available = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
+
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
     expect(definedTokenType).to.equal("Audited Emissions");
@@ -702,20 +753,17 @@ describe("Net Emissions Token Network", function() {
       );
 
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let expectedTotalRetired = (quantity * 3).toString();
-    let expectedTotalAvailable = "0";
-    let allBalances = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[2])
-      .then((response) => expect(response.toString()).to.equal(`${expectedTotalAvailable},${expectedTotalRetired}`));
+    let expectedAvailableTwo = "0";
+    let expectedRetireTwo = quantity.toString();
+    let afterRetireTwo = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId + 1)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
-    // verify other tokenTypeId balances are empty
-    let allBalancesTwo = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[0])
-      .then((response) => expect(response.toString()).to.equal("0,0"));
-
-    let allBalancesThree = await contract
-      .getBothBalanceByTokenId(allTokenTypeId[1])
-      .then((response) => expect(response.toString()).to.equal("0,0"));
+    let expectedAvailableThree = "0";
+    let expectedRetireThree = quantity.toString();
+    let afterRetireThree = await contract
+      .getAvailableAndRetired(consumerAddress.address, tokenId + 2)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
     let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
