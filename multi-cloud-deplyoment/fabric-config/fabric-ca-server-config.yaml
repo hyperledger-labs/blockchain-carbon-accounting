@@ -12,7 +12,7 @@ tls:
     certfiles:
 
 ca:
-  name: <fabric-ca-subdomain>
+  name: fabric-ca-subdomain
   keyfile:
   certfile:
   chainfile:
@@ -24,8 +24,8 @@ registry:
   maxenrollments: -1
 
   identities:
-    - name: <ca-admin>
-      pass: <ca-admin-password>
+    - name: ca-admin
+      pass: ca-admin-password
       type: client
       affiliation: ''
       attrs:
@@ -66,7 +66,7 @@ ldap:
           value:
 
 affiliations:
-  <your organization>:
+  your-organization:
     - department1
     - department2
 signing:
@@ -93,15 +93,15 @@ signing:
       expiry: 8760h
 
 csr:
-  cn: <fabric-ca-subdomain>
+  cn: fabric-ca-subdomain
   names:
-    - C: DE
-      ST: RLP
-      L: Mainz
-      O: emiTraS
-      OU:
+    - C: US
+      ST: "North Carolina"
+      L:
+      O: Hyperledger
+      OU: Fabric
   hosts:
-    - <fabric-ca-subdomain>
+    - fabric-ca-subdomain
   ca:
     expiry: 131400h
     pathlength: 1
