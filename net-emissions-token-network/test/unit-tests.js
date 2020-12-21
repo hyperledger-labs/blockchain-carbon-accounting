@@ -192,4 +192,83 @@ describe("Net Emissions Token Network - Unit tests", function() {
       expect(response).to.equal(dealer.address);
     });
   });
+
+  it("should fail when retire is called incorrectly", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let dealer = allAddresses[1];
+    let consumer = allAddresses[2];
+    let consumerTwo = allAddresses[3];
+
+    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
+    expect(registerDealer);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
+    expect(registerConsumerTwo);
+
+    let issue = await contract
+      .connect(dealer)
+      .issue(
+        consumer.address,
+        allTokenTypeId[1],
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop();
+    let tokenId = issueEvent.args[0].toNumber();
+    expect(tokenId).to.equal(1);
+
+    // retire token that does not exist
+    try {
+      let retireFail = await contract.connect(consumer).retire((tokenId+1), retireAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+      );
+    }
+
+    // retire from wrong account
+    try {
+      let retireFail = await contract.connect(consumerTwo).retire((tokenId), retireAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You must be the original recipient of the token to retire"
+      );
+    }
+
+    // retire more than available balance
+    try {
+      let retireFail = await contract.connect(consumer).retire((tokenId), (quantity + 100));
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Not enough available balance to retire"
+      );
+    }
+
+    // retire correctly
+    let beforeRetireBalances = await contract
+      .getAvailableAndRetired(consumer.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(`${quantity},${0}`));
+    
+    let retire = await contract.connect(consumer).retire(tokenId, retireAmount);
+
+    let afterTransferBalances = await contract
+      .getAvailableAndRetired(consumer.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(`${(quantity - retireAmount)},${retireAmount}`));
+
+  });
+
 });
