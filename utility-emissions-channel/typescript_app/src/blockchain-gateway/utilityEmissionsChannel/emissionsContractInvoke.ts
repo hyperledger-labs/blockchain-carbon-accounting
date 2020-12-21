@@ -283,6 +283,92 @@ export class EmissionsContractInvoke {
     }
   }
 
+  static async getAllEmissionsDataByDateRange(userId: any, orgName: any, fromDate: string, thruDate: string) {
+    try {
+      let response: string = "";
+      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+
+      const walletPath: string = setWalletPathByOrg(orgName);
+      console.log("+++++++++++++++++ Walletpath: " + walletPath);
+      const wallet: Wallet = await buildWallet(Wallets, walletPath);
+
+      const gateway: Gateway = new Gateway();
+      try {
+        await gateway.connect(ccp, {
+          wallet,
+          identity: userId,
+          discovery: { enabled: true, asLocalhost: false },
+        });
+      } catch (err) {
+        response = `ERROR: ${err}`;
+        console.log(response);
+        return response;
+      }
+
+      const network: Network = await gateway.getNetwork("utilityemissionchannel");
+
+      const contract: Contract = network.getContract("emissionscontract");
+
+      // ###### Get Emissions Data ######
+      const blockchainResult: Buffer = await contract.evaluateTransaction(
+        "getAllEmissionsDataByDateRange",
+        fromDate,
+        thruDate
+      );
+      const stringResult: string = blockchainResult.toString();
+      const jsonResult: any = JSON.parse(stringResult);
+
+      // Disconnect from the gateway.
+      await gateway.disconnect();
+
+      // Return result
+      let all_emissions: any[] = [];
+      for (let emission_item of jsonResult) {
+        let result: Object = new Object();
+        let record = emission_item.Record;
+        if (record.url.length > 0) {
+          // compare md5 in ledger against one being returned in url
+          let incomingBinary = await downloadFromS3(
+            `${userId}-${orgName}-${record.utilityId}-${record.partyId}-${record.fromDate}-${record.thruDate}.pdf`
+          );
+          let incomingMd5 = Md5.hashStr(incomingBinary);
+          if (incomingMd5 != record.md5) {
+            throw new Error(
+              `The retrieved document ${record.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+            );
+          }
+        }
+
+        result["info"] = "UTILITY EMISSIONS DATA";
+        result["utilityId"] = record.utilityId;
+        result["partyId"] = record.partyId;
+        result["fromDate"] = record.fromDate;
+        result["thruDate"] = record.thruDate;
+        result["emissionsAmount"] = record.emissionsAmount;
+        result["emissionsUom"] = record.emissionsUom;
+        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
+        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
+        result["energyUseUom"] = record.energyUseUom;
+        result["factorSource"] = record.factorSource;
+        result["url"] = record.url;
+        result["md5"] = record.md5;
+
+        all_emissions.push(result);
+      }
+      console.log(all_emissions);
+      return all_emissions;
+    } catch (error) {
+      let result = new Object();
+      let all_emissions = [];
+
+      result["info"] = `Failed to evaluate transaction: ${error}`;
+
+      console.error(`Failed to evaluate transaction: ${error}`);
+      return all_emissions;
+      // process.exit(1);
+    }
+  }
+
   static async checkDateOverlap(
     userId: any,
     orgName: any,

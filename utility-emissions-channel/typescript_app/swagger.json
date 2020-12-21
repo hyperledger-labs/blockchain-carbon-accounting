@@ -157,6 +157,62 @@
         }
       }
     },
+    "/emissionscontract/getAllEmissionsDataByDateRange/{userId}/{orgName}/{fromDate}/{thruDate}": {
+      "get": {
+        "tags": ["emissionscontract"],
+        "summary": "Get all emissions data by a range of dates",
+        "description": "Get all emissions data by a range of dates",
+        "operationId": "getAllEmissionsDataByDateRange",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of User",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgName",
+            "in": "path",
+            "description": "Org that registered user",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fromDate",
+            "in": "path",
+            "description": "Starting date of the query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "thruDate",
+            "in": "path",
+            "description": "End date of the query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/allEmissionsData"
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
     "/registerEnroll/admin": {
       "post": {
         "tags": ["registerEnroll"],

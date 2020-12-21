@@ -30,6 +30,26 @@ class EmissionsList extends StateList {
   async getAllEmissionRecords(queryData) {
     return this.getAllState(queryData);
   }
+
+  async getAllEmissionsDataByDateRange(queryData) {
+    const allResults = [];
+    var stringQuery = `{"selector": {"fromDate": {"$gte": "${queryData.fromDate}"}, "thruDate": {"$lte": "${queryData.thruDate}"}}}`;
+    const iterator = await this.ctx.stub.getQueryResult(stringQuery);
+    let result = await iterator.next();
+    while (!result.done) {
+      const strValue = Buffer.from(result.value.value.toString()).toString("utf8");
+      let record;
+      try {
+        record = JSON.parse(strValue);
+      } catch (err) {
+        console.log(err);
+        record = strValue;
+      }
+      allResults.push({ Key: result.value.key, Record: record });
+      result = await iterator.next();
+    }
+    return JSON.stringify(allResults);
+  }
 }
 
 module.exports = EmissionsList;

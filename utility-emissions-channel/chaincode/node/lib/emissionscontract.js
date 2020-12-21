@@ -133,6 +133,16 @@ class EmissionsRecordContract extends Contract {
 
     return emissionsRecord;
   }
+
+  async getAllEmissionsDataByDateRange(ctx, fromDate, thruDate) {
+    let queryData = {
+      fromDate: fromDate,
+      thruDate: thruDate,
+    };
+    let emissionsRecord = await ctx.emissionsList.getAllEmissionsDataByDateRange(queryData);
+
+    return emissionsRecord;
+  }
 }
 
 module.exports = EmissionsRecordContract;
