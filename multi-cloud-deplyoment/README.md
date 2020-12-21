@@ -1,8 +1,5 @@
 # Multi-cloud deployment of Hyperledger Fabric as a testNet for emissions accounting
 
-## DOCUMENT IN PROGRESS
-
-
 ## Index
    1. [Overview](README.md#1-overview)
    2. [Architecture](README.md#2-architecture)
@@ -16,7 +13,11 @@ This document describes how to get your Hyperledger Fabric infrastructure ready 
 This readme file describes the deployment to a Kubernetes cluster hosted at Digital Ocean. If you want to deploy Hyperledger Fabric to AWS EKS follow the [instructions](./deploy-aws/README.md) in ./deploy-aws. 
 
 ## 2. Architecture
-tbd
+The following image shows a sample architecture of the multi-cloud deployment consisting of three organizations. The Hyperledger Fabric infrastructure of each organization is hosted separately in Kubernetes clusters.
+![Image of sample architecture](images/multi-cloud-deployment-utilityEmissionChannel.png)
+
+The following image gives a high-level overview of the components of each organizations' Kubernetes cluster.
+![Image of sample Kubernetes cluster](images/kubernetes-cluster-of-sampleOrg.png)
 
 ## 3. Prerequisites
 #### 3.1 Domain Names
