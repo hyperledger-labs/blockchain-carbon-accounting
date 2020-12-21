@@ -11,3 +11,10 @@ exports.metadata = "metaData";
 exports.manifest = "manifest";
 exports.description = "description";
 exports.automaticRetireDate = "1607464809";
+
+exports.deployContract = async function () {
+  const NetEmissions = await ethers.getContractFactory("NetEmissionsTokenNetwork");
+  const netEmissions = await NetEmissions.deploy();
+  await netEmissions.deployed();
+  return netEmissions;
+}
