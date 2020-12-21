@@ -329,13 +329,13 @@ describe("Net Emissions Token Network", function() {
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
-    let retire = await contract.retire(consumer.address, tokenId, retireAmount);
+    let retire = await contract.connect(consumer).retire(tokenId, retireAmount);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
-    let expectedTotalAvailableAfterRetire = transferAmount.toString();
+    let expectedTotalAvailableAfterRetire = (transferAmount - retireAmount).toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
     let afterRetireAndTransferBalance = await contract
-      .getAvailableAndRetired(consumerTwo.address, tokenId)
+      .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
       );
@@ -345,7 +345,7 @@ describe("Net Emissions Token Network", function() {
       let transferRetired = await contract.transfer(consumer.address, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token is retired. Transfer is not permitted"
+        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
       );
     }
 
@@ -382,8 +382,8 @@ describe("Net Emissions Token Network", function() {
 
     // retire some of the newly issued tokens
 
-    let retireTwo = await contract.retire(consumer.address, tokenId + 1, retireAmount);
-    let retireThree = await contract.retire(consumer.address, tokenId + 2, retireAmount);
+    let retireTwo = await contract.connect(consumer).retire(tokenId + 1, retireAmount);
+    let retireThree = await contract.connect(consumer).retire(tokenId + 2, retireAmount);
 
     // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
     let expectedAvailableTwo = (quantity - retireAmount).toString();
@@ -537,13 +537,13 @@ describe("Net Emissions Token Network", function() {
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
-    let retire = await contract.retire(consumer.address, tokenId, retireAmount);
+    let retire = await contract.connect(consumer).retire(tokenId, retireAmount);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
-    let expectedTotalAvailableAfterRetire = transferAmount.toString();
+    let expectedTotalAvailableAfterRetire = (transferAmount - retireAmount).toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
     let afterRetireAndTransferBalance = await contract
-      .getAvailableAndRetired(consumerTwo.address, tokenId)
+      .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
       );
@@ -553,7 +553,7 @@ describe("Net Emissions Token Network", function() {
       let transferRetired = await contract.transfer(consumer.address, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token is retired. Transfer is not permitted"
+        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
       );
     }
 
@@ -590,8 +590,8 @@ describe("Net Emissions Token Network", function() {
 
     // retire some of the newly issued tokens
 
-    let retireTwo = await contract.retire(consumer.address, tokenId + 1, retireAmount);
-    let retireThree = await contract.retire(consumer.address, tokenId + 2, retireAmount);
+    let retireTwo = await contract.connect(consumer).retire(tokenId + 1, retireAmount);
+    let retireThree = await contract.connect(consumer).retire(tokenId + 2, retireAmount);
 
     // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
     let expectedAvailableTwo = (quantity - retireAmount).toString();
@@ -705,8 +705,8 @@ describe("Net Emissions Token Network", function() {
     expect(tokenId).to.equal(1);
 
     // Get available/retire balance
-    let expectedAvailable = "0";
-    let expectedRetire = quantity.toString();
+    let expectedAvailable = quantity.toString();
+    let expectedRetire = "0";
     let available = await contract
       .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
@@ -720,7 +720,7 @@ describe("Net Emissions Token Network", function() {
       let transferRetired = await contract.transfer(consumer.address, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token is retired. Transfer is not permitted"
+        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
       );
     }
 
@@ -756,14 +756,14 @@ describe("Net Emissions Token Network", function() {
       );
 
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let expectedAvailableTwo = "0";
-    let expectedRetireTwo = quantity.toString();
+    let expectedAvailableTwo = quantity.toString();
+    let expectedRetireTwo = "0";
     let afterRetireTwo = await contract
       .getAvailableAndRetired(consumer.address, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
-    let expectedAvailableThree = "0";
-    let expectedRetireThree = quantity.toString();
+    let expectedAvailableThree = quantity.toString();
+    let expectedRetireThree = "0";
     let afterRetireThree = await contract
       .getAvailableAndRetired(consumer.address, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
