@@ -55,9 +55,10 @@ npx hardhat run --network localhost scripts/deploy.js
 ```
 
 5. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_.
-6. Within the settings for localhost in metamask, be sure that the Chain Id is set to 1337.
+6. Within the settings for localhost in MetaMask, be sure that the Chain ID is set to 1337.
 7. Back in the browser, navigate to `localhost:3000`.
 8. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
+9. To test with different accounts, copy the private key(s) in the terminal window where the Hardhat Network is running and import them in MetaMask after clicking the account icon then Import Account. Refresh the page after selecting a new account.
 
 You should now be connected to your local testnet and be able to interact with contracts deployed on it through the React application.
 
