@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { getNumOfUniqueTokens, balanceOf, getTokenType, getIssuer } from "../services/contract-functions";
+import { getNumOfUniqueTokens, getAvailableAndRetired, getTokenType, getIssuer } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
@@ -19,10 +19,11 @@ export default function Dashboard({ provider, signedInAddress }) {
 
   const [fetchingTokens, setFetchingTokens] = useState(false);
 
-  function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenType) {
+  function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenRetiredBalance, tokenType) {
     setSelectedToken({
       id: tokenId,
       balance: tokenBalance,
+      retired: tokenRetiredBalance,
       type: tokenType,
     });
     setModalShow(true);
@@ -36,23 +37,25 @@ export default function Dashboard({ provider, signedInAddress }) {
     let myBal = [];
     let myIssued = [];
     for (let i = 1; i <= numOfUniqueTokens; i++) {
-      let bal = (await balanceOf(provider, signedInAddress, i)).toNumber();
+      let bal = (await getAvailableAndRetired(provider, signedInAddress, i));
       let issuer = await getIssuer(provider, i);
       let type = await getTokenType(provider, i);
 
-      if (bal > 0) {
+      if (bal[0].toNumber() > 0) {
         myBal.push({
           tokenId: i,
           tokenType: type,
-          balance: bal,
+          balance: bal[0].toNumber(),
+          retired: bal[1].toNumber()
         });
       }
 
-      if (issuer === signedInAddress) {
+      if (issuer.toLowerCase() === signedInAddress.toLowerCase()) {
         myIssued.push({
           tokenId: i,
           tokenType: type,
-          balance: bal,
+          balance: bal[0].toNumber(),
+          retired: bal[1].toNumber()
         });
       }
     }
@@ -104,6 +107,7 @@ export default function Dashboard({ provider, signedInAddress }) {
               <tr>
                 <th>Type</th>
                 <th>Balance</th>
+                <th>Retired</th>
               </tr>
             </thead>
             <tbody>
@@ -111,11 +115,12 @@ export default function Dashboard({ provider, signedInAddress }) {
                 myBalances.map((token) => (
                   <tr
                     key={token}
-                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}
+                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
                     onMouseOver={pointerHover}
                   >
                     <td>{token.tokenType}</td>
                     <td>{token.balance}</td>
+                    <td>{token.retired}</td>
                   </tr>
                 ))}
             </tbody>
@@ -135,7 +140,7 @@ export default function Dashboard({ provider, signedInAddress }) {
                 myIssuedTokens.map((token) => (
                   <tr
                     key={token}
-                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.tokenType)}
+                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
                     onMouseOver={pointerHover}
                   >
                     <td>{token.tokenId}</td>

@@ -26,7 +26,6 @@ export default function TokenInfoModal(props) {
       tokenId: details_raw.tokenId,
       issuer: details_raw.issuer,
       issuee: details_raw.issuee,
-      retiredAmount: details_raw.retiredAmount.toNumber(),
       uom: details_raw.uom,
       fromDate: fromDateObj.toLocaleString(),
       thruDate: thruDateObj.toLocaleString(),
@@ -81,6 +80,10 @@ export default function TokenInfoModal(props) {
                 <h3 className="text-secondary">Your Balance</h3>
                 <h1>{props.token.balance}</h1>
               </Col>
+              <Col>
+                <h3 className="text-secondary">Retired</h3>
+                <h1>{props.token.retired}</h1>
+              </Col>
             </Row>
             <table className="table">
               <thead>
@@ -97,10 +100,6 @@ export default function TokenInfoModal(props) {
                 <tr>
                   <td>Issuee</td>
                   <td>{tokenDetails.issuee}</td>
-                </tr>
-                <tr>
-                  <td>Total retired amount</td>
-                  <td>{tokenDetails.retiredAmount}</td>
                 </tr>
                 <tr>
                   <td>UOM</td>
