@@ -1,17 +1,20 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view functions
 
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 
 contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
+    
+    using SafeMath for uint256;
+
     bytes32 public constant REGISTERED_REC_DEALER =
         keccak256("REGISTERED_REC_DEALER");
     bytes32 public constant REGISTERED_OFFSET_DEALER =
         keccak256("REGISTERED_OFFSET_DEALER");
     bytes32 public constant REGISTERED_EMISSIONS_AUDITOR =
         keccak256("REGISTERED_EMISSIONS_AUDITOR");
-
     bytes32 public constant REGISTERED_CONSUMER =
         keccak256("REGISTERED_CONSUMER");
 
@@ -43,14 +46,20 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string metadata;
         string manifest;
         string description;
-        bool retired;
-        uint256 retiredAmount;
+    }
+
+    struct RetiredToken {
+        address retirer;
+        uint256 associatedTokenId;
+        uint256 amount;
     }
 
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
+    mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
+    // mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
 
     uint256 private _numOfUniqueTokens = 0; // Counts number of unique token IDs (auto-incrementing)
-    string[] private TOKEN_TYPES = [
+    string[] private _TOKEN_TYPES = [
         "Renewable Energy Certificate",
         "Carbon Emissions Offset",
         "Audited Emissions"
@@ -113,7 +122,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns true if the tokenTypeId is valid
      */
     function tokenTypeIdIsValid(uint8 tokenTypeId) private view returns (bool) {
-        if ((tokenTypeId > 0) && (tokenTypeId <= TOKEN_TYPES.length)) {
+        if ((tokenTypeId > 0) && (tokenTypeId <= _TOKEN_TYPES.length)) {
             return true;
         }
         return false; // no matching tokenId
@@ -157,21 +166,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                 hasRole(REGISTERED_REC_DEALER, msg.sender),
                 "You are not a Renewable Energy Certificate dealer."
             );
-            tokenInfo.retired = false;
         } else if (tokenTypeId == 2) {
             require(
                 hasRole(REGISTERED_OFFSET_DEALER, msg.sender),
                 "You are not a Carbon Emissions Offset dealer."
             );
-            tokenInfo.retired = false;
         } else {
             require(
                 hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender),
                 "You are not an Audited Emissions Amount dealer."
             );
-            tokenInfo.retired = true;
-            tokenInfo.retiredAmount += quantity;
-            quantity = 0;
         }
 
         bytes memory callData;
@@ -205,30 +209,21 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     {
         require(tokenExists(tokenId), "tokenId does not exist");
         string memory tokenType =
-            TOKEN_TYPES[(_tokenDetails[tokenId].tokenTypeId - 1)];
+            _TOKEN_TYPES[(_tokenDetails[tokenId].tokenTypeId - 1)];
         return tokenType;
-    }
-
-    /**
-     * @dev checks if the token is in retired state
-     * @param tokenId token to check
-     */
-    function isRetired(uint256 tokenId) public view returns (bool) {
-        require(tokenExists(tokenId), "tokenId does not exist");
-        return (_tokenDetails[tokenId].retired);
     }
 
     /**
      * @dev returns the retired amount on a token
      * @param tokenId token to check
      */
-    function getTokenRetiredAmount(uint256 tokenId)
-        external
+    function getTokenRetiredAmount(address account, uint256 tokenId)
+        public
         view
         returns (uint256)
     {
         require(tokenExists(tokenId), "tokenId does not exist");
-        uint256 amount = _tokenDetails[tokenId].retiredAmount;
+        uint256 amount = _retiredBalances[tokenId][account];
         return amount;
     }
 
@@ -242,13 +237,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         uint256 amount
     ) external consumerOrDealer {
         require(tokenExists(tokenId), "tokenId does not exist");
-        require(
-            (_tokenDetails[tokenId].retired == false),
-            "token is already retired"
-        );
-        _tokenDetails[tokenId].retiredAmount += amount;
+        require( (_tokenDetails[tokenId].issuee == msg.sender), "You must be the original recipient of the token to retire");
+        require( (amount < super.balanceOf(msg.sender, tokenId)), "Not enough available balance to retire" );
 
         super._burn(msg.sender, tokenId, amount);
+        _retiredBalances[tokenId][msg.sender] = _retiredBalances[tokenId][msg.sender].add(amount);
+
     }
 
     /**
@@ -365,10 +359,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     ) external consumerOrDealer {
         require(tokenExists(tokenId), "tokenId does not exist");
         require(
-            (isRetired(tokenId) == false),
-            "Token is retired. Transfer is not permitted"
-        );
-        require(
             isDealerOrConsumer(to),
             "Recipient must be consumer or dealer."
         );
@@ -382,7 +372,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         returns (uint256, uint256)
     {
         uint256 available = super.balanceOf(account, tokenId);
-        uint256 retired = this.getTokenRetiredAmount(tokenId);
+        uint256 retired = this.getTokenRetiredAmount(account, tokenId);
         return (available, retired);
     }
 
