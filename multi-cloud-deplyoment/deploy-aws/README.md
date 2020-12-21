@@ -5,9 +5,8 @@ This is AWS specific deployment steps in addition to the main guide
 
 ## 3. Prerequisites
 #### 3.1 Domain Names
-1.1. Create subdomains on Route 53 for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
-
-1.2. Link subdomains to nginx ingress IP address ( at cluster management level) after you you started the nginx ingress as describe in step 3.2.
+1. Create subdomains for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
+2. Link subdomains to nginx ingress IP address (at cluster management level) after you've started the nginx ingress as describe in step 3.2.
 
 AWS: set up Route 53 to have your domain pointed to the NLB
 
@@ -54,20 +53,21 @@ Of course, you can add additional rules for e.g. a second peer node.
 
 ## 4. Start Hyperledger Fabric network
 #### 4.1. Crypto-material
-The following step to accomplish to start the multi-cloud Hyperledger Fabric network or even your organizations' infrastructure is to generate the crypto-material. We use fabric certificate authority (ca) for this. Each organization has its own fabric-ca.
+The following step to accomplish to start your organizations' infrastructure of the multi-cloud Hyperledger Fabric network is to generate the crypto-material. We use fabric certificate authority (ca) for this. Each organization has its own fabric-ca.
 
 1. Configure `./deploy-aws/fabric-config/fabric-ca-server-config.yaml`
 change the values of:
 - fabric-ca-subdomain
 - ca-admin
 - ca-admin-password (Use a strong password and keep it safe)
-- your organization
+- your-organization
+- names (C, ST, L, O, OU) --> This is optional but recommended
 2. Create configmap
 Change value of namespace.
 ```shell
 kubectl create cm fabric-ca-server-config --from-file=./deploy-aws/fabric-config/fabric-ca-server-config.yaml -n fabric-ca
 ```
-   3.  Adjust the deployment configuration of `./deploy-aws/fabric-ca-deployment.yaml`. 
+3.  Adjust the deployment configuration of `./deploy-aws/fabric-ca-deployment.yaml`. 
 
 Take a closer look at the PVC section.
 
@@ -90,18 +90,16 @@ kubectl apply -f ./deploy-aws/pv-static-ca.yaml
 kubectl apply -f ./deploy-aws/fabric-ca-deployment.yaml -n fabric-ca
 ```
 5. Copy fabric-ca tls certificate
-
- - Get the name of the fabric-ca pod
-
-- Copy tls certificate to local file system
+Get the name of the fabric-ca pod. Copy tls certificate to local file system. Change value of `yournamespace`.
 ```shell
 # Export fabric ca client home; change <your-domain>, e.g., `emissionsaccounting.sampleOrg.de`
 
 mkdir -p ${PWD}/crypto-material/opensolarx.com/fabric-ca
 
-export FABRIC_CA_CLIENT_HOME=${PWD}/crypto-material/opensolarx.com/fabric-ca
+export FABRIC_CA_CLIENT_HOME=${PWD}/crypto-material/
+<your-domain>/fabric-ca
 
-export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/opensolarx.com/fabric-ca/tls-cert.pem
+export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/<your-domain>/fabric-ca/tls-cert.pem
 
 # Returns fabric-ca pod of yournamespce
 kubectl get pod -n fabric-ca | grep fabric-ca
@@ -117,17 +115,11 @@ Change:
 
 Apply deployment configuration.
 ```shell
+# Change path to fabric-services-ingress-deplyoment.yaml and yournamespace.
 kubectl apply -f ./deploy-aws/ingress-fabric-services-deploy.yaml -n fabric-ca
 ```
 7. Generate crypto-material
 Set input variables of `registerEnroll.sh` according to your organizations configuration
-
-Get fabric binaries
-
-```bash
-curl -sSL https://bit.ly/2ysbOFE | bash -s -- -d -s
-```
-
 Run the script
 ```shell
 ./registerEnroll.sh
@@ -138,7 +130,8 @@ Once all the crypto material is created, we can start the orderer.
 1. Create orderer genesis block 
 NOTE: For testing purposes, change the values of `configtx.yaml` in fabric-config. This is just a way for you to test the functionality of your configuration before you try to start interacting with nodes from different organizations. Values to change:
 - Name of the organization (sampleorg)
-- Subdomain of peer and orderer
+- Subdomain of peer and orderer (e.g. OrdererEndpoints, AnchorPeers, and Consenters.Host)
+- Paths of Consenters.ClientTLSCert and Consenters.ServerTLSCertr
 
 Changes the values accordingly your setup, e.g., `-n fabric-orderer`
 ```shell
@@ -155,10 +148,10 @@ Next we need to create a secret that contains all the crypto-material of the ord
 mkdir tmp-crypto
 cd tmp-crypto
 # pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/orderers/fabric-orderer1.emissionsaccounting.yourdomain.com")
-tar -zcf "orderer4-crypto.tgz" -C "absolute path to fabric-orderer1.emissionsaccounting.yourdomain.com" .
+tar -zcf "orderer1-crypto.tgz" -C "absolute path to fabric-orderer1.emissionsaccounting.yourdomain.com" .
 
 # create secret of *.tgz file
-kubectl create secret generic orderer4-crypto --from-file=orderer4-crypto=orderer4-crypto.tgz -n fabric-orderer
+kubectl create secret generic orderer1-crypto --from-file=orderer1-crypto=orderer1-crypto.tgz -n fabric-orderer
 cd -
 ```
 
