@@ -27,22 +27,22 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let dealerAddress = allAddresses[1];
-    let consumerAddress = allAddresses[2];
+    let dealer = allAddresses[1];
+    let consumer = allAddresses[2];
 
-    let registerDealer = await contract.registerDealer(dealerAddress.address, allTokenTypeId[1]);
+    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
     expect(registerDealer);
-    let registerDealerTwo = await contract.registerDealer(dealerAddress.address, allTokenTypeId[2]);
-    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    let registerDealerTwo = await contract.registerDealer(dealer.address, allTokenTypeId[2]);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
     expect(registerConsumer);
 
     // check number of unique tokens before issuance
     let numUniqueTokensBefore = await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(0));
 
     let issue = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[1],
         quantity,
         uom,
@@ -56,9 +56,9 @@ describe("Net Emissions Token Network", function() {
     // Check to be certain mint did not return errors
     expect(issue);
     let issue2 = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[2],
         quantity,
         uom,
@@ -92,51 +92,54 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let ownerAddress = allAddresses[0];
-    let recDealerAddress = allAddresses[1];
-    let ceoDealerAddress = allAddresses[2];
-    let aeDealerAddress = allAddresses[3];
-    let consumerAddress = allAddresses[4];
-    let unwhitelistedAddress = allAddresses[5];
+    let owner = allAddresses[0];
+    let recDealer = allAddresses[1];
+    let ceoDealer = allAddresses[2];
+    let aeDealer = allAddresses[3];
+    let consumer = allAddresses[4];
+    let unregistered = allAddresses[5];
 
     // register roles
-    let registerRecDealerAddress = await contract.registerDealer(recDealerAddress.address, allTokenTypeId[0]);
-    let registerCeoDealerAddress = await contract.registerDealer(ceoDealerAddress.address, allTokenTypeId[1]);
-    let registerAeDealerAddress = await contract.registerDealer(aeDealerAddress.address, allTokenTypeId[2]);
-    let registerConsumerAddress = await contract.registerConsumer(consumerAddress.address);
-    expect(registerRecDealerAddress);
-    expect(registerCeoDealerAddress);
-    expect(registerAeDealerAddress);
-    expect(registerConsumerAddress);
+    let registerRecdealer = await contract.registerDealer(recDealer.address, allTokenTypeId[0]);
+    let registerCeodealer = await contract.registerDealer(ceoDealer.address, allTokenTypeId[1]);
+    let registerAedealer = await contract.registerDealer(aeDealer.address, allTokenTypeId[2]);
+    let registerconsumer = await contract.registerConsumer(consumer.address);
+    expect(registerRecdealer);
+    expect(registerCeodealer);
+    expect(registerAedealer);
+    expect(registerconsumer);
 
     // @TODO: Remove owner role from dealers
     let ownerRoles = await contract
-      .getRoles(ownerAddress.address)
+      .getRoles(owner.address)
       .then((response) => expect(response).to.deep.equal([true, true, true, true, false]));
     let recDealerRoles = await contract
-      .getRoles(recDealerAddress.address)
+      .getRoles(recDealer.address)
       .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
     let ceoDealerRoles = await contract
-      .getRoles(ceoDealerAddress.address)
+      .getRoles(ceoDealer.address)
       .then((response) => expect(response).to.deep.equal([true, false, true, false, false]));
     let aeDealerRoles = await contract
-      .getRoles(aeDealerAddress.address)
+      .getRoles(aeDealer.address)
       .then((response) => expect(response).to.deep.equal([true, false, false, true, false]));
     let consumerRoles = await contract
-      .getRoles(consumerAddress.address)
+      .getRoles(consumer.address)
       .then((response) => expect(response).to.deep.equal([false, false, false, false, true]));
+    let unregisteredRoles = await contract
+      .getRoles(unregistered.address)
+      .then((response) => expect(response).to.deep.equal([false, false, false, false, false]));
 
-    // check assigning another dealer role to recDealerAddress
-    let registerRecDealerAddressTwo = await contract.registerDealer(recDealerAddress.address, allTokenTypeId[1]);
-    expect(registerRecDealerAddressTwo);
+    // check assigning another dealer role to recDealer
+    let registerRecdealerTwo = await contract.registerDealer(recDealer.address, allTokenTypeId[1]);
+    expect(registerRecdealerTwo);
     let recDealerRolesTwo = await contract
-      .getRoles(recDealerAddress.address)
+      .getRoles(recDealer.address)
       .then((response) => expect(response).to.deep.equal([true, true, true, false, false]));
 
-    // check unregistering that role from recDealerAddress
-    let unregisterRecDealerAddress = await contract.unregisterDealer(recDealerAddress.address, allTokenTypeId[1]);
+    // check unregistering that role from recDealer
+    let unregisterRecdealer = await contract.unregisterDealer(recDealer.address, allTokenTypeId[1]);
     let recDealerRolesThree = await contract
-      .getRoles(recDealerAddress.address)
+      .getRoles(recDealer.address)
       .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
   });
 
@@ -144,19 +147,19 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let dealerAddress = allAddresses[1];
-    let consumerAddress = allAddresses[2];
+    let dealer = allAddresses[1];
+    let consumer = allAddresses[2];
 
-    let registerDealer = await contract.registerDealer(dealerAddress.address, allTokenTypeId[1]);
+    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
     expect(registerDealer);
 
-    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
     expect(registerConsumer);
 
     let issue = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[1],
         quantity,
         uom,
@@ -179,8 +182,8 @@ describe("Net Emissions Token Network", function() {
     let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
       // console.log(response)
       expect(response.tokenId.toNumber()).to.equal(tokenId);
-      expect(response.issuer).to.equal(dealerAddress.address);
-      expect(response.issuee).to.equal(consumerAddress.address);
+      expect(response.issuer).to.equal(dealer.address);
+      expect(response.issuee).to.equal(consumer.address);
       expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
       expect(response.uom).to.equal(uom);
       expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
@@ -192,7 +195,7 @@ describe("Net Emissions Token Network", function() {
     });
 
     let getIssuer = await contract.getIssuer(tokenId).then((response) => {
-      expect(response).to.equal(dealerAddress.address);
+      expect(response).to.equal(dealer.address);
     });
   });
 
@@ -200,32 +203,32 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let ownerAddress = allAddresses[0];
-    let dealerAddress = allAddresses[1];
-    let dealerAddressTwo = allAddresses[4];
-    let consumerAddress = allAddresses[2];
-    let consumerAddressTwo = allAddresses[3];
+    let owner = allAddresses[0];
+    let dealer = allAddresses[1];
+    let dealerTwo = allAddresses[4];
+    let consumer = allAddresses[2];
+    let consumerTwo = allAddresses[3];
 
     // register dealer to issue Renewable Energy Certificate
-    let registerDealerRec = await contract.registerDealer(dealerAddress.address, allTokenTypeId[0]);
+    let registerDealerRec = await contract.registerDealer(dealer.address, allTokenTypeId[0]);
     expect(registerDealerRec);
     // register dealer to issue Carbon Emissions Offset
-    let registerDealerCeo = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[1]);
+    let registerDealerCeo = await contract.registerDealer(dealerTwo.address, allTokenTypeId[1]);
     expect(registerDealerCeo);
     // register dealer to issue Audited Emissions tokens
-    let registerDealerAea = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[2]);
+    let registerDealerAea = await contract.registerDealer(dealerTwo.address, allTokenTypeId[2]);
     expect(registerDealerAea);
 
-    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(dealerAddress).registerConsumer(consumerAddressTwo.address);
+    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
     expect(registerConsumerTwo);
 
     // verify only dealer can issue Renewable Energy Certificate tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[0],
         quantity,
         uom,
@@ -241,9 +244,9 @@ describe("Net Emissions Token Network", function() {
 
     try {
       let issueWithDealerTwo = await contract
-        .connect(dealerAddressTwo)
+        .connect(dealerTwo)
         .issue(
-          consumerAddress.address,
+          consumer.address,
           allTokenTypeId[0],
           quantity,
           uom,
@@ -262,9 +265,9 @@ describe("Net Emissions Token Network", function() {
 
     try {
       let issueWithConsumer = await contract
-        .connect(consumerAddress)
+        .connect(consumer)
         .issue(
-          consumerAddress.address,
+          consumer.address,
           allTokenTypeId[0],
           quantity,
           uom,
@@ -289,7 +292,7 @@ describe("Net Emissions Token Network", function() {
     let expectedTotalAvailableBefore = quantity.toString();
     let expectedTotalRetiredBefore = "0";
     let beforeTransferBalanceAmount = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId)
+      .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableBefore},${expectedTotalRetiredBefore}`)
       );
@@ -300,7 +303,7 @@ describe("Net Emissions Token Network", function() {
 
     // try to transfer balance greater than the available balance
     try {
-      let transferFail = await contract.transfer(consumerAddress.address, tokenId, quantity + 1);
+      let transferFail = await contract.transfer(consumer.address, tokenId, quantity + 1);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
@@ -309,37 +312,37 @@ describe("Net Emissions Token Network", function() {
 
     // transfer part of balance to another consumer
     let transfer = await contract
-      .connect(consumerAddress)
-      .transfer(consumerAddressTwo.address, tokenId, transferAmount);
+      .connect(consumer)
+      .transfer(consumerTwo.address, tokenId, transferAmount);
     expect(transfer);
 
     // verify available balance after transfer for consumer one
     let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
     let afterTransferBalances = await contract
-      .balanceOf(consumerAddress.address, tokenId)
+      .balanceOf(consumer.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
 
     // verify balances after transfer for consumer two
     let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
     let afterTransferBalancesConsumerTwo = await contract
-      .balanceOf(consumerAddressTwo.address, tokenId)
+      .balanceOf(consumerTwo.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
-    let retire = await contract.retire(consumerAddress.address, tokenId, retireAmount);
+    let retire = await contract.retire(consumer.address, tokenId, retireAmount);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
     let expectedTotalAvailableAfterRetire = transferAmount.toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
     let afterRetireAndTransferBalance = await contract
-      .getAvailableAndRetired(consumerAddressTwo.address, tokenId)
+      .getAvailableAndRetired(consumerTwo.address, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
       );
 
     // test to make sure retired token balance cannot be transferred
     try {
-      let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
+      let transferRetired = await contract.transfer(consumer.address, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert Token is retired. Transfer is not permitted"
@@ -348,9 +351,9 @@ describe("Net Emissions Token Network", function() {
 
     // issue more tokens to the same consumer
     let issueTwo = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[0],
         quantity,
         uom,
@@ -363,9 +366,9 @@ describe("Net Emissions Token Network", function() {
       );
 
     let issueThree = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[0],
         quantity,
         uom,
@@ -379,27 +382,27 @@ describe("Net Emissions Token Network", function() {
 
     // retire some of the newly issued tokens
 
-    let retireTwo = await contract.retire(consumerAddress.address, tokenId + 1, retireAmount);
-    let retireThree = await contract.retire(consumerAddress.address, tokenId + 2, retireAmount);
+    let retireTwo = await contract.retire(consumer.address, tokenId + 1, retireAmount);
+    let retireThree = await contract.retire(consumer.address, tokenId + 2, retireAmount);
 
     // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
     let expectedAvailableTwo = (quantity - retireAmount).toString();
     let expectedRetireTwo = retireAmount.toString();
     let afterRetireTwo = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId + 1)
+      .getAvailableAndRetired(consumer.address, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
     let expectedAvailableThree = (quantity - retireAmount).toString();
     let expectedRetireThree = retireAmount.toString();
     let afterRetireThree = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId + 2)
+      .getAvailableAndRetired(consumer.address, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
-    let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
+    let unregisterConsumer = await contract.connect(dealer).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
 
     let unregisterDealer = await contract
-      .connect(ownerAddress)
+      .connect(owner)
       .unregisterDealer(allAddresses[1].address, allTokenTypeId[0]);
     expect(unregisterDealer);
   });
@@ -408,32 +411,32 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let ownerAddress = allAddresses[0];
-    let dealerAddress = allAddresses[1];
-    let dealerAddressTwo = allAddresses[4];
-    let consumerAddress = allAddresses[2];
-    let consumerAddressTwo = allAddresses[3];
+    let owner = allAddresses[0];
+    let dealer = allAddresses[1];
+    let dealerTwo = allAddresses[4];
+    let consumer = allAddresses[2];
+    let consumerTwo = allAddresses[3];
 
     // register dealer to issue Renewable Energy Certificate
-    let registerDealerRec = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[0]);
+    let registerDealerRec = await contract.registerDealer(dealerTwo.address, allTokenTypeId[0]);
     expect(registerDealerRec);
     // register dealer to issue Carbon Emissions Offset
-    let registerDealerCeo = await contract.registerDealer(dealerAddress.address, allTokenTypeId[1]);
+    let registerDealerCeo = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
     expect(registerDealerCeo);
     // register dealer to issue Audited Emissions tokens
-    let registerDealerAea = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[2]);
+    let registerDealerAea = await contract.registerDealer(dealerTwo.address, allTokenTypeId[2]);
     expect(registerDealerAea);
 
-    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(dealerAddress).registerConsumer(consumerAddressTwo.address);
+    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
     expect(registerConsumerTwo);
 
     // verify only dealer can issue Carbon Emissions Offset tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[1],
         quantity,
         uom,
@@ -449,9 +452,9 @@ describe("Net Emissions Token Network", function() {
 
     try {
       let issueWithDealerTwo = await contract
-        .connect(dealerAddressTwo)
+        .connect(dealerTwo)
         .issue(
-          consumerAddress.address,
+          consumer.address,
           allTokenTypeId[1],
           quantity,
           uom,
@@ -470,9 +473,9 @@ describe("Net Emissions Token Network", function() {
 
     try {
       let issueWithConsumer = await contract
-        .connect(consumerAddress)
+        .connect(consumer)
         .issue(
-          consumerAddress.address,
+          consumer.address,
           allTokenTypeId[1],
           quantity,
           uom,
@@ -497,7 +500,7 @@ describe("Net Emissions Token Network", function() {
     let expectedTotalAvailableBefore = quantity.toString();
     let expectedTotalRetiredBefore = "0";
     let beforeTransferBalanceAmount = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId)
+      .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableBefore},${expectedTotalRetiredBefore}`)
       );
@@ -508,7 +511,7 @@ describe("Net Emissions Token Network", function() {
 
     // try to transfer balance greater than the available balance
     try {
-      let transferFail = await contract.transfer(consumerAddress.address, tokenId, quantity + 1);
+      let transferFail = await contract.transfer(consumer.address, tokenId, quantity + 1);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
@@ -517,37 +520,37 @@ describe("Net Emissions Token Network", function() {
 
     // transfer part of balance to another consumer
     let transfer = await contract
-      .connect(consumerAddress)
-      .transfer(consumerAddressTwo.address, tokenId, transferAmount);
+      .connect(consumer)
+      .transfer(consumerTwo.address, tokenId, transferAmount);
     expect(transfer);
 
     // verify available balance after transfer for consumer one
     let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
     let afterTransferBalances = await contract
-      .balanceOf(consumerAddress.address, tokenId)
+      .balanceOf(consumer.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
 
     // verify balances after transfer for consumer two
     let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
     let afterTransferBalancesConsumerTwo = await contract
-      .balanceOf(consumerAddressTwo.address, tokenId)
+      .balanceOf(consumerTwo.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
-    let retire = await contract.retire(consumerAddress.address, tokenId, retireAmount);
+    let retire = await contract.retire(consumer.address, tokenId, retireAmount);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
     let expectedTotalAvailableAfterRetire = transferAmount.toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
     let afterRetireAndTransferBalance = await contract
-      .getAvailableAndRetired(consumerAddressTwo.address, tokenId)
+      .getAvailableAndRetired(consumerTwo.address, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
       );
 
     // test to make sure retired token cannot be transferred
     try {
-      let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
+      let transferRetired = await contract.transfer(consumer.address, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert Token is retired. Transfer is not permitted"
@@ -556,9 +559,9 @@ describe("Net Emissions Token Network", function() {
 
     // issue more tokens to the same consumer
     let issueTwo = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[1],
         quantity,
         uom,
@@ -571,9 +574,9 @@ describe("Net Emissions Token Network", function() {
       );
 
     let issueThree = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[1],
         quantity,
         uom,
@@ -587,27 +590,27 @@ describe("Net Emissions Token Network", function() {
 
     // retire some of the newly issued tokens
 
-    let retireTwo = await contract.retire(consumerAddress.address, tokenId + 1, retireAmount);
-    let retireThree = await contract.retire(consumerAddress.address, tokenId + 2, retireAmount);
+    let retireTwo = await contract.retire(consumer.address, tokenId + 1, retireAmount);
+    let retireThree = await contract.retire(consumer.address, tokenId + 2, retireAmount);
 
     // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
     let expectedAvailableTwo = (quantity - retireAmount).toString();
     let expectedRetireTwo = retireAmount.toString();
     let afterRetireTwo = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId + 1)
+      .getAvailableAndRetired(consumer.address, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
     let expectedAvailableThree = (quantity - retireAmount).toString();
     let expectedRetireThree = retireAmount.toString();
     let afterRetireThree = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId + 2)
+      .getAvailableAndRetired(consumer.address, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
-    let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
+    let unregisterConsumer = await contract.connect(dealer).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
 
     let unregisterDealer = await contract
-      .connect(ownerAddress)
+      .connect(owner)
       .unregisterDealer(allAddresses[1].address, allTokenTypeId[1]);
     expect(unregisterDealer);
   });
@@ -616,32 +619,32 @@ describe("Net Emissions Token Network", function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
-    let ownerAddress = allAddresses[0];
-    let dealerAddress = allAddresses[1];
-    let dealerAddressTwo = allAddresses[4];
-    let consumerAddress = allAddresses[2];
-    let consumerAddressTwo = allAddresses[3];
+    let owner = allAddresses[0];
+    let dealer = allAddresses[1];
+    let dealerTwo = allAddresses[4];
+    let consumer = allAddresses[2];
+    let consumerTwo = allAddresses[3];
 
     // register dealer to issue Renewable Energy Certificate
-    let registerDealerRec = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[0]);
+    let registerDealerRec = await contract.registerDealer(dealerTwo.address, allTokenTypeId[0]);
     expect(registerDealerRec);
     // register dealer to issue Carbon Emissions Offset
-    let registerDealerCeo = await contract.registerDealer(dealerAddressTwo.address, allTokenTypeId[1]);
+    let registerDealerCeo = await contract.registerDealer(dealerTwo.address, allTokenTypeId[1]);
     expect(registerDealerCeo);
     // register dealer to issue Audited Emissions tokens
-    let registerDealerAea = await contract.registerDealer(dealerAddress.address, allTokenTypeId[2]);
+    let registerDealerAea = await contract.registerDealer(dealer.address, allTokenTypeId[2]);
     expect(registerDealerAea);
 
-    let registerConsumer = await contract.connect(dealerAddress).registerConsumer(consumerAddress.address);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(dealerAddress).registerConsumer(consumerAddressTwo.address);
+    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
     expect(registerConsumerTwo);
 
     // verify only dealer can issue Audited Emissions tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[2],
         quantity,
         uom,
@@ -657,9 +660,9 @@ describe("Net Emissions Token Network", function() {
 
     try {
       let issueWithDealerTwo = await contract
-        .connect(dealerAddressTwo)
+        .connect(dealerTwo)
         .issue(
-          consumerAddress.address,
+          consumer.address,
           allTokenTypeId[2],
           quantity,
           uom,
@@ -678,9 +681,9 @@ describe("Net Emissions Token Network", function() {
 
     try {
       let issueWithConsumer = await contract
-        .connect(consumerAddress)
+        .connect(consumer)
         .issue(
-          consumerAddress.address,
+          consumer.address,
           allTokenTypeId[2],
           quantity,
           uom,
@@ -705,7 +708,7 @@ describe("Net Emissions Token Network", function() {
     let expectedAvailable = "0";
     let expectedRetire = quantity.toString();
     let available = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId)
+      .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
 
     // TODO: define a function to get all properties of a token for this test
@@ -714,7 +717,7 @@ describe("Net Emissions Token Network", function() {
 
     // try to transfer the Audited Emissions token to another consumer, verify that it fails
     try {
-      let transferRetired = await contract.transfer(consumerAddress.address, tokenId, quantity);
+      let transferRetired = await contract.transfer(consumer.address, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert Token is retired. Transfer is not permitted"
@@ -723,9 +726,9 @@ describe("Net Emissions Token Network", function() {
 
     // issue more tokens to the same consumer
     let issueTwo = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[2],
         quantity,
         uom,
@@ -738,9 +741,9 @@ describe("Net Emissions Token Network", function() {
       );
 
     let issueThree = await contract
-      .connect(dealerAddress)
+      .connect(dealer)
       .issue(
-        consumerAddress.address,
+        consumer.address,
         allTokenTypeId[2],
         quantity,
         uom,
@@ -756,20 +759,20 @@ describe("Net Emissions Token Network", function() {
     let expectedAvailableTwo = "0";
     let expectedRetireTwo = quantity.toString();
     let afterRetireTwo = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId + 1)
+      .getAvailableAndRetired(consumer.address, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
     let expectedAvailableThree = "0";
     let expectedRetireThree = quantity.toString();
     let afterRetireThree = await contract
-      .getAvailableAndRetired(consumerAddress.address, tokenId + 2)
+      .getAvailableAndRetired(consumer.address, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
-    let unregisterConsumer = await contract.connect(dealerAddress).unregisterConsumer(allAddresses[2].address);
+    let unregisterConsumer = await contract.connect(dealer).unregisterConsumer(allAddresses[2].address);
     expect(unregisterConsumer);
 
     let unregisterDealer = await contract
-      .connect(ownerAddress)
+      .connect(owner)
       .unregisterDealer(allAddresses[1].address, allTokenTypeId[2]);
     expect(unregisterDealer);
   });
