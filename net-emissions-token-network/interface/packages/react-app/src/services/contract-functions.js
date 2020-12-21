@@ -56,15 +56,15 @@ export async function getNumOfUniqueTokens(w3provider) {
   return uniqueTokens;
 }
 
-export async function balanceOf(w3provider, address, tokenId) {
+export async function getAvailableAndRetired(w3provider, address, tokenId) {
   let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let balance;
+  let balances;
   try {
-    balance = await contract.balanceOf(address, tokenId);
+    balances = await contract.getAvailableAndRetired(address, tokenId);
   } catch (error) {
-    balance = error.message;
+    balances = error.message;
   }
-  return balance;
+  return balances;
 }
 
 export async function getTokenType(w3provider, tokenId) {
