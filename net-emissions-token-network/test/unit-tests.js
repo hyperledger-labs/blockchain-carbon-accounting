@@ -17,7 +17,7 @@ const {
 } = require("./common.js");
 
 describe("Net Emissions Token Network - Unit tests", function() {
-  it("should auto-increment tokenId on two subsequent issuances", async function() {
+  it("should auto-increment tokenId on two subsequent issuances, fail on incorrect issue calls", async function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();
 
@@ -32,6 +32,26 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // check number of unique tokens before issuance
     let numUniqueTokensBefore = await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(0));
+
+    // try issuing with wrong tokenTypeId 
+    try {
+      let issueFail = await contract.connect(dealer).issue(
+        consumer.address,
+        "4",
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Failed to issue: tokenTypeId is invalid"
+      );
+    }
 
     let issue = await contract
       .connect(dealer)
@@ -80,6 +100,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issueEvent2 = transactionReceipt2.events.pop();
     let tokenId2 = issueEvent2.args[0].toNumber();
     expect(tokenId2).to.equal(2);
+
+    // try getting tokenTypeId 
+    try {
+      let getTokenTypeFail = await contract.getTokenType((tokenId2 + 1));
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+      );
+    }
   });
 
   it("should return the correct roles after owner assigns them", async function() {
@@ -135,6 +164,67 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let recDealerRolesThree = await contract
       .getRoles(recDealer.address)
       .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
+
+    // check if recDealer is dealer
+    let isRecDealerDealer = await contract
+      .isDealerRegistered(recDealer.address)
+      .then((response) => expect(response).to.equal(true));
+
+    // check if unregistered is dealer
+    let isUnregisteredDealer = await contract
+      .isDealerRegistered(unregistered.address)
+      .then((response) => expect(response).to.equal(false));
+
+  });
+
+  it("should only allow the contract owner to register dealers", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let owner = allAddresses[0];
+    let dealer = allAddresses[1];
+    let unregistered = allAddresses[2];
+
+    // register dealer
+    let registerDealer = await contract.connect(owner).registerDealer(dealer.address, allTokenTypeId[0]);
+    expect(registerDealer);
+
+    // try registering dealer of invalid tokenTypeId
+    try {
+      let registerInvalidTokenTypeId = await contract.connect(owner).registerDealer(unregistered.address, 100);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Token type does not exist"
+      );
+    }
+
+    // try registering another dealer from dealer account
+    try {
+      let registerDealerFromDealerFail = await contract.connect(dealer).registerDealer(unregistered.address, allTokenTypeId[0]);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You are not the owner"
+      );
+    }
+
+    // try registering dealer from unregistered account
+    try {
+      let unregisterFail = await contract.connect(unregistered).registerDealer(unregistered.address, allTokenTypeId[0]);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You are not the owner"
+      );
+    }
+
+    // try unregistering self
+    try {
+      let unregisterSelfFail = await contract.connect(dealer).unregisterDealer(dealer.address, allTokenTypeId[0]);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You are not the owner"
+      );
+    }
+
   });
 
   it("should return all token details correctly", async function() {
@@ -200,6 +290,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
     let consumerTwo = allAddresses[3];
+    let unregistered = allAddresses[4];
 
     let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
     expect(registerDealer);
@@ -249,6 +340,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     }
 
+    // retire from unregistered account
+    try {
+      let retireFail = await contract.connect(unregistered).retire((tokenId), retireAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert You must be either a consumer or a dealer"
+      );
+    }
+
     // retire more than available balance
     try {
       let retireFail = await contract.connect(consumer).retire((tokenId), (quantity + 100));
@@ -268,6 +368,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let afterTransferBalances = await contract
       .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${(quantity - retireAmount)},${retireAmount}`));
+
+    // get token retired amount of tokenID that does not exist
+    try {
+      let getRetiredFail = await contract.connect(consumer).getTokenRetiredAmount(consumer.address, 100);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+      );
+    }    
 
   });
 
