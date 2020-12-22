@@ -198,6 +198,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     }
 
+    // try unregistering dealer of invalid tokenTypeId
+    try {
+      let unregisterInvalidTokenTypeId = await contract.connect(owner).unregisterDealer(unregistered.address, 100);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Token type does not exist"
+      );
+    }
+
     // try registering another dealer from dealer account
     try {
       let registerDealerFromDealerFail = await contract.connect(dealer).registerDealer(unregistered.address, allTokenTypeId[0]);
@@ -281,6 +290,25 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let getIssuer = await contract.getIssuer(tokenId).then((response) => {
       expect(response).to.equal(dealer.address);
     });
+
+    // try to get token details of token that does not exist
+    try {
+      let getDetailsFail = await contract.connect(consumer).getTokenDetails(100);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+      );
+    }
+
+    // try to get issuer of token that does not exist
+    try {
+      let getIssuerFail = await contract.connect(consumer).getIssuer(100);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+      );
+    }
+
   });
 
   it("should fail when retire is called incorrectly", async function() {
@@ -377,6 +405,74 @@ describe("Net Emissions Token Network - Unit tests", function() {
         "Error: VM Exception while processing transaction: revert tokenId does not exist"
       );
     }    
+
+  });
+
+  it("should fail when transfer is called incorrectly", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let dealer = allAddresses[1];
+    let consumer = allAddresses[2];
+    let consumerTwo = allAddresses[3];
+    let unregistered = allAddresses[4];
+
+    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
+    expect(registerDealer);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
+    expect(registerConsumerTwo);
+
+    let issue = await contract
+      .connect(dealer)
+      .issue(
+        consumer.address,
+        allTokenTypeId[1],
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop();
+    let tokenId = issueEvent.args[0].toNumber();
+    expect(tokenId).to.equal(1);
+
+    // try transfer of token that does not exist
+    try {
+      let transferFail = await contract.connect(consumer).transfer(consumerTwo.address, 100, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+      );
+    }
+
+    // try to transfer to unregistered recipient
+    try {
+      let transferFail = await contract.connect(consumer).transfer(unregistered.address, tokenId, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Recipient must be consumer or dealer"
+      );
+    }
+
+    // try to transfer to self
+    try {
+      let transferFail = await contract.connect(consumer).transfer(consumer.address, tokenId, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Sender and receiver cannot be the same"
+      );
+    }
 
   });
 

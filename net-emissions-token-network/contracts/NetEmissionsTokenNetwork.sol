@@ -300,7 +300,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             grantRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
             grantRole(REGISTERED_OFFSET_DEALER, account);
-        } else if (tokenTypeId == 3) {
+        } else {
             grantRole(REGISTERED_EMISSIONS_AUDITOR, account);
         }
         grantRole(DEFAULT_ADMIN_ROLE, account); // @TODO: Remove me
@@ -329,7 +329,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             super.revokeRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
             super.revokeRole(REGISTERED_OFFSET_DEALER, account);
-        } else if (tokenTypeId == 3) {
+        } else {
             super.revokeRole(REGISTERED_EMISSIONS_AUDITOR, account);
         }
         emit UnregisteredDealer(account);
@@ -360,7 +360,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require(tokenExists(tokenId), "tokenId does not exist");
         require(
             isDealerOrConsumer(to),
-            "Recipient must be consumer or dealer."
+            "Recipient must be consumer or dealer"
         );
         require((msg.sender != to), "Sender and receiver cannot be the same");
         super.safeTransferFrom(msg.sender, to, tokenId, value, "0x00");
