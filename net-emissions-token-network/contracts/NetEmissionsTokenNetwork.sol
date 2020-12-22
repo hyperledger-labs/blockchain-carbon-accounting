@@ -84,7 +84,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
         require(
             isConsumer || isRecDealer || isCeoDealer || isAeDealer,
-            "You must be either a consumer or a dealer."
+            "You must be either a consumer or a dealer"
         );
 
         _;
@@ -97,7 +97,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
         require(
             isRecDealer || isCeoDealer || isAeDealer,
-            "You are not a dealer."
+            "You are not a dealer"
         );
         _;
     }
@@ -105,7 +105,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     modifier onlyOwner() {
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "You are not the owner."
+            "You are not the owner"
         );
         _;
     }
@@ -158,23 +158,23 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens];
         require(
             tokenTypeIdIsValid(tokenTypeId),
-            "Failed to issue: tokenTypeId is invalid."
+            "Failed to issue: tokenTypeId is invalid"
         );
 
         if (tokenTypeId == 1) {
             require(
                 hasRole(REGISTERED_REC_DEALER, msg.sender),
-                "You are not a Renewable Energy Certificate dealer."
+                "You are not a Renewable Energy Certificate dealer"
             );
         } else if (tokenTypeId == 2) {
             require(
                 hasRole(REGISTERED_OFFSET_DEALER, msg.sender),
-                "You are not a Carbon Emissions Offset dealer."
+                "You are not a Carbon Emissions Offset dealer"
             );
         } else {
             require(
                 hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender),
-                "You are not an Audited Emissions Amount dealer."
+                "You are not an Audited Emissions Amount dealer"
             );
         }
 

@@ -77,7 +77,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not a Renewable Energy Certificate dealer."
+        "Error: VM Exception while processing transaction: revert You are not a Renewable Energy Certificate dealer"
       );
     }
 
@@ -97,7 +97,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer.");
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer");
     }
 
     // Get ID of token just issued
@@ -285,7 +285,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not a Carbon Emissions Offset dealer."
+        "Error: VM Exception while processing transaction: revert You are not a Carbon Emissions Offset dealer"
       );
     }
 
@@ -305,7 +305,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer.");
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer");
     }
 
     // Get ID of token just issued
@@ -493,7 +493,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not an Audited Emissions Amount dealer."
+        "Error: VM Exception while processing transaction: revert You are not an Audited Emissions Amount dealer"
       );
     }
 
@@ -513,7 +513,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer.");
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer");
     }
 
     // Get ID of token just issued
