@@ -13,6 +13,7 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 - Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
 - To test, run `npx hardhat test`
 - To compile, run `npx hardhat compile`
+- To export ABI to interface and Utility Emissions Channel, run `sh exportAbis.sh`
 - To see all commands, run `npx hardhat`
 
 You can also run the tests with no external dependencies other than docker with the script located in this directory:
