@@ -37,7 +37,7 @@ The interface is created using [create-eth-app](https://github.com/PaulRBerg/cre
 Hardhat implements its own Ethereum local testnet called Hardhat Network. In order to connect the interface to this local testnet:
 
 1. Install the [MetaMask extension](https://metamask.io/)
-2. After installing `node_modules` with `yarn install`, run the interface in `net-emissions-token-network/interface` with
+2. After installing `node_modules` with `yarn install` inside `net-emissions-token-network/interface`, run the interface with:
 
 ```bash
 yarn react-app:start
