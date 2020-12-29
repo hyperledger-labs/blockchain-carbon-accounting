@@ -213,6 +213,90 @@
         }
       }
     },
+    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
+      "get": {
+        "tags": ["emissionscontract"],
+        "summary": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
+        "description": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
+        "operationId": "recordAuditedEmissionsToken",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of User",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgName",
+            "in": "path",
+            "description": "Org that registered user",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "addressToIssue",
+            "in": "path",
+            "description": "Address that the token will be issued to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fromDate",
+            "in": "path",
+            "description": "Starting date of the query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "thruDate",
+            "in": "path",
+            "description": "End date of the query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "automaticRetireDate",
+            "in": "path",
+            "description": "Date that the issued token will be set to automatically retire",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "metadata",
+            "in": "path",
+            "description": "Metadata that the issued token will contain",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "in": "path",
+            "description": "Description that the issued token will contain",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/allEmissionsData"
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
     "/registerEnroll/admin": {
       "post": {
         "tags": ["registerEnroll"],

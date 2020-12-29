@@ -23,6 +23,7 @@
     "chai-http": "^4.3.0",
     "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
+    "ethers": "^5.0.24",
     "express": "^4.17.1",
     "express-validator": "^6.6.1",
     "fabric-ca-client": "^2.2.0",
