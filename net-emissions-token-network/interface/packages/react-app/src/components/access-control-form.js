@@ -22,7 +22,7 @@ export default function AccessControlForm({ provider, signedInAddress }) {
 
   // Fetching roles of outside address
   const [theirAddress, setTheirAddress] = useState();
-  const [theirRoles, setTheirRoles] = useState();
+  const [theirRoles, setTheirRoles] = useState([]);
 
   const [myRoles, setMyRoles] = useState();
   const [fetchingMyRoles, setFetchingMyRoles] = useState(false);
@@ -56,6 +56,7 @@ export default function AccessControlForm({ provider, signedInAddress }) {
   }
 
   function onAddressChange(event) { setAddress(event.target.value); };
+  function onTheirAddressChange(event) { setTheirAddress(event.target.value); };
 
   function handleRegister() {
     switch (role) {
@@ -146,12 +147,13 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       <InputGroup className="mb-3">
         <FormControl
           placeholder="0x000..."
+          onChange={onTheirAddressChange}
         />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
         </InputGroup.Append>
       </InputGroup>
-      {theirRoles &&
+      {theirRoles.length === 5 &&
         <Row className="text-center mb-3">
           <Col><small>Owner</small> {xOrCheck(theirRoles[0])}</Col>
           <Col><small>Renewable Energy Certificate Dealer</small> {xOrCheck(theirRoles[1])}</Col>
