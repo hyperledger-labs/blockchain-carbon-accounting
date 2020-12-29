@@ -9,6 +9,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import InputGroup from 'react-bootstrap/InputGroup';
+import FormControl from 'react-bootstrap/FormControl';
 
 export default function AccessControlForm({ provider, signedInAddress }) {
 
@@ -17,6 +19,11 @@ export default function AccessControlForm({ provider, signedInAddress }) {
   const [address, setAddress] = useState("");
   const [role, setRole] = useState("Consumer");
   const [result, setResult] = useState("");
+
+  // Fetching roles of outside address
+  const [theirAddress, setTheirAddress] = useState();
+  const [theirRoles, setTheirRoles] = useState();
+
   const [myRoles, setMyRoles] = useState();
   const [fetchingMyRoles, setFetchingMyRoles] = useState(false);
 
@@ -41,6 +48,11 @@ export default function AccessControlForm({ provider, signedInAddress }) {
     let result = await getRoles(provider, signedInAddress);
     setMyRoles(result);
     setFetchingMyRoles(false);
+  }
+
+  async function fetchTheirRoles() {
+    let result = await getRoles(provider, theirAddress);
+    setTheirRoles(result);
   }
 
   function onAddressChange(event) { setAddress(event.target.value); };
@@ -128,6 +140,25 @@ export default function AccessControlForm({ provider, signedInAddress }) {
             <span className="sr-only">Loading...</span>
           </Spinner>
         </div>
+      }
+
+      <h4>Look-up Roles</h4>
+      <InputGroup className="mb-3">
+        <FormControl
+          placeholder="0x000..."
+        />
+        <InputGroup.Append>
+          <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
+        </InputGroup.Append>
+      </InputGroup>
+      {theirRoles &&
+        <Row className="text-center mb-3">
+          <Col><small>Owner</small> {xOrCheck(theirRoles[0])}</Col>
+          <Col><small>Renewable Energy Certificate Dealer</small> {xOrCheck(theirRoles[1])}</Col>
+          <Col><small>Carbon Emissions Offset Dealer</small> {xOrCheck(theirRoles[2])}</Col>
+          <Col><small>Audited Emissions Dealer</small> {xOrCheck(theirRoles[3])}</Col>
+          <Col><small>Consumer</small> {xOrCheck(theirRoles[4])}</Col>
+        </Row>
       }
 
       <h4>Register/unregister dealers and consumers</h4>
