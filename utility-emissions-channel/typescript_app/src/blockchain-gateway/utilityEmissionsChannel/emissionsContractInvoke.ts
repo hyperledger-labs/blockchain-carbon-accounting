@@ -252,15 +252,19 @@ export class EmissionsContractInvoke {
       const jsonResult: any = JSON.parse(stringResult);
 
       if (jsonResult.url.length > 0) {
-        // compare md5 in ledger against one being returned in url
-        let incomingBinary: any = await downloadFromS3(
-          `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
-        );
-        let incomingMd5 = Md5.hashStr(incomingBinary);
-        if (incomingMd5 != jsonResult.md5) {
-          throw new Error(
-            `The retrieved document ${jsonResult.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+        try {
+          // compare md5 in ledger against one being returned in url
+          let incomingBinary: any = await downloadFromS3(
+            `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
           );
+          let incomingMd5 = Md5.hashStr(incomingBinary);
+          if (incomingMd5 != jsonResult.md5) {
+            throw new Error(
+              `The retrieved document ${jsonResult.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+            );
+          }
+        } catch (err) {
+          console.log("Failed to download from URL");
         }
       }
 
@@ -339,15 +343,19 @@ export class EmissionsContractInvoke {
         let result: Object = new Object();
         let record = emission_item.Record;
         if (record.url.length > 0) {
-          // compare md5 in ledger against one being returned in url
-          let incomingBinary = await downloadFromS3(
-            `${userId}-${orgName}-${record.utilityId}-${record.partyId}-${record.fromDate}-${record.thruDate}.pdf`
-          );
-          let incomingMd5 = Md5.hashStr(incomingBinary);
-          if (incomingMd5 != record.md5) {
-            throw new Error(
-              `The retrieved document ${record.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+          try {
+            // compare md5 in ledger against one being returned in url
+            let incomingBinary: any = await downloadFromS3(
+              `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
             );
+            let incomingMd5 = Md5.hashStr(incomingBinary);
+            if (incomingMd5 != jsonResult.md5) {
+              throw new Error(
+                `The retrieved document ${jsonResult.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+              );
+            }
+          } catch (err) {
+            console.log("Failed to download from URL");
           }
         }
 
@@ -433,15 +441,19 @@ export class EmissionsContractInvoke {
         let result: Object = new Object();
         let record = emission_item.Record;
         if (record.url.length > 0) {
-          // compare md5 in ledger against one being returned in url
-          let incomingBinary = await downloadFromS3(
-            `${userId}-${orgName}-${record.utilityId}-${record.partyId}-${record.fromDate}-${record.thruDate}.pdf`
-          );
-          let incomingMd5 = Md5.hashStr(incomingBinary);
-          if (incomingMd5 != record.md5) {
-            throw new Error(
-              `The retrieved document ${record.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+          try {
+            // compare md5 in ledger against one being returned in url
+            let incomingBinary: any = await downloadFromS3(
+              `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
             );
+            let incomingMd5 = Md5.hashStr(incomingBinary);
+            if (incomingMd5 != jsonResult.md5) {
+              throw new Error(
+                `The retrieved document ${jsonResult.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+              );
+            }
+          } catch (err) {
+            console.log("Failed to download from URL");
           }
         }
         result["info"] = "UTILITY EMISSIONS DATA";
