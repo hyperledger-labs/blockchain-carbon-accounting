@@ -53,7 +53,7 @@ npx hardhat node
 4. In a separate terminal, deploy the contracts in `net-emissions-token-network/` to the local Hardhat Network with:
 
 ```bash
-npx hardhat run --network localhost scripts/deploy.js
+npx hardhat run --network localhost scripts/deploy-local.js
 ```
 
 5. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_.
