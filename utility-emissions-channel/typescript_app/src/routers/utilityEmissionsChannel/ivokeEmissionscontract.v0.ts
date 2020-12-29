@@ -4,6 +4,11 @@ import { body, param, validationResult } from "express-validator";
 import { EmissionsContractInvoke } from "../../blockchain-gateway/utilityEmissionsChannel/emissionsContractInvoke";
 import { uploadToS3 } from "../../blockchain-gateway/utils/aws";
 import { Md5 } from "ts-md5/dist/md5";
+import { toTimestamp } from "../../blockchain-gateway/utils/dateUtils";
+import {
+  issue,
+  registerAuditedEmissionDealer,
+} from "../../blockchain-gateway/net-emissions-token-network/auditedEmissionsToken";
 
 const APP_VERSION = "v1";
 export const router = express.Router();
@@ -233,6 +238,144 @@ router.get(
       } else {
         res.status(409).send(blockchainResponse);
       }
+      log("info", "DONE.");
+    } catch (e) {
+      res.status(400).send(e);
+      log("error", "DONE.");
+    }
+  }
+);
+
+export const RECORD_AUDITED_EMISSIONS_TOKEN =
+  "/api/" +
+  APP_VERSION +
+  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
+router.get(
+  RECORD_AUDITED_EMISSIONS_TOKEN,
+  [
+    param("userId").isString(),
+    param("orgName").isString(),
+    param("userId").isString(),
+    param("addressToIssue").isString(),
+    param("fromDate").custom((value, { req }) => {
+      let matches = value.match(
+        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+      );
+      if (!matches) {
+        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+      }
+
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
+    param("thruDate").custom((value, { req }) => {
+      let matches = value.match(
+        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+      );
+      if (!matches) {
+        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+      }
+
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
+    param("automaticRetireDate").custom((value, { req }) => {
+      let matches = value.match(
+        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+      );
+      if (!matches) {
+        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+      }
+
+      // Indicates the success of this synchronous custom validator
+      return true;
+    }),
+    param("metadata").isString(),
+    param("description").isString(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(412).json({ errors: errors.array() });
+    }
+    try {
+      const userId = req.params.userId;
+      const orgName = req.params.orgName;
+      const addressToIssue = req.params.addressToIssue;
+      const fromDate = req.params.fromDate;
+      const thruDate = req.params.thruDate;
+      const automaticRetireDate = req.params.automaticRetireDate;
+      const metadata = req.params.metadata;
+      const description = req.params.description;
+      let quantity = 0;
+      let uom;
+      let manifest = [];
+
+      // Get Emmission Data from utilityEmissions Channel
+      const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsDataByDateRange(
+        userId,
+        orgName,
+        fromDate,
+        thruDate
+      );
+
+      if (Array.isArray(blockchainResponse)) {
+        uom = blockchainResponse[0].emissionsUom;
+        for (let entry of blockchainResponse) {
+          quantity += entry.emissionsAmount;
+          manifest.push(entry.uuid);
+        }
+      } else {
+        res.status(409).send(blockchainResponse);
+      }
+
+      let tokenId = await issue(
+        addressToIssue,
+        quantity.toFixed(2),
+        uom,
+        toTimestamp(fromDate),
+        toTimestamp(thruDate),
+        toTimestamp(automaticRetireDate),
+        metadata,
+        manifest.join(", "),
+        description
+      );
+
+      // upsert tokenId to all entries retrieved from the register
+      for (let entry of blockchainResponse) {
+        let updateRecord = await EmissionsContractInvoke.updateEmissionsRecord(
+          userId,
+          orgName,
+          entry.uuid,
+          entry.utilityId,
+          entry.partyId,
+          entry.fromDate,
+          entry.thruDate,
+          entry.emissionsAmount,
+          entry.emissionsUom,
+          entry.renewableEnergyUseAmount,
+          entry.nonrenewableEnergyUseAmount,
+          entry.energyUseUom,
+          entry.factorSource,
+          entry.url,
+          entry.md5,
+          tokenId
+        );
+      }
+
+      let result: Object = new Object();
+      result["info"] = "AUDITED EMISSIONS TOKEN RECORDED";
+      result["tokenId"] = tokenId;
+      result["quantity"] = quantity;
+      result["uom"] = uom;
+      result["fromDate"] = fromDate;
+      result["thruDate"] = thruDate;
+      result["automaticRetireDate"] = automaticRetireDate;
+      result["metadata"] = metadata;
+      result["manifest"] = manifest.join(", ");
+      result["description"] = description;
+
+      res.status(200).send(result);
       log("info", "DONE.");
     } catch (e) {
       res.status(400).send(e);

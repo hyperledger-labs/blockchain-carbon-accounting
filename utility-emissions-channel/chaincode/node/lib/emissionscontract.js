@@ -77,9 +77,11 @@ class EmissionsRecordContract extends Contract {
     let division_id = calc.divisionId;
     let year = calc.year;
     let factor_source = `eGrid ${year} ${division_type} ${division_id}`;
+    let tokenId = null;
 
     // create an instance of the emissions record
     let emissionsRecord = EmissionsRecord.createInstance(
+      uuid,
       utilityId,
       partyId,
       fromDate,
@@ -91,11 +93,54 @@ class EmissionsRecordContract extends Contract {
       energyUseUom,
       factor_source,
       url,
-      md5
+      md5,
+      tokenId
     );
 
     // Add the emissions record to the list of all similar emissions records in the ledger world state
     await ctx.emissionsList.addEmissionsRecord(emissionsRecord, uuid);
+
+    // Must return a serialized emissionsRecord to caller of smart contract
+    return emissionsRecord;
+  }
+
+  async updateEmissionsRecord(
+    ctx,
+    uuid,
+    utilityId,
+    partyId,
+    fromDate,
+    thruDate,
+    emissionsAmount,
+    emissionsUom,
+    renewable_energy_use_amount,
+    nonrenewable_energy_use_amount,
+    energyUseUom,
+    factor_source,
+    url,
+    md5,
+    tokenId
+  ) {
+    // create an instance of the emissions record
+    let emissionsRecord = EmissionsRecord.createInstance(
+      uuid,
+      utilityId,
+      partyId,
+      fromDate,
+      thruDate,
+      parseFloat(emissionsAmount),
+      emissionsUom,
+      parseFloat(renewable_energy_use_amount),
+      parseFloat(nonrenewable_energy_use_amount),
+      energyUseUom,
+      factor_source,
+      url,
+      md5,
+      tokenId
+    );
+
+    // Update the emissions record to the list of all similar emissions records in the ledger world state
+    await ctx.emissionsList.updateEmissionsRecord(emissionsRecord, uuid);
 
     // Must return a serialized emissionsRecord to caller of smart contract
     return emissionsRecord;

@@ -4,3 +4,8 @@ export function checkDateConflict(a_start: string, a_end: string, b_start: strin
   if (b_start < a_start && a_end < b_end) return true; // a in b
   return false;
 }
+
+export function toTimestamp(strDate) {
+  var datum = Date.parse(strDate);
+  return datum / 1000;
+}
