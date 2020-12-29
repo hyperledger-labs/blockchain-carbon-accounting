@@ -1,21 +1,47 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-import { registerConsumer, unregisterConsumer, registerDealer, unregisterDealer } from "../services/contract-functions";
+import { getRoles, registerConsumer, unregisterConsumer, registerDealer, unregisterDealer } from "../services/contract-functions";
 
 import SubmissionModal from "./submission-modal";
 
+import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-export default function AccessControlForm({ provider }) {
+export default function AccessControlForm({ provider, signedInAddress }) {
 
   const [modalShow, setModalShow] = useState(false);
 
   const [address, setAddress] = useState("");
   const [role, setRole] = useState("Consumer");
   const [result, setResult] = useState("");
+  const [myRoles, setMyRoles] = useState();
+  const [fetchingMyRoles, setFetchingMyRoles] = useState(false);
+
+  useEffect(() => {
+    if (provider && signedInAddress) {
+      if (!myRoles && !fetchingMyRoles) {
+        setFetchingMyRoles(true);
+        fetchMyRoles();
+      }
+    }
+  }, [signedInAddress]);
+
+  function xOrCheck(value) {
+    if (value) {
+      return <span className="text-success">✔</span>;
+    } else {
+      return <span className="text-danger">✖</span>;
+    }
+  }
+
+  async function fetchMyRoles() {
+    let result = await getRoles(provider, signedInAddress);
+    setMyRoles(result);
+    setFetchingMyRoles(false);
+  }
 
   function onAddressChange(event) { setAddress(event.target.value); };
 
@@ -86,6 +112,25 @@ export default function AccessControlForm({ provider }) {
       />
 
       <h2>Manage roles</h2>
+
+      <h4>My Roles</h4>
+      {myRoles ? 
+        <Row className="text-center mb-3">
+          <Col><small>Owner</small> {xOrCheck(myRoles[0])}</Col>
+          <Col><small>Renewable Energy Certificate Dealer</small> {xOrCheck(myRoles[1])}</Col>
+          <Col><small>Carbon Emissions Offset Dealer</small> {xOrCheck(myRoles[2])}</Col>
+          <Col><small>Audited Emissions Dealer</small> {xOrCheck(myRoles[3])}</Col>
+          <Col><small>Consumer</small> {xOrCheck(myRoles[4])}</Col>
+        </Row>
+        : 
+        <div className="text-center mt-3 mb-3">
+          <Spinner animation="border" role="status">
+            <span className="sr-only">Loading...</span>
+          </Spinner>
+        </div>
+      }
+
+      <h4>Register/unregister dealers and consumers</h4>
       <Form.Group>
         <Form.Label>Address</Form.Label>
         <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
