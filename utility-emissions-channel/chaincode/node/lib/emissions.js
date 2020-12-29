@@ -21,6 +21,12 @@ class EmissionsRecord extends State {
   /**
    * Basic getters and setters
    */
+  getUuid() {
+    return this.uuid;
+  }
+  setUuid(newUuid) {
+    this.uuid = newUuid;
+  }
   getFromDate() {
     return this.fromDate;
   }
@@ -114,6 +120,13 @@ class EmissionsRecord extends State {
     this.md5 = newMd5;
   }
 
+  getTokenId() {
+    return this.tokenId;
+  }
+  setTokenId(newTokenId) {
+    this.tokenId = newTokenId;
+  }
+
   static fromBuffer(buffer) {
     return EmissionsRecord.deserialize(buffer);
   }
@@ -134,6 +147,7 @@ class EmissionsRecord extends State {
    * Factory method to create an Emissions Record object
    */
   static createInstance(
+    uuid,
     utilityId,
     partyId,
     fromDate,
@@ -145,9 +159,11 @@ class EmissionsRecord extends State {
     energyUseUom,
     factorSource,
     url,
-    md5
+    md5,
+    tokenId
   ) {
     return new EmissionsRecord({
+      uuid,
       utilityId,
       partyId,
       fromDate,
@@ -160,6 +176,7 @@ class EmissionsRecord extends State {
       factorSource,
       url,
       md5,
+      tokenId,
     });
   }
 
