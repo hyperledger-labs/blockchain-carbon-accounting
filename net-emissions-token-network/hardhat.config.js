@@ -1,3 +1,5 @@
+import 'hardhat-deploy';
+
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
@@ -32,5 +34,8 @@ module.exports = {
     hardhat: {
       chainId: 1337
     },
+  },
+  gasReporter: {
+    currency: 'USD',
   }
 };
