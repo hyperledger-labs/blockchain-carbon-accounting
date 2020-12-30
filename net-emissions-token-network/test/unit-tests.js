@@ -364,7 +364,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumerTwo).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You must be the original recipient of the token to retire"
+        "Error: VM Exception while processing transaction: revert Not enough available balance to retire"
       );
     }
 
