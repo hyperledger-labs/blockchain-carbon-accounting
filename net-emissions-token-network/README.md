@@ -182,7 +182,7 @@ Find the "plugins" tab on the left of the IDE user interface. Select remixd and 
 
 Under localhost -> contracts, select NetEmissionsTokenNetwork.sol in the file explorer.
 
-Go to the compiler tab, change the compiler version to 0.6.2, check the box for "optimize", and compile the contract.
+Go to the compiler tab, change the compiler version to the same as the Solidity version at the beginning of the contract.  Check the box for "optimize" and compile the contract.
 
 Next, select the "Deploy and run transactions tab", change the gas limit to "9999999", select "NetEmissionsTokenNetwork" from the drop down, and deploy the contract.
 
