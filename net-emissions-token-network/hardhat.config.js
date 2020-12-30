@@ -1,6 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
+const goerliConfig = require("./.goerli-config");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -35,5 +36,11 @@ module.exports = {
   },
   gasReporter: {
     currency: 'USD',
+  },
+  networks: {
+    goerli: {
+      url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
+      accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
+    }
   }
 };

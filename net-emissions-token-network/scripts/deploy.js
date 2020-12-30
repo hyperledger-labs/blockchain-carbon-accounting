@@ -13,6 +13,13 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
+  const [deployer] = await ethers.getSigners();
+
+  console.log(
+    "Deploying contracts with the account:",
+    deployer.address
+  );
+
   // We get the contracts to deploy
   const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
   const netEmissionsTokenNetwork = await NetEmissionsTokenNetwork.deploy();
