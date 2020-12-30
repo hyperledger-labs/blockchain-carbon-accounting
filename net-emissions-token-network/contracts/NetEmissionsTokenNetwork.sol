@@ -48,15 +48,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string description;
     }
 
-    struct RetiredToken {
-        address retirer;
-        uint256 associatedTokenId;
-        uint256 amount;
-    }
-
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
-    // mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
 
     uint256 private _numOfUniqueTokens = 0; // Counts number of unique token IDs (auto-incrementing)
     string[] private _TOKEN_TYPES = [
@@ -237,7 +230,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         uint256 amount
     ) external consumerOrDealer {
         require(tokenExists(tokenId), "tokenId does not exist");
-        require( (_tokenDetails[tokenId].issuee == msg.sender), "You must be the original recipient of the token to retire");
         require( (amount < super.balanceOf(msg.sender, tokenId)), "Not enough available balance to retire" );
 
         super._burn(msg.sender, tokenId, amount);
