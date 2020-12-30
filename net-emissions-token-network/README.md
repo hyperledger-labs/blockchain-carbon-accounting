@@ -11,6 +11,7 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 ### Installation and use
 
 - Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
+- Copy the necessary Goerli testnet config file with `cp .goerli-config.js.example .goerli-config.js`. No edits are necessary unless you plan to deploy to Goerli testnet.
 - To test, run `npx hardhat test`
 - To compile, run `npx hardhat compile`
 - To export ABI to interface and Utility Emissions Channel, run `sh exportAbis.sh`
@@ -37,12 +38,21 @@ The interface is created using [create-eth-app](https://github.com/PaulRBerg/cre
 Hardhat implements its own Ethereum local testnet called Hardhat Network. In order to connect the interface to this local testnet:
 
 1. Install the [MetaMask extension](https://metamask.io/)
-2. From the `net-emissions-token-network/interface` diretory, install the `node_modules` and start the react app with
+2. From the `net-emissions-token-network/interface` directory, install the `node_modules` and start the react app with
 
 ```bash
 yarn install
 yarn react-app:start
 ```
+
+3. Copy the necessary Goerli testnet config file with 
+
+```bash
+cp .goerli-config.js.example .goerli-config.js
+
+```
+
+No edits are necessary unless you plan to deploy to Goerli testnet.
 
 3. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
 
@@ -53,7 +63,7 @@ npx hardhat node
 4. In a separate terminal, deploy the contracts in `net-emissions-token-network/` to the local Hardhat Network with:
 
 ```bash
-npx hardhat run --network localhost scripts/deploy-local.js
+npx hardhat run --network localhost scripts/deploy.js
 ```
 
 5. In the MetaMask extension, change the network from Ethereum Mainnet to _Localhost 8545_.
@@ -66,6 +76,15 @@ npx hardhat run --network localhost scripts/deploy-local.js
 You should now be connected to your local testnet and be able to interact with contracts deployed on it through the React application.
 
 _Note: When restarting the Hardhat Network after interacting with the contracts through MetaMask, it might be necessary to reset the account's transactions otherwise an error might occur due to the way Ethereum prevents double-counting transactions. To reset transaction history in MetaMask, click the account icon in the top right, go to Settings, Advanced, and Reset Account._
+
+### Deploying to Goerli
+
+
+To deploy the contract to the Goerli testnet, modify the flags in the deploy script with the following command:
+```bash
+npx hardhat run --network goerli scripts/deploy.js
+```
+
 
 ### Token User Flow
 
