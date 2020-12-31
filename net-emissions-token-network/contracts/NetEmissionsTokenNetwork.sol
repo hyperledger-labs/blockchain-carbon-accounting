@@ -188,6 +188,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.description = description;
 
         super._mint(account, _numOfUniqueTokens, quantity, callData);
+
+        // Retire audited emissions on mint
+        if (tokenTypeId == 3) {
+            super._burn(tokenInfo.issuee, tokenInfo.tokenId, quantity);
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee] = _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee].add(quantity);
+        }
+
         TokenCreated(_numOfUniqueTokens);
     }
 

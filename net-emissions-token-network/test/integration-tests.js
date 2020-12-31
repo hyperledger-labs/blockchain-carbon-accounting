@@ -523,8 +523,8 @@ describe("Net Emissions Token Network - Integration tests", function() {
     expect(tokenId).to.equal(1);
 
     // Get available/retire balance
-    let expectedAvailable = quantity.toString();
-    let expectedRetire = "0";
+    let expectedAvailable = "0";
+    let expectedRetire = quantity.toString();
     let available = await contract
       .getAvailableAndRetired(consumer.address, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
@@ -574,14 +574,14 @@ describe("Net Emissions Token Network - Integration tests", function() {
       );
 
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
-    let expectedAvailableTwo = quantity.toString();
-    let expectedRetireTwo = "0";
+    let expectedAvailableTwo = "0";
+    let expectedRetireTwo = quantity.toString();
     let afterRetireTwo = await contract
       .getAvailableAndRetired(consumer.address, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
-    let expectedAvailableThree = quantity.toString();
-    let expectedRetireThree = "0";
+    let expectedAvailableThree = "0";
+    let expectedRetireThree = quantity.toString();
     let afterRetireThree = await contract
       .getAvailableAndRetired(consumer.address, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
