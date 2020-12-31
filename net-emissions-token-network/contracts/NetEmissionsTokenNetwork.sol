@@ -230,7 +230,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         uint256 amount
     ) external consumerOrDealer {
         require(tokenExists(tokenId), "tokenId does not exist");
-        require( (amount < super.balanceOf(msg.sender, tokenId)), "Not enough available balance to retire" );
+        require( (amount <= super.balanceOf(msg.sender, tokenId)), "Not enough available balance to retire" );
 
         super._burn(msg.sender, tokenId, amount);
         _retiredBalances[tokenId][msg.sender] = _retiredBalances[tokenId][msg.sender].add(amount);
