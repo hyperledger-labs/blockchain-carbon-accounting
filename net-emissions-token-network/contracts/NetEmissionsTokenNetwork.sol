@@ -9,12 +9,17 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     
     using SafeMath for uint256;
 
+    // Generic dealer role for registering/unregistering consumers
+    bytes32 public constant REGISTERED_DEALER =
+        keccak256("REGISTERED_DEALER");
+    // Token type specific roles
     bytes32 public constant REGISTERED_REC_DEALER =
         keccak256("REGISTERED_REC_DEALER");
     bytes32 public constant REGISTERED_OFFSET_DEALER =
         keccak256("REGISTERED_OFFSET_DEALER");
     bytes32 public constant REGISTERED_EMISSIONS_AUDITOR =
         keccak256("REGISTERED_EMISSIONS_AUDITOR");
+    // Consumer role
     bytes32 public constant REGISTERED_CONSUMER =
         keccak256("REGISTERED_CONSUMER");
 
@@ -64,6 +69,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
     constructor() ERC1155("localhost") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
+        // Allow dealers to register consumers
+        _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
+
+        _setupRole(REGISTERED_DEALER, msg.sender);
         _setupRole(REGISTERED_REC_DEALER, msg.sender);
         _setupRole(REGISTERED_OFFSET_DEALER, msg.sender);
         _setupRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
@@ -302,7 +312,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         } else {
             grantRole(REGISTERED_EMISSIONS_AUDITOR, account);
         }
-        grantRole(DEFAULT_ADMIN_ROLE, account); // @TODO: Remove me
+        // Also grant generic dealer role for registering/unregistering consumers
+        grantRole(REGISTERED_DEALER, account);
         emit RegisteredDealer(account);
     }
 
@@ -331,6 +342,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         } else {
             super.revokeRole(REGISTERED_EMISSIONS_AUDITOR, account);
         }
+
+        // If no longer a dealer of any token type, remove generic dealer role
+        if (!isDealerRegistered(account)) {
+            revokeRole(REGISTERED_DEALER, account);
+        }
+
         emit UnregisteredDealer(account);
     }
 
