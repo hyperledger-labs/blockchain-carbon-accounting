@@ -311,6 +311,62 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   });
 
+  it("should retire audited emissions tokens on issuance; disallow transfers", async function() {
+    let contract = await deployContract();
+    const allAddresses = await ethers.getSigners();
+
+    let dealer = allAddresses[1];
+    let consumer = allAddresses[2];
+    let consumerTwo = allAddresses[3];
+
+    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[2]);
+    expect(registerDealer);
+    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
+    expect(registerConsumerTwo);
+
+    let issue = await contract
+      .connect(dealer)
+      .issue(
+        consumer.address,
+        allTokenTypeId[2],
+        quantity,
+        uom,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop();
+    let tokenId = issueEvent.args[0].toNumber();
+    expect(tokenId).to.equal(1);
+
+    // Get balances of both available and retired
+    let expectedAvailable = "0";
+    let expectedRetire = quantity.toString();
+    let afterIssuance = await contract
+      .getAvailableAndRetired(consumer.address, tokenId)
+      .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
+
+    // Try to transfer
+    try {
+      let transferFail = await contract.connect(consumer).transfer(consumerTwo.address, tokenId, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+      );
+    }
+
+  });
+
   it("should fail when retire is called incorrectly", async function() {
     let contract = await deployContract();
     const allAddresses = await ethers.getSigners();

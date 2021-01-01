@@ -177,7 +177,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         } else {
             require(
                 hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender),
-                "You are not an Audited Emissions Amount dealer"
+                "You are not an Audited Emissions dealer"
             );
         }
 

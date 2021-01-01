@@ -493,7 +493,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not an Audited Emissions Amount dealer"
+        "Error: VM Exception while processing transaction: revert You are not an Audited Emissions dealer"
       );
     }
 
