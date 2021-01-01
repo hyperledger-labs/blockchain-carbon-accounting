@@ -138,13 +138,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
       .then((response) => expect(response).to.deep.equal([true, true, true, true, false]));
     let recDealerRoles = await contract
       .getRoles(recDealer.address)
-      .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, false, false, false]));
     let ceoDealerRoles = await contract
       .getRoles(ceoDealer.address)
-      .then((response) => expect(response).to.deep.equal([true, false, true, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, true, false, false]));
     let aeDealerRoles = await contract
       .getRoles(aeDealer.address)
-      .then((response) => expect(response).to.deep.equal([true, false, false, true, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, true, false]));
     let consumerRoles = await contract
       .getRoles(consumer.address)
       .then((response) => expect(response).to.deep.equal([false, false, false, false, true]));
@@ -157,13 +157,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
     expect(registerRecdealerTwo);
     let recDealerRolesTwo = await contract
       .getRoles(recDealer.address)
-      .then((response) => expect(response).to.deep.equal([true, true, true, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, true, false, false]));
 
     // check unregistering that role from recDealer
     let unregisterRecdealer = await contract.unregisterDealer(recDealer.address, allTokenTypeId[1]);
     let recDealerRolesThree = await contract
       .getRoles(recDealer.address)
-      .then((response) => expect(response).to.deep.equal([true, true, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, false, false, false]));
 
     // check if recDealer is dealer
     let isRecDealerDealer = await contract
