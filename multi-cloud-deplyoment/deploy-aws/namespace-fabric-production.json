@@ -1,0 +1,11 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "fabric-production",
+    "labels": {
+      "name": "fabric-production"
+    }
+  }
+}
+

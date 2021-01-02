@@ -4,10 +4,10 @@ metadata:
   name: pv-static-fabric-orderer
 spec:
   capacity:
-    storage: 10Gi
+    storage: 20Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: gp2
   awsElasticBlockStore:
     fsType: ext4
-    volumeID: vol-02d6e7b6d6d4f930e
+    volumeID: vol-0b42adf6a51229b00

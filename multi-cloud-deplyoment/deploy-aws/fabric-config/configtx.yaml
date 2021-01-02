@@ -21,9 +21,9 @@ Organizations:
           Type: Signature
           Rule: OR('opensolarx.orderer')
       OrdererEndpoints:
-        - fabric-orderer4.opensolarx.com:443
+        - fabric-orderer.opensolarx.com:443
       AnchorPeers:
-        - Host: fabric-peer4.opensolarx.com
+        - Host: fabric-peer.opensolarx.com
           Port: 443
 
   # - &auditor2
@@ -119,10 +119,10 @@ Orderer: &OrdererDefaults
   Organizations:
   EtcdRaft:
     Consenters:
-      - Host: fabric-orderer4.opensolarx.com
+      - Host: fabric-orderer.opensolarx.com
         Port: 443
-        ClientTLSCert: ../crypto-material/opensolarx.com/orderers/fabric-orderer4.opensolarx.com/tls/server.crt
-        ServerTLSCert: ../crypto-material/opensolarx.com/orderers/fabric-orderer4.opensolarx.com/tls/server.crt
+        ClientTLSCert: ../crypto-material/opensolarx.com/orderers/fabric-orderer.opensolarx.com/tls/server.crt
+        ServerTLSCert: ../crypto-material/opensolarx.com/orderers/fabric-orderer.opensolarx.com/tls/server.crt
       # - Host: orderer1.auditor2.carbonAccounting.com
       #   Port: 8050
       #   ClientTLSCert: ../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/server.crt
