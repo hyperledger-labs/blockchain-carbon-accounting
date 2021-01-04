@@ -16,7 +16,6 @@ export default function RetireForm({ provider }) {
   const [modalShow, setModalShow] = useState(false);
 
   // Form inputs
-  const [address, setAddress] = useState("");
   const [tokenId, setTokenId] = useState();
   const [amount, setAmount] = useState("");
   const [result, setResult] = useState("");
@@ -24,9 +23,7 @@ export default function RetireForm({ provider }) {
   // After initial onFocus for required inputs, display red outline if invalid
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedTokenIdInput, setInitializedTokenIdInput] = useState(false);
-  const [initializedAmountInput, setInitializedAmountInput] = useState(false);
 
-  function onAddressChange(event) { setAddress(event.target.value); };
   function onTokenIdChange(event) { setTokenId(event.target.value); };
   function onAmountChange(event) { setAmount(event.target.value); };
 
@@ -36,7 +33,7 @@ export default function RetireForm({ provider }) {
   }
 
   async function fetchRetire() {
-    let result = await retire(provider, address, tokenId, amount);
+    let result = await retire(provider, tokenId, amount);
     setResult(result.toString());
   }
 
@@ -56,17 +53,6 @@ export default function RetireForm({ provider }) {
       />
 
       <h2>Retire tokens</h2>
-      <Form.Group>
-        <Form.Label>Address</Form.Label>
-        <Form.Control
-          type="input"
-          placeholder="0x000..."
-          value={address}
-          onChange={onAddressChange}
-          onBlur={() => setInitializedAddressInput(true)}
-          style={(address || !initializedAddressInput) ? {} : inputError}
-        />
-      </Form.Group>
       <Form.Group>
         <Form.Label>Token ID</Form.Label>
         <Form.Control
