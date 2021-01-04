@@ -57,6 +57,7 @@ export default function AccessControlForm({ provider, signedInAddress }) {
 
   function onAddressChange(event) { setAddress(event.target.value); };
   function onTheirAddressChange(event) { setTheirAddress(event.target.value); };
+  function onRoleChange(event) { setRole(event.target.value); };
 
   function handleRegister() {
     switch (role) {
@@ -171,10 +172,10 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       <Form.Group>
         <Form.Label>Role</Form.Label>
         <Form.Control as="select">
-          <option onClick={() => {setRole("Consumer")}}>Consumer</option>
-          <option onClick={() => {setRole("REC")}}>Renewable Energy Certificate Dealer</option>
-          <option onClick={() => {setRole("CEO")}}>Carbon Emissions Offset Dealer</option>
-          <option onClick={() => {setRole("AE")}}>Audited Emissions Dealer</option>
+          <option onClick={onRoleChange} value="Consumer">Consumer</option>
+          <option onClick={onRoleChange} value="REC">Renewable Energy Certificate Dealer</option>
+          <option onClick={onRoleChange} value="CEO">Carbon Emissions Offset Dealer</option>
+          <option onClick={onRoleChange} value="AE">Audited Emissions Dealer</option>
         </Form.Control>
       </Form.Group>
       <Form.Group>
