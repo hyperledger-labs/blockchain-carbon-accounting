@@ -123,13 +123,13 @@ export async function issue(
   return issue_result;
 }
 
-export async function retire(w3provider, account, tokenId, amount) {
+export async function retire(w3provider, tokenId, amount) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let retire_result;
   try {
-    await signed.retire(account, tokenId, amount);
+    await signed.retire(tokenId, amount);
     retire_result = "Success! Transaction has been submitted to the network.";
   } catch (error) {
     retire_result = error.message;
