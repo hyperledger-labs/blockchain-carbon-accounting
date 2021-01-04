@@ -171,11 +171,11 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Role</Form.Label>
-        <Form.Control as="select">
-          <option onClick={onRoleChange} value="Consumer">Consumer</option>
-          <option onClick={onRoleChange} value="REC">Renewable Energy Certificate Dealer</option>
-          <option onClick={onRoleChange} value="CEO">Carbon Emissions Offset Dealer</option>
-          <option onClick={onRoleChange} value="AE">Audited Emissions Dealer</option>
+        <Form.Control as="select" onChange={onRoleChange}>
+          <option value="Consumer">Consumer</option>
+          <option value="REC">Renewable Energy Certificate Dealer</option>
+          <option value="CEO">Carbon Emissions Offset Dealer</option>
+          <option value="AE">Audited Emissions Dealer</option>
         </Form.Control>
       </Form.Group>
       <Form.Group>
