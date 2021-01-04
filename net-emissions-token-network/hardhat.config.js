@@ -29,11 +29,6 @@ module.exports = {
       }
     }
   },
-  networks: {
-    hardhat: {
-      chainId: 1337
-    },
-  },
   gasReporter: {
     currency: 'USD',
   },
@@ -41,6 +36,9 @@ module.exports = {
     goerli: {
       url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
       accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
+    },
+    hardhat: {
+      chainId: 1337
     }
   }
 };
