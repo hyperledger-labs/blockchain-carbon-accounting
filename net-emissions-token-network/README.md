@@ -45,15 +45,6 @@ yarn install
 yarn react-app:start
 ```
 
-3. Copy the necessary Goerli testnet config file with 
-
-```bash
-cp .goerli-config.js.example .goerli-config.js
-
-```
-
-No edits are necessary unless you plan to deploy to Goerli testnet.
-
 3. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
 
 ```bash
@@ -80,7 +71,14 @@ _Note: When restarting the Hardhat Network after interacting with the contracts 
 ### Deploying to Goerli
 
 
-To deploy the contract to the Goerli testnet, modify the flags in the deploy script with the following command:
+To deploy the contract to the Goerli testnet:
+
+1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
+
+2. In `hardhat.config.js`, uncomment the Goerli settings under network.
+
+3. Deploy by modifying the flags in the deploy script with the following command:
+
 ```bash
 npx hardhat run --network goerli scripts/deploy.js
 ```
