@@ -21,8 +21,8 @@ export default function RetireForm({ provider }) {
   const [result, setResult] = useState("");
 
   // After initial onFocus for required inputs, display red outline if invalid
-  const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedTokenIdInput, setInitializedTokenIdInput] = useState(false);
+  const [initializedAmountInput, setInitializedAmountInput] = useState(false);
 
   function onTokenIdChange(event) { setTokenId(event.target.value); };
   function onAmountChange(event) { setAmount(event.target.value); };
