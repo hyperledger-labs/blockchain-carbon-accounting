@@ -14,13 +14,15 @@ import RetireForm from "./components/retire-form";
 import AccessControlForm from "./components/access-control-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
-import { Link, Route, Switch, Redirect } from "wouter"
+import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 
 import GET_TRANSFERS from "./graphql/subgraph";
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles] = useWeb3Modal();
+
+  const [location, setLocation] = useLocation();
 
   React.useEffect(() => {
     if (!loading && !error && data && data.transfers) {
@@ -39,7 +41,7 @@ function App() {
       />
       <Container className="mt-2">
 
-        <Tab.Container defaultActiveKey="dashboard">
+        <Tab.Container defaultActiveKey={location.substring(1)}>
           <Row>
             <Col sm={3}  className="mb-2">
               <Nav variant="pills" className="flex-column">
