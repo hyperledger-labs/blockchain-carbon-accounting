@@ -126,15 +126,16 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       />
 
       <h2>Manage roles</h2>
+      <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
 
       <h4>My Roles</h4>
       {myRoles ? 
         <Row className="text-center mb-3">
-          <Col><small>Owner</small> {xOrCheck(myRoles[0])}</Col>
-          <Col><small>Renewable Energy Certificate Dealer</small> {xOrCheck(myRoles[1])}</Col>
-          <Col><small>Carbon Emissions Offset Dealer</small> {xOrCheck(myRoles[2])}</Col>
-          <Col><small>Audited Emissions Dealer</small> {xOrCheck(myRoles[3])}</Col>
-          <Col><small>Consumer</small> {xOrCheck(myRoles[4])}</Col>
+          <Col className="align-self-center"><small>Owner</small> {xOrCheck(myRoles[0])}</Col>
+          <Col className="align-self-center"><small>Renewable Energy Certificate Dealer</small> {xOrCheck(myRoles[1])}</Col>
+          <Col className="align-self-center"><small>Carbon Emissions Offset Dealer</small> {xOrCheck(myRoles[2])}</Col>
+          <Col className="align-self-center"><small>Audited Emissions Dealer</small> {xOrCheck(myRoles[3])}</Col>
+          <Col className="align-self-center"><small>Consumer</small> {xOrCheck(myRoles[4])}</Col>
         </Row>
         : 
         <div className="text-center mt-3 mb-3">
@@ -156,11 +157,11 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       </InputGroup>
       {theirRoles.length === 5 &&
         <Row className="text-center mb-3">
-          <Col><small>Owner</small> {xOrCheck(theirRoles[0])}</Col>
-          <Col><small>Renewable Energy Certificate Dealer</small> {xOrCheck(theirRoles[1])}</Col>
-          <Col><small>Carbon Emissions Offset Dealer</small> {xOrCheck(theirRoles[2])}</Col>
-          <Col><small>Audited Emissions Dealer</small> {xOrCheck(theirRoles[3])}</Col>
-          <Col><small>Consumer</small> {xOrCheck(theirRoles[4])}</Col>
+          <Col className="align-self-center"><small>Owner</small> {xOrCheck(theirRoles[0])}</Col>
+          <Col className="align-self-center"><small>Renewable Energy Certificate Dealer</small> {xOrCheck(theirRoles[1])}</Col>
+          <Col className="align-self-center"><small>Carbon Emissions Offset Dealer</small> {xOrCheck(theirRoles[2])}</Col>
+          <Col className="align-self-center"><small>Audited Emissions Dealer</small> {xOrCheck(theirRoles[3])}</Col>
+          <Col className="align-self-center"><small>Consumer</small> {xOrCheck(theirRoles[4])}</Col>
         </Row>
       }
 

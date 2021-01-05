@@ -92,11 +92,14 @@ export default function Dashboard({ provider, signedInAddress }) {
       />
 
       <h2>Dashboard</h2>
+      <p>View your token balances and tokens you've issued.</p>
 
       {fetchingTokens && (
-        <Spinner animation="border" role="status">
-          <span className="sr-only">Loading...</span>
-        </Spinner>
+        <div className="text-center my-4">
+          <Spinner animation="border" role="status">
+            <span className="sr-only">Loading...</span>
+          </Spinner>
+        </div>
       )}
 
       <Row>

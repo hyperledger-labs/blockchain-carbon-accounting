@@ -56,7 +56,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       <Navbar.Collapse className="justify-content-end">
         {(signedInAddress !== "") &&
           <>
-            <span className="mr-3">
+            <span className="mr-2">
               {(role && role !== "Unregistered") ?
                 <span className="text-success">{role}</span>
               : <span className="text-danger">{role || "Not connected"}</span>
