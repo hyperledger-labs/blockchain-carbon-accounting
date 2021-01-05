@@ -11,7 +11,6 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 ### Installation and use
 
 - Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
-- Copy the necessary Goerli testnet config file with `cp .goerli-config.js.example .goerli-config.js`. No edits are necessary unless you plan to deploy to Goerli testnet.
 - To test, run `npx hardhat test`
 - To compile, run `npx hardhat compile`
 - To export ABI to interface and Utility Emissions Channel, run `sh exportAbis.sh`
@@ -22,6 +21,24 @@ You can also run the tests with no external dependencies other than docker with 
 ```bash
 sh runDockerTests.sh
 ```
+
+### Deploying contract to Goerli
+
+
+To deploy the contract to the Goerli testnet:
+
+1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
+
+2. In `hardhat.config.js`, uncomment the Goerli settings under network.
+
+3. Deploy by modifying the flags in the deploy script with the following command:
+
+```bash
+npx hardhat run --network goerli scripts/deploy.js
+```
+
+4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
+
 
 ## Interface
 
@@ -93,23 +110,6 @@ You should now be connected to your local testnet and be able to interact with c
 
 _Note: When restarting the Hardhat Network after interacting with the contracts through MetaMask, it might be necessary to reset the account's transactions otherwise an error might occur due to the way Ethereum prevents double-counting transactions. To reset transaction history in MetaMask, click the account icon in the top right, go to Settings, Advanced, and Reset Account._
 
-### Deploying contract to Goerli
-
-
-To deploy the contract to the Goerli testnet:
-
-1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
-
-2. In `hardhat.config.js`, uncomment the Goerli settings under network.
-
-3. Deploy by modifying the flags in the deploy script with the following command:
-
-```bash
-npx hardhat run --network goerli scripts/deploy.js
-```
-
-4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
-
 ---
 
 ### Token User Flow
@@ -180,7 +180,7 @@ A dealer may unregister its consumers with the unregisterConsumer function:
 function unregisterConsumer( address account )
 ```
 
-#### Testing the contract in remix
+#### Testing the contract in Remix
 
 For interacting with the contract in development, the current solution is to use the Remix IDE.
 
