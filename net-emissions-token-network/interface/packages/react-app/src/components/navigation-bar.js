@@ -25,11 +25,16 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
   const [role, setRole] = useState("");
 
   useEffect(() => {
+
     if (roles.length === 5 && role === "") {
       if (roles[0] === true) {
         setRole("Owner (superuser)");
-      } else if (roles[1] === true || roles[2] === true || roles[3] === true) {
-        setRole("Dealer");
+      } else if (roles[1] === true) {
+        setRole("REC Dealer");
+      } else if (roles[2] === true) {
+        setRole("CEO Dealer")
+      } else if (roles[3] === true) {
+        setRole("AE Dealer");
       } else if (roles[4] === true) {
         setRole("Consumer");
       } else {
@@ -51,7 +56,12 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       <Navbar.Collapse className="justify-content-end">
         {(signedInAddress !== "") &&
           <>
-            <span className="mr-3 text-success">{role}</span>
+            <span className="mr-3">
+              {(role && role !== "Unregistered") ?
+                <span className="text-success">{role}</span>
+              : <span className="text-danger">{role || "Not connected"}</span>
+              }
+            </span>
             <span className="mr-2 text-secondary">{truncateAddress(signedInAddress)}</span>
           </>
         }
