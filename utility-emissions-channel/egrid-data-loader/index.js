@@ -402,6 +402,34 @@ function import_utility_emissions(file_name, opts) {
         db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
       });
     });
+  } else if (opts.sheet == "US18") {
+    var data = parse_worksheet(file_name, opts, function(data) {
+      async.eachSeries(data, function iterator(row, callback) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) return callback();
+        // skip header rows
+        if (row["Data Year"] == "YEAR") return callback();
+        //opts.verbose && console.log('-- Prepare to insert from ', row);
+        // generate a unique for the row
+        var document_id = "COUNTRY_USA_" + row["Data Year"];
+        var d = {
+          _id: { S: document_id },
+          Year: { N: "" + row["Data Year"] },
+          Country: { S: "USA" },
+          Division_type: { S: "COUNTRY" },
+          Division_id: { S: "USA" },
+          Division_name: { S: "United States of America" },
+          Net_Generation: { N: "" + row["U.S. annual net generation (MWh)"] },
+          Net_Generation_UOM: { S: "MWH" },
+          CO2_Equivalent_Emissions: { N: "" + row["U.S. annual CO2 equivalent emissions (tons)"] },
+          CO2_Equivalent_Emissions_UOM: { S: "tons" },
+          Source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
+          Non_Renewables: { N: row["U.S. annual total nonrenewables net generation (MWh)"].toString() },
+          Renewables: { N: row["U.S. annual total renewables net generation (MWh)"].toString() },
+        };
+        db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
+      });
+    });
   }
 }
 
