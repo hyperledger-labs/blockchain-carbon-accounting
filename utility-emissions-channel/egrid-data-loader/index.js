@@ -18,7 +18,7 @@ const XLSX = require("xlsx");
 const AWS = require("aws-sdk");
 const async = require("async");
 const yargs = require("yargs");
-const STATE_NAME_MAPPING = require("./stateAbrevToName.js").STATE_NAME_MAPPING;
+const NAME_MAPPINGS = require("./abrevToName.js");
 
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
@@ -333,7 +333,7 @@ function parse_worksheet(file_name, opts, cb) {
 
 function import_utility_emissions(file_name, opts) {
   const db = EmissionsCalc.connectdb(AWS, opts);
-  if (opts.sheet == "NRL18") {
+  if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18") {
     var data = parse_worksheet(file_name, opts, function(data) {
       // import data for each valid row, eg:
       // Year = 2018 from 'Data Year'
@@ -374,7 +374,7 @@ function import_utility_emissions(file_name, opts) {
         db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
       });
     });
-  } else if (opts.sheet == "ST18") {
+  } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18") {
     var data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
@@ -390,7 +390,7 @@ function import_utility_emissions(file_name, opts) {
           Country: { S: "USA" },
           Division_type: { S: "STATE" },
           Division_id: { S: row["State abbreviation"] },
-          Division_name: { S: STATE_NAME_MAPPING[row["State abbreviation"]] },
+          Division_name: { S: NAME_MAPPINGS.STATE_NAME_MAPPING[row["State abbreviation"]] },
           Net_Generation: { N: "" + row["State annual net generation (MWh)"] },
           Net_Generation_UOM: { S: "MWH" },
           CO2_Equivalent_Emissions: { N: "" + row["State annual CO2 equivalent total output emission rate (lb/MWh)"] },
@@ -402,7 +402,7 @@ function import_utility_emissions(file_name, opts) {
         db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
       });
     });
-  } else if (opts.sheet == "US18") {
+  } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18") {
     var data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
@@ -430,6 +430,42 @@ function import_utility_emissions(file_name, opts) {
         db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
       });
     });
+  } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
+    var data = parse_worksheet(file_name, opts, function(data) {
+      async.eachSeries(data, function iterator(row, callback) {
+        // skip empty rows
+        if (!row || row["Unit"] == "%" || row["CountryShort"].slice(0, 2) == "EU") return callback();
+
+        // skip header rows
+        if (row["Data Year"] == "YEAR") return callback();
+        //opts.verbose && console.log('-- Prepare to insert from ', row);
+        // generate a unique for the row
+        // console.log(row);
+        var countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
+        var document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
+        var d = {
+          _id: { S: document_id },
+          Year: { N: "" + row["Year"] },
+          Country: { S: "USA" },
+          Division_type: { S: "COUNTRY" },
+          Division_id: { S: row["CountryShort"] },
+          Division_name: { S: countryName },
+          Net_Generation: { N: "" },
+          Net_Generation_UOM: { S: "" },
+          CO2_Equivalent_Emissions: { N: "" },
+          CO2_Equivalent_Emissions_UOM: { S: "" },
+          Source: {
+            S:
+              "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
+          },
+          Non_Renewables: { N: "" },
+          Renewables: { N: row[" ValueNumeric"] },
+        };
+        db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
+      });
+    });
+  } else {
+    console.log("This sheet or PDF is not currently supported.");
   }
 }
 
