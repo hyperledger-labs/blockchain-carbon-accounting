@@ -80,6 +80,7 @@ export default function IssueForm({ provider }) {
       />
 
       <h2>Issue tokens</h2>
+      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, or Audited Emissions) to registered consumers.</p>
       <Form.Group>
         <Form.Label>Address</Form.Label>
         <Form.Control
