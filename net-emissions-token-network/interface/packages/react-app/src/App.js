@@ -41,7 +41,7 @@ function App() {
       />
       <Container className="mt-2">
 
-        <Tab.Container defaultActiveKey={location.substring(1)}>
+        <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
           <Row>
             <Col sm={3}  className="mb-2">
               <Nav variant="pills" className="flex-column">

@@ -2,10 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom";
 import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "@apollo/react-hooks";
+import 'bootstrap/dist/css/bootstrap.min.css';
 import "./index.css";
 import App from "./App";
 
-import 'bootstrap/dist/css/bootstrap.min.css';
 
 // You should replace this url with your own and put it into a .env file
 // See all subgraphs: https://thegraph.com/explorer/
