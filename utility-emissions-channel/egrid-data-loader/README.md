@@ -35,9 +35,10 @@ Download and extract the data from https://www.epa.gov/sites/production/files/20
     $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
     $ unzip egrid2018_all_files.zip
 
-Load utility emssions data from the XLSX files, for now only this one is supported::
+Load utility emssions data from the XLSX files, for now two different sheets are supported::
 
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+    $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
 
 Download the utility identifiers from https://www.eia.gov/electricity/data/eia861/ Unzip and load utility lookup data from the XLSX file Utility_Data_2019_Data_Early_Release.xlsx ::
 
