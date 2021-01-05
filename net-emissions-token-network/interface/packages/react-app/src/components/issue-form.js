@@ -34,6 +34,7 @@ export default function IssueForm({ provider }) {
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
   function onAddressChange(event) { setAddress(event.target.value); };
+  function onTokenTypeIdChange(event) { setTokenTypeId(event.target.value); };
   function onQuantityChange(event) { setQuantity(event.target.value); };
   function onUomChange(event) { setUom(event.target.value); };
   function onFromDateChange(event) { setFromDate(event._d); };
@@ -97,10 +98,10 @@ export default function IssueForm({ provider }) {
       </Form.Group>
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
-        <Form.Control as="select">
-          <option onClick={() => {setTokenTypeId(1)}}>Renewable Energy Certificate</option>
-          <option onClick={() => {setTokenTypeId(2)}}>Carbon Emissions Offset</option>
-          <option onClick={() => {setTokenTypeId(3)}}>Audited Emissions</option>
+        <Form.Control as="select" onChange={onTokenTypeIdChange}>
+          <option value={1}>Renewable Energy Certificate</option>
+          <option value={2}>Carbon Emissions Offset</option>
+          <option value={3}>Audited Emissions</option>
         </Form.Control>
       </Form.Group>
       <Form.Group>
