@@ -1,6 +1,8 @@
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
+const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
+
 // Helper function to prevent ambiguous failure message when dates aren't passed
 function convertToZeroIfBlank(num) {
   return parseInt(num) || 0;
@@ -108,8 +110,7 @@ export async function issue(
       manifest,
       description
     );
-    issue_result =
-      "Success! Transaction has been submitted to the network. Please check your dashboard to see issued tokens.";
+    issue_result = SUCCESS_MSG;
   } catch (error) {
     // Format error message
     if (error.message.startsWith("resolver or addr is not configured for ENS name")) {
@@ -130,7 +131,7 @@ export async function retire(w3provider, tokenId, amount) {
   let retire_result;
   try {
     await signed.retire(tokenId, amount);
-    retire_result = "Success! Transaction has been submitted to the network.";
+    retire_result = SUCCESS_MSG;
   } catch (error) {
     retire_result = error.message;
   }
@@ -144,7 +145,7 @@ export async function registerConsumer(w3provider, address) {
   let registerConsumer_result;
   try {
     await signed.registerConsumer(address);
-    registerConsumer_result = "Success! Transaction has been submitted to the network.";
+    registerConsumer_result = SUCCESS_MSG;
   } catch (error) {
     registerConsumer_result = error.message;
   }
@@ -158,7 +159,7 @@ export async function unregisterConsumer(w3provider, address) {
   let unregisterConsumer_result;
   try {
     await signed.unregisterConsumer(address);
-    unregisterConsumer_result = "Success! Transaction has been submitted to the network.";
+    unregisterConsumer_result = SUCCESS_MSG;
   } catch (error) {
     unregisterConsumer_result = error.message;
   }
@@ -172,7 +173,7 @@ export async function registerDealer(w3provider, address, tokenTypeId) {
   let registerDealer_result;
   try {
     await signed.registerDealer(address, tokenTypeId);
-    registerDealer_result = "Success! Transaction has been submitted to the network.";
+    registerDealer_result = SUCCESS_MSG;
   } catch (error) {
     registerDealer_result = error.message;
   }
@@ -186,7 +187,7 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
   let unregisterDealer_result;
   try {
     await signed.unregisterDealer(address, tokenTypeId);
-    unregisterDealer_result = "Success! Transaction has been submitted to the network.";
+    unregisterDealer_result = SUCCESS_MSG;
   } catch (error) {
     unregisterDealer_result = error.message;
   }

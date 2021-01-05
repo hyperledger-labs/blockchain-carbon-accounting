@@ -43,7 +43,7 @@ function App() {
 
         <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
           <Row>
-            <Col sm={3}  className="mb-2">
+            <Col md={3} lg={2} className="mb-2">
               <Nav variant="pills" className="flex-column">
                 <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
                 <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
@@ -51,7 +51,7 @@ function App() {
                 <Link href="access-control"><Nav.Link eventKey="access-control">Manage roles</Nav.Link></Link>
               </Nav>
             </Col>
-            <Col sm={9}>
+            <Col md={9} lg={10}>
               <Tab.Content animation="true">
                 <Switch>
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
