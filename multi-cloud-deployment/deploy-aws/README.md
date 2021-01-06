@@ -115,7 +115,7 @@ Change:
 
 Apply deployment configuration.
 ```shell
-# Change path to fabric-services-ingress-deplyoment.yaml and yournamespace.
+# Change path to fabric-services-ingress-deployment.yaml and yournamespace.
 kubectl apply -f ./deploy-aws/ingress-fabric-services-deploy.yaml -n fabric-ca
 ```
 7. Generate crypto-material
@@ -147,7 +147,7 @@ Next we need to create a secret that contains all the crypto-material of the ord
 ```shell
 mkdir tmp-crypto
 cd tmp-crypto
-# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/orderers/fabric-orderer1.emissionsaccounting.yourdomain.com")
+# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deployment/crypto-material/emissionsaccounting.yourdomain.com/orderers/fabric-orderer1.emissionsaccounting.yourdomain.com")
 tar -zcf "orderer1-crypto.tgz" -C "absolute path to fabric-orderer1.emissionsaccounting.yourdomain.com" .
 
 # create secret of *.tgz file
@@ -156,7 +156,7 @@ cd -
 ```
 
 3. Start orderer
-Now it's time to start the orderer. Apply `fabric-orderer-deplyoment.yaml`to your cluster.  
+Now it's time to start the orderer. Apply `fabric-orderer-deployment.yaml`to your cluster.  
 
 Update `pv-static-orderer.yaml` with volumeID of created ebs
 
@@ -172,7 +172,7 @@ kubectl apply -f ./deploy-aws/fabric-orderer-deployment.yaml -n fabric-orderer
 #### 4.3. Peer
 Now it's time to start (and test) the peer node. 
 
-1. First, edit `./deploy-digitalocean/fabric-peer-deplyoment.yaml` and change the following values according to your configuration:
+1. First, edit `./deploy-digitalocean/fabric-peer-deployment.yaml` and change the following values according to your configuration:
 
 ENV section of peer container:
 - CORE_PEER_ADDRESS
@@ -191,7 +191,7 @@ Next we need to create a secret that contains all the crypto-material of the pee
 ```shell
 mkdir tmp-crypto
 cd tmp-crypto
-# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/peers/fabric-peer1.emissionsaccounting.yourdomain.com")
+# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deployment/crypto-material/emissionsaccounting.yourdomain.com/peers/fabric-peer1.emissionsaccounting.yourdomain.com")
 tar -zcf "peer1-crypto.tgz" -C "absolute path to fabric-peer1.emissionsaccounting.yourdomain.com" .
 
 # create secret of *.tgz file
@@ -219,9 +219,9 @@ kubectl create cm sampleorganchors --from-file=./channel-artifacts/samplergancho
 ```
 
 3. Start peer
-Now it's time to start the peer. Apply `fabric-peer-deplyoment.yaml`to your cluster.  
+Now it's time to start the peer. Apply `fabric-peer-deployment.yaml`to your cluster.  
 ```shell
-kubectl apply -f absolute-path-to-fabric-orderer-deplyoment.yaml -n yournamespace
+kubectl apply -f absolute-path-to-fabric-orderer-deployment.yaml -n yournamespace
 ```
 
 #### 4.4. Test your infrastructure against the test configuration
