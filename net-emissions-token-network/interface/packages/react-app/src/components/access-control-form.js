@@ -73,6 +73,8 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       case "AE":
         fetchRegisterDealer(3);
         break;
+      default:
+        console.error("Can't find role");
     }
     setModalShow(true);
   }
@@ -91,6 +93,8 @@ export default function AccessControlForm({ provider, signedInAddress }) {
       case "AE":
         fetchUnregisterDealer(3);
         break;
+      default:
+        console.error("Can't find role");
     }
     setModalShow(true);
   }

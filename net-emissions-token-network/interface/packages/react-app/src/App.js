@@ -22,7 +22,7 @@ function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
   const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles] = useWeb3Modal();
 
-  const [location, setLocation] = useLocation();
+  const [location] = useLocation();
 
   React.useEffect(() => {
     if (!loading && !error && data && data.transfers) {
@@ -47,7 +47,7 @@ function App() {
               <Nav variant="pills" className="flex-column">
                 <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
                 {/* Only display issue page if owner or dealer */}
-                {(roles[0] == true || roles[1] == true || roles[2] == true || roles[3] == true)
+                {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true)
                   && <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
                 }
                 <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>

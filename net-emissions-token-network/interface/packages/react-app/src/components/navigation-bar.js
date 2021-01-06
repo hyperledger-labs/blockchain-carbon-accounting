@@ -41,7 +41,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
         setRole("Unregistered");
       }
     }
-  }, [roles]);
+  }, [roles, role]);
 
   function truncateAddress(addr) {
     let prefix = addr.substring(0,6);

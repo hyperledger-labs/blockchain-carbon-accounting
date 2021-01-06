@@ -58,7 +58,7 @@ export default function TokenInfoModal(props) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {tokenDetails === ""
+        {fetchingTokenDetails
         ? <>
             <div className="text-center mt-3">
               <Spinner animation="border" role="status">

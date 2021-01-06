@@ -129,7 +129,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
           </Table>
         </Col>
         {/* Only display issued tokens if owner or dealer */}
-        {(roles[0] == true || roles[1] == true || roles[2] == true || roles[3] == true) &&
+        {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
           <Col>
             <h4>Issued tokens</h4>
             <Table hover size="sm">
