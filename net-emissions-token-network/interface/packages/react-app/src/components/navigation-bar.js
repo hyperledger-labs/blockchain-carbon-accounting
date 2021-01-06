@@ -2,6 +2,14 @@ import React, { useState, useEffect } from "react";
 
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
+import Tooltip from 'react-bootstrap/Tooltip';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+
+import { FaRegClipboard } from 'react-icons/fa'
+import { FaGithub } from 'react-icons/fa'
 
 function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   return (
@@ -19,6 +27,12 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
     </Button>
   );
 }
+
+const tooltipCopiedAddress = (props) => (
+  <Tooltip {...props}>
+    Copied to clipboard!
+  </Tooltip>
+);
 
 export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles }) {
   
@@ -50,22 +64,44 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
   }
 
   return (
-    <Navbar bg="white">
+    <Navbar bg="white" expand="md">
       <Navbar.Brand>Net Emissions Token Network</Navbar.Brand>
       <Navbar.Toggle />
-      <Navbar.Collapse className="justify-content-end">
-        {(signedInAddress !== "") &&
-          <>
-            <span className="mr-2">
-              {(role && role !== "Unregistered") ?
-                <span className="text-success">{role}</span>
-              : <span className="text-danger">{role || "Not connected"}</span>
-              }
-            </span>
-            <span className="mr-2 text-secondary">{truncateAddress(signedInAddress)}</span>
-          </>
-        }
-        <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
+      <Navbar.Collapse >
+        <Nav className="mr-auto">
+          <Nav.Link href="https://github.com/opentaps/blockchain-carbon-accounting/tree/master/net-emissions-token-network"><FaGithub/></Nav.Link>
+        </Nav>
+        <Nav>
+          {(signedInAddress !== "") &&
+            <>
+              <Nav.Item style={{padding: ".5rem .5rem"}}>
+                <span>
+                  {(role && role !== "Unregistered") ?
+                    <span className="text-success">{role}</span>
+                  : <span className="text-danger">{role || "Not connected"}</span>
+                  }
+                </span>
+              </Nav.Item>
+              <Nav.Item style={{padding: ".5rem .5rem"}}>
+                <span className="text-secondary">{truncateAddress(signedInAddress)}</span>
+                <CopyToClipboard text={signedInAddress}>
+                  <span className="text-secondary">
+                    <OverlayTrigger
+                      trigger="click"
+                      placement="bottom"
+                      rootClose={true}
+                      delay={{ show: 250, hide: 400 }}
+                      overlay={tooltipCopiedAddress}
+                    >
+                        <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                    </OverlayTrigger>
+                  </span>
+                </CopyToClipboard>
+              </Nav.Item>
+            </>
+          }
+          <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
+        </Nav>
       </Navbar.Collapse>
     </Navbar>
   )

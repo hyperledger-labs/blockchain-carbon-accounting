@@ -4272,6 +4272,13 @@ copy-descriptor@^0.1.0:
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
 
+copy-to-clipboard@^3:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/copy-to-clipboard/-/copy-to-clipboard-3.3.1.tgz#115aa1a9998ffab6196f93076ad6da3b913662ae"
+  integrity sha512-i13qo6kIHTTpCm8/Wup+0b1mVWETvu2kIMzKoK8FpkLkFxlt0znUAHcMzox+T8sPlqtZXq3CulEjQHsYiGFJUw==
+  dependencies:
+    toggle-selection "^1.0.6"
+
 core-js-compat@^3.6.2, core-js-compat@^3.7.0:
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/core-js-compat/-/core-js-compat-3.8.0.tgz#3248c6826f4006793bd637db608bca6e4cd688b1"
@@ -11473,7 +11480,7 @@ prop-types-extra@^1.1.0:
     react-is "^16.3.2"
     warning "^4.0.0"
 
-prop-types@^15.5.7, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.5.7, prop-types@^15.5.8, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ==
@@ -11762,6 +11769,14 @@ react-bootstrap@^1.4.0:
     uncontrollable "^7.0.0"
     warning "^4.0.3"
 
+react-copy-to-clipboard@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-5.0.2.tgz#d82a437e081e68dfca3761fbd57dbf2abdda1316"
+  integrity sha512-/2t5mLMMPuN5GmdXo6TebFa8IoFxZ+KTDDqYhcDm0PhkgEzSxVvIX26G20s1EB02A4h2UZgwtfymZ3lGJm0OLg==
+  dependencies:
+    copy-to-clipboard "^3"
+    prop-types "^15.5.8"
+
 react-datetime@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/react-datetime/-/react-datetime-3.0.4.tgz#176159d08d35c9e750f0be2f0b974e4f9532ffa5"
@@ -11813,6 +11828,11 @@ react-error-overlay@^6.0.7:
   version "6.0.8"
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-6.0.8.tgz#474ed11d04fc6bda3af643447d85e9127ed6b5de"
   integrity sha512-HvPuUQnLp5H7TouGq3kzBeioJmXms1wHy9EGjz2OURWBp4qZO6AfGEcnxts1D/CbwPLRAgTMPCEgYhA3sEM4vw==
+
+react-icons@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/react-icons/-/react-icons-4.1.0.tgz#9ca9bcbf2e3aee8e86e378bb9d465842947bbfc3"
+  integrity sha512-FCXBg1JbbR0vWALXIxmFAfozHdVIJmmwCD81Jk0EKOt7Ax4AdBNcaRkWhR0NaKy9ugJgoY3fFvo0PHpte55pXg==
 
 react-is@^16.12.0, react-is@^16.3.2, react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.4:
   version "16.13.1"
@@ -13567,6 +13587,11 @@ to-regex@^3.0.1, to-regex@^3.0.2:
     extend-shallow "^3.0.2"
     regex-not "^1.0.2"
     safe-regex "^1.1.0"
+
+toggle-selection@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/toggle-selection/-/toggle-selection-1.0.6.tgz#6e45b1263f2017fa0acc7d89d78b15b8bf77da32"
+  integrity sha1-bkWxJj8gF/oKzH2J14sVuL932jI=
 
 toidentifier@1.0.0:
   version "1.0.0"
