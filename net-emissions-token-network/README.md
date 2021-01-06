@@ -24,8 +24,7 @@ sh runDockerTests.sh
 
 ### Deploying contract to Goerli
 
-
-To deploy the contract to the Goerli testnet:
+Deploying the contract to Goerli is only necessary when updates are made to the contract. To deploy the contract to the Goerli testnet and update references to the address:
 
 1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
 
@@ -38,6 +37,8 @@ npx hardhat run --network goerli scripts/deploy.js
 ```
 
 4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
+
+5. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
 
 ## Interface
