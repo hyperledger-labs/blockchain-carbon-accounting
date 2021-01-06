@@ -93,69 +93,72 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
       <h2>Dashboard</h2>
       <p>View your token balances and tokens you've issued.</p>
 
-      {fetchingTokens && (
-        <div className="text-center my-4">
-          <Spinner animation="border" role="status">
-            <span className="sr-only">Loading...</span>
-          </Spinner>
-        </div>
-      )}
+      <div className={fetchingTokens && "dimmed"}>
 
-      <Row>
-        <Col>
-          <h4>Your balances</h4>
-          <Table hover size="sm">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Balance</th>
-                <th>Retired</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myBalances !== [] &&
-                myBalances.map((token) => (
-                  <tr
-                    key={token}
-                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
-                    onMouseOver={pointerHover}
-                  >
-                    <td>{token.tokenType}</td>
-                    <td>{token.balance}</td>
-                    <td>{token.retired}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </Table>
-        </Col>
-        {/* Only display issued tokens if owner or dealer */}
-        {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
+        {fetchingTokens && (
+          <div className="text-center my-4">
+            <Spinner animation="border" role="status">
+              <span className="sr-only">Loading...</span>
+            </Spinner>
+          </div>
+        )}
+
+        <Row>
           <Col>
-            <h4>Issued tokens</h4>
+            <h4>Your balances</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Type</th>
+                  <th>Balance</th>
+                  <th>Retired</th>
                 </tr>
               </thead>
               <tbody>
-                {myIssuedTokens !== [] &&
-                  myIssuedTokens.map((token) => (
+                {myBalances !== [] &&
+                  myBalances.map((token) => (
                     <tr
                       key={token}
                       onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
                       onMouseOver={pointerHover}
                     >
-                      <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
+                      <td>{token.balance}</td>
+                      <td>{token.retired}</td>
                     </tr>
                   ))}
               </tbody>
             </Table>
           </Col>
-        }
-      </Row>
+          {/* Only display issued tokens if owner or dealer */}
+          {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
+            <Col>
+              <h4>Issued tokens</h4>
+              <Table hover size="sm">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myIssuedTokens !== [] &&
+                    myIssuedTokens.map((token) => (
+                      <tr
+                        key={token}
+                        onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                        onMouseOver={pointerHover}
+                      >
+                        <td>{token.tokenId}</td>
+                        <td>{token.tokenType}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </Table>
+            </Col>
+          }
+        </Row>
+      </div>
     </>
   );
 }
