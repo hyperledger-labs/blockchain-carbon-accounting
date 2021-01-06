@@ -9,11 +9,10 @@ import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 
-export default function Dashboard({ provider, signedInAddress }) {
+export default function Dashboard({ provider, signedInAddress, roles }) {
   const [modalShow, setModalShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState({});
 
-  const [roles, setRoles] = useState("");
   const [myBalances, setMyBalances] = useState([]);
   const [myIssuedTokens, setMyIssuedTokens] = useState([]);
 
@@ -129,30 +128,33 @@ export default function Dashboard({ provider, signedInAddress }) {
             </tbody>
           </Table>
         </Col>
-        <Col>
-          <h4>Issued tokens</h4>
-          <Table hover size="sm">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {myIssuedTokens !== [] &&
-                myIssuedTokens.map((token) => (
-                  <tr
-                    key={token}
-                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
-                    onMouseOver={pointerHover}
-                  >
-                    <td>{token.tokenId}</td>
-                    <td>{token.tokenType}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </Table>
-        </Col>
+        {/* Only display issued tokens if owner or dealer */}
+        {(roles[0] == true || roles[1] == true || roles[2] == true || roles[3] == true) &&
+          <Col>
+            <h4>Issued tokens</h4>
+            <Table hover size="sm">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myIssuedTokens !== [] &&
+                  myIssuedTokens.map((token) => (
+                    <tr
+                      key={token}
+                      onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                      onMouseOver={pointerHover}
+                    >
+                      <td>{token.tokenId}</td>
+                      <td>{token.tokenType}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </Table>
+          </Col>
+        }
       </Row>
     </>
   );

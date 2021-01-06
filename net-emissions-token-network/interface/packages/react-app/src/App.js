@@ -46,7 +46,10 @@ function App() {
             <Col md={3} lg={2} className="mb-2">
               <Nav variant="pills" className="flex-column">
                 <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
-                <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+                {/* Only display issue page if owner or dealer */}
+                {(roles[0] == true || roles[1] == true || roles[2] == true || roles[3] == true)
+                  && <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+                }
                 <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
                 <Link href="access-control"><Nav.Link eventKey="access-control">Manage roles</Nav.Link></Link>
               </Nav>
