@@ -12,4 +12,4 @@ export CORE_PEER_ADDRESS=fabric-peer1.emissionsaccounting.yourdomain.de:443
 export FABRIC_CFG_PATH=/Users/user1/Documents/GitHub/ca2sig/hyperledger-fabric-kubernetes/fabric-config
 export CORE_PEER_TLS_ENABLED="true"
 
-echo("+++++ENVs are set+++++")
+echo "+++++ENVs are set+++++" 
