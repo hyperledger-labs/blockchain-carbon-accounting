@@ -37,10 +37,11 @@ const tooltipCopiedAddress = (props) => (
 export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles }) {
   
   const [role, setRole] = useState("");
+  const [cachedRoles, setCachedRoles] = useState([]);
 
   useEffect(() => {
-
-    if (roles.length === 5 && role === "") {
+    // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
+    if (roles.length === 5 && (role === "" || cachedRoles != roles)) {
       if (roles[0] === true) {
         setRole("Owner (superuser)");
       } else if (roles[1] === true) {
@@ -54,8 +55,9 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       } else {
         setRole("Unregistered");
       }
+      setCachedRoles(roles);
     }
-  }, [roles, role]);
+  }, [roles, role, signedInAddress, cachedRoles]);
 
   function truncateAddress(addr) {
     let prefix = addr.substring(0,6);
@@ -93,7 +95,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
                       delay={{ show: 250, hide: 400 }}
                       overlay={tooltipCopiedAddress}
                     >
-                        <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                      <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
                     </OverlayTrigger>
                   </span>
                 </CopyToClipboard>
