@@ -12,7 +12,7 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 
-export default function AccessControlForm({ provider, signedInAddress }) {
+export default function AccessControlForm({ provider, signedInAddress, roles }) {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -169,34 +169,39 @@ export default function AccessControlForm({ provider, signedInAddress }) {
         </Row>
       }
 
-      <h4>Register/unregister dealers and consumers</h4>
-      <Form.Group>
-        <Form.Label>Address</Form.Label>
-        <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Role</Form.Label>
-        <Form.Control as="select" onChange={onRoleChange}>
-          <option value="Consumer">Consumer</option>
-          <option value="REC">Renewable Energy Certificate Dealer</option>
-          <option value="CEO">Carbon Emissions Offset Dealer</option>
-          <option value="AE">Audited Emissions Dealer</option>
-        </Form.Control>
-      </Form.Group>
-      <Form.Group>
-        <Row>
-          <Col>
-            <Button variant="success" size="lg" block onClick={handleRegister}>
-              Register
-            </Button>
-          </Col>
-          <Col>
-            <Button variant="danger" size="lg" block onClick={handleUnregister}>
-              Unregister
-            </Button>
-          </Col>
-        </Row>
-      </Form.Group>
+      {/* Only display registration/unregistration tokens if owner or dealer */}
+      {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
+        <>
+          <h4>Register/unregister dealers and consumers</h4>
+          <Form.Group>
+            <Form.Label>Address</Form.Label>
+            <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Role</Form.Label>
+            <Form.Control as="select" onChange={onRoleChange}>
+              <option value="Consumer">Consumer</option>
+              <option value="REC">Renewable Energy Certificate Dealer</option>
+              <option value="CEO">Carbon Emissions Offset Dealer</option>
+              <option value="AE">Audited Emissions Dealer</option>
+            </Form.Control>
+          </Form.Group>
+          <Form.Group>
+            <Row>
+              <Col>
+                <Button variant="success" size="lg" block onClick={handleRegister}>
+                  Register
+                </Button>
+              </Col>
+              <Col>
+                <Button variant="danger" size="lg" block onClick={handleUnregister}>
+                  Unregister
+                </Button>
+              </Col>
+            </Row>
+          </Form.Group>
+        </>
+      }
     </>
   );
 }
