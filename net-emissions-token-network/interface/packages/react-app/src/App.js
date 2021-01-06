@@ -68,7 +68,7 @@ function App() {
                     <RetireForm provider={provider} />
                   </Route>
                   <Route path="/access-control">
-                    <AccessControlForm provider={provider} signedInAddress={signedInAddress} />
+                    <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} />
                   </Route>
                 </Switch>
               </Tab.Content>
