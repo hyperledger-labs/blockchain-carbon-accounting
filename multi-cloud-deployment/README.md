@@ -28,7 +28,7 @@ You need to have a running Kubernetes cluster. You need to deploy one nginx ingr
 
 ###### Nginx Controller Config
 Go to https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider and copy the `deploy.yaml` file to your filesystem according to your cloud provider.
-In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/opentaps/blockchain-carbon-accounting/blob/c20466ec19018fb1afac31c50e58455b9db7a944/multi-cloud-deplyoment/deploy-digitalocean/kubernetes-ingress-controller-deploy.yaml#L353) of the nginx ingress for DigitalOcean (do). 
+In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/opentaps/blockchain-carbon-accounting/blob/c20466ec19018fb1afac31c50e58455b9db7a944/multi-cloud-deployment/deploy-digitalocean/kubernetes-ingress-controller-deploy.yaml#L353) of the nginx ingress for DigitalOcean (do). 
 
 ##### Ingress Service Config
 Next, you need to prepare your ingress to route the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. As a starting point you can use `deploy-digitalocean/ingress-fabric-services-deployment.yaml´. 
@@ -60,11 +60,11 @@ Change value of `yournamespace`.
 ```shell
 kubectl create cm fabric-ca-server-config --from-file=./fabric-config/fabric-ca-server-config.yaml -n yournamespace
 ```
-3. Adjust the deployment configuration of `./deploy-digitalocean/fabric-ca-deplyoment.yaml` according to your cloud provider. 
+3. Adjust the deployment configuration of `./deploy-digitalocean/fabric-ca-deployment.yaml` according to your cloud provider. 
 4. Start fabric-ca
-Change value of `yournamespace` and set the path to `fabric-ca-deplyoment.yaml`.
+Change value of `yournamespace` and set the path to `fabric-ca-deployment.yaml`.
 ```shell
-kubectl apply -f path-to-fabric-ca-deplyoment.yaml -n yournamespace
+kubectl apply -f path-to-fabric-ca-deployment.yaml -n yournamespace
 ```
 5. Copy fabric-ca tls certificate
 Get the name of the fabric-ca pod. Copy tls certificate to local file system. Change value of `yournamespace`.
@@ -94,8 +94,8 @@ Change:
 
 Apply deployment configuration.
 ```shell
-# Change path to fabric-services-ingress-deplyoment.yaml and yournamespace.
-kubectl apply -f path-to-fabric-services-ingress-deplyoment.yaml -n yournamespace
+# Change path to fabric-services-ingress-deployment.yaml and yournamespace.
+kubectl apply -f path-to-fabric-services-ingress-deployment.yaml -n yournamespace
 ```
 7. Generate crypto-material
 Set input variables of `registerEnroll.sh` according to your organizations configuration
@@ -126,7 +126,7 @@ Next we need to create a secret that contains all the crypto-material of the ord
 ```shell
 mkdir tmp-crypto
 cd tmp-crypto
-# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/orderers/fabric-orderer1.emissionsaccounting.yourdomain.com")
+# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deployment/crypto-material/emissionsaccounting.yourdomain.com/orderers/fabric-orderer1.emissionsaccounting.yourdomain.com")
 tar -zcf "orderer1-crypto.tgz" -C "absolute path to fabric-orderer1.emissionsaccounting.yourdomain.com" .
 
 # create secret of *.tgz file
@@ -135,15 +135,15 @@ cd -
 ```
 
 3. Start orderer
-Now it's time to start the orderer. Apply `fabric-orderer-deplyoment.yaml` to your cluster.  
+Now it's time to start the orderer. Apply `fabric-orderer-deployment.yaml` to your cluster.  
 ```shell
-# Set path to fabric-orderer-deplyoment.yaml and change yournamespace
-kubectl apply -f path-to-fabric-orderer-deplyoment.yaml -n yournamespace
+# Set path to fabric-orderer-deployment.yaml and change yournamespace
+kubectl apply -f path-to-fabric-orderer-deployment.yaml -n yournamespace
 ```
 #### 4.3. Peer
 Now it's time to start (and test) the peer node. 
 
-1. First, edit `./deploy-digitalocean/fabric-peer-deplyoment.yaml` and change the following values according to your configuration:
+1. First, edit `./deploy-digitalocean/fabric-peer-deployment.yaml` and change the following values according to your configuration:
 
 ENV section of peer container:
 - CORE_PEER_ADDRESS
@@ -162,7 +162,7 @@ Next we need to create a secret that contains all the crypto-material of the pee
 ```shell
 mkdir tmp-crypto
 cd tmp-crypto
-# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/peers/fabric-peer1.emissionsaccounting.yourdomain.com")
+# pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deployment/crypto-material/emissionsaccounting.yourdomain.com/peers/fabric-peer1.emissionsaccounting.yourdomain.com")
 tar -zcf "peer1-crypto.tgz" -C "absolute path to fabric-peer1.emissionsaccounting.yourdomain.com" .
 
 # create secret of *.tgz file; change value of yournamespace
@@ -190,10 +190,10 @@ kubectl create cm sampleorganchors --from-file=./channel-artifacts/samplergancho
 ```
 
 3. Start peer
-Now it's time to start the peer. Apply `fabric-peer-deplyoment.yaml`to your cluster.  
+Now it's time to start the peer. Apply `fabric-peer-deployment.yaml`to your cluster.  
 ```shell
-# Set path to fabric-peer-deplyoment.yaml and change value of yournamespace
-kubectl apply -f absolute-path-to-fabric-orderer-deplyoment.yaml -n yournamespace
+# Set path to fabric-peer-deployment.yaml and change value of yournamespace
+kubectl apply -f absolute-path-to-fabric-orderer-deployment.yaml -n yournamespace
 ```
 
 #### 4.4. Test your infrastructure against the test configuration
