@@ -1,13 +1,6 @@
-type Token @entity {
+type ExampleEntity @entity {
   id: ID!
-  decimals: Int
-  name: String
-  symbol: String
-}
-
-type Transfer @entity {
-  id: ID!
-  from: String!
-  to: String!
-  value: BigInt!
+  count: BigInt!
+  account: Bytes! # address
+  operator: Bytes! # address
 }

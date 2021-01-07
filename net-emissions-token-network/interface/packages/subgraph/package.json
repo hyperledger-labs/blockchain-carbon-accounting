@@ -1,15 +1,16 @@
 {
-  "name": "@project/subgraph",
-  "version": "1.0.0",
-  "dependencies": {
-    "@graphprotocol/graph-cli": "0.18.0",
-    "@graphprotocol/graph-ts": "0.18.1"
-  },
-  "license": "MIT",
+  "name": "net-emissions-token-network",
+  "license": "UNLICENSED",
   "scripts": {
-    "auth": "graph auth https://api.thegraph.com/ $GRAPH_ACCESS_TOKEN",
+    "codegen": "graph codegen",
     "build": "graph build",
-    "codegen": "graph codegen --output-dir src/types/",
-    "deploy": "graph deploy paulrberg/create-eth-app --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ net-emissions-token-network",
+    "create-local": "graph create --node http://localhost:8020/ net-emissions-token-network",
+    "remove-local": "graph remove --node http://localhost:8020/ net-emissions-token-network",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 net-emissions-token-network"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.19.0",
+    "@graphprotocol/graph-ts": "0.19.0"
   }
 }

@@ -1,26 +1,50 @@
 specVersion: 0.0.2
-description: Subgraph that indexes the blockchain data
-repository: https://github.com/sablierhq/sablier-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: CeaErc20
-    network: mainnet
+    name: NetEmissionsTokenNetwork
+    network: goerli
     source:
-      abi: erc20
-      address: "0xc1C0472c0C80bCcDC7F5D01A376Bd97a734B8815"
+      address: "0x57257E8a359A42cA859d597264017653F0984e03"
+      abi: NetEmissionsTokenNetwork
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.3
-      abis:
-        - name: erc20
-          file: ../contracts/src/abis/erc20.json
-      entities:
-        - Token
-        - Transfer
-      eventHandlers:
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mappings/transfers.ts
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
+      entities:
+        - ApprovalForAll
+        - RegisteredDealer
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - TokenCreated
+        - TransferBatch
+        - TransferSingle
+        - URI
+        - UnregisteredDealer
+      abis:
+        - name: NetEmissionsTokenNetwork
+          file: ./abis/NetEmissionsTokenNetwork.json
+      eventHandlers:
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: RegisteredDealer(indexed address)
+          handler: handleRegisteredDealer
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: TokenCreated(uint256)
+          handler: handleTokenCreated
+        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+          handler: handleTransferBatch
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: URI(string,indexed uint256)
+          handler: handleURI
+        - event: UnregisteredDealer(indexed address)
+          handler: handleUnregisteredDealer
+      file: ./src/mapping.ts
