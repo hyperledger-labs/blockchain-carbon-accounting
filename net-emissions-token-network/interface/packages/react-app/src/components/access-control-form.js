@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerDealer, unregisterDealer } from "../services/contract-functions";
 
@@ -24,30 +24,12 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
   const [theirAddress, setTheirAddress] = useState();
   const [theirRoles, setTheirRoles] = useState([]);
 
-  const [myRoles, setMyRoles] = useState();
-  const [fetchingMyRoles, setFetchingMyRoles] = useState(false);
-
-  useEffect(() => {
-    if (provider && signedInAddress) {
-      if (!myRoles && !fetchingMyRoles) {
-        setFetchingMyRoles(true);
-        fetchMyRoles();
-      }
-    }
-  }, [signedInAddress]);
-
   function xOrCheck(value) {
     if (value) {
       return <span className="text-success">✔</span>;
     } else {
       return <span className="text-danger">✖</span>;
     }
-  }
-
-  async function fetchMyRoles() {
-    let result = await getRoles(provider, signedInAddress);
-    setMyRoles(result);
-    setFetchingMyRoles(false);
   }
 
   async function fetchTheirRoles() {
@@ -133,13 +115,13 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
       <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
 
       <h4>My Roles</h4>
-      {myRoles ? 
+      {roles.length === 5 ? 
         <Row className="text-center mb-3">
-          <Col className="align-self-center"><small>Owner</small> {xOrCheck(myRoles[0])}</Col>
-          <Col className="align-self-center"><small>Renewable Energy Certificate Dealer</small> {xOrCheck(myRoles[1])}</Col>
-          <Col className="align-self-center"><small>Carbon Emissions Offset Dealer</small> {xOrCheck(myRoles[2])}</Col>
-          <Col className="align-self-center"><small>Audited Emissions Dealer</small> {xOrCheck(myRoles[3])}</Col>
-          <Col className="align-self-center"><small>Consumer</small> {xOrCheck(myRoles[4])}</Col>
+          <Col className="align-self-center"><small>Owner</small> {xOrCheck(roles[0])}</Col>
+          <Col className="align-self-center"><small>Renewable Energy Certificate Dealer</small> {xOrCheck(roles[1])}</Col>
+          <Col className="align-self-center"><small>Carbon Emissions Offset Dealer</small> {xOrCheck(roles[2])}</Col>
+          <Col className="align-self-center"><small>Audited Emissions Dealer</small> {xOrCheck(roles[3])}</Col>
+          <Col className="align-self-center"><small>Consumer</small> {xOrCheck(roles[4])}</Col>
         </Row>
         : 
         <div className="text-center mt-3 mb-3">
