@@ -40,7 +40,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
       let issuer = await getIssuer(provider, i);
       let type = await getTokenType(provider, i);
 
-      if (bal[0].toNumber() > 0) {
+      if (bal[0].toNumber() > 0 || bal[1].toNumber() > 0) {
         myBal.push({
           tokenId: i,
           tokenType: type,

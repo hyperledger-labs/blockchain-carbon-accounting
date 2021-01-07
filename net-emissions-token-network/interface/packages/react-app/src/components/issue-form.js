@@ -19,7 +19,6 @@ export default function IssueForm({ provider }) {
   const [address, setAddress] = useState("");
   const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
-  const [uom, setUom] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [thruDate, setThruDate] = useState("");
   const [automaticRetireDate, setAutomaticRetireDate] = useState("");
@@ -35,7 +34,6 @@ export default function IssueForm({ provider }) {
   function onAddressChange(event) { setAddress(event.target.value); };
   function onTokenTypeIdChange(event) { setTokenTypeId(event.target.value); };
   function onQuantityChange(event) { setQuantity(event.target.value); };
-  function onUomChange(event) { setUom(event.target.value); };
   function onFromDateChange(event) { setFromDate(event._d); };
   function onThruDateChange(event) { setThruDate(event._d); };
   function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d) };
@@ -49,7 +47,7 @@ export default function IssueForm({ provider }) {
   }
 
   async function submit() {
-    let result = await issue(provider, address, tokenTypeId, quantity, uom, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
+    let result = await issue(provider, address, tokenTypeId, quantity, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
     setResult(result.toString());
   }
 
@@ -113,10 +111,6 @@ export default function IssueForm({ provider }) {
           onBlur={() => setInitializedQuantityInput(true)}
           style={(quantity || !initializedQuantityInput) ? {} : inputError}
         />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Unit of measurement</Form.Label>
-        <Form.Control type="input" placeholder="E.g. MWH, MtCO2e" value={uom} onChange={onUomChange} />
       </Form.Group>
       <Form.Row>
         <Form.Group as={Col}>
