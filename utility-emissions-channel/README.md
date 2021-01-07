@@ -169,6 +169,98 @@ When the network/API has fully started, run the tests by navigating to the types
 sh runTests.sh
 ```
 
+## Fabric Network && Net Emissions Token Network integration through REST API
+
+There is currently functionality through an endpoint in the REST API to retrieve a series of emissions records by date a date range and then issue an Audited Emissions Token based on this data. The flow to use this technology is as follows.
+
+### Setting up an Ethereum network
+
+There are currently two options for starting an Ethereum network to deploy the Net Emissions Token Contract to - the hardhat test network, or Goerli.
+
+#### Using the hardhat test network
+
+##### Running in Docker
+
+1. Start the hardhat test network from the net-emissions-token-network directory:
+
+```bash
+sh runDockerHardhatTestNet.sh
+```
+
+2. Deploy the contract to the hardhat test network via the following command in the net-emissions-token-network directory:
+
+```bash
+sh deployDockerHardHatContract.sh
+```
+
+##### Running locally
+
+1. Start the hardhat test network from the net-emissions-token-network directory:
+
+```bash
+npx hardhat node
+```
+
+2. Deploy the contract to the hardhat test network via the following command in the net-emissions-token-network directory:
+
+```bash
+npx hardhat run --network localhost scripts/deploy.js
+```
+
+#### Using the Goerli Network
+
+TODO
+
+### Starting the React frontend UI
+
+1. Start the react app based on the documentation in the net-emissions-token-network [here](net-emissions-token-network/README.md).
+
+2. Register a wallet as an Audited Emissions Token Dealer via the UI
+
+### Starting the fabric network
+
+The next section is about starting the fabric network and calling the endpoint through the API to issue the token. All of these scripts will be called from the utility-emissions-channel/docker-compose-setup directory.
+
+1. (Optional) If needed, reset the fabric config:
+
+```bash
+sh ./scripts/reset.sh
+```
+
+2. Start the fabric network:
+
+```bash
+sh start.sh
+```
+
+### Interacting with the API
+
+1. Navigate to http://localhost:9000/api-docs/ in the browser of your choice to interact with the API via swagger.
+
+2. Register an org using the UI. For example, the following arguments:
+
+```bash
+{
+  "orgName": "auditor1"
+}
+```
+
+3. Register a user under this newly registered org. For example, the following arguments:
+
+```bash
+{
+  "userId": "testuser1",
+  "orgName": "auditor1",
+  "affiliation": "auditor1.department1"
+}
+```
+
+4. Record a few emissions with different energyUseAmount over a span of dates that do not overlap. For testing, you may use utilityId 11208.
+
+5. (Optional) Verify that that your emissions can be successfully retrieved using the api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsDataByDateRange endpoint.
+
+6. Issue a token to the chosen wallet via the api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken endpoint.
+
 ## Troubleshooting
 
 If any error in `Get the blockchain network up and running` please run the commands of `Stop the blockchain network and remove container` and retry starting the network. If you still run into errors open an issue with the error logs, please.
