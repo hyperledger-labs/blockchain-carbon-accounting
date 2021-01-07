@@ -41,7 +41,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
 
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
-    if (roles.length === 5 && (role === "" || cachedRoles != roles)) {
+    if (roles.length === 5 && (role === "" || cachedRoles !== roles)) {
       if (roles[0] === true) {
         setRole("Owner (superuser)");
       } else if (roles[1] === true) {
