@@ -21,7 +21,6 @@ export async function registerAuditedEmissionDealer(addressToRegister) {
 export async function issue(
   addressToIssue,
   quantity,
-  uom,
   fromDate,
   thruDate,
   automaticRetireDate,
@@ -42,7 +41,6 @@ export async function issue(
       addressToIssue,
       tokenTypeId,
       ethers.utils.parseUnits(quantity.toString(), 8),
-      uom,
       fromDate,
       thruDate,
       automaticRetireDate,

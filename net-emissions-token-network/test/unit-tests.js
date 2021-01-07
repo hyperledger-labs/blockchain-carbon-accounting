@@ -9,7 +9,6 @@ const {
   fromDate,
   thruDate,
   automaticRetireDate,
-  uom,
   metadata,
   manifest,
   description,
@@ -39,7 +38,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         "4",
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,
@@ -59,7 +57,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         allTokenTypeId[1],
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,
@@ -75,7 +72,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         allTokenTypeId[2],
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,
@@ -255,7 +251,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         allTokenTypeId[1],
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,
@@ -278,7 +273,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
       expect(response.issuer).to.equal(dealer.address);
       expect(response.issuee).to.equal(consumer.address);
       expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
-      expect(response.uom).to.equal(uom);
       expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
       expect(response.thruDate.toNumber()).to.equal(Number(thruDate));
       expect(response.automaticRetireDate.toNumber()).to.equal(Number(automaticRetireDate));
@@ -332,7 +326,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         allTokenTypeId[2],
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,
@@ -389,7 +382,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         allTokenTypeId[1],
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,
@@ -486,7 +478,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
         consumer.address,
         allTokenTypeId[1],
         quantity,
-        uom,
         fromDate,
         thruDate,
         automaticRetireDate,

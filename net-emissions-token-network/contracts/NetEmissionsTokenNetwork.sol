@@ -32,7 +32,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      *   3 => Audited Emissions
      * issuer - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
-     * uom - Unit of measurement
      * fromDate - Unix timestamp
      * thruDate - Unix timestamp
      * dateCreated - Unix timestamp
@@ -43,7 +42,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         uint8 tokenTypeId;
         address issuer;
         address issuee;
-        string uom;
         uint256 fromDate;
         uint256 thruDate;
         uint256 dateCreated;
@@ -149,7 +147,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         address account,
         uint8 tokenTypeId,
         uint256 quantity,
-        string memory uom,
         uint256 fromDate,
         uint256 thruDate,
         uint256 automaticRetireDate,
@@ -188,7 +185,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.tokenTypeId = tokenTypeId;
         tokenInfo.issuer = msg.sender;
         tokenInfo.issuee = account;
-        tokenInfo.uom = uom;
         tokenInfo.fromDate = fromDate;
         tokenInfo.thruDate = thruDate;
         tokenInfo.metadata = metadata;

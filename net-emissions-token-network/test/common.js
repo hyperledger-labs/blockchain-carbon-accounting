@@ -4,7 +4,6 @@ exports.transferAmount = 5;
 exports.retireAmount = 3;
 exports.issuerId = "issuer";
 exports.recipientId = "recipient";
-exports.uom = "uom";
 exports.fromDate = "1607463809";
 exports.thruDate = "1607463909";
 exports.metadata = "metaData";

@@ -30,6 +30,8 @@ function App() {
     }
   }, [loading, error, data]);
 
+  let isOwnerOrDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true);
+
   return (
     <div>
       <NavigationBar
@@ -47,11 +49,17 @@ function App() {
               <Nav variant="pills" className="flex-column">
                 <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
                 {/* Only display issue page if owner or dealer */}
-                {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true)
+                {(isOwnerOrDealer)
                   && <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
                 }
                 <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
-                <Link href="access-control"><Nav.Link eventKey="access-control">Manage roles</Nav.Link></Link>
+                {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
+                <Link href="access-control"><Nav.Link eventKey="access-control">
+                  {(isOwnerOrDealer)
+                    ? "Manage Roles"
+                    : "My Roles"
+                  }
+                </Nav.Link></Link>
               </Nav>
             </Col>
             <Col md={9} lg={10}>
