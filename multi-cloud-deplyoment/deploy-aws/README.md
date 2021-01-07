@@ -63,7 +63,7 @@ change the values of:
 2. Create configmap
 Change value of namespace.
 ```shell
-kubectl create cm fabric-ca-server-config --from-file=./deploy-aws/fabric-config/fabric-ca-server-config.yaml -n fabric-production
+kubectl create cm fabric-ca-server-config --from-file=./fabric-config/fabric-ca-server-config.yaml -n fabric-production
 ```
    3.  Adjust the deployment configuration of `./deploy-aws/fabric-ca-deployment.yaml`. 
 
@@ -73,19 +73,14 @@ On AWS you would need to create a static ebs volume.
 
 https://rtfm.co.ua/en/kubernetes-persistentvolume-and-persistentvolumeclaim-an-overview-with-examples/
 
-
 ```bash
 aws ec2 --profile <aws_profile> --region <us-west-2> create-volume --availability-zone <us-west-2a> --size 20
 ```
-Update `pv-static-ca.yaml` with volumeID of created ebs
-
-```bash
-kubectl apply -f ./deploy-aws/pv-static-ca.yaml
-```
+Update `PersistentVolume` `./fabric-ca-deployment.yaml` with volumeID of created ebs
 
 4. Start fabric-ca
 ```shell
-kubectl apply -f ./deploy-aws/fabric-ca-deployment.yaml -n fabric-production
+kubectl apply -f ./fabric-ca-deployment.yaml -n fabric-production
 ```
 5. Copy fabric-ca tls certificate
 
@@ -134,7 +129,7 @@ Run the script
 Once all the crypto material is created, we can start the orderer.
 
 1. Create orderer genesis block 
-NOTE: For testing purposes, change the values of `configtx.yaml` in fabric-config. This is just a way for you to test the functionality of your configuration before you try to start interacting with nodes from different organizations. Values to change:
+NOTE: For testing purposes, change the values of `/fabric-config/configtx.yaml`. This is just a way for you to test the functionality of your configuration before you try to start interacting with nodes from different organizations. Values to change:
 - Name of the organization (sampleorg)
 - Subdomain of peer and orderer
 
@@ -169,31 +164,22 @@ Create ebs volume
 aws ec2 --profile opensolar --region us-west-2 create-volume --availability-zone us-west-2a --size 10
 ```
 
-Update `fabric-orderer-deplyoment.yaml` with volumeID of created ebs
-
-```bash
-kubectl apply -f ./deploy-aws/pv-static-orderer.yaml
-```
+Update `PersistentVolume` at `./deploy-aws/fabric-orderer-deplyoment.yaml` with volumeID of created ebs
 
 Run orderer deployment 
 
 ```shell
-kubectl apply -f ./deploy-aws/fabric-orderer-deployment.yaml -n fabric-production
+kubectl apply -f ./fabric-orderer-deployment.yaml -n fabric-production
 ```
 #### 4.3. Peer
 Now it's time to start (and test) the peer node. 
 
-1. Create ebs volume
+1. Create a new ebs volume
 
 ```bash
 aws ec2 --profile opensolar --region us-west-2 create-volume --availability-zone us-west-2a --size 20
 ```
-
-Update `pv-static-peer.yaml` with volumeID of created ebs
-
-```bash
-kubectl apply -f ./deploy-aws/pv-static-peer.yaml
-```
+Update `PersistentVolume` `./deploy-aws/fabric-peer-deplyoment.yaml` with volumeID of created ebs
 
 2. Edit `./deploy-aws/fabric-peer-deplyoment.yaml` and change the following values according to your configuration:
 
@@ -212,13 +198,12 @@ ENV section of couchDB container:
 2. Create secret of crypto-material
 Next we need to create a secret that contains all the crypto-material of the peer (msp and tls). Change the path to crypto-material of peer and Kubernetes namespace.
 ```shell
-mkdir tmp-crypto
 cd tmp-crypto
 # pack crypto-material of orderer into one *.tgz file (example of path: "/Users/user1/Documents/GitHub/blockchain-carbon-accounting/multi-cloud-deplyoment/crypto-material/emissionsaccounting.yourdomain.com/peers/fabric-peer1.emissionsaccounting.yourdomain.com")
-tar -zcf "peer1-crypto.tgz" -C "absolute path to fabric-peer1.emissionsaccounting.yourdomain.com" .
+tar -zcf "peer-crypto.tgz" -C "/home/pk/Projects/blockchain-carbon-accounting/multi-cloud-deplyoment/deploy-aws/crypto-material/opensolarx.com/peers/fabric-peer.opensolarx.com" .
 
 # create secret of *.tgz file
-kubectl create secret generic peer1-crypto --from-file=peer1-crypto=peer1-crypto.tgz -n yournamespace
+kubectl create secret generic peer-crypto --from-file=peer-crypto=peer-crypto.tgz -n fabric-production
 cd -
 ```
 
@@ -226,10 +211,12 @@ cd -
 In order to pass the channel artifacts of the first channel, we package them into a configmap which we'll mount to the pod. Changes the value of and yournamespace.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create channel artifacts
+
 ./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/utilityemissionchannel.tx -channelID utilityemissionchannel -configPath ./deploy-aws/fabric-config
 
 # Create configmap
-kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilityemissionchannel.tx -n fabric-peer
+
+kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilityemissionchannel.tx -n fabric-production
 ```
 
 4. Create configmap of anchor peers update
@@ -237,15 +224,16 @@ kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilit
 Next, we create a second configmap of the peer nodes which contains the information about the anchor peer. Changes the values of yournamespace, sampleOrg, and sampleorganchors.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
+
 ./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/emitrasanchors.tx -channelID utilityemissionchannel -asOrg opensolarx -configPath ./deploy-aws/fabric-config
 
-kubectl create cm opensolarxanchors --from-file=./channel-artifacts/emitrasanchors.tx -n fabric-peer
+kubectl create cm opensolarxanchors --from-file=./channel-artifacts/emitrasanchors.tx -n fabric-production
 ```
 
 3. Start peer
 Now it's time to start the peer. Apply `fabric-peer-deplyoment.yaml` to your cluster.  
 ```shell
-kubectl apply -f ./deploy-aws/fabric-peer-deployment.yaml -n fabric-peer
+kubectl apply -f ./deploy-aws/fabric-peer-deployment.yaml -n fabric-production
 ```
 
 #### 4.4. Test your infrastructure against the test configuration
@@ -261,7 +249,7 @@ source ./setEnv.sh
 Run the command `peer channel create` and the value of yourdomain
 
 ```shell
-./bin/peer channel create -o fabric-orderer1.emissionsaccounting.yourdomain.de:443 -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile $ORDERER_TLSCA
+./bin/peer channel create -o fabric-orderer.opensolarx.com:443 -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile $ORDERER_TLSCA
 ```
 
 3. Join Peer1 to Channel

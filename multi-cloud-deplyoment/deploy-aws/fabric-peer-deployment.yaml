@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: fabric-peer4
-  namespace: fabric-peer
+  name: fabric-peer
+  namespace: fabric-production
 spec:
   type: ClusterIP
   ports:
@@ -13,7 +13,7 @@ spec:
     name: port-9443
     targetPort: 9443
   selector:
-    app: fabric-peer1
+    app: fabric-peer
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -32,8 +32,8 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fabric-peer4
-  namespace: fabric-peer
+  name: fabric-peer
+  namespace: fabric-production
 spec:
   accessModes:
   - ReadWriteOnce
@@ -45,20 +45,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fabric-peer4
-  namespace: fabric-peer
+  name: fabric-peer
+  namespace: fabric-production
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fabric-peer4
+      app: fabric-peer
   template:
     metadata:
       labels:
-        app: fabric-peer4
+        app: fabric-peer
     spec:
       containers:
-      - name: fabric-peer4
+      - name: fabric-peer
         image: hyperledger/fabric-peer:2.2.1
         ports:
         - containerPort: 7051
@@ -84,19 +84,19 @@ spec:
           value: /etc/hyperledger/fabric/crypto-material/msp/
         # Peer specific variabes
         - name: CORE_PEER_ID
-          value: fabric-peer4.opensolarx.com
+          value: fabric-peer.opensolarx.com
         - name: CORE_PEER_ADDRESS
-          value: fabric-peer4.opensolarx.com:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_LISTENADDRESS
           value: 0.0.0.0:7051
         - name: CORE_PEER_CHAINCODEADDRESS
-          value: fabric-peer4.opensolarx.com:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_CHAINCODELISTENADDRESS
           value: 0.0.0.0:7052
         - name: CORE_PEER_GOSSIP_BOOTSTRAP
-          value: fabric-peer4.opensolarx.com:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
-          value: fabric-peer4.opensolarx.com:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_LOCALMSPID
           value: opensolarx
         - name: CORE_LEDGER_STATE_STATEDATABASE
@@ -119,17 +119,17 @@ spec:
           #   subPath: configtx.yaml
           - name: opensolarxanchors
             mountPath: /etc/hyperledger/fabric/channel-artifacts/opensolarxanchors.tx
-            subPath: opensolarxanchors.tx
+            subPath: emitrasanchors.tx
           - name: utilityemissionchannel
             mountPath: /etc/hyperledger/fabric/channel-artifacts/utilityemissionchannel.tx
             subPath: utilityemissionchannel.tx
-          - name: fabric-peer4-pvc
+          - name: fabric-peer-pvc
             mountPath: /var/hyperledger/production
             subPath: production
-          - name: fabric-peer4-pvc
+          - name: fabric-peer-pvc
             mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer
             subPath: peer
-          - name: fabric-peer4-pvc
+          - name: fabric-peer-pvc
             mountPath: /etc/hyperledger/fabric/crypto-material
             subPath: crypto-material
 
@@ -146,18 +146,18 @@ spec:
           value: aiG6ohsh6Uch5oot
         volumeMounts:
           - mountPath: /opt/couchdb/data
-            name: fabric-peer4-pvc
+            name: fabric-peer-pvc
             subPath: couchdb-data
 
       initContainers:
         # Extract and mount crypto-config
         - name: init-container-peer
           image: busybox
-          command: ['sh', '-c', 'tar zxvf /etc/peer-secret-tgz/peer4-crypto -C /etc/hyperledger/fabric/crypto-material']
+          command: ['sh', '-c', 'tar zxvf /etc/peer-secret-tgz/peer-crypto -C /etc/hyperledger/fabric/crypto-material']
           volumeMounts:
-              - name: peer4-crypto
+              - name: peer-crypto
                 mountPath: /etc/peer-secret-tgz
-              - name: fabric-peer4-pvc
+              - name: fabric-peer-pvc
                 mountPath: /etc/hyperledger/fabric/crypto-material
                 subPath: crypto-material
           
@@ -169,8 +169,8 @@ spec:
           name: utilityemissionchannel
         name: utilityemissionchannel
       - secret:
-          secretName: peer4-crypto
-        name: peer4-crypto
+          secretName: peer-crypto
+        name: peer-crypto
       - persistentVolumeClaim:
-          claimName: fabric-peer4
-        name: fabric-peer4-pvc
+          claimName: fabric-peer
+        name: fabric-peer-pvc

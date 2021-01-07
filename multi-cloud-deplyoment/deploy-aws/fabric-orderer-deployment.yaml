@@ -109,7 +109,7 @@ spec:
           - name: fabric-orderer-pvc
             mountPath: /var/hyperledger/production
             subPath: production
-          - name: orderer-crypto
+          - name: fabric-orderer-pvc
             mountPath: /var/hyperledger/orderer/crypto-material
             subPath: crypto-material
 
