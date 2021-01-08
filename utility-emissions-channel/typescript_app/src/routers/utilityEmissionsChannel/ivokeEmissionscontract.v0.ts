@@ -308,7 +308,6 @@ router.get(
       const metadata = req.params.metadata;
       const description = req.params.description;
       let quantity = 0;
-      let uom;
       let manifest = [];
 
       // Get Emmission Data from utilityEmissions Channel
@@ -320,7 +319,6 @@ router.get(
       );
 
       if (Array.isArray(blockchainResponse)) {
-        uom = blockchainResponse[0].emissionsUom;
         for (let entry of blockchainResponse) {
           quantity += entry.emissionsAmount;
           manifest.push(entry.uuid);
@@ -332,7 +330,6 @@ router.get(
       let tokenId = await issue(
         addressToIssue,
         quantity.toFixed(2),
-        uom,
         toTimestamp(fromDate),
         toTimestamp(thruDate),
         toTimestamp(automaticRetireDate),
@@ -367,7 +364,6 @@ router.get(
       result["info"] = "AUDITED EMISSIONS TOKEN RECORDED";
       result["tokenId"] = tokenId;
       result["quantity"] = quantity;
-      result["uom"] = uom;
       result["fromDate"] = fromDate;
       result["thruDate"] = thruDate;
       result["automaticRetireDate"] = automaticRetireDate;
