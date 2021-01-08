@@ -11,6 +11,7 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 ### Installation and use
 
 - Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
+- Copy the config for deploying to the Goerli testnet with `cp .goerli-config.js.example .goerli-config.js`. No edits are necessary unless you plan on deploying your own version of the contract to Goerli.
 - To test, run `npx hardhat test`
 - To compile, run `npx hardhat compile`
 - To export ABI to interface and Utility Emissions Channel, run `sh exportAbis.sh`
@@ -22,28 +23,11 @@ You can also run the tests with no external dependencies other than docker with 
 sh runDockerTests.sh
 ```
 
-### Deploying contract to Goerli
-
-Deploying the contract to Goerli is only necessary when updates are made to the contract. To deploy the contract to the Goerli testnet and update references to the address:
-
-1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
-
-2. In `hardhat.config.js`, uncomment the Goerli settings under network.
-
-3. Deploy by modifying the flags in the deploy script with the following command:
-
-```bash
-npx hardhat run --network goerli scripts/deploy.js
-```
-
-4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
-
-5. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
-
-
 ## Interface
 
 The interface is created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app). The MetaMask browser extension is required for testing.
+
+By default, the application connects to the contract of the address specified in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`, which is currently set to a contract deployed on the Goerli public Ethereum testnet. When interacting with the contract on Goerli, access to the owner private key is needed to register dealers via the interface, and new wallets can be created via MetaMask (be sure to fund newly created wallets with Goerli ETH via a faucet or transferring funds for gas fees). To instead connect to a local Ethereum network with Hardhat Network (which provides test accounts preloaded with Goerli ETH for gas fees), read *Starting the React application and connecting to local Hardhat Network*, otherwise, read the instructions below to connect via Goerli.
 
 ### Installation and use
 
@@ -53,7 +37,7 @@ The interface is created using [create-eth-app](https://github.com/PaulRBerg/cre
 
 ### Starting the React application and connecting to Goerli testnet
 
-Hardhat implements its own Ethereum local testnet called Hardhat Network. In order to connect the interface to this local testnet:
+Goerli is a public Ethereum testnet and the current deployment environment for the interface. Transactions can be viewed by anyone on [Etherscan](https://goerli.etherscan.io/) (to see the history of transactions, one can enter the current contract address at `net-emissions-token-network/interface/packages/contracts/src/addresses.js`). In order to connect the interface to this local testnet:
 
 1. From the `net-emissions-token-network/interface` directory, install the necessary packages and start the React app with
 
@@ -62,7 +46,7 @@ yarn install
 yarn react-app:start
 ```
 
-2. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Goerli Test Network_. Make sure Metamask says the account is "Connected" with a green dot.
+2. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Goerli Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
 
 3. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
 
@@ -72,7 +56,7 @@ You should now be connected to the contract in Goerli and be able to interact wi
 
 ### Starting the React application and connecting to local Hardhat Network
 
-Currently, the React application connects to the deployed contract on the Goerli Ethereum testnet. It is also possible to run a testnet locally via Hardhat Network by following the following steps:
+To run a testnet locally via Hardhat Network instead of connecting to a contract on Goerli:
 
 1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js`, comment out the address associated with the Goerli network and uncomment the address associated with the Hardhat Network (ending in `0aa3`).
 
@@ -112,6 +96,24 @@ You should now be connected to your local testnet and be able to interact with c
 _Note: When restarting the Hardhat Network after interacting with the contracts through MetaMask, it might be necessary to reset the account's transactions otherwise an error might occur due to the way Ethereum prevents double-counting transactions. To reset transaction history in MetaMask, click the account icon in the top right, go to Settings, Advanced, and Reset Account._
 
 ---
+
+### Deploying contract to Goerli
+
+Deploying the contract to Goerli is only necessary when updates are made to the contract as there are other references to the current deployed contract in this repository. To deploy the contract to the Goerli testnet and update references to the address:
+
+1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
+
+2. In `hardhat.config.js`, uncomment the Goerli settings under network.
+
+3. Deploy by modifying the flags in the deploy script with the following command:
+
+```bash
+npx hardhat run --network goerli scripts/deploy.js
+```
+
+4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
+
+5. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
 ### Token User Flow
 
