@@ -33,10 +33,10 @@ module.exports = {
     currency: 'USD',
   },
   networks: {
-    // goerli: {
-    //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
-    //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
-    // },
+    goerli: {
+      url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
+      accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
+    },
     hardhat: {
       chainId: 1337
     }
