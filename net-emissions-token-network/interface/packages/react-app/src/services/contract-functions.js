@@ -136,6 +136,20 @@ export async function retire(w3provider, tokenId, amount) {
   return retire_result;
 }
 
+export async function transfer(w3provider, address, tokenId, amount) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let transfer_result;
+  try {
+    await signed.transfer(address, tokenId, amount);
+    transfer_result = SUCCESS_MSG;
+  } catch (error) {
+    transfer_result = error.message;
+  }
+  return transfer_result;
+}
+
 export async function registerConsumer(w3provider, address) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
