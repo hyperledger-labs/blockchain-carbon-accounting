@@ -10,6 +10,7 @@ import Col from 'react-bootstrap/Col';
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
 import IssueForm from "./components/issue-form";
+import TransferForm from "./components/transfer-form";
 import RetireForm from "./components/retire-form";
 import AccessControlForm from "./components/access-control-form";
 import useWeb3Modal from "./hooks/useWeb3Modal";
@@ -52,6 +53,7 @@ function App() {
                 {(isOwnerOrDealer)
                   && <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
                 }
+                <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
                 <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
                 {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
                 <Link href="access-control"><Nav.Link eventKey="access-control">
@@ -71,6 +73,9 @@ function App() {
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
+                  </Route>
+                  <Route path="/transfer">
+                    <TransferForm provider={provider} />
                   </Route>
                   <Route path="/retire">
                     <RetireForm provider={provider} />

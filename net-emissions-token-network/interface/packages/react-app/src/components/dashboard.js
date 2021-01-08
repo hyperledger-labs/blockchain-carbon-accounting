@@ -109,6 +109,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
             <Table hover size="sm">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Type</th>
                   <th>Balance</th>
                   <th>Retired</th>
@@ -122,6 +123,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
                       onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
                       onMouseOver={pointerHover}
                     >
+                      <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
                       <td>{token.balance}</td>
                       <td>{token.retired}</td>
