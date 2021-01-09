@@ -73,8 +73,8 @@ export default function RetireForm({ provider }) {
           style={(amount || !initializedAmountInput) ? {} : inputError}
         />
       </Form.Group>
-      <Button variant="primary" size="lg" block onClick={handleRetire}>
-        Submit
+      <Button variant="danger" size="lg" block onClick={handleRetire}>
+        Retire
       </Button>
     </>
   );

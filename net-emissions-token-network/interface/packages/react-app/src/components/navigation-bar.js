@@ -15,6 +15,7 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   return (
     <Button
       variant="primary"
+      className="ml-1"
       onClick={() => {
         if (!provider) {
           loadWeb3Modal();
@@ -47,9 +48,9 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       } else if (roles[1] === true) {
         setRole("REC Dealer");
       } else if (roles[2] === true) {
-        setRole("CEO Dealer")
+        setRole("Offset Dealer")
       } else if (roles[3] === true) {
-        setRole("AE Dealer");
+        setRole("Emissions Auditor");
       } else if (roles[4] === true) {
         setRole("Consumer");
       } else {

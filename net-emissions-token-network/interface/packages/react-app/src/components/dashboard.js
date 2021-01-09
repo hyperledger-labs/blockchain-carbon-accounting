@@ -4,10 +4,11 @@ import { getNumOfUniqueTokens, getAvailableAndRetired, getTokenType, getIssuer }
 
 import TokenInfoModal from "./token-info-modal";
 
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
+import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
+
+import { BiRefresh } from 'react-icons/bi'
 
 export default function Dashboard({ provider, signedInAddress, roles }) {
   const [modalShow, setModalShow] = useState(false);
@@ -64,6 +65,11 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
     setFetchingTokens(false);
   }
 
+  function handleRefresh() {
+    setFetchingTokens(true);
+    fetchBalances();
+  }
+
   useEffect(() => {
     if (provider && signedInAddress) {
       if (myBalances !== [] && !fetchingTokens) {
@@ -92,6 +98,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
       <h2>Dashboard</h2>
       <p>View your token balances and tokens you've issued.</p>
+      <p><Button variant="primary" onClick={handleRefresh}><BiRefresh/>&nbsp;Refresh</Button></p>
 
       <div className={fetchingTokens && "dimmed"}>
 
@@ -103,21 +110,49 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
           </div>
         )}
 
-        <Row>
-          <Col>
-            <h4>Your balances</h4>
+        <div>
+          <h4>Your tokens</h4>
+          <Table hover size="sm">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Balance</th>
+                <th>Retired</th>
+              </tr>
+            </thead>
+            <tbody>
+              {myBalances !== [] &&
+                myBalances.map((token) => (
+                  <tr
+                    key={token}
+                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                    onMouseOver={pointerHover}
+                  >
+                    <td>{token.tokenId}</td>
+                    <td>{token.tokenType}</td>
+                    <td>{token.balance}</td>
+                    <td>{token.retired}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </Table>
+        </div>
+
+        {/* Only display issued tokens if owner or dealer */}
+        {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
+          <div>
+            <h4>Tokens you've issued</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Type</th>
-                  <th>Balance</th>
-                  <th>Retired</th>
                 </tr>
               </thead>
               <tbody>
-                {myBalances !== [] &&
-                  myBalances.map((token) => (
+                {myIssuedTokens !== [] &&
+                  myIssuedTokens.map((token) => (
                     <tr
                       key={token}
                       onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
@@ -125,41 +160,13 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
                     >
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
-                      <td>{token.balance}</td>
-                      <td>{token.retired}</td>
                     </tr>
                   ))}
               </tbody>
             </Table>
-          </Col>
-          {/* Only display issued tokens if owner or dealer */}
-          {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
-            <Col>
-              <h4>Issued tokens</h4>
-              <Table hover size="sm">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Type</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myIssuedTokens !== [] &&
-                    myIssuedTokens.map((token) => (
-                      <tr
-                        key={token}
-                        onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
-                        onMouseOver={pointerHover}
-                      >
-                        <td>{token.tokenId}</td>
-                        <td>{token.tokenType}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </Table>
-            </Col>
-          }
-        </Row>
+          </div>
+        }
+
       </div>
     </>
   );

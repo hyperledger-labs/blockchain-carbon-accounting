@@ -139,7 +139,7 @@ export default function IssueForm({ provider }) {
         <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
       </Form.Group>
       <Button variant="primary" size="lg" block onClick={handleSubmit}>
-        Submit
+        Issue
       </Button>
     </>
   );

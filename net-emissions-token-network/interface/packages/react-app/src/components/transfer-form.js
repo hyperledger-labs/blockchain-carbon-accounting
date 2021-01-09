@@ -86,7 +86,7 @@ export default function TransferForm({ provider }) {
           style={(amount || !initializedAmountInput) ? {} : inputError}
         />
       </Form.Group>
-      <Button variant="primary" size="lg" block onClick={handleTransfer}>
+      <Button variant="success" size="lg" block onClick={handleTransfer}>
         Transfer
       </Button>
     </>
