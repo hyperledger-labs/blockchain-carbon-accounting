@@ -4,23 +4,13 @@ This is AWS specific deployment steps in addition to the main guide
 
 
 ## 3. Prerequisites
-#### 3.1 Domain Names
-1.1. Create subdomains on Route 53 for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
-
-1.2. Link subdomains to nginx ingress IP address ( at cluster management level) after you you started the nginx ingress as describe in step 3.2.
-
-AWS: set up Route 53 to have your domain pointed to the NLB
-
-`fabric-ca.emissionsaccounting.<your-domain>.           A.    ALIAS abf3d14967d6511e9903d12aa583c79b-e3b2965682e9fbde.elb.us-east-1.amazonaws.com `
-
-
-#### 3.2 Kubernetes
+#### 3.1 Kubernetes
 You need to have a running Kubernetes cluster. You need to deploy one nginx ingress controller to your Kubernetes cluster. 
 
 ###### Create namespaces
 
 ```bash
-kubectl create -f ./deploy-aws/namespace-fabric-production.json
+kubectl create -f ./namespace-fabric-production.json
 ```
 
 ###### Nginx Controller Config
@@ -31,8 +21,19 @@ In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of 
 **For AWS you may use `/deploy-aws/ kubernetes-ingress-controller-deploy.yaml`**
 
 ```sh
-kubectl apply -f ./deploy-aws/kubernetes-ingress-controller-deploy.yaml
+kubectl apply -f ./kubernetes-ingress-controller-deploy.yaml
 ```
+
+#### 3.2 Domain Names
+1.1. Create subdomains on Route 53 for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
+
+1.2. Link subdomains to nginx ingress IP address ( at cluster management level) after you you started the nginx ingress as describe in step 3.2.
+
+AWS: set up Route 53 to have your domain pointed to the NLB
+
+`fabric-ca.emissionsaccounting.<your-domain>.           A.    ALIAS abf3d14967d6511e9903d12aa583c79b-e3b2965682e9fbde.elb.us-east-1.amazonaws.com `
+
+![plot](./imgs/subdomain.png)
 
 ##### Ingress Service Config
 Next, you need to prepare your ingress to route the the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. 
@@ -40,7 +41,7 @@ Next, you need to prepare your ingress to route the the subdomains of your Hyper
 **For AWS you can use `/deploy-aws/ingress-fabric-services-deployment.yaml`**
 
 ```sh
-kubectl apply -f ./deploy-aws/ingress-fabric-services-deployment.yaml
+kubectl apply -f ./ingress-fabric-services-deploy.yaml
 ```
 
 Set the following values according to your setup:
@@ -74,9 +75,12 @@ On AWS you would need to create a static ebs volume.
 https://rtfm.co.ua/en/kubernetes-persistentvolume-and-persistentvolumeclaim-an-overview-with-examples/
 
 ```bash
-aws ec2 --profile <aws_profile> --region <us-west-2> create-volume --availability-zone <us-west-2a> --size 20
+aws ec2 --profile <aws_profile> --region <us-west-2> create-volume --availability-zone <us-west-2a> --size 1
+# aws ec2 --profile opensolar --region us-west-2 create-volume --availability-zone us-west-2a --size 1
 ```
-Update `PersistentVolume` `./fabric-ca-deployment.yaml` with volumeID of created ebs
+Update `PersistentVolume` `./fabric-ca-deployment.yaml` with volumeID of created ebs.
+
+NOTE: if you re-initializing the setup you should delete old `ebs` and create a new ones as it stores old configs. 
 
 4. Start fabric-ca
 ```shell
@@ -103,14 +107,14 @@ kubectl get pod -n fabric-production | grep fabric-ca
 kubectl cp "<fabric-ca-pod>:/etc/hyperledger/fabric-ca-server/tls-cert.pem" "${FABRIC_CA_CLIENT_HOME}/tls-cert.pem" -n fabric-production
 ```
 6. Configure ingress (Skip this step if this already happened)
-Adjust the deployment configuration of `./deploy-aws/ingress-fabric-services-deploy.yaml` 
+Adjust the deployment configuration of `./ingress-fabric-services-deploy.yaml` 
 Change:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
 
 Apply deployment configuration.
 ```shell
-kubectl apply -f ./deploy-aws/ingress-fabric-services-deploy.yaml -n fabric-production
+kubectl apply -f ./ingress-fabric-services-deploy.yaml -n fabric-production
 ```
 7. Generate crypto-material
 Set input variables of `registerEnroll.sh` according to your organizations configuration
@@ -162,6 +166,7 @@ Create ebs volume
 
 ```bash
 aws ec2 --profile opensolar --region us-west-2 create-volume --availability-zone us-west-2a --size 10
+# aws ec2 --profile opensolar --region us-west-2 create-volume --availability-zone us-west-2a --size 10
 ```
 
 Update `PersistentVolume` at `./deploy-aws/fabric-orderer-deplyoment.yaml` with volumeID of created ebs
@@ -171,6 +176,17 @@ Run orderer deployment
 ```shell
 kubectl apply -f ./fabric-orderer-deployment.yaml -n fabric-production
 ```
+if everyhting goes fine you should see similar logs
+```sh
+kubectl logs fabric-orderer-564897bb8c-lhz9d --tail 100 -n fabric-production
+
+2021-01-09 13:35:05.257 UTC [orderer.consensus.etcdraft] Check -> DEBU 50d Current active nodes in cluster are: [1] channel=system-channel node=1
+2021-01-09 13:35:07.257 UTC [orderer.consensus.etcdraft] Check -> DEBU 50e Current active nodes in cluster are: [1] channel=system-channel node=1
+2021-01-09 13:35:09.257 UTC [orderer.consensus.etcdraft] Check -> DEBU 50f Current active nodes in cluster are: [1] channel=system-channel node=1
+2021-01-09 13:35:11.257 UTC [orderer.consensus.etcdraft] Check -> DEBU 510 Current active nodes in cluster are: [1] channel=system-channel node=1
+
+```
+
 #### 4.3. Peer
 Now it's time to start (and test) the peer node. 
 
@@ -212,7 +228,7 @@ In order to pass the channel artifacts of the first channel, we package them int
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create channel artifacts
 
-./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/utilityemissionchannel.tx -channelID utilityemissionchannel -configPath ./deploy-aws/fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/utilityemissionchannel.tx -channelID utilityemissionchannel -configPath ./fabric-config
 
 # Create configmap
 
@@ -225,7 +241,7 @@ Next, we create a second configmap of the peer nodes which contains the informat
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
 
-./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/emitrasanchors.tx -channelID utilityemissionchannel -asOrg opensolarx -configPath ./deploy-aws/fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/emitrasanchors.tx -channelID utilityemissionchannel -asOrg opensolarx -configPath ./fabric-config
 
 kubectl create cm opensolarxanchors --from-file=./channel-artifacts/emitrasanchors.tx -n fabric-production
 ```
@@ -233,7 +249,17 @@ kubectl create cm opensolarxanchors --from-file=./channel-artifacts/emitrasancho
 3. Start peer
 Now it's time to start the peer. Apply `fabric-peer-deplyoment.yaml` to your cluster.  
 ```shell
-kubectl apply -f ./deploy-aws/fabric-peer-deployment.yaml -n fabric-production
+kubectl apply -f ./fabric-peer-deployment.yaml -n fabric-production
+```
+
+if everyhting goes fine you should see similar logs
+```sh
+kubectl logs fabric-peer-7557bfb788-9v8wc --tail 100 -n fabric-production -c fabric-peer
+
+2021-01-09 13:47:30.629 UTC [gossip.discovery] periodicalSendAlive -> DEBU 176 Sleeping 5s
+2021-01-09 13:47:34.630 UTC [gossip.discovery] InitiateSync -> DEBU 177 No peers to send to, aborting membership sync
+2021-01-09 13:47:35.617 UTC [gossip.discovery] periodicalReconnectToDead -> DEBU 178 Sleeping 25s
+2021-01-09 13:47:35.630 UTC [gossip.discovery] periodicalSendAlive -> DEBU 179 Empty membership, no one to send a heartbeat to
 ```
 
 #### 4.4. Test your infrastructure against the test configuration

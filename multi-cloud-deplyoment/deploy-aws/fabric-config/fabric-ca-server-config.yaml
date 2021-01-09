@@ -47,6 +47,24 @@ db:
       certfile:
       keyfile:
 
+ldap:
+  enabled: false
+  url: ldap://<adminDN>:<adminPassword>@<host>:<port>/<base>
+  tls:
+    certfiles:
+    client:
+      certfile:
+      keyfile:
+  attribute:
+    names: [uid, member]
+    converters:
+      - name:
+        value:
+    maps:
+      groups:
+        - name:
+          value:
+
 affiliations:
   opensolarx:
     - department1
@@ -77,11 +95,11 @@ signing:
 csr:
   cn: fabric-ca.opensolarx.com
   names:
-    - C: DE
-      ST: RLP
-      L: Mainz
-      O: emiTraS
-      OU:
+    - C: US
+      ST: "North Carolina"
+      L:
+      O: Hyperledger
+      OU: Fabric
   hosts:
     - fabric-ca.opensolarx.com
   ca:

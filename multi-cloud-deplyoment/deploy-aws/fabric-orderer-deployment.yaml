@@ -10,7 +10,7 @@ spec:
   storageClassName: gp2
   awsElasticBlockStore:
     fsType: ext4
-    volumeID: vol-0b42adf6a51229b00
+    volumeID: vol-09c6e92884547c89b
 ---
 apiVersion: v1
 kind: Service
