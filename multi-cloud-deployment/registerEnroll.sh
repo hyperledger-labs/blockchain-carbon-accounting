@@ -11,7 +11,7 @@ ORG=sampleOrg
 ORG_DOMAIN=emissionsaccounting.sampleOrg.de
 #### fabric-ca variables
 CA_DOMAIN="fabric-ca.${ORG_DOMAIN}"
-CA_ADMIN_USERNAME=sampleOrgAdmin
+CA_ADMIN_USERNAME=sampleCAOrgAdmin
 CA_ADMIN_PASSWORD=testPasswordCaAdmin
 #### fabric peer
 PEER_DOMAIN="fabric-peer4.${ORG_DOMAIN}"
@@ -19,6 +19,9 @@ PEER_SECRET=testPasswordPeer
 #### fabric orderer
 ORDERER_DOMAIN="fabric-orderer4.${ORG_DOMAIN}"
 ORDERER_SECRET=testPasswordOrderer
+#### org admin (ORD_ADMIN must be different from CA_ADMIN_USERNAME)
+ORD_ADMIN=sampleOrgAdmin 
+ORG_ADMIN_SECRET=testPasswordOrgAdmin
 
 export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/${ORG_DOMAIN}/fabric-ca/tls-cert.pem
 
@@ -123,6 +126,27 @@ function createCryptoMaterial() {
   cp ${PWD}/crypto-material/${ORG_DOMAIN}/orderers/${ORDERER_DOMAIN}/tls/tlscacerts/* ${PWD}/crypto-material/${ORG_DOMAIN}/orderers/${ORDERER_DOMAIN}/msp/tlscacerts/tlsca.${ORG_DOMAIN}-cert.pem
 
   cp ${PWD}/crypto-material/${ORG_DOMAIN}/orderers/${ORDERER_DOMAIN}/tls/tlscacerts/* ${FABRIC_CA_CLIENT_HOME}/msp/tlscacerts/tlsca.${ORG_DOMAIN}-cert.pem
+
+  echo
+  echo "Register the org admin"
+  echo
+  set -x
+  fabric-ca-client register --caname ${CA_DOMAIN} --id.name ${ORD_ADMIN} --id.secret ${ORG_ADMIN_SECRET} --id.type admin 
+  set +x
+
+  echo
+  echo "## Generate the org admin msp"
+  echo
+  set -x
+  fabric-ca-client enroll -u https://${ORD_ADMIN}:${ORG_ADMIN_SECRET}@${CA_DOMAIN}:443 --caname ${CA_DOMAIN} -M ${PWD}/crypto-material/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp 
+  set +x
+
+  cp ${FABRIC_CA_CLIENT_HOME}/msp/config.yaml ${PWD}/crypto-material/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/config.yaml
+
+  cd ${PWD}/crypto-material/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/keystore/
+  mv $(ls) priv_sk
+  cd -
+
 
 }
 
