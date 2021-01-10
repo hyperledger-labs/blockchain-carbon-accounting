@@ -213,9 +213,9 @@ kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilit
 Next, we create a second configmap of the peer nodes which contains the information about the anchor peer. Changes the values of yournamespace, sampleOrg, and sampleorganchors.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
-./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/emitrasanchors.tx -channelID utilityemissionchannel -asOrg sampleOrg -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/sampleorganchors.tx -channelID utilityemissionchannel -asOrg sampleOrg -configPath ./fabric-config
 
-kubectl create cm sampleorganchors --from-file=./channel-artifacts/samplerganchors.tx -n yournamespace
+kubectl create cm sampleorganchors --from-file=./channel-artifacts/sampleorganchors.tx -n yournamespace
 ```
 
 3. Start peer

@@ -77,11 +77,11 @@ signing:
 csr:
   cn: fabric-ca.opensolarx.com
   names:
-    - C: DE
-      ST: RLP
-      L: Mainz
-      O: emiTraS
-      OU:
+    - C: US
+      ST: "North Carolina"
+      L:
+      O: Hyperledger
+      OU: Fabric
   hosts:
     - fabric-ca.opensolarx.com
   ca:

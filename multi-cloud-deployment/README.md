@@ -188,7 +188,7 @@ cd -
 
 3. Start orderer
 
-Now it's time to start the orderer. Apply `./deploy-digitalocean/fabric-orderer-deployment.yaml` to your cluster.  
+Now it's time to start the orderer. Apply `./deploy-digitalocean/fabric-orderer-deployment.yaml` to your cluster. But first, change the value of `ORDERER_GENERAL_LOCALMSPID` to your organization's msp.
 ```shell
 # Set path to fabric-orderer-deployment.yaml and change yournamespace
 kubectl apply -f ./deploy-digitalocean/fabric-orderer-deployment.yaml -n yournamespace
@@ -444,7 +444,7 @@ Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Ap
 peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C utilityemissionchannel -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
 
 # Should print a similar output
-2021-01-10 14:44:46.497 CET [chaincodeCmd] ClientWait -> INFO 001 txid [c176a9600494de93d0e213b106f595fee421c7f3affa465ec1b05d1bd0ba4e55] committed with status (VALID) at fabric-peer1.emissionsaccounting.emitras.de:443
+2021-01-10 14:44:46.497 CET [chaincodeCmd] ClientWait -> INFO 001 txid [c176a9600494de93d0e213b106f595fee421c7f3affa465ec1b05d1bd0ba4e55] committed with status (VALID) at fabric-peer1.emissionsaccounting.sampleOrg.de:443
 2021-01-10 14:44:46.497 CET [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 002 Chaincode invoke successful. result: status:200 
 
 
