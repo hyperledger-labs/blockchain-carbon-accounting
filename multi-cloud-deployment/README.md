@@ -65,13 +65,15 @@ namespace/fabric created
 The following step to accomplish to start your organizations' infrastructure of the multi-cloud Hyperledger Fabric network is to generate the crypto-material. We use fabric certificate authority (ca) for this. Each organization has its own fabric-ca.
 
 1. Configure `./fabric-config/fabric-ca-server-config.yaml`
-change the values of:
+
+Change the values of:
 - fabric-ca-subdomain
 - ca-admin
 - ca-admin-password (Use a strong password and keep it safe)
 - your-organization
 - names (C, ST, L, O, OU) --> This is optional but recommended
 2. Create configmap
+
 Change value of `yournamespace`.
 ```shell
 # Create fabric-ca-server configmap
@@ -82,6 +84,7 @@ configmap/fabric-ca-server-config created
 ```
 3. Adjust the deployment configuration of `./deploy-digitalocean/fabric-ca-deployment.yaml` according to your cloud provider. 
 4. Start fabric-ca
+
 Change value of `yournamespace`.
 ```shell
 # Start fabric-ca
@@ -93,6 +96,7 @@ persistentvolumeclaim/fabric-ca created
 deployment.apps/fabric-ca created
 ```
 5. Copy fabric-ca tls certificate
+
 Get the name of the fabric-ca pod. Copy tls certificate to local file system. Change value of `yournamespace`.
 ```shell
 # Export fabric ca client home; change <your-domain>, e.g., `emissionsaccounting.sampleOrg.de`
@@ -114,6 +118,7 @@ fabric-ca-6884b9dc5-86894   1/1     Running   0          16m
 kubectl cp "<fabric-ca-pod>:/etc/hyperledger/fabric-ca-server/tls-cert.pem" "${FABRIC_CA_CLIENT_HOME}/tls-cert.pem" -n yournamespace
 ```
 6. Configure ingress (Skip this step if this already happened)
+
 Adjust the deployment configuration of `./deploy-digitalocean/ingress-fabric-services-deployment.yaml` 
 Change:
 - name: name-of-your-ingress
@@ -125,6 +130,7 @@ Apply deployment configuration.
 kubectl apply -f ./deploy-digitalocean/ingress-fabric-services-deployment.yaml -n yournamespace
 ```
 7. Generate crypto-material
+
 Set input variables of `registerEnroll.sh` according to your organizations configuration
 Run the script
 ```shell
@@ -137,6 +143,7 @@ Run the script
 Once all the crypto material is created, we can start the orderer.
 
 1. Create orderer genesis block 
+
 NOTE: For testing purposes, change the values of `configtx.yaml` in fabric-config. This is just a way for you to test the functionality of your configuration before you try to start interacting with nodes from different organizations. Values to change:
 - Name of the organization (sampleorg)
 - Subdomain of peer and orderer (e.g. OrdererEndpoints, AnchorPeers, and Consenters.Host)
@@ -161,6 +168,7 @@ configmap/system-genesis-block created
 ```
 
 2. Create secret of crypto-material
+
 Next we need to create a secret that contains all the crypto-material of the orderer (msp and tls). Change the path to crypto-material of orderer and Kubernetes namespace.
 ```shell
 mkdir tmp-crypto
@@ -179,6 +187,7 @@ cd -
 ```
 
 3. Start orderer
+
 Now it's time to start the orderer. Apply `./deploy-digitalocean/fabric-orderer-deployment.yaml` to your cluster.  
 ```shell
 # Set path to fabric-orderer-deployment.yaml and change yournamespace
@@ -217,7 +226,8 @@ ENV section of couchDB container:
 - COUCHDB_PASSWORD
 
 2. Create secret of crypto-material
-Next we need to create a secret that contains all the crypto-material of the peer (msp and tls). Change the path to crypto-material of peer and Kubernetes namespace.
+
+Next, we need to create a secret that contains all the crypto-material of the peer (msp and tls). Change the path to crypto-material of peer and Kubernetes namespace.
 ```shell
 mkdir -p tmp-crypto
 cd tmp-crypto
@@ -236,6 +246,7 @@ cd -
 ```
 
 3. Create configmap of channel artifacts
+
 In order to pass the channel artifacts of the first channel, we package them into a configmap which we'll mount to the pod. Changes the value of yournamespace.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create channel artifacts
@@ -255,6 +266,7 @@ configmap/utilityemissionchannel created
 ```
 
 4. Create configmap of anchor peers update
+
 Next, we create a second configmap of the peer nodes which contains the information about the anchor peer. Changes the values of yournamespace, sampleOrg, and sampleorganchors.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
@@ -273,7 +285,8 @@ configmap/sampleorganchors created
 ```
 
 5. Create config maps for external chaincode builder
-In order to use [chaincode as an external service](https://hyperledger-fabric.readthedocs.io/en/release-2.2/cc_service.html), we need to prepare the peer with configmaps containing the external builder scripts as well as an updated core.yaml file. Most of the part from this section is copied from the repo (vanitas92/fabric-external-chaincodes)[https://github.com/vanitas92/fabric-external-chaincodes]. Changes the value of yournamespace
+
+In order to use [chaincode as an external service](https://hyperledger-fabric.readthedocs.io/en/release-2.2/cc_service.html), we need to prepare the peer with configmaps containing the external builder scripts as well as an updated core.yaml file. Most of the part from this section is copied from the repo [vanitas92/fabric-external-chaincodes](https://github.com/vanitas92/fabric-external-chaincodes). Changes the value of yournamespace
 ```shell
 # Create external chaincode builder configmap
 kubectl apply -f ./deploy-digitalocean/external-chaincode-builder-config.yaml -n yournamespace
@@ -283,6 +296,7 @@ configmap/external-chaincode-builder-config
 ```
 
 6. Start peer
+
 Now it's time to start the peer. Apply `./deploy-digitalocean/fabric-peer-deployment.yaml`to your cluster.  
 ```shell
 # Change value of yournamespace
@@ -307,6 +321,7 @@ fabric-peer1-6c89fd57d4-8w8z8      2/2     Running   0          28s
 #### 4.4. Test your infrastructure against the test configuration
 In this step, we'll create a channel in your running Hyperledger Fabric network consisting of 1 fabric-ca, 1 orderer node, and 1 peer node. Also, we will make the peer join the created channel.
 1. Set ENV variables
+
 Open `setEnv.sh` and set the values of the ENVs according to your setup.
 ```shell
 # sourve ENVs
@@ -317,8 +332,8 @@ source ./setEnv.sh
 ```
 
 2. Create Channel
-Run the command `peer channel create` and the value of yourdomain
 
+Run the command `peer channel create` and the value of yourdomain
 ```shell
 ./bin/peer channel create -o ${ORDERER_ADDRESS} -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile ${ORDERER_TLSCA}
 
@@ -334,6 +349,7 @@ Run the command `peer channel create` and the value of yourdomain
 ```
 
 3. Join Peer1 to Channel
+
 Run the command `peer channel join`
 ```shell
 ./bin/peer channel join -b ./channel-artifacts/utilityemissionchannel.block
@@ -354,6 +370,7 @@ utilityemissionchannel
 ```
 
 5. Deploy chaincode as external service
+
 Next, we deploy a sample chaincode to the utilityemissionchannel. Follow the next steps carefully.
 
 5.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric:7052").
