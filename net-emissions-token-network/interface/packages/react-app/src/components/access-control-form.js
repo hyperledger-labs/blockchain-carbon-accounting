@@ -118,9 +118,9 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
       {roles.length === 5 ? 
         <Row className="text-center mb-3">
           <Col className="align-self-center"><small>Owner</small> {xOrCheck(roles[0])}</Col>
-          <Col className="align-self-center"><small>Renewable Energy Certificate Dealer</small> {xOrCheck(roles[1])}</Col>
-          <Col className="align-self-center"><small>Carbon Emissions Offset Dealer</small> {xOrCheck(roles[2])}</Col>
-          <Col className="align-self-center"><small>Audited Emissions Dealer</small> {xOrCheck(roles[3])}</Col>
+          <Col className="align-self-center"><small>REC Dealer</small> {xOrCheck(roles[1])}</Col>
+          <Col className="align-self-center"><small>Offset Dealer</small> {xOrCheck(roles[2])}</Col>
+          <Col className="align-self-center"><small>Emissions Auditor</small> {xOrCheck(roles[3])}</Col>
           <Col className="align-self-center"><small>Consumer</small> {xOrCheck(roles[4])}</Col>
         </Row>
         : 
@@ -144,9 +144,9 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
       {theirRoles.length === 5 &&
         <Row className="text-center mb-3">
           <Col className="align-self-center"><small>Owner</small> {xOrCheck(theirRoles[0])}</Col>
-          <Col className="align-self-center"><small>Renewable Energy Certificate Dealer</small> {xOrCheck(theirRoles[1])}</Col>
-          <Col className="align-self-center"><small>Carbon Emissions Offset Dealer</small> {xOrCheck(theirRoles[2])}</Col>
-          <Col className="align-self-center"><small>Audited Emissions Dealer</small> {xOrCheck(theirRoles[3])}</Col>
+          <Col className="align-self-center"><small>REC Dealer</small> {xOrCheck(theirRoles[1])}</Col>
+          <Col className="align-self-center"><small>Offset Dealer</small> {xOrCheck(theirRoles[2])}</Col>
+          <Col className="align-self-center"><small>Emissions Auditor</small> {xOrCheck(theirRoles[3])}</Col>
           <Col className="align-self-center"><small>Consumer</small> {xOrCheck(theirRoles[4])}</Col>
         </Row>
       }
@@ -163,9 +163,9 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
             <Form.Label>Role</Form.Label>
             <Form.Control as="select" onChange={onRoleChange}>
               <option value="Consumer">Consumer</option>
-              <option value="REC">Renewable Energy Certificate Dealer</option>
-              <option value="CEO">Carbon Emissions Offset Dealer</option>
-              <option value="AE">Audited Emissions Dealer</option>
+              <option value="REC">Renewable Energy Certificate (REC) Dealer</option>
+              <option value="CEO">Offset Dealer</option>
+              <option value="AE">Emissions Auditor</option>
             </Form.Control>
           </Form.Group>
           <Form.Group>
