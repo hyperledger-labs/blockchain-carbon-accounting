@@ -59,7 +59,7 @@ spec:
         - name: ORDERER_GENERAL_GENESISFILE
           value: /var/hyperledger/orderer/orderer.genesis.block
         - name: ORDERER_GENERAL_LOCALMSPID
-          value: emitras
+          value: sampleOrg
         - name: ORDERER_GENERAL_LOCALMSPDIR
           value: /var/hyperledger/orderer/crypto-material/msp
         - name: ORDERER_GENERAL_TLS_ENABLED
