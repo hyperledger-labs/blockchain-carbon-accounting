@@ -124,9 +124,9 @@ Change:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
 
-Apply deployment configuration.
+Apply deployment configuration and change namespace.
 ```shell
-# Change path to fabric-services-ingress-deployment.yaml and yournamespace.
+# Start ingress. (change namespace)
 kubectl apply -f ./deploy-digitalocean/ingress-fabric-services-deployment.yaml -n yournamespace
 ```
 7. Generate crypto-material
@@ -455,11 +455,11 @@ peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarb
 {"color":"blue","docType":"marble","name":"marble1","owner":"tom","size":35}
 ```
 
-- 
+
 ## 5. Monitor Hyperledger Fabric network
 TBD. --> Hyperledger Explorer
 
-- 
+
 ## 6. Troubleshooting
 In the following, there are some hints to get rid of your error. If you run into an error that isn't listed, please report an issue if you cannot solve the problem by yourself. If you can solve it yourself, we very much appreciated it if you append your fix to the list below.
 
