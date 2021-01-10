@@ -3,9 +3,10 @@
 ## Index
    1. [Overview](README.md#1-overview)
    2. [Architecture](README.md#2-architecture)
-   3. [Configuration](README.md#3-configuration)
+   3. [Prerequisites](README.md#3-prerequisites)
    4. [Start Hyperledger Fabric network](README.md#5-start-hyperledger-fabric-network)
    5. [Monitor Hyperledger Fabric network](README.md#5-monitor-hyperledger-fabric-network)
+   6. [Troubleshooting](README.md#6-troubleshooting)
 
 ## 1. Overview
 This document describes how to get your Hyperledger Fabric infrastructure ready to run on Kubernetes and connect with different organizations that host their infrastructure in their own Kubernetes cluster. (as of 2020-12-09)
@@ -40,9 +41,13 @@ Set the following values according to your setup:
 Of course, you can add additional rules for e.g. a second peer node.
 
 #### 3.3 Fabric Binaries
-Get fabric binaries in fabric version 2.2.1 and fabric-ca at version 1.4.9.
+Get fabric binaries in fabric version 2.2.1 and fabric-ca at version 1.4.9 and include in path env.
 ```shell
+# download binaries
 curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.2.1 1.4.9 -d -s
+
+# include bin directory in path
+export PATH=${PWD}/bin:$PATH  
 ```
 
 #### 3.4 Kubernetes Namespace
@@ -267,7 +272,17 @@ kubectl create cm sampleorganchors --from-file=./channel-artifacts/sampleOrganch
 configmap/sampleorganchors created
 ```
 
-3. Start peer
+5. Create config maps for external chaincode builder
+In order to use [chaincode as an external service](https://hyperledger-fabric.readthedocs.io/en/release-2.2/cc_service.html), we need to prepare the peer with configmaps containing the external builder scripts as well as an updated core.yaml file. Most of the part from this section is copied from the repo (vanitas92/fabric-external-chaincodes)[https://github.com/vanitas92/fabric-external-chaincodes]. Changes the value of yournamespace
+```shell
+# Create external chaincode builder configmap
+kubectl apply -f ./deploy-digitalocean/external-chaincode-builder-config.yaml -n yournamespace
+
+# Should print a similar output
+configmap/external-chaincode-builder-config
+```
+
+6. Start peer
 Now it's time to start the peer. Apply `./deploy-digitalocean/fabric-peer-deployment.yaml`to your cluster.  
 ```shell
 # Change value of yournamespace
@@ -337,5 +352,101 @@ Run the command `peer channel join`
 Channels peers has joined: 
 utilityemissionchannel
 ```
+
+5. Deploy chaincode as external service
+Next, we deploy a sample chaincode to the utilityemissionchannel. Follow the next steps carefully.
+
+5.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric:7052").
+``` shell
+# change dir to chaincode/packaging
+cd ./chaincode/packaging
+
+# tar connection.json and metadata.json
+tar cfz code.tar.gz connection.json
+tar cfz marbles-chaincode.tgz code.tar.gz metadata.json
+
+# install chaincecode package to peer
+peer lifecycle chaincode install marbles-chaincode.tgz
+
+# Should print similar output to
+2021-01-10 14:16:07.493 CET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nHmarbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649\022\007marbles" > 
+2021-01-10 14:16:07.493 CET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649
+```
+
+5.2 Copy the chaincode package identifier (here: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649) and paste into `./chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+```shell
+# Query installed chaincode of peer
+peer lifecycle chaincode queryinstalled
+
+# Should print similar output to
+Installed chaincodes on peer:
+Package ID: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649, Label: marbles
+```
+
+5.3 At this point, we need to build a docker image containing the chaincode as well as its runtime environment. You can check `./chaincode/Dockerfile` as an example. Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `udosson/chaincode-marbles:1.0` (Docker Hub, public)
+
+5.4. Now we can start the chaincode. The next command will create one pod (1 container) with one service. Change the value of yournamespace
+```shell
+# Change dir to multi-cloud-deployment from ./chaincode/packaging
+cd ../..
+
+# Start chaincode
+kubectl apply -f ./chaincode/deploy/chaincode-deployment.yaml -n yournamespace
+
+# Should print similar output to
+deployment.apps/chaincode-marbles created
+service/chaincode-marbles created
+
+# Wait for 1 minutes and check if peer is chaincode container is running
+kubectl get pod -n yournamespace
+
+# Should print a similar output
+NAME                                 READY   STATUS    RESTARTS   AGE
+chaincode-marbles-5c44496446-pbpz6   1/1     Running   0          5s
+fabric-ca-6884b9dc5-zjxrz            1/1     Running   0          3d20h
+fabric-orderer1-56688dbbdc-4dltz     1/1     Running   0          21m
+fabric-peer1-5cf97d7cb4-5gftb        2/2     Running   0          32m
+```
+
+5.5 Next, we follow the [Chaincode Lifecyle](https://hyperledger-fabric.readthedocs.io/en/release-2.2/chaincode_lifecycle.html) by running the script `./deployCC.sh`. Take a look at the script and change the value of `CC_PACKAGE_ID`.
+```shell
+# Run deployCC.sh. Remember to change the value of CC_PACKAGE_ID
+./deployCC.sh
+
+# Should print a similar output
++++++Export chaincode package identifier+++++
+[...]
++++++Query commited chaincode+++++
+Committed chaincode definition for chaincode 'marbles' on channel 'utilityemissionchannel':
+Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [sampleOrg: true]
+```
+
+5.6. Invoke chaincode manually by running the following commands. If you get the expected results without any errors, you successfully deployed Hyperledger Fabric to your Kubernetes cluster. Congrats on that!!
+```shell
+# Invoke chaincode
+peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C utilityemissionchannel -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
+
+# Should print a similar output
+2021-01-10 14:44:46.497 CET [chaincodeCmd] ClientWait -> INFO 001 txid [c176a9600494de93d0e213b106f595fee421c7f3affa465ec1b05d1bd0ba4e55] committed with status (VALID) at fabric-peer1.emissionsaccounting.emitras.de:443
+2021-01-10 14:44:46.497 CET [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 002 Chaincode invoke successful. result: status:200 
+
+
+# Query chaincode
+peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarble","marble1"]}'
+
+# Should print a similar output
+{"color":"blue","docType":"marble","name":"marble1","owner":"tom","size":35}
+```
+
 - 
 ## 5. Monitor Hyperledger Fabric network
+TBD. --> Hyperledger Explorer
+
+- 
+## 6. Troubleshooting
+In the following, there are some hints to get rid of your error. If you run into an error that isn't listed, please report an issue if you cannot solve the problem by yourself. If you can solve it yourself, we very much appreciated it if you append your fix to the list below.
+
+###### command not found: peer|configtxgen
+Make sure you followed step 3.3 Fabric Binaries from chapter [3. Prerequisites](README.md#3-prerequisites)
+
+
