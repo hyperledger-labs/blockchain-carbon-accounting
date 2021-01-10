@@ -4,7 +4,7 @@
    1. [Overview](README.md#1-overview)
    2. [Architecture](README.md#2-architecture)
    3. [Prerequisites](README.md#3-prerequisites)
-   4. [Start Hyperledger Fabric network](README.md#5-start-hyperledger-fabric-network)
+   4. [Start Hyperledger Fabric network](README.md#4-start-hyperledger-fabric-network)
    5. [Monitor Hyperledger Fabric network](README.md#5-monitor-hyperledger-fabric-network)
    6. [Troubleshooting](README.md#6-troubleshooting)
 
