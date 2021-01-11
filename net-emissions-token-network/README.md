@@ -98,17 +98,19 @@ _Note: When restarting the Hardhat Network after interacting with the contracts 
 
 Deploying the contract to Goerli is only necessary when updates are made to the contract as there are other references to the current deployed contract in this repository. To deploy the contract to the Goerli testnet and update references to the address:
 
-1. Edit `.goerli-config.js` with your Ethereum deployer address private key and Infura key
+1. Create `.goerli-config.js` by copying the template with `cp .goerli-config.js.example .goerli-config.js` and populate with your Ethereum deployer address private key and Infura key.
 
-2. Deploy by via the deploy script with the following command:
+2. Uncomment the import line and the Goerli network settings in `hardhat.config.js`.
+
+3. Deploy by via the deploy script with the following command:
 
 ```bash
 npx hardhat run --network goerli scripts/deploy.js
 ```
 
-3. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
+4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
 
-4. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
+5. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
 ### Token User Flow
 
