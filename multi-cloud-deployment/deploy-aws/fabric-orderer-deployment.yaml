@@ -1,7 +1,22 @@
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-static-fabric-orderer
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp2
+  awsElasticBlockStore:
+    fsType: ext4
+    volumeID: vol-01ec7d4c201be9b4f
+---
+apiVersion: v1
 kind: Service
 metadata:
-  name: fabric-orderer4
+  name: fabric-orderer
+  namespace: fabric-production
 spec:
   type: ClusterIP
   ports:
@@ -12,27 +27,13 @@ spec:
     name: port-8443
     targetPort: 8443
   selector:
-    app: fabric-orderer4
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-static-fabric-orderer
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: gp2
-  awsElasticBlockStore:
-    fsType: ext4
-    volumeID: vol-02d6e7b6d6d4f930e
+    app: fabric-orderer
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fabric-orderer4
-  namespace: fabric-orderer
+  name: fabric-orderer
+  namespace: fabric-production
 spec:
   accessModes:
   - ReadWriteOnce
@@ -44,20 +45,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fabric-orderer4
-  namespace: fabric-orderer
+  name: fabric-orderer
+  namespace: fabric-production
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fabric-orderer4
+      app: fabric-orderer
   template:
     metadata:
       labels:
-        app: fabric-orderer4
+        app: fabric-orderer
     spec:
       containers:
-      - name: fabric-orderer4
+      - name: fabric-orderer
         image: hyperledger/fabric-orderer:2.2.1
         ports:
         - containerPort: 7050
@@ -75,7 +76,7 @@ spec:
         - name: ORDERER_GENERAL_GENESISFILE
           value: /var/hyperledger/orderer/orderer.genesis.block
         - name: ORDERER_GENERAL_LOCALMSPID
-          value: sampleOrg
+          value: opensolarx
         - name: ORDERER_GENERAL_LOCALMSPDIR
           value: /var/hyperledger/orderer/crypto-material/msp
         - name: ORDERER_GENERAL_TLS_ENABLED
@@ -105,10 +106,10 @@ spec:
           - name: system-genesis-block
             mountPath: /var/hyperledger/orderer/orderer.genesis.block
             subPath: orderer.genesis.block
-          - name: fabric-orderer4-pvc
+          - name: fabric-orderer-pvc
             mountPath: /var/hyperledger/production
             subPath: production
-          - name: orderer4-crypto
+          - name: fabric-orderer-pvc
             mountPath: /var/hyperledger/orderer/crypto-material
             subPath: crypto-material
 
@@ -116,11 +117,11 @@ spec:
         # Extract and mount crypto-config
         - name: init-container-orderer
           image: busybox
-          command: ['sh', '-c', 'tar zxvf /etc/orderer-secret-tgz/orderer4-crypto -C /var/hyperledger/orderer/crypto-material']
+          command: ['sh', '-c', 'tar zxvf /etc/orderer-secret-tgz/orderer-crypto -C /var/hyperledger/orderer/crypto-material']
           volumeMounts:
-              - name: orderer4-crypto
+              - name: orderer-crypto
                 mountPath: /etc/orderer-secret-tgz
-              - name: fabric-orderer4-pvc
+              - name: fabric-orderer-pvc
                 mountPath: /var/hyperledger/orderer/crypto-material
                 subPath: crypto-material
           
@@ -129,9 +130,9 @@ spec:
           name: system-genesis-block
         name: system-genesis-block
       - secret:
-          secretName: orderer4-crypto
-        name: orderer4-crypto
+          secretName: orderer-crypto
+        name: orderer-crypto
       - persistentVolumeClaim:
-          claimName: fabric-orderer4
-        name: fabric-orderer4-pvc
+          claimName: fabric-orderer
+        name: fabric-orderer-pvc
 

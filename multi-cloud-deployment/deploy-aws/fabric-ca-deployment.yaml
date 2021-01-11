@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: fabric-ca
-  namespace: fabric-ca
+  namespace: fabric-production
 spec:
   type: ClusterIP
   ports:
@@ -12,10 +12,24 @@ spec:
     app: fabric-ca
 ---
 apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-static-fabric-ca
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp2
+  awsElasticBlockStore:
+    fsType: ext4
+    volumeID: vol-01721bc782bdcac41
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: fabric-ca-pvc
-  namespace: fabric-ca
+  namespace: fabric-production
 spec:
   accessModes:
   - ReadWriteOnce
@@ -28,7 +42,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: fabric-ca
-  namespace: fabric-ca
+  namespace: fabric-production
 spec:
   replicas: 1
   selector:

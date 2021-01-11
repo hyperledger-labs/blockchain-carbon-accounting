@@ -1,7 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: fabric-peer1
+  name: fabric-peer
+  namespace: fabric-production
 spec:
   type: ClusterIP
   ports:
@@ -12,36 +13,52 @@ spec:
     name: port-9443
     targetPort: 9443
   selector:
-    app: fabric-peer1
+    app: fabric-peer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-static-fabric-peer
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp2
+  awsElasticBlockStore:
+    fsType: ext4
+    volumeID: vol-0dd8a1457aea6b7db
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: fabric-peer1
+  name: fabric-peer
+  namespace: fabric-production
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 20Gi
-  storageClassName: do-block-storage
+  volumeName: pv-static-fabric-peer
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fabric-peer1
+  name: fabric-peer
+  namespace: fabric-production
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fabric-peer1
+      app: fabric-peer
   template:
     metadata:
       labels:
-        app: fabric-peer1
+        app: fabric-peer
     spec:
       containers:
-      - name: fabric-peer1
+      - name: fabric-peer
         image: hyperledger/fabric-peer:2.2.1
         ports:
         - containerPort: 7051
@@ -67,29 +84,29 @@ spec:
           value: /etc/hyperledger/fabric/crypto-material/msp/
         # Peer specific variabes
         - name: CORE_PEER_ID
-          value: sudomain-to-fabric-peer
+          value: fabric-peer.opensolarx.com
         - name: CORE_PEER_ADDRESS
-          value: sudomain-to-fabric-peer:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_LISTENADDRESS
           value: 0.0.0.0:7051
         - name: CORE_PEER_CHAINCODEADDRESS
-          value: sudomain-to-fabric-peer:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_CHAINCODELISTENADDRESS
           value: 0.0.0.0:7052
         - name: CORE_PEER_GOSSIP_BOOTSTRAP
-          value: sudomain-to-fabric-peer:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
-          value: sudomain-to-fabric-peer:443
+          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_LOCALMSPID
-          value: sampleOrg
+          value: opensolarx
         - name: CORE_LEDGER_STATE_STATEDATABASE
           value: CouchDB
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS
           value: localhost:5984
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
-          value: couchDbUser
+          value: admin
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-          value: strongCouchDbPassword
+          value: aiG6ohsh6Uch5oot
         - name: CORE_OPERATIONS_LISTENADDRESS
           value: 0.0.0.0:9443
         - name: CORE_METRICS_PROVIDER
@@ -100,19 +117,19 @@ spec:
           # - name: cm-configtx-yaml
           #   mountPath: /etc/hyperledger/fabric/configtx.yaml
           #   subPath: configtx.yaml
-          - name: sampleorganchors
-            mountPath: /etc/hyperledger/fabric/channel-artifacts/sampleorganchors.tx
-            subPath: sampleorganchors.tx
+          - name: opensolarxanchors
+            mountPath: /etc/hyperledger/fabric/channel-artifacts/opensolarxanchors.tx
+            subPath: emitrasanchors.tx
           - name: utilityemissionchannel
             mountPath: /etc/hyperledger/fabric/channel-artifacts/utilityemissionchannel.tx
             subPath: utilityemissionchannel.tx
-          - name: fabric-peer1-pvc
+          - name: fabric-peer-pvc
             mountPath: /var/hyperledger/production
             subPath: production
-          - name: fabric-peer1-pvc
+          - name: fabric-peer-pvc
             mountPath: /opt/gopath/src/github.com/hyperledger/fabric/peer
             subPath: peer
-          - name: fabric-peer1-pvc
+          - name: fabric-peer-pvc
             mountPath: /etc/hyperledger/fabric/crypto-material
             subPath: crypto-material
 
@@ -124,36 +141,36 @@ spec:
           - containerPort: 9100
         env:
         - name: COUCHDB_USER
-          value: couchDbUser
+          value: admin
         - name: COUCHDB_PASSWORD
-          value: strongCouchDbPassword
+          value: aiG6ohsh6Uch5oot
         volumeMounts:
           - mountPath: /opt/couchdb/data
-            name: fabric-peer1-pvc
+            name: fabric-peer-pvc
             subPath: couchdb-data
 
       initContainers:
         # Extract and mount crypto-config
         - name: init-container-peer
           image: busybox
-          command: ['sh', '-c', 'tar zxvf /etc/peer-secret-tgz/peer1-crypto -C /etc/hyperledger/fabric/crypto-material']
+          command: ['sh', '-c', 'tar zxvf /etc/peer-secret-tgz/peer-crypto -C /etc/hyperledger/fabric/crypto-material']
           volumeMounts:
-              - name: peer1-crypto
+              - name: peer-crypto
                 mountPath: /etc/peer-secret-tgz
-              - name: fabric-peer1-pvc
+              - name: fabric-peer-pvc
                 mountPath: /etc/hyperledger/fabric/crypto-material
                 subPath: crypto-material
           
       volumes:
       - configMap:
-          name: sampleorganchors
-        name: sampleorganchorsanchors
+          name: opensolarxanchors
+        name: opensolarxanchors
       - configMap:
           name: utilityemissionchannel
         name: utilityemissionchannel
       - secret:
-          secretName: peer1-crypto
-        name: peer1-crypto
+          secretName: peer-crypto
+        name: peer-crypto
       - persistentVolumeClaim:
-          claimName: fabric-peer1
-        name: fabric-peer1-pvc
+          claimName: fabric-peer
+        name: fabric-peer-pvc
