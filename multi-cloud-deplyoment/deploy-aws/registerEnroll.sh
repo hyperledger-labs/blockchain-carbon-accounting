@@ -19,6 +19,9 @@ PEER_SECRET=ohb7ohngalah4Axa1i
 #### fabric orderer
 ORDERER_DOMAIN="fabric-orderer.${ORG_DOMAIN}"
 ORDERER_SECRET=voagaicu3quai1sheG
+#### org admin (ORD_ADMIN must be different from CA_ADMIN_USERNAME)
+ORD_ADMIN=opensolarx_org_admin 
+ORG_ADMIN_SECRET=iathidaiWoo1
 
 export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/${ORG_DOMAIN}/fabric-ca/tls-cert.pem
 
@@ -123,6 +126,27 @@ function createCryptoMaterial() {
   cp ${PWD}/crypto-material/${ORG_DOMAIN}/orderers/${ORDERER_DOMAIN}/tls/tlscacerts/* ${PWD}/crypto-material/${ORG_DOMAIN}/orderers/${ORDERER_DOMAIN}/msp/tlscacerts/tlsca.${ORG_DOMAIN}-cert.pem
 
   cp ${PWD}/crypto-material/${ORG_DOMAIN}/orderers/${ORDERER_DOMAIN}/tls/tlscacerts/* ${FABRIC_CA_CLIENT_HOME}/msp/tlscacerts/tlsca.${ORG_DOMAIN}-cert.pem
+
+  echo
+  echo "Register the org admin"
+  echo
+  set -x
+  ./bin/fabric-ca-client register --caname ${CA_DOMAIN} --id.name ${ORD_ADMIN} --id.secret ${ORG_ADMIN_SECRET} --id.type admin 
+  set +x
+
+  echo
+  echo "## Generate the org admin msp"
+  echo
+  set -x
+  ./bin/fabric-ca-client enroll -u https://${ORD_ADMIN}:${ORG_ADMIN_SECRET}@${CA_DOMAIN}:443 --caname ${CA_DOMAIN} -M ${PWD}/crypto-material/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp 
+  set +x
+
+  cp ${FABRIC_CA_CLIENT_HOME}/msp/config.yaml ${PWD}/crypto-material/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/config.yaml
+
+  cd ${PWD}/crypto-material/${ORG_DOMAIN}/users/Admin@${ORG_DOMAIN}/msp/keystore/
+  mv $(ls) priv_sk
+  cd -
+
 
 }
 

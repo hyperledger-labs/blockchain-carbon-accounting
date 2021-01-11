@@ -10,7 +10,7 @@ spec:
   storageClassName: gp2
   awsElasticBlockStore:
     fsType: ext4
-    volumeID: vol-09c6e92884547c89b
+    volumeID: vol-01ec7d4c201be9b4f
 ---
 apiVersion: v1
 kind: Service
@@ -76,7 +76,7 @@ spec:
         - name: ORDERER_GENERAL_GENESISFILE
           value: /var/hyperledger/orderer/orderer.genesis.block
         - name: ORDERER_GENERAL_LOCALMSPID
-          value: emitras
+          value: opensolarx
         - name: ORDERER_GENERAL_LOCALMSPDIR
           value: /var/hyperledger/orderer/crypto-material/msp
         - name: ORDERER_GENERAL_TLS_ENABLED

@@ -27,7 +27,7 @@ spec:
   storageClassName: gp2
   awsElasticBlockStore:
     fsType: ext4
-    volumeID: vol-0f93c94cfb9ebe973
+    volumeID: vol-0dd8a1457aea6b7db
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

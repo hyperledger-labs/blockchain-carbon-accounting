@@ -160,7 +160,7 @@ kubectl create secret generic orderer-crypto --from-file=orderer-crypto=orderer-
 
 3. Start orderer
    
-Now it's time to start the orderer. Apply `fabric-orderer-deplyoment.yaml` to your cluster.  
+Now it's time to start the orderer. Apply `fabric-orderer-deplyoment.yaml` to your cluster.   But first, change the value of `ORDERER_GENERAL_LOCALMSPID` to your organization's msp (find it here `./fabric-config/orderer.yaml` value `LocalMSPID`).
 
 Create ebs volume
 
@@ -275,13 +275,24 @@ source ./setEnv.sh
 Run the command `peer channel create` and the value of yourdomain
 
 ```shell
-./bin/peer channel create -o fabric-orderer.opensolarx.com:443 -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile $ORDERER_TLSCA
+./bin/peer channel create -o ${ORDERER_ADDRESS} -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile $ORDERER_TLSCA
+
+# Should print a similar output
+2021-01-11 10:53:30.112 MSK [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
+2021-01-11 10:53:31.191 MSK [cli.common] readBlock -> INFO 002 Expect block, but got status: &{SERVICE_UNAVAILABLE}
+2021-01-11 10:53:31.790 MSK [channelCmd] InitCmdFactory -> INFO 003 Endorser and orderer connections initialized
+2021-01-11 10:53:32.389 MSK [cli.common] readBlock -> INFO 004 Received block: 0
 ```
 
 3. Join Peer1 to Channel
 Run the command `peer channel join`
 ```shell
 ./bin/peer channel join -b ./channel-artifacts/utilityemissionchannel.block
+
+# Should print a similar output
+2021-01-11 11:00:44.314 MSK [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
+2021-01-11 11:00:45.066 MSK [channelCmd] executeJoin -> INFO 002 Successfully submitted proposal to join channel
+
 ```
 
 4. Verify that peer has joind the channel
@@ -289,7 +300,7 @@ Run the command `peer channel join`
 ./bin/peer channel list
 
 # Should print similar output to
-2020-12-09 20:16:17.247 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
+2021-01-11 11:01:32.253 MSK [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
 Channels peers has joined: 
 utilityemissionchannel
 ```
