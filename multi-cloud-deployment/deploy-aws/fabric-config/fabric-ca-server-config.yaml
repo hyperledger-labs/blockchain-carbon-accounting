@@ -47,6 +47,24 @@ db:
       certfile:
       keyfile:
 
+ldap:
+  enabled: false
+  url: ldap://<adminDN>:<adminPassword>@<host>:<port>/<base>
+  tls:
+    certfiles:
+    client:
+      certfile:
+      keyfile:
+  attribute:
+    names: [uid, member]
+    converters:
+      - name:
+        value:
+    maps:
+      groups:
+        - name:
+          value:
+
 affiliations:
   opensolarx:
     - department1

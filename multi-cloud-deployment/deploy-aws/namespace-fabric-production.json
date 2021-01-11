@@ -2,9 +2,10 @@
   "apiVersion": "v1",
   "kind": "Namespace",
   "metadata": {
-    "name": "fabric-peer",
+    "name": "fabric-production",
     "labels": {
-      "name": "fabric-peer"
+      "name": "fabric-production"
     }
   }
 }
+
