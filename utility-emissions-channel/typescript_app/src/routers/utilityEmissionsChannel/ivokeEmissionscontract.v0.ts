@@ -349,7 +349,6 @@ router.get(
           entry.fromDate,
           entry.thruDate,
           entry.emissionsAmount,
-          entry.emissionsUom,
           entry.renewableEnergyUseAmount,
           entry.nonrenewableEnergyUseAmount,
           entry.energyUseUom,

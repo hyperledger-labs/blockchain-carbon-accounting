@@ -8,7 +8,7 @@ const UOM_FACTORS = {
   t: 1000.0,
   ton: 1000.0,
   tons: 1000.0,
-  mtco2e: 1000.0,
+  tc02e: 1000.0,
   g: 0.001,
   kt: 1000000.0,
   mt: 1000000000.0,
@@ -138,7 +138,7 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
         if (res) {
           let usage_uom = "KWH";
           if (opts && opts.usage_uom) usage_uom = opts.usage_uom;
-          let emssions_uom = "MtCO2e";
+          let emssions_uom = "tc02e";
           if (opts && opts.emssions_uom) emssions_uom = opts.emssions_uom;
           let Division_type = res.Division_type;
           let division_id = res.Division_id;

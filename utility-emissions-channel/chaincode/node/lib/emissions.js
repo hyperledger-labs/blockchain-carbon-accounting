@@ -67,14 +67,6 @@ class EmissionsRecord extends State {
     this.emissionsAmount = newEmissionsAmount;
   }
 
-  getEmissionsUom() {
-    return this.emissionsUom;
-  }
-
-  setEmissionsUom(newEmissionsUom) {
-    this.emissionsUom = newEmissionsUom;
-  }
-
   getRenewableEnergyUseAmount() {
     return this.renewableEnergyUseAmount;
   }
@@ -153,7 +145,6 @@ class EmissionsRecord extends State {
     fromDate,
     thruDate,
     emissionsAmount,
-    emissionsUom,
     renewableEnergyUseAmount,
     nonrenewableEnergyUseAmount,
     energyUseUom,
@@ -169,7 +160,6 @@ class EmissionsRecord extends State {
       fromDate,
       thruDate,
       emissionsAmount,
-      emissionsUom,
       renewableEnergyUseAmount,
       nonrenewableEnergyUseAmount,
       energyUseUom,

@@ -92,7 +92,6 @@ export class EmissionsContractInvoke {
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
       result["energyUseAmount"] = jsonResult.emissionsAmount;
-      result["energyUseUom"] = jsonResult.emissionsUom;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
@@ -128,7 +127,6 @@ export class EmissionsContractInvoke {
     fromDate,
     thruDate,
     emissionsAmount,
-    emissionsUom,
     renewable_energy_use_amount,
     nonrenewable_energy_use_amount,
     energyUseUom,
@@ -171,7 +169,6 @@ export class EmissionsContractInvoke {
         fromDate,
         thruDate,
         emissionsAmount,
-        emissionsUom,
         renewable_energy_use_amount,
         nonrenewable_energy_use_amount,
         energyUseUom,
@@ -198,7 +195,6 @@ export class EmissionsContractInvoke {
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
       result["energyUseAmount"] = jsonResult.emissionsAmount;
-      result["energyUseUom"] = jsonResult.emissionsUom;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
@@ -280,7 +276,6 @@ export class EmissionsContractInvoke {
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
       result["emissionsAmount"] = jsonResult.emissionsAmount;
-      result["emissionsUom"] = jsonResult.emissionsUom;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
@@ -372,7 +367,6 @@ export class EmissionsContractInvoke {
         result["fromDate"] = record.fromDate;
         result["thruDate"] = record.thruDate;
         result["emissionsAmount"] = record.emissionsAmount;
-        result["emissionsUom"] = record.emissionsUom;
         result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
         result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
         result["energyUseUom"] = record.energyUseUom;
@@ -463,7 +457,6 @@ export class EmissionsContractInvoke {
         result["fromDate"] = record.fromDate;
         result["thruDate"] = record.thruDate;
         result["emissionsAmount"] = record.emissionsAmount;
-        result["emissionsUom"] = record.emissionsUom;
         result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
         result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
         result["energyUseUom"] = record.energyUseUom;
