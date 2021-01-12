@@ -110,8 +110,8 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
           </div>
         )}
 
-        <div>
-          <h4>Your tokens</h4>
+        <div className="mb-3">
+          <h4>Your Tokens</h4>
           <Table hover size="sm">
             <thead>
               <tr>
@@ -142,7 +142,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
         {/* Only display issued tokens if owner or dealer */}
         {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
           <div>
-            <h4>Tokens you've issued</h4>
+            <h4>Tokens You've Issued</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
