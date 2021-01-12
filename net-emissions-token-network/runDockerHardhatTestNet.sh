@@ -12,7 +12,7 @@ echo "Using volumes for hardhat-test container: "
 echo
 echo $VOLUME
 
-docker run -it --rm --name hardhat-test --network=$NETWORK_NAME -v $VOLUME:/net-emissions-token-network -w /net-emissions-token-network hardhat-test /bin/sh -c 'npx hardhat node --hostname 0.0.0.0'
+docker run -it --rm -p 8545:8545 --name hardhat-test --network=$NETWORK_NAME -v $VOLUME:/net-emissions-token-network -w /net-emissions-token-network hardhat-test /bin/sh -c 'npx hardhat node --hostname 0.0.0.0'
 
 
 

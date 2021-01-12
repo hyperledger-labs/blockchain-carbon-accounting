@@ -198,7 +198,7 @@ sh deployDockerHardHatContract.sh
 1. Start the hardhat test network from the net-emissions-token-network directory:
 
 ```bash
-npx hardhat node
+npx hardhat node --hostname 0.0.0.0
 ```
 
 2. Deploy the contract to the hardhat test network via the following command in the net-emissions-token-network directory:
