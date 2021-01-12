@@ -56,17 +56,6 @@ export default function IssueForm({ provider }) {
     borderColor: '#dc3545'
   };
 
-  React.useEffect(() => {
-    
-    async function apiCall() {
-      let result = await getTestRequest("https://jsonplaceholder.typicode.com/todos/1");
-      console.log(result.data);
-    }
-
-    apiCall();
-
-  }, []);
-
   return (
     <>
 
