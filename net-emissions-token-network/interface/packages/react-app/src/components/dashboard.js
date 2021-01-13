@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-import { getNumOfUniqueTokens, getAvailableAndRetired, getTokenType, getIssuer } from "../services/contract-functions";
+import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
@@ -19,13 +19,8 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
   const [fetchingTokens, setFetchingTokens] = useState(false);
 
-  function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenRetiredBalance, tokenType) {
-    setSelectedToken({
-      id: tokenId,
-      balance: tokenBalance,
-      retired: tokenRetiredBalance,
-      type: tokenType,
-    });
+  function handleOpenTokenInfoModal(token) {
+    setSelectedToken(token);
     setModalShow(true);
   }
 
@@ -37,26 +32,46 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
     let myBal = [];
     let myIssued = [];
     for (let i = 1; i <= numOfUniqueTokens; i++) {
-      let bal = (await getAvailableAndRetired(provider, signedInAddress, i));
-      let issuer = await getIssuer(provider, i);
-      let type = await getTokenType(provider, i);
 
-      if (bal[0].toNumber() > 0 || bal[1].toNumber() > 0) {
-        myBal.push({
-          tokenId: i,
-          tokenType: type,
-          balance: bal[0].toNumber(),
-          retired: bal[1].toNumber()
-        });
+      // Fetch token details
+      let tokenDetails = (await getTokenDetails(provider, i));
+
+      // Format unix times to Date objects
+      let fromDateObj = new Date((tokenDetails.fromDate.toNumber()) * 1000);
+      let thruDateObj = new Date((tokenDetails.thruDate.toNumber()) * 1000);
+      let automaticRetireDateObj = new Date((tokenDetails.automaticRetireDate.toNumber()) * 1000);
+
+      // Format tokenType from tokenTypeId
+      let tokenTypes = [
+        "Renewable Energy Certificate",
+        "Carbon Emissions Offset",
+        "Audited Emissions"
+      ];
+
+      // Fetch available and retired balances
+      let balances = (await getAvailableAndRetired(provider, signedInAddress, i));
+
+      let token = {
+        tokenId: tokenDetails.tokenId.toNumber(),
+        tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
+        availableBalance: balances[0].toNumber(),
+        retiredBalance: balances[1].toNumber(),
+        issuer: tokenDetails.issuer,
+        issuee: tokenDetails.issuee,
+        fromDate: fromDateObj.toLocaleString(),
+        thruDate: thruDateObj.toLocaleString(),
+        automaticRetireDate: automaticRetireDateObj.toLocaleString(),
+        metadata: tokenDetails.metadata,
+        manifest: tokenDetails.manifest,
+        description: tokenDetails.description,
       }
 
-      if (issuer.toLowerCase() === signedInAddress.toLowerCase()) {
-        myIssued.push({
-          tokenId: i,
-          tokenType: type,
-          balance: bal[0].toNumber(),
-          retired: bal[1].toNumber()
-        });
+      // Push token to myBalances or myIssuedTokens in state
+      if (token.availableBalance > 0 || token.retiredBalance > 0) {
+        myBal.push(token);
+      }
+      if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
+        myIssued.push(token);
       }
     }
 
@@ -100,7 +115,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
       <p>View your token balances and tokens you've issued.</p>
       <p><Button variant="primary" onClick={handleRefresh}><BiRefresh/>&nbsp;Refresh</Button></p>
 
-      <div className={fetchingTokens && "dimmed"}>
+      <div className={fetchingTokens ? "dimmed" : ""}>
 
         {fetchingTokens && (
           <div className="text-center my-4">
@@ -110,7 +125,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
           </div>
         )}
 
-        <div className="mb-3">
+        <div className="mb-4">
           <h4>Your Tokens</h4>
           <Table hover size="sm">
             <thead>
@@ -122,17 +137,17 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
               </tr>
             </thead>
             <tbody>
-              {myBalances !== [] &&
+              {(myBalances !== [] && !fetchingTokens) &&
                 myBalances.map((token) => (
                   <tr
-                    key={token}
-                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                    key={token.tokenId}
+                    onClick={() => handleOpenTokenInfoModal(token)}
                     onMouseOver={pointerHover}
                   >
                     <td>{token.tokenId}</td>
                     <td>{token.tokenType}</td>
-                    <td>{token.balance}</td>
-                    <td>{token.retired}</td>
+                    <td>{token.availableBalance}</td>
+                    <td>{token.retiredBalance}</td>
                   </tr>
                 ))}
             </tbody>
@@ -141,25 +156,27 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
         {/* Only display issued tokens if owner or dealer */}
         {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
-          <div>
+          <div className="mt-1">
             <h4>Tokens You've Issued</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Type</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
-                {myIssuedTokens !== [] &&
+                {(myIssuedTokens !== [] && !fetchingTokens) &&
                   myIssuedTokens.map((token) => (
                     <tr
-                      key={token}
-                      onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                      key={token.tokenId}
+                      onClick={() => handleOpenTokenInfoModal(token)}
                       onMouseOver={pointerHover}
                     >
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
+                      <td>{token.description}</td>
                     </tr>
                   ))}
               </tbody>

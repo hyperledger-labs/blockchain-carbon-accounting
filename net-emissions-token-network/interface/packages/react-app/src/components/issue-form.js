@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import { issue } from "../services/contract-functions";
-import { getTestRequest } from "../services/fabric-api";
 
 import SubmissionModal from "./submission-modal";
 
