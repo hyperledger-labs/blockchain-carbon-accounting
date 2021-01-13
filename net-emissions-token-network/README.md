@@ -100,7 +100,7 @@ Deploying the contract to Goerli is only necessary when updates are made to the 
 
 1. Create `.goerli-config.js` by copying the template with `cp .goerli-config.js.example .goerli-config.js` and populate with your Ethereum deployer address private key and Infura key.
 
-2. Uncomment the import line and the Goerli network settings in `hardhat.config.js`.
+2. Uncomment the `goerliConfig` import line and the Goerli network settings in `hardhat.config.js`.
 
 3. Deploy by via the deploy script with the following command:
 
@@ -111,6 +111,20 @@ npx hardhat run --network goerli scripts/deploy.js
 4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
 
 5. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
+
+### Verifying contract on Etherscan
+
+[Etherscan](https://etherscan.io/) is a popular block explorer for Ethereum networks. In order for Etherscan to display the names of the contract functions after compiling and deploying, one must supply Etherscan with the contract code for verification. Once the contract is verified, it is easier to view interactions with the contract as it deciphers the payloads. To submit a contract for verification:
+
+1. Create `.etherscan-config.js` by copying the template with `cp .etherscan-config.js.example .etherscan-config.js` and populate with your Etherscan API key, which can be freely obtained from their website.
+
+2. Uncomment the `goerliConfig` and `etherscanConfig` import lines as well as the the Goerli network settings and Etherscan settings in `hardhat.config.js`.
+
+3. Verify with the following command (replace DEPLOYED_CONTRACT_ADDRESS with the contract address):
+
+```bash
+npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS
+```
 
 ### Token User Flow
 

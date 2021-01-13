@@ -6,3 +6,4 @@ artifacts
 coverage
 coverage.json
 .goerli-config.js
+.etherscan-config.js
