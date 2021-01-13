@@ -10,8 +10,7 @@ The net emissions token network is implemented as a ERC-1155 multi-token smart c
 
 ### Installation and use
 
-1.  Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
-2.  Copy the config for deploying to the Goerli testnet with `cp .goerli-config.js.example .goerli-config.js`. No edits are necessary unless you plan on deploying your own version of the contract to Goerli.
+Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
 
 #### Misc. contract commands
 
