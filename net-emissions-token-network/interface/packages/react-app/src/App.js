@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useQuery } from "@apollo/react-hooks";
 
 import Container from 'react-bootstrap/Container';
@@ -25,6 +25,8 @@ function App() {
 
   const [location] = useLocation();
 
+  const dashboardRef = useRef();
+
   React.useEffect(() => {
     if (!loading && !error && data && data.transfers) {
       console.log({ transfers: data.transfers });
@@ -48,13 +50,21 @@ function App() {
           <Row>
             <Col md={3} lg={2} className="mb-2">
               <Nav variant="pills" className="flex-column">
-                <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
+                {/* On dashboard page, click this link to refresh the balances */}
+                {/* Else on other page, click this link to go to dashboard */}
+                {(location.substring(1) === "dashboard")
+                  ? <Nav.Link onClick={() => dashboardRef.current.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
+                  : <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
+                }
+
                 {/* Only display issue page if owner or dealer */}
                 {(isOwnerOrDealer)
                   && <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
                 }
+
                 <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
                 <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
+
                 {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
                 <Link href="access-control"><Nav.Link eventKey="access-control">
                   {(isOwnerOrDealer)
@@ -62,6 +72,7 @@ function App() {
                     : "My Roles"
                   }
                 </Nav.Link></Link>
+
               </Nav>
             </Col>
             <Col md={9} lg={10}>
@@ -69,7 +80,7 @@ function App() {
                 <Switch>
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
                   <Route path="/dashboard">
-                    <Dashboard provider={provider} signedInAddress={signedInAddress} roles={roles} />
+                    <Dashboard ref={dashboardRef} provider={provider} signedInAddress={signedInAddress} roles={roles} />
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
