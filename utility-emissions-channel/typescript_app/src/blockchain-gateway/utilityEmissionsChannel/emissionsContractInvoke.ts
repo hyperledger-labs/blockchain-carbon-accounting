@@ -91,7 +91,7 @@ export class EmissionsContractInvoke {
       result["partyId"] = jsonResult.partyId;
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
-      result["energyUseAmount"] = jsonResult.emissionsAmount;
+      result["emissionsAmount"] = jsonResult.emissionsAmount;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
