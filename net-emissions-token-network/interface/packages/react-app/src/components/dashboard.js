@@ -19,65 +19,73 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
   const [fetchingTokens, setFetchingTokens] = useState(false);
 
+  const [error, setError] = useState("");
+
   function handleOpenTokenInfoModal(token) {
     setSelectedToken(token);
     setModalShow(true);
   }
 
   async function fetchBalances() {
-    // First, fetch number of unique tokens
-    let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
+    try {
+      // First, fetch number of unique tokens
+      let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
 
-    // Iterate over each tokenId and find balance of signed in address
-    let myBal = [];
-    let myIssued = [];
-    for (let i = 1; i <= numOfUniqueTokens; i++) {
+      // Iterate over each tokenId and find balance of signed in address
+      let myBal = [];
+      let myIssued = [];
+      for (let i = 1; i <= numOfUniqueTokens; i++) {
 
-      // Fetch token details
-      let tokenDetails = (await getTokenDetails(provider, i));
+        // Fetch token details
+        let tokenDetails = (await getTokenDetails(provider, i));
 
-      // Format unix times to Date objects
-      let fromDateObj = new Date((tokenDetails.fromDate.toNumber()) * 1000);
-      let thruDateObj = new Date((tokenDetails.thruDate.toNumber()) * 1000);
-      let automaticRetireDateObj = new Date((tokenDetails.automaticRetireDate.toNumber()) * 1000);
+        // Format unix times to Date objects
+        let fromDateObj = new Date((tokenDetails.fromDate.toNumber()) * 1000);
+        let thruDateObj = new Date((tokenDetails.thruDate.toNumber()) * 1000);
+        let automaticRetireDateObj = new Date((tokenDetails.automaticRetireDate.toNumber()) * 1000);
 
-      // Format tokenType from tokenTypeId
-      let tokenTypes = [
-        "Renewable Energy Certificate",
-        "Carbon Emissions Offset",
-        "Audited Emissions"
-      ];
+        // Format tokenType from tokenTypeId
+        let tokenTypes = [
+          "Renewable Energy Certificate",
+          "Carbon Emissions Offset",
+          "Audited Emissions"
+        ];
 
-      // Fetch available and retired balances
-      let balances = (await getAvailableAndRetired(provider, signedInAddress, i));
+        // Fetch available and retired balances
+        let balances = (await getAvailableAndRetired(provider, signedInAddress, i));
 
-      let token = {
-        tokenId: tokenDetails.tokenId.toNumber(),
-        tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
-        availableBalance: balances[0].toNumber(),
-        retiredBalance: balances[1].toNumber(),
-        issuer: tokenDetails.issuer,
-        issuee: tokenDetails.issuee,
-        fromDate: fromDateObj.toLocaleString(),
-        thruDate: thruDateObj.toLocaleString(),
-        automaticRetireDate: automaticRetireDateObj.toLocaleString(),
-        metadata: tokenDetails.metadata,
-        manifest: tokenDetails.manifest,
-        description: tokenDetails.description,
+        let token = {
+          tokenId: tokenDetails.tokenId.toNumber(),
+          tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
+          availableBalance: balances[0].toNumber(),
+          retiredBalance: balances[1].toNumber(),
+          issuer: tokenDetails.issuer,
+          issuee: tokenDetails.issuee,
+          fromDate: fromDateObj.toLocaleString(),
+          thruDate: thruDateObj.toLocaleString(),
+          automaticRetireDate: automaticRetireDateObj.toLocaleString(),
+          metadata: tokenDetails.metadata,
+          manifest: tokenDetails.manifest,
+          description: tokenDetails.description,
+        }
+
+        // Push token to myBalances or myIssuedTokens in state
+        if (token.availableBalance > 0 || token.retiredBalance > 0) {
+          myBal.push(token);
+        }
+        if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
+          myIssued.push(token);
+        }
       }
 
-      // Push token to myBalances or myIssuedTokens in state
-      if (token.availableBalance > 0 || token.retiredBalance > 0) {
-        myBal.push(token);
-      }
-      if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
-        myIssued.push(token);
-      }
+      setMyBalances(myBal);
+      setMyIssuedTokens(myIssued);
+      setFetchingTokens(false);
+      setError("");
+    } catch (error) {
+      console.log(error);
+      setError("Could not connect to contract. Check your network settings in your wallet.");
     }
-
-    setMyBalances(myBal);
-    setMyIssuedTokens(myIssued);
-    setFetchingTokens(false);
   }
 
   function handleRefresh() {
@@ -114,6 +122,8 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
       <h2>Dashboard</h2>
       <p>View your token balances and tokens you've issued.</p>
       <p><Button variant="primary" onClick={handleRefresh}><BiRefresh/>&nbsp;Refresh</Button></p>
+
+      <p className="text-danger">{error}</p>
 
       <div className={fetchingTokens ? "dimmed" : ""}>
 
