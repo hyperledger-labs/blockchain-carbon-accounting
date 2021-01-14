@@ -193,20 +193,6 @@ sh runDockerHardhatTestNet.sh
 sh deployDockerHardHatContract.sh
 ```
 
-##### Running locally
-
-1. Start the hardhat test network from the net-emissions-token-network directory:
-
-```bash
-npx hardhat node --hostname 0.0.0.0
-```
-
-2. Deploy the contract to the hardhat test network via the following command in the net-emissions-token-network directory:
-
-```bash
-npx hardhat run --network localhost scripts/deploy.js
-```
-
 #### Using the Goerli Network
 
 TODO
@@ -227,7 +213,9 @@ The next section is about starting the fabric network and calling the endpoint t
 sh ./scripts/reset.sh
 ```
 
-2. Start the fabric network:
+2. Based on the template in utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network, enter in your connection details for your ethereum network. For testing and development, the values that are currently within the template will work out of the box.
+
+3. Start the fabric network:
 
 ```bash
 sh start.sh
