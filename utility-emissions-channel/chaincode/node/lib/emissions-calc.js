@@ -2,6 +2,7 @@ const UOM_FACTORS = {
   wh: 1.0,
   kwh: 1000.0,
   mwh: 1000000.0,
+  "lb/mwh": 1000000.0,
   gwh: 1000000000.0,
   twh: 1000000000000.0,
   kg: 1.0,
@@ -80,8 +81,15 @@ exports.get_emmissions_factor = function(db, utility, thru_date, opts) {
         return reject("Utility [" + utility + "] does not have a Division Type");
       }
       opts && opts.verbose && console.log("-- found Utility Divisions = ", data.Item.Divisions);
-
-      division = data.Item.Divisions.M;
+      hasStateData = data.Item.State_Province;
+      isNercRegion = data.Item.Divisions.M.Division_type.S == "NERC_REGION";
+      if (hasStateData) {
+        division = { Division_id: data.Item.State_Province, Division_type: { S: "STATE" } };
+      } else if (isNercRegion) {
+        division = data.Item.Divisions.M;
+      } else {
+        division = { Division_id: { S: "USA" }, Division_type: { S: "COUNTRY" } };
+      }
       opts && opts.verbose && console.log("-- found Utility Division = ", division);
 
       if (!division.Division_id) {
