@@ -255,27 +255,6 @@
             "description": "End date of the query",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "automaticRetireDate",
-            "in": "path",
-            "description": "Date that the issued token will be set to automatically retire",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "metadata",
-            "in": "path",
-            "description": "Metadata that the issued token will contain",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "description",
-            "in": "path",
-            "description": "Description that the issued token will contain",
-            "required": true,
-            "type": "string"
           }
         ],
         "responses": {

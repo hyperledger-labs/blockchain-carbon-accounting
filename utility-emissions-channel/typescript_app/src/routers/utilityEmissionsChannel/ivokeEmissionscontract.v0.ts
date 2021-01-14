@@ -255,7 +255,6 @@ router.get(
   [
     param("userId").isString(),
     param("orgName").isString(),
-    param("userId").isString(),
     param("addressToIssue").isString(),
     param("fromDate").custom((value, { req }) => {
       let matches = value.match(
@@ -279,19 +278,6 @@ router.get(
       // Indicates the success of this synchronous custom validator
       return true;
     }),
-    param("automaticRetireDate").custom((value, { req }) => {
-      let matches = value.match(
-        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-      );
-      if (!matches) {
-        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
-      }
-
-      // Indicates the success of this synchronous custom validator
-      return true;
-    }),
-    param("metadata").isString(),
-    param("description").isString(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -304,9 +290,18 @@ router.get(
       const addressToIssue = req.params.addressToIssue;
       const fromDate = req.params.fromDate;
       const thruDate = req.params.thruDate;
-      const automaticRetireDate = req.params.automaticRetireDate;
-      const metadata = req.params.metadata;
-      const description = req.params.description;
+      const automaticRetireDate = new Date().toISOString();
+      const description = "Audited Utility Emissions";
+      let metadata = new Object();
+      metadata["org"] = orgName;
+      metadata["renewableEnergyUseAmount"] = 0;
+      metadata["nonrenewableEnergyUseAmount"] = 0;
+      metadata["utilityIds"] = [];
+      metadata["energyUseUoms"] = [];
+      metadata["factorSources"] = [];
+      metadata["urls"] = [];
+      metadata["md5s"] = [];
+
       let quantity = 0;
       let manifest = [];
 
@@ -320,6 +315,24 @@ router.get(
 
       if (Array.isArray(blockchainResponse)) {
         for (let entry of blockchainResponse) {
+          if (!metadata["utilityIds"].includes(entry.utilityId)) {
+            metadata["utilityIds"].push(entry.utilityId);
+          }
+          if (!metadata["energyUseUoms"].includes(entry.energyUseUom)) {
+            metadata["energyUseUoms"].push(entry.energyUseUom);
+          }
+          if (!metadata["factorSources"].includes(entry.factorSource)) {
+            metadata["factorSources"].push(entry.factorSource);
+          }
+          if (entry.md5 != "") {
+            metadata["md5s"].push(entry.md5);
+          }
+          if (entry.url != "") {
+            metadata["urls"].push(entry.url);
+          }
+          metadata["renewableEnergyUseAmount"] += entry.renewableEnergyUseAmount;
+          metadata["nonrenewableEnergyUseAmount"] += entry.nonrenewableEnergyUseAmount;
+
           quantity += entry.emissionsAmount;
           manifest.push(entry.uuid);
         }
@@ -332,7 +345,7 @@ router.get(
         quantity.toFixed(2),
         toTimestamp(fromDate),
         toTimestamp(thruDate),
-        toTimestamp(automaticRetireDate),
+        toTimestamp(automaticRetireDate).toFixed(),
         metadata,
         manifest.join(", "),
         description

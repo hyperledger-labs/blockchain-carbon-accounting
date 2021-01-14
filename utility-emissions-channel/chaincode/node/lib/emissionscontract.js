@@ -127,7 +127,6 @@ class EmissionsRecordContract extends Contract {
       fromDate,
       thruDate,
       parseFloat(emissionsAmount),
-      emissionsUom,
       parseFloat(renewable_energy_use_amount),
       parseFloat(nonrenewable_energy_use_amount),
       energyUseUom,
