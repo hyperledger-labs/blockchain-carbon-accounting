@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from "react";
-
-import { getTokenDetails } from "../services/contract-functions";
+import React from "react";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-import Spinner from 'react-bootstrap/Spinner';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 

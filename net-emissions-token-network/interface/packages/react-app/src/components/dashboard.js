@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
 import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
-import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 
-import { BiRefresh } from 'react-icons/bi'
-
-export default function Dashboard({ provider, signedInAddress, roles }) {
+export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) => {
+  // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState({});
 
+  // Balances of my tokens and tokens I've issued
   const [myBalances, setMyBalances] = useState([]);
   const [myIssuedTokens, setMyIssuedTokens] = useState([]);
 
@@ -21,9 +20,23 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
   const [error, setError] = useState("");
 
+  const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true);
+
   function handleOpenTokenInfoModal(token) {
     setSelectedToken(token);
     setModalShow(true);
+  }
+
+  // Allows the parent component to refresh balances on clicking the Dashboard button in the navigation
+  useImperativeHandle(ref, () => ({
+    refresh() {
+      handleRefresh();
+    }
+  }));
+
+  function handleRefresh() {
+    setFetchingTokens(true);
+    fetchBalances();
   }
 
   async function fetchBalances() {
@@ -88,11 +101,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
     }
   }
 
-  function handleRefresh() {
-    setFetchingTokens(true);
-    fetchBalances();
-  }
-
+  // If address and provider detected then fetch balances
   useEffect(() => {
     if (provider && signedInAddress) {
       if (myBalances !== [] && !fetchingTokens) {
@@ -121,7 +130,6 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
       <h2>Dashboard</h2>
       <p>View your token balances and tokens you've issued.</p>
-      <p><Button variant="primary" onClick={handleRefresh}><BiRefresh/>&nbsp;Refresh</Button></p>
 
       <p className="text-danger">{error}</p>
 
@@ -165,7 +173,7 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
         </div>
 
         {/* Only display issued tokens if owner or dealer */}
-        {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
+        {(isDealer) &&
           <div className="mt-1">
             <h4>Tokens You've Issued</h4>
             <Table hover size="sm">
@@ -197,4 +205,6 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
       </div>
     </>
   );
-}
+});
+
+export default Dashboard;
