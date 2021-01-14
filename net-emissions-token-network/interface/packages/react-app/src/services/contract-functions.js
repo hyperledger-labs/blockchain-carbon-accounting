@@ -15,7 +15,7 @@ function toUnixTime(date) {
 }
 
 export async function getRoles(w3provider, address) {
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let roles;
   try {
     roles = await contract.getRoles(address);
@@ -26,7 +26,7 @@ export async function getRoles(w3provider, address) {
 }
 
 export async function getIssuer(w3provider, tokenId) {
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let issuer;
   try {
     issuer = await contract.getIssuer(tokenId);
@@ -37,7 +37,7 @@ export async function getIssuer(w3provider, tokenId) {
 }
 
 export async function getTokenDetails(w3provider, tokenId) {
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let details;
   try {
     details = await contract.getTokenDetails(tokenId);
@@ -48,7 +48,7 @@ export async function getTokenDetails(w3provider, tokenId) {
 }
 
 export async function getNumOfUniqueTokens(w3provider) {
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let uniqueTokens;
   try {
     uniqueTokens = await contract.getNumOfUniqueTokens();
@@ -59,7 +59,7 @@ export async function getNumOfUniqueTokens(w3provider) {
 }
 
 export async function getAvailableAndRetired(w3provider, address, tokenId) {
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let balances;
   try {
     balances = await contract.getAvailableAndRetired(address, tokenId);
@@ -70,7 +70,7 @@ export async function getAvailableAndRetired(w3provider, address, tokenId) {
 }
 
 export async function getTokenType(w3provider, tokenId) {
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let tokenType;
   try {
     tokenType = await contract.getTokenType(tokenId);
@@ -93,7 +93,7 @@ export async function issue(
   description
 ) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let issue_result;
   try {
@@ -124,7 +124,7 @@ export async function issue(
 
 export async function retire(w3provider, tokenId, amount) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let retire_result;
   try {
@@ -138,7 +138,7 @@ export async function retire(w3provider, tokenId, amount) {
 
 export async function transfer(w3provider, address, tokenId, amount) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let transfer_result;
   try {
@@ -152,7 +152,7 @@ export async function transfer(w3provider, address, tokenId, amount) {
 
 export async function registerConsumer(w3provider, address) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let registerConsumer_result;
   try {
@@ -166,7 +166,7 @@ export async function registerConsumer(w3provider, address) {
 
 export async function unregisterConsumer(w3provider, address) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let unregisterConsumer_result;
   try {
@@ -180,7 +180,7 @@ export async function unregisterConsumer(w3provider, address) {
 
 export async function registerDealer(w3provider, address, tokenTypeId) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let registerDealer_result;
   try {
@@ -194,7 +194,7 @@ export async function registerDealer(w3provider, address, tokenTypeId) {
 
 export async function unregisterDealer(w3provider, address, tokenTypeId) {
   let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = await contract.connect(signer);
   let unregisterDealer_result;
   try {
