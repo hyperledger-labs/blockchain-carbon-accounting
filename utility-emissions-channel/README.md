@@ -177,6 +177,22 @@ There is currently functionality through an endpoint in the REST API to retrieve
 
 There are currently two options for starting an Ethereum network to deploy the Net Emissions Token Contract to - the hardhat test network, or Goerli.
 
+Copy and edit the network configuration by navigating to this folder and running:
+
+```
+cp ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts.template ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts
+```
+
+#### Using the Goerli Network
+
+1. Edit `networkConfig.ts` and set `IS_GOERLI` to true. Enter the contract address deployed on Goerli, your Infura keys, and the private key of your dealer/owner wallet.
+
+2. Reset and restart the API if it is running.
+
+3. After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
+
+4. If you want to observe changes to the network, either view the contract's transactions on Etherscan or connect to it via the React interface after ensuring `addresses.js` is set to the correct Goerli contract address. See the README in `net-emissions-token-network` for more information.
+
 #### Using the hardhat test network
 
 ##### Running in Docker
@@ -193,15 +209,11 @@ sh runDockerHardhatTestNet.sh
 sh deployDockerHardHatContract.sh
 ```
 
-#### Using the Goerli Network
-
-TODO
-
 ### Starting the React frontend UI
 
 1. Start the react app based on the documentation in the net-emissions-token-network [here](net-emissions-token-network/README.md).
 
-2. Register a wallet as an Audited Emissions Token Dealer via the UI
+2. Register a wallet as an Audited Emissions Token Dealer via the UI.
 
 ### Starting the fabric network
 
