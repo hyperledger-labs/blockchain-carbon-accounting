@@ -1,0 +1,65 @@
+---
+name: carbonAccounting-autidor1
+version: 1.0.0
+client:
+  organization: auditor1
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+organizations:
+  auditor1:
+    mspid: auditor1
+    peers:
+    - peer1.auditor1.carbonAccounting.com
+    certificateAuthorities:
+    - ca.auditor1.carbonAccounting.com
+peers:
+  peer1.auditor1.carbonAccounting.com:
+    url: grpcs://localhost:7051
+    tlsCACerts:
+      pem: |
+          -----BEGIN CERTIFICATE-----
+          MIICXDCCAgOgAwIBAgIUWb5mTtD4OzwLdxqG9ttxJDojIGYwCgYIKoZIzj0EAwIw
+          gYoxCzAJBgNVBAYTAlVTMRcwFQYDVQQIEw5Ob3J0aCBDYXJvbGluYTEPMA0GA1UE
+          BxMGRHVyaGFtMSYwJAYDVQQKEx1hdWRpdG9yMS5jYXJib25BY2NvdW50aW5nLmNv
+          bTEpMCcGA1UEAxMgY2EuYXVkaXRvcjEuY2FyYm9uQWNjb3VudGluZy5jb20wHhcN
+          MjAxMDI2MDgzNjAwWhcNMzUxMDIzMDgzNjAwWjCBijELMAkGA1UEBhMCVVMxFzAV
+          BgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQHEwZEdXJoYW0xJjAkBgNVBAoT
+          HWF1ZGl0b3IxLmNhcmJvbkFjY291bnRpbmcuY29tMSkwJwYDVQQDEyBjYS5hdWRp
+          dG9yMS5jYXJib25BY2NvdW50aW5nLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+          A0IABHukhiMYQziB1HBxnceLgCIZBfjbqgChqYkSbu6hQmwPtq+xYO16pX64TGPG
+          8ZkAezIIo0PvkHOuhUCBixBKqOijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMB
+          Af8ECDAGAQH/AgEBMB0GA1UdDgQWBBQlSuUjFgNfXOjDw/VgY1+BZz/NyDAKBggq
+          hkjOPQQDAgNHADBEAiApr4pJci+pXNDtBr1EPWhJ0Td7oOnbOVTF/egZyzJnCQIg
+          aTlkq40Wx6ZKcy9VXJa7Q4t4v5aLopxvP46M05C/0WY=
+          -----END CERTIFICATE-----
+          
+    grpcOptions:
+      ssl-target-name-override: peer1.auditor1.carbonAccounting.com
+      hostnameOverride: peer1.auditor1.carbonAccounting.com
+certificateAuthorities:
+  ca.auditor1.carbonAccounting.com:
+    url: https://localhost:7054
+    caName: ca-auditor1
+    tlsCACerts:
+      pem: 
+        - |
+          -----BEGIN CERTIFICATE-----
+          MIICXDCCAgOgAwIBAgIUWb5mTtD4OzwLdxqG9ttxJDojIGYwCgYIKoZIzj0EAwIw
+          gYoxCzAJBgNVBAYTAlVTMRcwFQYDVQQIEw5Ob3J0aCBDYXJvbGluYTEPMA0GA1UE
+          BxMGRHVyaGFtMSYwJAYDVQQKEx1hdWRpdG9yMS5jYXJib25BY2NvdW50aW5nLmNv
+          bTEpMCcGA1UEAxMgY2EuYXVkaXRvcjEuY2FyYm9uQWNjb3VudGluZy5jb20wHhcN
+          MjAxMDI2MDgzNjAwWhcNMzUxMDIzMDgzNjAwWjCBijELMAkGA1UEBhMCVVMxFzAV
+          BgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQHEwZEdXJoYW0xJjAkBgNVBAoT
+          HWF1ZGl0b3IxLmNhcmJvbkFjY291bnRpbmcuY29tMSkwJwYDVQQDEyBjYS5hdWRp
+          dG9yMS5jYXJib25BY2NvdW50aW5nLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEH
+          A0IABHukhiMYQziB1HBxnceLgCIZBfjbqgChqYkSbu6hQmwPtq+xYO16pX64TGPG
+          8ZkAezIIo0PvkHOuhUCBixBKqOijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMB
+          Af8ECDAGAQH/AgEBMB0GA1UdDgQWBBQlSuUjFgNfXOjDw/VgY1+BZz/NyDAKBggq
+          hkjOPQQDAgNHADBEAiApr4pJci+pXNDtBr1EPWhJ0Td7oOnbOVTF/egZyzJnCQIg
+          aTlkq40Wx6ZKcy9VXJa7Q4t4v5aLopxvP46M05C/0WY=
+          -----END CERTIFICATE-----
+          
+    httpOptions:
+      verify: false

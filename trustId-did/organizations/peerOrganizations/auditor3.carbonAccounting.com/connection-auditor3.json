@@ -1,0 +1,49 @@
+{
+    "name": "carbonAccounting-autidor3",
+    "version": "1.0.0",
+    "client": {
+        "organization": "auditor3",
+        "connection": {
+            "timeout": {
+                "peer": {
+                    "endorser": "300"
+                }
+            }
+        }
+    },
+    "organizations": {
+        "auditor3": {
+            "mspid": "auditor3",
+            "peers": [
+                "peer1.auditor3.carbonAccounting.com"
+            ],
+            "certificateAuthorities": [
+                "ca.auditor3.carbonAccounting.com"
+            ]
+        }
+    },
+    "peers": {
+        "peer1.auditor3.carbonAccounting.com": {
+            "url": "grpcs://localhost:9051",
+            "tlsCACerts": {
+                "pem": "-----BEGIN CERTIFICATE-----\nMIICXTCCAgOgAwIBAgIUDhXCUq/rSDWYswtrE3MdrN2lw00wCgYIKoZIzj0EAwIw\ngYoxCzAJBgNVBAYTAlVTMRcwFQYDVQQIEw5Ob3J0aCBDYXJvbGluYTEPMA0GA1UE\nBxMGRHVyaGFtMSYwJAYDVQQKEx1hdWRpdG9yMy5jYXJib25BY2NvdW50aW5nLmNv\nbTEpMCcGA1UEAxMgY2EuYXVkaXRvcjMuY2FyYm9uQWNjb3VudGluZy5jb20wHhcN\nMjAxMDI2MDgzNjAwWhcNMzUxMDIzMDgzNjAwWjCBijELMAkGA1UEBhMCVVMxFzAV\nBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQHEwZEdXJoYW0xJjAkBgNVBAoT\nHWF1ZGl0b3IzLmNhcmJvbkFjY291bnRpbmcuY29tMSkwJwYDVQQDEyBjYS5hdWRp\ndG9yMy5jYXJib25BY2NvdW50aW5nLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABKxPW50+4neQ7+GseJLWvkfplQfx1tXCHLz/djCmoP9vCywsdAgZB/qKWKmg\nVmdlWvO2q7oUIvyCU2h9dQf5f/ijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMB\nAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBT0VFwrlD/06KCUO5Mk7R5AhSb6YjAKBggq\nhkjOPQQDAgNIADBFAiEAgLRUFTKdRgT1ad3I79wA7+QHecQ4VAQZth8UkJG7WAUC\nICUWujBAJUym9mihCd9YUaeZP7A3knSTfBAkuANdyTmS\n-----END CERTIFICATE-----\n"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "peer1.auditor3.carbonAccounting.com",
+                "hostnameOverride": "peer1.auditor3.carbonAccounting.com"
+            }
+        }
+    },
+    "certificateAuthorities": {
+        "ca.auditor3.carbonAccounting.com": {
+            "url": "https://localhost:9054",
+            "caName": "ca-auditor3",
+            "tlsCACerts": {
+                "pem": ["-----BEGIN CERTIFICATE-----\nMIICXTCCAgOgAwIBAgIUDhXCUq/rSDWYswtrE3MdrN2lw00wCgYIKoZIzj0EAwIw\ngYoxCzAJBgNVBAYTAlVTMRcwFQYDVQQIEw5Ob3J0aCBDYXJvbGluYTEPMA0GA1UE\nBxMGRHVyaGFtMSYwJAYDVQQKEx1hdWRpdG9yMy5jYXJib25BY2NvdW50aW5nLmNv\nbTEpMCcGA1UEAxMgY2EuYXVkaXRvcjMuY2FyYm9uQWNjb3VudGluZy5jb20wHhcN\nMjAxMDI2MDgzNjAwWhcNMzUxMDIzMDgzNjAwWjCBijELMAkGA1UEBhMCVVMxFzAV\nBgNVBAgTDk5vcnRoIENhcm9saW5hMQ8wDQYDVQQHEwZEdXJoYW0xJjAkBgNVBAoT\nHWF1ZGl0b3IzLmNhcmJvbkFjY291bnRpbmcuY29tMSkwJwYDVQQDEyBjYS5hdWRp\ndG9yMy5jYXJib25BY2NvdW50aW5nLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEH\nA0IABKxPW50+4neQ7+GseJLWvkfplQfx1tXCHLz/djCmoP9vCywsdAgZB/qKWKmg\nVmdlWvO2q7oUIvyCU2h9dQf5f/ijRTBDMA4GA1UdDwEB/wQEAwIBBjASBgNVHRMB\nAf8ECDAGAQH/AgEBMB0GA1UdDgQWBBT0VFwrlD/06KCUO5Mk7R5AhSb6YjAKBggq\nhkjOPQQDAgNIADBFAiEAgLRUFTKdRgT1ad3I79wA7+QHecQ4VAQZth8UkJG7WAUC\nICUWujBAJUym9mihCd9YUaeZP7A3knSTfBAkuANdyTmS\n-----END CERTIFICATE-----\n"]
+            },
+            "httpOptions": {
+                "verify": false
+            }
+        }
+    }
+}
