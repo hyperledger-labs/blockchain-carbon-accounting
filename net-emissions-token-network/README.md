@@ -95,35 +95,86 @@ You should now be connected to the contract in Goerli and be able to interact wi
 
 ### Deploying contract to Goerli
 
-Deploying the contract to Goerli is only necessary when updates are made to the contract as there are other references to the current deployed contract in this repository. To deploy the contract to the Goerli testnet and update references to the address:
+If you'd like to deploy the contract to the Goerli testnet yourself, go to [Infura.io](https://infura.io/) to set up an account.  Then start a project under the "Ethereum" tab.  You will need the project ID.
 
-1. Create `.goerli-config.js` by copying the template with `cp .goerli-config.js.example .goerli-config.js` and populate with your Ethereum deployer address private key and Infura key.
+Next, connect your Metamask wallet to the Goerli Test Network and create an account on it.  This will be used as the account for deploying your contract.  Copy the private key for the new account.  Go to a [Goerli faucet](https://faucet.goerli.mudit.blog) to get some test ETH for your account 
 
-2. Uncomment the `goerliConfig` import line and the Goerli network settings in `hardhat.config.js`.
+Now follow these steps to deploy the contract to the Goerli testnet and update references to the address:
 
-3. Deploy by via the deploy script with the following command:
+1. Create `.goerli-config.js` by copying the template with 
+
+```bash
+cp .goerli-config.js.example .goerli-config.js` and
+```
+
+2.  Edit `.goerli-config.js` and set the private key for your Ethereum deployment address and Infura key.
+
+3. Edit the file `hardhat.config.js` and uncomment these line 
+
+```bash
+     // const goerliConfig = require("./.goerli-config");
+     ....
+     // goerli: {
+     //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
+     //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
+     //
+```
+
+4. Deploy by via the deploy script with the following command:
 
 ```bash
 npx hardhat run --network goerli scripts/deploy.js
 ```
+You will get a result that says
 
-4. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.
+```bash
+Net Emissions Token Network deployed to: 0x_________________________________
+```
 
-5. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
+This is the deployed address for your contract. 
+
+5. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.  You can also change the `network` attribute to "Goerli" so that it shows up in the react app later.
+
+6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
 ### Verifying contract on Etherscan
 
-[Etherscan](https://etherscan.io/) is a popular block explorer for Ethereum networks. In order for Etherscan to display the names of the contract functions after compiling and deploying, one must supply Etherscan with the contract code for verification. Once the contract is verified, it is easier to view interactions with the contract as it deciphers the payloads. To submit a contract for verification:
+[Etherscan](https://etherscan.io/) is a popular block explorer for Ethereum networks. In order for Etherscan to display the names of the contract functions after compiling and deploying, one must supply Etherscan with the contract code for verification. Once the contract is verified, it is easier to view interactions with the contract as it deciphers the payloads. 
 
-1. Create `.etherscan-config.js` by copying the template with `cp .etherscan-config.js.example .etherscan-config.js` and populate with your Etherscan API key, which can be freely obtained from their website.
+To submit a contract for verification:
 
-2. Uncomment the `goerliConfig` and `etherscanConfig` import lines as well as the the Goerli network settings and Etherscan settings in `hardhat.config.js`.
+1. Go to [Etherscan](https://etherscan.io/) to sign up for an account.  Then go to API Keys and enter get an API key. 
 
-3. Verify with the following command (replace DEPLOYED_CONTRACT_ADDRESS with the contract address):
+2.  Create `.etherscan-config.js` by copying the template with 
+
+```bash
+cp .etherscan-config.js.example .etherscan-config.js
+```
+
+3. Populate your `etherscan-config.js` with your Etherscan API key.
+
+4. Edit the file `hardhat.config.js` and uncomment these line 
+
+```bash
+   // const etherscanConfig = require("./.etherscan-config");
+    ...
+   // apiKey: `${etherscanConfig.ETHERSCAN_API_KEY}`
+```
+
+Also make sure that the Goerli settings are uncommented (see above.)
+
+5. Verify with the following command (replace DEPLOYED_CONTRACT_ADDRESS with the contract address):
 
 ```bash
 npx hardhat verify --network goerli DEPLOYED_CONTRACT_ADDRESS
 ```
+You should see
+
+```bash
+Successfully verified contract NetEmissionsTokenNetwork on Etherscan
+```
+
+You can now go to https://goerli.etherscan.io/ to search for your contract and wallet addresses and see the transactions.  Click through to a particular transaction, and click on the button to "Decode Input Data".  You will now see all the fields of the transaction.
 
 ### Token User Flow
 
