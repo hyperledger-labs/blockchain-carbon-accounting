@@ -1,0 +1,4 @@
+*.DS_Store
+minifab/
+utility-emissions-channel/docker-compose-setup/bin/
+utility-emissions-channel/docker-compose-setup/bin_mac/
