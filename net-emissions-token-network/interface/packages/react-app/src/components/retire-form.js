@@ -50,7 +50,7 @@ export default function RetireForm({ provider, roles }) {
       />
 
       <h2>Retire tokens</h2>
-      <p>Retire some or all tokens in your possession of a particular ID (as displayed on the dashboard). Audited Emissions tokens come automatically retired.</p>
+      <p>Retire some or all tokens in your possession of a particular ID (as displayed on the dashboard). Audited Emissions tokens cannot be retired as they come retired on issuance.</p>
       <Form.Group>
         <Form.Label>Token ID</Form.Label>
         <Form.Control

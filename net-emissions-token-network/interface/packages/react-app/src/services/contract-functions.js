@@ -2,6 +2,27 @@ import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
+const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/;
+
+function catchError(error) {
+  console.error(error.message);
+
+  // try to extract error message, otherwise return raw error
+  let formatted_error;
+  if (error.message.startsWith("invalid ENS name")) {
+    formatted_error = "Missing or invalid parameter.";
+  } else if (error.message.startsWith("invalid BigNumber string")) {
+    formatted_error = "Invalid number parameter."
+  } else {
+    try {
+      formatted_error = error.message.match(EXTRACT_ERROR_MESSAGE)[0];
+    } catch (e) {
+      formatted_error = error.message;
+    }
+  }
+  
+  return formatted_error;
+}
 
 // Helper function to prevent ambiguous failure message when dates aren't passed
 function convertToZeroIfBlank(num) {
@@ -110,14 +131,7 @@ export async function issue(
     );
     issue_result = SUCCESS_MSG;
   } catch (error) {
-    // Format error message
-    if (error.message.startsWith("resolver or addr is not configured for ENS name")) {
-      issue_result = "Error: Invalid address. Please enter a valid address of the format 0x000...";
-    } else if (error.message.startsWith('invalid BigNumber string (argument="value"')) {
-      issue_result = "Error: Invalid quantity. Please enter a valid quantity of tokens to issue.";
-    } else {
-      issue_result = error.message;
-    }
+    issue_result = catchError(error);
   }
   return issue_result;
 }
@@ -131,7 +145,7 @@ export async function retire(w3provider, tokenId, amount) {
     await signed.retire(tokenId, amount);
     retire_result = SUCCESS_MSG;
   } catch (error) {
-    retire_result = error.message;
+    retire_result = catchError(error);
   }
   return retire_result;
 }
@@ -145,7 +159,7 @@ export async function transfer(w3provider, address, tokenId, amount) {
     await signed.transfer(address, tokenId, amount);
     transfer_result = SUCCESS_MSG;
   } catch (error) {
-    transfer_result = error.message;
+    transfer_result = catchError(error);
   }
   return transfer_result;
 }
@@ -159,7 +173,7 @@ export async function registerConsumer(w3provider, address) {
     await signed.registerConsumer(address);
     registerConsumer_result = SUCCESS_MSG;
   } catch (error) {
-    registerConsumer_result = error.message;
+    registerConsumer_result = catchError(error);
   }
   return registerConsumer_result;
 }
@@ -173,7 +187,7 @@ export async function unregisterConsumer(w3provider, address) {
     await signed.unregisterConsumer(address);
     unregisterConsumer_result = SUCCESS_MSG;
   } catch (error) {
-    unregisterConsumer_result = error.message;
+    unregisterConsumer_result = catchError(error);
   }
   return unregisterConsumer_result;
 }
@@ -187,7 +201,7 @@ export async function registerDealer(w3provider, address, tokenTypeId) {
     await signed.registerDealer(address, tokenTypeId);
     registerDealer_result = SUCCESS_MSG;
   } catch (error) {
-    registerDealer_result = error.message;
+    registerDealer_result = catchError(error);
   }
   return registerDealer_result;
 }
@@ -201,7 +215,7 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
     await signed.unregisterDealer(address, tokenTypeId);
     unregisterDealer_result = SUCCESS_MSG;
   } catch (error) {
-    unregisterDealer_result = error.message;
+    unregisterDealer_result = catchError(error);
   }
   return unregisterDealer_result;
 }
