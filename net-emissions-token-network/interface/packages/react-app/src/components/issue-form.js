@@ -46,7 +46,15 @@ export default function IssueForm({ provider }) {
   }
 
   async function submit() {
-    let result = await issue(provider, address, tokenTypeId, quantity, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
+    // If quantity has 3 decimals, multiply by 1000 before passing to the contract
+    let quantity_formatted;
+    if (tokenTypeId === "3") {
+      quantity_formatted = Math.round(quantity * 1000);
+    } else {
+      quantity_formatted = quantity;
+    }
+
+    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
     setResult(result.toString());
   }
 
@@ -93,12 +101,19 @@ export default function IssueForm({ provider }) {
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
-          placeholder="100"
+          placeholder={(tokenTypeId === "3") ? "100.000" : "100"}
           value={quantity}
           onChange={onQuantityChange}
           onBlur={() => setInitializedQuantityInput(true)}
           style={(quantity || !initializedQuantityInput) ? {} : inputError}
         />
+        {/* Display whether decimal is needed or not */}
+        <Form.Text className="text-muted">
+          {(tokenTypeId === "3")
+            ? "Must not contain more than three decimal values." 
+            : "Must be an integer value."
+          }
+        </Form.Text>
       </Form.Group>
       <Form.Row>
         <Form.Group as={Col}>
