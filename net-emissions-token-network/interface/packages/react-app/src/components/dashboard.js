@@ -66,12 +66,20 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
 
         // Fetch available and retired balances
         let balances = (await getAvailableAndRetired(provider, signedInAddress, i));
+        let availableBalance = balances[0].toNumber();
+        let retiredBalance = balances[1].toNumber();
+
+        // Format decimal points for audited emissions tokens
+        if (tokenDetails.tokenTypeId === 3) {
+          availableBalance = (availableBalance / 1000).toFixed(3);
+          retiredBalance = (retiredBalance / 1000).toFixed(3);
+        }
 
         let token = {
           tokenId: tokenDetails.tokenId.toNumber(),
           tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
-          availableBalance: balances[0].toNumber(),
-          retiredBalance: balances[1].toNumber(),
+          availableBalance: availableBalance,
+          retiredBalance: retiredBalance,
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
           fromDate: fromDateObj.toLocaleString(),
