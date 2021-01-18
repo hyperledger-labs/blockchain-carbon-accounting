@@ -86,10 +86,10 @@ function App() {
                     <IssueForm provider={provider} />
                   </Route>
                   <Route path="/transfer">
-                    <TransferForm provider={provider} />
+                    <TransferForm provider={provider} roles={roles} />
                   </Route>
                   <Route path="/retire">
-                    <RetireForm provider={provider} />
+                    <RetireForm provider={provider} roles={roles} />
                   </Route>
                   <Route path="/access-control">
                     <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} />

@@ -7,7 +7,7 @@ import SubmissionModal from "./submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
-export default function TransferForm({ provider }) {
+export default function TransferForm({ provider, roles }) {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -86,9 +86,11 @@ export default function TransferForm({ provider }) {
           style={(amount || !initializedAmountInput) ? {} : inputError}
         />
       </Form.Group>
-      <Button variant="success" size="lg" block onClick={handleTransfer}>
-        Transfer
-      </Button>
+      {/* Only enable transfers if role is found */}
+      { (roles.length === 5) && (roles.some(r => r === true))
+        ? <Button variant="success" size="lg" block onClick={handleTransfer}>Transfer</Button>
+        : <Button disabled variant="success" size="lg" block>Must be a registered user</Button>
+      }
     </>
   );
 }

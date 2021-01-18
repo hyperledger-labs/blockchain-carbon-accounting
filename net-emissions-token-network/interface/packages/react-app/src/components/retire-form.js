@@ -8,7 +8,7 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import "react-datetime/css/react-datetime.css";
 
-export default function RetireForm({ provider }) {
+export default function RetireForm({ provider, roles }) {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -73,9 +73,12 @@ export default function RetireForm({ provider }) {
           style={(amount || !initializedAmountInput) ? {} : inputError}
         />
       </Form.Group>
-      <Button variant="danger" size="lg" block onClick={handleRetire}>
-        Retire
-      </Button>
+      
+      {/* Only enable retires if role is found */}
+      { (roles.length === 5) && (roles.some(r => r === true))
+        ? <Button variant="danger" size="lg" block onClick={handleRetire}>Retire</Button>
+        : <Button disabled variant="danger" size="lg" block>Must be a registered user</Button>
+      }
     </>
   );
 }
