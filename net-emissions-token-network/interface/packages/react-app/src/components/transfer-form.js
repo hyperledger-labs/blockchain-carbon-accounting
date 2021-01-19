@@ -52,7 +52,7 @@ export default function TransferForm({ provider, roles }) {
       />
 
       <h2>Transfer tokens</h2>
-      <p>Send available tokens in your possession of a particular ID (as displayed on the dashboard) to any address.</p>
+      <p>Send available tokens in your possession of a particular ID (as displayed on the dashboard) to any address. Audited Emissions tokens cannot be transferred as they come automatically retired.</p>
       <Form.Group>
         <Form.Label>Address</Form.Label>
         <Form.Control
