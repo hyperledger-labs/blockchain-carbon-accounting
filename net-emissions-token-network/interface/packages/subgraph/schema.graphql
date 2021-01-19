@@ -1,6 +1,33 @@
-type ExampleEntity @entity {
+enum TokenType {
+  RenewableEnergyCertificate
+  CarbonEmissionsOffset
+  AuditedEmissions
+}
+
+type Token @entity {
   id: ID!
   count: BigInt!
-  account: Bytes! # address
-  operator: Bytes! # address
+  type: TokenType!
+  issuer: Bytes!
+  issuee: Bytes!
+  fromDate: BigInt!
+  thruDate: BigInt!
+  automaticRetireDate: BigInt!
+  metadata: String
+  manifest: String
+  description: String
+  holders: [TokenHolders]! @derivedFrom(field: "holder")
+}
+
+
+type Holder @entity {
+  id: ID!
+  address: Bytes!
+  organizations: [UserOrganization!] @derivedFrom(field: "token")
+}
+
+type TokenHolder @entity {
+  id: ID!   # Set to `${holder.id}-${token.id}`
+  holder: Holder!
+  token: Token!
 }

@@ -130,16 +130,16 @@ export default function IssueForm({ provider }) {
         </Form.Group>
       </Form.Row>
       <Form.Group>
+        <Form.Label>Description</Form.Label>
+        <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
+      </Form.Group>
+      <Form.Group>
         <Form.Label>Metadata</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. Region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Manifest</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Description</Form.Label>
-        <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
       </Form.Group>
       <Button variant="primary" size="lg" block onClick={handleSubmit}>
         Issue
