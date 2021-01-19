@@ -12,18 +12,20 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 
-import { FaCheck } from 'react-icons/fa'
-
 function RolesListElements({ roles }) {
   const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Consumer"];
   return roles.map((role, id) => 
-    <>{role && <li className="list-group-item" key="role">{roleNames[id]}&nbsp;&nbsp;<span className="text-success"><FaCheck/></span></li>}</>
+    <>{role && <li key="role">{roleNames[id]}&nbsp;&nbsp;</li>}</>
   );
 }
 
 function RolesList({ roles }) {
+  if (roles.every(r => r === false)) {
+    return <p>No roles found.</p>
+  }
+
   return (
-    <ul className="list-group pt-1 pb-3">
+    <ul>
       <RolesListElements roles={roles}/>
     </ul>
   );
@@ -41,9 +43,14 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
   const [theirAddress, setTheirAddress] = useState();
   const [theirRoles, setTheirRoles] = useState([]);
 
+  const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
+
   async function fetchTheirRoles() {
+    setTheirRoles("");
+    setFetchingTheirRoles(true);
     let result = await getRoles(provider, theirAddress);
     setTheirRoles(result);
+    setFetchingTheirRoles(false);
   }
 
   function onAddressChange(event) { setAddress(event.target.value); };
@@ -123,34 +130,36 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
       <h2>Manage roles</h2>
       <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
 
-      <Row>
-        <Col>
-          <h4>My Roles</h4>
-          {roles.length === 5
-            ? <RolesList roles={roles}/>
-            : <div className="text-center mt-3 mb-3">
-                <Spinner animation="border" role="status">
-                  <span className="sr-only">Loading...</span>
-                </Spinner>
-              </div>
-          }
-        </Col>
-        <Col>
-          <h4>Look-up Roles</h4>
-          <InputGroup className="mb-3">
-            <FormControl
-              placeholder="0x000..."
-              onChange={onTheirAddressChange}
-            />
-            <InputGroup.Append>
-              <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
-            </InputGroup.Append>
-          </InputGroup>
-          {theirRoles.length === 5 &&
-            <RolesList roles={theirRoles}/>
-          }
-        </Col>
-      </Row>
+      <h4>My Roles</h4>
+      {roles.length === 5
+        ? <RolesList roles={roles}/>
+        : <div className="text-center mt-3 mb-3">
+            <Spinner animation="border" role="status">
+              <span className="sr-only">Loading...</span>
+            </Spinner>
+          </div>
+      }
+
+      <h4>Look-up Roles</h4>
+      <InputGroup className="mb-3">
+        <FormControl
+          placeholder="0x000..."
+          onChange={onTheirAddressChange}
+        />
+        <InputGroup.Append>
+          <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
+        </InputGroup.Append>
+      </InputGroup>
+      {fetchingTheirRoles &&
+        <div className="text-center mt-3 mb-3">
+          <Spinner animation="border" role="status">
+            <span className="sr-only">Loading...</span>
+          </Spinner>
+        </div>
+      }
+      {theirRoles.length === 5 &&
+        <RolesList roles={theirRoles}/>
+      }
 
       {/* Only display registration/unregistration tokens if owner or dealer */}
       {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
