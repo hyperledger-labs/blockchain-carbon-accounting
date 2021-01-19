@@ -11,3 +11,4 @@ sub-folder is for a different project of the Working Group and has its own code 
 Please sign off all your commits. This can be done with
 
     $ git commit -s -m "your message"
+
