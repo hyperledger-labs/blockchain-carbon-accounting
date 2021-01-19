@@ -169,9 +169,9 @@ When the network/API has fully started, run the tests by navigating to the types
 sh runTests.sh
 ```
 
-## Fabric Network && Net Emissions Token Network integration through REST API
+## Integrating with the Net Emissions Token Network integration 
 
-There is currently functionality through an endpoint in the REST API to retrieve a series of emissions records by date a date range and then issue an Audited Emissions Token based on this data. The flow to use this technology is as follows.
+Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data. 
 
 ### Setting up an Ethereum network
 
