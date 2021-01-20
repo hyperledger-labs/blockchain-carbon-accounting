@@ -169,13 +169,11 @@ When the network/API has fully started, run the tests by navigating to the types
 sh runTests.sh
 ```
 
-## Integrating with the Net Emissions Token Network integration 
+## Integrating with the Net Emissions Token Network Ethereum contracts 
 
-Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data. 
+Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.
 
-### Setting up an Ethereum network
-
-There are currently two options for starting an Ethereum network to deploy the Net Emissions Token Contract to - the hardhat test network, or Goerli.
+Currently, Goerli is the Ethereum testnet that the net emissions token contract is deployed to and is used for testing with the API.
 
 Copy and edit the network configuration by navigating to this folder and running:
 
@@ -183,31 +181,15 @@ Copy and edit the network configuration by navigating to this folder and running
 cp ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts.template ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts
 ```
 
-#### Using the Goerli Network
+#### Connecting to Goerli
 
-1. Edit `networkConfig.ts` and set `IS_GOERLI` to true. Enter the contract address deployed on Goerli, your Infura keys, and the private key of your dealer/owner wallet.
+1. Edit `networkConfig.ts` and enter the contract address deployed on Goerli, the private key of your dealer/owner wallet, and your Infura keys.
 
 2. Reset and restart the API if it is running.
 
 3. After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
 
 4. If you want to observe changes to the network, either view the contract's transactions on Etherscan or connect to it via the React interface after ensuring `addresses.js` is set to the correct Goerli contract address. See the README in `net-emissions-token-network` for more information.
-
-#### Using the hardhat test network
-
-##### Running in Docker
-
-1. Start the hardhat test network from the net-emissions-token-network directory:
-
-```bash
-sh runDockerHardhatTestNet.sh
-```
-
-2. Deploy the contract to the hardhat test network via the following command in the net-emissions-token-network directory:
-
-```bash
-sh deployDockerHardHatContract.sh
-```
 
 ### Starting the React frontend UI
 
