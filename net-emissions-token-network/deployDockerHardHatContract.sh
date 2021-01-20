@@ -1,1 +1,0 @@
-docker exec -it hardhat-test npx hardhat run --network localhost scripts/deploy.js

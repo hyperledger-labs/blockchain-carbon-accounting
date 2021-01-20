@@ -1,14 +1,8 @@
 // Private key of Ethereum deployer wallet
-export const PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // default owner or Account #0 in Hardhat Network
+export const PRIVATE_KEY = "";
 
 // Address of contract to connect to
-export const CONTRACT_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3"; // default contract address after deploying to Hardhat Network
-
-// URL of JSON RPC network
-export const URL = "http://hardhat-test:8545";
-
-// If true, connect to Goerli network and use Infura keys below instead of using URL
-export const IS_GOERLI = false;
+export const CONTRACT_ADDRESS = "";
 
 // Infura project ID
 export const INFURA_PROJECT_ID = "";
