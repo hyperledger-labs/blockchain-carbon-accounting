@@ -297,14 +297,14 @@ router.get(
       metadata["renewableEnergyUseAmount"] = 0;
       metadata["nonrenewableEnergyUseAmount"] = 0;
       metadata["utilityIds"] = [];
-      metadata["energyUseUoms"] = [];
       metadata["factorSources"] = [];
       metadata["urls"] = [];
       metadata["md5s"] = [];
-      metadata["uuids"] = [];
+      metadata["fromDates"] = [];
+      metadata["thruDates"] = [];
 
       let quantity = 0;
-      let manifest = [];
+      let manifest = []; // stores uuids
 
       // Get Emmission Data from utilityEmissions Channel
       const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsDataByDateRange(
@@ -316,11 +316,12 @@ router.get(
 
       if (Array.isArray(blockchainResponse)) {
         for (let entry of blockchainResponse) {
+          if (entry.fromDate != "" && entry.thruDate != "") {
+            metadata["fromDates"].push(entry.fromDate);
+            metadata["thruDates"].push(entry.thruDate);
+          }
           if (!metadata["utilityIds"].includes(entry.utilityId)) {
             metadata["utilityIds"].push(entry.utilityId);
-          }
-          if (!metadata["energyUseUoms"].includes(entry.energyUseUom)) {
-            metadata["energyUseUoms"].push(entry.energyUseUom);
           }
           if (!metadata["factorSources"].includes(entry.factorSource)) {
             metadata["factorSources"].push(entry.factorSource);
@@ -330,9 +331,6 @@ router.get(
           }
           if (entry.url != "") {
             metadata["urls"].push(entry.url);
-          }
-          if (entry.uuid != "") {
-            metadata["uuids"].push(entry.uuid);
           }
           metadata["renewableEnergyUseAmount"] += entry.renewableEnergyUseAmount;
           metadata["nonrenewableEnergyUseAmount"] += entry.nonrenewableEnergyUseAmount;
