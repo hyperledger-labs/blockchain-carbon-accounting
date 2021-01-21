@@ -301,6 +301,7 @@ router.get(
       metadata["factorSources"] = [];
       metadata["urls"] = [];
       metadata["md5s"] = [];
+      metadata["uuids"] = [];
 
       let quantity = 0;
       let manifest = [];
@@ -329,6 +330,9 @@ router.get(
           }
           if (entry.url != "") {
             metadata["urls"].push(entry.url);
+          }
+          if (entry.uuid != "") {
+            metadata["uuids"].push(entry.uuid);
           }
           metadata["renewableEnergyUseAmount"] += entry.renewableEnergyUseAmount;
           metadata["nonrenewableEnergyUseAmount"] += entry.nonrenewableEnergyUseAmount;
