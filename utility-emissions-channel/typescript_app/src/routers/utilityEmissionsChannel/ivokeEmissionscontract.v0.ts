@@ -346,7 +346,7 @@ router.get(
         toTimestamp(fromDate),
         toTimestamp(thruDate),
         toTimestamp(automaticRetireDate).toFixed(),
-        metadata,
+        JSON.stringify(metadata),
         manifest.join(", "),
         description
       );
