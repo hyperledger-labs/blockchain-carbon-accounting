@@ -2,33 +2,63 @@
 
 This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain.
 
-# Running the Code
+# Running the Fabric network and Express API
 
-## Downloading the Fabric binaries
-
-1. From `utility-emissions-channel/`, download Fabric builds by running the bootstrap script:
+1. Install Prerequisites (Git, curl, Docker, Docker Compose) (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
+2. From `utility-emissions-channel/`, download Fabric builds by running the bootstrap script:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/master/scripts/bootstrap.sh | bash -s
 ```
 
-2. Copy the binaries folder for your system to `./docker-compose-setup/`:
+3. From `utility-emissions-channel/`, copy the binaries folder for your system to `./docker-compose-setup/`:
 
 ```bash
-cp fabric-samples/bin/ ./docker-compose-setup/
+cp ./fabric-samples/bin/ ./docker-compose-setup/
 ```
 
-## Connect Fabric and the API to databases
+4. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
 
-1. Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. Setup AWS credentials in `chaincode/node/lib/aws-config.js`::
-   exports.AWS_ACCESS_KEY_ID = 'your_access_key';
-   exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
-3. cd to `docker-compose-setup`
-4. Start network: Run `./network.sh up createChannel`
-5. Deploy and invoke `emissionscontract` chaincode (JS): Run `./network.sh deployCC`
-6. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+```bash
+cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
+```
+
+5. Fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
+
+```js
+    exports.AWS_ACCESS_KEY_ID = 'your_access_key';
+    exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
+    exports.AWS_REGION = "us-east-1";
+    exports.AWS_ENDPOINT = "https://dynamodb.us-east-1.amazonaws.com";
+    exports.S3_LOCAL = true;
+    exports.BUCKET_NAME = "local-bucket";
+```
+
+6. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
+
+```bash
+cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
+```
+
+7. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
+
+```js
+    export const PRIVATE_KEY = "private_key_of_ethereum_dealer_wallet";
+    export const CONTRACT_ADDRESS = "address_of_ethereum_contract_to_connect_to_on_goerli";
+    export const INFURA_PROJECT_ID = "infura_id";
+    export const INFURA_PROJECT_SECRET = "infura_secret";
+```
+
+8. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+
+```bash
+sh ./scripts/reset.sh && sh start.sh
+```
+
+7. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
    '{"Args":["invoke","a","b","10"]}'
+
+---
 
 #### Play with the chaincode and have a look at the blockchain-explorer.
 

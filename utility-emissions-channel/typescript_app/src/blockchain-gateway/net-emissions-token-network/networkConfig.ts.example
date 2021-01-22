@@ -1,7 +1,7 @@
-// Private key of Ethereum deployer wallet
+// Private key of Ethereum dealer wallet
 export const PRIVATE_KEY = "";
 
-// Address of contract to connect to
+// Address of contract to connect to on Goerli
 export const CONTRACT_ADDRESS = "";
 
 // Infura project ID
