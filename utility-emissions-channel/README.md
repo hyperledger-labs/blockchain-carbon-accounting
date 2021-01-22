@@ -5,25 +5,13 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 # Running the Fabric network and Express API
 
 1. Install Prerequisites (Git, curl, Docker, Docker Compose) (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. From `utility-emissions-channel/`, download Fabric builds by running the bootstrap script:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/hyperledger/fabric/master/scripts/bootstrap.sh | bash -s
-```
-
-3. From `utility-emissions-channel/`, copy the binaries folder for your system to `./docker-compose-setup/`:
-
-```bash
-cp ./fabric-samples/bin/ ./docker-compose-setup/
-```
-
-4. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
+2. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
 
 ```bash
 cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
 ```
 
-5. Fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
+3. Fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
 
 ```js
     exports.AWS_ACCESS_KEY_ID = 'your_access_key';
@@ -34,13 +22,13 @@ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.j
     exports.BUCKET_NAME = "local-bucket";
 ```
 
-6. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
+4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
 cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
 ```
 
-7. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
+5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
 
 ```js
     export const PRIVATE_KEY = "private_key_of_ethereum_dealer_wallet";
@@ -49,7 +37,7 @@ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript
     export const INFURA_PROJECT_SECRET = "infura_secret";
 ```
 
-8. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+6. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
 
 ```bash
 sh ./scripts/reset.sh && sh start.sh
