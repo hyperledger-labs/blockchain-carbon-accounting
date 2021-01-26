@@ -55,10 +55,17 @@ Then, for local or remote dynamodb, follow instructions from eGrid Loader docume
 
 ## Get the blockchain network up and running
 
-Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
+Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
+
+
 
 ```bash
 $ cd docker-compose-setup
+```
+
+Install binaries for linux distribution.
+```bash
+$ ./bootstrap.sh  2.2.1 1.4.9 -d -s
 ```
 
 Start network, create channel, and deployCC:
