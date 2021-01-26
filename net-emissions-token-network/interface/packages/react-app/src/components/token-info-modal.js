@@ -67,7 +67,7 @@ export default function TokenInfoModal(props) {
             </tr>
             <tr>
               <td>Metadata</td>
-              <td>{props.token.metadata}</td>
+              <td style={{"word-wrap": "anywhere"}}>{props.token.metadata}</td>
             </tr>
             <tr>
               <td>Manifest</td>

@@ -19,12 +19,6 @@ Clone this repository, navigate to the net-emissions-token-network directory, an
 - To export ABIs after recompiling contract, run `sh exportAbis.sh`
 - To see all commands, run `npx hardhat`
 
-You can also run the tests with no external dependencies other than docker with the script located in this directory:
-
-```bash
-sh runDockerTests.sh
-```
-
 ## Interface
 
 The interface for interacting with the contract is created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app). The MetaMask browser extension is required for testing.

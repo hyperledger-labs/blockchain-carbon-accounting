@@ -182,7 +182,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
 
         {/* Only display issued tokens if owner or dealer */}
         {(isDealer) &&
-          <div className="mt-2">
+          <div className="mt-4">
             <h4>Tokens You've Issued</h4>
             <Table hover size="sm">
               <thead>

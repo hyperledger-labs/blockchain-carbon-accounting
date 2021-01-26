@@ -61,7 +61,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         "Audited Emissions"
     ];
 
-    event TokenCreated(uint256);
+    // events
+    event TokenCreated(
+        CarbonTokenDetails _tokenDetails, 
+        uint256 _availableBalanceOfIssuee, 
+        uint256 _retiredBalanceOfIssuee
+    );
+    event TokenRetired(
+        address indexed account,
+        uint256 tokenId,
+        uint256 amount
+    );
+    event RegisteredConsumer(address indexed account);
+    event UnregisteredConsumer(address indexed account);
     event RegisteredDealer(address indexed account);
     event UnregisteredDealer(address indexed account);
 
@@ -180,28 +192,32 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
         bytes memory callData;
 
-
         tokenInfo.tokenId = _numOfUniqueTokens;
         tokenInfo.tokenTypeId = tokenTypeId;
         tokenInfo.issuer = msg.sender;
         tokenInfo.issuee = account;
         tokenInfo.fromDate = fromDate;
         tokenInfo.thruDate = thruDate;
+        tokenInfo.automaticRetireDate = automaticRetireDate;
+        tokenInfo.dateCreated = block.timestamp;
         tokenInfo.metadata = metadata;
         tokenInfo.manifest = manifest;
-        tokenInfo.dateCreated = block.timestamp;
-        tokenInfo.automaticRetireDate = automaticRetireDate;
         tokenInfo.description = description;
 
         super._mint(account, _numOfUniqueTokens, quantity, callData);
 
-        // Retire audited emissions on mint
+        // retire audited emissions on mint
         if (tokenTypeId == 3) {
             super._burn(tokenInfo.issuee, tokenInfo.tokenId, quantity);
             _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee] = _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee].add(quantity);
         }
 
-        TokenCreated(_numOfUniqueTokens);
+        // emit event with all token details and balances
+        emit TokenCreated(
+            tokenInfo,
+            quantity,
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee]
+        );
     }
 
     /**
@@ -247,7 +263,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
         super._burn(msg.sender, tokenId, amount);
         _retiredBalances[tokenId][msg.sender] = _retiredBalances[tokenId][msg.sender].add(amount);
-
+        emit TokenRetired(
+            msg.sender,
+            tokenId,
+            amount
+        );
     }
 
     /**
@@ -319,7 +339,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      */
     function registerConsumer(address account) external onlyDealer {
         grantRole(REGISTERED_CONSUMER, account);
-        emit RegisteredDealer(account);
+        emit RegisteredConsumer(account);
     }
 
     /**
@@ -353,7 +373,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      */
     function unregisterConsumer(address account) external onlyDealer {
         super.revokeRole(REGISTERED_CONSUMER, account);
-        emit UnregisteredDealer(account);
+        emit UnregisteredConsumer(account);
     }
 
     /**

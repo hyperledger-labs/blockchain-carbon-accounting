@@ -1,63 +1,43 @@
 # utility-emissions-channel
 
-# Setting up the app
+This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain.
 
-## Set up AWS credentials and configure environment
+# Running the Fabric network and Express API
 
-The utility emissions channel can be run locally or remotely using Amazon S3 and DynamoDB. In either case you will need a configuration file for AWS.
-
-You can copy the configuration file from our template
-
-```bash
-$ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js
-```
-
-If you're running with remote AWS, then fill it out with your credentials for AWS based on the fields requested in `aws-config.js.template`. Otherwise, you can leave the credentials blank but set the other fields based on directions below.
-
-### Configure S3 and DynamoDB Locally
-
-#### S3
-
-Serverless S3 stores documents in a folder called `local-bucket` within the `typescript_app` directory. To reset this bucket at any time, simply remove the folder. You can also test the integrity of the documents store by replacing some files with other copies. The emissions records will no longer be retrievable if you try to do this.
-
-Set the following in `aws-config.js` if you're running locally:
+1. Install Prerequisites (Git, curl, Docker, Docker Compose) (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
+2. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
 
 ```bash
-exports.S3_LOCAL = true;
-exports.BUCKET_NAME = "local-bucket";
+cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
 ```
 
-#### DynamoDB
+3. Fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
 
-See "Load the Data" below for setting `exports.AWS_ENDPOINT` to your local DynamoDB.
+```js
+    exports.AWS_ACCESS_KEY_ID = 'your_access_key';
+    exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
+    exports.AWS_REGION = "us-east-1";
+    exports.AWS_ENDPOINT = "https://dynamodb.us-east-1.amazonaws.com";
+    exports.S3_LOCAL = true;
+    exports.BUCKET_NAME = "local-bucket";
+```
 
-### Configure S3/DynamoDB Remotely
-
-#### S3
-
-1. Set up an S3 bucket and set the value of `BUCKET_NAME` in `aws-config.js` to the name of the newly created bucket.
-
-2. Set `S3_LOCAL` to false in `aws-config.js`
-
-#### DynamoDB
-
-Set AWS_ENDPOINT to the endpoint of your remote dynamodb
-
-## Load the Data
-
-If you're using the local dynamodb, execute the following from the `docker-compose-setup` directory to start dynamodb:
+4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
-./scripts/startDynamo.sh
+cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
 ```
 
-Then, for local or remote dynamodb, follow instructions from eGrid Loader documentation [here](egrid-data-loader/README.md).
+5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
 
-## Get the blockchain network up and running
+```js
+    export const PRIVATE_KEY = "private_key_of_ethereum_dealer_wallet";
+    export const CONTRACT_ADDRESS = "address_of_ethereum_contract_to_connect_to_on_goerli";
+    export const INFURA_PROJECT_ID = "infura_id";
+    export const INFURA_PROJECT_SECRET = "infura_secret";
+```
 
-Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
-
-
+6.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
 
 ```bash
 $ cd docker-compose-setup
@@ -68,21 +48,20 @@ Install binaries for linux distribution.
 $ ./bootstrap.sh  2.2.1 1.4.9 -d -s
 ```
 
+7. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+
 Start network, create channel, and deployCC:
 
 ```bash
-$ sh start.sh
+sh ./scripts/reset.sh && sh start.sh
 ```
 
-Optionally, start Hyperledger Explorer ():
+8. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+   '{"Args":["invoke","a","b","10"]}'
 
-```bash
-$ ./network.sh startBlockchainExplorer`
-```
+---
 
-Now go to http://localhost:8080 with username `exploreradmin` and password `exploreradminpw`
-
-### Test the chaincode and the blockchain-explorer.
+#### Play with the chaincode and have a look at the blockchain-explorer.
 
 1. With the app running, exec into the Cli container:
 
@@ -102,32 +81,14 @@ docker exec -ti cli bash
 
 ## Start Express server (REST API)
 
-```bash
-$ cd utility-emissions-channel/typescript_app
-# install node modules if you don't have it
-$ npm i
-$ sh start.sh
-```
-
-Now you can go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain. You can test it by registering org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"}), and then register and enroll users. First register org admin, then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} ) Once you've done that, you can try the `emissionscontract` chaincode. Note that there is some error handling but may not be complete if your inputs are not correct.
-
-### Local DynamoDB
-
-If you're using the local dynamodb, make sure it's been started (see instructions above.)
-
-### S3
-
-Running serverless s3 locally requires the api to be started first. The api will start automatically at the end of `start.sh`, but alternatively, start the API from the `docker-compose-setup` directory:
-
-```bash
-$ sh ./scripts/startApi.sh
-```
-
-Then, from the typescript_app directory, start the S3 emulation:
-
-```bash
-$ sh startLocalS3.sh
-```
+1. cd to `utility-emissions-channel/typescript_app`
+2. Install node modules: RUN `npm i`
+3. Start express sever: Run `sh start.sh` from `utility-emissions-channel/`
+4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
+5. Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
+6. Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
+7. Interact with the `emissionscontract` chaincode.
+   Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
 
 ## Update emissioncontact Chaincode
 
@@ -139,17 +100,13 @@ $ sh startLocalS3.sh
 
 ## Stop the blockchain network and remove container
 
-```bash
-$ cd docker-compose-setup
-$ ./scripts/reset.sh
-```
+1. cd to `docker-compose-setup`
+2. Run `./network.sh down`
 
 #### Stop blockchain explorer
 
-```bash
-$ cd docker-compose-setup
-$ ./network.sh stopBlockchainExplorer
-```
+1. cd to `docker-compose-setup`
+2. Run `./network.sh stopBlockchainExplorer`
 
 ## CouchDB
 
