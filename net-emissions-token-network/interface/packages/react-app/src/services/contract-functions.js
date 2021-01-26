@@ -2,20 +2,22 @@ import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
-const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/;
+const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/g;
 
 function catchError(error) {
   console.error(error.message);
 
   // try to extract error message, otherwise return raw error
   let formatted_error;
+    
   if (error.message.startsWith("invalid ENS name")) {
     formatted_error = "Missing or invalid parameter.";
   } else if (error.message.startsWith("invalid BigNumber string")) {
     formatted_error = "Invalid number parameter."
   } else {
     try {
-      formatted_error = error.message.match(EXTRACT_ERROR_MESSAGE)[0];
+      let errors = JSON.stringify(error).match(EXTRACT_ERROR_MESSAGE);
+      formatted_error = errors[errors.length - 1];
     } catch (e) {
       formatted_error = error.message;
     }

@@ -1,18 +1,13 @@
 import { ethers } from "ethers";
 import netEmissionsTokenNetworkAbi from "./NetEmissionsTokenNetwork.json";
-import { PRIVATE_KEY, CONTRACT_ADDRESS, URL, IS_GOERLI, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "./networkConfig";
+import { PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "./networkConfig";
 const tokenTypeId = 3;
 
-export function getProvider() {
-  let provider;
-  if (IS_GOERLI) {
-    provider = new ethers.providers.InfuraProvider("goerli", {
-      projectId: INFURA_PROJECT_ID,
-      projectSecret: INFURA_PROJECT_SECRET
-    });
-  } else {
-    provider = new ethers.providers.JsonRpcProvider(URL);
-  }
+function getProvider() {
+  let provider = new ethers.providers.InfuraProvider("goerli", {
+    projectId: INFURA_PROJECT_ID,
+    projectSecret: INFURA_PROJECT_SECRET
+  });
   return provider;
 }
 
