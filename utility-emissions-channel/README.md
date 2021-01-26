@@ -37,13 +37,26 @@ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript
     export const INFURA_PROJECT_SECRET = "infura_secret";
 ```
 
-6. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+6.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
+
+```bash
+$ cd docker-compose-setup
+```
+
+Install binaries for linux distribution.
+```bash
+$ ./bootstrap.sh  2.2.1 1.4.9 -d -s
+```
+
+7. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+
+Start network, create channel, and deployCC:
 
 ```bash
 sh ./scripts/reset.sh && sh start.sh
 ```
 
-7. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+8. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
    '{"Args":["invoke","a","b","10"]}'
 
 ---
