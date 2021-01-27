@@ -25,7 +25,7 @@ registry:
 
   identities:
     - name: admin
-      pass: uaz0veu4Vei2theNgi
+      pass: niiP9Aro2eel
       type: client
       affiliation: ''
       attrs:
