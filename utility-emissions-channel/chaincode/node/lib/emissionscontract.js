@@ -8,19 +8,77 @@ const AWS = require("aws-sdk");
 // Fabric smart contract classes
 const { Contract, Context } = require("fabric-contract-api");
 
-// EmissionsRecord specifc classes
+// EmissionsRecord specific classes
 const EmissionsRecord = require("./emissions.js");
 const EmissionsList = require("./emissionslist.js");
 const EmissionsCalc = require("./emissions-calc.js");
 
+// Egrid specific classes
+const Egrid = require("./egrid-data.js");
+
+const XLSX = require("xlsx");
+
+// Utility function for importing XLSX spreadsheets
+function parse_worksheet(file_name, opts, cb) {
+  opts.verbose && console.log("Reading file ...  ", file_name);
+  var workbook = XLSX.readFile(file_name);
+
+  var sheet_name_list = workbook.SheetNames;
+  sheet_name_list.forEach(function(y) {
+    opts.verbose && console.log("Worksheet: ", y);
+    if (opts.sheet && y != opts.sheet) {
+      opts.verbose && console.log("-- not a match");
+      return;
+    }
+
+    var worksheet = workbook.Sheets[y];
+    var headers = {};
+    var data = [];
+    var header_row = 1;
+    if (opts.skip_rows && opts.skip_rows >= header_row) {
+      header_row = opts.skip_rows + 1;
+    }
+    opts.verbose && console.log("-- opts.skip_rows = ", opts.skip_rows, " header_row = ", header_row);
+    for (z in worksheet) {
+      if (z[0] === "!") continue;
+      //parse out the column, row, and value
+      var tt = 0;
+      for (var i = 0; i < z.length; i++) {
+        if (!isNaN(z[i])) {
+          tt = i;
+          break;
+        }
+      }
+      var col = z.substring(0, tt).trim();
+      var row = parseInt(z.substring(tt));
+      var value = worksheet[z].v;
+      if (opts.skip_rows && opts.skip_rows >= row) continue;
+      //opts.verbose && console.log('--> ', row, col, value);
+
+      //store header names
+      if (row == header_row && value) {
+        headers[col] = value;
+        continue;
+      }
+
+      if (!data[row]) data[row] = {};
+      data[row][headers[col]] = value;
+    }
+    return cb(data);
+  });
+}
+
 /**
- * A custom context provides easy access to list of all emissions records
+ * A custom context provides easy access to list of all emissions records, etc.
  */
 class EmissionsRecordContext extends Context {
   constructor() {
     super();
     // All emissions records are held in a list
     this.emissionsList = new EmissionsList(this);
+    // Egrid data is stored here (formerly dynamodb)
+    this.utilityEmissionsFactorList = new Egrid.UtilityEmissionsFactorList(this);
+    this.utilityLookupList = new Egrid.UtilityLookupList(this);
   }
 }
 
@@ -48,6 +106,9 @@ class EmissionsRecordContract extends Contract {
   async init(ctx) {
     // No initialization right now
     console.log("Initializing the contract");
+    load_utility_emissions(ctx, "./eGRID2018_Data_v2.xlsx", { sheet: "NRL18" });
+    load_utility_emissions(ctx, "./eGRID2018_Data_v2.xlsx", { sheet: "ST18" });
+    load_utility_identifiers(ctx, "./Utility_Data_2019.xlsx");
   }
 
   /**
@@ -184,6 +245,246 @@ class EmissionsRecordContract extends Contract {
     let emissionsRecord = await ctx.emissionsList.getAllEmissionsDataByDateRange(queryData);
 
     return emissionsRecord;
+  }
+
+  import_utility_emissions(ctx, file_name, opts) {
+    let self = this;
+    if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18") {
+      let data = parse_worksheet(file_name, opts, function(data) {
+        // import data for each valid row, eg:
+        // Year = 2018 from 'Data Year'
+        // Country = USA
+        // Division_type = NERC_REGION
+        // Division_id = value from 'NERC region acronym'
+        // Division_name = value from 'NERC region name'
+        // Net_Generation = value from 'NERC region annual net generation (MWh)'
+        // Net_Generation_UOM = MWH
+        // CO2_Equivalent_Emissions = value from 'NERC region annual CO2 equivalent emissions (tons)'
+        // CO2_Equivalent_Emissions_UOM = tons
+        // Source = https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+        for (row in data) {
+          // skip empty rows
+          if (!row || !row["Data Year"]) continue;
+        // skip header rows
+        if (row["Data Year"] == "YEAR") continue;
+          //opts.verbose && console.log('-- Prepare to insert from ', row);
+
+          // generate a unique for the row
+          let document_id = "USA_" + row["Data Year"] + "_NERC_REGION_" + row["NERC region acronym"];
+          let d = {
+            uuid: { S: document_id },
+            year: { N: "" + row["Data Year"] },
+            country: { S: "USA" },
+            division_type: { S: "NERC_REGION" },
+            division_id: { S: row["NERC region acronym"] },
+            division_name: { S: row["NERC region name "] || "" },
+            net_generation: { N: "" + row["NERC region annual net generation (MWh)"] },
+            net_generation_uom: { S: "MWH" },
+            co2_equivalent_emissions: { N: "" + row["NERC region annual CO2 equivalent emissions (tons)"] },
+            co2_equivalent_emissions_uom: { S: "tons" },
+            source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
+            non_renewables: { N: row["NERC region annual total nonrenewables net generation (MWh)"].toString() },
+            renewables: { N: row["NERC region annual total renewables net generation (MWh)"].toString() },
+          };
+          let utilityEmissionsFactor = Egrid.UtilityEmissionsFactorItem.createInstance(
+            d.uuid,
+            d.year,
+            d.country,
+            d.division_type,
+            d.division_id,
+            d.division_name,
+            d.net_generation,
+            d.net_generation_uom,
+            d.co2_equivalent_emissions,
+            d.co2_equivalent_emissions_uom,
+            d.source,
+            d.non_renewables,
+            d.renewables
+          );
+          await self.ctx.utilityEmissionsFactorList.addUtilityEmissionsFactor(utilityEmissionsFactor, d.uuid);
+        });
+      });
+    } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18") {
+      let data = parse_worksheet(file_name, opts, function(data) {
+        for (row in data) {
+          // skip empty rows
+          if (!row || !row["Data Year"]) continue;
+          // skip header rows
+          if (row["Data Year"] == "YEAR") continue;
+          //opts.verbose && console.log('-- Prepare to insert from ', row);
+          // generate a unique for the row
+          let document_id = "USA_ST_" + row["Data Year"] + "_NERC_REGION_" + row["State abbreviation"];
+          let d = {
+            uuid: { S: document_id },
+            year: { N: "" + row["Data Year"] },
+            country: { S: "USA" },
+            division_type: { S: "STATE" },
+            division_id: { S: row["State abbreviation"] },
+            division_name: { S: NAME_MAPPINGS.STATE_NAME_MAPPING[row["State abbreviation"]] },
+            net_generation: { N: "" + row["State annual net generation (MWh)"] },
+            net_generation_uom: { S: "MWH" },
+            co2_equivalent_emissions: { N: "" + row["State annual CO2 equivalent total output emission rate (lb/MWh)"] },
+            co2_equivalent_emissions_uom: { S: "lb/MWH" },
+            source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
+            non_renewables: { N: row["State annual total nonrenewables net generation (MWh)"].toString() },
+            renewables: { N: row["State annual total renewables net generation (MWh)"].toString() },
+          };
+          let utilityEmissionsFactor = Egrid.UtilityEmissionsFactorItem.createInstance(
+            d.uuid,
+            d.year,
+            d.country,
+            d.division_type,
+            d.division_id,
+            d.division_name,
+            d.net_generation,
+            d.net_generation_uom,
+            d.co2_equivalent_emissions,
+            d.co2_equivalent_emissions_uom,
+            d.source,
+            d.non_renewables,
+            d.renewables
+          );
+          await self.ctx.utilityEmissionsFactorList.addUtilityEmissionsFactor(utilityEmissionsFactor, d.uuid);
+        });
+      });
+    } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18") {
+      let data = parse_worksheet(file_name, opts, function(data) {
+        for (row in data) {
+          // skip empty rows
+          if (!row || !row["Data Year"]) continue;
+          // skip header rows
+          if (row["Data Year"] == "YEAR") continue;
+          //opts.verbose && console.log('-- Prepare to insert from ', row);
+          // generate a unique for the row
+          let document_id = "COUNTRY_USA_" + row["Data Year"];
+          let d = {
+            uuid: { S: document_id },
+            year: { N: "" + row["Data Year"] },
+            country: { S: "USA" },
+            division_type: { S: "COUNTRY" },
+            division_id: { S: "USA" },
+            division_name: { S: "United States of America" },
+            net_generation: { N: "" + row["U.S. annual net generation (MWh)"] },
+            net_generation_uom: { S: "MWH" },
+            co2_equivalent_emissions: { N: "" + row["U.S. annual CO2 equivalent emissions (tons)"] },
+            co2_equivalent_emissions_uom: { S: "tons" },
+            source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
+            non_renewables: { N: row["U.S. annual total nonrenewables net generation (MWh)"].toString() },
+            renewables: { N: row["U.S. annual total renewables net generation (MWh)"].toString() },
+          };
+          let utilityEmissionsFactor = Egrid.UtilityEmissionsFactorItem.createInstance(
+            d.uuid,
+            d.year,
+            d.country,
+            d.division_type,
+            d.division_id,
+            d.division_name,
+            d.net_generation,
+            d.net_generation_uom,
+            d.co2_equivalent_emissions,
+            d.co2_equivalent_emissions_uom,
+            d.source,
+            d.non_renewables,
+            d.renewables
+          );
+          await self.ctx.utilityEmissionsFactorList.addUtilityEmissionsFactor(utilityEmissionsFactor, d.uuid);
+        });
+      });
+    } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
+      let data = parse_worksheet(file_name, opts, function(data) {
+        for (row in data) {
+          // skip empty rows
+          if (!row || row["Unit"] == "%" || row["CountryShort"].slice(0, 2) == "EU") continue;
+
+          // skip header rows
+          if (row["Data Year"] == "YEAR") continue;
+          //opts.verbose && console.log('-- Prepare to insert from ', row);
+          // generate a unique for the row
+          // console.log(row);
+          let countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
+          let document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
+          let d = {
+            uuid: { S: document_id },
+            year: { N: "" + row["Year"] },
+            country: { S: "USA" },
+            division_type: { S: "COUNTRY" },
+            division_id: { S: row["CountryShort"] },
+            division_name: { S: countryName },
+            net_generation: { N: "" },
+            net_generation_uom: { S: "" },
+            co2_equivalent_emissions: { N: "" },
+            co2_equivalent_emissions_uom: { S: "" },
+            source: {
+              S:
+                "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
+            },
+            non_renewables: { N: "" },
+            renewables: { N: row[" ValueNumeric"] },
+          };
+          let utilityEmissionsFactor = Egrid.UtilityEmissionsFactorItem.createInstance(
+            d.uuid,
+            d.year,
+            d.country,
+            d.division_type,
+            d.division_id,
+            d.division_name,
+            d.net_generation,
+            d.net_generation_uom,
+            d.co2_equivalent_emissions,
+            d.co2_equivalent_emissions_uom,
+            d.source,
+            d.non_renewables,
+            d.renewables
+          );
+          await self.ctx.utilityEmissionsFactorList.addUtilityEmissionsFactor(utilityEmissionsFactor, d.uuid);
+        });
+      });
+    } else {
+      console.log("This sheet or PDF is not currently supported.");
+    }
+  }
+
+  async import_utility_identifiers(ctx, file_name, opts) {
+    opts.skip_rows = 1;
+    let self = this;
+    let data = parse_worksheet(file_name, opts, function(data) {
+      // import data for each valid row, eg:
+      // Utility_Number = value from 'Utility Number'
+      // Utility_Name = value from 'Utility Name'
+      // State_Province = value from 'State'
+      // Country = USA
+      // Divisions = an array of ojects
+      // -- Division_type = NERC_REGION
+      // -- Division_id = value from 'NERC Region'
+      for (row in data) {
+        if (!row || !row["Data Year"]) continue;
+        let d = {
+          uuid: { S: "" + row["Utility Number"] },
+          year: { N: "" + row["Data Year"] },
+          utility_number: { N: "" + row["Utility Number"] },
+          utility_name: { S: row["Utility Name"] },
+          country: { S: "USA" },
+          state_province: { S: row["State"] },
+          divisions: {
+            m: {
+              division_type: { S: "NERC_REGION" },
+              division_id: { S: row["NERC Region"] },
+            },
+          },
+        };
+        let utilityLookupItem = Egrid.UtilityLookupItem.createInstance(
+          d.uuid,
+          d.year,
+          d.utility_number,
+          d.utility_name,
+          d.country,
+          d.state_province,
+          d.divisions
+        );
+        await self.ctx.utilityLookupList.addUtilityLookupItem(utilityLookupItem, d.uuid);
+      }
+      return (data.length > 0);
+    });
   }
 }
 

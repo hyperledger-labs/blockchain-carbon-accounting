@@ -130,14 +130,14 @@ class UtilityLookupList extends StateList {
     super(ctx, "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactorlist");
     this.use(UtilityLookupItem);
   }
-  async addUtilityLookupItem(emissionsRecord, uuid) {
-    return this.addState(emissionsRecord, uuid);
+  async addUtilityLookupItem(utilityLookupItem, uuid) {
+    return this.addState(utilityLookupItem, uuid);
   }
   async getUtilityLookupItem(uuid) {
     return this.getState(uuid);
   }
-  async updateUtilityLookupItem(emissionsRecord, uuid) {
-    return this.updateState(emissionsRecord, uuid);
+  async updateUtilityLookupItem(utilityLookupItem, uuid) {
+    return this.updateState(utilityLookupItem, uuid);
   }
   async getAllUtilityLookupItem(queryData) {
     return this.getAllState(queryData);
