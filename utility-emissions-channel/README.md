@@ -22,13 +22,19 @@ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.j
     exports.BUCKET_NAME = "local-bucket";
 ```
 
-4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
+4. Install the chaincode dependencies (from `utility-emissions-channel/`):
+
+```bash
+cd ./chaincode/node/ && npm install && cd ../..
+```
+
+5. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
 cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
 ```
 
-5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
+6. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
 
 ```js
     export const PRIVATE_KEY = "private_key_of_ethereum_dealer_wallet";
@@ -37,7 +43,7 @@ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript
     export const INFURA_PROJECT_SECRET = "infura_secret";
 ```
 
-6.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
+7.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
 
 ```bash
 $ cd docker-compose-setup
@@ -48,7 +54,7 @@ Install binaries for linux distribution.
 $ ./bootstrap.sh  2.2.1 1.4.9 -d -s
 ```
 
-7. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+8. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
 
 Start network, create channel, and deployCC:
 
@@ -56,7 +62,7 @@ Start network, create channel, and deployCC:
 sh ./scripts/reset.sh && sh start.sh
 ```
 
-8. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+9. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
    '{"Args":["invoke","a","b","10"]}'
 
 ---
