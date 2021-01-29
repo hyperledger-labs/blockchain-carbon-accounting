@@ -333,10 +333,25 @@ function parse_worksheet(file_name, opts, cb) {
   });
 }
 
+function invokeChaincode(funct, args) {
+  let command_formatted = `sudo docker exec cli bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1`;
+  console.log(`Calling ${command_formatted}`);
+  exec(command_formatted, (error, stdout, stderr) => {
+    if (error) {
+      console.log(`error: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.log(`stderr: ${stderr}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+  });
+}
+
 function import_utility_emissions(file_name, opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
   if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18") {
-    var data = parse_worksheet(file_name, opts, function(data) {
+    let data = parse_worksheet(file_name, opts, function(data) {
       // import data for each valid row, eg:
       // Year = 2018 from 'Data Year'
       // Country = USA
@@ -356,28 +371,33 @@ function import_utility_emissions(file_name, opts) {
         //opts.verbose && console.log('-- Prepare to insert from ', row);
 
         // generate a unique for the row
-        var document_id = "USA_" + row["Data Year"] + "_NERC_REGION_" + row["NERC region acronym"];
-        var d = {
-          _id: { S: document_id },
-          Year: { N: "" + row["Data Year"] },
-          Country: { S: "USA" },
-          Division_type: { S: "NERC_REGION" },
-          Division_id: { S: row["NERC region acronym"] },
-          Division_name: { S: row["NERC region name "] || "" },
-          Net_Generation: { N: "" + row["NERC region annual net generation (MWh)"] },
-          Net_Generation_UOM: { S: "MWH" },
-          CO2_Equivalent_Emissions: { N: "" + row["NERC region annual CO2 equivalent emissions (tons)"] },
-          CO2_Equivalent_Emissions_UOM: { S: "tons" },
-          Source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
-          Non_Renewables: { N: row["NERC region annual total nonrenewables net generation (MWh)"].toString() },
-          Renewables: { N: row["NERC region annual total renewables net generation (MWh)"].toString() },
+        let document_id = "USA_" + row["Data Year"] + "_NERC_REGION_" + row["NERC region acronym"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "NERC_REGION",
+          division_id: row["NERC region acronym"],
+          division_name: row["NERC region name "] || "",
+          net_generation: "" + row["NERC region annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions: "" + row["NERC region annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions_uom: "tons",
+          source: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
+          non_renewables: row["NERC region annual total nonrenewables net generation (MWh)"].toString(),
+          renewables: row["NERC region annual total renewables net generation (MWh)"].toString(),
         };
 
-        db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
+        // format chaincode call
+        let division_name_formatted = JSON.stringify(d.division_name).replace(/ /g, '_'); // replace space with _
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${division_name_formatted},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args);
       });
     });
   } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18") {
-    var data = parse_worksheet(file_name, opts, function(data) {
+    let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -385,27 +405,32 @@ function import_utility_emissions(file_name, opts) {
         if (row["Data Year"] == "YEAR") return callback();
         //opts.verbose && console.log('-- Prepare to insert from ', row);
         // generate a unique for the row
-        var document_id = "USA_ST_" + row["Data Year"] + "_NERC_REGION_" + row["State abbreviation"];
-        var d = {
-          _id: { S: document_id },
-          Year: { N: "" + row["Data Year"] },
-          Country: { S: "USA" },
-          Division_type: { S: "STATE" },
-          Division_id: { S: row["State abbreviation"] },
-          Division_name: { S: NAME_MAPPINGS.STATE_NAME_MAPPING[row["State abbreviation"]] },
-          Net_Generation: { N: "" + row["State annual net generation (MWh)"] },
-          Net_Generation_UOM: { S: "MWH" },
-          CO2_Equivalent_Emissions: { N: "" + row["State annual CO2 equivalent total output emission rate (lb/MWh)"] },
-          CO2_Equivalent_Emissions_UOM: { S: "lb/MWH" },
-          Source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
-          Non_Renewables: { N: row["State annual total nonrenewables net generation (MWh)"].toString() },
-          Renewables: { N: row["State annual total renewables net generation (MWh)"].toString() },
+        let document_id = "USA_ST_" + row["Data Year"] + "_NERC_REGION_" + row["State abbreviation"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "STATE",
+          division_id: row["State abbreviation"],
+          division_name: NAME_MAPPINGS.STATE_NAME_MAPPING[row["State abbreviation"]],
+          net_generation: "" + row["State annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions: "" + row["State annual CO2 equivalent total output emission rate (lb/MWh)"],
+          co2_equivalent_emissions_uom: "lb/MWH",
+          source: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
+          non_renewables: row["State annual total nonrenewables net generation (MWh)"].toString(),
+          renewables: row["State annual total renewables net generation (MWh)"].toString(),
         };
-        db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
+        
+        // format chaincode call
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args);
       });
     });
   } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18") {
-    var data = parse_worksheet(file_name, opts, function(data) {
+    let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -413,27 +438,32 @@ function import_utility_emissions(file_name, opts) {
         if (row["Data Year"] == "YEAR") return callback();
         //opts.verbose && console.log('-- Prepare to insert from ', row);
         // generate a unique for the row
-        var document_id = "COUNTRY_USA_" + row["Data Year"];
-        var d = {
-          _id: { S: document_id },
-          Year: { N: "" + row["Data Year"] },
-          Country: { S: "USA" },
-          Division_type: { S: "COUNTRY" },
-          Division_id: { S: "USA" },
-          Division_name: { S: "United States of America" },
-          Net_Generation: { N: "" + row["U.S. annual net generation (MWh)"] },
-          Net_Generation_UOM: { S: "MWH" },
-          CO2_Equivalent_Emissions: { N: "" + row["U.S. annual CO2 equivalent emissions (tons)"] },
-          CO2_Equivalent_Emissions_UOM: { S: "tons" },
-          Source: { S: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip" },
-          Non_Renewables: { N: row["U.S. annual total nonrenewables net generation (MWh)"].toString() },
-          Renewables: { N: row["U.S. annual total renewables net generation (MWh)"].toString() },
+        let document_id = "COUNTRY_USA_" + row["Data Year"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "COUNTRY",
+          division_id: "USA",
+          division_name: "United States of America",
+          net_generation: "" + row["U.S. annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions: "" + row["U.S. annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions_uom: "tons",
+          source: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
+          non_renewables: row["U.S. annual total nonrenewables net generation (MWh)"].toString(),
+          renewables: row["U.S. annual total renewables net generation (MWh)"].toString(),
         };
-        db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
+        
+        // format chaincode call
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args);
       });
     });
   } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
-    var data = parse_worksheet(file_name, opts, function(data) {
+    let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || row["Unit"] == "%" || row["CountryShort"].slice(0, 2) == "EU") return callback();
@@ -443,27 +473,29 @@ function import_utility_emissions(file_name, opts) {
         //opts.verbose && console.log('-- Prepare to insert from ', row);
         // generate a unique for the row
         // console.log(row);
-        var countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
-        var document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
-        var d = {
-          _id: { S: document_id },
-          Year: { N: "" + row["Year"] },
-          Country: { S: "USA" },
-          Division_type: { S: "COUNTRY" },
-          Division_id: { S: row["CountryShort"] },
-          Division_name: { S: countryName },
-          Net_Generation: { N: "" },
-          Net_Generation_UOM: { S: "" },
-          CO2_Equivalent_Emissions: { N: "" },
-          CO2_Equivalent_Emissions_UOM: { S: "" },
-          Source: {
-            S:
-              "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
-          },
-          Non_Renewables: { N: "" },
-          Renewables: { N: row[" ValueNumeric"] },
+        let countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
+        let document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
+        let d = {
+          uuid: document_id },
+          year: "" + row["Year"],
+          country: "USA",
+          division_type: "COUNTRY",
+          division_id: row["CountryShort"],
+          division_name: countryName,
+          net_generation: "",
+          net_generation_uom: "",
+          co2_equivalent_emissions: "",
+          co2_equivalent_emissions_uom: "",
+          source: "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
+          non_renewables: "",
+          renewables: row[" ValueNumeric"],
         };
-        db_insert(db, opts, { TableName: "UTILITY_EMISSION_FACTORS", Item: d }, callback);
+        
+        // format chaincode call
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args);
       });
     });
   } else {
@@ -502,21 +534,9 @@ function import_utility_identifiers(file_name, opts) {
       let divisions_formatted = JSON.stringify(d.divisions).replace(/"/g, '\\"'); // replace " with \"
       let utility_name_formatted = JSON.stringify(d.utility_name).replace(/ /g, '_'); // replace space with _
       let args = `["${JSON.stringify(d.uuid)}","${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
-      let command = `sudo docker exec cli bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":${args}}' 1`;
 
       // insert into chaincode
-      exec(command, (error, stdout, stderr) => {
-        if (error) {
-          console.log(`error: ${error.message}`);
-          return;
-        }
-        if (stderr) {
-          console.log(`stderr: ${stderr}`);
-          return;
-        }
-        console.log(`stdout: ${stdout}`);
-      });
-
+      invokeChaincode("importUtilityIdentifier", args);
     });
   });
 }
