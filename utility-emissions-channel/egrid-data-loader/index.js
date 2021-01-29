@@ -101,7 +101,7 @@ yargs
       import_utility_identifiers(argv.file, argv);
     }
   )
-  .command(
+  .command( // delete
     "get_emmissions_factor <utility> <thru_date>",
     "get Utility Emissions Factors",
     (yargs) => {
@@ -115,6 +115,22 @@ yargs
     },
     (argv) => {
       get_emmissions_factor(argv.utility, argv.thru_date, argv);
+    }
+  )
+  .command(
+    "get_emissions_factor <utility> <thru_date>",
+    "get Utility Emissions Factors",
+    (yargs) => {
+      yargs
+        .positional("utility", {
+          describe: "the Utility Number",
+        })
+        .positional("thru_date", {
+          describe: "thru date in YYYY-mm-dd, dd-mm-YYYY, YYYY/mm/dd or dd/mm/YYYY",
+        });
+    },
+    (argv) => {
+      get_emissions_factor(argv.utility, argv.thru_date, argv);
     }
   )
   .command(
@@ -476,7 +492,7 @@ function import_utility_emissions(file_name, opts) {
         let countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
         let document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
         let d = {
-          uuid: document_id },
+          uuid: document_id,
           year: "" + row["Year"],
           country: "USA",
           division_type: "COUNTRY",
@@ -561,6 +577,12 @@ function get_co2_emissions(utility, thru_date, usage, opts) {
     .catch((err) => console.error(err));
 }
 
+function get_emissions_factor(utility, thru_date, opts) {
+  let args = `["${utility}","${thru_date}"]`;
+  invokeChaincode("getUtilityFactor", args);
+}
+
+// old - delete me
 function get_emmissions_factor(utility, thru_date, opts) {
   const db = EmissionsCalc.connectdb(AWS, opts);
   EmissionsCalc.get_emmissions_factor(db, utility, thru_date, opts)
