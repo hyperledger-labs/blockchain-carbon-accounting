@@ -13,7 +13,7 @@ const StateList = require("./../ledger-api/statelist.js");
 // Class for utility emissions factor item (within list)
 class UtilityEmissionsFactorItem extends State {
   constructor(obj) {
-    super(UtilityEmissionsFactorItem.getClass());
+    super(UtilityEmissionsFactorItem.getClass(), []);
     Object.assign(this, obj);
   }
   static fromBuffer(buffer) {
@@ -66,7 +66,7 @@ class UtilityEmissionsFactorItem extends State {
 // Class for utility emissions factor item (within list)
 class UtilityLookupItem extends State {
   constructor(obj) {
-    super(UtilityLookupItem.getClass());
+    super(UtilityLookupItem.getClass(), []);
     Object.assign(this, obj);
   }
   static fromBuffer(buffer) {
@@ -145,8 +145,8 @@ class UtilityLookupList extends StateList {
 }
 
 module.exports = {
-  UtilityEmissionsFactorItem: UtilityEmissionsFactorItem,
-  UtilityEmissionsFactorList: UtilityEmissionsFactorList,
-  UtilityLookupItem: UtilityLookupItem,
-  UtilityLookupList: UtilityLookupList
+  UtilityEmissionsFactorItem,
+  UtilityEmissionsFactorList,
+  UtilityLookupItem,
+  UtilityLookupList
 }
