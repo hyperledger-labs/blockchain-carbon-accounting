@@ -195,6 +195,42 @@ class EmissionsRecordContract extends Contract {
     return emissionsRecord;
   }
 
+  async getUtilityFactor(ctx, uuid, thruDate) {
+    let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
+
+    // create division object used for later query into utilityEmissionsFactorList
+    let hasStateData = utilityLookup.state_province;
+    let isNercRegion = utilityLookup.divisions.division_type === "NERC_REGION";
+    let division;
+    if (hasStateData) {
+      division = { division_id: utilityLookup.state_province, division_type: "STATE" };
+    } else if (isNercRegion) {
+      division = utilityLookup.divisions;
+    } else {
+      division = { division_id: "USA", division_type: "COUNTRY" };
+    }
+
+    // check if new division object has ID
+    if (!division.division_id) {
+      return reject("Utility [" + uuid + "] does not have a Division ID");
+    }
+
+    // get utility emissions factors with division_type and division_id
+    let params = {
+      division_id: division.division_id,
+      division_type: division.division_type
+    };
+
+    // filter matching year if found
+    let year = EmissionsCalc.get_year_from_date(thruDate);
+    if (year) { params.year = year }
+
+    // query emissions factors
+    let utilityFactors = await ctx.utilityEmissionsFactorList.getUtilityEmissionsFactorsByDivision(uuid);
+
+    return utilityFactors;
+  }
+
   async importUtilityFactor(
     ctx,
     uuid,
@@ -291,6 +327,12 @@ class EmissionsRecordContract extends Contract {
     );
     await ctx.utilityLookupList.addUtilityLookupItem(utilityIdentifier, uuid);
     return utilityIdentifier;
+  }
+
+  async getAllUtilityIndentifiers(ctx) {
+    let utilityIndentifiers = await ctx.utilityLookupList.getAllUtilityLookupItems();
+
+    return utilityIndentifiers;
   }
 }
 

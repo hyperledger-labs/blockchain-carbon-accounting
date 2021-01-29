@@ -28,7 +28,7 @@ class EmissionsList extends StateList {
   }
 
   async getAllEmissionRecords(queryData) {
-    return this.getAllState(queryData);
+    return this.getAllStateByUtilityIdAndPartyId(queryData);
   }
 
   async getAllEmissionsDataByDateRange(queryData) {

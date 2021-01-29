@@ -47,9 +47,29 @@ class StateList {
     return emissionasBytes.toString();
   }
 
-  async getAllState(queryData) {
+  async getAllStateByUtilityIdAndPartyId(queryData) {
     const allResults = [];
-    var stringQuery = `{"selector": {"utilityId": "${queryData.utilityId}", "partyId": "${queryData.partyId}"}}`;
+    let stringQuery = `{"selector": {"utilityId": "${queryData.utilityId}", "partyId": "${queryData.partyId}"}}`;
+    const iterator = await this.ctx.stub.getQueryResult(stringQuery);
+    let result = await iterator.next();
+    while (!result.done) {
+      const strValue = Buffer.from(result.value.value.toString()).toString("utf8");
+      let record;
+      try {
+        record = JSON.parse(strValue);
+      } catch (err) {
+        console.log(err);
+        record = strValue;
+      }
+      allResults.push({ Key: result.value.key, Record: record });
+      result = await iterator.next();
+    }
+    return JSON.stringify(allResults);
+  }
+
+  async getAllState() {
+    const allResults = [];
+    let stringQuery = `{"selector": {}}`;
     const iterator = await this.ctx.stub.getQueryResult(stringQuery);
     let result = await iterator.next();
     while (!result.done) {
