@@ -22,6 +22,8 @@ const NAME_MAPPINGS = require("./abrevToName.js");
 
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
+const { exec } = require("child_process");
+
 yargs
   .command(
     "initdb",
@@ -470,7 +472,6 @@ function import_utility_emissions(file_name, opts) {
 }
 
 function import_utility_identifiers(file_name, opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
   opts.skip_rows = 1;
   var data = parse_worksheet(file_name, opts, function(data) {
     // import data for each valid row, eg:
@@ -483,23 +484,39 @@ function import_utility_identifiers(file_name, opts) {
     // -- Division_id = value from 'NERC Region'
     async.eachSeries(data, function iterator(row, callback) {
       if (!row || !row["Data Year"]) return callback();
-      //opts.verbose && console.log('-- Prepare to insert from ', row);
-      var d = {
-        _id: { S: "" + row["Utility Number"] },
-        Year: { N: "" + row["Data Year"] },
-        Utility_Number: { N: "" + row["Utility Number"] },
-        Utility_Name: { S: row["Utility Name"] },
-        Country: { S: "USA" },
-        State_Province: { S: row["State"] },
-        Divisions: {
-          M: {
-            Division_type: { S: "NERC_REGION" },
-            Division_id: { S: row["NERC Region"] },
-          },
+      opts.verbose && console.log('-- Prepare to insert from ', row);
+      let d = {
+        uuid: row["Utility Number"],
+        year: row["Data Year"],
+        utility_number: row["Utility Number"],
+        utility_name: row["Utility Name"],
+        country: "USA",
+        state_province: row["State"],
+        divisions: {
+          division_type: "NERC_REGION",
+          division_id: row["NERC Region"],
         },
       };
 
-      db_insert(db, opts, { TableName: "UTILITY_LOOKUP", Item: d }, callback);
+      // format chaincode call
+      let divisions_formatted = JSON.stringify(d.divisions).replace(/"/g, '\\"'); // replace " with \"
+      let utility_name_formatted = JSON.stringify(d.utility_name).replace(/ /g, '_'); // replace space with _
+      let args = `["${JSON.stringify(d.uuid)}","${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
+      let command = `sudo docker exec cli bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":${args}}' 1`;
+
+      // insert into chaincode
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.log(`error: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.log(`stderr: ${stderr}`);
+          return;
+        }
+        console.log(`stdout: ${stdout}`);
+      });
+
     });
   });
 }
