@@ -24,6 +24,9 @@ res=$?
 verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
 
 set -x
+
+# IMPORTANT: For this script to run, you must go back to scripts/envVar.sh and change all the CORE_PEER_ADDRESS to localhost
+
 echo $PEER_CONN_PARMS
 echo invoke fcn call:${fcn_call}
 # Use this one if you're using the Mac, otherwise keep the other peer
