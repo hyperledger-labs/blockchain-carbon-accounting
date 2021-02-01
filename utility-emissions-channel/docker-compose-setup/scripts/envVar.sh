@@ -26,12 +26,12 @@ setGlobals() {
     export CORE_PEER_LOCALMSPID="auditor1"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR1_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp
-    export CORE_PEER_ADDRESS=localhost:7051
+    export CORE_PEER_ADDRESS=peer1.auditor1.carbonAccounting.com:7051
   elif [ $USING_ORG -eq 2 ]; then
     export CORE_PEER_LOCALMSPID="auditor2"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR2_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp
-    export CORE_PEER_ADDRESS=localhost:8051
+    export CORE_PEER_ADDRESS=peer1.auditor2.carbonAccounting.com:8051
   elif [ $USING_ORG -eq 3 ]; then
     export CORE_PEER_LOCALMSPID="auditor3"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR3_CA
