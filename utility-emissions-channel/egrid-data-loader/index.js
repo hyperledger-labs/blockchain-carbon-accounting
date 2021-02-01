@@ -350,7 +350,7 @@ function parse_worksheet(file_name, opts, cb) {
 }
 
 function invokeChaincode(funct, args) {
-  let command_formatted = `sudo docker exec cli bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1`;
+  let command_formatted = `cd ../docker-compose-setup && sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
   console.log(`Calling ${command_formatted}\n`);
   exec(command_formatted, (error, stdout, stderr) => {
     if (error) {
@@ -521,7 +521,7 @@ function import_utility_emissions(file_name, opts) {
 
 function import_utility_identifiers(file_name, opts) {
   opts.skip_rows = 1;
-  var data = parse_worksheet(file_name, opts, function(data) {
+  let data = parse_worksheet(file_name, opts, function(data) {
     // import data for each valid row, eg:
     // Utility_Number = value from 'Utility Number'
     // Utility_Name = value from 'Utility Name'
