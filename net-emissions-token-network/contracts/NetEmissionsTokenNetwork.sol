@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     
@@ -54,7 +55,10 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
 
-    uint256 private _numOfUniqueTokens = 0; // Counts number of unique token IDs (auto-incrementing)
+    // Counts number of unique token IDs (auto-incrementing)
+    using Counters for Counters.Counter;
+    Counters.Counter private _numOfUniqueTokens;
+
     string[] private _TOKEN_TYPES = [
         "Renewable Energy Certificate",
         "Carbon Emissions Offset",
@@ -127,7 +131,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns true if the tokenId exists
      */
     function tokenExists(uint256 tokenId) private view returns (bool) {
-        if (_numOfUniqueTokens >= tokenId) return true;
+        if (_numOfUniqueTokens.current() >= tokenId) return true;
         return false; // no matching tokenId
     }
 
@@ -145,7 +149,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns number of unique tokens
      */
     function getNumOfUniqueTokens() public view returns (uint256) {
-        return _numOfUniqueTokens;
+        return _numOfUniqueTokens.current();
     }
 
     /**
@@ -166,8 +170,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory manifest,
         string memory description
     ) public onlyDealer {
-        _numOfUniqueTokens += 1;
-        CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens];
+        _numOfUniqueTokens.increment();
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens.current()];
         require(
             tokenTypeIdIsValid(tokenTypeId),
             "Failed to issue: tokenTypeId is invalid"
@@ -192,7 +196,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
         bytes memory callData;
 
-        tokenInfo.tokenId = _numOfUniqueTokens;
+        tokenInfo.tokenId = _numOfUniqueTokens.current();
         tokenInfo.tokenTypeId = tokenTypeId;
         tokenInfo.issuer = msg.sender;
         tokenInfo.issuee = account;
@@ -204,7 +208,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenInfo.manifest = manifest;
         tokenInfo.description = description;
 
-        super._mint(account, _numOfUniqueTokens, quantity, callData);
+        super._mint(account, _numOfUniqueTokens.current(), quantity, callData);
 
         // retire audited emissions on mint
         if (tokenTypeId == 3) {
