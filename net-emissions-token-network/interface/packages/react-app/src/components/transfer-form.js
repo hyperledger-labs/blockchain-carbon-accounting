@@ -7,7 +7,7 @@ import SubmissionModal from "./submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
-export default function TransferForm({ provider }) {
+export default function TransferForm({ provider, roles }) {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -52,7 +52,7 @@ export default function TransferForm({ provider }) {
       />
 
       <h2>Transfer tokens</h2>
-      <p>Send available tokens in your possession of a particular ID (as displayed on the dashboard) to any address.</p>
+      <p>Send available tokens in your possession of a particular ID (as displayed on the dashboard) to any address. Audited Emissions tokens cannot be transferred as they come automatically retired.</p>
       <Form.Group>
         <Form.Label>Address</Form.Label>
         <Form.Control
@@ -86,9 +86,11 @@ export default function TransferForm({ provider }) {
           style={(amount || !initializedAmountInput) ? {} : inputError}
         />
       </Form.Group>
-      <Button variant="success" size="lg" block onClick={handleTransfer}>
-        Transfer
-      </Button>
+      {/* Only enable transfers if role is found */}
+      { (roles.length === 5) && (roles.some(r => r === true))
+        ? <Button variant="success" size="lg" block onClick={handleTransfer}>Transfer</Button>
+        : <Button disabled variant="success" size="lg" block>Must be a registered user</Button>
+      }
     </>
   );
 }

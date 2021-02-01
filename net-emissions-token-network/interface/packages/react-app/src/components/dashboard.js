@@ -1,75 +1,115 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
-import { getNumOfUniqueTokens, getAvailableAndRetired, getTokenType, getIssuer } from "../services/contract-functions";
+import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
-import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 
-import { BiRefresh } from 'react-icons/bi'
-
-export default function Dashboard({ provider, signedInAddress, roles }) {
+export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) => {
+  // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState({});
 
+  // Balances of my tokens and tokens I've issued
   const [myBalances, setMyBalances] = useState([]);
   const [myIssuedTokens, setMyIssuedTokens] = useState([]);
 
   const [fetchingTokens, setFetchingTokens] = useState(false);
 
-  function handleOpenTokenInfoModal(tokenId, tokenBalance, tokenRetiredBalance, tokenType) {
-    setSelectedToken({
-      id: tokenId,
-      balance: tokenBalance,
-      retired: tokenRetiredBalance,
-      type: tokenType,
-    });
+  const [error, setError] = useState("");
+
+  const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true);
+
+  function handleOpenTokenInfoModal(token) {
+    setSelectedToken(token);
     setModalShow(true);
   }
 
-  async function fetchBalances() {
-    // First, fetch number of unique tokens
-    let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
-
-    // Iterate over each tokenId and find balance of signed in address
-    let myBal = [];
-    let myIssued = [];
-    for (let i = 1; i <= numOfUniqueTokens; i++) {
-      let bal = (await getAvailableAndRetired(provider, signedInAddress, i));
-      let issuer = await getIssuer(provider, i);
-      let type = await getTokenType(provider, i);
-
-      if (bal[0].toNumber() > 0 || bal[1].toNumber() > 0) {
-        myBal.push({
-          tokenId: i,
-          tokenType: type,
-          balance: bal[0].toNumber(),
-          retired: bal[1].toNumber()
-        });
-      }
-
-      if (issuer.toLowerCase() === signedInAddress.toLowerCase()) {
-        myIssued.push({
-          tokenId: i,
-          tokenType: type,
-          balance: bal[0].toNumber(),
-          retired: bal[1].toNumber()
-        });
-      }
+  // Allows the parent component to refresh balances on clicking the Dashboard button in the navigation
+  useImperativeHandle(ref, () => ({
+    refresh() {
+      handleRefresh();
     }
-
-    setMyBalances(myBal);
-    setMyIssuedTokens(myIssued);
-    setFetchingTokens(false);
-  }
+  }));
 
   function handleRefresh() {
     setFetchingTokens(true);
     fetchBalances();
   }
 
+  async function fetchBalances() {
+    try {
+      // First, fetch number of unique tokens
+      let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
+
+      // Iterate over each tokenId and find balance of signed in address
+      let myBal = [];
+      let myIssued = [];
+      for (let i = 1; i <= numOfUniqueTokens; i++) {
+
+        // Fetch token details
+        let tokenDetails = (await getTokenDetails(provider, i));
+
+        // Format unix times to Date objects
+        let fromDateObj = new Date((tokenDetails.fromDate.toNumber()) * 1000);
+        let thruDateObj = new Date((tokenDetails.thruDate.toNumber()) * 1000);
+        let automaticRetireDateObj = new Date((tokenDetails.automaticRetireDate.toNumber()) * 1000);
+
+        // Format tokenType from tokenTypeId
+        let tokenTypes = [
+          "Renewable Energy Certificate",
+          "Carbon Emissions Offset",
+          "Audited Emissions"
+        ];
+
+        // Fetch available and retired balances
+        let balances = (await getAvailableAndRetired(provider, signedInAddress, i));
+        let availableBalance = balances[0].toNumber();
+        let retiredBalance = balances[1].toNumber();
+
+        // Format decimal points for audited emissions tokens
+        if (tokenDetails.tokenTypeId === 3) {
+          availableBalance = (availableBalance / 1000).toFixed(3);
+          retiredBalance = (retiredBalance / 1000).toFixed(3);
+        }
+
+        let token = {
+          tokenId: tokenDetails.tokenId.toNumber(),
+          tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
+          availableBalance: availableBalance,
+          retiredBalance: retiredBalance,
+          issuer: tokenDetails.issuer,
+          issuee: tokenDetails.issuee,
+          fromDate: fromDateObj.toLocaleString(),
+          thruDate: thruDateObj.toLocaleString(),
+          automaticRetireDate: automaticRetireDateObj.toLocaleString(),
+          metadata: tokenDetails.metadata,
+          manifest: tokenDetails.manifest,
+          description: tokenDetails.description,
+        }
+
+        // Push token to myBalances or myIssuedTokens in state
+        if (token.availableBalance > 0 || token.retiredBalance > 0) {
+          myBal.push(token);
+        }
+        if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
+          myIssued.push(token);
+        }
+      }
+
+      setMyBalances(myBal);
+      setMyIssuedTokens(myIssued);
+      setFetchingTokens(false);
+      setError("");
+    } catch (error) {
+      console.log(error);
+      setError("Could not connect to contract. Check your network settings in your wallet.");
+    }
+  }
+
+  // If address and provider detected then fetch balances
   useEffect(() => {
     if (provider && signedInAddress) {
       if (myBalances !== [] && !fetchingTokens) {
@@ -98,9 +138,10 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
 
       <h2>Dashboard</h2>
       <p>View your token balances and tokens you've issued.</p>
-      <p><Button variant="primary" onClick={handleRefresh}><BiRefresh/>&nbsp;Refresh</Button></p>
 
-      <div className={fetchingTokens && "dimmed"}>
+      <p className="text-danger">{error}</p>
+
+      <div className={fetchingTokens ? "dimmed" : ""}>
 
         {fetchingTokens && (
           <div className="text-center my-4">
@@ -110,8 +151,8 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
           </div>
         )}
 
-        <div>
-          <h4>Your tokens</h4>
+        <div className="mb-4">
+          <h4>Your Tokens</h4>
           <Table hover size="sm">
             <thead>
               <tr>
@@ -122,17 +163,17 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
               </tr>
             </thead>
             <tbody>
-              {myBalances !== [] &&
+              {(myBalances !== [] && !fetchingTokens) &&
                 myBalances.map((token) => (
                   <tr
-                    key={token}
-                    onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                    key={token.tokenId}
+                    onClick={() => handleOpenTokenInfoModal(token)}
                     onMouseOver={pointerHover}
                   >
                     <td>{token.tokenId}</td>
                     <td>{token.tokenType}</td>
-                    <td>{token.balance}</td>
-                    <td>{token.retired}</td>
+                    <td>{token.availableBalance}</td>
+                    <td>{token.retiredBalance}</td>
                   </tr>
                 ))}
             </tbody>
@@ -140,26 +181,28 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
         </div>
 
         {/* Only display issued tokens if owner or dealer */}
-        {(roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true) &&
-          <div>
-            <h4>Tokens you've issued</h4>
+        {(isDealer) &&
+          <div className="mt-4">
+            <h4>Tokens You've Issued</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Type</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
-                {myIssuedTokens !== [] &&
+                {(myIssuedTokens !== [] && !fetchingTokens) &&
                   myIssuedTokens.map((token) => (
                     <tr
-                      key={token}
-                      onClick={() => handleOpenTokenInfoModal(token.tokenId, token.balance, token.retired, token.tokenType)}
+                      key={token.tokenId}
+                      onClick={() => handleOpenTokenInfoModal(token)}
                       onMouseOver={pointerHover}
                     >
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
+                      <td>{token.description}</td>
                     </tr>
                   ))}
               </tbody>
@@ -170,4 +213,6 @@ export default function Dashboard({ provider, signedInAddress, roles }) {
       </div>
     </>
   );
-}
+});
+
+export default Dashboard;

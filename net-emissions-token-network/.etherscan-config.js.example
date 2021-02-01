@@ -1,0 +1,4 @@
+// Only required when running Etherscan contract verification
+// See https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html
+// Get a free key at https://etherscan.io
+exports.ETHERSCAN_API_KEY = ""

@@ -1,13 +1,21 @@
 import { ethers } from "ethers";
 import netEmissionsTokenNetworkAbi from "./NetEmissionsTokenNetwork.json";
-import { privateKey, contractAddress, url } from "./networkConfig";
+import { PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "./networkConfig";
 const tokenTypeId = 3;
+
+function getProvider() {
+  let provider = new ethers.providers.InfuraProvider("goerli", {
+    projectId: INFURA_PROJECT_ID,
+    projectSecret: INFURA_PROJECT_SECRET
+  });
+  return provider;
+}
 
 export async function registerAuditedEmissionDealer(addressToRegister) {
   let contractResponse;
-  let provider = new ethers.providers.JsonRpcProvider(url);
-  //   let wallet = new ethers.Wallet(privateKey, provider);
-  let contract = new ethers.Contract(contractAddress, netEmissionsTokenNetworkAbi.abi, provider);
+  let provider = getProvider();
+  //   let wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  let contract = new ethers.Contract(CONTRACT_ADDRESS, netEmissionsTokenNetworkAbi.abi, provider);
 
   let signer = provider.getSigner();
 
@@ -29,9 +37,9 @@ export async function issue(
   description
 ) {
   let issueResponse;
-  let provider = new ethers.providers.JsonRpcProvider(url);
-  let wallet = new ethers.Wallet(privateKey, provider);
-  let contract = new ethers.Contract(contractAddress, netEmissionsTokenNetworkAbi.abi, provider);
+  let provider = getProvider();
+  let wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+  let contract = new ethers.Contract(CONTRACT_ADDRESS, netEmissionsTokenNetworkAbi.abi, provider);
 
   // let signer = provider.getSigner();
 
@@ -50,8 +58,9 @@ export async function issue(
     )
     .then((response) => (issueResponse = response));
   // Get ID of first issued token
-  let transactionReceipt = await issue.wait(0);
-  let issueEvent = transactionReceipt.events.pop();
-  let tokenId = issueEvent.args[0].toNumber();
-  return tokenId;
+  // let transactionReceipt = await issue.wait(0);
+  // let issueEvent = transactionReceipt.events.pop();
+  // let tokenId = issueEvent.args[0].toNumber();
+  // return tokenId;
+  return "success";
 }

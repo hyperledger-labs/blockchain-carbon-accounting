@@ -2,13 +2,14 @@ const UOM_FACTORS = {
   wh: 1.0,
   kwh: 1000.0,
   mwh: 1000000.0,
+  "lb/mwh": 1000000.0,
   gwh: 1000000000.0,
   twh: 1000000000000.0,
   kg: 1.0,
   t: 1000.0,
   ton: 1000.0,
   tons: 1000.0,
-  mtco2e: 1000.0,
+  tc02e: 1000.0,
   g: 0.001,
   kt: 1000000.0,
   mt: 1000000000.0,
@@ -80,8 +81,15 @@ exports.get_emmissions_factor = function(db, utility, thru_date, opts) {
         return reject("Utility [" + utility + "] does not have a Division Type");
       }
       opts && opts.verbose && console.log("-- found Utility Divisions = ", data.Item.Divisions);
-
-      division = data.Item.Divisions.M;
+      hasStateData = data.Item.State_Province;
+      isNercRegion = data.Item.Divisions.M.Division_type.S == "NERC_REGION";
+      if (hasStateData) {
+        division = { Division_id: data.Item.State_Province, Division_type: { S: "STATE" } };
+      } else if (isNercRegion) {
+        division = data.Item.Divisions.M;
+      } else {
+        division = { Division_id: { S: "USA" }, Division_type: { S: "COUNTRY" } };
+      }
       opts && opts.verbose && console.log("-- found Utility Division = ", division);
 
       if (!division.Division_id) {
@@ -138,7 +146,7 @@ exports.get_co2_emissions = function(db, utility, thru_date, usage, opts) {
         if (res) {
           let usage_uom = "KWH";
           if (opts && opts.usage_uom) usage_uom = opts.usage_uom;
-          let emssions_uom = "MtCO2e";
+          let emssions_uom = "tc02e";
           if (opts && opts.emssions_uom) emssions_uom = opts.emssions_uom;
           let Division_type = res.Division_type;
           let division_id = res.Division_id;

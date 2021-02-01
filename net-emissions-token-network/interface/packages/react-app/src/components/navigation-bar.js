@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 
+import { addresses } from "@project/contracts";
+
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
 import Tooltip from 'react-bootstrap/Tooltip';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Row from 'react-bootstrap/Row';
 
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
@@ -77,13 +80,16 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
         <Nav>
           {(signedInAddress !== "") &&
             <>
-              <Nav.Item style={{padding: ".5rem .5rem"}}>
-                <span>
+              <Nav.Item style={{padding: "0 1.2rem"}}>
+                <Row className="d-flex justify-content-center">
                   {(role && role !== "Unregistered") ?
                     <span className="text-success">{role}</span>
                   : <span className="text-danger">{role || "Not connected"}</span>
                   }
-                </span>
+                </Row>
+                <Row className="d-flex justify-content-center">
+                  <small className="text-secondary">{addresses.tokenNetwork.network}</small>
+                </Row>
               </Nav.Item>
               <Nav.Item style={{padding: ".5rem .5rem"}}>
                 <span className="text-secondary">{truncateAddress(signedInAddress)}</span>

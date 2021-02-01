@@ -1,2 +1,6 @@
-minifab/
 *.DS_Store
+minifab/
+utility-emissions-channel/.project
+utility-emissions-channel/egrid-data-loader/*.xlsx
+utility-emissions-channel/egrid-data-loader/*.txt
+utility-emissions-channel/egrid-data-loader/*.pdf

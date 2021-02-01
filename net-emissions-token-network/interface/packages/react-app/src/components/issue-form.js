@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
 import { issue } from "../services/contract-functions";
-import { getTestRequest } from "../services/fabric-api";
 
 import SubmissionModal from "./submission-modal";
 
@@ -47,7 +46,15 @@ export default function IssueForm({ provider }) {
   }
 
   async function submit() {
-    let result = await issue(provider, address, tokenTypeId, quantity, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
+    // If quantity has 3 decimals, multiply by 1000 before passing to the contract
+    let quantity_formatted;
+    if (tokenTypeId === "3") {
+      quantity_formatted = Math.round(quantity * 1000);
+    } else {
+      quantity_formatted = quantity;
+    }
+
+    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
     setResult(result.toString());
   }
 
@@ -55,17 +62,6 @@ export default function IssueForm({ provider }) {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
-
-  React.useEffect(() => {
-    
-    async function apiCall() {
-      let result = await getTestRequest("https://jsonplaceholder.typicode.com/todos/1");
-      console.log(result.data);
-    }
-
-    apiCall();
-
-  }, []);
 
   return (
     <>
@@ -105,12 +101,19 @@ export default function IssueForm({ provider }) {
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
-          placeholder="100"
+          placeholder={(tokenTypeId === "3") ? "100.000" : "100"}
           value={quantity}
           onChange={onQuantityChange}
           onBlur={() => setInitializedQuantityInput(true)}
           style={(quantity || !initializedQuantityInput) ? {} : inputError}
         />
+        {/* Display whether decimal is needed or not */}
+        <Form.Text className="text-muted">
+          {(tokenTypeId === "3")
+            ? "Must not contain more than three decimal values." 
+            : "Must be an integer value."
+          }
+        </Form.Text>
       </Form.Group>
       <Form.Row>
         <Form.Group as={Col}>
@@ -127,16 +130,16 @@ export default function IssueForm({ provider }) {
         </Form.Group>
       </Form.Row>
       <Form.Group>
+        <Form.Label>Description</Form.Label>
+        <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
+      </Form.Group>
+      <Form.Group>
         <Form.Label>Metadata</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. Region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
       </Form.Group>
       <Form.Group>
         <Form.Label>Manifest</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Description</Form.Label>
-        <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
       </Form.Group>
       <Button variant="primary" size="lg" block onClick={handleSubmit}>
         Issue

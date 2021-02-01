@@ -1,5 +1,9 @@
+// This file stores the configuration settings for Goerli for Hardhat.
+// It is only necessary to edit if deploying the contract to Goerli.
+// See "Deploying contract to Goerli" in the README for more information.
+
 // Replace with the private key of your deployer address
-exports.GOERLI_CONTRACT_OWNER_PRIVATE_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+exports.GOERLI_CONTRACT_OWNER_PRIVATE_KEY = "";
 
 // Get a free key at https://infura.io/
-exports.INFURA_PROJECT_ID = "INVALID_INFURA_PROJECT_ID";
+exports.INFURA_PROJECT_ID = "";
