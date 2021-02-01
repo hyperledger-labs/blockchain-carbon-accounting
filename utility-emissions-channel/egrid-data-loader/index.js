@@ -351,7 +351,7 @@ function parse_worksheet(file_name, opts, cb) {
 
 function invokeChaincode(funct, args) {
   let command_formatted = `sudo docker exec cli bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1`;
-  console.log(`Calling ${command_formatted}`);
+  console.log(`Calling ${command_formatted}\n`);
   exec(command_formatted, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);

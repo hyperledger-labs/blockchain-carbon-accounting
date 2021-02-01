@@ -54,9 +54,6 @@ class EmissionsRecordContract extends Contract {
   async init(ctx) {
     // No initialization right now
     console.log("Initializing the contract");
-    // load_utility_emissions(ctx, "./eGRID2018_Data_v2.xlsx", { sheet: "NRL18" });
-    // load_utility_emissions(ctx, "./eGRID2018_Data_v2.xlsx", { sheet: "ST18" });
-    // load_utility_identifiers(ctx, "./Utility_Data_2019.xlsx");
   }
 
   /**
@@ -71,22 +68,9 @@ class EmissionsRecordContract extends Contract {
    * @param {String} UOM of energy usage amount -- ie kwh
    */
   async recordEmissions(ctx, uuid, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom, url, md5) {
-    // TODO: use a constants file
-    var emissionsUom = "tc02e";
     // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
-    const db = EmissionsCalc.connectdb(AWS);
-    let calc = await EmissionsCalc.get_co2_emissions(db, utilityId, thruDate, energyUseAmount, {
-      usage_uom: energyUseUom,
-      emssions_uom: emissionsUom,
-    });
-    var emissionsAmount = calc.Emissions.value;
-    let renewable_energy_use_amount = calc.renewableEnergyUseAmount;
-    let nonrenewable_energy_use_amount = calc.nonRenewableEnergyUseAmount;
-    let division_type = calc.Division_type;
-    let division_id = calc.divisionId;
-    let year = calc.year;
-    let factor_source = `eGrid ${year} ${division_type} ${division_id}`;
-    let tokenId = null;
+    let co2Emissions = await this.getCo2Emissions(ctx, utilityId, thruDate, energyUseAmount);
+    let factor_source = `eGrid ${co2Emissions.year} ${co2Emissions.division_type} ${co2Emissions.division_id}`;
 
     // create an instance of the emissions record
     let emissionsRecord = EmissionsRecord.createInstance(
@@ -95,14 +79,14 @@ class EmissionsRecordContract extends Contract {
       partyId,
       fromDate,
       thruDate,
-      emissionsAmount,
-      renewable_energy_use_amount,
-      nonrenewable_energy_use_amount,
+      co2Emissions.emissions.value, // emissions amount
+      co2Emissions.renewable_energy_use_amount,
+      co2Emissions.nonrenewable_energy_use_amount,
       energyUseUom,
       factor_source,
       url,
       md5,
-      tokenId
+      null // tokenId
     );
 
     // Add the emissions record to the list of all similar emissions records in the ledger world state
@@ -231,6 +215,43 @@ class EmissionsRecordContract extends Contract {
     return utilityFactors;
   }
 
+  async getCo2Emissions(ctx, uuid, thruDate, usage) {
+    let utilityFactor = await this.getUtilityFactor(ctx, uuid, thruDate);
+
+    let usage_uom = "KWH";
+    let emssions_uom = "tc02e";
+
+    let division_type = utilityFactor.division_type;
+    let division_id = utilityFactor.division_id;
+
+    let usage_uom_conversion = EmissionsCalc.get_uom_factor(usage_uom) / EmissionsCalc.get_uom_factor(res.Net_Generation_UOM);
+    let emissions_uom_conversion =
+      EmissionsCalc.get_uom_factor(utilityFactor.co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emssions_uom);
+
+    let emissions =
+      (Number(utilityFactor.CO2_Equivalent_Emissions) / Number(utilityFactor.Net_Generation)) *
+      usage *
+      usage_uom_conversion *
+      emissions_uom_conversion;
+
+    let total_generation = utilityFactor.non_renewables + utilityFactor.renewables;
+    let renewable_energy_use_amount = usage * (utilityFactor.renewables / total_generation);
+    let nonrenewable_energy_use_amount = usage * (utilityFactor.non_renewables / total_generation);
+    let year = utilityFactor.year;
+
+    return {
+      emissions: {
+        value: emissions,
+        uom: emssions_uom,
+      },
+      division_type: division_type,
+      division_id: division_id,
+      renewable_energy_use_amount: renewable_energy_use_amount,
+      nonrenewable_energy_use_amount: nonrenewable_energy_use_amount,
+      year: year,
+    };
+  }
+
   async importUtilityFactor(
     ctx,
     uuid,
@@ -311,7 +332,7 @@ class EmissionsRecordContract extends Contract {
       state_province,
       divisions
     );
-    await ctx.utilityLookupList.updateUtilityLookupItem(utilityIdentifier, uuid);
+    await ctx.utilityLookupList.addUtilityLookupItem(utilityIdentifier, uuid);
     return utilityIdentifier;
   }
 
@@ -325,8 +346,14 @@ class EmissionsRecordContract extends Contract {
       state_province,
       divisions
     );
-    await ctx.utilityLookupList.addUtilityLookupItem(utilityIdentifier, uuid);
+    await ctx.utilityLookupList.updateUtilityLookupItem(utilityIdentifier, uuid);
     return utilityIdentifier;
+  }
+
+  async getUtilityIndentifier(ctx, uuid) {
+    let utilityIndentifier = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
+
+    return utilityIndentifier;
   }
 
   async getAllUtilityIndentifiers(ctx) {

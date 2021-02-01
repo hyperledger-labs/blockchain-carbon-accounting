@@ -151,7 +151,7 @@ class UtilityEmissionsFactorList extends StateList {
 // Class for utility emissions factor list (within list)
 class UtilityLookupList extends StateList {
   constructor(ctx) {
-    super(ctx, "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactorlist");
+    super(ctx, "org.hyperledger.blockchain-carbon-accounting.utilitylookuplist");
     this.use(UtilityLookupItem);
   }
   async addUtilityLookupItem(utilityLookupItem, uuid) {
