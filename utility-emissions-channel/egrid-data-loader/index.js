@@ -580,7 +580,7 @@ function get_co2_emissions(utility, thru_date, usage, opts) {
 
 function get_emissions_factor(utility, thru_date, opts) {
   let args = `["${utility}","${thru_date}"]`;
-  invokeChaincode("getEmissionsFactor", args, callback);
+  invokeChaincode("getEmissionsFactor", args, ()=>{});
 }
 
 // old - delete me
