@@ -179,7 +179,8 @@ class EmissionsRecordContract extends Contract {
     return emissionsRecord;
   }
 
-  async getUtilityFactor(ctx, uuid, thruDate) {
+  // replaces get_emmissions_factor in emissions-calc.js
+  async getEmissionsFactor(ctx, uuid, thruDate) {
     let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
     // create division object used for later query into utilityEmissionsFactorList
@@ -215,6 +216,7 @@ class EmissionsRecordContract extends Contract {
     return utilityFactors;
   }
 
+  // replaces get_co2_emissions in emissions-calc.js
   async getCo2Emissions(ctx, uuid, thruDate, usage) {
     let utilityFactor = await this.getUtilityFactor(ctx, uuid, thruDate);
 
@@ -350,16 +352,16 @@ class EmissionsRecordContract extends Contract {
     return utilityIdentifier;
   }
 
-  async getUtilityIndentifier(ctx, uuid) {
+  async getUtilityIdentifier(ctx, uuid) {
     let utilityIndentifier = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
-    return utilityIndentifier;
+    return utilityIdentifier;
   }
 
-  async getAllUtilityIndentifiers(ctx) {
+  async getAllUtilityIdentifiers(ctx) {
     let utilityIndentifiers = await ctx.utilityLookupList.getAllUtilityLookupItems();
 
-    return utilityIndentifiers;
+    return utilityIdentifiers;
   }
 }
 

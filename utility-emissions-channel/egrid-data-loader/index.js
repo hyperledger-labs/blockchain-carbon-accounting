@@ -349,7 +349,7 @@ function parse_worksheet(file_name, opts, cb) {
   });
 }
 
-function invokeChaincode(funct, args) {
+function invokeChaincode(funct, args, callback) {
   let command_formatted = `cd ../docker-compose-setup && sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
   console.log(`Calling ${command_formatted}\n`);
   exec(command_formatted, (error, stdout, stderr) => {
@@ -363,6 +363,7 @@ function invokeChaincode(funct, args) {
     }
     console.log(`stdout: ${stdout}`);
   });
+  return callback();
 }
 
 function import_utility_emissions(file_name, opts) {
@@ -409,7 +410,7 @@ function import_utility_emissions(file_name, opts) {
         let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${division_name_formatted},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
 
         // insert into chaincode
-        invokeChaincode("importUtilityFactor", args);
+        invokeChaincode("importUtilityFactor", args, callback);
       });
     });
   } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18") {
@@ -442,7 +443,7 @@ function import_utility_emissions(file_name, opts) {
         let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
 
         // insert into chaincode
-        invokeChaincode("importUtilityFactor", args);
+        invokeChaincode("importUtilityFactor", args, callback);
       });
     });
   } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18") {
@@ -475,7 +476,7 @@ function import_utility_emissions(file_name, opts) {
         let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
 
         // insert into chaincode
-        invokeChaincode("importUtilityFactor", args);
+        invokeChaincode("importUtilityFactor", args, callback);
       });
     });
   } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
@@ -511,7 +512,7 @@ function import_utility_emissions(file_name, opts) {
         let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
 
         // insert into chaincode
-        invokeChaincode("importUtilityFactor", args);
+        invokeChaincode("importUtilityFactor", args, callback);
       });
     });
   } else {
@@ -552,7 +553,7 @@ function import_utility_identifiers(file_name, opts) {
       let args = `["${JSON.stringify(d.uuid)}","${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
 
       // insert into chaincode
-      invokeChaincode("importUtilityIdentifier", args);
+      invokeChaincode("importUtilityIdentifier", args, callback);
     });
   });
 }
@@ -579,7 +580,7 @@ function get_co2_emissions(utility, thru_date, usage, opts) {
 
 function get_emissions_factor(utility, thru_date, opts) {
   let args = `["${utility}","${thru_date}"]`;
-  invokeChaincode("getUtilityFactor", args);
+  invokeChaincode("getEmissionsFactor", args, callback);
 }
 
 // old - delete me
