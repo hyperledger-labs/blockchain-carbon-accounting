@@ -61,15 +61,7 @@ sh ./scripts/reset.sh && sh start.sh
 
 ---
 
-#### Play with the chaincode and have a look at the blockchain-explorer.
-
-1. With the app running, exec into the Cli container:
-
-```bash
-docker exec -ti cli bash
-```
-
-2. Invoke chaincode with peer binaries
+#### Recording emissions by invokeChaincode script
 
 ```shell
 # Record emission to utilityemissionchannel
