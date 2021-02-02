@@ -219,20 +219,24 @@ class EmissionsRecordContract extends Contract {
 
   // replaces get_co2_emissions in emissions-calc.js
   async getCo2Emissions(ctx, uuid, thruDate, usage) {
-    let utilityFactor = await this.getUtilityFactor(ctx, uuid, thruDate);
+    let utilityFactorCall = await this.getEmissionsFactor(ctx, uuid, thruDate);
+    let utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
 
     let usage_uom = "KWH";
-    let emssions_uom = "tc02e";
+    let emissions_uom = "tc02e";
+
+    let net_generation_uom = utilityFactor.net_generation_uom;
+    let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom;
 
     let division_type = utilityFactor.division_type;
     let division_id = utilityFactor.division_id;
 
-    let usage_uom_conversion = EmissionsCalc.get_uom_factor(usage_uom) / EmissionsCalc.get_uom_factor(res.Net_Generation_UOM);
+    let usage_uom_conversion = EmissionsCalc.get_uom_factor(usage_uom) / EmissionsCalc.get_uom_factor(net_generation_uom);
     let emissions_uom_conversion =
-      EmissionsCalc.get_uom_factor(utilityFactor.co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emssions_uom);
+      EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emissions_uom);
 
     let emissions =
-      (Number(utilityFactor.CO2_Equivalent_Emissions) / Number(utilityFactor.Net_Generation)) *
+      (Number(utilityFactor.co2_equivalent_emissions) / Number(utilityFactor.net_generation)) *
       usage *
       usage_uom_conversion *
       emissions_uom_conversion;
@@ -245,7 +249,7 @@ class EmissionsRecordContract extends Contract {
     return {
       emissions: {
         value: emissions,
-        uom: emssions_uom,
+        uom: emissions_uom,
       },
       division_type: division_type,
       division_id: division_id,

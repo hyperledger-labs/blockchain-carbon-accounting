@@ -26,34 +26,6 @@ const { exec } = require("child_process");
 
 yargs
   .command(
-    "initdb",
-    "initialize the Database",
-    (yargs) => {},
-    (argv) => {
-      initdb(argv);
-    }
-  )
-  .command(
-    "deletedb",
-    "delete the Database",
-    (yargs) => {},
-    (argv) => {
-      deletedb(argv);
-    }
-  )
-  .command(
-    "list [table]",
-    "list the data from the Database",
-    (yargs) => {
-      yargs.positional("table", {
-        describe: "the DB table to list from",
-      });
-    },
-    (argv) => {
-      list_data(argv);
-    }
-  )
-  .command(
     "load_utility_emissions <file> <sheet>",
     "load data from XLSX file",
     (yargs) => {
@@ -153,136 +125,6 @@ yargs
   .recommendCommands()
   .showHelpOnFail(true)
   .strict().argv;
-
-function _create_db_table(db, opts, params, updateParams) {
-  return new Promise(function(resolve, reject) {
-    opts.verbose && console.log("-- Creating Table " + params.TableName + " ...");
-    db.createTable(params, function(err, data) {
-      if (err) {
-        if (updateParams && err && err.code === "ResourceInUseException") {
-          opts.verbose && console.log("-- Table exists, running the update instead...");
-          db.updateTable(updateParams, function(err, data) {
-            if (err) {
-              console.error("Unable to create table " + params.TableName + ". Error:", err);
-              return reject(err);
-            } else {
-              opts.verbose && console.log("-- Updated Table description:", data);
-              return resolve(data);
-            }
-          });
-        } else if (
-          (updateParams && err && err.code === "NetworkingError") ||
-          (updateParams && err && err.code === "UnknownEndpoint")
-        ) {
-          console.error(
-            "Failed to connect to dynamodb. If running locally, make sure that the dynamodb is started. Check your aws-config.js to be sure that the proper endpoint is present for seeding."
-          );
-          return resolve();
-        } else {
-          console.log(err.code);
-          console.error("Table " + params.TableName + " already exists.");
-          return resolve();
-        }
-      } else {
-        console.log("Created table " + params.TableName + ".");
-        opts.verbose && console.log("-- Table description:", data);
-        return resolve(data);
-      }
-    });
-  });
-}
-
-async function initdb(opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
-  opts.verbose && console.log("Creating DB tables...");
-
-  try {
-    await _create_db_table(
-      db,
-      opts,
-      {
-        TableName: "UTILITY_EMISSION_FACTORS",
-        AttributeDefinitions: [
-          { AttributeName: "_id", AttributeType: "S" },
-          { AttributeName: "Division_id", AttributeType: "S" },
-          { AttributeName: "Division_type", AttributeType: "S" },
-        ],
-        KeySchema: [{ AttributeName: "_id", KeyType: "HASH" }],
-        BillingMode: "PAY_PER_REQUEST",
-        GlobalSecondaryIndexes: [
-          {
-            IndexName: "DIVISON_LOOKUP",
-            KeySchema: [
-              { AttributeName: "Division_id", KeyType: "HASH" },
-              { AttributeName: "Division_type", KeyType: "RANGE" },
-            ],
-            Projection: { ProjectionType: "ALL" },
-          },
-        ],
-      },
-      {
-        TableName: "UTILITY_EMISSION_FACTORS",
-        AttributeDefinitions: [
-          { AttributeName: "_id", AttributeType: "S" },
-          { AttributeName: "Division_id", AttributeType: "S" },
-          { AttributeName: "Division_type", AttributeType: "S" },
-        ],
-        BillingMode: "PAY_PER_REQUEST",
-        GlobalSecondaryIndexUpdates: [
-          {
-            Create: {
-              IndexName: "DIVISON_LOOKUP",
-              KeySchema: [
-                { AttributeName: "Division_id", KeyType: "HASH" },
-                { AttributeName: "Division_type", KeyType: "RANGE" },
-              ],
-              Projection: { ProjectionType: "ALL" },
-            },
-          },
-        ],
-      }
-    );
-  } catch (err) {}
-
-  try {
-    await _create_db_table(
-      db,
-      opts,
-      {
-        TableName: "UTILITY_LOOKUP",
-        AttributeDefinitions: [{ AttributeName: "_id", AttributeType: "S" }],
-        KeySchema: [{ AttributeName: "_id", KeyType: "HASH" }],
-        BillingMode: "PAY_PER_REQUEST",
-      },
-      {
-        TableName: "UTILITY_LOOKUP",
-        AttributeDefinitions: [{ AttributeName: "_id", AttributeType: "S" }],
-        BillingMode: "PAY_PER_REQUEST",
-      }
-    );
-  } catch (err) {}
-}
-
-function deletedb(opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
-  opts.verbose && console.log("Deleting DB...");
-  db.deleteTable({ TableName: "UTILITY_EMISSION_FACTORS" }, function(err, data) {
-    if (err) {
-      console.error("Unable to delete table UTILITY_EMISSION_FACTORS. Error:", err);
-    } else {
-      console.log("Deleted table UTILITY_EMISSION_FACTORS.");
-      opts.verbose && console.log("-- Table description:", data);
-    }
-  });
-  db.deleteTable({ TableName: "UTILITY_LOOKUP" }, function(err, data) {
-    if (err) {
-      console.error("Unable to delete table UTILITY_LOOKUP. Error:", err);
-    } else {
-      console.log("Deleted table UTILITY_LOOKUP.");
-      opts.verbose && console.log("-- Table description:", data);
-    }
-  });
-}
 
 function parse_worksheet(file_name, opts, cb) {
   opts.verbose && console.log("Reading file ...  ", file_name);
@@ -543,85 +385,11 @@ function import_utility_identifiers(file_name, opts) {
 }
 
 function get_co2_emissions(utility, thru_date, usage, opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
-  EmissionsCalc.get_co2_emissions(db, utility, thru_date, usage, opts)
-    .then((res) => {
-      console.log(
-        "Got Utility CO2 Emissions for " +
-          usage +
-          " " +
-          opts.usage_uom +
-          " for utility [" +
-          utility +
-          "] and date " +
-          thru_date +
-          ": ",
-        res
-      );
-    })
-    .catch((err) => console.error(err));
+  let args = `["${utility}","${thru_date}","${usage}"]`;
+  invokeChaincode("getCo2Emissions", args, ()=>{});
 }
 
 function get_emissions_factor(utility, thru_date, opts) {
   let args = `["${utility}","${thru_date}"]`;
   invokeChaincode("getEmissionsFactor", args, ()=>{});
-}
-
-function list_data(opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
-  if (opts.table) {
-    opts.verbose && console.log("Listing data tables ...");
-    console.log("UTILITY_EMISSION_FACTORS");
-    console.log("UTILITY_LOOKUP");
-  } else {
-    opts.verbose && console.log("Listing data from [" + opts.table + "] ...");
-  }
-  if (opts.table) {
-    db.scan({ TableName: opts.table }, function(err, data) {
-      if (err) console.log(err, err.stack);
-      // an error occurred
-      else console.log(data.Items); // successful response
-    });
-  } else {
-    db.listTables({}, function(err, data) {
-      if (err) console.log(err, err.stack);
-      // an error occurred
-      else console.log(data); // successful response
-    });
-  }
-}
-
-function _db_insert(db, opts, d, callback) {
-  opts.verbose && console.log("-- TRY INSERT ", d);
-  db.putItem(d, function(err, data) {
-    if (err) {
-      console.error("Unable to insert", d.Item._id.S, ". Error:", err);
-    } else {
-      console.log("Imported document [", d.Item._id.S + "]");
-    }
-    return callback();
-  });
-}
-
-function db_insert(db, opts, d, callback) {
-  // Note: on large imports this can overload the DB with opened file as
-  // the data is written to disk, to workaround that wrap the insert into
-  // a retry loop
-  // try calling apiMethod 10 times with exponential backoff
-  // (i.e. intervals of 100, 200, 400, 800, 1600, ... milliseconds)
-  async.retry(
-    {
-      times: 5,
-      interval: function(retryCount) {
-        return 50 * Math.pow(2, retryCount);
-      },
-    },
-    (cb) => {
-      _db_insert(db, opts, d, cb);
-    },
-    (err) => {
-      if (err) console.error("ERROR Inserting Document [" + d["_id"] + "]", err);
-      return callback(err);
-    }
-  );
 }

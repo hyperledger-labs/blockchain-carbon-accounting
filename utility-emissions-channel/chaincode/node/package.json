@@ -20,8 +20,7 @@
     "dependencies": {
         "aws-sdk": "^2.761.0",
         "fabric-contract-api": "^2.0.0",
-        "fabric-shim": "^2.0.0",
-        "xlsx": "^0.16.9"
+        "fabric-shim": "^2.0.0"
     },
     "devDependencies": {
         "chai": "^4.1.2",

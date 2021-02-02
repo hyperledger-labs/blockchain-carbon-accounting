@@ -1,54 +1,37 @@
 # egrid-data-loader
 
-This project imports the Data from https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip into Amazon DynamoDB.
+This project imports the Data from https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip into the Fabric network. Install the dependencies with `npm`:
 
-# Requirements
+    $ npm install
 
-1. Install the dependencies with `npm`::
+# Steps to seed the Fabric database
 
-   \$ npm install
-
-# Setup AWS credentials
-
-### Running Locally
-
-1. If running locally, the only config change is to set AWS_ENDPOINT in aws-config.js to http://localhost:8001
-
-2. After following the seeding instructions under "Running the Code", set AWS_ENDPOINT back to "http://localdynamodb:8001"
-
-### Running Remotely
-
-1. If running remotely, set AWS_ENDPOINT in aws-config.js to your respective aws dynamodb endpoint.
-
-# Running the Code
-
-Make sure to setup the AWS credentials in `chaincode/node/lib/aws-config.js`::
-exports.AWS_ACCESS_KEY_ID = 'your_access_key';
-exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
-
-Initialize the database::
-
-    $ node index.js initdb
-
-Download and extract the data from https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip, for example::
+1. Download and extract the data:
 
     $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
     $ unzip egrid2018_all_files.zip
 
-Load utility emssions data from the XLSX files, for now two different sheets are supported::
+2. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and unzip:
+
+    $ wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+    $ unzip f8612019.zip
+
+3. Load utility emissions data from the XLSX files (for now two different sheets are supported):
 
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
 
-Download the utility identifiers from https://www.eia.gov/electricity/data/eia861/ Unzip and load utility lookup data from the XLSX file Utility_Data_2019_Data_Early_Release.xlsx ::
+4. Unzip and load utility lookup data from the XLSX file Utility_Data_2019.xlsx:
 
     $ node index.js load_utility_identifiers Utility_Data_2019.xlsx
 
-See the data that was loaded::
+## Viewing the data
 
-    $ node index.js list
+Check the CouchDB interface at `http://localhost:5984/_utils/` to see new records added under the database utilityemissionchannel_emissionscontract.
 
-Query for emssions factor for a given utility from its utility number and year, for example::
+## Testing get_emissions_factor and get_co2_emissions
+
+Query the chaincode for an emissions factor for a given utility from its utility number and year to test if imports were successful, for example:
 
     $ node index.js get_emissions_factor 34 2018
 

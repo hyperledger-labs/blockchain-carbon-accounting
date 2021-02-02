@@ -16,17 +16,11 @@ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.j
 ```js
     exports.AWS_ACCESS_KEY_ID = 'your_access_key';
     exports.AWS_SECRET_ACCESS_KEY = 'your_secret_key';
-    exports.AWS_REGION = "us-east-1";
-    exports.AWS_ENDPOINT = "https://dynamodb.us-east-1.amazonaws.com";
     exports.S3_LOCAL = true;
     exports.BUCKET_NAME = "local-bucket";
 ```
 
-4. Install the chaincode dependencies (from `utility-emissions-channel/`):
-
-```bash
-cd ./chaincode/node/ && npm install && cd ../..
-```
+4. Follow the instructions in `utility-emissions-channel/egrid-data-loader/` to seed the Fabric network with emissions data to pull from when recording emissions.
 
 5. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
