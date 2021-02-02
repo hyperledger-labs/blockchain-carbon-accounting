@@ -183,27 +183,28 @@ class EmissionsRecordContract extends Contract {
   async getEmissionsFactor(ctx, uuid, thruDate) {
     let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
-    // create division object used for later query into utilityEmissionsFactorList
+    // create newDivision object used for later query into utilityEmissionsFactorList
     let hasStateData = utilityLookup.state_province;
-    let isNercRegion = utilityLookup.divisions.division_type === "NERC_REGION";
-    let division;
+    let fetchedDivisions = JSON.parse(utilityLookup.divisions)
+    let isNercRegion = fetchedDivisions.division_type === "NERC_REGION";
+    let newDivision;
     if (hasStateData) {
-      division = { division_id: utilityLookup.state_province, division_type: "STATE" };
+      newDivision = { division_id: utilityLookup.state_province, division_type: "STATE" };
     } else if (isNercRegion) {
-      division = utilityLookup.divisions;
+      newDivision = fetchedDivisions;
     } else {
-      division = { division_id: "USA", division_type: "COUNTRY" };
+      newDivision = { division_id: "USA", division_type: "COUNTRY" };
     }
 
-    // check if new division object has ID
-    if (!division.division_id) {
+    // check if newDivision object has ID
+    if (!newDivision.division_id) {
       return reject("Utility [" + uuid + "] does not have a Division ID");
     }
 
     // get utility emissions factors with division_type and division_id
     let params = {
-      division_id: division.division_id,
-      division_type: division.division_type
+      division_id: newDivision.division_id,
+      division_type: newDivision.division_type
     };
 
     // filter matching year if found

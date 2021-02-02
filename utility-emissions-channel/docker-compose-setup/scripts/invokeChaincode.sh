@@ -15,7 +15,7 @@ export FABRIC_CFG_PATH=$PWD/config/
 export PATH=${PWD}/bin:$PATH
 
 # import utils
-. scripts/envVar.sh
+. scripts/envVar.sh true
 
 fcn_call=$1
 shift

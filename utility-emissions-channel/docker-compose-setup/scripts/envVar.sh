@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ARG1=${1:-false} # if first arg set to true, then use localhost for CORE_PEER_ADDRESS. otherwise, use default address
+
 export CORE_PEER_TLS_ENABLED=true
 export ORDERER_AUDITOR1_CA=${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp/tlscacerts/tlsca.auditor1.carbonAccounting.com-cert.pem
 export PEER1_AUDITOR1_CA=${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt
@@ -26,17 +28,29 @@ setGlobals() {
     export CORE_PEER_LOCALMSPID="auditor1"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR1_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/Admin@auditor1.carbonAccounting.com/msp
-    export CORE_PEER_ADDRESS=peer1.auditor1.carbonAccounting.com:7051
+    if [ "$ARG1" = true ]; then
+      export CORE_PEER_ADDRESS=localhost:7051
+    else
+      export CORE_PEER_ADDRESS=peer1.auditor1.carbonAccounting.com:7051
+    fi
   elif [ $USING_ORG -eq 2 ]; then
     export CORE_PEER_LOCALMSPID="auditor2"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR2_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/users/Admin@auditor2.carbonAccounting.com/msp
-    export CORE_PEER_ADDRESS=peer1.auditor2.carbonAccounting.com:8051
+    if [ "$ARG1" = true ]; then
+      export CORE_PEER_ADDRESS=localhost:8051
+    else
+      export CORE_PEER_ADDRESS=peer1.auditor2.carbonAccounting.com:8051
+    fi
   elif [ $USING_ORG -eq 3 ]; then
     export CORE_PEER_LOCALMSPID="auditor3"
     export CORE_PEER_TLS_ROOTCERT_FILE=$PEER1_AUDITOR3_CA
     export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/auditor3.carbonAccounting.com/users/Admin@auditor3.carbonAccounting.com/msp
-    export CORE_PEER_ADDRESS=localhost:9051
+    if [ "$ARG1" = true ]; then
+      export CORE_PEER_ADDRESS=localhost:9051
+    else
+      export CORE_PEER_ADDRESS=peer1.auditor3.carbonAccounting.com:9051
+    fi
   else
     echo "================== ERROR !!! ORG Unknown =================="
   fi
