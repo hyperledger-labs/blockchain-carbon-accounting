@@ -12,16 +12,16 @@ ORG_DOMAIN=opensolarx.com
 #### fabric-ca variables
 CA_DOMAIN="fabric-ca.${ORG_DOMAIN}"
 CA_ADMIN_USERNAME=admin
-CA_ADMIN_PASSWORD=uaz0veu4Vei2theNgi
+CA_ADMIN_PASSWORD=niiP9Aro2eel
 #### fabric peer
 PEER_DOMAIN="fabric-peer.${ORG_DOMAIN}"
-PEER_SECRET=ohb7ohngalah4Axa1i
+PEER_SECRET=azuth5AhRuth
 #### fabric orderer
 ORDERER_DOMAIN="fabric-orderer.${ORG_DOMAIN}"
-ORDERER_SECRET=voagaicu3quai1sheG
+ORDERER_SECRET=ashal4uFieBa
 #### org admin (ORD_ADMIN must be different from CA_ADMIN_USERNAME)
 ORD_ADMIN=opensolarx_org_admin 
-ORG_ADMIN_SECRET=iathidaiWoo1
+ORG_ADMIN_SECRET=EiDi2ohpheeR
 
 export FABRIC_CA_CLIENT_TLS_CERTFILES=${PWD}/crypto-material/${ORG_DOMAIN}/fabric-ca/tls-cert.pem
 
