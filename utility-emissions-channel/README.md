@@ -73,10 +73,10 @@ docker exec -ti cli bash
 
 ```shell
 # Record emission to utilityemissionchannel
-./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["11208","MyCompany","2018-06-01","2018-06-30","150","KWH"]}' 1 2 3
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["1","11208","MyCompany","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
 
 # Query emission data
-./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["11208","MyCompany","2018-06-01","2018-06-30"]}' 1
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["1"]}' 1
 ```
 
 ## Start Express server (REST API)

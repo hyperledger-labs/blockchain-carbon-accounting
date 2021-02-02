@@ -21,7 +21,7 @@ This project imports the Data from https://www.epa.gov/sites/production/files/20
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
 
-4. Unzip and load utility lookup data from the XLSX file Utility_Data_2019.xlsx:
+4. Load utility lookup data from the XLSX file Utility_Data_2019.xlsx:
 
     $ node index.js load_utility_identifiers Utility_Data_2019.xlsx
 
