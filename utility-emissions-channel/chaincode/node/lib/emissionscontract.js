@@ -184,12 +184,12 @@ class EmissionsRecordContract extends Contract {
     let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
     // create newDivision object used for later query into utilityEmissionsFactorList
-    let hasStateData = utilityLookup.state_province;
-    let fetchedDivisions = JSON.parse(utilityLookup.divisions)
+    let hasStateData = JSON.parse(utilityLookup).state_province;
+    let fetchedDivisions = JSON.parse(utilityLookup).divisions;
     let isNercRegion = fetchedDivisions.division_type === "NERC_REGION";
     let newDivision;
     if (hasStateData) {
-      newDivision = { division_id: utilityLookup.state_province, division_type: "STATE" };
+      newDivision = { division_id: JSON.parse(utilityLookup).state_province, division_type: "STATE" };
     } else if (isNercRegion) {
       newDivision = fetchedDivisions;
     } else {
@@ -202,17 +202,17 @@ class EmissionsRecordContract extends Contract {
     }
 
     // get utility emissions factors with division_type and division_id
-    let params = {
+    let queryParams = {
       division_id: newDivision.division_id,
       division_type: newDivision.division_type
     };
 
     // filter matching year if found
     let year = EmissionsCalc.get_year_from_date(thruDate);
-    if (year) { params.year = year }
+    if (year) { queryParams.year = year.toString() }
 
     // query emissions factors
-    let utilityFactors = await ctx.utilityEmissionsFactorList.getUtilityEmissionsFactorsByDivision(uuid);
+    let utilityFactors = await ctx.utilityEmissionsFactorList.getUtilityEmissionsFactorsByDivision(queryParams);
 
     return utilityFactors;
   }

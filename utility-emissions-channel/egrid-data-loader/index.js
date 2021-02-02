@@ -101,22 +101,6 @@ yargs
       import_utility_identifiers(argv.file, argv);
     }
   )
-  .command( // delete
-    "get_emmissions_factor <utility> <thru_date>",
-    "get Utility Emissions Factors",
-    (yargs) => {
-      yargs
-        .positional("utility", {
-          describe: "the Utility Number",
-        })
-        .positional("thru_date", {
-          describe: "thru date in YYYY-mm-dd, dd-mm-YYYY, YYYY/mm/dd or dd/mm/YYYY",
-        });
-    },
-    (argv) => {
-      get_emmissions_factor(argv.utility, argv.thru_date, argv);
-    }
-  )
   .command(
     "get_emissions_factor <utility> <thru_date>",
     "get Utility Emissions Factors",
@@ -581,20 +565,6 @@ function get_co2_emissions(utility, thru_date, usage, opts) {
 function get_emissions_factor(utility, thru_date, opts) {
   let args = `["${utility}","${thru_date}"]`;
   invokeChaincode("getEmissionsFactor", args, ()=>{});
-}
-
-// old - delete me
-function get_emmissions_factor(utility, thru_date, opts) {
-  const db = EmissionsCalc.connectdb(AWS, opts);
-  EmissionsCalc.get_emmissions_factor(db, utility, thru_date, opts)
-    .then((res) => {
-      if (res) {
-        console.log("Got Utility Emissions Factors for utility [" + utility + "] and date " + thru_date + ": ", res);
-      } else {
-        console.log("No Utility Emissions Factors for utility [" + utility + "] and date " + thru_date + " found");
-      }
-    })
-    .catch((err) => console.error(err));
 }
 
 function list_data(opts) {

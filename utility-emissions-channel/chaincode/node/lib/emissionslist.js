@@ -33,7 +33,19 @@ class EmissionsList extends StateList {
 
   async getAllEmissionsDataByDateRange(queryData) {
     const allResults = [];
-    var stringQuery = `{"selector": {"fromDate": {"$gte": "${queryData.fromDate}"}, "thruDate": {"$lte": "${queryData.thruDate}"}}}`;
+    var stringQuery = `{
+      "selector": {
+        "class": {
+           "$eq": "org.hyperledger.blockchain-carbon-accounting.emissionsrecord"
+        },
+        "fromDate": {
+          "$gte": "${queryData.fromDate}"
+        }, 
+        "thruDate": {
+          "$lte": "${queryData.thruDate}"
+        }
+      }
+    }`;
     const iterator = await this.ctx.stub.getQueryResult(stringQuery);
     let result = await iterator.next();
     while (!result.done) {

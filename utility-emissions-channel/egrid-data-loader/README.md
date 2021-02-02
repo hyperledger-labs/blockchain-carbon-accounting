@@ -50,9 +50,9 @@ See the data that was loaded::
 
 Query for emssions factor for a given utility from its utility number and year, for example::
 
-    $ node index.js get_emmissions_factor 34 2018
+    $ node index.js get_emissions_factor 34 2018
 
-    $ node index.js get_emmissions_factor 11208 2018
+    $ node index.js get_emissions_factor 11208 2018
 
 Query for CO2 emssions factor for a given utility given the usage, for example::
 

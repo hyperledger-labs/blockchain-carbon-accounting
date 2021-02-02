@@ -125,9 +125,36 @@ class UtilityEmissionsFactorList extends StateList {
     // docs on query: https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query
     let stringQuery;
     if (queryData.year) {
-        let stringQuery =  `{"selector" : {"division_id" : {"$eq": "${queryData.division_id}"}, "division_type": {"$eq": "${queryData.division_type}"}, "year": {"$eq": "${queryData.year}"}}}`
+      stringQuery =  `{
+        "selector" : {
+          "class": {
+             "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
+          },
+          "division_id" : {
+            "$eq": "${queryData.division_id}"
+          },
+          "division_type": {
+            "$eq": "${queryData.division_type}"
+          },
+          "year": { 
+            "$eq": "${queryData.year}"
+        }
+        }
+      }`;
     } else {
-        let stringQuery =  `{"selector" : {"division_id" : {"$eq": "${queryData.division_id}"}, "division_type": {"$eq": "${queryData.division_type}"}}}`
+      stringQuery =  `{
+        "selector" : {
+          "class": {
+             "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
+          },
+          "division_id" : {
+            "$eq": "${queryData.division_id}"
+          },
+          "division_type": {
+            "$eq": "${queryData.division_type}"
+          }
+        }
+      }`;
     }
     let iterator = await this.ctx.stub.getQueryResult(stringQuery);
     let results = [];
