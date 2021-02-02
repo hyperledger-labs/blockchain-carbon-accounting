@@ -1,6 +1,6 @@
 # egrid-data-loader
 
-This project imports the Data from https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip into the Fabric network. Install the dependencies with `npm`:
+This project imports data curated by the U.S. Environmental Protection Agency and U.S. Energy Information Administration into the Fabric network for use of recording emissions data. Install the dependencies with `npm`:
 
     $ npm install
 
@@ -9,16 +9,19 @@ This project imports the Data from https://www.epa.gov/sites/production/files/20
 1. Download and extract the data:
 
     $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+
     $ unzip egrid2018_all_files.zip
 
 2. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and unzip:
 
     $ wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+
     $ unzip f8612019.zip
 
 3. Load utility emissions data from the XLSX files (for now two different sheets are supported):
 
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+
     $ node index.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
 
 4. Load utility lookup data from the XLSX file Utility_Data_2019.xlsx:
