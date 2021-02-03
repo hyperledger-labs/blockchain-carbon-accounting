@@ -22,7 +22,7 @@ const NAME_MAPPINGS = require("./abrevToName.js");
 
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
-const { exec } = require("child_process");
+const { execSync } = require("child_process");
 
 yargs
   .command(
@@ -176,9 +176,10 @@ function parse_worksheet(file_name, opts, cb) {
 }
 
 function invokeChaincode(funct, args, callback) {
-  let command_formatted = `cd ../docker-compose-setup && sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
+  let command_formatted = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
+  let options = { cwd: "../docker-compose-setup" }
   console.log(`Calling ${command_formatted}\n`);
-  exec(command_formatted, (error, stdout, stderr) => {
+  execSync(command_formatted, options, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
       return;
