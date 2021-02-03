@@ -30,7 +30,31 @@ This project imports data curated by the U.S. Environmental Protection Agency an
 
 ## Viewing the data
 
-Check the CouchDB interface at `http://localhost:5984/_utils/` to see new records added under the database utilityemissionchannel_emissionscontract.
+Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) to see new records added under the database utilityemissionchannel_emissionscontract. More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find`](http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find) (see [here](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query) for more information on running Mango queries).
+
+To search for utility emissions, run the Mango query:
+
+```json
+{
+   "selector": {
+      "class": {
+         "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
+      }
+   }
+}
+```
+
+To search for utility identifiers, run the Mango query:
+
+```json
+{
+   "selector": {
+      "class": {
+         "$eq": "org.hyperledger.blockchain-carbon-accounting.utilitylookupitem"
+      }
+   }
+}
+```
 
 ## Testing get_emissions_factor and get_co2_emissions
 
