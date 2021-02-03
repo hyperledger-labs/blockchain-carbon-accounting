@@ -223,7 +223,7 @@ class EmissionsRecordContract extends Contract {
     let utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
 
     let usage_uom = "KWH";
-    let emissions_uom = "tc02e";
+    let emissions_uom = "tons";
 
     let net_generation_uom = utilityFactor.net_generation_uom;
     let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom;
