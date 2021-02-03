@@ -13,3 +13,10 @@ organizations/peerOrganizations/*
 system-genesis-block/*
 *.tar.gz
 log.txt
+node_modules
+*.zip
+*.xlsx
+*.csv
+*.txt
+*.pdf
+

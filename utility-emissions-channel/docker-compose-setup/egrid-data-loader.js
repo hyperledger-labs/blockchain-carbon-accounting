@@ -315,7 +315,7 @@ function import_utility_emissions(file_name, opts) {
         let d = {
           uuid: document_id,
           year: "" + row["Year"],
-          country: "USA",
+          country: countryName,
           division_type: "COUNTRY",
           division_id: row["CountryShort"],
           division_name: countryName,

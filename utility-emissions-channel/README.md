@@ -65,27 +65,34 @@ The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-c
 
     $ npm install
 
-###### 1. Download and extract the EPA data:
+1. Download and extract the EPA data:
 
-    $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+```bash
+    wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+    unzip egrid2018_all_files.zip
+```
 
-    $ unzip egrid2018_all_files.zip
+2. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
 
-###### 2. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
+```bash
+    wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+    unzip f8612019.zip
+```
 
-    $ wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+3. Download the data from the [European Environment Agency](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract:
 
-    $ unzip f8612019.zip
+```bash
+    unzip 2019-RES_proxies_EEA.zip
+```
 
-###### 3. Load utility emissions data from the XLSX files (for now two different sheets are supported):
+4. Load utility emissions and identifiers data from the files:
 
-    $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-
-    $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-
-###### 4. Load utility lookup data from the XLSX file Utility_Data_2019.xlsx:
-
-    $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+```bash
+    node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+    node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+    node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+    node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+```
 
 ### Viewing the seed data
 
