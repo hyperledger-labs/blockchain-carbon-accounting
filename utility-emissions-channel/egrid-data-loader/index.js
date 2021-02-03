@@ -365,12 +365,12 @@ function import_utility_identifiers(file_name, opts) {
         uuid: row["Utility Number"],
         year: row["Data Year"],
         utility_number: row["Utility Number"],
-        utility_name: row["Utility Name"],
+        utility_name: row["Utility Name"].replace(/\'/g,"`"),
         country: "USA",
         state_province: row["State"],
         divisions: {
           division_type: "NERC_REGION",
-          division_id: row["NERC Region"],
+          division_id: row["NERC Region"].replace(/ /g,"_"),
         },
       };
 
