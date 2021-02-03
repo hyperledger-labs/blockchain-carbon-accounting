@@ -249,7 +249,7 @@ function import_utility_emissions(file_name, opts) {
         if (row["Data Year"] == "YEAR") return callback();
         //opts.verbose && console.log('-- Prepare to insert from ', row);
         // generate a unique for the row
-        let document_id = "USA_ST_" + row["Data Year"] + "_NERC_REGION_" + row["State abbreviation"];
+        let document_id = "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
         let d = {
           uuid: document_id,
           year: "" + row["Data Year"],
