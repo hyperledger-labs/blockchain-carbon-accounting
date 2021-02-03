@@ -1,21 +1,16 @@
 /**
- * This is to manage the Database and test the method get_co2_emissions from the command line.
- *
- * Start by setting up the AWS credentials
- *  - in ../chaincode/node/lib/aws-config.js for an account that has DynamoDB access.
+ * This is to seed the Fabric data and test the method get_co2_emissions from the command line.
  *
  * Download the eGRID2 data, for example in a data/ directory
  * - eGRID2018_Data_v2.xlsx
  * - Utility_Data_2019_Data_Early_Release.xlsx
  *
- * - Run "node index.js initdb" to create the tables
  * - Run "node index.js load_utility_emissions data/eGRID2018_Data_v2.xlsx NRL18" to load the utility emissions data
  * - Run "node index.js load_utility_identifiers data/Utility_Data_2019_Data_Early_Release.xlsx" to load the utility lookup data
  * - Run "node index.js get_co2_emissions 11208 2018-05-21 3000" to test
  */
 
 const XLSX = require("xlsx");
-const AWS = require("aws-sdk");
 const async = require("async");
 const yargs = require("yargs");
 const NAME_MAPPINGS = require("./abrevToName.js");
@@ -176,9 +171,8 @@ function parse_worksheet(file_name, opts, cb) {
 
 function invokeChaincode(funct, args, callback) {
   let command_formatted = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
-  let options = { cwd: "../docker-compose-setup" }
   console.log(`Calling ${command_formatted}\n`);
-  execSync(command_formatted, options, (error, stdout, stderr) => {
+  execSync(command_formatted, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
       return;

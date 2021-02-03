@@ -20,15 +20,13 @@ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.j
     exports.BUCKET_NAME = "local-bucket";
 ```
 
-4. Follow the instructions in `utility-emissions-channel/egrid-data-loader/` to seed the Fabric network with emissions data to pull from when recording emissions.
-
-5. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
+4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
 cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
 ```
 
-6. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
+5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
 
 ```js
     export const PRIVATE_KEY = "private_key_of_ethereum_dealer_wallet";
@@ -37,7 +35,7 @@ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript
     export const INFURA_PROJECT_SECRET = "infura_secret";
 ```
 
-7.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
+6.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
 
 ```bash
 $ cd docker-compose-setup
@@ -48,7 +46,7 @@ Install binaries for linux distribution.
 $ ./bootstrap.sh  2.2.1 1.4.9 -d -s
 ```
 
-8. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+7. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
 
 Start network, create channel, and deployCC:
 
@@ -56,8 +54,81 @@ Start network, create channel, and deployCC:
 sh ./scripts/reset.sh && sh start.sh
 ```
 
+8. Follow the instructions under **Steps to seed the Fabric database** to initialize the Fabric network with emissions data to pull from when recording emissions.
+
 9. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
    '{"Args":["invoke","a","b","10"]}'
+
+## Steps to seed the Fabric database
+
+The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports data curated by the U.S. Environmental Protection Agency and U.S. Energy Information Administration into the Fabric network for use of recording emissions data. From `utility-emissions-channel/docker-compose-setup/`, first install the dependencies with `npm`:
+
+    $ npm install
+
+###### 1. Download and extract the EPA data:
+
+    $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+
+    $ unzip egrid2018_all_files.zip
+
+###### 2. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
+
+    $ wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+
+    $ unzip f8612019.zip
+
+###### 3. Load utility emissions data from the XLSX files (for now two different sheets are supported):
+
+    $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+
+    $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+
+###### 4. Load utility lookup data from the XLSX file Utility_Data_2019.xlsx:
+
+    $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+
+### Viewing the seed data
+
+Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) to see new records added under the database utilityemissionchannel_emissionscontract. More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find`](http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find) (see [here](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query) for more information on running Mango queries).
+
+To search for utility emissions, run the Mango query:
+
+```json
+{
+   "selector": {
+      "class": {
+         "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
+      }
+   }
+}
+```
+
+To search for utility identifiers, run the Mango query:
+
+```json
+{
+   "selector": {
+      "class": {
+         "$eq": "org.hyperledger.blockchain-carbon-accounting.utilitylookupitem"
+      }
+   }
+}
+```
+
+### Testing get_emissions_factor and get_co2_emissions
+
+`egrid-data-loader.js` also includes two functions for calling these two important hepler functions on the contract. Query the chaincode for an emissions factor for a given utility from its utility number and year to test if imports were successful, for example:
+
+    $ node egrid-data-loader.js get_emissions_factor 34 2018
+
+    $ node egrid-data-loader.js get_emissions_factor 11208 2018
+
+Query for CO2 emssions factor for a given utility given the usage, for example:
+
+    $ node egrid-data-loader.js get_co2_emissions 34 2018 1500 MWh
+
+    $ node egrid-data-loader.js get_co2_emissions 11208 2018 3000 MWh
+
 
 ---
 

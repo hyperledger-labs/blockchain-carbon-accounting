@@ -1,10 +1,10 @@
 *.DS_Store
 minifab/
 utility-emissions-channel/.project
-utility-emissions-channel/egrid-data-loader/*.xlsx
-utility-emissions-channel/egrid-data-loader/*.txt
-utility-emissions-channel/egrid-data-loader/*.pdf
 utility-emissions-channel/chaincode/node/node_modules
-utility-emissions-channel/chaincode/node/lib/*.xlsx
-utility-emissions-channel/chaincode/node/lib/*.txt
-utility-emissions-channel/chaincode/node/lib/*.pdf
+utility-emissions-channel/docker-compose-setup/node_modules
+utility-emissions-channel/docker-compose-setup/*.zip
+utility-emissions-channel/docker-compose-setup/*.xlsx
+utility-emissions-channel/docker-compose-setup/*.txt
+utility-emissions-channel/docker-compose-setup/*.pdf
+
