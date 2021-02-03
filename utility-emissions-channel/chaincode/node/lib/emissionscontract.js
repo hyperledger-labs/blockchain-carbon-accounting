@@ -241,7 +241,7 @@ class EmissionsRecordContract extends Contract {
       usage_uom_conversion *
       emissions_uom_conversion;
 
-    let total_generation = utilityFactor.non_renewables + utilityFactor.renewables;
+    let total_generation = Number(utilityFactor.non_renewables) + Number(utilityFactor.renewables);
     let renewable_energy_use_amount = usage * (utilityFactor.renewables / total_generation);
     let nonrenewable_energy_use_amount = usage * (utilityFactor.non_renewables / total_generation);
     let year = utilityFactor.year;
