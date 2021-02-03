@@ -69,7 +69,7 @@ class EmissionsRecordContract extends Contract {
    */
   async recordEmissions(ctx, uuid, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom, url, md5) {
     // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
-    let co2Emissions = await this.getCo2Emissions(ctx, utilityId, thruDate, energyUseAmount);
+    let co2Emissions = await this.getCo2Emissions(ctx, utilityId, thruDate, energyUseAmount, energyUseUom);
     let factor_source = `eGrid ${co2Emissions.year} ${co2Emissions.division_type} ${co2Emissions.division_id}`;
 
     // create an instance of the emissions record
@@ -218,11 +218,10 @@ class EmissionsRecordContract extends Contract {
   }
 
   // replaces get_co2_emissions in emissions-calc.js
-  async getCo2Emissions(ctx, uuid, thruDate, usage) {
+  async getCo2Emissions(ctx, uuid, thruDate, usage, usage_uom) {
     let utilityFactorCall = await this.getEmissionsFactor(ctx, uuid, thruDate);
     let utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
 
-    let usage_uom = "KWH";
     let emissions_uom = "tons";
 
     let net_generation_uom = utilityFactor.net_generation_uom;
