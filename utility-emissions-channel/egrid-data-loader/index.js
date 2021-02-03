@@ -90,7 +90,7 @@ yargs
     }
   )
   .command(
-    "get_co2_emissions <utility> <thru_date> <usage> [usage_uom] [emssions_uom]",
+    "get_co2_emissions <utility> <thru_date> <usage> <usage_uom> [emssions_uom]",
     "get Utility CO2 Emissions",
     (yargs) => {
       yargs
@@ -105,7 +105,6 @@ yargs
         })
         .positional("usage_uom", {
           describe: "the usage unit of measure",
-          default: "KWH",
         })
         .positional("emssions_uom", {
           describe: "the emissions unit of measure",
@@ -113,7 +112,7 @@ yargs
         });
     },
     (argv) => {
-      get_co2_emissions(argv.utility, argv.thru_date, argv.usage, argv);
+      get_co2_emissions(argv.utility, argv.thru_date, argv.usage, argv.usage_uom, argv);
     }
   )
   .option("verbose", {
@@ -385,8 +384,8 @@ function import_utility_identifiers(file_name, opts) {
   });
 }
 
-function get_co2_emissions(utility, thru_date, usage, opts) {
-  let args = `["${utility}","${thru_date}","${usage}"]`;
+function get_co2_emissions(utility, thru_date, usage, usage_uom, opts) {
+  let args = `["${utility}","${thru_date}","${usage}","${usage_uom}"]`;
   invokeChaincode("getCo2Emissions", args, ()=>{});
 }
 

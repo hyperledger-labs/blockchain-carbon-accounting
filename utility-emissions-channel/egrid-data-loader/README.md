@@ -64,8 +64,9 @@ Query the chaincode for an emissions factor for a given utility from its utility
 
     $ node index.js get_emissions_factor 11208 2018
 
-Query for CO2 emssions factor for a given utility given the usage, for example::
+Query for CO2 emssions factor for a given utility given the usage, for example:
 
-    $ node index.js get_co2_emissions 34 2018 1500
+    $ node index.js get_co2_emissions 34 2018 1500 MWh
 
-    $ node index.js get_co2_emissions 11208 2018 3000 MWh KG
+    $ node index.js get_co2_emissions 11208 2018 3000 MWh
+    
