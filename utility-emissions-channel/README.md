@@ -223,7 +223,7 @@ To shut down and then reset everything:
 $ sh ./scripts/reset.sh
 ```
 
-### Hyperledger explorer
+## Hyperledger explorer
 
 You can start Hyperledger Explorer by running this from `docker-compose-setup/` 
 ```bash
@@ -238,7 +238,19 @@ To stop it:
 $ ./network.sh stopBlockchainExplorer`
 ```
 
-## Automated Tests
+# Integrating with the Net Emissions Token Network integration 
+
+Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
+
+## Setting Up with Goerli Testnet
+
+Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
+* Set `IS_GOERLI` to `true`. 
+* Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
+
+Reset and restart the API if it is running.
+
+# Automated Tests
 
 We currently have a small test suite that will run the following tests via the API:
 
@@ -258,18 +270,6 @@ When the network/API has fully started, run the tests by navigating to the types
 ```bash
 $ sh runTests.sh
 ```
-
-# Integrating with the Net Emissions Token Network integration 
-
-Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
-
-## Setting Up with Goerli Testnet
-
-Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
-* Set `IS_GOERLI` to `true`. 
-* Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
-
-Reset and restart the API if it is running.
 
 After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
 
