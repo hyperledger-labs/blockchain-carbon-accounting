@@ -4,11 +4,11 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 
 # Running the Fabric network and Express API
 
-1. Install Prerequisites (Git, curl, Docker, Docker Compose) (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
+1. Make sure you have Git, curl, Docker, and Docker Compose installed, or follow instructions from [Hyperledger Fabric Install Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
 2. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
 
 ```bash
-cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
+$ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
 ```
 
 3. Fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
@@ -23,7 +23,7 @@ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.j
 4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
-cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
+$ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
 ```
 
 5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
@@ -35,7 +35,7 @@ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript
     export const INFURA_PROJECT_SECRET = "infura_secret";
 ```
 
-6.  Install Prerequisites (https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html) but don't install binaries. Follow the step below in order to get the right binaries.
+6.  Install the right binaries.  You will need the linux binaries to run inside of docker, as well as the binaries for your operating system.
 
 ```bash
 $ cd docker-compose-setup
@@ -45,8 +45,23 @@ Install binaries for linux distribution.
 ```bash
 $ ./bootstrap.sh  2.2.1 1.4.9 -d -s
 ```
+If you are using a Mac, you will also need to get the Mac binaries.  In a separate directory, follow the steps from [Hyperledger Fabric Install Samples and Binaries](https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html) to install `fabric-samples` with a `bin/` directory.  Then move that `bin/` directory over to a `bin_mac/` directory inside  `docker-compose-setup`.  For example, I had installed `fabric-samples` in a `hyperledger` directory, so:
 
-7. From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
+```bash
+$ mv ~/hyperledger/fabric-samples/bin/ ./bin_mac/
+```
+Then modify the file `utility-emissions-channel/docker-compose-setup/scripts/invokeChaincode.sh` and change `./bin/peer` to `./bin_mac/peer`
+
+7.  Install the dependencies for the Express server.  This is a temporary fix as reported in [issue #71](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/71)
+
+From `utility-emissions-channel/docker-compose-setup`:
+
+```bash
+$ cd typescript_app
+$ npm install
+```
+
+8.  From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
 
 Start network, create channel, and deployCC:
 
@@ -54,44 +69,44 @@ Start network, create channel, and deployCC:
 sh ./scripts/reset.sh && sh start.sh
 ```
 
-8. Follow the instructions under **Steps to seed the Fabric database** to initialize the Fabric network with emissions data to pull from when recording emissions.
+9. Follow the instructions under **Steps to seed the Fabric database** to initialize the Fabric network with emissions data to pull from when recording emissions.
 
-9. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
+10. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
    '{"Args":["invoke","a","b","10"]}'
 
 ## Steps to seed the Fabric database
 
-The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports data curated by the U.S. Environmental Protection Agency and U.S. Energy Information Administration into the Fabric network for use of recording emissions data. From `utility-emissions-channel/docker-compose-setup/`, first install the dependencies with `npm`:
+To calculate emissions, we need data on the emissions from electricity usage.  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-5) data into the Fabric network.
+
+From `utility-emissions-channel/docker-compose-setup/`, 
+
+1. Install the dependencies:
 
     $ npm install
 
-1. Download and extract the EPA data:
+2. Download and extract the EPA data:
 
 ```bash
-    wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
-    unzip egrid2018_all_files.zip
+$ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+$ unzip egrid2018_all_files.zip
 ```
 
-2. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
+3. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
 
 ```bash
-    wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
-    unzip f8612019.zip
+$ wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+$ unzip f8612019.zip
 ```
 
-3. Download the data from the [European Environment Agency](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract:
+4. Download the data from the [European Environment Agency](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract the zip file.
+
+5. Load utility emissions and identifiers data from the files:
 
 ```bash
-    unzip 2019-RES_proxies_EEA.zip
-```
-
-4. Load utility emissions and identifiers data from the files:
-
-```bash
-    node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-    node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-    node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
-    node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+$ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+$ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+$ node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+$ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ```
 
 ### Viewing the seed data
@@ -122,41 +137,43 @@ To search for utility identifiers, run the Mango query:
 }
 ```
 
-### Testing get_emissions_factor and get_co2_emissions
-
-`egrid-data-loader.js` also includes two functions for calling these two important hepler functions on the contract. Query the chaincode for an emissions factor for a given utility from its utility number and year to test if imports were successful, for example:
-
-    $ node egrid-data-loader.js get_emissions_factor 34 2018
-
-    $ node egrid-data-loader.js get_emissions_factor 11208 2018
-
-Query for CO2 emssions factor for a given utility given the usage, for example:
-
-    $ node egrid-data-loader.js get_co2_emissions 34 2018 1500 MWh
-
-    $ node egrid-data-loader.js get_co2_emissions 11208 2018 3000 MWh
-
-
----
-
 #### Recording emissions by invokeChaincode script
+
+From the `utility-emissions-channel/docker-compose-setup` directory, you can run a script to record and get the emissions:
 
 ```shell
 # Record emission to utilityemissionchannel
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["1","11208","MyCompany","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["1","11208","MyCompany","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
 
 # Query emission data
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["1"]}' 1
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["1"]}' 1
 ```
 
-## Start Express server (REST API)
+You should also be able to see your emissions records in Couchdb with a Mango query:
+
+```json
+{
+   "selector": {
+      "class": {
+         "$eq": "org.hyperledger.blockchain-carbon-accounting.emissionsrecord"
+      }
+   }
+}
+```
+
+## Using the Express server (REST API)
+
+This is normally done for you in the `start.sh` script, but you can also start it manually:
 
 1. cd to `utility-emissions-channel/typescript_app`
 2. Install node modules: RUN `npm i`
 3. Start express sever: Run `sh start.sh` from `utility-emissions-channel/`
 4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
-5. Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
-6. Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
+
+From the Express server you should
+
+ Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
+ Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
 7. Interact with the `emissionscontract` chaincode.
    Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
 
