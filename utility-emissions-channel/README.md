@@ -200,15 +200,6 @@ Now you can record emissions with different energyUseAmount over different dates
 
 You can verify that that your emissions can be successfully retrieved using `/emissionscontract/getAllEmissionsDataByDateRange`.
 
-## Updating the Chaincode
-
-From the `docker-compose-setup/` directory:
-
-2. Update Chaincode:
-   Run `./network.sh deployCC -ccv 'VERSION' -ccs 'SEQUENCE'`
-   e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
-3. Check help, if further infomation is needed. Run: `./network.sh -h`
-
 ## Shutting Down
 
 From the `docker-compose-setup/` directory:
@@ -222,6 +213,29 @@ To shut down and then reset everything:
 ```bash
 $ sh ./scripts/reset.sh
 ```
+
+# Integrating with the Net Emissions Token Network integration 
+
+Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
+
+## Setting Up with Goerli Testnet
+
+Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
+* Set `IS_GOERLI` to `true`. 
+* Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
+
+Reset and restart the API if it is running.
+
+# Other Useful Things
+
+## Updating the Chaincode
+
+From the `docker-compose-setup/` directory:
+
+2. Update Chaincode:
+   Run `./network.sh deployCC -ccv 'VERSION' -ccs 'SEQUENCE'`
+   e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
+3. Check help, if further infomation is needed. Run: `./network.sh -h`
 
 ## Hyperledger explorer
 
@@ -238,19 +252,7 @@ To stop it:
 $ ./network.sh stopBlockchainExplorer`
 ```
 
-# Integrating with the Net Emissions Token Network integration 
-
-Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
-
-## Setting Up with Goerli Testnet
-
-Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
-* Set `IS_GOERLI` to `true`. 
-* Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
-
-Reset and restart the API if it is running.
-
-# Automated Tests
+## Automated Tests
 
 We currently have a small test suite that will run the following tests via the API:
 
