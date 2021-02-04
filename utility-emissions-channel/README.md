@@ -23,7 +23,7 @@ $ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config
 4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
-$ cp ./typescript_app/src/blockchain-gateway/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/networkConfig.ts 
+$ cp ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts 
 ```
 
 5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
@@ -52,7 +52,8 @@ $ mv ~/hyperledger/fabric-samples/bin/ ./bin_mac/
 ```
 Then modify the file `utility-emissions-channel/docker-compose-setup/scripts/invokeChaincode.sh` and change `./bin/peer` to `./bin_mac/peer`
 
-7.  Install the dependencies for the Express server.  This is a temporary fix as reported in [issue #71](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/71)
+7.  Install the dependencies for the 
+server.  This is a temporary fix as reported in [issue #71](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/71)
 
 From `utility-emissions-channel/docker-compose-setup`:
 
@@ -71,18 +72,17 @@ sh ./scripts/reset.sh && sh start.sh
 
 9. Follow the instructions under **Steps to seed the Fabric database** to initialize the Fabric network with emissions data to pull from when recording emissions.
 
-10. (optional) Start Hyperledger Explorer (http://localhost:8080, username: exploreradmin, pw: exploreradminpw): Run `./network.sh startBlockchainExplorer`
-   '{"Args":["invoke","a","b","10"]}'
+## Seeding the Fabric database
 
-## Steps to seed the Fabric database
-
-To calculate emissions, we need data on the emissions from electricity usage.  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-5) data into the Fabric network.
+To calculate emissions, we need data on the emissions from electricity usage.  We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-5).  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports this data into the Fabric network.
 
 From `utility-emissions-channel/docker-compose-setup/`, 
 
 1. Install the dependencies:
 
-    $ npm install
+```bash
+$ npm install
+```
 
 2. Download and extract the EPA data:
 
@@ -111,9 +111,11 @@ $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 
 ### Viewing the seed data
 
-Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) to see new records added under the database utilityemissionchannel_emissionscontract. More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find`](http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find) (see [here](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query) for more information on running Mango queries).
+Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `utilityemissionchannel_emissionscontract` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
 
-To search for utility emissions, run the Mango query:
+More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find`](http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find).  See [tutorial on running Mango queries](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query).
+
+For example, to search for utility emissions factors, run the Mango query:
 
 ```json
 {
@@ -161,134 +163,22 @@ You should also be able to see your emissions records in Couchdb with a Mango qu
 }
 ```
 
-## Using the Express server (REST API)
+## Starting the Express server (REST API)
 
-This is normally done for you in the `start.sh` script, but you can also start it manually:
-
-1. cd to `utility-emissions-channel/typescript_app`
-2. Install node modules: RUN `npm i`
-3. Start express sever: Run `sh start.sh` from `utility-emissions-channel/`
-4. Go to `http://localhost:9000/api-docs/` to access swagger file from where you can interact with the blockchain.
-
-From the Express server you should
-
- Register org admin of org auditor1, auditor2, and/or auditor (e.g. { "orgName": "auditor1"})
- Register and enroll user: First register org admin of step 5. Then register user with userId, orgName, and affiliation. (e.g. { "userID": "User8", "orgName": "auitor1", "affiliation": "auditor1.department1"} )
-7. Interact with the `emissionscontract` chaincode.
-   Note: As of 09/30/2020 the REST API a static, and doesn't include a proper error handling.
-
-## Update emissioncontact Chaincode
-
-1. cd to `docker-compose-setup`
-2. Update Chaincode:
-   Run `./network.sh deployCC -ccv 'VERSION' -ccs 'SEQUENCE'`
-   e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
-3. Check help, if further infomation is needed. Run: `./network.sh -h`
-
-## Stop the blockchain network and remove container
-
-1. cd to `docker-compose-setup`
-2. Run `./network.sh down`
-
-#### Stop blockchain explorer
-
-1. cd to `docker-compose-setup`
-2. Run `./network.sh stopBlockchainExplorer`
-
-## CouchDB
-
-You can look around couchdb to see the records being stored on the ledger. Go to http://localhost:5984/_utils/ The default username and password are `admin` and `adminpw` Once you login, look in the `utilityemissionchannel_emissionscontract` table to see the emissions records, including links to the documents.
-
-## Testing the network
-
-We currently have a small test suite that will run the following tests via the API:
-
-- Registering an auditor
-- Registering a user under this auditor
-- Recording an emission with this user
-- Retrieve this emission and verify that all of the appropriate fields have been upserted to the ledger
-
-For the tests to pass, you must first reset and restart the entire network. From the docker-compose-setup directory:
+This is normally done for you in the `start.sh` script, but you can also start it manually.  From the `utility-emissions-channel/` directory:
 
 ```bash
-sh ./scripts/reset.sh && sh start.sh
+$ cd typescript_app
+$ npm i
+$ cd ..
+$ ./scripts/startApi.sh
 ```
 
-When the network/API has fully started, run the tests by navigating to the typescript_app directory and executing the tests into the docker container:
+4. Go to `http://localhost:9000/api-docs/` to use the API.  
 
-```bash
-sh runTests.sh
-```
+## Working with the Express Server API
 
-## Integrating with the Net Emissions Token Network integration 
-
-Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data. 
-
-### Setting up an Ethereum network
-
-There are currently two options for starting an Ethereum network to deploy the Net Emissions Token Contract to - the hardhat test network, or Goerli.
-
-Copy and edit the network configuration by navigating to this folder and running:
-
-```
-cp ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts.template ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts
-```
-
-#### Using the Goerli Network
-
-1. Edit `networkConfig.ts` and set `IS_GOERLI` to true. Enter the contract address deployed on Goerli, your Infura keys, and the private key of your dealer/owner wallet.
-
-2. Reset and restart the API if it is running.
-
-3. After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
-
-4. If you want to observe changes to the network, either view the contract's transactions on Etherscan or connect to it via the React interface after ensuring `addresses.js` is set to the correct Goerli contract address. See the README in `net-emissions-token-network` for more information.
-
-#### Using the hardhat test network
-
-##### Running in Docker
-
-1. Start the hardhat test network from the net-emissions-token-network directory:
-
-```bash
-sh runDockerHardhatTestNet.sh
-```
-
-2. Deploy the contract to the hardhat test network via the following command in the net-emissions-token-network directory:
-
-```bash
-sh deployDockerHardHatContract.sh
-```
-
-### Starting the React frontend UI
-
-1. Start the react app based on the documentation in the net-emissions-token-network [here](net-emissions-token-network/README.md).
-
-2. Register a wallet as an Audited Emissions Token Dealer via the UI.
-
-### Starting the fabric network
-
-The next section is about starting the fabric network and calling the endpoint through the API to issue the token. All of these scripts will be called from the utility-emissions-channel/docker-compose-setup directory.
-
-1. (Optional) If needed, reset the fabric config:
-
-```bash
-sh ./scripts/reset.sh
-```
-
-2. Based on the template in utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network, enter in your connection details for your ethereum network. For testing and development, the values that are currently within the template will work out of the box.
-
-3. Start the fabric network:
-
-```bash
-sh start.sh
-```
-
-### Interacting with the API
-
-1. Navigate to http://localhost:9000/api-docs/ in the browser of your choice to interact with the API via swagger.
-
-2. Register an org using the UI. For example, the following arguments:
+First register an organization using `/registerEnroll/admin`:
 
 ```bash
 {
@@ -296,7 +186,7 @@ sh start.sh
 }
 ```
 
-3. Register a user under this newly registered org. For example, the following arguments:
+Next register a user under this organization with `/registerEnroll/user`:
 
 ```bash
 {
@@ -306,12 +196,82 @@ sh start.sh
 }
 ```
 
-4. Record a few emissions with different energyUseAmount over a span of dates that do not overlap. For testing, you may use utilityId 11208.
+Now you can record emissions with different energyUseAmount over different dates with `/emissionscontract/recordEmissions`.  Be sure that your dates do not overlap. For testing, you may use utilityId 11208 for [Los Angeles Department of Water and Power](https://ladwp.com).
 
-5. (Optional) Verify that that your emissions can be successfully retrieved using the api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsDataByDateRange endpoint.
+You can verify that that your emissions can be successfully retrieved using `/emissionscontract/getAllEmissionsDataByDateRange`.
 
-6. Issue a token to the chosen wallet via the api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken endpoint.
+## Updating the Chaincode
 
-## Troubleshooting
+From the `docker-compose-setup/` directory:
 
-If any error in `Get the blockchain network up and running` please run the commands of `Stop the blockchain network and remove container` and retry starting the network. If you still run into errors open an issue with the error logs, please.
+2. Update Chaincode:
+   Run `./network.sh deployCC -ccv 'VERSION' -ccs 'SEQUENCE'`
+   e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
+3. Check help, if further infomation is needed. Run: `./network.sh -h`
+
+## Shutting Down
+
+From the `docker-compose-setup/` directory:
+
+```bash
+$ ./network.sh down
+```
+
+To shut down and then reset everything:
+
+```bash
+$ sh ./scripts/reset.sh
+```
+
+### Hyperledger explorer
+
+You can start Hyperledger Explorer by running this from `docker-compose-setup/` 
+```bash
+$ ./network.sh startBlockchainExplorer
+```
+
+You can access it at http://localhost:8080 with username `exploreradmin` and password `exploreradminpw` 
+
+To stop it:
+
+```bash
+$ ./network.sh stopBlockchainExplorer`
+```
+
+## Automated Tests
+
+We currently have a small test suite that will run the following tests via the API:
+
+- Registering an auditor
+- Registering a user under this auditor
+- Recording an emission with this user
+- Retrieve this emission and verify that all of the appropriate fields have been upserted to the ledger
+
+For the tests to pass, you must first reset and restart the entire network. From the `docker-compose-setup/` directory:
+
+```bash
+$ sh ./scripts/reset.sh && sh start.sh
+```
+
+When the network/API has fully started, run the tests by navigating to the typescript_app directory and executing the tests into the docker container:
+
+```bash
+$ sh runTests.sh
+```
+
+# Integrating with the Net Emissions Token Network integration 
+
+Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
+
+## Setting Up with Goerli Testnet
+
+Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
+* Set `IS_GOERLI` to `true`. 
+* Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
+
+Reset and restart the API if it is running.
+
+After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
+
+Then you can see them on [goerli.etherscan.io](https://goerli.etherscan.io/) by searching for the contract address, or on [emissionstokens.opentaps.org/](https://emissionstokens.opentaps.org/) by logging in with your Goerli wallet.
+
