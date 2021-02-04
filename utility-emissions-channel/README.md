@@ -2,7 +2,7 @@
 
 This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain.
 
-# Running the Fabric network and Express API
+## Running the Fabric network and Express API
 
 1. Make sure you have Git, curl, Docker, and Docker Compose installed, or follow instructions from [Hyperledger Fabric Install Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
 2. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
@@ -139,7 +139,7 @@ To search for utility identifiers, run the Mango query:
 }
 ```
 
-#### Recording emissions by invokeChaincode script
+## Recording emissions with chain code
 
 From the `utility-emissions-channel/docker-compose-setup` directory, you can run a script to record and get the emissions:
 
@@ -214,21 +214,23 @@ To shut down and then reset everything:
 $ sh ./scripts/reset.sh
 ```
 
-# Integrating with the Net Emissions Token Network integration 
+## Integrating with the Net Emissions Token Network integration 
 
 Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
 
-## Setting Up with Goerli Testnet
-
-Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
+To set it up, Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
 * Set `IS_GOERLI` to `true`. 
 * Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
 
 Reset and restart the API if it is running.
 
-# Other Useful Things
+After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
 
-## Updating the Chaincode
+Then you can see them on [goerli.etherscan.io](https://goerli.etherscan.io/) by searching for the contract address, or on [emissionstokens.opentaps.org/](https://emissionstokens.opentaps.org/) by logging in with your Goerli wallet.
+
+## Other Useful Things
+
+### Updating the Chaincode
 
 From the `docker-compose-setup/` directory:
 
@@ -237,7 +239,7 @@ From the `docker-compose-setup/` directory:
    e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
 3. Check help, if further infomation is needed. Run: `./network.sh -h`
 
-## Hyperledger explorer
+### Hyperledger explorer
 
 You can start Hyperledger Explorer by running this from `docker-compose-setup/` 
 ```bash
@@ -252,7 +254,7 @@ To stop it:
 $ ./network.sh stopBlockchainExplorer`
 ```
 
-## Automated Tests
+### Automated Tests
 
 We currently have a small test suite that will run the following tests via the API:
 
@@ -273,7 +275,4 @@ When the network/API has fully started, run the tests by navigating to the types
 $ sh runTests.sh
 ```
 
-After some emissions are recorded via calls to `recordEmissions`, call `recordAuditedEmissionsToken` to issue audited tokens to the contract on Goerli.
-
-Then you can see them on [goerli.etherscan.io](https://goerli.etherscan.io/) by searching for the contract address, or on [emissionstokens.opentaps.org/](https://emissionstokens.opentaps.org/) by logging in with your Goerli wallet.
 
