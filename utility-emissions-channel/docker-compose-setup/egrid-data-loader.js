@@ -14,6 +14,7 @@ const XLSX = require("xlsx");
 const async = require("async");
 const yargs = require("yargs");
 const NAME_MAPPINGS = require("./abrevToName.js");
+// const assert = require('assert');
 
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
@@ -223,11 +224,12 @@ function import_utility_emissions(file_name, opts) {
           source: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
           non_renewables: row["NERC region annual total nonrenewables net generation (MWh)"].toString(),
           renewables: row["NERC region annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: ""
         };
 
         // format chaincode call
         let division_name_formatted = JSON.stringify(d.division_name).replace(/ /g, '_'); // replace space with _
-        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${division_name_formatted},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${division_name_formatted},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
 
         // insert into chaincode
         invokeChaincode("importUtilityFactor", args, callback);
@@ -257,10 +259,11 @@ function import_utility_emissions(file_name, opts) {
           source: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
           non_renewables: row["State annual total nonrenewables net generation (MWh)"].toString(),
           renewables: row["State annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: ""
         };
         
         // format chaincode call
-        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
 
         // insert into chaincode
         invokeChaincode("importUtilityFactor", args, callback);
@@ -290,26 +293,43 @@ function import_utility_emissions(file_name, opts) {
           source: "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
           non_renewables: row["U.S. annual total nonrenewables net generation (MWh)"].toString(),
           renewables: row["U.S. annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: ""
         };
         
         // format chaincode call
-        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
 
         // insert into chaincode
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
   } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
+    // let percent_of_total_market_sector = [];
+    // let gross_final_electricity_consumption = [];
     let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
-        if (!row || row["Unit"] == "%" || row["CountryShort"].slice(0, 2) == "EU") return callback();
+        if (!row || row["CountryShort"].slice(0, 2) == "EU") return callback();
 
         // skip header rows
         if (row["Data Year"] == "YEAR") return callback();
         //opts.verbose && console.log('-- Prepare to insert from ', row);
         // generate a unique for the row
         // console.log(row);
+
+        // skip rows unrelated to electricity
+        if (row["Market_Sector"] !== "Electricity") return callback();
+
+        // if (row["Market_Sector"] == "Total") {
+        //   percent_of_total_market_sector.push(row);
+        // }
+
+        // if (row["Market_Sector"] == "GFEC") {
+        //   gross_final_electricity_consumption.push(row);
+        // }
+
+        // return callback();
+
         let countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
         let document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
         let d = {
@@ -325,16 +345,20 @@ function import_utility_emissions(file_name, opts) {
           co2_equivalent_emissions_uom: "",
           source: "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
           non_renewables: "",
-          renewables: row[" ValueNumeric"],
+          renewables: "",
+          percent_of_renewables: row[" ValueNumeric"]
         };
         
         // format chaincode call
-        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}"]`;
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
 
         // insert into chaincode
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
+
+    // assert(percent_of_total_market_sector.length == gross_final_electricity_consumption.length);
+
   } else {
     console.log("This sheet or PDF is not currently supported.");
   }

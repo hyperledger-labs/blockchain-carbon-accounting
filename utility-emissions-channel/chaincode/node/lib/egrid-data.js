@@ -41,7 +41,8 @@ class UtilityEmissionsFactorItem extends State {
     co2_equivalent_emissions_uom,
     source,
     non_renewables,
-    renewables
+    renewables,
+    percent_of_renewables
   ) {
     return new UtilityEmissionsFactorItem({
       uuid,
@@ -56,7 +57,8 @@ class UtilityEmissionsFactorItem extends State {
       co2_equivalent_emissions_uom,
       source,
       non_renewables,
-      renewables
+      renewables,
+      percent_of_renewables
     });
   }
 

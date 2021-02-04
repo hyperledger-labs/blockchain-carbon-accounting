@@ -272,7 +272,8 @@ class EmissionsRecordContract extends Contract {
     co2_equivalent_emissions_uom,
     source,
     non_renewables,
-    renewables
+    renewables,
+    percent_of_renewables
   ) {
     let utilityFactor = UtilityEmissionsFactorItem.createInstance(
       uuid,
@@ -287,7 +288,8 @@ class EmissionsRecordContract extends Contract {
       co2_equivalent_emissions_uom,
       source,
       non_renewables,
-      renewables
+      renewables,
+      percent_of_renewables
     );
     await ctx.utilityEmissionsFactorList.addUtilityEmissionsFactor(utilityFactor, uuid);
     return utilityFactor;
@@ -307,7 +309,8 @@ class EmissionsRecordContract extends Contract {
     co2_equivalent_emissions_uom,
     source,
     non_renewables,
-    renewables
+    renewables,
+    percent_of_renewables
   ) {
     let utilityFactor = EmissionsRecord.createInstance(
       uuid,
@@ -322,7 +325,8 @@ class EmissionsRecordContract extends Contract {
       co2_equivalent_emissions_uom,
       source,
       non_renewables,
-      renewables
+      renewables,
+      percent_of_renewables
     );
     await ctx.utilityEmissionsFactorList.updateUtilityEmissionsFactor(utilityFactor, uuid);
     return utilityFactor;
