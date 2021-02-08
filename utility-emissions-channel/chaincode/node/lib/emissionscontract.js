@@ -332,6 +332,12 @@ class EmissionsRecordContract extends Contract {
     return utilityFactor;
   }
 
+  async getUtilityFactor(ctx, uuid) {
+    let utilityFactor = await ctx.UtilityEmissionsFactorList.getUtilityEmissionsFactor(uuid);
+
+    return utilityFactor;
+  }
+
   async importUtilityIdentifier(ctx, uuid, year, utility_number, utility_name, country, state_province, divisions) {
     let utilityIdentifier = UtilityLookupItem.createInstance(
       uuid,
@@ -361,7 +367,7 @@ class EmissionsRecordContract extends Contract {
   }
 
   async getUtilityIdentifier(ctx, uuid) {
-    let utilityIndentifier = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
+    let utilityIdentifier = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
     return utilityIdentifier;
   }
