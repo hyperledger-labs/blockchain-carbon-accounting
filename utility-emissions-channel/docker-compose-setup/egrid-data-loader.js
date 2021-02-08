@@ -353,21 +353,21 @@ function import_utility_emissions(file_name, opts) {
         // skip total EU
         if (row["Member State:text"] == "European Union (current composition)") return callback();
 
-        // get country abbreviation from full name
-        let countryShort = Object.keys(NAME_MAPPINGS.COUNTRY_MAPPINGS).find(key => NAME_MAPPINGS.COUNTRY_MAPPINGS[key] === row["Member State:text"]);
+        // get country long name and abbreviation from long name
+        let countryLong = row["Member State:text"].replace(" ", "_");
+        let countryShort = Object.keys(NAME_MAPPINGS.COUNTRY_MAPPINGS).find(key => NAME_MAPPINGS.COUNTRY_MAPPINGS[key] === countryLong);
 
-        let countryName = row["Member State:text"];
         let document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
         let d = {
           uuid: document_id,
           year: "" + row["Date:year"],
-          country: countryName,
+          country: countryLong,
           division_type: "COUNTRY",
           division_id: countryShort,
-          division_name: countryName,
+          division_name: countryLong,
           net_generation: "",
           net_generation_uom: "",
-          co2_equivalent_emissions: "row["CO2 emission intensity:number"]",
+          co2_equivalent_emissions: row["CO2 emission intensity:number"],
           co2_equivalent_emissions_uom: "CO2/KWH",
           source: "https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6",
           non_renewables: "",
