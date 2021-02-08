@@ -153,6 +153,7 @@ function parse_worksheet(file_name, opts, cb) {
       var col = z.substring(0, tt).trim();
       var row = parseInt(z.substring(tt));
       var value = worksheet[z].v;
+      // console.log(`value: ${value}`);
       if (opts.skip_rows && opts.skip_rows >= row) continue;
       //opts.verbose && console.log('--> ', row, col, value);
 
@@ -163,11 +164,11 @@ function parse_worksheet(file_name, opts, cb) {
         headers[col] = value;
         continue;
       }
-      console.log(`headers: ${JSON.stringify(headers)}`);
 
       if (!data[row]) data[row] = {};
       data[row][headers[col]] = value;
     }
+    // console.log(`data: ${JSON.stringify(data)}`);
     return cb(data);
   });
 }
@@ -344,11 +345,11 @@ function import_utility_emissions(file_name, opts) {
     // opts.skip_rows = 1;
     let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
-
-        console.log(row);
-
+        // skip empty rows
+        if (!row) return callback();
+        // console.log(JSON.stringify(row));
         // skip rows that aren't latest year
-        if (row["Date:year"] !== "2016") return callback();
+        if (row["Date:year"] !== 2016) return callback();
         // skip total EU
         if (row["Member State:text"] == "European Union (current composition)") return callback();
 
@@ -356,16 +357,16 @@ function import_utility_emissions(file_name, opts) {
         let countryShort = Object.keys(NAME_MAPPINGS.COUNTRY_MAPPINGS).find(key => NAME_MAPPINGS.COUNTRY_MAPPINGS[key] === row["Member State:text"]);
 
         let countryName = row["Member State:text"];
-        let document_id = `COUNTRY_${countryShort}_` + row["Year"];
+        let document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
         let d = {
           uuid: document_id,
-          year: "" + row["Year"],
+          year: "" + row["Date:year"],
           country: countryName,
           division_type: "COUNTRY",
           division_id: countryShort,
           division_name: countryName,
           net_generation: row["CO2 emission intensity:number"],
-          net_generation_uom: "grams",
+          net_generation_uom: "CO2/KWH",
           co2_equivalent_emissions: "",
           co2_equivalent_emissions_uom: "",
           source: "https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6",
