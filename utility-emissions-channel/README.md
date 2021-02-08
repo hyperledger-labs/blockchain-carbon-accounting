@@ -106,6 +106,7 @@ $ unzip f8612019.zip
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
 $ node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+$ node egrid-data-loader.js load_utility_emissions co2-emission-intensity-5.csv Sheet1
 $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ```
 

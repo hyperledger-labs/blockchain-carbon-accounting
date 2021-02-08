@@ -344,7 +344,7 @@ router.get(
 
       let tokenId = await issue(
         addressToIssue,
-        quantity.toFixed(2),
+        (quantity * 1000).toFixed(),
         toTimestamp(fromDate),
         toTimestamp(thruDate),
         toTimestamp(automaticRetireDate).toFixed(),

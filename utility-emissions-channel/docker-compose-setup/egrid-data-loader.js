@@ -14,7 +14,6 @@ const XLSX = require("xlsx");
 const async = require("async");
 const yargs = require("yargs");
 const NAME_MAPPINGS = require("./abrevToName.js");
-// const assert = require('assert');
 
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
@@ -157,11 +156,14 @@ function parse_worksheet(file_name, opts, cb) {
       if (opts.skip_rows && opts.skip_rows >= row) continue;
       //opts.verbose && console.log('--> ', row, col, value);
 
+      // console.log(`col: ${col}`);
+      // console.log(`row: ${row}`);
       //store header names
       if (row == header_row && value) {
         headers[col] = value;
         continue;
       }
+      console.log(`headers: ${JSON.stringify(headers)}`);
 
       if (!data[row]) data[row] = {};
       data[row][headers[col]] = value;
@@ -304,31 +306,13 @@ function import_utility_emissions(file_name, opts) {
       });
     });
   } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
-    // let percent_of_total_market_sector = [];
-    // let gross_final_electricity_consumption = [];
     let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || row["CountryShort"].slice(0, 2) == "EU") return callback();
 
-        // skip header rows
-        if (row["Data Year"] == "YEAR") return callback();
-        //opts.verbose && console.log('-- Prepare to insert from ', row);
-        // generate a unique for the row
-        // console.log(row);
-
         // skip rows unrelated to electricity
         if (row["Market_Sector"] !== "Electricity") return callback();
-
-        // if (row["Market_Sector"] == "Total") {
-        //   percent_of_total_market_sector.push(row);
-        // }
-
-        // if (row["Market_Sector"] == "GFEC") {
-        //   gross_final_electricity_consumption.push(row);
-        // }
-
-        // return callback();
 
         let countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
         let document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
@@ -356,9 +340,47 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
+  } else if (opts.file == "co2-emission-intensity-5.csv" && opts.sheet == "Sheet1") {
+    // opts.skip_rows = 1;
+    let data = parse_worksheet(file_name, opts, function(data) {
+      async.eachSeries(data, function iterator(row, callback) {
 
-    // assert(percent_of_total_market_sector.length == gross_final_electricity_consumption.length);
+        console.log(row);
 
+        // skip rows that aren't latest year
+        if (row["Date:year"] !== "2016") return callback();
+        // skip total EU
+        if (row["Member State:text"] == "European Union (current composition)") return callback();
+
+        // get country abbreviation from full name
+        let countryShort = Object.keys(NAME_MAPPINGS.COUNTRY_MAPPINGS).find(key => NAME_MAPPINGS.COUNTRY_MAPPINGS[key] === row["Member State:text"]);
+
+        let countryName = row["Member State:text"];
+        let document_id = `COUNTRY_${countryShort}_` + row["Year"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Year"],
+          country: countryName,
+          division_type: "COUNTRY",
+          division_id: countryShort,
+          division_name: countryName,
+          net_generation: row["CO2 emission intensity:number"],
+          net_generation_uom: "grams",
+          co2_equivalent_emissions: "",
+          co2_equivalent_emissions_uom: "",
+          source: "https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6",
+          non_renewables: "",
+          renewables: "",
+          percent_of_renewables: ""
+        };
+        
+        // format chaincode call
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args, callback);
+      });
+    });
   } else {
     console.log("This sheet or PDF is not currently supported.");
   }
