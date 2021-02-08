@@ -389,40 +389,44 @@ function import_utility_emissions(file_name, opts) {
 
 function import_utility_identifiers(file_name, opts) {
   opts.skip_rows = 1;
-  let data = parse_worksheet(file_name, opts, function(data) {
-    // import data for each valid row, eg:
-    // Utility_Number = value from 'Utility Number'
-    // Utility_Name = value from 'Utility Name'
-    // State_Province = value from 'State'
-    // Country = USA
-    // Divisions = an array of ojects
-    // -- Division_type = NERC_REGION
-    // -- Division_id = value from 'NERC Region'
-    async.eachSeries(data, function iterator(row, callback) {
-      if (!row || !row["Data Year"]) return callback();
-      opts.verbose && console.log('-- Prepare to insert from ', row);
-      let d = {
-        uuid: row["Utility Number"],
-        year: row["Data Year"],
-        utility_number: row["Utility Number"],
-        utility_name: row["Utility Name"].replace(/\'/g,"`"),
-        country: "USA",
-        state_province: row["State"],
-        divisions: {
-          division_type: "NERC_REGION",
-          division_id: row["NERC Region"].replace(/ /g,"_"),
-        },
-      };
+  if (opts.file == "Utility_Data_2019.xlsx") {
+    let data = parse_worksheet(file_name, opts, function(data) {
+      // import data for each valid row, eg:
+      // Utility_Number = value from 'Utility Number'
+      // Utility_Name = value from 'Utility Name'
+      // State_Province = value from 'State'
+      // Country = USA
+      // Divisions = an array of ojects
+      // -- Division_type = NERC_REGION
+      // -- Division_id = value from 'NERC Region'
+      async.eachSeries(data, function iterator(row, callback) {
+        if (!row || !row["Data Year"]) return callback();
+        opts.verbose && console.log('-- Prepare to insert from ', row);
+        let d = {
+          uuid: row["Utility Number"],
+          year: row["Data Year"],
+          utility_number: row["Utility Number"],
+          utility_name: row["Utility Name"].replace(/\'/g,"`"),
+          country: "USA",
+          state_province: row["State"],
+          divisions: {
+            division_type: "NERC_REGION",
+            division_id: row["NERC Region"].replace(/ /g,"_"),
+          },
+        };
 
-      // format chaincode call
-      let divisions_formatted = JSON.stringify(d.divisions).replace(/"/g, '\\"'); // replace " with \"
-      let utility_name_formatted = JSON.stringify(d.utility_name).replace(/ /g, '_'); // replace space with _
-      let args = `["${JSON.stringify(d.uuid)}","${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
+        // format chaincode call
+        let divisions_formatted = JSON.stringify(d.divisions).replace(/"/g, '\\"'); // replace " with \"
+        let utility_name_formatted = JSON.stringify(d.utility_name).replace(/ /g, '_'); // replace space with _
+        let args = `["${JSON.stringify(d.uuid)}","${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
 
-      // insert into chaincode
-      invokeChaincode("importUtilityIdentifier", args, callback);
+        // insert into chaincode
+        invokeChaincode("importUtilityIdentifier", args, callback);
+      });
     });
-  });
+  } else {
+    console.log("This sheet or PDF is not currently supported.");
+  }
 }
 
 function get_co2_emissions(utility, thru_date, usage, usage_uom, opts) {
