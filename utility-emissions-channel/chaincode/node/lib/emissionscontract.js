@@ -333,7 +333,7 @@ class EmissionsRecordContract extends Contract {
   }
 
   async getUtilityFactor(ctx, uuid) {
-    let utilityFactor = await ctx.UtilityEmissionsFactorList.getUtilityEmissionsFactor(uuid);
+    let utilityFactor = await ctx.utilityEmissionsFactorList.getUtilityEmissionsFactor(uuid);
 
     return utilityFactor;
   }
