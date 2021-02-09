@@ -230,43 +230,62 @@ class EmissionsRecordContract extends Contract {
 
   // replaces get_co2_emissions in emissions-calc.js
   async getCo2Emissions(ctx, uuid, thruDate, usage, usage_uom) {
+    // get emissions factor of given uuid through date
     let utilityFactorCall = await this.getEmissionsFactor(ctx, uuid, thruDate);
     let utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
 
-    let emissions_uom = "tons";
+    // initialize return variables
+    let emissions_value, emissions_uom, renewable_energy_use_amount, nonrenewable_energy_use_amount;
 
-    let net_generation_uom = utilityFactor.net_generation_uom;
-    let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom;
+    // calculate emissions using percent_of_renewables if found
+    if (utilityFactor.percent_of_renewables.toString().length > 0) {
 
-    let division_type = utilityFactor.division_type;
-    let division_id = utilityFactor.division_id;
+      emissions_uom = "g";
 
-    // @TODO: unknown uom error for net_generation_uom with EU countries
-    let usage_uom_conversion = EmissionsCalc.get_uom_factor(usage_uom) / EmissionsCalc.get_uom_factor(net_generation_uom);
-    let emissions_uom_conversion =
-      EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emissions_uom);
+      let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom;
+      let emissions_uom_conversion =
+        EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emissions_uom);
 
-    let emissions =
-      (Number(utilityFactor.co2_equivalent_emissions) / Number(utilityFactor.net_generation)) *
-      usage *
-      usage_uom_conversion *
-      emissions_uom_conversion;
+      emissions_value = 
+        Number(utilityFactor.co2_equivalent_emissions) *
+        usage *
+        EmissionsCalc.get_uom_factor(usage_uom);
 
-    let total_generation = Number(utilityFactor.non_renewables) + Number(utilityFactor.renewables);
-    let renewable_energy_use_amount = usage * (utilityFactor.renewables / total_generation);
-    let nonrenewable_energy_use_amount = usage * (utilityFactor.non_renewables / total_generation);
-    let year = utilityFactor.year;
+      renewable_energy_use_amount = usage * Number(utilityFactor.percent_of_renewables);
+      nonrenewable_energy_use_amount = usage * (100 - Number(utilityFactor.percent_of_renewables));
+
+    // otherwise, calculate emissions using net_generation
+    } else {
+      emissions_uom = "tons";
+
+      let net_generation_uom = utilityFactor.net_generation_uom;
+      let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom;
+
+      let usage_uom_conversion = EmissionsCalc.get_uom_factor(usage_uom) / EmissionsCalc.get_uom_factor(net_generation_uom);
+      let emissions_uom_conversion =
+        EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emissions_uom);
+
+      emissions_value =
+        (Number(utilityFactor.co2_equivalent_emissions) / Number(utilityFactor.net_generation)) *
+        usage *
+        usage_uom_conversion *
+        emissions_uom_conversion;
+
+      let total_generation = Number(utilityFactor.non_renewables) + Number(utilityFactor.renewables);
+      renewable_energy_use_amount = usage * (utilityFactor.renewables / total_generation);
+      nonrenewable_energy_use_amount = usage * (utilityFactor.non_renewables / total_generation);
+    }
 
     return {
       emissions: {
-        value: emissions,
+        value: emissions_value,
         uom: emissions_uom,
       },
-      division_type: division_type,
-      division_id: division_id,
+      division_type: utilityFactor.division_type,
+      division_id: utilityFactor.division_id,
       renewable_energy_use_amount: renewable_energy_use_amount,
       nonrenewable_energy_use_amount: nonrenewable_energy_use_amount,
-      year: year,
+      year: utilityFactor.year,
     };
   }
 

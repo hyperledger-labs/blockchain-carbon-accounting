@@ -372,8 +372,8 @@ function import_utility_emissions(file_name, opts) {
         let d = {
           uuid: document_id,
           co2_equivalent_emissions: row["index:number"],
-          co2_equivalent_emissions_uom: "CO2/KWH",
-          source: "https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6",
+          co2_equivalent_emissions_uom: "KWH",
+          source: `https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6`,
         };
         
         // find previous record to update
@@ -385,7 +385,7 @@ function import_utility_emissions(file_name, opts) {
           let utilityFactor = JSON.parse(JSON.parse(utilityFactorRaw.substring(8)));
 
           // format chaincode call (only update items in d)
-          let args = `["${utilityFactor.uuid}","${utilityFactor.year}","${utilityFactor.country}","${utilityFactor.division_type}","${utilityFactor.division_id}","${utilityFactor.division_name}","${utilityFactor.net_generation}","${utilityFactor.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${utilityFactor.non_renewables}","${utilityFactor.renewables}","${utilityFactor.percent_of_renewables}"]`;
+          let args = `["${utilityFactor.uuid}","${utilityFactor.year}","${utilityFactor.country}","${utilityFactor.division_type}","${utilityFactor.division_id}","${utilityFactor.division_name}","${utilityFactor.net_generation}","${utilityFactor.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${utilityFactor.source};${d.source}","${utilityFactor.non_renewables}","${utilityFactor.renewables}","${utilityFactor.percent_of_renewables}"]`;
 
           // insert into chaincode
           invokeChaincode("updateUtilityFactor", args, callback);
