@@ -18,6 +18,8 @@ const NAME_MAPPINGS = require("./abrevToName.js");
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
 const { execSync } = require("child_process");
+const util = require('util');
+const exec = util.promisify(require('child_process').exec)
 
 yargs
   .command(
@@ -174,9 +176,9 @@ function parse_worksheet(file_name, opts, cb) {
 }
 
 function invokeChaincode(funct, args, callback) {
-  let command_formatted = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
-  console.log(`Calling ${command_formatted}\n`);
-  execSync(command_formatted, (error, stdout, stderr) => {
+  let command = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
+  console.log(`Calling ${command}\n`);
+  execSync(command, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
       return;
@@ -188,6 +190,12 @@ function invokeChaincode(funct, args, callback) {
     console.log(`stdout: ${stdout}`);
   });
   return callback();
+}
+
+async function getChaincode(funct, args) {
+  let command = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
+  let output = await exec(command);
+  return output;
 }
 
 function import_utility_emissions(file_name, opts) {
@@ -341,45 +349,48 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "co2-emission-intensity-5.csv" && opts.sheet == "Sheet1") {
-    // opts.skip_rows = 1;
+  } else if (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1") {
+    console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
     let data = parse_worksheet(file_name, opts, function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
-        if (!row) return callback();
+        if (!row || !row["Date:year"]) return callback();
         // console.log(JSON.stringify(row));
         // skip rows that aren't latest year
-        if (row["Date:year"] !== 2016) return callback();
+        if (row["Date:year"] !== 2019) return callback();
         // skip total EU
-        if (row["Member State:text"] == "European Union (current composition)") return callback();
+        if (row["Member State:text"].startsWith("European Union")) return callback();
 
         // get country long name and abbreviation from long name
         let countryLong = row["Member State:text"].replace(" ", "_");
         let countryShort = Object.keys(NAME_MAPPINGS.COUNTRY_MAPPINGS).find(key => NAME_MAPPINGS.COUNTRY_MAPPINGS[key] === countryLong);
 
+        // skip if country name not found
+        if (!countryShort) return callback();
+
         let document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
         let d = {
           uuid: document_id,
-          year: "" + row["Date:year"],
-          country: countryLong,
-          division_type: "COUNTRY",
-          division_id: countryShort,
-          division_name: countryLong,
-          net_generation: "",
-          net_generation_uom: "",
-          co2_equivalent_emissions: row["CO2 emission intensity:number"],
+          co2_equivalent_emissions: row["index:number"],
           co2_equivalent_emissions_uom: "CO2/KWH",
           source: "https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6",
-          non_renewables: "",
-          renewables: "",
-          percent_of_renewables: ""
         };
         
-        // format chaincode call
-        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
+        // find previous record to update
+        let utilityFactorCall = getChaincode("getUtilityFactor", `["${document_id}"]`).then((result) => {
+          
+          // get all details of existing utilityFactor
+          let expr = /payload:"{([^\s]+)/;
+          let utilityFactorRaw = result.stderr.match(expr)[0];
+          let utilityFactor = JSON.parse(JSON.parse(utilityFactorRaw.substring(8)));
 
-        // insert into chaincode
-        invokeChaincode("importUtilityFactor", args, callback);
+          // format chaincode call (only update items in d)
+          let args = `["${utilityFactor.uuid}","${utilityFactor.year}","${utilityFactor.country}","${utilityFactor.division_type}","${utilityFactor.division_id}","${utilityFactor.division_name}","${utilityFactor.net_generation}","${utilityFactor.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${utilityFactor.non_renewables}","${utilityFactor.renewables}","${utilityFactor.percent_of_renewables}"]`;
+
+          // insert into chaincode
+          invokeChaincode("updateUtilityFactor", args, callback);
+
+        });
       });
     });
   } else {
