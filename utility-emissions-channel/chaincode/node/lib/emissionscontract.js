@@ -242,14 +242,12 @@ class EmissionsRecordContract extends Contract {
 
       emissions_uom = "g";
 
-      let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom;
-      let emissions_uom_conversion =
-        EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emissions_uom);
+      let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom.toString().split("/");
 
       emissions_value = 
         Number(utilityFactor.co2_equivalent_emissions) *
         usage *
-        EmissionsCalc.get_uom_factor(usage_uom);
+        (EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom[0]) / EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom[1]));
 
       let percent_of_renewables = Number(utilityFactor.percent_of_renewables) / 100;
 
