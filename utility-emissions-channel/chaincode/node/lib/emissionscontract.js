@@ -184,14 +184,21 @@ class EmissionsRecordContract extends Contract {
     let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
     // create newDivision object used for later query into utilityEmissionsFactorList
-    let hasStateData = JSON.parse(utilityLookup).state_province;
-    let fetchedDivisions = JSON.parse(utilityLookup).divisions;
-    let isNercRegion = fetchedDivisions.division_type === "NERC_REGION";
+    let hasStateData = (JSON.parse(utilityLookup).state_province).toString().length > 0;
+    let fetchedDivisions = JSON.parse(JSON.parse(utilityLookup).divisions);
+    let fetchedDivisionType = fetchedDivisions["division_type"];
+    let fetchedDivisionId = fetchedDivisions["division_id"];
+
+    let isNercRegion = fetchedDivisionType.toLowerCase() === "nerc_region";
+    let isNonUSCountry = (fetchedDivisionType.toLowerCase() === "country") &&
+                         (fetchedDivisionId.toLowerCase() !== "usa");
     let newDivision;
     if (hasStateData) {
       newDivision = { division_id: JSON.parse(utilityLookup).state_province, division_type: "STATE" };
     } else if (isNercRegion) {
       newDivision = fetchedDivisions;
+    } else if (isNonUSCountry) {
+      newDivision = { division_id: fetchedDivisionId, division_type: "Country" };
     } else {
       newDivision = { division_id: "USA", division_type: "COUNTRY" };
     }
@@ -211,8 +218,12 @@ class EmissionsRecordContract extends Contract {
     let year = EmissionsCalc.get_year_from_date(thruDate);
     if (year) { queryParams.year = year.toString() }
 
+    console.log(`queryParams = ${JSON.stringify(queryParams)}`);
+
     // query emissions factors
     let utilityFactors = await ctx.utilityEmissionsFactorList.getUtilityEmissionsFactorsByDivision(queryParams);
+
+    console.log(`utilityFactors = ${utilityFactors}`);
 
     return utilityFactors;
   }
@@ -230,6 +241,7 @@ class EmissionsRecordContract extends Contract {
     let division_type = utilityFactor.division_type;
     let division_id = utilityFactor.division_id;
 
+    // @TODO: unknown uom error for net_generation_uom with EU countries
     let usage_uom_conversion = EmissionsCalc.get_uom_factor(usage_uom) / EmissionsCalc.get_uom_factor(net_generation_uom);
     let emissions_uom_conversion =
       EmissionsCalc.get_uom_factor(co2_equivalent_emissions_uom) / EmissionsCalc.get_uom_factor(emissions_uom);
