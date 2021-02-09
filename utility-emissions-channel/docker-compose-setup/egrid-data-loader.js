@@ -331,7 +331,7 @@ function import_utility_emissions(file_name, opts) {
           source: "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
           non_renewables: "",
           renewables: "",
-          percent_of_renewables: row[" ValueNumeric"]
+          percent_of_renewables: (Number(row[" ValueNumeric"]) * 100)
         };
         
         // format chaincode call
