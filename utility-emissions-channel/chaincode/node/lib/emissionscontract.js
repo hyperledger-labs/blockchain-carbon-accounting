@@ -251,8 +251,10 @@ class EmissionsRecordContract extends Contract {
         usage *
         EmissionsCalc.get_uom_factor(usage_uom);
 
-      renewable_energy_use_amount = usage * Number(utilityFactor.percent_of_renewables);
-      nonrenewable_energy_use_amount = usage * (100 - Number(utilityFactor.percent_of_renewables));
+      let percent_of_renewables = Number(utilityFactor.percent_of_renewables) / 100;
+
+      renewable_energy_use_amount = usage * percent_of_renewables;
+      nonrenewable_energy_use_amount = usage * (1 - percent_of_renewables);
 
     // otherwise, calculate emissions using net_generation
     } else {
