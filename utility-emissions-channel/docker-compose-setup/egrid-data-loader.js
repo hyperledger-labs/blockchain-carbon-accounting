@@ -372,7 +372,7 @@ function import_utility_emissions(file_name, opts) {
         let d = {
           uuid: document_id,
           co2_equivalent_emissions: row["index:number"],
-          co2_equivalent_emissions_uom: "KWH",
+          co2_equivalent_emissions_uom: "g/KWH",
           source: `https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6`,
         };
         
