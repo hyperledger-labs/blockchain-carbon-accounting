@@ -312,7 +312,7 @@ class EmissionsRecordContract extends Contract {
     renewables,
     percent_of_renewables
   ) {
-    let utilityFactor = EmissionsRecord.createInstance(
+    let utilityFactor = UtilityEmissionsFactorItem.createInstance(
       uuid,
       year,
       country,
