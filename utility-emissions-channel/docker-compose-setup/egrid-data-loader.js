@@ -379,6 +379,9 @@ function import_utility_emissions(file_name, opts) {
         // find previous record to update
         let utilityFactorCall = getChaincode("getUtilityFactor", `["${document_id}"]`).then((result) => {
           
+          console.log("!!! utilityFactorCall result: ");
+          console.log(result);
+
           // get all details of existing utilityFactor
           let expr = /payload:"{([^\s]+)/;
           let utilityFactorRaw = result.stderr.match(expr)[0];
