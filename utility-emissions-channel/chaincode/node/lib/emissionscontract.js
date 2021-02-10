@@ -232,7 +232,12 @@ class EmissionsRecordContract extends Contract {
   async getCo2Emissions(ctx, uuid, thruDate, usage, usage_uom) {
     // get emissions factor of given uuid through date
     let utilityFactorCall = await this.getEmissionsFactor(ctx, uuid, thruDate);
-    let utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
+    let utilityFactor;
+    try {
+      utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
+    } catch (error) {
+      throw new Error("No utility emissions factor found for given query");
+    }
 
     // initialize return variables
     let emissions_value, emissions_uom, renewable_energy_use_amount, nonrenewable_energy_use_amount;
