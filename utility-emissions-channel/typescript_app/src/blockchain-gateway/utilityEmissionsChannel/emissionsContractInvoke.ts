@@ -463,6 +463,7 @@ export class EmissionsContractInvoke {
         result["factorSource"] = record.factorSource;
         result["url"] = record.url;
         result["md5"] = record.md5;
+        result["tokenId"] = record.tokenId;
 
         all_emissions.push(result);
       }

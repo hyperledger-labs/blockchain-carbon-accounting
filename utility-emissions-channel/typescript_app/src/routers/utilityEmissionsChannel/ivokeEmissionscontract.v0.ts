@@ -317,9 +317,11 @@ router.post(
       if (Array.isArray(blockchainResponse)) {
         for (let entry of blockchainResponse) {
           // skip entries that are already assigned a tokenId
-          console.log(`entry = ${JSON.stringify(entry)}`);
           if (entry.tokenId !== null) {
-            console.log(`Skipping emissionsrecord with ID ${entry.uuid}, already audited to token ${entry.tokenId}`);
+            let tokenIdSplit = entry.tokenId.split(":");
+            let contract = tokenIdSplit[0];
+            let token = tokenIdSplit[1];
+            console.log(`Skipping emissionsrecord with ID ${entry.uuid}, already audited to token ${token} on contract ${contract}`);
             continue;
           }
 
