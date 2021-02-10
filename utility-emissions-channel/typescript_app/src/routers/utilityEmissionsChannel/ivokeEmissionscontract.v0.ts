@@ -335,16 +335,17 @@ router.post(
           metadata["renewableEnergyUseAmount"] += entry.renewableEnergyUseAmount;
           metadata["nonrenewableEnergyUseAmount"] += entry.nonrenewableEnergyUseAmount;
 
-          quantity += entry.emissionsAmount;
+          quantity += ((entry.emissionsAmount).toFixed(3) * 1000);
           manifest.push(entry.uuid);
         }
       } else {
         res.status(409).send(blockchainResponse);
       }
 
+      console.log(`quantity: ${quantity}`);
       let tokenId = await issue(
         addressToIssue,
-        (quantity * 1000).toFixed(),
+        quantity,
         toTimestamp(fromDate),
         toTimestamp(thruDate),
         toTimestamp(automaticRetireDate).toFixed(),
