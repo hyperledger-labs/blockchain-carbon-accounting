@@ -61,12 +61,13 @@ export async function issue(
   let transactionReceipt = await issue.wait().then((receipt) => {
     let issueEventRaw = JSON.stringify(receipt.events.pop().data);
     let issueEvent = issueEventRaw.substring(3, issueEventRaw.length-1);
-    // console.log(`Got issueEvent: ${issueEvent}`);
+    console.log(`Got issueEvent: ${issueEvent}`);
     let lengthOfEventValue = issueEvent.length / 25; // 25 values are returned in payload
     let tokenIdRaw = issueEvent.slice((lengthOfEventValue*3), (lengthOfEventValue*4));
+    console.log(`Got tokenIdRaw: ${tokenIdRaw}`);
     tokenId = parseInt(tokenIdRaw,16)
     console.log(`Got tokenId: ${tokenId}`);
   });
-  return tokenId;
+  return `${CONTRACT_ADDRESS}:${tokenId}`;
   
 }

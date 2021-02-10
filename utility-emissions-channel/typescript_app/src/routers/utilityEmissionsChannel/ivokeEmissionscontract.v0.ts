@@ -316,6 +316,13 @@ router.post(
 
       if (Array.isArray(blockchainResponse)) {
         for (let entry of blockchainResponse) {
+          // skip entries that are already assigned a tokenId
+          console.log(`entry = ${JSON.stringify(entry)}`);
+          if (entry.tokenId !== null) {
+            console.log(`Skipping emissionsrecord with ID ${entry.uuid}, already audited to token ${entry.tokenId}`);
+            continue;
+          }
+
           if (entry.fromDate != "" && entry.thruDate != "") {
             metadata["fromDates"].push(entry.fromDate);
             metadata["thruDates"].push(entry.thruDate);
