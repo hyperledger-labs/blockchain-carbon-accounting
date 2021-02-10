@@ -179,6 +179,17 @@ class EmissionsRecordContract extends Contract {
     return emissionsRecord;
   }
 
+  async getAllEmissionsDataByDateRangeAndParty(ctx, fromDate, thruDate, partyId) {
+    let queryData = {
+      fromDate: fromDate,
+      thruDate: thruDate,
+      partyId: partyId,
+    };
+    let emissionsRecord = await ctx.emissionsList.getAllEmissionsDataByDateRangeAndParty(queryData);
+
+    return emissionsRecord;
+  }
+
   // replaces get_emmissions_factor in emissions-calc.js
   async getEmissionsFactor(ctx, uuid, thruDate) {
     let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);

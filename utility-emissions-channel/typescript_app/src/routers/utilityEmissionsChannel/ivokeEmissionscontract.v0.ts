@@ -249,7 +249,7 @@ router.get(
 export const RECORD_AUDITED_EMISSIONS_TOKEN =
   "/api/" +
   APP_VERSION +
-  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
+  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:partyId/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
 router.post(
   RECORD_AUDITED_EMISSIONS_TOKEN,
   [
@@ -278,6 +278,7 @@ router.post(
       // Indicates the success of this synchronous custom validator
       return true;
     }),
+    param("partyId").isString(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -290,6 +291,7 @@ router.post(
       const addressToIssue = req.params.addressToIssue;
       const fromDate = req.params.fromDate;
       const thruDate = req.params.thruDate;
+      const partyId = req.params.partyId;
       const automaticRetireDate = new Date().toISOString();
       const description = "Audited Utility Emissions";
       let metadata = new Object();
@@ -307,11 +309,12 @@ router.post(
       let manifest = []; // stores uuids
 
       // Get Emmission Data from utilityEmissions Channel
-      const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsDataByDateRange(
+      const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsDataByDateRangeAndParty(
         userId,
         orgName,
         fromDate,
-        thruDate
+        thruDate,
+        partyId
       );
 
       if (Array.isArray(blockchainResponse)) {

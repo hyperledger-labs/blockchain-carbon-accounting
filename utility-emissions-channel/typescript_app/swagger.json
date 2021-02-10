@@ -213,7 +213,7 @@
         }
       }
     },
-    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
+    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{partyId}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
       "post": {
         "tags": ["emissionscontract"],
         "summary": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
@@ -239,6 +239,13 @@
             "name": "addressToIssue",
             "in": "path",
             "description": "Address that the token will be issued to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "description": "Party of the emissions records",
             "required": true,
             "type": "string"
           },
