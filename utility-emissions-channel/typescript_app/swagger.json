@@ -214,7 +214,7 @@
       }
     },
     "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
-      "get": {
+      "post": {
         "tags": ["emissionscontract"],
         "summary": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
         "description": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",

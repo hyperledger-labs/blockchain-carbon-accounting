@@ -250,7 +250,7 @@ export const RECORD_AUDITED_EMISSIONS_TOKEN =
   "/api/" +
   APP_VERSION +
   "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
-router.get(
+router.post(
   RECORD_AUDITED_EMISSIONS_TOKEN,
   [
     param("userId").isString(),
