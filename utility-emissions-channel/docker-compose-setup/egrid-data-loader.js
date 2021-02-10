@@ -378,13 +378,23 @@ function import_utility_emissions(file_name, opts) {
         
         // find previous record to update
         let utilityFactorCall = getChaincode("getUtilityFactor", `["${document_id}"]`).then((result) => {
-          
-          console.log("!!! utilityFactorCall result: ");
-          console.log(result);
 
           // get all details of existing utilityFactor
           let expr = /payload:"{([^\s]+)/;
-          let utilityFactorRaw = result.stderr.match(expr)[0];
+          // let utilityFactorRaw = JSON.stringify(result).match(expr)[0];
+          let utilityFactorRaw;
+          try {
+            let stderrSearch = result.stderr.match(expr)[0];
+            let stdoutSearch = result.stdout.match(expr);
+
+            if (stderrSearch) {
+              utilityFactorRaw = stderrSearch;
+            } else if (stdoutSearch) {
+              utilityFactorRaw = stdoutSearch;
+            }
+          } catch (error) {
+            console.error("Cannot get standard output for getUtilityFactor chaincode command");
+          }
           let utilityFactor = JSON.parse(JSON.parse(utilityFactorRaw.substring(8)));
 
           // format chaincode call (only update items in d)
