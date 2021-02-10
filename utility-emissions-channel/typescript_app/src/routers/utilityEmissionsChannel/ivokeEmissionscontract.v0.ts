@@ -296,6 +296,7 @@ router.post(
       const description = "Audited Utility Emissions";
       let metadata = new Object();
       metadata["org"] = orgName;
+      metadata["partyId"] = partyId;
       metadata["renewableEnergyUseAmount"] = 0;
       metadata["nonrenewableEnergyUseAmount"] = 0;
       metadata["utilityIds"] = [];
