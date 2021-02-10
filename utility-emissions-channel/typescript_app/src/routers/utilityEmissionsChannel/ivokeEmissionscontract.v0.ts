@@ -342,6 +342,10 @@ router.post(
         res.status(409).send(blockchainResponse);
       }
 
+      if (metadata["utilityIds"].length === 0) {
+        throw new Error("No emissions records found; nothing to audit");
+      }
+
       console.log(`quantity: ${quantity}`);
       let tokenId = await issue(
         addressToIssue,
