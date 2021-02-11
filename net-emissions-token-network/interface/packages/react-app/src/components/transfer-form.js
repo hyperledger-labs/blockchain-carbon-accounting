@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { transfer } from "../services/contract-functions";
 
@@ -35,6 +35,24 @@ export default function TransferForm({ provider, roles }) {
     let result = await transfer(provider, address, tokenId, amount);
     setResult(result.toString());
   }
+
+  // populate form with URL params if found
+  useEffect(() => {
+    let queryParams = new URLSearchParams(window.location.search);
+    let addressQueryParam = queryParams.get('address');
+    let tokenIdQueryParam = queryParams.get('tokenId');
+    let quantityQueryParam = queryParams.get('quantity');
+
+    if (addressQueryParam) {
+      setAddress(addressQueryParam);
+    }
+    if (tokenIdQueryParam) {
+      setTokenId(tokenIdQueryParam);
+    }
+    if (quantityQueryParam) {
+      setAmount(quantityQueryParam);
+    }
+  }, []);
 
   const inputError = {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',

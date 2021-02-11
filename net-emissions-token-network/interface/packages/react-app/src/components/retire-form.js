@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { retire } from "../services/contract-functions";
 
@@ -33,6 +33,20 @@ export default function RetireForm({ provider, roles }) {
     let result = await retire(provider, tokenId, amount);
     setResult(result.toString());
   }
+
+  // populate form with URL params if found
+  useEffect(() => {
+    let queryParams = new URLSearchParams(window.location.search);
+    let tokenIdQueryParam = queryParams.get('tokenId');
+    let quantityQueryParam = queryParams.get('quantity');
+
+    if (tokenIdQueryParam) {
+      setTokenId(tokenIdQueryParam);
+    }
+    if (quantityQueryParam) {
+      setAmount(quantityQueryParam);
+    }
+  }, []);
 
   const inputError = {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',

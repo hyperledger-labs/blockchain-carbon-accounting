@@ -22,10 +22,18 @@ export default function TokenInfoModal(props) {
       </Modal.Header>
       <Modal.Body>
 
-        <Row className="mt-2 mb-4">
+        <Row className="mt-2 mb-4 mr-3">
+
+          {/* Available and retired balances */}
+          <Col className="col-4 offset-1 text-right">
+            <h5 className="text-secondary">Available Balance</h5>
+            <h1>{props.token.availableBalance}</h1>
+            <h5 className="text-secondary">Retired Balance</h5>
+            <h2>{props.token.retiredBalance}</h2>
+          </Col>
 
           {/* token ID, icon, and type */}
-          <Col className="col-3 offset-3">
+          <Col className="col-3">
             <Row className="text-center">
               <Col><h3 className="mb-1 mt-2">ID: {props.token.tokenId}</h3></Col>
             </Row>
@@ -37,12 +45,31 @@ export default function TokenInfoModal(props) {
             </Row>
           </Col>
 
-          {/* Available and retired balances */}
-          <Col className="col-6">
-            <h5 className="text-secondary">Available Balance</h5>
-            <h1>{props.token.availableBalance}</h1>
-            <h5 className="text-secondary">Retired Balance</h5>
-            <h2>{props.token.retiredBalance}</h2>
+          {/* transfer and retire buttons (enabled if available balance) */}
+          <Col className="col-3">
+            <br/>
+            <Row className="text-left mb-2">
+              <Col>
+                <Button
+                  variant="success"
+                  href={`/transfer?tokenId=${props.token.tokenId}`}
+                  disabled={Number(props.token.availableBalance) <= 0}
+                >
+                  Transfer
+                </Button>
+              </Col>
+            </Row>
+            <Row className="text-left mb-2">
+              <Col>
+                <Button 
+                  variant="danger" 
+                  href={`/retire?tokenId=${props.token.tokenId}`}
+                  disabled={Number(props.token.availableBalance) <= 0}
+                >
+                  Retire
+                </Button>
+              </Col>
+            </Row>
           </Col>
 
         </Row>
