@@ -200,6 +200,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
                     key={token.tokenId}
                     onClick={() => handleOpenTokenInfoModal(token)}
                     onMouseOver={pointerHover}
+                    className={`${(Number(token.availableBalance) <= 0) ? "table-secondary" : ""}`}
                   >
                     <td>{token.tokenId}</td>
                     <td>{token.tokenType}</td>
