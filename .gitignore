@@ -1,5 +1,8 @@
 *.DS_Store
 minifab/
 utility-emissions-channel/.project
+utility-emissions-channel/docker-compose-setup/bin
+utility-emissions-channel/docker-compose-setup/bin_mac
+utility-emissions-channel/docker-compose-setup/config
 utility-emissions-channel/chaincode/node/node_modules
 
