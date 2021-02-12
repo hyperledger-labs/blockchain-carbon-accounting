@@ -213,7 +213,7 @@
         }
       }
     },
-    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{partyId}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
+    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{emissionsRecordsToAudit}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
       "post": {
         "tags": ["emissionscontract"],
         "summary": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
@@ -243,9 +243,9 @@
             "type": "string"
           },
           {
-            "name": "partyId",
+            "name": "emissionsRecordsToAudit",
             "in": "path",
-            "description": "Party of the emissions records",
+            "description": "List of emissions record UUIDs to audit separated by comma",
             "required": true,
             "type": "string"
           },

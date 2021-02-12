@@ -73,7 +73,7 @@ class EmissionsRecordContract extends Contract {
     let factor_source = `eGrid ${co2Emissions.year} ${co2Emissions.division_type} ${co2Emissions.division_id}`;
 
     // create an instance of the emissions record
-    let uuid = JSON.stringify([utilityId, partyId, fromDate, thruDate]);
+    let uuid = `${utilityId}:${partyId}:${fromDate}:${thruDate}`;
     let emissionsRecord = EmissionsRecord.createInstance(
       uuid,
       utilityId,

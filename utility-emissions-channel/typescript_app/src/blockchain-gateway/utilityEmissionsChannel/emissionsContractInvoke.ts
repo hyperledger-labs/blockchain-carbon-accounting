@@ -64,7 +64,6 @@ export class EmissionsContractInvoke {
       let uuid = getNewUuid();
       const blockchainResult: Buffer = await contract.submitTransaction(
         "recordEmissions",
-        uuid,
         utilityId,
         partyId,
         fromDate,
@@ -72,7 +71,8 @@ export class EmissionsContractInvoke {
         energyUseAmount,
         energyUseUom,
         url,
-        md5
+        md5,
+        null
       );
       const stringResult: string = blockchainResult.toString("utf-8");
       const jsonResult: any = JSON.parse(stringResult);

@@ -249,7 +249,7 @@ router.get(
 export const RECORD_AUDITED_EMISSIONS_TOKEN =
   "/api/" +
   APP_VERSION +
-  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:partyId/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
+  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:emissionsRecordsToAudit/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
 router.post(
   RECORD_AUDITED_EMISSIONS_TOKEN,
   [
@@ -278,7 +278,7 @@ router.post(
       // Indicates the success of this synchronous custom validator
       return true;
     }),
-    param("partyId").isString(),
+    param("emissionsRecordsToAudit").isString(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -291,12 +291,12 @@ router.post(
       const addressToIssue = req.params.addressToIssue;
       const fromDate = req.params.fromDate;
       const thruDate = req.params.thruDate;
-      const partyId = req.params.partyId;
+      const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.split(",");
       const automaticRetireDate = new Date().toISOString();
       const description = "Audited Utility Emissions";
       let metadata = new Object();
       metadata["org"] = orgName;
-      metadata["partyId"] = partyId;
+      metadata["partyId"] = [];
       metadata["renewableEnergyUseAmount"] = 0;
       metadata["nonrenewableEnergyUseAmount"] = 0;
       metadata["utilityIds"] = [];
@@ -308,51 +308,58 @@ router.post(
 
       let quantity = 0;
       let manifest = []; // stores uuids
+      let fetchedEmissionsRecords = []; // stores fetched emissions records for updating tokenId on fabric after auditing
 
-      // Get Emmission Data from utilityEmissions Channel
-      const blockchainResponse = await EmissionsContractInvoke.getAllEmissionsDataByDateRangeAndParty(
-        userId,
-        orgName,
-        fromDate,
-        thruDate,
-        partyId
-      );
+      // iterate through each emissions record UUID passed by user to API
+      for (let uuid of emissionsRecordsToAudit) {
 
-      if (Array.isArray(blockchainResponse)) {
-        for (let entry of blockchainResponse) {
-          // skip entries that are already assigned a tokenId
-          if (entry.tokenId !== null) {
-            let tokenIdSplit = entry.tokenId.split(":");
-            let contract = tokenIdSplit[0];
-            let token = tokenIdSplit[1];
-            console.log(`Skipping emissionsrecord with ID ${entry.uuid}, already audited to token ${token} on contract ${contract}`);
-            continue;
-          }
-
-          if (entry.fromDate != "" && entry.thruDate != "") {
-            metadata["fromDates"].push(entry.fromDate);
-            metadata["thruDates"].push(entry.thruDate);
-          }
-          if (!metadata["utilityIds"].includes(entry.utilityId)) {
-            metadata["utilityIds"].push(entry.utilityId);
-          }
-          if (!metadata["factorSources"].includes(entry.factorSource)) {
-            metadata["factorSources"].push(entry.factorSource);
-          }
-          if (entry.md5 != "") {
-            metadata["md5s"].push(entry.md5);
-          }
-          if (entry.url != "") {
-            metadata["urls"].push(entry.url);
-          }
-          metadata["renewableEnergyUseAmount"] += entry.renewableEnergyUseAmount;
-          metadata["nonrenewableEnergyUseAmount"] += entry.nonrenewableEnergyUseAmount;
-
-          quantity += ((entry.emissionsAmount).toFixed(3) * 1000);
-          manifest.push(entry.uuid);
+        // fetch details from the chaincode
+        let emissionsRecord;
+        try {
+          emissionsRecord = await EmissionsContractInvoke.getEmissionsData(
+            userId,
+            orgName,
+            uuid
+          );
+          fetchedEmissionsRecords.push(emissionsRecord);
+        } catch (error) {
+          console.error(`Error fetching emissions record of UUID ${uuid}`);
+          console.error(error);
         }
-      } else {
-        res.status(409).send(blockchainResponse);
+
+        // skip entries that are already assigned a tokenId
+        if (emissionsRecord.tokenId !== null) {
+          let tokenIdSplit = emissionsRecord.tokenId.split(":");
+          let contract = tokenIdSplit[0];
+          let token = tokenIdSplit[1];
+          console.log(`Skipping emissionsrecord with ID ${emissionsRecord.uuid}, already audited to token ${token} on contract ${contract}`);
+          continue;
+        }
+
+        if (emissionsRecord.fromDate != "" && emissionsRecord.thruDate != "") {
+          metadata["fromDates"].push(emissionsRecord.fromDate);
+          metadata["thruDates"].push(emissionsRecord.thruDate);
+        }
+        if (!metadata["utilityIds"].includes(emissionsRecord.utilityId)) {
+          metadata["utilityIds"].push(emissionsRecord.utilityId);
+        }
+        if (!metadata["partyId"].includes(emissionsRecord.partyId)) {
+          metadata["partyId"].push(emissionsRecord.partyId);
+        }
+        if (!metadata["factorSources"].includes(emissionsRecord.factorSource)) {
+          metadata["factorSources"].push(emissionsRecord.factorSource);
+        }
+        if (emissionsRecord.md5 != "") {
+          metadata["md5s"].push(emissionsRecord.md5);
+        }
+        if (emissionsRecord.url != "") {
+          metadata["urls"].push(emissionsRecord.url);
+        }
+        metadata["renewableEnergyUseAmount"] += emissionsRecord.renewableEnergyUseAmount;
+        metadata["nonrenewableEnergyUseAmount"] += emissionsRecord.nonrenewableEnergyUseAmount;
+
+        quantity += ((emissionsRecord.emissionsAmount).toFixed(3) * 1000);
+        manifest.push(emissionsRecord.uuid);
       }
 
       if (metadata["utilityIds"].length === 0) {
@@ -372,22 +379,22 @@ router.post(
       );
 
       // upsert tokenId to all entries retrieved from the register
-      for (let entry of blockchainResponse) {
+      for (let emissionsRecord of fetchedEmissionsRecords) {
         let updateRecord = await EmissionsContractInvoke.updateEmissionsRecord(
           userId,
           orgName,
-          entry.uuid,
-          entry.utilityId,
-          entry.partyId,
-          entry.fromDate,
-          entry.thruDate,
-          entry.emissionsAmount,
-          entry.renewableEnergyUseAmount,
-          entry.nonrenewableEnergyUseAmount,
-          entry.energyUseUom,
-          entry.factorSource,
-          entry.url,
-          entry.md5,
+          emissionsRecord.uuid,
+          emissionsRecord.utilityId,
+          emissionsRecord.partyId,
+          emissionsRecord.fromDate,
+          emissionsRecord.thruDate,
+          emissionsRecord.emissionsAmount,
+          emissionsRecord.renewableEnergyUseAmount,
+          emissionsRecord.nonrenewableEnergyUseAmount,
+          emissionsRecord.energyUseUom,
+          emissionsRecord.factorSource,
+          emissionsRecord.url,
+          emissionsRecord.md5,
           tokenId
         );
       }
