@@ -67,12 +67,13 @@ class EmissionsRecordContract extends Contract {
    * @param {Double} energy usage amount
    * @param {String} UOM of energy usage amount -- ie kwh
    */
-  async recordEmissions(ctx, uuid, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom, url, md5) {
+  async recordEmissions(ctx, utilityId, partyId, fromDate, thruDate, energyUseAmount, energyUseUom, url, md5) {
     // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
     let co2Emissions = await this.getCo2Emissions(ctx, utilityId, thruDate, energyUseAmount, energyUseUom);
     let factor_source = `eGrid ${co2Emissions.year} ${co2Emissions.division_type} ${co2Emissions.division_id}`;
 
     // create an instance of the emissions record
+    let uuid = JSON.stringify([utilityId, partyId, fromDate, thruDate]);
     let emissionsRecord = EmissionsRecord.createInstance(
       uuid,
       utilityId,
