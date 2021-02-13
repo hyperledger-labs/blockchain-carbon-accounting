@@ -213,7 +213,7 @@
         }
       }
     },
-    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{emissionsRecordsToAudit}/{fromDate}/{thruDate}/{automaticRetireDate}/{metadata}/{description}": {
+    "/emissionscontract/recordAuditedEmissionsToken/{userId}/{orgName}/{addressToIssue}/{emissionsRecordsToAudit}/{automaticRetireDate}": {
       "post": {
         "tags": ["emissionscontract"],
         "summary": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
@@ -250,17 +250,10 @@
             "type": "string"
           },
           {
-            "name": "fromDate",
+            "name": "automaticRetireDate",
             "in": "path",
-            "description": "Starting date of the query",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "thruDate",
-            "in": "path",
-            "description": "End date of the query",
-            "required": true,
+            "description": "Optional date to automatically retire issued tokens",
+            "required": false,
             "type": "string"
           }
         ],

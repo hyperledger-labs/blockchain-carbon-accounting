@@ -249,32 +249,22 @@ router.get(
 export const RECORD_AUDITED_EMISSIONS_TOKEN =
   "/api/" +
   APP_VERSION +
-  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:emissionsRecordsToAudit/:fromDate/:thruDate/:automaticRetireDate/:metadata/:description";
+  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:emissionsRecordsToAudit/:automaticRetireDate";
 router.post(
   RECORD_AUDITED_EMISSIONS_TOKEN,
   [
     param("userId").isString(),
     param("orgName").isString(),
     param("addressToIssue").isString(),
-    param("fromDate").custom((value, { req }) => {
-      let matches = value.match(
-        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-      );
-      if (!matches) {
-        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+    param("automaticRetireDate").custom((value, { req }) => {
+      if (value) {
+        let matches = value.match(
+          /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+        );
+        if (!matches) {
+          throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+        }
       }
-
-      // Indicates the success of this synchronous custom validator
-      return true;
-    }),
-    param("thruDate").custom((value, { req }) => {
-      let matches = value.match(
-        /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-      );
-      if (!matches) {
-        throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
-      }
-
       // Indicates the success of this synchronous custom validator
       return true;
     }),
@@ -289,9 +279,8 @@ router.post(
       const userId = req.params.userId;
       const orgName = req.params.orgName;
       const addressToIssue = req.params.addressToIssue;
-      const fromDate = req.params.fromDate;
-      const thruDate = req.params.thruDate;
       const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.split(",");
+      // @TODO: use automaticRetireDate parameter
       const automaticRetireDate = new Date().toISOString();
       const description = "Audited Utility Emissions";
       let metadata = new Object();
@@ -309,6 +298,11 @@ router.post(
       let quantity = 0;
       let manifest = []; // stores uuids
       let fetchedEmissionsRecords = []; // stores fetched emissions records for updating tokenId on fabric after auditing
+
+      // later, we look through the unix timestamp of all fetched emissions to find the earliest and latest dates
+      // to populate the fromDate and toDate params on the Ethereum contract
+      let fromDate = Number.MAX_SAFE_INTEGER;
+      let thruDate = 0;
 
       // iterate through each emissions record UUID passed by user to API
       for (let uuid of emissionsRecordsToAudit) {
@@ -334,6 +328,16 @@ router.post(
           let token = tokenIdSplit[1];
           console.log(`Skipping emissionsrecord with ID ${emissionsRecord.uuid}, already audited to token ${token} on contract ${contract}`);
           continue;
+        }
+
+        // check timestamps to find overall range of dates later
+        let fetchedFromDate = toTimestamp(emissionsRecord.fromDate);
+        if (fetchedFromDate > fromDate) {
+          fromDate = fetchedFromDate;
+        }
+        let fetchedThruDate = toTimestamp(emissionsRecord.thruDate);
+        if (toTimestamp(emissionsRecord.thruDate) < thruDate) {
+          thruDate = fetchedThruDate;
         }
 
         if (emissionsRecord.fromDate != "" && emissionsRecord.thruDate != "") {
@@ -370,8 +374,8 @@ router.post(
       let tokenId = await issue(
         addressToIssue,
         quantity,
-        toTimestamp(fromDate),
-        toTimestamp(thruDate),
+        fromDate,
+        thruDate,
         toTimestamp(automaticRetireDate).toFixed(),
         JSON.stringify(metadata),
         manifest.join(", "),
