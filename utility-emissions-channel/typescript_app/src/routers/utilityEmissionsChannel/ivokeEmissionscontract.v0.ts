@@ -81,7 +81,12 @@ router.post(
           `${userId}-${orgName}-${utilityId}-${partyId}-${fromDate}-${thruDate}.pdf`
         );
         url = upload.Location;
-        md5 = Md5.hashStr(fileBin.toString()).toString();
+        try {
+          md5 = Md5.hashStr(fileBin.toString()).toString();
+        } catch (error) {
+          console.error(error);
+        }
+        
       }
 
       console.log(`# RECORDING EMISSIONS DATA TO UTILITYEMISSIONS CHANNEL`);

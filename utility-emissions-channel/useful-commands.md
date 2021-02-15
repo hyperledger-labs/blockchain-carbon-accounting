@@ -38,7 +38,7 @@ curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll
 
 curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll/user" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"userId\":\"testuser1\",\"orgName\":\"auditor1\",\"affiliation\":\"auditor1.department1\"}"
 
-curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordEmissions" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "userId=testuser1" -F "orgName=auditor1" -F "utilityId=USA_EIA_11208" -F "partyId=1234567890" -F "fromDate=2016-04-06T10:10:09Z" -F "thruDate=2017-04-06T10:10:09Z" -F "energyUseAmount=200" -F "energyUseUom="
+curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordEmissions" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "userId=testuser1" -F "orgName=auditor1" -F "utilityId=USA_EIA_11208" -F "partyId=1234567890" -F "fromDate=2018-01-06T10:10:09Z" -F "thruDate=2018-12-06T10:10:09Z" -F "energyUseAmount=200" -F "energyUseUom="
 
 # Replace {emissionsRecordsToAudit} with returned IDs of emissions record(s) separated by commas
 curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/testuser1/auditor1/0xd32e793008b0fbd13c889e291bc049483da316ba/{emissionsRecordsToAudit}/{automaticRetireDate}" -H  "accept: */*"
@@ -51,21 +51,24 @@ curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontr
 docker exec cli bash -c "./network.sh deployCC -ccv 2.0 -ccs 2"
 ```
 
-## Import and get sample US utility identifier
+## Import and get sample US utility identifier and record dummy emission
 
 ```bash
-./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":["15497","2019","15497","Puerto_Rico_Electric_Pwr_Authority","USA","PR","{\"division_type\":\"NERC_REGION\",\"division_id\":\"PR\"}"]}' 1 2
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":["USA_EIA_15497","2019","15497","Puerto_Rico_Electric_Pwr_Authority","USA","PR","{\"division_type\":\"NERC_REGION\",\"division_id\":\"PR\"}"]}' 1 2
 
-./scripts/invokeChaincode.sh '{"function":"'getUtilityIndentifier'","Args":["15497"]}' 1
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'getUtilityIdentifier'","Args":["USA_EIA_15497"]}' 1
+
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_15497","testparty1","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
+
 ```
 
 ## Get all utility identifiers
 
 ```bash
-./scripts/invokeChaincode.sh '{"function":"'getAllUtilityIndentifiers'","Args":[]}' 1
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'getAllUtilityIndentifiers'","Args":[]}' 1
 ```
 
-## Import dummy German utility identifier and record dummy emissions
+## Import dummy German utility identifier and record dummy emission
 
 ```bash
 sudo bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":["999999","2019","999999","Fake_Germany_Power_Company","Germany","","{\"division_type\":\"Country\",\"division_id\":\"Germany\"}"]}' 1 2
