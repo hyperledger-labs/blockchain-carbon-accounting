@@ -13,6 +13,8 @@ const EmissionsRecord = require("./emissions.js");
 const EmissionsList = require("./emissionslist.js");
 const EmissionsCalc = require("./emissions-calc.js");
 
+const MD5 = require("crypto-js/md5");
+
 // Egrid specific classes
 const { UtilityEmissionsFactorList, UtilityLookupList, UtilityLookupItem, UtilityEmissionsFactorItem } = require("./egrid-data.js");
 
@@ -73,8 +75,7 @@ class EmissionsRecordContract extends Contract {
     let factor_source = `eGrid ${co2Emissions.year} ${co2Emissions.division_type} ${co2Emissions.division_id}`;
 
     // create an instance of the emissions record
-    let timestamp = ctx.stub.getTxTimestamp();
-    let uuid = ctx.stub.getTxTimestamp();
+    let uuid = MD5(utilityId + partyId + fromDate + thruDate).toString();
     let emissionsRecord = EmissionsRecord.createInstance(
       uuid,
       utilityId,
@@ -199,7 +200,7 @@ class EmissionsRecordContract extends Contract {
     // create newDivision object used for later query into utilityEmissionsFactorList
     let hasStateData;
     try {
-      hasStateData = (JSON.parse(utilityLookup).state_province).toString().length > 0;
+      hasStateData = ((JSON.parse(utilityLookup).state_province) + "").length > 0;
     } catch (error) {
       console.error("Could not fetch state_province");
       console.error(error);
@@ -234,13 +235,21 @@ class EmissionsRecordContract extends Contract {
     };
 
     // filter matching year if found
-    let year = EmissionsCalc.get_year_from_date(thruDate);
-    if (year) { queryParams.year = year.toString() }
+    let year;
+    try {
+      year = EmissionsCalc.get_year_from_date(thruDate);
+      if (year) { queryParams.year = year }
+    } catch (error) {
+      console.error("Could not fetch year");
+      console.error(error);
+    }
 
     console.log(`queryParams = ${JSON.stringify(queryParams)}`);
 
     // query emissions factors
+    console.log("fetching utilityFactors");
     let utilityFactors = await ctx.utilityEmissionsFactorList.getUtilityEmissionsFactorsByDivision(queryParams);
+    console.log("fetched utilityFactors. value:");
 
     console.log(`utilityFactors = ${utilityFactors}`);
 
@@ -253,6 +262,7 @@ class EmissionsRecordContract extends Contract {
     let utilityFactorCall = await this.getEmissionsFactor(ctx, uuid, thruDate);
     let utilityFactor;
     try {
+      console.log(utilityFactor);
       utilityFactor = JSON.parse(utilityFactorCall)[0].Record;
     } catch (error) {
       throw new Error("No utility emissions factor found for given query");
@@ -268,7 +278,8 @@ class EmissionsRecordContract extends Contract {
 
       let co2_equivalent_emissions_uom;
       try {
-        co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom.toString().split("/");
+        // co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom.toString().split("/");
+        co2_equivalent_emissions_uom = (utilityFactor.co2_equivalent_emissions_uom + "").split("/");
       } catch (error) {
         console.error("Could not fetch co2_equivalent_emissions_uom");
         console.error(error);
