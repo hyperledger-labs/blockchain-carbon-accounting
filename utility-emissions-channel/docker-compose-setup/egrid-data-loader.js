@@ -23,7 +23,7 @@ const exec = util.promisify(require('child_process').exec)
 
 yargs
   .command(
-    "load_utility_emissions <file> <sheet>",
+    "load_utility_emissions <file> [sheet]",
     "load data from XLSX file",
     (yargs) => {
       yargs
@@ -32,6 +32,8 @@ yargs
         })
         .positional("sheet", {
           describe: "name of the worksheet to load from",
+          demandOption: false,
+          default: "Sheet1"
         });
     },
     (argv) => {
@@ -199,8 +201,17 @@ async function getChaincode(funct, args) {
 }
 
 function import_utility_emissions(file_name, opts) {
-  if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+
+  let supportedFiles = [
+    { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
+    { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
+    { file: "eGRID2018_Data_v2.xlsx", sheet: "US18" },
+    { file: "2019-RES_proxies_EEA.csv", sheet: "Sheet1" },
+    { file: "co2-emission-intensity-6.csv", sheet: "Sheet1" },
+  ]
+
+  if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18")) {
+    let data = parse_worksheet(supportedFiles[0].file, supportedFiles[0], function(data) {
       // import data for each valid row, eg:
       // Year = 2018 from 'Data Year'
       // Country = USA
@@ -246,8 +257,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+  } else if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
+    let data = parse_worksheet(supportedFiles[1].file, supportedFiles[1], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -280,8 +291,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+  } else if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")) {
+    let data = parse_worksheet(supportedFiles[2].file, supportedFiles[2], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -314,8 +325,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+  } else if (opts.file = "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
+    let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || row["CountryShort"].slice(0, 2) == "EU") return callback();
@@ -349,9 +360,9 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1") {
+  } else if (opts.file = "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
     console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
-    let data = parse_worksheet(file_name, opts, function(data) {
+    let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Date:year"]) return callback();
