@@ -74,7 +74,7 @@ class EmissionsRecordContract extends Contract {
 
     // create an instance of the emissions record
     let timestamp = ctx.stub.getTxTimestamp();
-    let uuid = ((timestamp.seconds.low + ((timestamp.nanos / 1000000) / 1000)) * 1000).toString();
+    let uuid = ctx.stub.getTxTimestamp();
     let emissionsRecord = EmissionsRecord.createInstance(
       uuid,
       utilityId,
@@ -197,7 +197,13 @@ class EmissionsRecordContract extends Contract {
     let utilityLookup = await ctx.utilityLookupList.getUtilityLookupItem(uuid);
 
     // create newDivision object used for later query into utilityEmissionsFactorList
-    let hasStateData = (JSON.parse(utilityLookup).state_province).toString().length > 0;
+    let hasStateData;
+    try {
+      hasStateData = (JSON.parse(utilityLookup).state_province).toString().length > 0;
+    } catch (error) {
+      console.error("Could not fetch state_province");
+      console.error(error);
+    }
     let fetchedDivisions = JSON.parse(JSON.parse(utilityLookup).divisions);
     let fetchedDivisionType = fetchedDivisions["division_type"];
     let fetchedDivisionId = fetchedDivisions["division_id"];
@@ -256,11 +262,17 @@ class EmissionsRecordContract extends Contract {
     let emissions_value, emissions_uom, renewable_energy_use_amount, nonrenewable_energy_use_amount;
 
     // calculate emissions using percent_of_renewables if found
-    if (utilityFactor.percent_of_renewables.toString().length > 0) {
+    if (utilityFactor.percent_of_renewables) {
 
       emissions_uom = "g";
 
-      let co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom.toString().split("/");
+      let co2_equivalent_emissions_uom;
+      try {
+        co2_equivalent_emissions_uom = utilityFactor.co2_equivalent_emissions_uom.toString().split("/");
+      } catch (error) {
+        console.error("Could not fetch co2_equivalent_emissions_uom");
+        console.error(error);
+      }
 
       emissions_value = 
         Number(utilityFactor.co2_equivalent_emissions) *
@@ -422,7 +434,7 @@ class EmissionsRecordContract extends Contract {
   }
 
   async getAllUtilityIdentifiers(ctx) {
-    let utilityIndentifiers = await ctx.utilityLookupList.getAllUtilityLookupItems();
+    let utilityIdentifiers = await ctx.utilityLookupList.getAllUtilityLookupItems();
 
     return utilityIdentifiers;
   }
