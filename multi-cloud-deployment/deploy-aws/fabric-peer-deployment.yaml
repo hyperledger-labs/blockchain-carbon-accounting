@@ -27,7 +27,7 @@ spec:
   storageClassName: gp2
   awsElasticBlockStore:
     fsType: ext4
-    volumeID: vol-0dd8a1457aea6b7db
+    volumeID: vol-028935a9a5ddf1d58
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -89,8 +89,6 @@ spec:
           value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_LISTENADDRESS
           value: 0.0.0.0:7051
-        - name: CORE_PEER_CHAINCODEADDRESS
-          value: fabric-peer.opensolarx.com:443
         - name: CORE_PEER_CHAINCODELISTENADDRESS
           value: 0.0.0.0:7052
         - name: CORE_PEER_GOSSIP_BOOTSTRAP
@@ -106,7 +104,7 @@ spec:
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME
           value: admin
         - name: CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-          value: aiG6ohsh6Uch5oot
+          value: ahtei0loox3O
         - name: CORE_OPERATIONS_LISTENADDRESS
           value: 0.0.0.0:9443
         - name: CORE_METRICS_PROVIDER
@@ -132,6 +130,19 @@ spec:
           - name: fabric-peer-pvc
             mountPath: /etc/hyperledger/fabric/crypto-material
             subPath: crypto-material
+            # External chaincode builder
+          - name: builders-config-core-yaml
+            mountPath: /etc/hyperledger/fabric/core.yaml
+            subPath: core.yaml
+          - name: external-builder-detect
+            mountPath: /builders/external/bin/detect
+            subPath: detect
+          - name: external-builder-build
+            mountPath: /builders/external/bin/build
+            subPath: build
+          - name: external-builder-release
+            mountPath: /builders/external/bin/release
+            subPath: release
 
       - name: couchdb
         image: hyperledger/fabric-couchdb:0.4
@@ -143,7 +154,7 @@ spec:
         - name: COUCHDB_USER
           value: admin
         - name: COUCHDB_PASSWORD
-          value: aiG6ohsh6Uch5oot
+          value: ahtei0loox3O
         volumeMounts:
           - mountPath: /opt/couchdb/data
             name: fabric-peer-pvc
@@ -174,3 +185,31 @@ spec:
       - persistentVolumeClaim:
           claimName: fabric-peer
         name: fabric-peer-pvc
+      # External chaincode builder 
+      - name: builders-config-core-yaml
+        configMap:
+          name: external-chaincode-builder-config
+          items:
+            - key: core.yaml
+              path: core.yaml
+      - name: external-builder-detect
+        configMap:
+          name: external-chaincode-builder-config
+          items:
+            - key: detect
+              path: detect
+              mode: 0544
+      - name: external-builder-build
+        configMap:
+          name: external-chaincode-builder-config
+          items:
+            - key: build
+              path: build
+              mode: 0544
+      - name: external-builder-release
+        configMap:
+          name: external-chaincode-builder-config
+          items:
+            - key: release
+              path: release
+              mode: 0544
