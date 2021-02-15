@@ -257,7 +257,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
+  }
+  if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
     let data = parse_worksheet(supportedFiles[1].file, supportedFiles[1], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
@@ -291,7 +292,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")) {
+  }
+  if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")) {
     let data = parse_worksheet(supportedFiles[2].file, supportedFiles[2], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
@@ -325,7 +327,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file = "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
+  }
+  if (opts.file = "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
     let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
@@ -360,7 +363,8 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file = "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
+  }
+  if (opts.file = "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
     console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
     let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
@@ -417,9 +421,8 @@ function import_utility_emissions(file_name, opts) {
         });
       });
     });
-  } else {
-    console.log("This sheet or PDF is not currently supported.");
   }
+  console.log("This sheet or PDF is not currently supported.");
 }
 
 function import_utility_identifiers(file_name, opts) {
