@@ -1,17 +1,17 @@
 # utility-emissions-channel
 
-This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain.
+This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain.  To see how it works, check out [this video](https://youtu.be/zIYfjF4U2G8).
 
 ## Running the Fabric network and Express API
 
 1. Make sure you have Git, curl, Docker, and Docker Compose installed, or follow instructions from [Hyperledger Fabric Install Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. From `utility-emissions-channel/`, copy over the Fabric database configuration template file with:
+2. From `utility-emissions-channel/`, copy over the Amazon Web Services (AWS) configuration template file with:
 
 ```bash
 $ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
 ```
 
-3. Fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
+3. If you want to use AWS S3 service to store documents, then fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
 
 ```js
     exports.AWS_ACCESS_KEY_ID = 'your_access_key';
@@ -19,6 +19,8 @@ $ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config
     exports.S3_LOCAL = true;
     exports.BUCKET_NAME = "local-bucket";
 ```
+
+Otherwise leave it unchanged, and you will be able to store your documents locally with serverless.
 
 4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
@@ -55,7 +57,7 @@ Then modify the file `utility-emissions-channel/docker-compose-setup/scripts/inv
 7.  Install the dependencies for the 
 server.  This is a temporary fix as reported in [issue #71](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/71)
 
-From `utility-emissions-channel/docker-compose-setup`:
+From `utility-emissions-channel/`:
 
 ```bash
 $ cd typescript_app
@@ -100,13 +102,17 @@ $ unzip f8612019.zip
 
 4. Download the data from the [European Environment Agency](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract the zip file.
 
-5. Load utility emissions and identifiers data from the files:
+5. Load utility emissions and identifiers data from the files.  NOTE: There is a [known issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/76) with loading the European `co2-emissions-intensity` file on Mac OS X, so if you are looking to use this for European data, it will only work on Ubuntu:
 
 ```bash
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-$ node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
 $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+```
+
+```bash
+$ node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+$ node egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
 ```
 
 ### Viewing the seed data

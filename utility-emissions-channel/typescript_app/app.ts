@@ -26,7 +26,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
  * HTTP CONNECTION
  */
 app.listen(PORT, function() {
-  console.clear();
+  // console.clear();
   console.log(`++++++++++++++++ Hyperledger CA2 SIG /// Carbon Accouncting API ++++++++++++++++`);
   console.log(`++ REST API PORT : ${chalk.cyanBright(PORT)}`);
   console.log(`++ ACCESS SWAGGER : ${chalk.cyanBright("http://localhost:9000/api-docs/")}`);

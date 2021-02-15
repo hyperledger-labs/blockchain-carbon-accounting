@@ -14,15 +14,16 @@ const XLSX = require("xlsx");
 const async = require("async");
 const yargs = require("yargs");
 const NAME_MAPPINGS = require("./abrevToName.js");
-// const assert = require('assert');
 
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 
 const { execSync } = require("child_process");
+const util = require('util');
+const exec = util.promisify(require('child_process').exec)
 
 yargs
   .command(
-    "load_utility_emissions <file> <sheet>",
+    "load_utility_emissions <file> [sheet]",
     "load data from XLSX file",
     (yargs) => {
       yargs
@@ -31,6 +32,8 @@ yargs
         })
         .positional("sheet", {
           describe: "name of the worksheet to load from",
+          demandOption: false,
+          default: "Sheet1"
         });
     },
     (argv) => {
@@ -154,9 +157,12 @@ function parse_worksheet(file_name, opts, cb) {
       var col = z.substring(0, tt).trim();
       var row = parseInt(z.substring(tt));
       var value = worksheet[z].v;
+      // console.log(`value: ${value}`);
       if (opts.skip_rows && opts.skip_rows >= row) continue;
       //opts.verbose && console.log('--> ', row, col, value);
 
+      // console.log(`col: ${col}`);
+      // console.log(`row: ${row}`);
       //store header names
       if (row == header_row && value) {
         headers[col] = value;
@@ -166,14 +172,15 @@ function parse_worksheet(file_name, opts, cb) {
       if (!data[row]) data[row] = {};
       data[row][headers[col]] = value;
     }
+    // console.log(`data: ${JSON.stringify(data)}`);
     return cb(data);
   });
 }
 
 function invokeChaincode(funct, args, callback) {
-  let command_formatted = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
-  console.log(`Calling ${command_formatted}\n`);
-  execSync(command_formatted, (error, stdout, stderr) => {
+  let command = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
+  console.log(`Calling ${command}\n`);
+  execSync(command, (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`);
       return;
@@ -187,9 +194,24 @@ function invokeChaincode(funct, args, callback) {
   return callback();
 }
 
+async function getChaincode(funct, args) {
+  let command = `sudo bash ./scripts/invokeChaincode.sh '{"function":"'${funct}'","Args":${args}}' 1 2`;
+  let output = await exec(command);
+  return output;
+}
+
 function import_utility_emissions(file_name, opts) {
-  if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+
+  let supportedFiles = [
+    { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
+    { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
+    { file: "eGRID2018_Data_v2.xlsx", sheet: "US18" },
+    { file: "2019-RES_proxies_EEA.csv", sheet: "Sheet1" },
+    { file: "co2-emission-intensity-6.csv", sheet: "Sheet1" },
+  ]
+
+  if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18")) {
+    let data = parse_worksheet(supportedFiles[0].file, supportedFiles[0], function(data) {
       // import data for each valid row, eg:
       // Year = 2018 from 'Data Year'
       // Country = USA
@@ -235,8 +257,9 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+  }
+  if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
+    let data = parse_worksheet(supportedFiles[1].file, supportedFiles[1], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -269,8 +292,9 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18") {
-    let data = parse_worksheet(file_name, opts, function(data) {
+  }
+  if (opts.file = "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")) {
+    let data = parse_worksheet(supportedFiles[2].file, supportedFiles[2], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -303,32 +327,15 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-  } else if (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1") {
-    // let percent_of_total_market_sector = [];
-    // let gross_final_electricity_consumption = [];
-    let data = parse_worksheet(file_name, opts, function(data) {
+  }
+  if (opts.file = "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
+    let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || row["CountryShort"].slice(0, 2) == "EU") return callback();
 
-        // skip header rows
-        if (row["Data Year"] == "YEAR") return callback();
-        //opts.verbose && console.log('-- Prepare to insert from ', row);
-        // generate a unique for the row
-        // console.log(row);
-
         // skip rows unrelated to electricity
         if (row["Market_Sector"] !== "Electricity") return callback();
-
-        // if (row["Market_Sector"] == "Total") {
-        //   percent_of_total_market_sector.push(row);
-        // }
-
-        // if (row["Market_Sector"] == "GFEC") {
-        //   gross_final_electricity_consumption.push(row);
-        // }
-
-        // return callback();
 
         let countryName = NAME_MAPPINGS.COUNTRY_MAPPINGS[row["CountryShort"]];
         let document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
@@ -336,8 +343,8 @@ function import_utility_emissions(file_name, opts) {
           uuid: document_id,
           year: "" + row["Year"],
           country: countryName,
-          division_type: "COUNTRY",
-          division_id: row["CountryShort"],
+          division_type: "Country",
+          division_id: countryName,
           division_name: countryName,
           net_generation: "",
           net_generation_uom: "",
@@ -346,7 +353,7 @@ function import_utility_emissions(file_name, opts) {
           source: "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
           non_renewables: "",
           renewables: "",
-          percent_of_renewables: row[" ValueNumeric"]
+          percent_of_renewables: (Number(row[" ValueNumeric"]) * 100)
         };
         
         // format chaincode call
@@ -356,50 +363,108 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
-
-    // assert(percent_of_total_market_sector.length == gross_final_electricity_consumption.length);
-
-  } else {
-    console.log("This sheet or PDF is not currently supported.");
   }
+  if (opts.file = "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
+    console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
+    let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
+      async.eachSeries(data, function iterator(row, callback) {
+        // skip empty rows
+        if (!row || !row["Date:year"]) return callback();
+        // console.log(JSON.stringify(row));
+        // skip rows that aren't latest year
+        if (row["Date:year"] !== 2019) return callback();
+        // skip total EU
+        if (row["Member State:text"].startsWith("European Union")) return callback();
+
+        // get country long name and abbreviation from long name
+        let countryLong = row["Member State:text"].replace(" ", "_");
+        let countryShort = Object.keys(NAME_MAPPINGS.COUNTRY_MAPPINGS).find(key => NAME_MAPPINGS.COUNTRY_MAPPINGS[key] === countryLong);
+
+        // skip if country name not found
+        if (!countryShort) return callback();
+
+        let document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
+        let d = {
+          uuid: document_id,
+          co2_equivalent_emissions: row["index:number"],
+          co2_equivalent_emissions_uom: "g/KWH",
+          source: `https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6`,
+        };
+        
+        // find previous record to update
+        let utilityFactorCall = getChaincode("getUtilityFactor", `["${document_id}"]`).then((result) => {
+
+          // get all details of existing utilityFactor
+          let expr = /payload:"{([^\s]+)/;
+          // let utilityFactorRaw = JSON.stringify(result).match(expr)[0];
+          let utilityFactorRaw;
+          try {
+            let stderrSearch = result.stderr.match(expr)[0];
+            let stdoutSearch = result.stdout.match(expr);
+
+            if (stderrSearch) {
+              utilityFactorRaw = stderrSearch;
+            } else if (stdoutSearch) {
+              utilityFactorRaw = stdoutSearch;
+            }
+          } catch (error) {
+            console.error("Cannot get standard output for getUtilityFactor chaincode command");
+          }
+          let utilityFactor = JSON.parse(JSON.parse(utilityFactorRaw.substring(8)));
+
+          // format chaincode call (only update items in d)
+          let args = `["${utilityFactor.uuid}","${utilityFactor.year}","${utilityFactor.country}","${utilityFactor.division_type}","${utilityFactor.division_id}","${utilityFactor.division_name}","${utilityFactor.net_generation}","${utilityFactor.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${utilityFactor.source};${d.source}","${utilityFactor.non_renewables}","${utilityFactor.renewables}","${utilityFactor.percent_of_renewables}"]`;
+
+          // insert into chaincode
+          invokeChaincode("updateUtilityFactor", args, callback);
+
+        });
+      });
+    });
+  }
+  console.log("This sheet or PDF is not currently supported.");
 }
 
 function import_utility_identifiers(file_name, opts) {
   opts.skip_rows = 1;
-  let data = parse_worksheet(file_name, opts, function(data) {
-    // import data for each valid row, eg:
-    // Utility_Number = value from 'Utility Number'
-    // Utility_Name = value from 'Utility Name'
-    // State_Province = value from 'State'
-    // Country = USA
-    // Divisions = an array of ojects
-    // -- Division_type = NERC_REGION
-    // -- Division_id = value from 'NERC Region'
-    async.eachSeries(data, function iterator(row, callback) {
-      if (!row || !row["Data Year"]) return callback();
-      opts.verbose && console.log('-- Prepare to insert from ', row);
-      let d = {
-        uuid: row["Utility Number"],
-        year: row["Data Year"],
-        utility_number: row["Utility Number"],
-        utility_name: row["Utility Name"].replace(/\'/g,"`"),
-        country: "USA",
-        state_province: row["State"],
-        divisions: {
-          division_type: "NERC_REGION",
-          division_id: row["NERC Region"].replace(/ /g,"_"),
-        },
-      };
+  if (opts.file == "Utility_Data_2019.xlsx") {
+    let data = parse_worksheet(file_name, opts, function(data) {
+      // import data for each valid row, eg:
+      // Utility_Number = value from 'Utility Number'
+      // Utility_Name = value from 'Utility Name'
+      // State_Province = value from 'State'
+      // Country = USA
+      // Divisions = an array of ojects
+      // -- Division_type = NERC_REGION
+      // -- Division_id = value from 'NERC Region'
+      async.eachSeries(data, function iterator(row, callback) {
+        if (!row || !row["Data Year"]) return callback();
+        opts.verbose && console.log('-- Prepare to insert from ', row);
+        let d = {
+          uuid: "USA_EIA_" + row["Utility Number"],
+          year: row["Data Year"],
+          utility_number: row["Utility Number"],
+          utility_name: row["Utility Name"].replace(/\'/g,"`"),
+          country: "USA",
+          state_province: row["State"],
+          divisions: {
+            division_type: "NERC_REGION",
+            division_id: row["NERC Region"].replace(/ /g,"_"),
+          },
+        };
 
-      // format chaincode call
-      let divisions_formatted = JSON.stringify(d.divisions).replace(/"/g, '\\"'); // replace " with \"
-      let utility_name_formatted = JSON.stringify(d.utility_name).replace(/ /g, '_'); // replace space with _
-      let args = `["${JSON.stringify(d.uuid)}","${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
+        // format chaincode call
+        let divisions_formatted = JSON.stringify(d.divisions).replace(/"/g, '\\"'); // replace " with \"
+        let utility_name_formatted = JSON.stringify(d.utility_name).replace(/ /g, '_'); // replace space with _
+        let args = `[${JSON.stringify(d.uuid)},"${JSON.stringify(d.year)}","${JSON.stringify(d.utility_number)}",${utility_name_formatted},${JSON.stringify(d.country)},${JSON.stringify(d.state_province)},"${divisions_formatted}"]`;
 
-      // insert into chaincode
-      invokeChaincode("importUtilityIdentifier", args, callback);
+        // insert into chaincode
+        invokeChaincode("importUtilityIdentifier", args, callback);
+      });
     });
-  });
+  } else {
+    console.log("This sheet or PDF is not currently supported.");
+  }
 }
 
 function get_co2_emissions(utility, thru_date, usage, usage_uom, opts) {

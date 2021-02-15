@@ -62,6 +62,41 @@ class EmissionsList extends StateList {
     }
     return JSON.stringify(allResults);
   }
+
+  async getAllEmissionsDataByDateRangeAndParty(queryData) {
+    const allResults = [];
+    var stringQuery = `{
+      "selector": {
+        "class": {
+          "$eq": "org.hyperledger.blockchain-carbon-accounting.emissionsrecord"
+        },
+        "fromDate": {
+          "$gte": "${queryData.fromDate}"
+        }, 
+        "thruDate": {
+          "$lte": "${queryData.thruDate}"
+        },
+        "partyId": {
+          "$eq": "${queryData.partyId}"
+        }
+      }
+    }`;
+    const iterator = await this.ctx.stub.getQueryResult(stringQuery);
+    let result = await iterator.next();
+    while (!result.done) {
+      const strValue = Buffer.from(result.value.value.toString()).toString("utf8");
+      let record;
+      try {
+        record = JSON.parse(strValue);
+      } catch (err) {
+        console.log(err);
+        record = strValue;
+      }
+      allResults.push({ Key: result.value.key, Record: record });
+      result = await iterator.next();
+    }
+    return JSON.stringify(allResults);
+  }
 }
 
 module.exports = EmissionsList;

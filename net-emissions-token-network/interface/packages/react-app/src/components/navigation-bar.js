@@ -75,7 +75,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       <Navbar.Toggle />
       <Navbar.Collapse >
         <Nav className="mr-auto">
-          <Nav.Link href="https://github.com/opentaps/blockchain-carbon-accounting/tree/master/net-emissions-token-network"><FaGithub/></Nav.Link>
+          <Nav.Link href="https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/net-emissions-token-network"><FaGithub/></Nav.Link>
         </Nav>
         <Nav>
           {(signedInAddress !== "") &&

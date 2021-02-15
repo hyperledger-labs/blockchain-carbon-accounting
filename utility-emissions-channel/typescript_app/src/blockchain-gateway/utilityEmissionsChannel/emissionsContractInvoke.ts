@@ -64,7 +64,6 @@ export class EmissionsContractInvoke {
       let uuid = getNewUuid();
       const blockchainResult: Buffer = await contract.submitTransaction(
         "recordEmissions",
-        uuid,
         utilityId,
         partyId,
         fromDate,
@@ -72,7 +71,8 @@ export class EmissionsContractInvoke {
         energyUseAmount,
         energyUseUom,
         url,
-        md5
+        md5,
+        null
       );
       const stringResult: string = blockchainResult.toString("utf-8");
       const jsonResult: any = JSON.parse(stringResult);
@@ -194,7 +194,7 @@ export class EmissionsContractInvoke {
       result["partyId"] = jsonResult.partyId;
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
-      result["energyUseAmount"] = jsonResult.emissionsAmount;
+      result["emissionsAmount"] = jsonResult.emissionsAmount;
       result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
       result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
       result["energyUseUom"] = jsonResult.energyUseUom;
@@ -463,6 +463,98 @@ export class EmissionsContractInvoke {
         result["factorSource"] = record.factorSource;
         result["url"] = record.url;
         result["md5"] = record.md5;
+        result["tokenId"] = record.tokenId;
+
+        all_emissions.push(result);
+      }
+      console.log(all_emissions);
+      return all_emissions;
+    } catch (error) {
+      let result = new Object();
+      let all_emissions = [];
+
+      result["info"] = `Failed to evaluate transaction: ${error}`;
+
+      console.error(`Failed to evaluate transaction: ${error}`);
+      return all_emissions;
+      // process.exit(1);
+    }
+  }
+
+  static async getAllEmissionsDataByDateRangeAndParty(userId: any, orgName: any, fromDate: string, thruDate: string, partyId: any) {
+    try {
+      let response: string = "";
+      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+
+      const walletPath: string = setWalletPathByOrg(orgName);
+      console.log("+++++++++++++++++ Walletpath: " + walletPath);
+      const wallet: Wallet = await buildWallet(Wallets, walletPath);
+
+      const gateway: Gateway = new Gateway();
+      try {
+        await gateway.connect(ccp, {
+          wallet,
+          identity: userId,
+          discovery: { enabled: true, asLocalhost: false },
+        });
+      } catch (err) {
+        response = `ERROR: ${err}`;
+        console.log(response);
+        return response;
+      }
+
+      const network: Network = await gateway.getNetwork("utilityemissionchannel");
+
+      const contract: Contract = network.getContract("emissionscontract");
+
+      // ###### Get Emissions Data ######
+      const blockchainResult: Buffer = await contract.evaluateTransaction(
+        "getAllEmissionsDataByDateRangeAndParty",
+        fromDate,
+        thruDate,
+        partyId
+      );
+      const stringResult: string = blockchainResult.toString();
+      const jsonResult: any = JSON.parse(stringResult);
+
+      // Disconnect from the gateway.
+      await gateway.disconnect();
+
+      // Return result
+      let all_emissions: any[] = [];
+      for (let emission_item of jsonResult) {
+        let result: Object = new Object();
+        let record = emission_item.Record;
+        if (record.url.length > 0) {
+          try {
+            // compare md5 in ledger against one being returned in url
+            let incomingBinary: any = await downloadFromS3(
+              `${userId}-${orgName}-${jsonResult.utilityId}-${jsonResult.partyId}-${jsonResult.fromDate}-${jsonResult.thruDate}.pdf`
+            );
+            let incomingMd5 = Md5.hashStr(incomingBinary);
+            if (incomingMd5 != jsonResult.md5) {
+              throw new Error(
+                `The retrieved document ${jsonResult.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with. `
+              );
+            }
+          } catch (err) {
+            console.log("Failed to download from URL");
+          }
+        }
+        result["info"] = "UTILITY EMISSIONS DATA";
+        result["uuid"] = record.uuid;
+        result["utilityId"] = record.utilityId;
+        result["partyId"] = record.partyId;
+        result["fromDate"] = record.fromDate;
+        result["thruDate"] = record.thruDate;
+        result["emissionsAmount"] = record.emissionsAmount;
+        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
+        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
+        result["energyUseUom"] = record.energyUseUom;
+        result["factorSource"] = record.factorSource;
+        result["url"] = record.url;
+        result["md5"] = record.md5;
+        result["tokenId"] = record.tokenId;
 
         all_emissions.push(result);
       }

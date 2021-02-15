@@ -5,6 +5,8 @@ import Button from 'react-bootstrap/Button';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
+import { FaCoins } from 'react-icons/fa';
+
 export default function TokenInfoModal(props) {
 
   return (
@@ -19,24 +21,59 @@ export default function TokenInfoModal(props) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Row className="text-center my-2">
-          <Col>
-            <h3 className="text-secondary">ID</h3>
-            <h1>{props.token.tokenId}</h1>
-          </Col>
-          <Col>
-            <h3 className="text-secondary">Type</h3>
-            <h3>{props.token.tokenType}</h3>
-          </Col>
-          <Col>
-            <h3 className="text-secondary">Available Balance</h3>
+
+        <Row className="mt-2 mb-4 mr-3">
+
+          {/* Available and retired balances */}
+          <Col className="col-4 offset-1 text-right">
+            <h5 className="text-secondary">Available Balance</h5>
             <h1>{props.token.availableBalance}</h1>
+            <h5 className="text-secondary">Retired Balance</h5>
+            <h2>{props.token.retiredBalance}</h2>
           </Col>
-          <Col>
-            <h3 className="text-secondary">Retired</h3>
-            <h1>{props.token.retiredBalance}</h1>
+
+          {/* token ID, icon, and type */}
+          <Col className="col-3">
+            <Row className="text-center">
+              <Col><h3 className="mb-1 mt-2">ID: {props.token.tokenId}</h3></Col>
+            </Row>
+            <Row className="text-center">
+              <Col><h1 className="display-4"><FaCoins/></h1></Col>
+            </Row>
+            <Row className="text-center mt-1">
+              <Col><small className="text-secondary text-uppercase">{props.token.tokenType}</small></Col>
+            </Row>
           </Col>
+
+          {/* transfer and retire buttons (enabled if available balance) */}
+          <Col className="col-3">
+            <br/>
+            <Row className="text-left mb-2">
+              <Col>
+                <Button
+                  variant="success"
+                  href={`/transfer?tokenId=${props.token.tokenId}`}
+                  disabled={Number(props.token.availableBalance) <= 0}
+                >
+                  Transfer
+                </Button>
+              </Col>
+            </Row>
+            <Row className="text-left mb-2">
+              <Col>
+                <Button 
+                  variant="danger" 
+                  href={`/retire?tokenId=${props.token.tokenId}`}
+                  disabled={Number(props.token.availableBalance) <= 0}
+                >
+                  Retire
+                </Button>
+              </Col>
+            </Row>
+          </Col>
+
         </Row>
+
         <table className="table">
           <thead>
             <tr>
@@ -47,11 +84,11 @@ export default function TokenInfoModal(props) {
           <tbody>
             <tr>
               <td>Issuer</td>
-              <td>{props.token.issuer}</td>
+              <td className="text-monospace">{props.token.issuer}</td>
             </tr>
             <tr>
               <td>Issuee</td>
-              <td>{props.token.issuee}</td>
+              <td className="text-monospace">{props.token.issuee}</td>
             </tr>
             <tr>
               <td>From date</td>
@@ -67,7 +104,7 @@ export default function TokenInfoModal(props) {
             </tr>
             <tr>
               <td>Metadata</td>
-              <td style={{"word-wrap": "anywhere"}}>{props.token.metadata}</td>
+              <td className="text-monospace" style={{"wordWrap": "anywhere"}}>{props.token.metadata}</td>
             </tr>
             <tr>
               <td>Manifest</td>

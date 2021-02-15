@@ -36,31 +36,37 @@ export async function issue(
   manifest,
   description
 ) {
-  let issueResponse;
   let provider = getProvider();
   let wallet = new ethers.Wallet(PRIVATE_KEY, provider);
   let contract = new ethers.Contract(CONTRACT_ADDRESS, netEmissionsTokenNetworkAbi.abi, provider);
-
-  // let signer = provider.getSigner();
 
   let signed = contract.connect(wallet);
   let issue = await signed
     .issue(
       addressToIssue,
       tokenTypeId,
-      ethers.utils.parseUnits(quantity.toString(), 8),
+      quantity,
       fromDate,
       thruDate,
       automaticRetireDate,
       metadata,
       manifest,
       description
-    )
-    .then((response) => (issueResponse = response));
-  // Get ID of first issued token
-  // let transactionReceipt = await issue.wait(0);
-  // let issueEvent = transactionReceipt.events.pop();
-  // let tokenId = issueEvent.args[0].toNumber();
-  // return tokenId;
-  return "success";
+    );
+  console.log("Waiting for receipt of transaction on the blockchain with Ethers.js...");
+
+  // each parameter returned in the event payload is 64 characters long hexadecimal number
+  // the third parameter is tokenId, so find it in the payload, format, and return it
+  let tokenId;
+  let transactionReceipt = await issue.wait().then((receipt) => {
+    let issueEventRaw = JSON.stringify(receipt.events.pop().data);
+    let issueEvent = issueEventRaw.substring(3, issueEventRaw.length-1);
+    console.log(`Got issueEvent: ${issueEvent}`);
+    let tokenIdRaw = issueEvent.slice((64*3), (64*4));
+    console.log(`Got tokenIdRaw: ${tokenIdRaw}`);
+    tokenId = parseInt(tokenIdRaw,16)
+    console.log(`Got tokenId: ${tokenId}`);
+  });
+  return `${CONTRACT_ADDRESS}:${tokenId}`;
+  
 }

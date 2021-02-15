@@ -4,6 +4,8 @@ The (net) emissions tokens network is a blockchain network for recording and tra
 
 Read more on the [Hyperledger Emissions Tokens Network Wiki page](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network).
 
+To see how it works, check out [this video](https://youtu.be/C-cUjQLDGJw).
+
 ## Contracts
 
 The net emissions token network is implemented as a ERC-1155 multi-token smart contract compatible on any EVM-compatible blockchain. [Hardhat](https://hardhat.org) is the Ethereum development environment used to compile, deploy, test, and debug contracts.
