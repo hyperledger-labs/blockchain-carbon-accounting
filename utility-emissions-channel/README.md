@@ -262,23 +262,12 @@ $ ./network.sh stopBlockchainExplorer`
 
 ### Automated Tests
 
-We currently have a small test suite that will run the following tests via the API:
-
-- Registering an auditor
-- Registering a user under this auditor
-- Recording an emission with this user
-- Retrieve this emission and verify that all of the appropriate fields have been upserted to the ledger
-
-For the tests to pass, you must first reset and restart the entire network. From the `docker-compose-setup/` directory:
-
-```bash
-$ sh ./scripts/reset.sh && sh start.sh
-```
-
-When the network/API has fully started, run the tests by navigating to the typescript_app directory and executing the tests into the docker container:
+When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and executing the tests into the docker container:
 
 ```bash
 $ sh runTests.sh
 ```
+
+The automated tests are currently not working.  An [issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/80) has been created for this.
 
 
