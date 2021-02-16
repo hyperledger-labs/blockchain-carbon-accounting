@@ -10,7 +10,7 @@ describe("Test fabric", function() {
   const enrollUserPath = "/api/v1/utilityemissionchannel/registerEnroll/user";
   const recordEmissionPath = "/api/v1/utilityemissionchannel/emissionscontract/recordEmissions";
   const getAllEmissionsPath =
-    "/api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsData/TestUser/auditor1/11208/1234567890";
+    "/api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsData/TestUser/auditor1/USA_EIA_11208/1234567890";
 
   it("should register auditor1", function(done) {
     chai
@@ -76,7 +76,7 @@ describe("Test fabric", function() {
   it("should get all emissions and verify that they are correctly upserted to the ledger", function(done) {
     chai
       .request(host)
-      .post(getAllEmissionsPath)
+      .get(getAllEmissionsPath)
       .end((error, response) => {
         console.log(response.body[0].info);
         let entry = response.body[0];
