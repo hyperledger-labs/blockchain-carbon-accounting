@@ -261,18 +261,18 @@ router.post(
     param("userId").isString(),
     param("orgName").isString(),
     param("addressToIssue").isString(),
-    param("automaticRetireDate").custom((value, { req }) => {
-      if (value) {
-        let matches = value.match(
-          /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-        );
-        if (!matches) {
-          throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
-        }
-      }
-      // Indicates the success of this synchronous custom validator
-      return true;
-    }),
+    // param("automaticRetireDate").custom((value, { req }) => {
+    //   if (value) {
+    //     let matches = value.match(
+    //       /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+    //     );
+    //     if (!matches) {
+    //       throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+    //     }
+    //   }
+    //   // Indicates the success of this synchronous custom validator
+    //   return true;
+    // }),
     param("emissionsRecordsToAudit").isString(),
   ],
   async (req, res) => {
@@ -284,7 +284,7 @@ router.post(
       const userId = req.params.userId;
       const orgName = req.params.orgName;
       const addressToIssue = req.params.addressToIssue;
-      const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.split(",");
+      const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.toString().split(",");
       // @TODO: use automaticRetireDate parameter
       const automaticRetireDate = new Date().toISOString();
       const description = "Audited Utility Emissions";
@@ -337,11 +337,11 @@ router.post(
 
         // check timestamps to find overall range of dates later
         let fetchedFromDate = toTimestamp(emissionsRecord.fromDate);
-        if (fetchedFromDate > fromDate) {
+        if (fetchedFromDate < fromDate) {
           fromDate = fetchedFromDate;
         }
         let fetchedThruDate = toTimestamp(emissionsRecord.thruDate);
-        if (toTimestamp(emissionsRecord.thruDate) < thruDate) {
+        if (toTimestamp(emissionsRecord.thruDate) > thruDate) {
           thruDate = fetchedThruDate;
         }
 
