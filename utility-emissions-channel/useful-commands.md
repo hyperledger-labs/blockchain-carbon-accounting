@@ -54,7 +54,7 @@ docker exec cli bash -c "./network.sh deployCC -ccv 2.0 -ccs 2"
 ## Record dummy emission with US data
 
 ```bash
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","1234567890","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-01-06T10:10:09Z","2018-12-06T10:10:09Z","1755","KWH","url","md5"]}' 1 2
 ```
 
 ## Get all utility identifiers
@@ -68,5 +68,5 @@ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getAllUtilityIdentifiers'"
 ```bash
 sudo bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":["999999","2019","999999","Fake_Germany_Power_Company","Germany","","{\"division_type\":\"Country\",\"division_id\":\"Germany\"}"]}' 1 2
 
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["999999","Meinklimatgesellschaft","2019-06-01","2019-06-30","150","KWH","url","md5"]}' 1 2
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["999999","Meinklimatgesellschaft","2019-06-01T10:10:09Z","2019-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
 ```

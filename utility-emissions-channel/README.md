@@ -151,7 +151,7 @@ From the `utility-emissions-channel/docker-compose-setup` directory, you can run
 
 ```shell
 # Record emission to utilityemissionchannel
-$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["1","11208","MyCompany","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
 
 # Query emission data
 $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["1"]}' 1
