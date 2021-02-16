@@ -51,15 +51,10 @@ curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontr
 docker exec cli bash -c "./network.sh deployCC -ccv 2.0 -ccs 2"
 ```
 
-## Import and get sample US utility identifier and record dummy emission
+## Record dummy emission with US data
 
 ```bash
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":["USA_EIA_15497","2019","15497","Puerto_Rico_Electric_Pwr_Authority","USA","PR","{\"division_type\":\"NERC_REGION\",\"division_id\":\"PR\"}"]}' 1 2
-
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'getUtilityIdentifier'","Args":["USA_EIA_15497"]}' 1
-
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_15497","testparty1","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
-
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","1234567890","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
 ```
 
 ## Get all utility identifiers
