@@ -55,7 +55,7 @@ describe("Test fabric", function() {
       .send({
         userId: "TestUser",
         orgName: "auditor1",
-        utilityId: "11208",
+        utilityId: "USA_EIA_11208",
         partyId: "1234567890",
         fromDate: "2020-04-06T10:10:09Z",
         thruDate: "2020-04-06T10:10:09Z",
@@ -76,11 +76,11 @@ describe("Test fabric", function() {
   it("should get all emissions and verify that they are correctly upserted to the ledger", function(done) {
     chai
       .request(host)
-      .get(getAllEmissionsPath)
+      .post(getAllEmissionsPath)
       .end((error, response) => {
         console.log(response.body[0].info);
         let entry = response.body[0];
-        assert(entry.utilityId == "11208", "GET request returned incorrect utilityId");
+        assert(entry.utilityId == "USA_EIA_11208", "GET request returned incorrect utilityId");
         assert(entry.partyId == "1234567890", "GET request returned incorrect partyId");
         assert(entry.fromDate == "2020-04-06T10:10:09Z", "GET request returned incorrect fromDate");
         assert(entry.thruDate == "2020-04-06T10:10:09Z", "GET request returned incorrect thruDate");

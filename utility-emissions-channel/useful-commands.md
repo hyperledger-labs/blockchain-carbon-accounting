@@ -60,7 +60,7 @@ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":[
 ## Get all utility identifiers
 
 ```bash
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'getAllUtilityIndentifiers'","Args":[]}' 1
+sudo bash ./scripts/invokeChaincode.sh '{"function":"'getAllUtilityIdentifiers'","Args":[]}' 1
 ```
 
 ## Import dummy German utility identifier and record dummy emission
