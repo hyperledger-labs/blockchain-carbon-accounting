@@ -71,8 +71,7 @@ export class EmissionsContractInvoke {
         energyUseAmount,
         energyUseUom,
         url,
-        md5,
-        null
+        md5
       );
       const stringResult: string = blockchainResult.toString("utf-8");
       const jsonResult: any = JSON.parse(stringResult);
