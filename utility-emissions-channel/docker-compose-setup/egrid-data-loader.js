@@ -257,6 +257,7 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
+    if (opts.file !== "all") return;
   }
   if (opts.file == "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
     let data = parse_worksheet(supportedFiles[1].file, supportedFiles[1], function(data) {
@@ -292,6 +293,7 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
+    if (opts.file !== "all") return;
   }
   if (opts.file == "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")) {
     let data = parse_worksheet(supportedFiles[2].file, supportedFiles[2], function(data) {
@@ -327,6 +329,7 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
+    if (opts.file !== "all") return;
   }
   if (opts.file == "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
     let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
@@ -363,6 +366,7 @@ function import_utility_emissions(file_name, opts) {
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
+    if (opts.file !== "all") return;
   }
   if (opts.file == "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
     console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
@@ -421,6 +425,7 @@ function import_utility_emissions(file_name, opts) {
         });
       });
     });
+    if (opts.file !== "all") return;
   }
   console.log("This sheet or PDF is not currently supported.");
 }
