@@ -172,6 +172,20 @@ Successfully verified contract NetEmissionsTokenNetwork on Etherscan
 
 You can now go to https://goerli.etherscan.io/ to search for your contract and wallet addresses and see the transactions.  Click through to a particular transaction, and click on the button to "Decode Input Data".  You will now see all the fields of the transaction.
 
+### Compiling with Optimism Virtual Machine
+
+By default, Hardhat compiles to the EVM using the given Solidity version in `hardhat.config.js`. To instead compile to the [OVM](https://optimism.io/): 
+
+1. Uncomment the line in `hardhat.config.js`:
+
+```js
+// require("@eth-optimism/plugins/hardhat/compiler");
+```
+
+2. If build artifacts exist, run `npx hardhat clean`
+
+2. Compile with `npx hardhat compile`
+
 ### Token User Flow
 
 In the net-emissions-token-network contract, we currently support this functionality:

@@ -3,6 +3,10 @@ require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
 
+// Uncomment this line to compile to Optimism Virtual Machine
+// Make sure to run `npx hardhat clean` before recompiling 
+// require("@eth-optimism/plugins/hardhat/compiler");
+
 // Uncomment and populate .goerli-config.js with keys if deploying contract to Goerli
 // const goerliConfig = require("./.goerli-config");
 
@@ -52,5 +56,8 @@ module.exports = {
   etherscan: {
     // Uncomment if running contract verification
     // apiKey: `${etherscanConfig.ETHERSCAN_API_KEY}`
+  },
+  ovm: {
+    solcVersion: '0.7.6'
   }
 };
