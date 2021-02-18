@@ -76,7 +76,7 @@ sh ./scripts/reset.sh && sh start.sh
 
 ## Seeding the Fabric database
 
-To calculate emissions, we need data on the emissions from electricity usage.  We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-5).  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports this data into the Fabric network.
+To calculate emissions, we need data on the emissions from electricity usage.  We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6).  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports this data into the Fabric network.
 
 From `utility-emissions-channel/docker-compose-setup/`, 
 
@@ -151,7 +151,7 @@ From the `utility-emissions-channel/docker-compose-setup` directory, you can run
 
 ```shell
 # Record emission to utilityemissionchannel
-$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["1","11208","MyCompany","2018-06-01","2018-06-30","150","KWH","url","md5"]}' 1 2
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
 
 # Query emission data
 $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["1"]}' 1
@@ -262,23 +262,12 @@ $ ./network.sh stopBlockchainExplorer`
 
 ### Automated Tests
 
-We currently have a small test suite that will run the following tests via the API:
-
-- Registering an auditor
-- Registering a user under this auditor
-- Recording an emission with this user
-- Retrieve this emission and verify that all of the appropriate fields have been upserted to the ledger
-
-For the tests to pass, you must first reset and restart the entire network. From the `docker-compose-setup/` directory:
-
-```bash
-$ sh ./scripts/reset.sh && sh start.sh
-```
-
-When the network/API has fully started, run the tests by navigating to the typescript_app directory and executing the tests into the docker container:
+When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and executing the tests into the docker container:
 
 ```bash
 $ sh runTests.sh
 ```
+
+The automated tests are currently not working.  An [issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/80) has been created for this.
 
 

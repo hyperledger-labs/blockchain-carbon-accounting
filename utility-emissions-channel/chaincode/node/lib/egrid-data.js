@@ -125,40 +125,49 @@ class UtilityEmissionsFactorList extends StateList {
   }
   async getUtilityEmissionsFactorsByDivision(queryData) {
     // docs on query: https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query
+    const maximumYearLookback = 5; // if current year not found, try each preceeding year up to this many times
+    let retryCount = 0; // increment on retry
     let stringQuery;
-    if (queryData.year) {
-      stringQuery =  `{
-        "selector" : {
-          "class": {
-             "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
-          },
-          "division_id" : {
-            "$eq": "${queryData.division_id}"
-          },
-          "division_type": {
-            "$eq": "${queryData.division_type}"
-          },
-          "year": { 
-            "$eq": "${queryData.year}"
-        }
-        }
-      }`;
-    } else {
-      stringQuery =  `{
-        "selector" : {
-          "class": {
-             "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
-          },
-          "division_id" : {
-            "$eq": "${queryData.division_id}"
-          },
-          "division_type": {
-            "$eq": "${queryData.division_type}"
+    let iterator;
+
+    // fetch data while iterator is unset and retry count does not exceed year lookback
+    while (!(Symbol.iterator in Object(iterator)) && (retryCount <= maximumYearLookback)) {
+      if (queryData.year) {
+        stringQuery =  `{
+          "selector" : {
+            "class": {
+               "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
+            },
+            "division_id" : {
+              "$eq": "${queryData.division_id}"
+            },
+            "division_type": {
+              "$eq": "${queryData.division_type}"
+            },
+            "year": { 
+              "$eq": "${queryData.year + (retryCount * -1)}"
           }
-        }
-      }`;
+          }
+        }`;
+      } else {
+        stringQuery =  `{
+          "selector" : {
+            "class": {
+               "$eq": "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem"
+            },
+            "division_id" : {
+              "$eq": "${queryData.division_id}"
+            },
+            "division_type": {
+              "$eq": "${queryData.division_type}"
+            }
+          }
+        }`;
+      }
+      iterator = await this.ctx.stub.getQueryResult(stringQuery);
+      retryCount++;
     }
-    let iterator = await this.ctx.stub.getQueryResult(stringQuery);
+    
     let results = [];
     let result = await iterator.next();
     while (!result.done) {

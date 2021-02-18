@@ -10,7 +10,7 @@ describe("Test fabric", function() {
   const enrollUserPath = "/api/v1/utilityemissionchannel/registerEnroll/user";
   const recordEmissionPath = "/api/v1/utilityemissionchannel/emissionscontract/recordEmissions";
   const getAllEmissionsPath =
-    "/api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsData/TestUser/auditor1/11208/1234567890";
+    "/api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsData/TestUser/auditor1/USA_EIA_11208/1234567890";
 
   it("should register auditor1", function(done) {
     chai
@@ -55,7 +55,7 @@ describe("Test fabric", function() {
       .send({
         userId: "TestUser",
         orgName: "auditor1",
-        utilityId: "11208",
+        utilityId: "USA_EIA_11208",
         partyId: "1234567890",
         fromDate: "2020-04-06T10:10:09Z",
         thruDate: "2020-04-06T10:10:09Z",
@@ -80,7 +80,7 @@ describe("Test fabric", function() {
       .end((error, response) => {
         console.log(response.body[0].info);
         let entry = response.body[0];
-        assert(entry.utilityId == "11208", "GET request returned incorrect utilityId");
+        assert(entry.utilityId == "USA_EIA_11208", "GET request returned incorrect utilityId");
         assert(entry.partyId == "1234567890", "GET request returned incorrect partyId");
         assert(entry.fromDate == "2020-04-06T10:10:09Z", "GET request returned incorrect fromDate");
         assert(entry.thruDate == "2020-04-06T10:10:09Z", "GET request returned incorrect thruDate");
