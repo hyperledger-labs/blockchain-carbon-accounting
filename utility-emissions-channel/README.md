@@ -76,7 +76,7 @@ sh ./scripts/reset.sh && sh start.sh
 
 ## Seeding the Fabric database
 
-To calculate emissions, we need data on the emissions from electricity usage.  We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-5).  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports this data into the Fabric network.
+To calculate emissions, we need data on the emissions from electricity usage.  We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6).  The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports this data into the Fabric network.
 
 From `utility-emissions-channel/docker-compose-setup/`, 
 
