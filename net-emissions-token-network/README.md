@@ -97,18 +97,18 @@ Next, connect your Metamask wallet to the Goerli Test Network and create an acco
 
 Now follow these steps to deploy the contract to the Goerli testnet and update references to the address:
 
-1. Create `.goerli-config.js` by copying the template with 
+1. Create `.ethereum-config.js` by copying the template with 
 
 ```bash
-cp .goerli-config.js.example .goerli-config.js` and
+cp .ethereum-config.js.template .ethereum-config.js` and
 ```
 
-2.  Edit `.goerli-config.js` and set the private key for your Ethereum deployment address and Infura key.
+2.  Edit `.ethereum-config.js` and set the private key for your Ethereum deployment address and Infura key.
 
-3. Edit the file `hardhat.config.js` and uncomment these line 
+3. Edit the file `hardhat.config.js` and uncomment these lines
 
 ```bash
-     // const goerliConfig = require("./.goerli-config");
+     // const ethereumConfig = require("./.ethereum-config");
      ....
      // goerli: {
      //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
@@ -127,11 +127,31 @@ You will get a result that says
 Net Emissions Token Network deployed to: 0x_________________________________
 ```
 
-This is the deployed address for your contract. 
+This is the deployed address for your contract. To update references on the React interface and Fabric API:
 
 5. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`.  You can also change the `network` attribute to "Goerli" so that it shows up in the react app later.
 
 6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
+
+### Deploying contract to Kovan and xDai
+
+Steps for deploying the contract to the Kovan testnet and xDai sidechain are similar as deploying to Goerli:
+
+1. Populate `.ethereum-config.js` with private keys.
+
+2. Edit `hardhat.config.js` and uncomment the network configuration you would like to deploy to.
+
+3. Deploy with
+
+```bash
+npx hardhat run --network kovan scripts/deploy.js
+```
+
+or 
+
+```bash
+npx hardhat run --network xdai scripts/deploy.js
+```
 
 ### Verifying contract on Etherscan
 
@@ -141,18 +161,18 @@ To submit a contract for verification:
 
 1. Go to [Etherscan](https://etherscan.io/) to sign up for an account.  Then go to API Keys and enter get an API key. 
 
-2.  Create `.etherscan-config.js` by copying the template with 
+2.  Create `.ethereum-config.js` by copying the template with 
 
 ```bash
-cp .etherscan-config.js.example .etherscan-config.js
+cp .ethereum-config.js.template .ethereum-config.js
 ```
 
-3. Populate your `etherscan-config.js` with your Etherscan API key.
+3. Populate your `ethereum-config.js` with your Etherscan API key.
 
-4. Edit the file `hardhat.config.js` and uncomment these line 
+4. Edit the file `hardhat.config.js` and uncomment these lines 
 
 ```bash
-   // const etherscanConfig = require("./.etherscan-config");
+   // const ethereumConfig = require("./.ethereum-config");
     ...
    // apiKey: `${etherscanConfig.ETHERSCAN_API_KEY}`
 ```
