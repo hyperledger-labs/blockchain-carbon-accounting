@@ -100,7 +100,7 @@ Now follow these steps to deploy the contract to the Goerli testnet and update r
 1. Create `.ethereum-config.js` by copying the template with 
 
 ```bash
-cp .ethereum-config.js.template .ethereum-config.js` and
+cp .ethereum-config.js.template .ethereum-config.js
 ```
 
 2.  Edit `.ethereum-config.js` and set the private key for your Ethereum deployment address and Infura key.
@@ -109,7 +109,7 @@ cp .ethereum-config.js.template .ethereum-config.js` and
 
 ```bash
      // const ethereumConfig = require("./.ethereum-config");
-     ....
+     ...
      // goerli: {
      //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
      //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
@@ -133,13 +133,13 @@ This is the deployed address for your contract. To update references on the Reac
 
 6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
-### Deploying contract to Kovan and xDai
+### Deploying contract to Kovan or xDai
 
 Steps for deploying the contract to the Kovan testnet and xDai sidechain are similar as deploying to Goerli:
 
 1. Populate `.ethereum-config.js` with private keys.
 
-2. Edit `hardhat.config.js` and uncomment the network configuration you would like to deploy to.
+2. Edit `hardhat.config.js` and uncomment the network configuration you would like to deploy to under module.exports.networks.
 
 3. Deploy with
 

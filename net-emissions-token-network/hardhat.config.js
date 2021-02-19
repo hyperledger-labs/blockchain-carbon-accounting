@@ -7,8 +7,8 @@ require("@nomiclabs/hardhat-etherscan");
 // Make sure to run `npx hardhat clean` before recompiling 
 // require("@eth-optimism/plugins/hardhat/compiler");
 
-// Uncomment and populate .ethereum-config.js if deploying contract to Goerli, xDai, or verifying with Etherscan
-const ethereumConfig = require("./.ethereum-config");
+// Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
+// const ethereumConfig = require("./.ethereum-config");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -61,16 +61,16 @@ module.exports = {
 
     // Uncomment the following lines if deploying contract to Kovan
     // Deploy with npx hardhat run --network kovan scripts/deploy.js
-    kovan: {
-      url: `https://kovan.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
-      accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
-    }
+    // kovan: {
+    //   url: `https://kovan.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // }
 
   },
-  etherscan: {
-    // Uncomment if running contract verification
-    // apiKey: `${ethereumConfig.ETHERSCAN_API_KEY}`
-  },
+  // Uncomment if running contract verification
+  // etherscan: {
+  //   apiKey: `${ethereumConfig.ETHERSCAN_API_KEY}`
+  // },
   ovm: {
     solcVersion: '0.7.6'
   }

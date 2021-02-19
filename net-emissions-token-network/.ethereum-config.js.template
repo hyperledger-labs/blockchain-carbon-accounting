@@ -1,9 +1,7 @@
 // This file stores the private configuration settings for Hardhat.
-// It is only necessary to edit if deploying the contract to Goerli or xDai.
-// For Goerli: see "Deploying contract to Goerli" in the README
-// For xDai: see "Deploying contract to xDai" in the README
+// It is only necessary to edit if deploying the contract to Goerli, Kovan, or xDai
 
-// Replace with the private key of your deployer address (used on Goerli and xDai)
+// Replace with the private key of your deployer address
 exports.CONTRACT_OWNER_PRIVATE_KEY = "";
 
 // Used to make a JSON RPC connection for deploying to custom networks
