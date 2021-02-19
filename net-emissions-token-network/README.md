@@ -281,7 +281,7 @@ For interacting with the contract in development, the current solution is to use
 First, the remixd plugin must be installed globally via NPM to create a volume from your local machine to Remix in browser.
 
 ```bash
-npm install -g remixd
+npm install -g @remix-project/remixd
 ```
 
 Install the dependencies for the contract in the net-emissions-token-network directory:
@@ -290,10 +290,10 @@ Install the dependencies for the contract in the net-emissions-token-network dir
 npm install
 ```
 
-To start the volume, run the following from the root directory of this repo:
+To start the volume, run the following replacing `/path/to/repo` with the absolute path of this folder on your machine:
 
 ```bash
-remixd -s ./net-emissions-token-network --remix-ide https://remix.ethereum.org
+remixd -s /path/to/repo/blockchain-carbon-accounting/net-emissions-token-network --remix-ide https://remix.ethereum.org
 ```
 
 After installing, navigate to https://remix.ethereum.org/ in the browser of your choice. (Currently only tested in Chrome)
