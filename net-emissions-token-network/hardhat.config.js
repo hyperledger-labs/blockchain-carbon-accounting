@@ -28,13 +28,27 @@ task("accounts", "Prints the list of accounts", async () => {
  */
 module.exports = {
   solidity: {
-    version: "0.7.0",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200
+
+    compilers: [
+
+      // NetEmissionsTokenNetwork
+      {
+        version: "0.7.0",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      },
+
+      // DAO
+      {
+        version: "0.5.16"
       }
-    }
+    ]
+
+    
   },
   gasReporter: {
     currency: 'USD',
