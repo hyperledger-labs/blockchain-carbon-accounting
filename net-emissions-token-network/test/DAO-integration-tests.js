@@ -1,7 +1,8 @@
 const { expect } = require("chai");
 const {
   deployContract,
-  deployDaoContracts
+  deployDaoContracts,
+  encodeParameters
 } = require("./common.js");
 
 describe("Climate DAO - Integration tests", function() {
@@ -37,48 +38,56 @@ describe("Climate DAO - Integration tests", function() {
 
   });
 
-  it("should allow a user with enough DAO tokens to submit a proposal", async function() {
+  it("should allow a user with enough DAO tokens and delegated tokens to submit a proposal", async function() {
     const contracts = await deployDaoContracts();
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
 
     let owner = contracts.addresses[0];
-    let DAOuser = contracts.addresses[1];
 
+    // set-up parameters for proposal external contract call
+    let proposalCallParams = {
+      account: netEmissionsTokenNetwork.address,
+      tokenTypeId: 0,
+      quantity: 3000,
+      fromDate: 0,
+      thruDate: 0,
+      automaticRetireDate: 0,
+      metadata: "metadata",
+      manifest: "manifest",
+      description: "description"
+    }
 
-    // let proposal = {
-    //   targets: [netEmissionsTokenNetwork.address], // contract to call
-    //   values: [
-    //     owner.address, // address to issue to
-    //     0, // tokenTypeId
-    //     300, // quantity
-    //     0, // fromDate
-    //     0, // thruDate
-    //     0, // automaticRetireDate
-    //     "metadata", // metadata
-    //     "manifest", // manifest
-    //     "description" // description
-    //   ],
-    //   signatures: ["issue"], // function in contract to call
-    //   calldatas: [],
-    //   description: "Test proposal"
-    // };
-
-    let simpleProposal = {
+    // set-up proposal parameters
+    let proposal = {
       targets: [netEmissionsTokenNetwork.address], // contract to call
-      values: [],
-      signatures: ["getNumOfUniqueTokens"], // function in contract to call
-      calldatas: [],
-      description: "Test NetEmissionsTokenNetwork call for getNumOfUniqueTokens"
+      values: [ "0" ], // number of wei sent with message, i.e. msg.value
+      signatures: ["issue"], // function in contract to call
+      calldatas: [encodeParameters(
+        // types of params
+        ['address', 'uint8', 'uint256', 'uint256', 'uint256', 'uint256', 'string', 'string', 'string'],
+        // value of params
+        [
+          proposalCallParams.account,
+          proposalCallParams.tokenTypeId,
+          proposalCallParams.quantity,
+          proposalCallParams.fromDate,
+          proposalCallParams.thruDate,
+          proposalCallParams.automaticRetireDate,
+          proposalCallParams.metadata,
+          proposalCallParams.manifest,
+          proposalCallParams.description
+        ])],
+      description: "Test proposal" // description of proposal
     };
 
-    // try making proposal from DAOuser without enough tokens
+    // try making proposal from before delegation
     try {
-      let failedProposal = await contracts.governor.connect(DAOuser).propose(
-        simpleProposal.targets,
-        simpleProposal.values,
-        simpleProposal.signatures,
-        simpleProposal.calldatas,
-        simpleProposal.description
+      let failedProposal = await contracts.governor.connect(owner).propose(
+        proposal.targets,
+        proposal.values,
+        proposal.signatures,
+        proposal.calldatas,
+        proposal.description
       );
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -86,18 +95,17 @@ describe("Climate DAO - Integration tests", function() {
       );
     }
 
-    // send some DAO tokens from owner to DAOuser
-    let transferTokensFromOwnerToDaoUser = await contracts.daoToken.connect(owner).transfer(DAOuser.address, 100000000000000);
-    expect(transferTokensFromOwnerToDaoUser);
-    let transferTokensFromOwnerToDaoUserReceipt = await transferTokensFromOwnerToDaoUser.wait(1);
+    // delegate owner DAO tokens to self
+    let delegate = await contracts.daoToken.connect(owner).delegate(owner.address);
 
-    // let makeProposal = await contracts.governor.connect(owner).propose(
-    //   simpleProposal.targets,
-    //   simpleProposal.values,
-    //   simpleProposal.signatures,
-    //   simpleProposal.calldatas,
-    //   simpleProposal.description
-    // );
+    // make proposal
+    let makeProposal = await contracts.governor.connect(owner).propose(
+      proposal.targets,
+      proposal.values,
+      proposal.signatures,
+      proposal.calldatas,
+      proposal.description
+    );
 
   });
 });

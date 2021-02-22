@@ -34,6 +34,11 @@ exports.hoursToSeconds = function (hours) {
   return (hours * 60 * 60);
 }
 
+exports.encodeParameters = function (types, values) {
+  let abi = new ethers.utils.AbiCoder();
+  return abi.encode(types, values);
+}
+
 exports.deployDaoContracts = async function () {
   
   const allAddresses = await ethers.getSigners();
