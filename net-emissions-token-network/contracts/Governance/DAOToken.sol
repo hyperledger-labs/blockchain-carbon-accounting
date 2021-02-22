@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 contract DAOToken {
     /// @notice EIP-20 token name for this token
-    string public constant name = "DAO Token";
+    string public constant name = "Climate DAO Token";
 
     /// @notice EIP-20 token symbol for this token
     string public constant symbol = "DAOT";
