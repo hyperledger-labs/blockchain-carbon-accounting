@@ -107,5 +107,20 @@ describe("Climate DAO - Integration tests", function() {
       proposal.description
     );
 
+    // Get ID of proposal just made
+    let proposalTransactionReceipt = await makeProposal.wait(0);
+    let proposalEvent = proposalTransactionReceipt.events.pop();
+    let proposalId = proposalEvent.args[0].toNumber();
+    expect(proposalId).to.equal(1);
+
+    // verify details of proposal
+    let getActions = await contracts.governor.getActions(proposalId)
+    .then((response) => {
+      expect(response.targets).to.deep.equal(proposal.targets);
+      // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
+      expect(response.signatures).to.deep.equal(proposal.signatures);
+      expect(response.calldatas).to.deep.equal(proposal.calldatas);
+    });
+
   });
 });
