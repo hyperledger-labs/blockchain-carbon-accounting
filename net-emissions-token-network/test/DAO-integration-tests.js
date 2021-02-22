@@ -38,7 +38,7 @@ describe("Climate DAO - Integration tests", function() {
 
   });
 
-  it("should allow a user with enough DAO tokens and delegated tokens to submit a proposal", async function() {
+  it("should allow the owner to make and vote on proposals without other users", async function() {
     const contracts = await deployDaoContracts();
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
 
@@ -80,7 +80,7 @@ describe("Climate DAO - Integration tests", function() {
       description: "Test proposal" // description of proposal
     };
 
-    // try making proposal from before delegation
+    // try making proposal before delegation
     try {
       let failedProposal = await contracts.governor.connect(owner).propose(
         proposal.targets,
@@ -95,7 +95,7 @@ describe("Climate DAO - Integration tests", function() {
       );
     }
 
-    // delegate owner DAO tokens to self
+    // delegate owner voting power to self
     let delegate = await contracts.daoToken.connect(owner).delegate(owner.address);
 
     // make proposal
@@ -106,6 +106,7 @@ describe("Climate DAO - Integration tests", function() {
       proposal.calldatas,
       proposal.description
     );
+    expect(makeProposal);
 
     // Get ID of proposal just made
     let proposalTransactionReceipt = await makeProposal.wait(0);
@@ -120,6 +121,31 @@ describe("Climate DAO - Integration tests", function() {
       // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
       expect(response.signatures).to.deep.equal(proposal.signatures);
       expect(response.calldatas).to.deep.equal(proposal.calldatas);
+    });
+
+    // try to execute proposal before it's been passed
+    try {
+      let failedProposalExecute = await contracts.governor.connect(owner).execute(proposalId);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert GovernorAlpha::execute: proposal can only be executed if it is queued"
+      );
+    }
+
+    // get proposal state
+    let proposalStateBefore = await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(0); // pending
+    });
+
+    // cast vote for proposal by owner
+    let castVote = await contracts.governor.castVote(proposalId, true);
+    expect(castVote);
+
+    // get proposal state after vote cast
+    let proposalStateAfter = await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(1); // active
     });
 
   });
