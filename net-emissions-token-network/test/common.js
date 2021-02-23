@@ -63,34 +63,14 @@ exports.deployDaoContracts = async function () {
   //      param3 - guardian address
   const governor = await exports.deployContract("Governor", timelock.address, daoToken.address, owner.address);
 
-  // 4) set admin of timelock contract to governor contract so it is controlled by the DAO
-  let currentBlock = await ethers.provider.getBlockNumber();
-  let currentTime = Math.floor(Date.now() / 1000);
-  let timelockNewAdmin = {
-    //address target, uint value, string memory signature, bytes memory data, uint eta
-    target: timelock.address,
-    value: 0,
-    signature: "setPendingAdmin",
-    data: exports.encodeParameters(
-      ['address'],[governor.address]
-    ),
-    eta: (currentTime + exports.hoursToSeconds(50))
-  }
-  const setTimelockAdminToGovernor = await timelock.connect(owner).queueTransaction(
-    timelockNewAdmin.target,
-    timelockNewAdmin.value,
-    timelockNewAdmin.signature,
-    timelockNewAdmin.data,
-    timelockNewAdmin.eta
-  );
-
-  // await exports.advanceHours(51);
-
-  // const executeTimelockNewAdminTransaction = await timelock.connect(owner).executeTransaction(
-  //   timelockNewAdmin.target,
-  //   timelockNewAdmin.value,
-  //   timelockNewAdmin.signature,
-  //   timelockNewAdmin.data,
+  // 4) setPendingAdmin in timelock contract to governor contract so it will controlled by the DAO
+  // let currentTime = Math.floor(Date.now() / 1000);
+  // let timelockNewAdmin = {
+  //   newPendingAdmin: governor.address,
+  //   eta: ethers.BigNumber.from(currentTime + exports.hoursToSeconds(60))
+  // }
+  // let queueSetTimelockPendingAdmin = await governor.connect(owner).__queueSetTimelockPendingAdmin(
+  //   timelockNewAdmin.newPendingAdmin,
   //   timelockNewAdmin.eta
   // );
 
@@ -110,5 +90,6 @@ exports.advanceBlocks = async function (blocks) {
 
 exports.advanceHours = async function (hours) {
   let seconds = exports.hoursToSeconds(hours);
-  ethers.provider.send("evm_increaseTime", [seconds]);
+  await ethers.provider.send("evm_increaseTime", [seconds]);
+  ethers.provider.send("evm_mine"); // mine a block after
 }

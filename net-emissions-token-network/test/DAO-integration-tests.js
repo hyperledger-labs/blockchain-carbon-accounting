@@ -61,7 +61,7 @@ describe("Climate DAO - Integration tests", function() {
     // set-up proposal parameters
     let proposal = {
       targets: [netEmissionsTokenNetwork.address], // contract to call
-      values: [ "0" ], // number of wei sent with message, i.e. msg.value
+      values: [ "0" ], // number of wei sent with call, i.e. msg.value
       signatures: ["issue"], // function in contract to call
       calldatas: [encodeParameters(
         // types of params
@@ -156,15 +156,16 @@ describe("Climate DAO - Integration tests", function() {
       expect(response.support).to.equal(true);
     });
 
-    // await advanceBlocks(20000);
+    await advanceBlocks(20000);
 
-    // // get proposal state after advance blocks
-    // let proposalStateAfterAdvanceBlocks = await contracts.governor.state(proposalId)
-    // .then((response) => {
-    //   expect(response).to.equal(4); // succeeded
-    // });
+    // get proposal state after advance blocks
+    let proposalStateAfterAdvanceBlocks = await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(4); // succeeded
+    });
 
     // queue proposal after it's successful
+    // ERR: Timelock::queueTransaction: Call must come from admin.
     // let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
     // expect(queueProposal);
 
