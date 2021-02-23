@@ -34,6 +34,10 @@ exports.hoursToSeconds = function (hours) {
   return (hours * 60 * 60);
 }
 
+exports.hoursToBlocks = function (hours) {
+  return (hours * 140); // assuming 15s blocks similar to Governor.sol
+}
+
 exports.encodeParameters = function (types, values) {
   let abi = new ethers.utils.AbiCoder();
   return abi.encode(types, values);
@@ -60,25 +64,27 @@ exports.deployDaoContracts = async function () {
   const governor = await exports.deployContract("Governor", timelock.address, daoToken.address, owner.address);
 
   // 4) set admin of timelock contract to governor contract so it is controlled by the DAO
-  // let timelockNewAdmin = {
-  //   //address target, uint value, string memory signature, bytes memory data, uint eta
-  //   target: timelock.address,
-  //   value: "0",
-  //   signature: "setPendingAdmin",
-  //   data: exports.encodeParameters(
-  //     ['address'],[governor.address]
-  //   ),
-  //   eta: ( + exports.hoursToSeconds(1000000))
-  // }
-  // const setTimelockAdminToGovernor = await timelock.connect(owner).queueTransaction(
-  //   timelockNewAdmin.target,
-  //   timelockNewAdmin.value,
-  //   timelockNewAdmin.signature,
-  //   timelockNewAdmin.data,
-  //   timelockNewAdmin.eta
-  // );
+  let currentBlock = await ethers.provider.getBlockNumber();
+  let currentTime = Math.floor(Date.now() / 1000);
+  let timelockNewAdmin = {
+    //address target, uint value, string memory signature, bytes memory data, uint eta
+    target: timelock.address,
+    value: 0,
+    signature: "setPendingAdmin",
+    data: exports.encodeParameters(
+      ['address'],[governor.address]
+    ),
+    eta: (currentTime + exports.hoursToSeconds(50))
+  }
+  const setTimelockAdminToGovernor = await timelock.connect(owner).queueTransaction(
+    timelockNewAdmin.target,
+    timelockNewAdmin.value,
+    timelockNewAdmin.signature,
+    timelockNewAdmin.data,
+    timelockNewAdmin.eta
+  );
 
-  // await exports.advanceBlocks(1000000);
+  // await exports.advanceHours(51);
 
   // const executeTimelockNewAdminTransaction = await timelock.connect(owner).executeTransaction(
   //   timelockNewAdmin.target,
@@ -100,4 +106,9 @@ exports.advanceBlocks = async function (blocks) {
   for (let i = 0; i <= blocks; i++) {
     ethers.provider.send("evm_mine");
   }
+}
+
+exports.advanceHours = async function (hours) {
+  let seconds = exports.hoursToSeconds(hours);
+  ethers.provider.send("evm_increaseTime", [seconds]);
 }

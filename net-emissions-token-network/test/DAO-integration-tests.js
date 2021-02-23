@@ -156,13 +156,13 @@ describe("Climate DAO - Integration tests", function() {
       expect(response.support).to.equal(true);
     });
 
-    await advanceBlocks(20000);
+    // await advanceBlocks(20000);
 
-    // get proposal state after advance blocks
-    let proposalStateAfterAdvanceBlocks = await contracts.governor.state(proposalId)
-    .then((response) => {
-      expect(response).to.equal(4); // succeeded
-    });
+    // // get proposal state after advance blocks
+    // let proposalStateAfterAdvanceBlocks = await contracts.governor.state(proposalId)
+    // .then((response) => {
+    //   expect(response).to.equal(4); // succeeded
+    // });
 
     // queue proposal after it's successful
     // let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
