@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const {
+  advanceBlocks,
   deployContract,
   deployDaoContracts,
   encodeParameters
@@ -139,14 +140,33 @@ describe("Climate DAO - Integration tests", function() {
     });
 
     // cast vote for proposal by owner
-    let castVote = await contracts.governor.castVote(proposalId, true);
+    let castVote = await contracts.governor.connect(owner).castVote(proposalId, true);
     expect(castVote);
 
     // get proposal state after vote cast
-    let proposalStateAfter = await contracts.governor.state(proposalId)
+    let proposalStateAfterVote = await contracts.governor.state(proposalId)
     .then((response) => {
       expect(response).to.equal(1); // active
     });
+
+    // get receipt of vote
+    let getReceipt = await contracts.governor.getReceipt(proposalId, owner.address)
+    .then((response) => {
+      expect(response.hasVoted).to.equal(true);
+      expect(response.support).to.equal(true);
+    });
+
+    await advanceBlocks(20000);
+
+    // get proposal state after advance blocks
+    let proposalStateAfterAdvanceBlocks = await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(4); // succeeded
+    });
+
+    // queue proposal after it's successful
+    // let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
+    // expect(queueProposal);
 
   });
 });

@@ -59,10 +59,45 @@ exports.deployDaoContracts = async function () {
   //      param3 - guardian address
   const governor = await exports.deployContract("Governor", timelock.address, daoToken.address, owner.address);
 
+  // 4) set admin of timelock contract to governor contract so it is controlled by the DAO
+  // let timelockNewAdmin = {
+  //   //address target, uint value, string memory signature, bytes memory data, uint eta
+  //   target: timelock.address,
+  //   value: "0",
+  //   signature: "setPendingAdmin",
+  //   data: exports.encodeParameters(
+  //     ['address'],[governor.address]
+  //   ),
+  //   eta: ( + exports.hoursToSeconds(1000000))
+  // }
+  // const setTimelockAdminToGovernor = await timelock.connect(owner).queueTransaction(
+  //   timelockNewAdmin.target,
+  //   timelockNewAdmin.value,
+  //   timelockNewAdmin.signature,
+  //   timelockNewAdmin.data,
+  //   timelockNewAdmin.eta
+  // );
+
+  // await exports.advanceBlocks(1000000);
+
+  // const executeTimelockNewAdminTransaction = await timelock.connect(owner).executeTransaction(
+  //   timelockNewAdmin.target,
+  //   timelockNewAdmin.value,
+  //   timelockNewAdmin.signature,
+  //   timelockNewAdmin.data,
+  //   timelockNewAdmin.eta
+  // );
+
   return {
     timelock: timelock,
     daoToken: daoToken,
     governor: governor,
     addresses: allAddresses
+  }
+}
+
+exports.advanceBlocks = async function (blocks) {
+  for (let i = 0; i <= blocks; i++) {
+    ethers.provider.send("evm_mine");
   }
 }
