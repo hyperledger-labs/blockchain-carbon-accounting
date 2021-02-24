@@ -5,8 +5,23 @@ This is AWS specific deployment steps in addition to the main guide
 
 ## 3. Prerequisites
 #### 3.1 Kubernetes
-You need to have a running Kubernetes cluster. You need to deploy one nginx ingress controller to your Kubernetes cluster. 
+You need to have a running Kubernetes cluster and deploy one nginx ingress controller to it.
 
+In order to run Kubernets cluster manually use [Getting started with Amazon EKS instruction](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html).
+
+Other option is [eksctl util](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) which creates Kubernetes cluster and nodes in one command.
+
+For example
+```bash
+eksctl create cluster \
+--name cluster-4 \
+--region us-west-2 \
+--with-oidc \
+--managed \
+--version 1.17 \
+--node-volume-size 20 \
+--instance-types t3.small
+```
 ###### Create namespaces
 
 ```bash
