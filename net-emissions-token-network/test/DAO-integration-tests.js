@@ -10,9 +10,18 @@ const {
 } = require("./common.js");
 
 describe("Climate DAO - Integration tests", function() {
+  
+  // initialize governance contracts and create snapshot
+  var contracts;
+  var snapshot;
+  before(async () => {
+    contracts = await deployDaoContracts();
+    snapshot = await createSnapshot();
+  });
+
   it("should allow DAO token holders to transfer around tokens", async function() {
-    const snapshot = await createSnapshot();
-    const contracts = await deployDaoContracts();
+    // reset state of network
+    applySnapshot(snapshot);
 
     let owner = contracts.addresses[0];
     let DAOuser = contracts.addresses[1];
@@ -41,14 +50,13 @@ describe("Climate DAO - Integration tests", function() {
       .balanceOf(DAOuser.address)
       .then((response) => expect(response.toString()).to.equal('1000000'));
 
-    // reset state of network
-    applySnapshot(snapshot);
-
   });
 
   it("should allow the owner to make and vote on proposals without other users", async function() {
-    const snapshot = await createSnapshot();
-    const contracts = await deployDaoContracts();
+    // reset state of network
+    applySnapshot(snapshot);
+
+    // deploy NetEmissionsTokenNetwork
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
 
     let owner = contracts.addresses[0];
@@ -99,7 +107,7 @@ describe("Climate DAO - Integration tests", function() {
     );
     expect(makeProposal);
 
-    // Get ID of proposal just made
+    // get ID of proposal just made
     let proposalTransactionReceipt = await makeProposal.wait(0);
     let proposalEvent = proposalTransactionReceipt.events.pop();
     let proposalId = proposalEvent.args[0].toNumber();
@@ -158,9 +166,6 @@ describe("Climate DAO - Integration tests", function() {
     // queue proposal after it's successful
     // let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
     // expect(queueProposal);
-
-    // reset state of network
-    applySnapshot(snapshot);
 
   }).timeout(40000);
 });
