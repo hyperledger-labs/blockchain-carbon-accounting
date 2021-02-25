@@ -33,6 +33,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
 
   const [proposals, setProposals] = useState([]);
+  const [proposalsLength, setProposalsLength] = useState(-1);
   const [fetchingProposals, setFetchingProposals] = useState(false);
 
   const [blockNumber, setBlockNumber] = useState(-1);
@@ -78,6 +79,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     }
 
     setProposals(prop);
+    setProposalsLength(prop.length || 0);
     setFetchingProposals(false);
   }
 
@@ -94,7 +96,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         fetchBlockNumber();
       }
 
-      if (proposals.length < 1 && !fetchingProposals) {
+      if (proposalsLength === -1 && !fetchingProposals) {
         setFetchingProposals(true);
         fetchProposals();
       }
@@ -108,7 +110,16 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <p>View, vote on, or create proposals.</p>
       <hr/>
       <p>{(blockNumber !== -1) && <>Current block number on connected network: {blockNumber}</>}</p>
-      <p>{(daoTokenBalance !== -1) && <>Your DAO tokens: {addCommas(daoTokenBalance)} ({percentOfSupply}% of entire supply)</>}</p>
+      <p>
+        { (daoTokenBalance !== -1) &&
+          <>
+            Your DAO tokens: {addCommas(daoTokenBalance)}
+            { (daoTokenBalance !== 0) &&
+              <> ({percentOfSupply}% of entire supply)</>
+            }
+          </>
+        }
+      </p>
 
       {(fetchingProposals) &&
         <div className="text-center my-4">
@@ -117,6 +128,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           </Spinner>
         </div>
       }
+
+      {(proposalsLength === 0 && !fetchingProposals) && <p>No proposals found.</p>}
 
       {(proposals !== []) &&
         proposals.map((proposal, key) => (
