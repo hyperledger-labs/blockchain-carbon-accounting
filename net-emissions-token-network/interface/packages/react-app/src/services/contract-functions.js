@@ -6,6 +6,17 @@ import { BigNumber } from "@ethersproject/bignumber";
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
 const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/g;
 
+const PROPOSAL_STATES = [
+  "Pending",
+  "Active",
+  "Canceled",
+  "Defeated",
+  "Succeeded",
+  "Queued",
+  "Expired",
+  "Executed"
+];
+
 /*
  *
  *  helper functions
@@ -253,4 +264,43 @@ export async function daoTokenBalanceOf(w3provider, account) {
     balance = error.message;
   }
   return balance;
+}
+
+/*
+ *
+ *  Governor contract functions
+ *
+ */
+
+export async function getProposalCount(w3provider) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let count;
+  try {
+    count = await contract.proposalCount();
+  } catch (error) {
+    count = error.message;
+  }
+  return count;
+}
+
+export async function getProposalDetails(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let proposals;
+  try {
+    proposals = await contract.proposals(proposalId);
+  } catch (error) {
+    proposals = error.message;
+  }
+  return proposals;
+}
+
+export async function getProposalState(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let state;
+  try {
+    state = await contract.state(proposalId);
+  } catch (error) {
+    state = error.message;
+  }
+  return PROPOSAL_STATES[state];
 }

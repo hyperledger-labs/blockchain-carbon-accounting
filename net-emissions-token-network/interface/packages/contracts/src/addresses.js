@@ -1,13 +1,14 @@
 // This file stores the contract address the interface will attempt to connect to
 const addresses = {
   
-  // default Hardhat deployment address
+  network: "Hardhat Network",
+
+  // NetEmissionsTokenNetwork
   tokenNetwork: {
-    address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    network: "Hardhat Network"
+    address: "0x5FbDB2315678afecb367f032d93F642f64180aa3" // default Hardhat deployment address
   },
 
-  // governance contracts
+  // Governance contracts
   dao: {
     governor: {
       address: "0x70f98cD79b5b3A8Cd979D9ECF6B443265FE9a4c2"
