@@ -1,8 +1,16 @@
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
+import { BigNumber } from "@ethersproject/bignumber";
+
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
 const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/g;
+
+/*
+ *
+ *  helper functions
+ *
+ */
 
 function catchError(error) {
   console.error(error.message);
@@ -36,6 +44,12 @@ function toUnixTime(date) {
   if (Object.prototype.toString.call(date) !== "[object Date]") return date;
   return parseInt((date.getTime() / 1000).toFixed(0));
 }
+
+/*
+ *
+ *  NetEmissionsTokenNetwork contract functions
+ *
+ */
 
 export async function getRoles(w3provider, address) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
@@ -220,4 +234,23 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
     unregisterDealer_result = catchError(error);
   }
   return unregisterDealer_result;
+}
+
+/*
+ *
+ *  DAO token contract functions
+ *
+ */
+
+export async function daoTokenBalanceOf(w3provider, account) {
+  let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
+  let balance;
+  try {
+    let fetchedBalance = await contract.balanceOf(account);
+    let decimals = BigNumber.from("1000000000000000000");
+    balance = fetchedBalance.div(decimals).toNumber();
+  } catch (error) {
+    balance = error.message;
+  }
+  return balance;
 }

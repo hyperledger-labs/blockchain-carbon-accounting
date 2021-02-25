@@ -13,6 +13,7 @@ import IssueForm from "./components/issue-form";
 import TransferForm from "./components/transfer-form";
 import RetireForm from "./components/retire-form";
 import AccessControlForm from "./components/access-control-form";
+import GovernanceDashboard from "./components/governance-dashboard";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect, useLocation } from "wouter"
@@ -57,6 +58,8 @@ function App() {
                   : <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
                 }
 
+                <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
+
                 {/* Only display issue page if owner or dealer */}
                 {(isOwnerOrDealer)
                   && <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
@@ -81,6 +84,9 @@ function App() {
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
                   <Route path="/dashboard">
                     <Dashboard ref={dashboardRef} provider={provider} signedInAddress={signedInAddress} roles={roles} />
+                  </Route>
+                  <Route path="/governance">
+                    <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} />
