@@ -4,11 +4,12 @@ import { addresses } from "@project/contracts";
 
 import { BigNumber } from "@ethersproject/bignumber";
 
-import { daoTokenBalanceOf, getProposalCount, getProposalDetails, getProposalState } from "../services/contract-functions";
+import { daoTokenBalanceOf, getProposalCount, getProposalDetails, getProposalState, getBlockNumber } from "../services/contract-functions";
 
 import Card from "react-bootstrap/Card";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Spinner from "react-bootstrap/Spinner";
 
 function addCommas(str){
   str += '';
@@ -34,12 +35,21 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [proposals, setProposals] = useState([]);
   const [fetchingProposals, setFetchingProposals] = useState(false);
 
+  const [blockNumber, setBlockNumber] = useState(-1);
+  const [fetchingBlockNumber, setFetchingBlockNumber] = useState(false);
+
   const percentOfSupply = ((supply / daoTokenBalance) * 100).toFixed(2);
 
   async function fetchDaoTokenBalance() {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
     setDaoTokenBalance(balance);
     setFetchingDaoTokenBalance(false);
+  }
+
+  async function fetchBlockNumber() {
+    let blockNum = await getBlockNumber(provider);
+    setBlockNumber(blockNum);
+    setFetchingBlockNumber(false);
   }
 
   async function fetchProposals() {
@@ -79,20 +89,34 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         fetchDaoTokenBalance();
       }
 
+      if (blockNumber === -1 && !fetchingBlockNumber) {
+        setFetchingBlockNumber(true);
+        fetchBlockNumber();
+      }
+
       if (proposals.length < 1 && !fetchingProposals) {
         setFetchingProposals(true);
         fetchProposals();
       }
     }
-  }, [signedInAddress, fetchingDaoTokenBalance, proposals, fetchingProposals]);
+  }, [signedInAddress, fetchingDaoTokenBalance, proposals, fetchingProposals, blockNumber, fetchingBlockNumber]);
 
   return (
     <>
 
       <h2>Governance Dashboard</h2>
-      <p>Vote on or create proposals.</p>
+      <p>View, vote on, or create proposals.</p>
       <hr/>
+      <p>{(blockNumber !== -1) && <>Current block number on connected network: {blockNumber}</>}</p>
       <p>{(daoTokenBalance !== -1) && <>Your DAO tokens: {addCommas(daoTokenBalance)} ({percentOfSupply}% of entire supply)</>}</p>
+
+      {(fetchingProposals) &&
+        <div className="text-center my-4">
+          <Spinner animation="border" role="status">
+            <span className="sr-only">Loading...</span>
+          </Spinner>
+        </div>
+      }
 
       {(proposals !== []) &&
         proposals.map((proposal, key) => (

@@ -1,20 +1,21 @@
 // This file stores the contract address the interface will attempt to connect to
+// By default, these addresses are all set to the addresses returned by running the command:
+// npx hardhat run --network localhost scripts/deploy-all.js
 const addresses = {
   
   network: "Hardhat Network",
-
-  // NetEmissionsTokenNetwork
+  
   tokenNetwork: {
-    address: "0x5FbDB2315678afecb367f032d93F642f64180aa3" // default Hardhat deployment address
+    address: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // default Hardhat deployment address with scripts/deploy-all.js
   },
 
-  // Governance contracts
+  // governance contracts
   dao: {
     governor: {
-      address: "0x70f98cD79b5b3A8Cd979D9ECF6B443265FE9a4c2"
+      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9" // default Hardhat deployment address with scripts/deploy-all.js
     },
     daoToken: {
-      address: "0xA7702cB0922979fd1a9b456f76600c0E914c11A5"
+      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0" // default Hardhat deployment address with scripts/deploy-all.js
     }
   }
 };

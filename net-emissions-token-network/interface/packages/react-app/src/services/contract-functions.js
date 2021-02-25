@@ -56,6 +56,10 @@ function toUnixTime(date) {
   return parseInt((date.getTime() / 1000).toFixed(0));
 }
 
+export async function getBlockNumber(w3provider) {
+  return w3provider.getBlockNumber();
+}
+
 /*
  *
  *  NetEmissionsTokenNetwork contract functions
