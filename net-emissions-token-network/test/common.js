@@ -47,6 +47,7 @@ exports.deployDaoContracts = async function () {
   
   const allAddresses = await ethers.getSigners();
   const owner = allAddresses[0];
+  console.log("deployDaoContracts() : Deploying Timelock, DAO token, and Governor contracts...");
 
   // 1) deploy timelock contract
   //      param1 - admin address
@@ -64,15 +65,90 @@ exports.deployDaoContracts = async function () {
   const governor = await exports.deployContract("Governor", timelock.address, daoToken.address, owner.address);
 
   // 4) setPendingAdmin in timelock contract to governor contract so it will controlled by the DAO
-  // let currentTime = Math.floor(Date.now() / 1000);
-  // let timelockNewAdmin = {
-  //   newPendingAdmin: governor.address,
-  //   eta: ethers.BigNumber.from(currentTime + exports.hoursToSeconds(60))
-  // }
-  // let queueSetTimelockPendingAdmin = await governor.connect(owner).__queueSetTimelockPendingAdmin(
-  //   timelockNewAdmin.newPendingAdmin,
-  //   timelockNewAdmin.eta
-  // );
+  console.log("deployDaoContracts() : Setting admin in Timelock to Governor contract...")
+
+  // format transactions for Timelock to change admin to Governor
+  let currentTime = Math.floor(Date.now() / 1000);
+  let timelockNewAdmin = {
+    //address target, uint value, string memory signature, bytes memory data, uint eta
+    target: timelock.address,
+    value: 0,
+    signature: "setPendingAdmin",
+    data: exports.encodeParameters(
+      ['address'],[governor.address]
+    ),
+    eta: (currentTime + exports.hoursToSeconds(50))
+  }
+  const queueTimelockAdminToGovernor = await timelock.connect(owner).queueTransaction(
+    timelockNewAdmin.target,
+    timelockNewAdmin.value,
+    timelockNewAdmin.signature,
+    timelockNewAdmin.data,
+    timelockNewAdmin.eta
+  );
+
+  await exports.advanceHours(51);
+
+  // execute setPendingAdmin on Timelock
+  const executeTimelockAdminToGovernor = await timelock.connect(owner).executeTransaction(
+    timelockNewAdmin.target,
+    timelockNewAdmin.value,
+    timelockNewAdmin.signature,
+    timelockNewAdmin.data,
+    timelockNewAdmin.eta
+  );
+
+  // accept admin role from Governor contract by creating a proposal to execute acceptAdmin()
+  let acceptAdminProposal = {
+    targets: [timelock.address], // contract to call
+    values: [ "0" ], // number of wei sent with call, i.e. msg.value
+    signatures: [ "acceptAdmin" ], // function in contract to call
+    calldatas: [ "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" ],
+    description: "acceptAdmin() in Timelock from Governor" // description of proposal
+  }
+  // delegate owner voting power to self
+  const delegateTokensToOwner = await daoToken.connect(owner).delegate(owner.address);
+
+  // create proposal to accept admin on Timelock
+  const acceptAdminFromGovernorProposal = await governor.connect(owner).propose(
+    acceptAdminProposal.targets,
+    acceptAdminProposal.values,
+    acceptAdminProposal.signatures,
+    acceptAdminProposal.calldatas,
+    acceptAdminProposal.description
+  );
+
+  // Get ID of proposal just made
+  let proposalTransactionReceipt = await acceptAdminFromGovernorProposal.wait(0);
+  let proposalEvent = proposalTransactionReceipt.events.pop();
+  let proposalId = proposalEvent.args[0].toNumber();
+
+  // cast vote for proposal by owner
+  await exports.advanceBlocks(1);
+  const castVoteByOwnerForAcceptAdmin = await governor.connect(owner).castVote(proposalId, true);
+  
+  // queue proposal after some time has passed and the proposal state is accepted
+  console.log("deployDaoContracts() : Skipping blocks after creating and voting on proposal to switch admins...");
+  await exports.advanceBlocks(20000);
+  const queueProposalForAcceptAdmin = await timelock.connect(owner).queueTransaction(
+    acceptAdminProposal.targets[0],
+    acceptAdminProposal.values[0],
+    acceptAdminProposal.signatures[0],
+    acceptAdminProposal.calldatas[0],
+    (currentTime + exports.hoursToSeconds(200)) // eta of proposal
+  );
+
+  // execute the proposal
+  await exports.advanceHours(201);
+  const executeProposalForAcceptAdmin = await timelock.connect(owner).executeTransaction(
+    acceptAdminProposal.targets[0],
+    acceptAdminProposal.values[0],
+    acceptAdminProposal.signatures[0],
+    acceptAdminProposal.calldatas[0],
+    (currentTime + exports.hoursToSeconds(200)) // eta of proposal
+  );
+
+  console.log("deployDaoContracts() : Done setting admin of Timelock to Governor.")
 
   return {
     timelock: timelock,
@@ -92,4 +168,12 @@ exports.advanceHours = async function (hours) {
   let seconds = exports.hoursToSeconds(hours);
   await ethers.provider.send("evm_increaseTime", [seconds]);
   ethers.provider.send("evm_mine"); // mine a block after
+}
+
+exports.createSnapshot = async function () {
+  return ethers.provider.send("evm_snapshot");
+}
+
+exports.applySnapshot = async function (snapshot) {
+  ethers.provider.send("evm_revert", [snapshot]);
 }

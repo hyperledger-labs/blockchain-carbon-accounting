@@ -1,6 +1,9 @@
 const { expect } = require("chai");
 const {
   advanceBlocks,
+  advanceHours,
+  createSnapshot,
+  applySnapshot,
   deployContract,
   deployDaoContracts,
   encodeParameters
@@ -8,6 +11,7 @@ const {
 
 describe("Climate DAO - Integration tests", function() {
   it("should allow DAO token holders to transfer around tokens", async function() {
+    const snapshot = await createSnapshot();
     const contracts = await deployDaoContracts();
 
     let owner = contracts.addresses[0];
@@ -37,9 +41,13 @@ describe("Climate DAO - Integration tests", function() {
       .balanceOf(DAOuser.address)
       .then((response) => expect(response.toString()).to.equal('1000000'));
 
+    // reset state of network
+    applySnapshot(snapshot);
+
   });
 
   it("should allow the owner to make and vote on proposals without other users", async function() {
+    const snapshot = await createSnapshot();
     const contracts = await deployDaoContracts();
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
 
@@ -81,24 +89,6 @@ describe("Climate DAO - Integration tests", function() {
       description: "Test proposal" // description of proposal
     };
 
-    // try making proposal before delegation
-    try {
-      let failedProposal = await contracts.governor.connect(owner).propose(
-        proposal.targets,
-        proposal.values,
-        proposal.signatures,
-        proposal.calldatas,
-        proposal.description
-      );
-    } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert GovernorAlpha::propose: proposer votes below proposal threshold"
-      );
-    }
-
-    // delegate owner voting power to self
-    let delegate = await contracts.daoToken.connect(owner).delegate(owner.address);
-
     // make proposal
     let makeProposal = await contracts.governor.connect(owner).propose(
       proposal.targets,
@@ -113,7 +103,6 @@ describe("Climate DAO - Integration tests", function() {
     let proposalTransactionReceipt = await makeProposal.wait(0);
     let proposalEvent = proposalTransactionReceipt.events.pop();
     let proposalId = proposalEvent.args[0].toNumber();
-    expect(proposalId).to.equal(1);
 
     // verify details of proposal
     let getActions = await contracts.governor.getActions(proposalId)
@@ -140,6 +129,7 @@ describe("Climate DAO - Integration tests", function() {
     });
 
     // cast vote for proposal by owner
+    await advanceBlocks(1);
     let castVote = await contracts.governor.connect(owner).castVote(proposalId, true);
     expect(castVote);
 
@@ -156,6 +146,7 @@ describe("Climate DAO - Integration tests", function() {
       expect(response.support).to.equal(true);
     });
 
+    console.log("Skipping blocks after creating and voting on proposal to call issue() on NetEmissionsTokenNetwork...")
     await advanceBlocks(20000);
 
     // get proposal state after advance blocks
@@ -165,9 +156,11 @@ describe("Climate DAO - Integration tests", function() {
     });
 
     // queue proposal after it's successful
-    // ERR: Timelock::queueTransaction: Call must come from admin.
     // let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
     // expect(queueProposal);
 
-  });
+    // reset state of network
+    applySnapshot(snapshot);
+
+  }).timeout(40000);
 });
