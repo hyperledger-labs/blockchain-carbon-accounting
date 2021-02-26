@@ -43,7 +43,19 @@ async function main() {
 
   // delegate voting power to self
   const delegateTokensToSelf = await daoToken.connect(deployer).delegate(deployer.address);
-  console.log("Delegated DAO token voting power to self.")
+  console.log("Delegated DAO token voting power to self.");
+
+  // grant dealer role to Timelock contract
+  const grantDealerRoleToTimelock1 = await netEmissionsTokenNetwork
+  .connect(deployer)
+  .registerDealer(timelock.address, 1);
+  const grantDealerRoleToTimelock2 = await netEmissionsTokenNetwork
+  .connect(deployer)
+  .registerDealer(timelock.address, 2);
+  const grantDealerRoleToTimelock3 = await netEmissionsTokenNetwork
+  .connect(deployer)
+  .registerDealer(timelock.address, 3);
+  console.log("Granted all dealer roles to DAO.");
 
 }
 

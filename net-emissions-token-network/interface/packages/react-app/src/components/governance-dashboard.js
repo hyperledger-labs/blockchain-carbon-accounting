@@ -122,19 +122,26 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       <h2>Governance</h2>
       <p>View, vote on, or create proposals to issue tokens.</p>
+      <p><a href={etherscanPage}>See contract on Etherscan</a></p>
       <hr/>
-      <p>{(blockNumber !== -1) && <>Current block number on connected network: {blockNumber}</>}</p>
-      { (daoTokenBalance !== -1) &&
-        <p>
-          Your DAO tokens: {addCommas(daoTokenBalance)}
-          { (daoTokenBalance !== 0) &&
-            <> ({percentOfSupply}% of entire supply)</>
+      <Row>
+        <Col>
+          { (daoTokenBalance !== -1) &&
+            <p>
+              Your DAO tokens: {addCommas(daoTokenBalance)}
+              { (daoTokenBalance !== 0) &&
+                <> ({percentOfSupply}% of entire supply)</>
+              }
+            </p>
           }
-        </p>
-      }
-      {(daoTokenBalance > 0) &&
-        <p><Button variant="primary" onClick={ ()=>setModalShow(true) }>Create a proposal</Button></p>
-      }
+          {(daoTokenBalance > 0) &&
+            <p><Button variant="primary" onClick={ ()=>setModalShow(true) }>Create a proposal</Button></p>
+          }
+        </Col>
+        <Col className="text-right">
+          <p>{(blockNumber !== -1) && <>Current block number: {blockNumber}</>}</p>
+        </Col>
+      </Row>
 
       {(fetchingProposals) &&
         <div className="text-center my-4">
@@ -158,7 +165,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 <Col className="text-success">For: {proposal.details.forVotes}</Col>
                 <Col className="text-danger">Against: {proposal.details.againstVotes}</Col>
               </Row>
-              <Card.Link href={etherscanPage}>See contract on Etherscan</Card.Link>
             </Card.Body>
           </Card>
         ))
