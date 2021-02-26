@@ -6,6 +6,9 @@ import { BigNumber } from "@ethersproject/bignumber";
 
 import { daoTokenBalanceOf, getProposalCount, getProposalDetails, getProposalState, getBlockNumber } from "../services/contract-functions";
 
+import CreateProposalModal from "./create-proposal-modal";
+
+import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
@@ -28,6 +31,8 @@ const etherscanPage = `https://${(addresses.network.split(" "))[0].toLowerCase()
 export default function GovernanceDashboard({ provider, roles, signedInAddress }) {
 
   const supply = 10000000; // 10 million total DAO tokens
+
+  const [modalShow, setModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
@@ -85,12 +90,13 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   // If address and provider detected then fetch balances/proposals
   useEffect(() => {
-    if (provider && signedInAddress) {
-      if (daoTokenBalance === -1 && !fetchingDaoTokenBalance) {
-        setFetchingDaoTokenBalance(true);
-        fetchDaoTokenBalance();
+    if (provider) {
+      if (signedInAddress) {
+        if (daoTokenBalance === -1 && !fetchingDaoTokenBalance) {
+          setFetchingDaoTokenBalance(true);
+          fetchDaoTokenBalance();
+        }
       }
-
       if (blockNumber === -1 && !fetchingBlockNumber) {
         setFetchingBlockNumber(true);
         fetchBlockNumber();
@@ -105,21 +111,29 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   return (
     <>
+      <CreateProposalModal
+        show={modalShow}
+        title="Create a proposal"
+        onHide={() => {
+          setModalShow(false);
+        }}
+      />
 
-      <h2>Governance Dashboard</h2>
-      <p>View, vote on, or create proposals.</p>
+      <h2>Governance</h2>
+      <p>View, vote on, or create proposals to issue tokens.</p>
       <hr/>
       <p>{(blockNumber !== -1) && <>Current block number on connected network: {blockNumber}</>}</p>
-      <p>
-        { (daoTokenBalance !== -1) &&
-          <>
-            Your DAO tokens: {addCommas(daoTokenBalance)}
-            { (daoTokenBalance !== 0) &&
-              <> ({percentOfSupply}% of entire supply)</>
-            }
-          </>
-        }
-      </p>
+      { (daoTokenBalance !== -1) &&
+        <p>
+          Your DAO tokens: {addCommas(daoTokenBalance)}
+          { (daoTokenBalance !== 0) &&
+            <> ({percentOfSupply}% of entire supply)</>
+          }
+        </p>
+      }
+      {(daoTokenBalance > 0) &&
+        <p><Button variant="primary" onClick={ ()=>setModalShow(true) }>Create a proposal</Button></p>
+      }
 
       {(fetchingProposals) &&
         <div className="text-center my-4">

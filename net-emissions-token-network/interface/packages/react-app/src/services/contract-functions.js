@@ -1,6 +1,7 @@
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
+import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
@@ -58,6 +59,11 @@ function toUnixTime(date) {
 
 export async function getBlockNumber(w3provider) {
   return w3provider.getBlockNumber();
+}
+
+export function encodeParameters(types, values) {
+  let abi = new AbiCoder();
+  return abi.encode(types, values);
 }
 
 /*
