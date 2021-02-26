@@ -314,3 +314,17 @@ export async function getProposalState(w3provider, proposalId) {
   }
   return PROPOSAL_STATES[state];
 }
+
+export async function propose(w3provider, targets, values, signatures, calldatas, description) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let proposal;
+  try {
+    let proposalCall = await signed.propose(targets, values, signatures, calldatas, description);
+    proposal = SUCCESS_MSG;
+  } catch (error) {
+    proposal = catchError(error);
+  }
+  return proposal;
+}

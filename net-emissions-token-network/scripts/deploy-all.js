@@ -40,6 +40,11 @@ async function main() {
   const governor = await Governor.deploy(timelock.address, daoToken.address, deployer.address);
   await governor.deployed();
   console.log("Governor deployed to:", governor.address);
+
+  // delegate voting power to self
+  const delegateTokensToSelf = await daoToken.connect(deployer).delegate(deployer.address);
+  console.log("Delegated DAO token voting power to self.")
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

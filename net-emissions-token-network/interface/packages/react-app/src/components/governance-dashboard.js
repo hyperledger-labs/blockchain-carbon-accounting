@@ -117,6 +117,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         onHide={() => {
           setModalShow(false);
         }}
+        provider={provider}
       />
 
       <h2>Governance</h2>
