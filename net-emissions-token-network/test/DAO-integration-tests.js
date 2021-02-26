@@ -11,17 +11,24 @@ const {
 
 describe("Climate DAO - Integration tests", function() {
   
+  // increase time for tests
+  this.timeout(60000);
+
   // initialize governance contracts and create snapshot
   var contracts;
   var snapshot;
+
   before(async () => {
     contracts = await deployDaoContracts();
     snapshot = await createSnapshot();
   });
 
-  it("should allow DAO token holders to transfer around tokens", async function() {
+  beforeEach(async () => {
     // reset state of network
     applySnapshot(snapshot);
+  });
+
+  it("should allow DAO token holders to transfer around tokens", async function() {
 
     let owner = contracts.addresses[0];
     let DAOuser = contracts.addresses[1];
@@ -53,19 +60,20 @@ describe("Climate DAO - Integration tests", function() {
   });
 
   it("should allow the owner to make and vote on proposals without other users", async function() {
-    // reset state of network
-    applySnapshot(snapshot);
-
     // deploy NetEmissionsTokenNetwork
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
 
     let owner = contracts.addresses[0];
 
+    // grant role of dealer to Timelock contract
+    const grantDealerRoleToTimelock = await netEmissionsTokenNetwork.connect(owner).registerDealer(contracts.timelock.address,1);
+    expect(grantDealerRoleToTimelock);
+
     // set-up parameters for proposal external contract call
     let proposalCallParams = {
-      account: netEmissionsTokenNetwork.address,
-      tokenTypeId: 0,
-      quantity: 3000,
+      account: owner.address,
+      tokenTypeId: 1,
+      quantity: 300,
       fromDate: 0,
       thruDate: 0,
       automaticRetireDate: 0,
@@ -77,8 +85,8 @@ describe("Climate DAO - Integration tests", function() {
     // set-up proposal parameters
     let proposal = {
       targets: [netEmissionsTokenNetwork.address], // contract to call
-      values: [ "0" ], // number of wei sent with call, i.e. msg.value
-      signatures: ["issue"], // function in contract to call
+      values: [ 0 ], // number of wei sent with call, i.e. msg.value
+      signatures: ["issue(address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
       calldatas: [encodeParameters(
         // types of params
         ['address', 'uint8', 'uint256', 'uint256', 'uint256', 'uint256', 'string', 'string', 'string'],
@@ -164,8 +172,20 @@ describe("Climate DAO - Integration tests", function() {
     });
 
     // queue proposal after it's successful
-    // let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
-    // expect(queueProposal);
+    let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
+    expect(queueProposal);
 
-  }).timeout(40000);
+    await advanceHours(48);
+    const numOfNetEmissionsTokensBeforeProposalExecution = await netEmissionsTokenNetwork.getNumOfUniqueTokens()
+    .then((response) =>
+      expect(response.toString()).to.equal('0')
+    );
+    let executeProposal = await contracts.governor.connect(owner).execute(proposalId);
+    expect(executeProposal);
+    const numOfNetEmissionsTokensAfterProposalExecution = await netEmissionsTokenNetwork.getNumOfUniqueTokens()
+    .then((response) =>
+      expect(response.toString()).to.equal('1')
+    );
+
+  });
 });
