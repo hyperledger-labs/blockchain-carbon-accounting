@@ -61,19 +61,19 @@ export default function CreateProposalModal(props) {
       </Modal.Header>
       <Modal.Body>
         
-        <p>Create a proposal to <b>issue tokens</b> from the DAO. 400,000 tokens or 4% of the DAO token supply is required to submit a proposal.</p>
+        <p>Create a proposal to <b>issue tokens</b> from the DAO. 400,000 tokens or 4% of the DAO token supply is required to submit a proposal. Only one active proposal is allowed per user.</p>
 
         <Form>
+          <Form.Group>
+            <Form.Label>Description</Form.Label>
+            <Form.Control as="textarea" rows={2} placeholder="Describe the purpose of this proposal..." onChange={onDescriptionChange} />
+          </Form.Group>
           <Form.Group>
             <Form.Label>Calldata</Form.Label>
             <Form.Control as="textarea" rows={3} onChange={onCalldataChange} />
             <Form.Text className="text-muted">
               Go to the issue page and fill out the form. Click the "copy calldata" button and paste it here.
             </Form.Text>
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Description</Form.Label>
-            <Form.Control as="textarea" rows={2} onChange={onDescriptionChange} />
           </Form.Group>
         </Form>
 

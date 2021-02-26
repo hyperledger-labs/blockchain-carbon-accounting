@@ -123,6 +123,15 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <h2>Governance</h2>
       <p>View, vote on, or create proposals to issue tokens.</p>
       <p><a href={etherscanPage}>See contract on Etherscan</a></p>
+      <p>
+        <Button
+          variant="primary"
+          onClick={ ()=>setModalShow(true) }
+          disabled={(daoTokenBalance <= 0)}
+        >
+          Create a proposal
+        </Button>
+      </p>
       <hr/>
       <Row>
         <Col>
@@ -133,9 +142,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 <> ({percentOfSupply}% of entire supply)</>
               }
             </p>
-          }
-          {(daoTokenBalance > 0) &&
-            <p><Button variant="primary" onClick={ ()=>setModalShow(true) }>Create a proposal</Button></p>
           }
         </Col>
         <Col className="text-right">
@@ -153,22 +159,24 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       {(proposalsLength === 0 && !fetchingProposals) && <p>No proposals found.</p>}
 
-      {(proposals !== []) &&
-        proposals.map((proposal, key) => (
-          <Card key={key}>
-            <Card.Body>
-              <Card.Title>Proposal #{proposal.id}</Card.Title>
-              <Card.Subtitle className="mb-2 text-muted">{proposal.state}</Card.Subtitle>
-              <Card.Text>Proposer: {proposal.details.proposer}</Card.Text>
-              <Card.Text>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
-              <Row className="mb-3">
-                <Col className="text-success">For: {proposal.details.forVotes}</Col>
-                <Col className="text-danger">Against: {proposal.details.againstVotes}</Col>
-              </Row>
-            </Card.Body>
-          </Card>
-        ))
-      }
+      <div className="d-flex flex-wrap">
+        {(proposals !== []) &&
+          proposals.map((proposal, key) => (
+            <Card key={key} style={{ width: '18rem' }} className="m-2">
+              <Card.Body>
+                <Card.Title>Proposal #{proposal.id}</Card.Title>
+                <Card.Subtitle className="mb-2 text-muted">{proposal.state}</Card.Subtitle>
+                <Card.Text>Proposer: {proposal.details.proposer}</Card.Text>
+                <Card.Text>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
+                <Row className="mb-3">
+                  <Col className="text-success">For: {proposal.details.forVotes}</Col>
+                  <Col className="text-danger">Against: {proposal.details.againstVotes}</Col>
+                </Row>
+              </Card.Body>
+            </Card>
+          ))
+        }
+      </div>
 
     </>
   );
