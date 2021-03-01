@@ -130,14 +130,18 @@ export default function AccessControlForm({ provider, signedInAddress, roles }) 
       <h2>Manage roles</h2>
       <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
 
-      <h4>My Roles</h4>
-      {roles.length === 5
-        ? <RolesList roles={roles}/>
-        : <div className="text-center mt-3 mb-3">
-            <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
-            </Spinner>
-          </div>
+      {signedInAddress &&
+        <>
+          <h4>My Roles</h4>
+          {roles.length === 5
+           ? <RolesList roles={roles}/>
+           : <div className="text-center mt-3 mb-3">
+               <Spinner animation="border" role="status">
+                 <span className="sr-only">Loading...</span>
+               </Spinner>
+             </div>
+          }
+        </>
       }
 
       <h4>Look-up Roles</h4>
