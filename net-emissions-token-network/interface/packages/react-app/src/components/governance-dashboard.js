@@ -73,7 +73,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let numberOfProposals = await getProposalCount(provider);
     let prop = [];
 
-    for (let i = 1; i <= numberOfProposals; i++) {
+    for (let i = numberOfProposals.toNumber(); i > 0; i--) {
       let proposalDetails = await getProposalDetails(provider, i);
       let proposalState = await getProposalState(provider, i);
 
@@ -187,7 +187,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <div className="d-flex flex-wrap">
         {(proposals !== []) &&
           proposals.map((proposal, key) => (
-            <Card key={key} style={{ width: '18rem' }} className="m-2">
+            <Card key={key} style={{ width: '22em' }} className="m-2">
               <Card.Body className="mb-2">
                 <Card.Title>Proposal #{proposal.id}</Card.Title>
                 <Card.Subtitle className="mb-2 text-primary">{proposal.state}</Card.Subtitle>
@@ -195,7 +195,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 <Card.Text>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
                 <Row className="text-center">
                   <Col className="text-success my-auto">
-                    YES: {addCommas(proposal.details.forVotes)}
+                    YES: {addCommas(proposal.details.forVotes)}<br/>
                     <Button
                       className="mt-1"
                       variant="success"
@@ -205,7 +205,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     >Vote for</Button>
                   </Col>
                   <Col className="text-danger my-auto">
-                    NO: {addCommas(proposal.details.againstVotes)}
+                    NO: {addCommas(proposal.details.againstVotes)}<br/>
                     <Button
                       className="mt-1"
                       variant="danger"
