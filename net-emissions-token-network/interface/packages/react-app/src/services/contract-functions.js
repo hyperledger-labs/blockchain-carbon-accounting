@@ -328,3 +328,28 @@ export async function propose(w3provider, targets, values, signatures, calldatas
   }
   return proposal;
 }
+
+export async function getReceipt(w3provider, proposalId, voter) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let receipt;
+  try {
+    receipt = await contract.getReceipt(proposalId, voter);
+  } catch (error) {
+    receipt = catchError(error);
+  }
+  return receipt;
+}
+
+export async function castVote(w3provider, proposalId, support) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let castVote;
+  try {
+    let castVoteCall = await signed.castVote(proposalId, support);
+    castVote = SUCCESS_MSG;
+  } catch (error) {
+    castVote = catchError(error);
+  }
+  return castVote;
+}
