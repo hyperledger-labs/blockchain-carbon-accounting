@@ -216,7 +216,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   </Col>
                 </Row>
                 { (proposal.receipt.hasVoted === true) &&
-                  <p className="text-secondary text-center"><small>You voted {(addCommas(proposal.receipt.support)) ? "FOR" : "AGAINST"} with {proposal.receipt.votes} votes.</small></p>
+                  <p className="text-secondary text-center"><small>You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</small></p>
                 }
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
                   <small className="text-secondary">Must be an active proposal to vote.</small>
