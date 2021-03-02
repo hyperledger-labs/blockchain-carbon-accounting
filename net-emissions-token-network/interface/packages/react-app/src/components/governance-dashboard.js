@@ -58,7 +58,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [blockNumber, setBlockNumber] = useState(-1);
   const [fetchingBlockNumber, setFetchingBlockNumber] = useState(false);
 
-  const [voteResult, setVoteResult] = useState("");
+  const [result, setResult] = useState("");
 
   const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
 
@@ -75,6 +75,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     for (let i = 0; i < skipBlocksAmount; i++) {
       localProvider.send("evm_mine");
     }
+    setResult(`Skipped ${skipBlocksAmount} blocks. Please refresh in a few seconds to see the updated current block!`);
   }
 
   async function fetchDaoTokenBalance() {
@@ -129,7 +130,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   async function vote(proposalId, support) {
     let vote = await castVote(provider, proposalId, support);
-    setVoteResult(vote);
+    setResult(vote);
   }
 
   // If address and provider detected then fetch balances/proposals
@@ -164,6 +165,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         provider={provider}
       />
 
+      { (result) && <Alert variant="primary" dismissible onClose={() => setResult("")}>{result}</Alert>}
+
       <h2>Governance</h2>
       <p>View, vote on, or create proposals to issue tokens.</p>
       <p><a href={etherscanPage}>See contract on Etherscan</a></p>
@@ -197,12 +200,14 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <Row>
         <Col>
           { (daoTokenBalance !== -1) &&
-            <p>
-              Your DAO tokens: {addCommas(daoTokenBalance)}
-              { (daoTokenBalance !== 0) &&
-                <> ({percentOfSupply}% of entire supply)</>
-              }
-            </p>
+            <>
+              <p>
+                Your DAO tokens: {addCommas(daoTokenBalance)}
+                { (daoTokenBalance !== 0) &&
+                  <> ({percentOfSupply}% of entire supply)</>
+                }
+              </p>
+            </>
           }
         </Col>
         <Col className="text-right">
@@ -219,7 +224,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       }
 
       { (proposalsLength === 0 && !fetchingProposals) && <p>No proposals found.</p>}
-      { (voteResult) && <Alert variant="primary" dismissible onClose={() => setVoteResult("")}>{voteResult}</Alert>}
 
       <div className="d-flex flex-wrap">
         {(proposals !== []) &&
