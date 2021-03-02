@@ -86,6 +86,14 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setResult(`Skipped ${blocks} blocks. Please refresh in a few seconds to see the updated current block!`);
   }
 
+  async function handleSkipTimestamp() {
+    let localProvider = new JsonRpcProvider();
+    let seconds = (1 * 24 * 60 * 60); // 1 day
+    await localProvider.send("evm_increaseTime", [seconds])
+    await localProvider.send("evm_mine");
+    setResult(`Added 1 day to block timestamp. Please refresh!`);
+  }
+
   async function fetchDaoTokenBalance() {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
     setDaoTokenBalance(balance);
@@ -215,7 +223,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           Queue/Execute
         </Button>
         { (networkNameLowercase === "hardhat") &&
-          <div className="ml-auto ">
+          <div className="ml-auto">
+
             <InputGroup size="sm" className="mb-1">
              <FormControl
                placeholder="Skip blocks..."
@@ -231,7 +240,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
              </InputGroup.Append>
            </InputGroup>
 
-           <InputGroup size="sm">
+           <InputGroup size="sm" className="mb-1">
              <FormControl
                placeholder="Skip to block..."
                onChange={onSkipBlocksAmountChange}
@@ -245,6 +254,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                </Button>
              </InputGroup.Append>
             </InputGroup>
+
+            <Button fill variant="secondary" onClick={ () => handleSkipTimestamp()  }>Add 1 day to block timestamp</Button>
+
           </div>
         }
       </div>
