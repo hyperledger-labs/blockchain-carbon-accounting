@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { addresses } from "@project/contracts";
 
 import { BigNumber } from "@ethersproject/bignumber";
+import { JsonRpcProvider } from "@ethersproject/providers"
 
 import {
   daoTokenBalanceOf,
@@ -22,6 +23,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
+import InputGroup from "react-bootstrap/InputGroup";
+import FormControl from "react-bootstrap/FormControl";
 
 function addCommas(str){
   str += '';
@@ -35,7 +38,9 @@ function addCommas(str){
   return x1 + x2;
 }
 
-const etherscanPage = `https://${(addresses.network.split(" "))[0].toLowerCase()}.etherscan.io/address/${addresses.dao.governor.address}#writeContract`;
+const networkNameLowercase = (addresses.network.split(" "))[0].toLowerCase(); // "Hardhat Network" -> "hardhat"
+
+const etherscanPage = `https://${networkNameLowercase}.etherscan.io/address/${addresses.dao.governor.address}#writeContract`;
 
 export default function GovernanceDashboard({ provider, roles, signedInAddress }) {
 
@@ -55,7 +60,22 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [voteResult, setVoteResult] = useState("");
 
+  const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
+
   const percentOfSupply = ((supply / daoTokenBalance) * 100).toFixed(2);
+
+  function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); };
+
+  async function handleSkipBlocks() {
+    let localProvider = new JsonRpcProvider();
+    if (!Number(skipBlocksAmount)) {
+      alert("Must enter a valid integer of blocks to skip on local EVM network.");
+      return;
+    }
+    for (let i = 0; i < skipBlocksAmount; i++) {
+      localProvider.send("evm_mine");
+    }
+  }
 
   async function fetchDaoTokenBalance() {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
@@ -73,7 +93,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let numberOfProposals = await getProposalCount(provider);
     let prop = [];
 
-    for (let i = numberOfProposals.toNumber(); i > 0; i--) {
+    for (let i = numberOfProposals; i > 0; i--) {
       let proposalDetails = await getProposalDetails(provider, i);
       let proposalState = await getProposalState(provider, i);
 
@@ -85,12 +105,12 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
 
       prop.push({
-        id: i,
+        id: i.toNumber(),
         details: {
           proposer: proposalDetails[1],
           forVotes: forVotes,
           againstVotes: againstVotes,
-          startBlock: proposalDetails[3].toNumber(),
+          startBlock: (proposalDetails[3].toNumber() + 1),
           endBlock: proposalDetails[4].toNumber()
         },
         state: proposalState,
@@ -147,15 +167,32 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <h2>Governance</h2>
       <p>View, vote on, or create proposals to issue tokens.</p>
       <p><a href={etherscanPage}>See contract on Etherscan</a></p>
-      <p>
+      <div className="d-flex justify-content-start align-items-center">
         <Button
           variant="primary"
           onClick={ ()=>setModalShow(true) }
           disabled={(daoTokenBalance <= 0)}
+          className="text-nowrap"
         >
           Create a proposal
         </Button>
-      </p>
+        { (networkNameLowercase === "hardhat") &&
+           <InputGroup className="pl-3 ml-auto">
+             <FormControl
+               placeholder="Skip blocks..."
+               onChange={onSkipBlocksAmountChange}
+             />
+             <InputGroup.Append>
+               <Button
+                 variant="primary"
+                 onClick={() => handleSkipBlocks(skipBlocksAmount)}
+               >
+                 Skip
+               </Button>
+             </InputGroup.Append>
+           </InputGroup>
+        }
+      </div>
       <hr/>
       <Row>
         <Col>
@@ -169,7 +206,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           }
         </Col>
         <Col className="text-right">
-          <p>{(blockNumber !== -1) && <>Current block number: {blockNumber}</>}</p>
+          <p>{(blockNumber !== -1) && <>Current block: {blockNumber}</>}</p>
         </Col>
       </Row>
 
