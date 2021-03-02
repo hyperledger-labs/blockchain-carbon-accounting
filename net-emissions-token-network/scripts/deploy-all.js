@@ -5,6 +5,25 @@
 // Runtime Environment's members available in the global scope.
 const hre = require("hardhat");
 
+// helper functions
+hoursToSeconds = function (hours) {
+  return (hours * 60 * 60);
+}
+encodeParameters = function (types, values) {
+  let abi = new ethers.utils.AbiCoder();
+  return abi.encode(types, values);
+}
+advanceBlocks = async function (blocks) {
+  for (let i = 0; i <= blocks; i++) {
+    await ethers.provider.send("evm_mine");
+  }
+}
+advanceHours = async function (hours) {
+  let seconds = hoursToSeconds(hours);
+  await ethers.provider.send("evm_increaseTime", [seconds]);
+  ethers.provider.send("evm_mine"); // mine a block after
+}
+
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
   // line interface.
@@ -57,6 +76,47 @@ async function main() {
   .registerDealer(timelock.address, 3);
   console.log("Granted all dealer roles to DAO.");
 
+  // format transactions for Timelock to change admin to Governor
+  let currentTime = Math.floor(Date.now() / 1000);
+  let timelockNewAdmin = {
+    //address target, uint value, string memory signature, bytes memory data, uint eta
+    target: timelock.address,
+    value: 0,
+    signature: "setPendingAdmin(address)",
+    data: encodeParameters(
+      ['address'],[governor.address]
+    ),
+    eta: (currentTime + hoursToSeconds(50))
+  }
+  const queueTimelockAdminToGovernor = await timelock.connect(deployer).queueTransaction(
+    timelockNewAdmin.target,
+    timelockNewAdmin.value,
+    timelockNewAdmin.signature,
+    timelockNewAdmin.data,
+    timelockNewAdmin.eta
+  );
+  console.log("Queued setPendingAdmin() on Timelock.");
+
+  await advanceHours(51);
+
+  // execute setPendingAdmin on Timelock
+  const executeTimelockAdminToGovernor = await timelock.connect(deployer).executeTransaction(
+    timelockNewAdmin.target,
+    timelockNewAdmin.value,
+    timelockNewAdmin.signature,
+    timelockNewAdmin.data,
+    timelockNewAdmin.eta
+  );
+  console.log("Executed setPendingAdmin() on Timelock.");
+  await advanceBlocks(1);
+
+  // accept admin role from Governor contract
+  const acceptAdmin = await governor.connect(deployer).__acceptAdmin();
+  await advanceBlocks(1);
+
+  let timelockAdmin = await timelock.admin();
+  console.assert(timelockAdmin === governor.address);
+  console.log("Executed __acceptAdmin() on Governor using deployer account. Timelock admin switched to Governor.")
 }
 
 // We recommend this pattern to be able to use async/await everywhere
