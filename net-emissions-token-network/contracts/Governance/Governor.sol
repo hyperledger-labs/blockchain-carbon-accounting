@@ -310,6 +310,7 @@ contract Governor {
         uint totalVotes = add256(proposal.forVotes, proposal.againstVotes);
         if (daot.getTotalSupply() == totalVotes) {
             proposal.eta = 0;
+            proposal.endBlock = sub256(block.number,1);
         }
 
         receipt.hasVoted = true;
