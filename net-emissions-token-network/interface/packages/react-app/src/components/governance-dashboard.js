@@ -16,6 +16,7 @@ import {
 } from "../services/contract-functions";
 
 import CreateProposalModal from "./create-proposal-modal";
+import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
 
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -46,7 +47,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const supply = 10000000; // 10 million total DAO tokens
 
-  const [modalShow, setModalShow] = useState(false);
+  const [createModalShow, setCreateModalShow] = useState(false);
+  const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
@@ -163,37 +165,54 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   return (
     <>
       <CreateProposalModal
-        show={modalShow}
+        show={createModalShow}
         title="Create a proposal"
         onHide={() => {
-          setModalShow(false);
+          setCreateModalShow(false);
         }}
         provider={provider}
       />
 
+      <QueueExecuteProposalModal
+        show={queueExecuteModalShow}
+        title="Queue or execute a proposal"
+        onHide={() => {
+          setQueueExecuteModalShow(false);
+        }}
+        provider={provider}
+      />
+
+
+
       { (isFetchingBlocks) &&
-        <Alert variant="secondary" className="text-center">Mined block. Current value: {blockNumber}. Continuing...</Alert>
+        <Alert variant="secondary" className="text-center">Mining block {blockNumber+1}...</Alert>
       }
       { (result) && <Alert variant="primary" dismissible onClose={() => setResult("")}>{result}</Alert>}
 
       <h2>Governance</h2>
       <p>View, vote on, or create proposals to issue tokens.</p>
-      <p><a href={etherscanPage}>See contract on Etherscan</a></p>
+
+      { (networkNameLowercase !== "hardhat") &&
+        <p><a href={etherscanPage}>See contract on Etherscan</a></p>
+      }
+
       <div className="d-flex justify-content-start align-items-center">
         <span className="mr-2 text-secondary">Proposals:</span>
         <Button
           variant="primary"
-          onClick={ ()=>setModalShow(true) }
+          onClick={ ()=>setCreateModalShow(true) }
           disabled={(daoTokenBalance <= 0)}
           className="text-nowrap mr-2"
         >
           Create
         </Button>
-        <Button className="text-nowrap mr-2">
-          Queue
-        </Button>
-        <Button className="text-nowrap mr-5">
-          Execute
+        <Button
+          className="text-nowrap mr-2"
+          onClick={ ()=>setQueueExecuteModalShow(true) }
+          disabled={(daoTokenBalance <= 0)}
+          className="text-nowrap mr-2"
+        >
+          Queue/Execute
         </Button>
         { (networkNameLowercase === "hardhat") &&
           <div className="ml-auto ">

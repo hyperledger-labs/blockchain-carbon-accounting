@@ -353,3 +353,31 @@ export async function castVote(w3provider, proposalId, support) {
   }
   return castVote;
 }
+
+export async function queue(w3provider, proposalId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let queue;
+  try {
+    let queueCall = await signed.queue(proposalId);
+    queue = SUCCESS_MSG;
+  } catch (error) {
+    queue = catchError(error);
+  }
+  return queue;
+}
+
+export async function execute(w3provider, proposalId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let execute;
+  try {
+    let executeCall = await signed.execute(proposalId);
+    execute = SUCCESS_MSG;
+  } catch (error) {
+    execute = catchError(error);
+  }
+  return execute;
+}
