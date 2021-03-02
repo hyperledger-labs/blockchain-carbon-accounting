@@ -182,35 +182,37 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           </div>
         )}
 
-        <div className="mb-4">
-          <h4>Your Tokens</h4>
-          <Table hover size="sm">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Balance</th>
-                <th>Retired</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(myBalances !== [] && !fetchingTokens) &&
-                myBalances.map((token) => (
-                  <tr
-                    key={token.tokenId}
-                    onClick={() => handleOpenTokenInfoModal(token)}
-                    onMouseOver={pointerHover}
-                    className={`${(Number(token.availableBalance) <= 0) ? "table-secondary" : ""}`}
-                  >
-                    <td>{token.tokenId}</td>
-                    <td>{token.tokenType}</td>
-                    <td>{token.availableBalance}</td>
-                    <td>{token.retiredBalance}</td>
-                  </tr>
-                ))}
-            </tbody>
-          </Table>
-        </div>
+        {(signedInAddress) &&
+          <div className="mb-4">
+            <h4>Your Tokens</h4>
+            <Table hover size="sm">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Balance</th>
+                  <th>Retired</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(myBalances !== [] && !fetchingTokens) &&
+                  myBalances.map((token) => (
+                    <tr
+                      key={token.tokenId}
+                      onClick={() => handleOpenTokenInfoModal(token)}
+                      onMouseOver={pointerHover}
+                      className={`${(Number(token.availableBalance) <= 0) ? "table-secondary" : ""}`}
+                    >
+                      <td>{token.tokenId}</td>
+                      <td>{token.tokenType}</td>
+                      <td>{token.availableBalance}</td>
+                      <td>{token.retiredBalance}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </Table>
+          </div>
+        }
 
         {/* Only display issued tokens if owner or dealer */}
         {(isDealer) &&

@@ -88,7 +88,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
                   }
                 </Row>
                 <Row className="d-flex justify-content-center">
-                  <small className="text-secondary">{addresses.tokenNetwork.network}</small>
+                  <small className="text-secondary">{addresses.network}</small>
                 </Row>
               </Nav.Item>
               <Nav.Item style={{padding: ".5rem .5rem"}}>

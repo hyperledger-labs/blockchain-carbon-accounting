@@ -47,10 +47,10 @@ npx hardhat node
 3. In a separate terminal, deploy the contracts in `net-emissions-token-network/` to the local Hardhat Network with:
 
 ```bash
-npx hardhat run --network localhost scripts/deploy.js
+npx hardhat run --network localhost scripts/deploy-all.js
 ```
 
-The address of the deployed contract should end with `0aa3`.
+The address of the NetEmissionsTokenNetwork contract should end with `0aa3`. `deploy-all.js` is used for deploying the governance contracts in addition to the NetEmissionsTokenNetwork contract.
 
 4. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.
 
@@ -89,7 +89,7 @@ You should now be connected to the contract in Goerli and be able to interact wi
 
 ---
 
-### Deploying contract to Goerli
+### Deploying Net Emissions Token Network contract to Goerli
 
 If you'd like to deploy the contract to the Goerli testnet yourself, go to [Infura.io](https://infura.io/) to set up an account.  Then start a project under the "Ethereum" tab.  You will need the project ID.
 
@@ -100,7 +100,7 @@ Now follow these steps to deploy the contract to the Goerli testnet and update r
 1. Create `.ethereum-config.js` by copying the template with 
 
 ```bash
-cp .ethereum-config.js.template .ethereum-config.js` and
+cp .ethereum-config.js.template .ethereum-config.js
 ```
 
 2.  Edit `.ethereum-config.js` and set the private key for your Ethereum deployment address and Infura key.
@@ -109,7 +109,7 @@ cp .ethereum-config.js.template .ethereum-config.js` and
 
 ```bash
      // const ethereumConfig = require("./.ethereum-config");
-     ....
+     ...
      // goerli: {
      //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
      //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
@@ -119,7 +119,7 @@ cp .ethereum-config.js.template .ethereum-config.js` and
 4. Deploy by via the deploy script with the following command:
 
 ```bash
-npx hardhat run --network goerli scripts/deploy.js
+npx hardhat run --network goerli scripts/deploy-net-emissions-token-network.js
 ```
 You will get a result that says
 
@@ -133,13 +133,13 @@ This is the deployed address for your contract. To update references on the Reac
 
 6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
-### Deploying contract to Kovan and xDai
+### Deploying Net Emissions Token Network contract to Kovan or xDai
 
 Steps for deploying the contract to the Kovan testnet and xDai sidechain are similar as deploying to Goerli:
 
 1. Populate `.ethereum-config.js` with private keys.
 
-2. Edit `hardhat.config.js` and uncomment the network configuration you would like to deploy to.
+2. Edit `hardhat.config.js` and uncomment the network configuration you would like to deploy to under module.exports.networks.
 
 3. Deploy with
 
@@ -153,7 +153,7 @@ or
 npx hardhat run --network xdai scripts/deploy.js
 ```
 
-### Verifying contract on Etherscan
+### Verifying contracts on Etherscan
 
 [Etherscan](https://etherscan.io/) is a popular block explorer for Ethereum networks. In order for Etherscan to display the names of the contract functions after compiling and deploying, one must supply Etherscan with the contract code for verification. Once the contract is verified, it is easier to view interactions with the contract as it deciphers the payloads. 
 
@@ -206,82 +206,14 @@ By default, Hardhat compiles to the EVM using the given Solidity version in `har
 
 2. Compile with `npx hardhat compile`
 
-### Token User Flow
-
-In the net-emissions-token-network contract, we currently support this functionality:
-
-- Issuing tokens and verifying that its type is valid
-- Registering/unregistering dealers
-- Registering/unregistering consumers
-- Transferring tokens
-- Retiring tokens
-
-#### An example of a user consuming these services would look similar to the following:
-
-Using the contract owner, register a new dealer. The registerDealer function expects the following arguments:
-
-```bash
-function registerDealer( address account )
-```
-
-A dealer can consume all services within the contract. In order to allow a dealer's customers or consumers to be issued a token, they must be first registered. The registerConsumer function expects the following:
-
-```bash
-function registerConsumer( address account )
-```
-
-After registering a consumer, the dealer will be able to issue this consumer a token with the issue function:
-
-```bash
-function issue( address account, uint8 tokenTypeId, uint256 quantity, string memory uom, string memory fromDate, string memory thruDate, string memory automaticRetireDate, string memory metadata, string memory manifest, string memory description )
-```
-
-Tokens for carbon offsets and renewable energy certificates can be retired:
-
-```bash
-function retire(address account, uint256 tokenId, uint256 amount)
-```
-
-Audited emissions are considered retired as soon as they're issued.
-
-The non-retired balance can be transferred:
-
-```bash
-function transfer(address to, uint256 tokenId, uint256 value)
-```
-
-You can get the balance for your tokens with:
-
-```bash
-function getBothBalanceByTokenId(uint8 tokenTypeId)
-```
-
-which returns a key-value pair like this:
-
-    { "0": "uint256: 0", "1": "uint256: 100" }
-
-The `0` index is the available balance, and the `1` index is the retired balance. You can also separately get available and retired balances with `getAvailableBalanceByTokenTypeId` and `getRetiredBalanceByTokenTypeId`.
-
-Dealers and consumers may also be unregistered within the network. Only the contract owner can unregister a dealer:
-
-```bash
-function unregisterDealer( address account )
-```
-
-A dealer may unregister its consumers with the unregisterConsumer function:
-
-```bash
-function unregisterConsumer( address account )
-```
-
-#### Testing the contract in Remix
+### Testing the contract in Remix
 
 For interacting with the contract in development, the current solution is to use the Remix IDE.
 
 First, the remixd plugin must be installed globally via NPM to create a volume from your local machine to Remix in browser.
 
 ```bash
-npm install -g remixd
+npm install -g @remix-project/remixd
 ```
 
 Install the dependencies for the contract in the net-emissions-token-network directory:
@@ -290,10 +222,10 @@ Install the dependencies for the contract in the net-emissions-token-network dir
 npm install
 ```
 
-To start the volume, run the following from the root directory of this repo:
+To start the volume, run the following replacing `/path/to/repo` with the absolute path of this folder on your machine:
 
 ```bash
-remixd -s ./net-emissions-token-network --remix-ide https://remix.ethereum.org
+remixd -s /path/to/repo/blockchain-carbon-accounting/net-emissions-token-network --remix-ide https://remix.ethereum.org
 ```
 
 After installing, navigate to https://remix.ethereum.org/ in the browser of your choice. (Currently only tested in Chrome)

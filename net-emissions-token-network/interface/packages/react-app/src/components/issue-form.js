@@ -1,13 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-import { issue } from "../services/contract-functions";
+import { issue, encodeParameters } from "../services/contract-functions";
+
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import SubmissionModal from "./submission-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
+import Tooltip from 'react-bootstrap/Tooltip';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+
 import "react-datetime/css/react-datetime.css";
 
 export default function IssueForm({ provider }) {
@@ -26,6 +32,9 @@ export default function IssueForm({ provider }) {
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
+  // Calldata
+  const [calldata, setCalldata] = useState("");
+
   // After initial onFocus for required inputs, display red outline if invalid
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
@@ -35,7 +44,7 @@ export default function IssueForm({ provider }) {
   function onQuantityChange(event) { setQuantity(event.target.value); };
   function onFromDateChange(event) { setFromDate(event._d); };
   function onThruDateChange(event) { setThruDate(event._d); };
-  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d) };
+  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d); };
   function onMetadataChange(event) { setMetadata(event.target.value); };
   function onManifestChange(event) { setManifest(event.target.value); };
   function onDescriptionChange(event) { setDescription(event.target.value); };
@@ -44,6 +53,57 @@ export default function IssueForm({ provider }) {
     submit();
     setModalShow(true);
   }
+
+  // update calldata in background in case user wants to copy it with button
+  function updateCalldata() {
+    let encodedCalldata;
+    try {
+      encodedCalldata = encodeParameters(
+        // types of params
+        [
+          'address',
+          'uint8',
+          'uint256',
+          'uint256',
+          'uint256',
+          'uint256',
+          'string',
+          'string',
+          'string'
+        ],
+        // value of params
+        [
+          address,
+          tokenTypeId,
+          Number(quantity),
+          Number(fromDate),
+          Number(thruDate),
+          Number(automaticRetireDate),
+          metadata,
+          manifest,
+          description
+        ]
+      );
+    } catch (error) {
+      encodedCalldata = "";
+    }
+    setCalldata(encodedCalldata);
+  }
+
+  // update calldata on input change
+  useEffect(() => {
+    updateCalldata()
+  }, [
+    onAddressChange,
+    onTokenTypeIdChange,
+    onQuantityChange,
+    onFromDateChange,
+    onThruDateChange,
+    onAutomaticRetireDateChange,
+    onMetadataChange,
+    onManifestChange,
+    onDescriptionChange
+  ]);
 
   async function submit() {
     // If quantity has 3 decimals, multiply by 1000 before passing to the contract
@@ -62,6 +122,12 @@ export default function IssueForm({ provider }) {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+  const tooltipCopiedCalldata = (props) => (
+    <Tooltip {...props}>
+      Copied to clipboard! Create a proposal using this from the governance page.
+    </Tooltip>
+  );
 
   return (
     <>
@@ -141,9 +207,41 @@ export default function IssueForm({ provider }) {
         <Form.Label>Manifest</Form.Label>
         <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
       </Form.Group>
-      <Button variant="primary" size="lg" block onClick={handleSubmit}>
-        Issue
-      </Button>
+
+      <Row>
+        <Col>
+          <OverlayTrigger
+            trigger="click"
+            placement="top"
+            rootClose={true}
+            delay={{ show: 250, hide: 400 }}
+            overlay={tooltipCopiedCalldata}
+          >              
+            <CopyToClipboard text={calldata}>
+              <Button
+                variant="secondary"
+                size="lg"
+                block
+                disabled={calldata.length === 0}
+              >
+                Copy calldata
+              </Button>
+            </CopyToClipboard>
+          </OverlayTrigger>
+        </Col>
+        <Col>
+          <Button
+            variant="primary"
+            size="lg"
+            block
+            onClick={handleSubmit}
+            disabled={calldata.length === 0}
+          >
+            Issue
+          </Button>
+        </Col>
+      </Row>
+      
     </>
   );
 }

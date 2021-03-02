@@ -17,7 +17,7 @@ const {
 
 describe("Net Emissions Token Network - Integration tests", function() {
   it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
-    let contract = await deployContract();
+    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
@@ -220,7 +220,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
   });
 
   it("should define a Carbon Emissions Offset, go through userflow with token", async function() {
-    let contract = await deployContract();
+    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
@@ -423,7 +423,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
   });
 
   it("should define an Audited Emissions, go through userflow with token", async function() {
-    let contract = await deployContract();
+    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];

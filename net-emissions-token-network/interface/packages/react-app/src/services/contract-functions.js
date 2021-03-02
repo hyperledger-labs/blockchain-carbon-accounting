@@ -1,8 +1,28 @@
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
+import { AbiCoder } from "@ethersproject/abi";
+import { BigNumber } from "@ethersproject/bignumber";
+
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
 const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/g;
+
+const PROPOSAL_STATES = [
+  "Pending",
+  "Active",
+  "Canceled",
+  "Defeated",
+  "Succeeded",
+  "Queued",
+  "Expired",
+  "Executed"
+];
+
+/*
+ *
+ *  helper functions
+ *
+ */
 
 function catchError(error) {
   console.error(error.message);
@@ -36,6 +56,21 @@ function toUnixTime(date) {
   if (Object.prototype.toString.call(date) !== "[object Date]") return date;
   return parseInt((date.getTime() / 1000).toFixed(0));
 }
+
+export async function getBlockNumber(w3provider) {
+  return w3provider.getBlockNumber();
+}
+
+export function encodeParameters(types, values) {
+  let abi = new AbiCoder();
+  return abi.encode(types, values);
+}
+
+/*
+ *
+ *  NetEmissionsTokenNetwork contract functions
+ *
+ */
 
 export async function getRoles(w3provider, address) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
@@ -220,4 +255,151 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
     unregisterDealer_result = catchError(error);
   }
   return unregisterDealer_result;
+}
+
+/*
+ *
+ *  DAO token contract functions
+ *
+ */
+
+export async function daoTokenBalanceOf(w3provider, account) {
+  let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
+  let balance;
+  try {
+    let fetchedBalance = await contract.balanceOf(account);
+    let decimals = BigNumber.from("1000000000000000000");
+    balance = fetchedBalance.div(decimals).toNumber();
+  } catch (error) {
+    balance = error.message;
+  }
+  return balance;
+}
+
+/*
+ *
+ *  Governor contract functions
+ *
+ */
+
+export async function getProposalCount(w3provider) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let count;
+  try {
+    count = await contract.proposalCount();
+  } catch (error) {
+    count = error.message;
+  }
+  return count;
+}
+
+export async function getProposalDetails(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let proposals;
+  try {
+    proposals = await contract.proposals(proposalId);
+  } catch (error) {
+    proposals = error.message;
+  }
+  return proposals;
+}
+
+export async function getProposalState(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let state;
+  try {
+    state = await contract.state(proposalId);
+  } catch (error) {
+    state = error.message;
+  }
+  return PROPOSAL_STATES[state];
+}
+
+export async function propose(w3provider, targets, values, signatures, calldatas, description) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let proposal;
+  try {
+    let proposalCall = await signed.propose(targets, values, signatures, calldatas, description);
+    proposal = SUCCESS_MSG;
+  } catch (error) {
+    proposal = catchError(error);
+  }
+  return proposal;
+}
+
+export async function getReceipt(w3provider, proposalId, voter) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let receipt;
+  try {
+    receipt = await contract.getReceipt(proposalId, voter);
+  } catch (error) {
+    receipt = catchError(error);
+  }
+  return receipt;
+}
+
+export async function getActions(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let actions;
+  try {
+    actions = await contract.getReceipt(proposalId);
+  } catch (error) {
+    actions = catchError(error);
+  }
+  return actions;
+}
+
+export async function getDescription(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let description;
+  try {
+    description = await contract.getDescription(proposalId);
+  } catch (error) {
+    description = catchError(error);
+  }
+  return description;
+}
+
+export async function castVote(w3provider, proposalId, support) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let castVote;
+  try {
+    let castVoteCall = await signed.castVote(proposalId, support);
+    castVote = SUCCESS_MSG;
+  } catch (error) {
+    castVote = catchError(error);
+  }
+  return castVote;
+}
+
+export async function queue(w3provider, proposalId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let queue;
+  try {
+    let queueCall = await signed.queue(proposalId);
+    queue = SUCCESS_MSG;
+  } catch (error) {
+    queue = catchError(error);
+  }
+  return queue;
+}
+
+export async function execute(w3provider, proposalId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let execute;
+  try {
+    let executeCall = await signed.execute(proposalId);
+    execute = SUCCESS_MSG;
+  } catch (error) {
+    execute = catchError(error);
+  }
+  return execute;
 }
