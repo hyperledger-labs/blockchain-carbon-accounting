@@ -57,6 +57,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [blockNumber, setBlockNumber] = useState(-1);
   const [fetchingBlockNumber, setFetchingBlockNumber] = useState(false);
+  const [isFetchingBlocks, setIsFetchingBlocks] = useState(false);
 
   const [result, setResult] = useState("");
 
@@ -66,16 +67,21 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); };
 
-  async function handleSkipBlocks() {
+  async function handleSkipBlocks(blocks) {
     let localProvider = new JsonRpcProvider();
-    if (!Number(skipBlocksAmount)) {
+    if (!Number(blocks)) {
       alert("Must enter a valid integer of blocks to skip on local EVM network.");
       return;
     }
-    for (let i = 0; i < skipBlocksAmount; i++) {
-      localProvider.send("evm_mine");
+    setIsFetchingBlocks(true);
+    let newBlockNumber = blockNumber;
+    for (let i = 0; i < Number(blocks); i++) {
+      await localProvider.send("evm_mine");
+      newBlockNumber++;
+      setBlockNumber(newBlockNumber);
     }
-    setResult(`Skipped ${skipBlocksAmount} blocks. Please refresh in a few seconds to see the updated current block!`);
+    setIsFetchingBlocks(false);
+    setResult(`Skipped ${blocks} blocks. Please refresh in a few seconds to see the updated current block!`);
   }
 
   async function fetchDaoTokenBalance() {
@@ -165,22 +171,33 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         provider={provider}
       />
 
+      { (isFetchingBlocks) &&
+        <Alert variant="secondary" className="text-center">Mined block. Current value: {blockNumber}. Continuing...</Alert>
+      }
       { (result) && <Alert variant="primary" dismissible onClose={() => setResult("")}>{result}</Alert>}
 
       <h2>Governance</h2>
       <p>View, vote on, or create proposals to issue tokens.</p>
       <p><a href={etherscanPage}>See contract on Etherscan</a></p>
       <div className="d-flex justify-content-start align-items-center">
+        <span className="mr-2 text-secondary">Proposals:</span>
         <Button
           variant="primary"
           onClick={ ()=>setModalShow(true) }
           disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap"
+          className="text-nowrap mr-2"
         >
-          Create a proposal
+          Create
+        </Button>
+        <Button className="text-nowrap mr-2">
+          Queue
+        </Button>
+        <Button className="text-nowrap mr-5">
+          Execute
         </Button>
         { (networkNameLowercase === "hardhat") &&
-           <InputGroup className="pl-3 ml-auto">
+          <div className="ml-auto ">
+            <InputGroup size="sm" className="mb-1">
              <FormControl
                placeholder="Skip blocks..."
                onChange={onSkipBlocksAmountChange}
@@ -194,6 +211,22 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                </Button>
              </InputGroup.Append>
            </InputGroup>
+
+           <InputGroup size="sm">
+             <FormControl
+               placeholder="Skip to block..."
+               onChange={onSkipBlocksAmountChange}
+             />
+             <InputGroup.Append>
+               <Button
+                 variant="primary"
+                 onClick={() => handleSkipBlocks(Number(skipBlocksAmount) - Number(blockNumber))}
+               >
+                 Skip
+               </Button>
+             </InputGroup.Append>
+            </InputGroup>
+          </div>
         }
       </div>
       <hr/>
