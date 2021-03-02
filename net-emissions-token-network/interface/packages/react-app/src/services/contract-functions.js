@@ -340,6 +340,28 @@ export async function getReceipt(w3provider, proposalId, voter) {
   return receipt;
 }
 
+export async function getActions(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let actions;
+  try {
+    actions = await contract.getReceipt(proposalId);
+  } catch (error) {
+    actions = catchError(error);
+  }
+  return actions;
+}
+
+export async function getDescription(w3provider, proposalId) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let description;
+  try {
+    description = await contract.getDescription(proposalId);
+  } catch (error) {
+    description = catchError(error);
+  }
+  return description;
+}
+
 export async function castVote(w3provider, proposalId, support) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);

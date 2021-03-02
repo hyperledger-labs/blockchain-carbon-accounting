@@ -99,6 +99,9 @@ contract Governor {
         /// @notice Flag marking whether the proposal has been executed
         bool executed;
 
+        /// @notes Description of the proposal
+        string description;
+
         /// @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
     }
@@ -190,7 +193,8 @@ contract Governor {
             forVotes: 0,
             againstVotes: 0,
             canceled: false,
-            executed: false
+            executed: false,
+            description: description
         });
 
         proposals[newProposal.id] = newProposal;
@@ -250,6 +254,10 @@ contract Governor {
         return proposals[proposalId].receipts[voter];
     }
 
+    function getDescription(uint proposalId) public view returns (string memory) {
+        return proposals[proposalId].description;
+    }
+
     function state(uint proposalId) public view returns (ProposalState) {
         require(proposalCount >= proposalId && proposalId > 0, "GovernorAlpha::state: invalid proposal id");
         Proposal storage proposal = proposals[proposalId];
@@ -296,6 +304,12 @@ contract Governor {
             proposal.forVotes = add256(proposal.forVotes, votes);
         } else {
             proposal.againstVotes = add256(proposal.againstVotes, votes);
+        }
+
+        // check total votes vs DAO token supply. If it matches, set eta to zero so state is successful
+        uint totalVotes = add256(proposal.forVotes, proposal.againstVotes);
+        if (daot.getTotalSupply() == totalVotes) {
+            proposal.eta = 0;
         }
 
         receipt.hasVoted = true;
@@ -355,4 +369,5 @@ interface TimelockInterface {
 
 interface DaotInterface {
     function getPriorVotes(address account, uint blockNumber) external view returns (uint96);
+    function getTotalSupply() external pure returns (uint);
 }

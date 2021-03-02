@@ -12,7 +12,9 @@ import {
   getProposalState,
   getBlockNumber,
   castVote,
-  getReceipt
+  getReceipt,
+  getDescription,
+  getActions
 } from "../services/contract-functions";
 
 import CreateProposalModal from "./create-proposal-modal";
@@ -86,9 +88,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setResult(`Skipped ${blocks} blocks. Please refresh in a few seconds to see the updated current block!`);
   }
 
-  async function handleSkipTimestamp() {
+  async function handleSkipTimestamp(days) {
     let localProvider = new JsonRpcProvider();
-    let seconds = (1 * 24 * 60 * 60); // 1 day
+    let seconds = (days * 24 * 60 * 60); // 1 day
     await localProvider.send("evm_increaseTime", [seconds])
     await localProvider.send("evm_mine");
     setResult(`Added 1 day to block timestamp. Please refresh!`);
@@ -108,11 +110,24 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   async function fetchProposals() {
     let numberOfProposals = await getProposalCount(provider);
+    console.log(numberOfProposals)
     let prop = [];
 
     for (let i = numberOfProposals; i > 0; i--) {
+      console.log(`i : ${i}`)
+
+      let i_toNumberFix;
+      try {
+        i_toNumberFix = i.toNumber();
+      } catch (e) {
+        i_toNumberFix = i;
+      }
+      console.log(`i_toNumberFix : ${i_toNumberFix}`);
+
       let proposalDetails = await getProposalDetails(provider, i);
       let proposalState = await getProposalState(provider, i);
+      let proposalDescription = await getDescription(provider, i);
+      let proposalActions = await getActions(provider, i);
 
       let decimals = BigNumber.from("1000000000000000000");
       let forVotes = proposalDetails[5].div(decimals).toNumber();
@@ -121,8 +136,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
 
+
       prop.push({
-        id: i.toNumber(),
+        id: i_toNumberFix,
         details: {
           proposer: proposalDetails[1],
           forVotes: forVotes,
@@ -131,11 +147,13 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           endBlock: proposalDetails[4].toNumber()
         },
         state: proposalState,
+        actions: proposalActions,
         receipt: {
           hasVoted: proposalReceipt[0],
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toNumber()
-        }
+        },
+        description: proposalDescription,
       });
     }
 
@@ -227,7 +245,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
             <InputGroup size="sm" className="mb-1">
              <FormControl
-               placeholder="Skip blocks..."
+               placeholder="Advance blocks..."
                onChange={onSkipBlocksAmountChange}
              />
              <InputGroup.Append>
@@ -255,7 +273,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
              </InputGroup.Append>
             </InputGroup>
 
-            <Button fill variant="secondary" onClick={ () => handleSkipTimestamp()  }>Add 1 day to block timestamp</Button>
+            <Button block size="sm" variant="secondary" onClick={ () => handleSkipTimestamp(2)  }>Add 2 days to block timestamp</Button>
 
           </div>
         }
@@ -297,7 +315,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 <Card.Title>Proposal #{proposal.id}</Card.Title>
                 <Card.Subtitle className="mb-2 text-primary">{proposal.state}</Card.Subtitle>
                 <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
-                <Card.Text>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
+                <Card.Text>{proposal.description}</Card.Text>
+                <Card.Text className="text-secondary">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
                 <Row className="text-center">
                   <Col className="text-success my-auto">
                     YES: {addCommas(proposal.details.forVotes)}<br/>

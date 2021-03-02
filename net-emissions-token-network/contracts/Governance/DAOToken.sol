@@ -325,4 +325,7 @@ contract DAOToken {
         assembly { chainId := chainid() }
         return chainId;
     }
+    function getTotalSupply() external pure returns (uint) {
+        return totalSupply;
+    }
 }
