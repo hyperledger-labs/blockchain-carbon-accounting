@@ -65,6 +65,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
 
+  const [proposalActionType, setProposalActionType] = useState("");
+
   const percentOfSupply = ((supply / daoTokenBalance) * 100).toFixed(2);
 
   function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); };
@@ -195,6 +197,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           setQueueExecuteModalShow(false);
         }}
         provider={provider}
+        type={proposalActionType}
       />
 
       { (isFetchingBlocks) &&
@@ -213,11 +216,30 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         <span className="mr-2 text-secondary">Proposals:</span>
         <Button
           className="text-nowrap mr-2"
-          onClick={ ()=>setQueueExecuteModalShow(true) }
+          onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("queue") }}
           disabled={(daoTokenBalance <= 0)}
           className="text-nowrap mr-2"
+          variant="warning"
         >
-          Queue/Execute
+          Queue
+        </Button>
+        <Button
+          className="text-nowrap mr-2"
+          onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("execute") }}
+          disabled={(daoTokenBalance <= 0)}
+          className="text-nowrap mr-2"
+          variant="success"
+        >
+          Execute
+        </Button>
+        <Button
+          className="text-nowrap mr-2"
+          onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("cancel") }}
+          disabled={(daoTokenBalance <= 0)}
+          className="text-nowrap mr-2"
+          variant="danger"
+        >
+          Cancel
         </Button>
         { (networkNameLowercase === "hardhat") &&
           <div className="ml-auto">

@@ -403,3 +403,17 @@ export async function execute(w3provider, proposalId) {
   }
   return execute;
 }
+
+export async function cancel(w3provider, proposalId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let cancel;
+  try {
+    let cancelCall = await signed.cancel(proposalId);
+    cancel = SUCCESS_MSG;
+  } catch (error) {
+    cancel = catchError(error);
+  }
+  return cancel;
+}
