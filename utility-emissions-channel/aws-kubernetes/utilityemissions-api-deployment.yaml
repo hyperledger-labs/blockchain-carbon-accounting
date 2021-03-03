@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: utilityemissions-api
+  namespace: fabric-production
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9000
+    targetPort: 9000
+  selector:
+    app: utilityemissions-api
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: utilityemissions-api
+  labels:
+    app: utilityemissions-api
+spec:
+  selector:
+    matchLabels:
+      app: utilityemissions-api
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: utilityemissions-api
+    spec:
+      containers:
+        - image: krybalko/utilityemissions-api:0.0.1
+          name: utilityemissions-api
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
