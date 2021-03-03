@@ -11,7 +11,6 @@ import Form from 'react-bootstrap/Form';
 
 export default function CreateProposalModal(props) {
 
-  const [calldata, setCalldata] = useState("");
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,7 +24,7 @@ export default function CreateProposalModal(props) {
         targets: [ addresses.tokenNetwork.address ],
         values: [ 0 ],
         signatures: [ "issue(address,uint8,uint256,uint256,uint256,uint256,string,string,string)" ],
-        calldata: [ calldata ],
+        calldata: [ props.calldata ],
         description: description
       }
 
@@ -45,7 +44,6 @@ export default function CreateProposalModal(props) {
     setResult(newResult);
   }
 
-  function onCalldataChange(event) { setCalldata(event.target.value); };
   function onDescriptionChange(event) { setDescription(event.target.value); };
 
   return (
@@ -61,7 +59,8 @@ export default function CreateProposalModal(props) {
       </Modal.Header>
       <Modal.Body>
         
-        <p>Create a proposal to <b>issue tokens</b> from the DAO. 400,000 tokens or 4% of the DAO token supply is required to submit a proposal. Only one active proposal is allowed per user.</p>
+        <p>Create a proposal to <b>issue tokens</b> from the DAO. If it passes through a vote of the DAO token holders, it can be queued and executed to issue new tokens to any registered consumer. 400,000 tokens or 4% of the DAO token supply is required to submit a proposal. Only one active proposal is allowed per user. Proposals, votes, DAO token balance, and delgates can be viewed on the Governance page.</p>
+        <p><small>Be sure to double-check all form inputs before submitting! You can cancel proposals but it costs gas.</small></p>
 
         <Form>
           <Form.Group>
@@ -70,10 +69,8 @@ export default function CreateProposalModal(props) {
           </Form.Group>
           <Form.Group>
             <Form.Label>Calldata</Form.Label>
-            <Form.Control as="textarea" rows={3} onChange={onCalldataChange} />
-            <Form.Text className="text-muted">
-              Go to the issue page and fill out the form. Click the "copy calldata" button and paste it here.
-            </Form.Text>
+            <Form.Control as="textarea" disabled rows={3} value={props.calldata} />
+            <Form.Text className="text-muted">This is the encoded data of the issue contract call. Don't worry about this unless you're calling the Governor contract manually.</Form.Text>
           </Form.Group>
         </Form>
 

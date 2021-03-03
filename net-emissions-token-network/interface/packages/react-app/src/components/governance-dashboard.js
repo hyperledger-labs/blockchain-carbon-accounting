@@ -17,7 +17,6 @@ import {
   getActions
 } from "../services/contract-functions";
 
-import CreateProposalModal from "./create-proposal-modal";
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
 
 import Button from "react-bootstrap/Button";
@@ -49,7 +48,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const supply = 10000000; // 10 million total DAO tokens
 
-  const [createModalShow, setCreateModalShow] = useState(false);
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
@@ -190,15 +188,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   return (
     <>
-      <CreateProposalModal
-        show={createModalShow}
-        title="Create a proposal"
-        onHide={() => {
-          setCreateModalShow(false);
-        }}
-        provider={provider}
-      />
-
       <QueueExecuteProposalModal
         show={queueExecuteModalShow}
         title="Queue or execute a proposal"
@@ -207,8 +196,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         }}
         provider={provider}
       />
-
-
 
       { (isFetchingBlocks) &&
         <Alert variant="secondary" className="text-center">Mining block {blockNumber+1}...</Alert>
@@ -224,14 +211,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       <div className="d-flex justify-content-start align-items-center">
         <span className="mr-2 text-secondary">Proposals:</span>
-        <Button
-          variant="primary"
-          onClick={ ()=>setCreateModalShow(true) }
-          disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap mr-2"
-        >
-          Create
-        </Button>
         <Button
           className="text-nowrap mr-2"
           onClick={ ()=>setQueueExecuteModalShow(true) }

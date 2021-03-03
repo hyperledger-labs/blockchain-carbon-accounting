@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import { issue, encodeParameters } from "../services/contract-functions";
 
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-
 import SubmissionModal from "./submission-modal";
+import CreateProposalModal from "./create-proposal-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -18,7 +17,8 @@ import "react-datetime/css/react-datetime.css";
 
 export default function IssueForm({ provider }) {
 
-  const [modalShow, setModalShow] = useState(false);
+  const [submissionModalShow, setSubmissionModalShow] = useState(false);
+  const [createModalShow, setCreateModalShow] = useState(false);
 
   // Form inputs
   const [address, setAddress] = useState("");
@@ -51,7 +51,7 @@ export default function IssueForm({ provider }) {
 
   function handleSubmit() {
     submit();
-    setModalShow(true);
+    setSubmissionModalShow(true);
   }
 
   // update calldata in background in case user wants to copy it with button
@@ -132,11 +132,21 @@ export default function IssueForm({ provider }) {
   return (
     <>
 
+      <CreateProposalModal
+        show={createModalShow}
+        title="Create a proposal"
+        onHide={() => {
+          setCreateModalShow(false);
+        }}
+        provider={provider}
+        calldata={calldata}
+      />
+
       <SubmissionModal
-        show={modalShow}
+        show={submissionModalShow}
         title="Issue tokens"
         body={result}
-        onHide={() => {setModalShow(false); setResult("")} }
+        onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
 
       <h2>Issue tokens</h2>
@@ -208,26 +218,17 @@ export default function IssueForm({ provider }) {
         <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
       </Form.Group>
 
-      <Row>
+      <Row className="mt-4">
         <Col>
-          <OverlayTrigger
-            trigger="click"
-            placement="top"
-            rootClose={true}
-            delay={{ show: 250, hide: 400 }}
-            overlay={tooltipCopiedCalldata}
-          >              
-            <CopyToClipboard text={calldata}>
-              <Button
-                variant="secondary"
-                size="lg"
-                block
-                disabled={calldata.length === 0}
-              >
-                Copy calldata
-              </Button>
-            </CopyToClipboard>
-          </OverlayTrigger>
+          <Button
+            variant="success"
+            size="lg"
+            block
+            onClick={() => setCreateModalShow(true)}
+            disabled={(calldata.length === 0) || String(quantity).length === 0}
+          >
+            Create DAO a proposal
+          </Button>
         </Col>
         <Col>
           <Button
@@ -235,7 +236,7 @@ export default function IssueForm({ provider }) {
             size="lg"
             block
             onClick={handleSubmit}
-            disabled={calldata.length === 0}
+            disabled={(calldata.length === 0) || String(quantity).length === 0}
           >
             Issue
           </Button>
