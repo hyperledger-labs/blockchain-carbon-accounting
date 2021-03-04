@@ -7,6 +7,40 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: #333333;
+  background-color: #F1F1F1;
+}
+
+.btn:not(.input-group-append .btn) {
+  border-radius: 10px !important;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
+}
+
+.navbar {
+  background-color: #F1F1F1 !important;
+}
+
+.nav-tabs {
+  background-color: #001f3f;
+}
+
+.nav-link {
+  border-radius: 0 !important;
+}
+
+.nav-link:hover {
+  border: 0 !important;
+  color: white !important;
+}
+
+.nav-tabs .active {
+  background-color: #082d52 !important;
+  border: 0;
+  color: white !important;
+}
+
+.nav-tabs a {
+  color: lightgrey;
 }
 
 code {

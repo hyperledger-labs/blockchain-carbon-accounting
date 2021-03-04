@@ -37,7 +37,7 @@ function App() {
   let isOwnerOrDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true);
 
   return (
-    <div>
+    <>
       <NavigationBar
         provider={provider}
         loadWeb3Modal={loadWeb3Modal}
@@ -45,32 +45,35 @@ function App() {
         signedInAddress={signedInAddress}
         roles={roles}
       />
+
+      {/* Tabs to pages */}
+      <Nav fill variant="tabs" className="mt-2 mb-4 border-bottom-0">
+        {/* On dashboard page, click this link to refresh the balances */}
+        {/* Else on other page, click this link to go to dashboard */}
+        {(location.substring(1) === "dashboard")
+         ? <Nav.Link onClick={() => dashboardRef.current.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
+         : <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
+        }
+
+        <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
+        <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+
+        <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
+        <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
+
+        {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
+        <Link href="access-control"><Nav.Link eventKey="access-control">
+                                  {(isOwnerOrDealer)
+                                   ? "Manage roles"
+                                   : "My roles"
+                                  }
+                </Nav.Link></Link>
+
+      </Nav>
+
       <Container className="my-2">
 
         <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
-              <Nav fill variant="tabs" className="mt-2 mb-3 border-bottom-0">
-                {/* On dashboard page, click this link to refresh the balances */}
-                {/* Else on other page, click this link to go to dashboard */}
-                {(location.substring(1) === "dashboard")
-                  ? <Nav.Link onClick={() => dashboardRef.current.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
-                  : <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
-                }
-
-                <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
-                <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
-
-                <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
-                <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
-
-                {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
-                <Link href="access-control"><Nav.Link eventKey="access-control">
-                  {(isOwnerOrDealer)
-                    ? "Manage roles"
-                    : "My roles"
-                  }
-                </Nav.Link></Link>
-
-              </Nav>
               <Tab.Content animation="true">
                 <Switch>
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
@@ -97,7 +100,7 @@ function App() {
         </Tab.Container>
         <div className="my-5"></div>
       </Container>
-    </div>
+    </>
   );
 }
 

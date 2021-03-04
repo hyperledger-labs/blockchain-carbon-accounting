@@ -70,7 +70,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
   }
 
   return (
-    <Navbar bg="white" expand="md">
+    <Navbar bg="white" expand="md" className="m-2">
       <Navbar.Brand>Net Emissions Token Network</Navbar.Brand>
       <Navbar.Toggle />
       <Navbar.Collapse >

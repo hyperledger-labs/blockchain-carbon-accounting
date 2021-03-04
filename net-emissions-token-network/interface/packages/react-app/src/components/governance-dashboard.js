@@ -350,20 +350,22 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <div className="d-flex flex-wrap justify-content-around row">
         {(proposals !== []) &&
          proposals.map((proposal, key) => (
-            <Card key={key} className="m-2 col-lg">
-              <Card.Body className="mb-2">
-                <Card.Title>Proposal #{proposal.id}</Card.Title>
-                <Card.Subtitle className="mb-2 text-primary">{proposal.state}</Card.Subtitle>
+            <Card key={key} className="m-2 col-lg pt-2">
+              <Card.Body>
+                  <div className="d-flex flex-wrap justify-content-between">
+                    <h5>Proposal #{proposal.id}</h5>
+                    <span className="text-primary">{proposal.state}</span>
+                  </div>
+
                 <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
                 <Card.Text>{proposal.description}</Card.Text>
                 <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
-                <Row className="text-center">
+                <Row className="text-center mb-3">
                   <Col className="text-success my-auto">
                     YES: {addCommas(proposal.details.forVotes)}<br/>
                     <Button
                       className="mt-1"
                       variant="success"
-                      size="sm"
                       disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
                       onClick={() => vote(proposal.id, true)}
                     >Vote for</Button>
@@ -373,7 +375,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     <Button
                       className="mt-1"
                       variant="danger"
-                      size="sm"
                       disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
                       onClick={() => vote(proposal.id, false)}
                     >Vote against</Button>
