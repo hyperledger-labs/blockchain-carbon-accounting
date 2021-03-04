@@ -10,8 +10,6 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
-import Tooltip from 'react-bootstrap/Tooltip';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 import "react-datetime/css/react-datetime.css";
 
@@ -123,12 +121,6 @@ export default function IssueForm({ provider }) {
     borderColor: '#dc3545'
   };
 
-  const tooltipCopiedCalldata = (props) => (
-    <Tooltip {...props}>
-      Copied to clipboard! Create a proposal using this from the governance page.
-    </Tooltip>
-  );
-
   return (
     <>
 
@@ -227,7 +219,7 @@ export default function IssueForm({ provider }) {
             onClick={() => setCreateModalShow(true)}
             disabled={(calldata.length === 0) || String(quantity).length === 0}
           >
-            Create DAO a proposal
+            Create a DAO proposal
           </Button>
         </Col>
         <Col>

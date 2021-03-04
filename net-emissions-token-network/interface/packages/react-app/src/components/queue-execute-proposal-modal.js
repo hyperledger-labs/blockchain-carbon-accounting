@@ -33,8 +33,25 @@ function ActionDescription(props) {
       return <p>Execute a proposal. A proposal must be <b>queued</b> before being executed by a DAO token holder.</p>
     case "cancel":
       return <p>Cancel an active proposal.</p>
+    default:
+      return <></>
   }
 }
+
+// Renders appropriate title
+function ActionTitle(props) {
+  switch (props.type) {
+    case "queue":
+      return "Queue a proposal for execution";
+    case "execute":
+      return "Execute a queued proposal";
+    case "cancel":
+      return "Cancel an active proposal";
+    default:
+      return <></>;
+  }
+}
+
 
 export default function QueueExecuteProposalModal(props) {
 
@@ -117,7 +134,7 @@ export default function QueueExecuteProposalModal(props) {
     >
       <Modal.Header closeButton>
         <Modal.Title>
-          {props.title}
+          <ActionTitle type={props.type}></ActionTitle>
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>

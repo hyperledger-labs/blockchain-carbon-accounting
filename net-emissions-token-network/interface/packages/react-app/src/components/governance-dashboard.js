@@ -14,10 +14,12 @@ import {
   castVote,
   getReceipt,
   getDescription,
-  getActions
+  getActions,
+  delegates
 } from "../services/contract-functions";
 
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
+import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
 
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -49,8 +51,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const supply = 10000000; // 10 million total DAO tokens
 
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
+  const [delegateModalShow, setDelegateModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
+  const [daoTokenDelegates, setDaoTokenDelegates] = useState();
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
 
   const [proposals, setProposals] = useState([]);
@@ -74,7 +78,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   async function handleSkipBlocks(blocks) {
     let localProvider = new JsonRpcProvider();
     if (!Number(blocks)) {
-      alert("Must enter a valid integer of blocks to skip on local EVM network.");
+      console.error("Must enter a valid integer of blocks to skip on local EVM network.");
       return;
     }
     setIsFetchingBlocks(true);
@@ -93,12 +97,19 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let seconds = (days * 24 * 60 * 60); // 1 day
     await localProvider.send("evm_increaseTime", [seconds])
     await localProvider.send("evm_mine");
-    setResult(`Added 1 day to block timestamp. Please refresh!`);
+    setResult(`Added ${days} days to block timestamp. No need to refresh!`);
   }
 
   async function fetchDaoTokenBalance() {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
+    let delegatesCall = await delegates(provider, signedInAddress);
+    let del = (
+      ( Number(delegatesCall) !== 0 )
+        ? delegatesCall
+        : "None (please set using button above)")
+    ; // just display first address for now, @TODO display multisig delegatees
     setDaoTokenBalance(balance);
+    setDaoTokenDelegates(del);
     setFetchingDaoTokenBalance(false);
   }
 
@@ -186,19 +197,36 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         fetchProposals();
       }
     }
-  }, [signedInAddress, fetchingDaoTokenBalance, proposals, fetchingProposals, blockNumber, fetchingBlockNumber]);
+  }, [
+    signedInAddress,
+    fetchingDaoTokenBalance,
+    proposals,
+    fetchingProposals,
+    blockNumber,
+    fetchingBlockNumber
+  ]);
 
   return (
     <>
       <QueueExecuteProposalModal
         show={queueExecuteModalShow}
-        title="Queue or execute a proposal"
         onHide={() => {
           setQueueExecuteModalShow(false);
         }}
         provider={provider}
         type={proposalActionType}
       />
+
+      <DelegateDaoTokensModal
+        show={delegateModalShow}
+        title="Delegate your DAO tokens vote"
+        balance={addCommas(daoTokenBalance)}
+        onHide={() => {
+          setDelegateModalShow(false);
+        }}
+        provider={provider}
+      />
+
 
       { (isFetchingBlocks) &&
         <Alert variant="secondary" className="text-center">Mining block {blockNumber+1}...</Alert>
@@ -213,34 +241,45 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       }
 
       <div className="d-flex justify-content-start align-items-center">
-        <span className="mr-2 text-secondary">Proposals:</span>
-        <Button
-          className="text-nowrap mr-2"
-          onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("queue") }}
-          disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap mr-2"
-          variant="warning"
-        >
-          Queue
-        </Button>
-        <Button
-          className="text-nowrap mr-2"
-          onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("execute") }}
-          disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap mr-2"
-          variant="success"
-        >
-          Execute
-        </Button>
-        <Button
-          className="text-nowrap mr-2"
-          onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("cancel") }}
-          disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap mr-2"
-          variant="danger"
-        >
-          Cancel
-        </Button>
+        <div className="pr-2">
+          <span className="mr-2 text-secondary">Proposals:</span>
+          <Button
+            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("queue") }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="warning"
+          >
+            Queue
+          </Button>
+          <Button
+            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("execute") }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="success"
+          >
+            Execute
+          </Button>
+          <Button
+            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("cancel") }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="danger"
+          >
+            Cancel
+          </Button>
+          <div className="my-2"></div>
+          <Button
+            block
+            size="sm"
+            onClick={ ()=>{ setDelegateModalShow(true) }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="primary"
+          >
+            Delegate DAO tokens
+          </Button>
+          <small className="text-muted">Current delegatee: {daoTokenDelegates}</small>
+        </div>
         { (networkNameLowercase === "hardhat") &&
           <div className="ml-auto">
 

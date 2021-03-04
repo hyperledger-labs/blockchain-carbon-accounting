@@ -276,6 +276,31 @@ export async function daoTokenBalanceOf(w3provider, account) {
   return balance;
 }
 
+export async function delegate(w3provider, delegatee) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let delegate;
+  try {
+    let delegateCall = await signed.delegate(delegatee);
+    delegate = SUCCESS_MSG;
+  } catch (error) {
+    delegate = catchError(error);
+  }
+  return delegate;
+}
+
+export async function delegates(w3provider, address) {
+  let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
+  let delegates;
+  try {
+    delegates = await contract.delegates(address);
+  } catch (error) {
+    delegates = error.message;
+  }
+  return delegates;
+}
+
 /*
  *
  *  Governor contract functions
