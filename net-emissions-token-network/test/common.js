@@ -135,5 +135,5 @@ exports.createSnapshot = async function () {
 }
 
 exports.applySnapshot = async function (snapshot) {
-  ethers.provider.send("evm_revert", [snapshot]);
+  await ethers.provider.send("evm_revert", [snapshot]);
 }
