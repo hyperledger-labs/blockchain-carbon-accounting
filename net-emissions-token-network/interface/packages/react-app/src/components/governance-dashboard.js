@@ -234,7 +234,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       { (result) && <Alert variant="primary" dismissible onClose={() => setResult("")}>{result}</Alert>}
 
       <h2>Governance</h2>
-      <p>View, vote on, or create proposals to issue tokens.</p>
+      <p>View, vote on, or modify proposals to issue tokens for DAO token holders. Delegate your vote before a proposal is created to be eligible to cast your votes on it.</p>
 
       { (networkNameLowercase !== "hardhat") &&
         <p><a href={etherscanPage}>See contract on Etherscan</a></p>
@@ -347,16 +347,16 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       { (proposalsLength === 0 && !fetchingProposals) && <p>No proposals found.</p>}
 
-      <div className="d-flex flex-wrap">
+      <div className="d-flex flex-wrap justify-content-around row">
         {(proposals !== []) &&
-          proposals.map((proposal, key) => (
-            <Card key={key} style={{ width: '22em' }} className="m-2">
+         proposals.map((proposal, key) => (
+            <Card key={key} className="m-2 col-lg">
               <Card.Body className="mb-2">
                 <Card.Title>Proposal #{proposal.id}</Card.Title>
                 <Card.Subtitle className="mb-2 text-primary">{proposal.state}</Card.Subtitle>
                 <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
                 <Card.Text>{proposal.description}</Card.Text>
-                <Card.Text className="text-secondary">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
+                <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
                 <Row className="text-center">
                   <Col className="text-success my-auto">
                     YES: {addCommas(proposal.details.forVotes)}<br/>
@@ -383,7 +383,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   <p className="text-secondary text-center"><small>You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</small></p>
                 }
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
-                  <small className="text-secondary">Must be an active proposal to vote.</small>
+                  <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
                 }
               </Card.Body>
             </Card>
