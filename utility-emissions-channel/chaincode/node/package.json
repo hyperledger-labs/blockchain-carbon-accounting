@@ -12,6 +12,7 @@
         "pretest": "npm run lint",
         "test": "nyc mocha test --recursive",
         "start": "fabric-chaincode-node start",
+        "start_ext": "node index_ext.js",
         "mocha": "mocha test --recursive"
     },
     "engineStrict": true,
