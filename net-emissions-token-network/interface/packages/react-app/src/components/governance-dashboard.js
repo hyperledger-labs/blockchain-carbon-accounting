@@ -71,7 +71,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [proposalActionType, setProposalActionType] = useState("");
 
-  const percentOfSupply = ((supply / daoTokenBalance) * 100).toFixed(2);
+  const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
 
   function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); };
 
