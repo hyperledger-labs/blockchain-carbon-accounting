@@ -349,7 +349,9 @@ export async function propose(w3provider, targets, values, signatures, calldatas
     let proposalCall = await signed.propose(targets, values, signatures, calldatas, description);
     proposal = SUCCESS_MSG;
   } catch (error) {
-    proposal = catchError(error);
+    let err = catchError(error);
+    console.log(err);
+    proposal = err + " Is your delegatee set?";
   }
   return proposal;
 }
