@@ -16,7 +16,7 @@ RUN mkdir -p /chaincode/output
 # Copy chaincode source dir to container
 COPY ./ledger-api /chaincode/input/ledger-api
 COPY ./lib /chaincode/input/lib
-COPY ./index_ext.js /chaincode/input/
+COPY ./index.js /chaincode/input/
 COPY ./package.json /chaincode/input/
 
 # Installs npm packages
@@ -29,4 +29,4 @@ RUN cp -R /chaincode/output/. /usr/local/src
 WORKDIR /usr/local/src
 
 # Start chaincode server
-CMD [ "npm", "run", "start_ext" ]
+CMD [ "npm", "run", "start" ]
