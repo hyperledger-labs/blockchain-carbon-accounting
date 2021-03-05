@@ -2,23 +2,21 @@ import React, { useState, useEffect } from "react";
 
 import { issue, encodeParameters } from "../services/contract-functions";
 
-import { CopyToClipboard } from 'react-copy-to-clipboard';
-
 import SubmissionModal from "./submission-modal";
+import CreateProposalModal from "./create-proposal-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
-import Tooltip from 'react-bootstrap/Tooltip';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 
 import "react-datetime/css/react-datetime.css";
 
-export default function IssueForm({ provider }) {
+export default function IssueForm({ provider, roles }) {
 
-  const [modalShow, setModalShow] = useState(false);
+  const [submissionModalShow, setSubmissionModalShow] = useState(false);
+  const [createModalShow, setCreateModalShow] = useState(false);
 
   // Form inputs
   const [address, setAddress] = useState("");
@@ -51,7 +49,7 @@ export default function IssueForm({ provider }) {
 
   function handleSubmit() {
     submit();
-    setModalShow(true);
+    setSubmissionModalShow(true);
   }
 
   // update calldata in background in case user wants to copy it with button
@@ -123,20 +121,24 @@ export default function IssueForm({ provider }) {
     borderColor: '#dc3545'
   };
 
-  const tooltipCopiedCalldata = (props) => (
-    <Tooltip {...props}>
-      Copied to clipboard! Create a proposal using this from the governance page.
-    </Tooltip>
-  );
-
   return (
     <>
 
+      <CreateProposalModal
+        show={createModalShow}
+        title="Create a proposal"
+        onHide={() => {
+          setCreateModalShow(false);
+        }}
+        provider={provider}
+        calldata={calldata}
+      />
+
       <SubmissionModal
-        show={modalShow}
+        show={submissionModalShow}
         title="Issue tokens"
         body={result}
-        onHide={() => {setModalShow(false); setResult("")} }
+        onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
 
       <h2>Issue tokens</h2>
@@ -208,37 +210,32 @@ export default function IssueForm({ provider }) {
         <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
       </Form.Group>
 
-      <Row>
-        <Col>
-          <OverlayTrigger
-            trigger="click"
-            placement="top"
-            rootClose={true}
-            delay={{ show: 250, hide: 400 }}
-            overlay={tooltipCopiedCalldata}
-          >              
-            <CopyToClipboard text={calldata}>
-              <Button
-                variant="secondary"
-                size="lg"
-                block
-                disabled={calldata.length === 0}
-              >
-                Copy calldata
-              </Button>
-            </CopyToClipboard>
-          </OverlayTrigger>
-        </Col>
+      <Row className="mt-4">
         <Col>
           <Button
-            variant="primary"
+            variant="success"
             size="lg"
             block
-            onClick={handleSubmit}
-            disabled={calldata.length === 0}
+            onClick={() => setCreateModalShow(true)}
+            disabled={(calldata.length === 0) || String(quantity).length === 0}
           >
-            Issue
+            Create a DAO proposal
           </Button>
+        </Col>
+        <Col>
+          {/* Only enable issue if role is found */}
+          { (roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)
+            ? <Button
+                variant="primary"
+                size="lg"
+                block
+                onClick={handleSubmit}
+                disabled={(calldata.length === 0) || String(quantity).length === 0}
+              >
+                Issue
+              </Button>
+            : <Button variant="primary" size="lg" block disabled>Must be a dealer</Button>
+          }
         </Col>
       </Row>
       

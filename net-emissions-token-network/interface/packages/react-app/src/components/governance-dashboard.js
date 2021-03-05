@@ -14,11 +14,12 @@ import {
   castVote,
   getReceipt,
   getDescription,
-  getActions
+  getActions,
+  delegates
 } from "../services/contract-functions";
 
-import CreateProposalModal from "./create-proposal-modal";
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
+import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
 
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -49,10 +50,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const supply = 10000000; // 10 million total DAO tokens
 
-  const [createModalShow, setCreateModalShow] = useState(false);
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
+  const [delegateModalShow, setDelegateModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
+  const [daoTokenDelegates, setDaoTokenDelegates] = useState();
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
 
   const [proposals, setProposals] = useState([]);
@@ -67,14 +69,16 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
 
-  const percentOfSupply = ((supply / daoTokenBalance) * 100).toFixed(2);
+  const [proposalActionType, setProposalActionType] = useState("");
+
+  const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
 
   function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); };
 
   async function handleSkipBlocks(blocks) {
     let localProvider = new JsonRpcProvider();
     if (!Number(blocks)) {
-      alert("Must enter a valid integer of blocks to skip on local EVM network.");
+      console.error("Must enter a valid integer of blocks to skip on local EVM network.");
       return;
     }
     setIsFetchingBlocks(true);
@@ -93,12 +97,19 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let seconds = (days * 24 * 60 * 60); // 1 day
     await localProvider.send("evm_increaseTime", [seconds])
     await localProvider.send("evm_mine");
-    setResult(`Added 1 day to block timestamp. Please refresh!`);
+    setResult(`Added ${days} days to block timestamp. No need to refresh!`);
   }
 
   async function fetchDaoTokenBalance() {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
+    let delegatesCall = await delegates(provider, signedInAddress);
+    let del = (
+      ( Number(delegatesCall) !== 0 )
+        ? delegatesCall
+        : "None (please set using button above)")
+    ; // just display first address for now, @TODO display multisig delegatees
     setDaoTokenBalance(balance);
+    setDaoTokenDelegates(del);
     setFetchingDaoTokenBalance(false);
   }
 
@@ -186,28 +197,35 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         fetchProposals();
       }
     }
-  }, [signedInAddress, fetchingDaoTokenBalance, proposals, fetchingProposals, blockNumber, fetchingBlockNumber]);
+  }, [
+    signedInAddress,
+    fetchingDaoTokenBalance,
+    proposals,
+    fetchingProposals,
+    blockNumber,
+    fetchingBlockNumber
+  ]);
 
   return (
     <>
-      <CreateProposalModal
-        show={createModalShow}
-        title="Create a proposal"
-        onHide={() => {
-          setCreateModalShow(false);
-        }}
-        provider={provider}
-      />
-
       <QueueExecuteProposalModal
         show={queueExecuteModalShow}
-        title="Queue or execute a proposal"
         onHide={() => {
           setQueueExecuteModalShow(false);
         }}
         provider={provider}
+        type={proposalActionType}
       />
 
+      <DelegateDaoTokensModal
+        show={delegateModalShow}
+        title="Delegate your DAO tokens vote"
+        balance={addCommas(daoTokenBalance)}
+        onHide={() => {
+          setDelegateModalShow(false);
+        }}
+        provider={provider}
+      />
 
 
       { (isFetchingBlocks) &&
@@ -216,30 +234,52 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       { (result) && <Alert variant="primary" dismissible onClose={() => setResult("")}>{result}</Alert>}
 
       <h2>Governance</h2>
-      <p>View, vote on, or create proposals to issue tokens.</p>
+      <p>View, vote on, or modify proposals to issue tokens for DAO token holders. Delegate your vote before a proposal is created to be eligible to cast your votes on it.</p>
 
       { (networkNameLowercase !== "hardhat") &&
         <p><a href={etherscanPage}>See contract on Etherscan</a></p>
       }
 
       <div className="d-flex justify-content-start align-items-center">
-        <span className="mr-2 text-secondary">Proposals:</span>
-        <Button
-          variant="primary"
-          onClick={ ()=>setCreateModalShow(true) }
-          disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap mr-2"
-        >
-          Create
-        </Button>
-        <Button
-          className="text-nowrap mr-2"
-          onClick={ ()=>setQueueExecuteModalShow(true) }
-          disabled={(daoTokenBalance <= 0)}
-          className="text-nowrap mr-2"
-        >
-          Queue/Execute
-        </Button>
+        <div className="pr-2">
+          <span className="mr-2 text-secondary">Proposals:</span>
+          <Button
+            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("queue") }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="warning"
+          >
+            Queue
+          </Button>
+          <Button
+            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("execute") }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="success"
+          >
+            Execute
+          </Button>
+          <Button
+            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("cancel") }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="danger"
+          >
+            Cancel
+          </Button>
+          <div className="my-2"></div>
+          <Button
+            block
+            size="sm"
+            onClick={ ()=>{ setDelegateModalShow(true) }}
+            disabled={(daoTokenBalance <= 0)}
+            className="text-nowrap mr-2"
+            variant="primary"
+          >
+            Delegate DAO tokens
+          </Button>
+          <small className="text-muted">Current delegatee: {daoTokenDelegates}</small>
+        </div>
         { (networkNameLowercase === "hardhat") &&
           <div className="ml-auto">
 
@@ -307,23 +347,25 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       { (proposalsLength === 0 && !fetchingProposals) && <p>No proposals found.</p>}
 
-      <div className="d-flex flex-wrap">
+      <div className="d-flex flex-wrap justify-content-around row">
         {(proposals !== []) &&
-          proposals.map((proposal, key) => (
-            <Card key={key} style={{ width: '22em' }} className="m-2">
-              <Card.Body className="mb-2">
-                <Card.Title>Proposal #{proposal.id}</Card.Title>
-                <Card.Subtitle className="mb-2 text-primary">{proposal.state}</Card.Subtitle>
+         proposals.map((proposal, key) => (
+            <Card key={key} className="m-2 col-lg pt-2">
+              <Card.Body>
+                  <div className="d-flex flex-wrap justify-content-between">
+                    <h5>Proposal #{proposal.id}</h5>
+                    <span className="text-primary">{proposal.state}</span>
+                  </div>
+
                 <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
                 <Card.Text>{proposal.description}</Card.Text>
-                <Card.Text className="text-secondary">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</Card.Text>
-                <Row className="text-center">
+                <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
+                <Row className="text-center mb-3">
                   <Col className="text-success my-auto">
                     YES: {addCommas(proposal.details.forVotes)}<br/>
                     <Button
                       className="mt-1"
                       variant="success"
-                      size="sm"
                       disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
                       onClick={() => vote(proposal.id, true)}
                     >Vote for</Button>
@@ -333,7 +375,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     <Button
                       className="mt-1"
                       variant="danger"
-                      size="sm"
                       disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
                       onClick={() => vote(proposal.id, false)}
                     >Vote against</Button>
@@ -343,7 +384,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   <p className="text-secondary text-center"><small>You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</small></p>
                 }
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
-                  <small className="text-secondary">Must be an active proposal to vote.</small>
+                  <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
                 }
               </Card.Body>
             </Card>

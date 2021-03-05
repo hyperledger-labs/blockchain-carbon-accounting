@@ -6,7 +6,8 @@ const {
   applySnapshot,
   deployContract,
   deployDaoContracts,
-  encodeParameters
+  encodeParameters,
+  setNextBlockTimestamp
 } = require("./common.js");
 
 describe("Climate DAO - Integration tests", function() {
@@ -15,51 +16,22 @@ describe("Climate DAO - Integration tests", function() {
   this.timeout(60000);
 
   // initialize governance contracts and create snapshot
-  var contracts;
-  var snapshot;
+  let contracts;
+  let snapshot;
+  let initialState;
 
   before(async () => {
     contracts = await deployDaoContracts();
     snapshot = await createSnapshot();
+    initialState = snapshot;
   });
-
   beforeEach(async () => {
     // reset state of network
-    applySnapshot(snapshot);
+    await applySnapshot(snapshot);
+    snapshot = await createSnapshot(); // snapshots can only be used once
   });
 
-  it("should allow DAO token holders to transfer around tokens", async function() {
-
-    let owner = contracts.addresses[0];
-    let DAOuser = contracts.addresses[1];
-
-    // check balance of owner before transfer (right after deployment)
-    let balanceOfOwnerBeforeTransfer = await contracts.daoToken
-      .balanceOf(owner.address)
-      .then((response) => expect(response.toString()).to.equal('10000000000000000000000000'));
-
-    // check balance of DAOuser before transfer
-    let balanceOfDaoUserBeforeTransfer = await contracts.daoToken
-      .balanceOf(DAOuser.address)
-      .then((response) => expect(response.toString()).to.equal('0'));
-
-    // send some DAO tokens from owner to DAOuser
-    let transferTokensFromOwnerToDaoUser = await contracts.daoToken.connect(owner).transfer(DAOuser.address, 1000000);
-    expect(transferTokensFromOwnerToDaoUser);
-
-    // check balance of owner after transfer
-    let balanceOfOwnerAfterTransfer = await contracts.daoToken
-      .balanceOf(owner.address)
-      .then((response) => expect(response.toString()).to.equal('9999999999999999999000000'));
-
-    // check balance of DAOuser after transfer
-    let balanceOfDaoUserAfterTransfer = await contracts.daoToken
-      .balanceOf(DAOuser.address)
-      .then((response) => expect(response.toString()).to.equal('1000000'));
-
-  });
-
-  it("should allow the owner to make and vote on proposals without other users", async function() {
+  it("should allow the owner to make and pass proposals to issue net emissions tokens to self", async function() {
     // deploy NetEmissionsTokenNetwork
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
 
@@ -152,7 +124,7 @@ describe("Climate DAO - Integration tests", function() {
     // get proposal state after vote cast
     let proposalStateAfterVote = await contracts.governor.state(proposalId)
     .then((response) => {
-      expect(response).to.equal(1); // active
+      expect(response).to.equal(4); // passed since all votes counted
     });
 
     // get receipt of vote
@@ -160,15 +132,6 @@ describe("Climate DAO - Integration tests", function() {
     .then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
-    });
-
-    console.log("Skipping blocks after creating and voting on proposal to call issue() on NetEmissionsTokenNetwork...")
-    await advanceBlocks(20000);
-
-    // get proposal state after advance blocks
-    let proposalStateAfterAdvanceBlocks = await contracts.governor.state(proposalId)
-    .then((response) => {
-      expect(response).to.equal(4); // succeeded
     });
 
     // queue proposal after it's successful
@@ -188,4 +151,5 @@ describe("Climate DAO - Integration tests", function() {
     );
 
   });
+
 });
