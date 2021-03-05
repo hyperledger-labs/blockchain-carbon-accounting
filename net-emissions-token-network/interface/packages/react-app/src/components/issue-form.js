@@ -13,7 +13,7 @@ import Datetime from "react-datetime";
 
 import "react-datetime/css/react-datetime.css";
 
-export default function IssueForm({ provider }) {
+export default function IssueForm({ provider, roles }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -223,15 +223,19 @@ export default function IssueForm({ provider }) {
           </Button>
         </Col>
         <Col>
-          <Button
-            variant="primary"
-            size="lg"
-            block
-            onClick={handleSubmit}
-            disabled={(calldata.length === 0) || String(quantity).length === 0}
-          >
-            Issue
-          </Button>
+          {/* Only enable issue if role is found */}
+          { (roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)
+            ? <Button
+                variant="primary"
+                size="lg"
+                block
+                onClick={handleSubmit}
+                disabled={(calldata.length === 0) || String(quantity).length === 0}
+              >
+                Issue
+              </Button>
+            : <Button variant="primary" size="lg" block disabled>Must be a dealer</Button>
+          }
         </Col>
       </Row>
       
