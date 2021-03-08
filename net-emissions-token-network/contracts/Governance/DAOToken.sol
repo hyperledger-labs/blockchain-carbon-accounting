@@ -269,7 +269,12 @@ contract DAOToken {
         balances[dst] = add96(balances[dst], amount, "dCLM8::_transferTokens: transfer amount overflows");
         emit Transfer(src, dst, amount);
 
-        _moveDelegates(delegates[src], delegates[dst], amount);
+        // If dst address has no delgatees, automatically set to self. Otherwise, transfer to dst's delegates
+        if (delegates[dst] == address(0)) {
+            _delegate(dst, dst);
+        } else {
+            _moveDelegates(delegates[src], delegates[dst], amount);
+        }
     }
 
     function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
