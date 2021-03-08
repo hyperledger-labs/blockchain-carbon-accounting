@@ -79,7 +79,7 @@ export default function IssueForm({ provider, roles }) {
           Number(automaticRetireDate),
           metadata,
           manifest,
-          description
+          ("Issued by DAO. " + description)
         ]
       );
     } catch (error) {
