@@ -21,7 +21,7 @@ export default function ProposalCallDetailsModal(props) {
       let automaticRetireDateObj = new Date((decodedCall[5].toNumber()) * 1000);
       setDecoded({
         address: decodedCall[0],
-        tokenType: TOKEN_TYPES[decodedCall[1]],
+        tokenType: TOKEN_TYPES[decodedCall[1]-1],
         quantity: decodedCall[2].toNumber(),
         fromDate: fromDateObj.toLocaleString(),
         thruDate: thruDateObj.toLocaleString(),
