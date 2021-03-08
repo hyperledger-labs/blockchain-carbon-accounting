@@ -104,9 +104,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
     let delegatesCall = await delegates(provider, signedInAddress);
     let del = (
-      ( Number(delegatesCall) !== 0 )
+      ( delegatesCall.toLowerCase() !== signedInAddress.toLowerCase() )
         ? delegatesCall
-        : "None (please set using button above)")
+        : "You")
     ; // just display first address for now, @TODO display multisig delegatees
     setDaoTokenBalance(balance);
     setDaoTokenDelegates(del);
@@ -125,15 +125,12 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let prop = [];
 
     for (let i = numberOfProposals; i > 0; i--) {
-      console.log(`i : ${i}`)
-
       let i_toNumberFix;
       try {
         i_toNumberFix = i.toNumber();
       } catch (e) {
         i_toNumberFix = i;
       }
-      console.log(`i_toNumberFix : ${i_toNumberFix}`);
 
       let proposalDetails = await getProposalDetails(provider, i);
       let proposalState = await getProposalState(provider, i);
