@@ -20,6 +20,7 @@ import {
 
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
 import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
+import ProposalCallDetailsModal from "./proposal-call-details-modal";
 
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -52,6 +53,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
   const [delegateModalShow, setDelegateModalShow] = useState(false);
+  const [callDetailsModalShow, setCallDetailsModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
   const [daoTokenDelegates, setDaoTokenDelegates] = useState();
@@ -70,6 +72,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
 
   const [proposalActionType, setProposalActionType] = useState("");
+
+  const [selectedProposalIdDetails, setSelectedProposalIdDetails] = useState(1);
 
   const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
 
@@ -224,6 +228,16 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         provider={provider}
       />
 
+      { (proposals.length > 0) &&
+      <ProposalCallDetailsModal
+        show={callDetailsModalShow}
+        title={"Proposal #" + selectedProposalIdDetails + " call details"}
+        onHide={() => {
+          setCallDetailsModalShow(false);
+        }}
+        actions={proposals[selectedProposalIdDetails-1].actions}
+      />
+      }
 
       { (isFetchingBlocks) &&
         <Alert variant="secondary" className="text-center">Mining block {blockNumber+1}...</Alert>
@@ -356,6 +370,15 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
                 <Card.Text>{proposal.description}</Card.Text>
+                <Card.Text>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
+                  >
+                    Call details
+                  </Button>
+                </Card.Text>
                 <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
                 <Row className="text-center mb-3">
                   <Col className="text-success my-auto">
