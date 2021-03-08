@@ -106,7 +106,7 @@ describe("Climate DAO - Integration tests", function() {
       let failedProposalExecute = await contracts.governor.connect(owner).execute(proposalId);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert GovernorAlpha::execute: proposal can only be executed if it is queued"
+        "Error: VM Exception while processing transaction: revert Governor::execute: proposal can only be executed if it is queued"
       );
     }
 
