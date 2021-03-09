@@ -12,7 +12,7 @@ import {
   URI,
   UnregisteredDealer
 } from "../generated/NetEmissionsTokenNetwork/NetEmissionsTokenNetwork"
-import { ExampleEntity } from "../generated/schema"
+import { Token } from "../generated/schema"
 
 export function handleApprovalForAll(event: ApprovalForAll): void {
   // Entities can be loaded from the store using a string ID; this ID
@@ -77,6 +77,37 @@ export function handleApprovalForAll(event: ApprovalForAll): void {
   // - contract.isDealerRegistered(...)
   // - contract.supportsInterface(...)
   // - contract.uri(...)
+}
+
+export function handleIssue(event: TokenCreated): void {
+  let token = new Token(event.params._tokenDetails.tokenId);
+  token.count = event.params._availableBalanceOfIssuee;
+
+  let tokenTypeId = event.params._tokenDetails.tokenTypeId;
+  switch (tokenTypeId) {
+    case 1:
+      token.tokenType = "RenewableEnergyCertificate";
+      break;
+    case 2:
+      token.tokenType = "CarbonEmissionsOffset";
+      break;
+    case 3:
+      token.tokenType = "AuditedEmissions";
+      break;
+    default:
+      console.error("Invalid tokenTypeId");
+  }
+
+  token.issuer = event.params._tokenDetails.issuer;
+  token.issuee = event.params._tokenDetails.issuee;
+  token.fromDate = event.params._tokenDetails.fromData;
+  token.thruDate = event.params._tokenDetails.thruData;
+  token.automaticRetireDate = event.params._tokenDetails.automaticRetireData;
+  token.metadata = event.params._tokenDetails.metadata;
+  token.manifest = event.params._tokenDetails.manifest;
+  token.description = event.params._tokenDetails.description;
+  // token.holders = [event.params._tokenDetails.issuee];
+  token.save()
 }
 
 export function handleRegisteredDealer(event: RegisteredDealer): void {}
