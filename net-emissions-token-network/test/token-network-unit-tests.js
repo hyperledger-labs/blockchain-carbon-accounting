@@ -99,13 +99,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get ID of second issued token
     let transactionReceipt2 = await issue2.wait(0);
     let issueEvent2 = transactionReceipt2.events.pop();
-    let tokenId2 = issueEvent2.args[0].tokenId.toNumber();
+    let tokenId2 = issueEvent2.args[2].toNumber();
     expect(tokenId2).to.equal(2);
 
     // try getting tokenTypeId 
@@ -272,7 +272,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
@@ -346,7 +346,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get balances of both available and retired
@@ -401,7 +401,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // retire token that does not exist
@@ -496,7 +496,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // try transfer of token that does not exist

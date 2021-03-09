@@ -63,9 +63,19 @@ contract NetEmissionsTokenNetwork is ERC1155Upgradeable, AccessControlUpgradeabl
 
     // events
     event TokenCreated(
-        CarbonTokenDetails _tokenDetails, 
-        uint256 _availableBalanceOfIssuee, 
-        uint256 _retiredBalanceOfIssuee
+        uint256 availableBalance,
+        uint256 retiredBalance,
+        uint256 tokenId,
+        uint8 tokenTypeId,
+        address issuer,
+        address issuee,
+        uint256 fromDate,
+        uint256 thruDate,
+        uint256 dateCreated,
+        uint256 automaticRetireDate,
+        string metadata,
+        string manifest,
+        string description
     );
     event TokenRetired(
         address indexed account,
@@ -224,9 +234,19 @@ contract NetEmissionsTokenNetwork is ERC1155Upgradeable, AccessControlUpgradeabl
 
         // emit event with all token details and balances
         emit TokenCreated(
-            tokenInfo,
             quantity,
-            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee]
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee],
+            tokenInfo.tokenId,
+            tokenInfo.tokenTypeId,
+            tokenInfo.issuer,
+            tokenInfo.issuee,
+            tokenInfo.fromDate,
+            tokenInfo.thruDate,
+            tokenInfo.automaticRetireDate,
+            tokenInfo.dateCreated,
+            tokenInfo.metadata,
+            tokenInfo.manifest,
+            tokenInfo.description
         );
     }
 

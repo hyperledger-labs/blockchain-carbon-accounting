@@ -80,10 +80,10 @@ export function handleApprovalForAll(event: ApprovalForAll): void {
 }
 
 export function handleIssue(event: TokenCreated): void {
-  let token = new Token(event.params._tokenDetails.tokenId);
-  token.count = event.params._availableBalanceOfIssuee;
+  let token = new Token(event.params.tokenId);
+  token.count = event.params.availableBalance;
 
-  let tokenTypeId = event.params._tokenDetails.tokenTypeId;
+  let tokenTypeId = event.params.tokenTypeId;
   switch (tokenTypeId) {
     case 1:
       token.tokenType = "RenewableEnergyCertificate";
@@ -98,14 +98,14 @@ export function handleIssue(event: TokenCreated): void {
       console.error("Invalid tokenTypeId");
   }
 
-  token.issuer = event.params._tokenDetails.issuer;
-  token.issuee = event.params._tokenDetails.issuee;
-  token.fromDate = event.params._tokenDetails.fromData;
-  token.thruDate = event.params._tokenDetails.thruData;
-  token.automaticRetireDate = event.params._tokenDetails.automaticRetireData;
-  token.metadata = event.params._tokenDetails.metadata;
-  token.manifest = event.params._tokenDetails.manifest;
-  token.description = event.params._tokenDetails.description;
+  token.issuer = event.params.issuer;
+  token.issuee = event.params.issuee;
+  token.fromDate = event.params.fromDate;
+  token.thruDate = event.params.thruDate;
+  token.automaticRetireDate = event.params.automaticRetireDate;
+  token.metadata = event.params.metadata;
+  token.manifest = event.params.manifest;
+  token.description = event.params.description;
   // token.holders = [event.params._tokenDetails.issuee];
   token.save()
 }

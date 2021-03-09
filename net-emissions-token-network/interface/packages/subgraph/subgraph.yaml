@@ -39,7 +39,7 @@ dataSources:
           handler: handleRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleRoleRevoked
-        - event: TokenCreated(uint256)
+        - event: TokenCreated(uint256,uint256,uint256,uint8,address,address,uint256,uint256,uint256,uint256,string,string,string)
           handler: handleTokenCreated
         - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
           handler: handleTransferBatch

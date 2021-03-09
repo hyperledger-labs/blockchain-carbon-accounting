@@ -110,7 +110,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get available/retire balance before transfer
@@ -312,7 +312,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get available/retired balance before transfer
@@ -514,7 +514,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get available/retire balance
