@@ -3,8 +3,6 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 "use strict";
-const AWS = require("aws-sdk");
-
 
 // EmissionsRecord specific classes
 const EmissionsRecord = require("./emissions.js");

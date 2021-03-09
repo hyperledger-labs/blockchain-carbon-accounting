@@ -7,9 +7,6 @@ ENV PATH="/home/node/.npm-global/bin:${PATH}"
 RUN mkdir -p /typescript_app/node_modules
 RUN chown -R node:node /typescript_app
 
-RUN mkdir -p /chaincode/node/lib
-RUN chown -R node:node /chaincode
-
 # Create Directory for the Container
 WORKDIR /typescript_app
 
@@ -20,8 +17,6 @@ COPY --chown=node:node ./typescript_app/*.ts ./
 COPY --chown=node:node ./typescript_app/*.js ./
 COPY --chown=node:node ./typescript_app/*.sh ./
 COPY --chown=node:node ./typescript_app/swagger.json .
-
-COPY --chown=node:node ./chaincode/node/lib/aws-config.js /chaincode/node/lib/
 
 USER node
 # Install all Packages
