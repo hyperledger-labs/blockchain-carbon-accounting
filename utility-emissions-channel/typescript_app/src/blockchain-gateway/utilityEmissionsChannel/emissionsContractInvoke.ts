@@ -8,9 +8,6 @@ import { Contract, Gateway, Network, Wallet, Wallets } from "fabric-network";
 const path = require("path");
 import { setOrgDataCA } from "../utils/caUtils";
 import {
-  buildCCPAuditor1,
-  buildCCPAuditor2,
-  buildCCPAuditor3,
   buildWallet,
   setWalletPathByOrg,
 } from "../utils/gatewayUtils";
@@ -36,8 +33,7 @@ export class EmissionsContractInvoke {
   ) {
     try {
       let response = "";
-
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -136,8 +132,7 @@ export class EmissionsContractInvoke {
   ) {
     try {
       let response = "";
-
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -218,7 +213,9 @@ export class EmissionsContractInvoke {
   static async getEmissionsData(userId: any, orgName: any, uuid: string) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getEmissionsData, userId: ${userId}, orgName: ${orgName}, uuid: ${uuid}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -299,7 +296,9 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsData(userId: any, orgName: any, utilityId: string, partyId: string) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getAllEmissionsData, userId: ${userId}, orgName: ${orgName}, utilityId: ${utilityId}, partyId: ${partyId}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -393,7 +392,9 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsDataByDateRange(userId: any, orgName: any, fromDate: string, thruDate: string) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getAllEmissionsDataByDateRange, userId: ${userId}, orgName: ${orgName}, fromDate: ${fromDate}, thruDate: ${thruDate}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -483,7 +484,9 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsDataByDateRangeAndParty(userId: any, orgName: any, fromDate: string, thruDate: string, partyId: any) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getAllEmissionsDataByDateRangeAndParty, userId: ${userId}, orgName: ${orgName}, fromDate: ${fromDate}, thruDate: ${thruDate}, partyId: ${partyId}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -580,8 +583,7 @@ export class EmissionsContractInvoke {
     thruDate: any
   ) {
     let response = "";
-
-    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+    let { ccp, msp, caName } = setOrgDataCA(orgName);
 
     const walletPath: string = setWalletPathByOrg(orgName);
     console.log("+++++++++++++++++ Walletpath: " + walletPath);

@@ -1,0 +1,26 @@
+export const WALET_IDENTITY_LABEL = "User1@auditor1.carbonAccounting.com";
+
+export const PATH_TO_MSP = "../../../../docker-compose-setup/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp";
+
+export const AUDITORS = {"auditor1":
+    {"conConfFile": "../../../../../../docker-compose-setup/organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json",
+     "msp": "auditor1",
+     "caName": "ca.auditor1.carbonAccounting.com",
+     "walletPath": "../wallets/auditor1"
+    },
+    "auditor2":
+    {"conConfFile": "../../../../../../docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.json",
+     "msp": "auditor2",
+     "caName": "ca.auditor2.carbonAccounting.com",
+     "walletPath": "../wallets/auditor2"
+    },
+    "auditor3":
+    {"conConfFile": "../../../../../../docker-compose-setup/organizations/peerOrganizations/auditor3.carbonAccounting.com/connection-auditor3.json",
+     "msp": "auditor3",
+     "caName": "ca.auditor3.carbonAccounting.com",
+     "walletPath": "../wallets/auditor3"
+    },
+};
+
+export const ADMIN_USER_ID = "admin";
+export const ADMIN_USER_PASSWD = "adminpw";

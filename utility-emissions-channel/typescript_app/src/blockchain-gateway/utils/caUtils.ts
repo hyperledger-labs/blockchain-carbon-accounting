@@ -4,8 +4,8 @@
 
 "use strict";
 
-const adminUserId = "admin";
-const adminUserPasswd = "adminpw";
+import { ADMIN_USER_ID, ADMIN_USER_PASSWD, AUDITORS } from "../../config/config";
+import { buildCCPAuditor } from "./gatewayUtils";
 
 /**
  *
@@ -30,7 +30,7 @@ export async function enrollAdmin(caClient, wallet, orgMspId) {
   try {
     let response = "";
     // Check to see if we've already enrolled the admin user.
-    const identity = await wallet.get(adminUserId);
+    const identity = await wallet.get(ADMIN_USER_ID);
     if (identity) {
       response = "An identity for the admin user already exists in the wallet";
       return response;
@@ -38,8 +38,8 @@ export async function enrollAdmin(caClient, wallet, orgMspId) {
 
     // Enroll the admin user, and import the new identity into the wallet.
     const enrollment = await caClient.enroll({
-      enrollmentID: adminUserId,
-      enrollmentSecret: adminUserPasswd,
+      enrollmentID: ADMIN_USER_ID,
+      enrollmentSecret: ADMIN_USER_PASSWD,
     });
     const x509Identity = {
       credentials: {
@@ -49,7 +49,7 @@ export async function enrollAdmin(caClient, wallet, orgMspId) {
       mspId: orgMspId,
       type: "X.509",
     };
-    await wallet.put(adminUserId, x509Identity);
+    await wallet.put(ADMIN_USER_ID, x509Identity);
     response =
       "Successfully enrolled admin user and imported it into the wallet";
     return response;
@@ -78,7 +78,7 @@ export async function registerAndEnrollUser(
     }
 
     // Must use an admin to register a new user
-    const adminIdentity = await wallet.get(adminUserId);
+    const adminIdentity = await wallet.get(ADMIN_USER_ID);
     if (!adminIdentity) {
       response =
         "An identity for the admin user does not exist in the wallet. Enroll the admin user before retrying";
@@ -89,7 +89,7 @@ export async function registerAndEnrollUser(
     const provider = wallet
       .getProviderRegistry()
       .getProvider(adminIdentity.type);
-    const adminUser = await provider.getUserContext(adminIdentity, adminUserId);
+    const adminUser = await provider.getUserContext(adminIdentity, ADMIN_USER_ID);
 
     // Register the user, enroll the user, and import the new identity into the wallet.
     // if affiliation is specified by client, the affiliation value must be configured in CA
@@ -124,36 +124,19 @@ export async function registerAndEnrollUser(
   }
 }
 
-export function setOrgDataCA(
-  orgName,
-  buildCCPAuditor1,
-  buildCCPAuditor2,
-  buildCCPAuditor3
-) {
+export function setOrgDataCA(orgName) {
   let ccp;
   let msp;
   let caName;
   console.log("OrgName: " + orgName);
-  switch (orgName) {
-    case "auditor1":
-      ccp = buildCCPAuditor1();
-      msp = "auditor1";
-      caName = "ca.auditor1.carbonAccounting.com";
-      break;
-    case "auditor2":
-      ccp = buildCCPAuditor2();
-      msp = "auditor2";
-      caName = "ca.auditor2.carbonAccounting.com";
-      break;
-    case "auditor3":
-      ccp = buildCCPAuditor3();
-      msp = "auditor3";
-      caName = "ca.auditor3.carbonAccounting.com";
-      break;
-    default:
-      throw `Requested orgName ${orgName} is not allowed.`;
-      break;
+
+  if (!AUDITORS.hasOwnProperty(orgName)) {
+      throw new Error(`AUDITORS contains no ${orgName}`);
   }
+
+  ccp = buildCCPAuditor(orgName);
+  msp = AUDITORS[orgName]["msp"]
+  caName = AUDITORS[orgName]["caName"]
 
   return { ccp, msp, caName };
 }

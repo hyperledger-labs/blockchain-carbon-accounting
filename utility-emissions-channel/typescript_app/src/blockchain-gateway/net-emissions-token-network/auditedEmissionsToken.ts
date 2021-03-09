@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import netEmissionsTokenNetworkAbi from "./NetEmissionsTokenNetwork.json";
-import { PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "./networkConfig";
+import { PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "../../config/networkConfig";
 const tokenTypeId = 3;
 
 function getProvider() {
