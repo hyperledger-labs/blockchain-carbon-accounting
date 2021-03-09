@@ -2,8 +2,6 @@ const { expect } = require("chai");
 const {
   allTokenTypeId,
   quantity,
-  issuerId,
-  recipientId,
   retireAmount,
   transferAmount,
   fromDate,
@@ -12,7 +10,7 @@ const {
   metadata,
   manifest,
   description,
-  deployContract,
+  deployUpgradeableContract,
   createSnapshot,
   applySnapshot
 } = require("./common.js");
@@ -22,7 +20,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
   let snapshot;
   let contract;
   before(async () => {
-    contract = await deployContract("NetEmissionsTokenNetwork");
+    contract = await deployUpgradeableContract("NetEmissionsTokenNetwork");
     snapshot = await createSnapshot();
   });
   beforeEach(async () => {

@@ -2,8 +2,6 @@ const { expect } = require("chai");
 const {
   allTokenTypeId,
   quantity,
-  issuerId,
-  recipientId,
   retireAmount,
   transferAmount,
   fromDate,
@@ -12,12 +10,25 @@ const {
   metadata,
   manifest,
   description,
-  deployContract
+  deployUpgradeableContract,
+  createSnapshot,
+  applySnapshot
 } = require("./common.js");
 
 describe("Net Emissions Token Network - Unit tests", function() {
+
+  let snapshot;
+  let contract;
+  before(async () => {
+    contract = await deployUpgradeableContract("NetEmissionsTokenNetwork");
+    snapshot = await createSnapshot();
+  });
+  beforeEach(async () => {
+    await applySnapshot(snapshot);
+    snapshot = await createSnapshot(); // snapshots can only be used once
+  })
+
   it("should auto-increment tokenId on two subsequent issuances, fail on incorrect issue calls", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
@@ -108,7 +119,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should return the correct roles after owner assigns them", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
@@ -174,7 +184,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should only allow the contract owner to register dealers", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
@@ -233,7 +242,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should return all token details correctly", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
@@ -306,7 +314,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should retire audited emissions tokens on issuance; disallow transfers", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
@@ -361,7 +368,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should fail when retire is called incorrectly", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
@@ -457,7 +463,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should fail when transfer is called incorrectly", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
     const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];

@@ -1,14 +1,15 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view functions
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 
-contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
-    
-    using SafeMath for uint256;
+contract NetEmissionsTokenNetwork is ERC1155Upgradeable, AccessControlUpgradeable {
+
+    using SafeMathUpgradeable for uint256;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -56,14 +57,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
 
     // Counts number of unique token IDs (auto-incrementing)
-    using Counters for Counters.Counter;
-    Counters.Counter private _numOfUniqueTokens;
+    CountersUpgradeable.Counter private _numOfUniqueTokens;
 
-    string[] private _TOKEN_TYPES = [
-        "Renewable Energy Certificate",
-        "Carbon Emissions Offset",
-        "Audited Emissions"
-    ];
+    string[] private _TOKEN_TYPES;
 
     // events
     event TokenCreated(
@@ -81,7 +77,17 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     event RegisteredDealer(address indexed account);
     event UnregisteredDealer(address indexed account);
 
-    constructor() ERC1155("localhost") {
+    // replaces constructor
+    function initialize() initializer public {
+
+        __ERC1155_init("");
+
+        _TOKEN_TYPES = [
+            "Renewable Energy Certificate",
+            "Carbon Emissions Offset",
+            "Audited Emissions"
+        ];
+
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         // Allow dealers to register consumers

@@ -1,3 +1,5 @@
+const { upgrades } = require("hardhat");
+
 exports.allTokenTypeId = [1, 2, 3];
 exports.quantity = 10;
 exports.transferAmount = 5;
@@ -26,6 +28,13 @@ exports.deployContract = async function (contractName, param1, param2, param3) {
     contract = await Contract.deploy();
   }
 
+  await contract.deployed();
+  return contract;
+}
+
+exports.deployUpgradeableContract = async function (contractName) {
+  const Contract = await ethers.getContractFactory(contractName);
+  let contract = await upgrades.deployProxy(Contract, []);
   await contract.deployed();
   return contract;
 }
