@@ -41,7 +41,7 @@ async function main() {
 
   // We get the contracts to deploy
   const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-  const netEmissionsTokenNetwork = await hre.upgrades.deployProxy(NetEmissionsTokenNetwork, []);
+  const netEmissionsTokenNetwork = await hre.upgrades.deployProxy(NetEmissionsTokenNetwork, [deployer.address]);
   await netEmissionsTokenNetwork.deployed();
   console.log("Net Emissions Token Network deployed to:", netEmissionsTokenNetwork.address);
 

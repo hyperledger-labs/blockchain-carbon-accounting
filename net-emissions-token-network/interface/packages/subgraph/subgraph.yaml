@@ -8,9 +8,9 @@ dataSources:
     name: NetEmissionsTokenNetwork
     network: goerli
     source:
-      address: "0xB98B8A4aeaBF601e7738ac4D1a2C472fc2388787"
+      address: "0xFF6106aFdF569dA66d24F6C238038E5cD4e0A28A"
       abi: NetEmissionsTokenNetwork
-      startBlock: 4413460
+      startBlock: 4416675
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4

@@ -1,12 +1,13 @@
 pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view functions
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
-contract NetEmissionsTokenNetwork is ERC1155Upgradeable, AccessControlUpgradeable {
+contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
 
     using SafeMathUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -87,8 +88,8 @@ contract NetEmissionsTokenNetwork is ERC1155Upgradeable, AccessControlUpgradeabl
     event RegisteredDealer(address indexed account);
     event UnregisteredDealer(address indexed account);
 
-    // replaces constructor
-    function initialize() initializer public {
+    // Replaces constructor in OpenZeppelin Upgrades
+    function initialize(address admin) public initializer {
 
         __ERC1155_init("");
 
@@ -98,15 +99,15 @@ contract NetEmissionsTokenNetwork is ERC1155Upgradeable, AccessControlUpgradeabl
             "Audited Emissions"
         ];
 
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
 
-        _setupRole(REGISTERED_DEALER, msg.sender);
-        _setupRole(REGISTERED_REC_DEALER, msg.sender);
-        _setupRole(REGISTERED_OFFSET_DEALER, msg.sender);
-        _setupRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
+        // Set-up admin
+        _setupRole(DEFAULT_ADMIN_ROLE, admin);
+        _setupRole(REGISTERED_DEALER, admin);
+        _setupRole(REGISTERED_REC_DEALER, admin);
+        _setupRole(REGISTERED_OFFSET_DEALER, admin);
+        _setupRole(REGISTERED_EMISSIONS_AUDITOR, admin);
     }
 
     modifier consumerOrDealer() {

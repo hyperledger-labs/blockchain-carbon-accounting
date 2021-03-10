@@ -34,7 +34,9 @@ exports.deployContract = async function (contractName, param1, param2, param3) {
 
 exports.deployUpgradeableContract = async function (contractName) {
   const Contract = await ethers.getContractFactory(contractName);
-  let contract = await upgrades.deployProxy(Contract, []);
+  let allAddresses = await ethers.getSigners();
+  let admin = allAddresses[0];
+  let contract = await upgrades.deployProxy(Contract, [admin.address]);
   await contract.deployed();
   return contract;
 }
