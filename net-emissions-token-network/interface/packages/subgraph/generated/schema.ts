@@ -42,15 +42,6 @@ export class Token extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get count(): BigInt {
-    let value = this.get("count");
-    return value.toBigInt();
-  }
-
-  set count(value: BigInt) {
-    this.set("count", Value.fromBigInt(value));
-  }
-
   get type(): string {
     let value = this.get("type");
     return value.toString();
@@ -171,6 +162,73 @@ export class Token extends Entity {
     } else {
       this.set("holders", Value.fromStringArray(value as Array<string>));
     }
+  }
+}
+
+export class TokenBalance extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id !== null, "Cannot save TokenBalance entity without an ID");
+    assert(
+      id.kind == ValueKind.STRING,
+      "Cannot save TokenBalance entity with non-string ID. " +
+        'Considering using .toHex() to convert the "id" to a string.'
+    );
+    store.set("TokenBalance", id.toString(), this);
+  }
+
+  static load(id: string): TokenBalance | null {
+    return store.get("TokenBalance", id) as TokenBalance | null;
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    return value.toString();
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get token(): string {
+    let value = this.get("token");
+    return value.toString();
+  }
+
+  set token(value: string) {
+    this.set("token", Value.fromString(value));
+  }
+
+  get holder(): string {
+    let value = this.get("holder");
+    return value.toString();
+  }
+
+  set holder(value: string) {
+    this.set("holder", Value.fromString(value));
+  }
+
+  get available(): BigInt {
+    let value = this.get("available");
+    return value.toBigInt();
+  }
+
+  set available(value: BigInt) {
+    this.set("available", Value.fromBigInt(value));
+  }
+
+  get retired(): BigInt {
+    let value = this.get("retired");
+    return value.toBigInt();
+  }
+
+  set retired(value: BigInt) {
+    this.set("retired", Value.fromBigInt(value));
   }
 }
 

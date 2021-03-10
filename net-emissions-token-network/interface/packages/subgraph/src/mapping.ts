@@ -7,36 +7,37 @@ import {
   RoleGranted,
   RoleRevoked,
   TokenCreated,
+  TokenRetired,
   TransferBatch,
   TransferSingle,
   URI,
   UnregisteredDealer
 } from "../generated/NetEmissionsTokenNetwork/NetEmissionsTokenNetwork"
-import { Token } from "../generated/schema"
+import { Holder, Token, TokenBalance } from "../generated/schema"
 
-export function handleApprovalForAll(event: ApprovalForAll): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+// export function handleApprovalForAll(event: ApprovalForAll): void {
+//   // Entities can be loaded from the store using a string ID; this ID
+//   // needs to be unique across all entities of the same type
+//   let entity = ExampleEntity.load(event.transaction.from.toHex())
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+//   // Entities only exist after they have been saved to the store;
+//   // `null` checks allow to create entities on demand
+//   if (entity == null) {
+//     entity = new ExampleEntity(event.transaction.from.toHex())
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
-  }
+//     // Entity fields can be set using simple assignments
+//     entity.count = BigInt.fromI32(0)
+//   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+//   // BigInt and BigDecimal math are supported
+//   entity.count = entity.count + BigInt.fromI32(1)
 
-  // Entity fields can be set based on event parameters
-  entity.account = event.params.account
-  entity.operator = event.params.operator
+//   // Entity fields can be set based on event parameters
+//   entity.account = event.params.account
+//   entity.operator = event.params.operator
 
-  // Entities can be written to the store with `.save()`
-  entity.save()
+//   // Entities can be written to the store with `.save()`
+//   entity.save()
 
   // Note: If a handler doesn't require existing field values, it is faster
   // _not_ to load the entity from the store. Instead, create it fresh with
@@ -77,38 +78,7 @@ export function handleApprovalForAll(event: ApprovalForAll): void {
   // - contract.isDealerRegistered(...)
   // - contract.supportsInterface(...)
   // - contract.uri(...)
-}
-
-export function handleIssue(event: TokenCreated): void {
-  let token = new Token(event.params.tokenId);
-  token.count = event.params.availableBalance;
-
-  let tokenTypeId = event.params.tokenTypeId;
-  switch (tokenTypeId) {
-    case 1:
-      token.tokenType = "RenewableEnergyCertificate";
-      break;
-    case 2:
-      token.tokenType = "CarbonEmissionsOffset";
-      break;
-    case 3:
-      token.tokenType = "AuditedEmissions";
-      break;
-    default:
-      console.error("Invalid tokenTypeId");
-  }
-
-  token.issuer = event.params.issuer;
-  token.issuee = event.params.issuee;
-  token.fromDate = event.params.fromDate;
-  token.thruDate = event.params.thruDate;
-  token.automaticRetireDate = event.params.automaticRetireDate;
-  token.metadata = event.params.metadata;
-  token.manifest = event.params.manifest;
-  token.description = event.params.description;
-  // token.holders = [event.params._tokenDetails.issuee];
-  token.save()
-}
+// }
 
 export function handleRegisteredDealer(event: RegisteredDealer): void {}
 
@@ -118,11 +88,94 @@ export function handleRoleGranted(event: RoleGranted): void {}
 
 export function handleRoleRevoked(event: RoleRevoked): void {}
 
-export function handleTokenCreated(event: TokenCreated): void {}
+export function handleTokenCreated(event: TokenCreated): void {
+  // create token metadata
+  let token = new Token(event.params.tokenId.toString());
+  let tokenTypeId = event.params.tokenTypeId;
+  switch (tokenTypeId) {
+    case 1:
+      token.type = "RenewableEnergyCertificate";
+      break;
+    case 2:
+      token.type = "CarbonEmissionsOffset";
+      break;
+    case 3:
+      token.type = "AuditedEmissions";
+      break;
+    default:
+      break;
+  }
+  token.issuer = event.params.issuer;
+  token.issuee = event.params.issuee;
+  token.fromDate = event.params.fromDate;
+  token.thruDate = event.params.thruDate;
+  token.automaticRetireDate = event.params.automaticRetireDate;
+  token.metadata = event.params.metadata;
+  token.manifest = event.params.manifest;
+  token.description = event.params.description;
+  token.holders = [event.params.issuee.toString()];
 
-export function handleTransferBatch(event: TransferBatch): void {}
+  // update holder
+  let holder = Holder.load(event.params.issuee.toString());
+  if (holder == null) { // create if necessary
+    holder = new Holder(event.params.issuee.toString());
+    holder.address = event.params.issuee;
+  }
 
-export function handleTransferSingle(event: TransferSingle): void {}
+  // update token balances
+  let tokenBalance = TokenBalance.load(
+    event.params.tokenId.toString() + event.params.issuee.toString()
+  );
+  if (tokenBalance == null) { // create if necessary
+     tokenBalance = new TokenBalance(
+       event.params.tokenId.toString() + event.params.issuee.toString()
+     );
+    tokenBalance.token = token.id;
+    tokenBalance.holder = holder.id;
+  }
+  tokenBalance.available = tokenBalance.available.plus(event.params.availableBalance);
+  tokenBalance.retired = tokenBalance.retired.plus(event.params.retiredBalance);
+
+  // update holder's tokens
+  holder.tokens.push(tokenBalance.id);
+
+  // save all
+  token.save();
+  holder.save();
+  tokenBalance.save();
+}
+
+export function handleTokenRetired(event: TokenRetired): void {
+  let tokenBalance = TokenBalance.load(
+    event.params.tokenId.toString() + event.params.account.toString()
+  );
+  tokenBalance.available = tokenBalance.available.minus(event.params.amount);
+  tokenBalance.retired = tokenBalance.retired.plus(event.params.amount);
+  tokenBalance.save();
+}
+
+export function handleTransferBatch(event: TransferBatch): void {
+  // @TODO implement
+}
+
+export function handleTransferSingle(event: TransferSingle): void {
+  let tokenBalanceSender = TokenBalance.load(
+    event.params.id.toString() + event.params.from.toString()
+  );
+  let tokenBalanceReceiver = TokenBalance.load(
+    event.params.id.toString() + event.params.to.toString()
+  )
+  if (tokenBalanceReceiver == null) { // create if necessary
+     tokenBalanceReceiver = new TokenBalance(
+       event.params.id.toString() + event.params.to.toString()
+     );
+    tokenBalanceReceiver.token = event.params.id.toString();
+    tokenBalanceReceiver.holder = event.params.to.toString();
+  }
+  tokenBalanceSender.available = tokenBalanceSender.available.minus(event.params.value);
+  tokenBalanceReceiver.available = tokenBalanceSender.available.plus(event.params.value);
+  tokenBalanceSender.save();
+}
 
 export function handleURI(event: URI): void {}
 

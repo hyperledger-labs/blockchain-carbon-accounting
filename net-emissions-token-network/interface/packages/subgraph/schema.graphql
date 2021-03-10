@@ -6,7 +6,6 @@ enum TokenType {
 
 type Token @entity {
   id: ID!
-  count: BigInt!
   type: TokenType!
   issuer: Bytes!
   issuee: Bytes!
@@ -19,9 +18,16 @@ type Token @entity {
   holders: [Holder!] @relation
 }
 
+type TokenBalance @entity {
+  id: ID!
+  token: Token!
+  holder: Holder!
+  available: BigInt!
+  retired: BigInt!
+}
 
 type Holder @entity {
   id: ID!
   address: Bytes!
-  tokens: [Token!] @relation
+  tokens: [TokenBalance!] @relation
 }
