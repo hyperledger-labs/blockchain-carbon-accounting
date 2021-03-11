@@ -239,3 +239,55 @@ Go to the compiler tab, change the compiler version to the same as the Solidity 
 Next, select the "Deploy and run transactions tab", change the gas limit to "9999999", select "NetEmissionsTokenNetwork" from the drop down, and deploy the contract.
 
 You can now interact with the contract's functions via the user interface in Remix.
+
+### Running Slither static code analysis
+Prerequsites
+Python 3.6 or above
+
+Installing Slither Code Analysis
+```
+pip3 install slither-analyzer
+```
+
+Running Slither Code Analysis
+```
+slither . --json slitherlog.json --print human-summary
+```
+
+You can also do all the steps by doing
+```
+sh runSlither.sh
+```
+
+Slither prints a nicely formatted table that looks like this
+```
+Compiled with Builder
+Number of lines: 374 (+ 0 in dependencies, + 0 in tests)
+Number of assembly lines: 1
+Number of contracts: 3 (+ 0 in dependencies, + 0 tests) 
+
+Number of optimization issues: 13
+Number of informational issues: 9
+Number of low issues: 8
+Number of medium issues: 5
+Number of high issues: 1
+
++-------------------+-------------+------+------------+--------------+--------------+
+|        Name       | # functions | ERCS | ERC20 info | Complex code |   Features   |
++-------------------+-------------+------+------------+--------------+--------------+
+|      Governor     |      26     |      |            |     Yes      | Receive ETH  |
+|                   |             |      |            |              |   Send ETH   |
+|                   |             |      |            |              |  Ecrecover   |
+|                   |             |      |            |              | AbiEncoderV2 |
+|                   |             |      |            |              |   Assembly   |
+| TimelockInterface |      7      |      |            |      No      | Receive ETH  |
+|                   |             |      |            |              | AbiEncoderV2 |
+|   DaotInterface   |      2      |      |            |      No      | AbiEncoderV2 |
++-------------------+-------------+------+------------+--------------+--------------+
+. analyzed (3 contracts)
+```
+
+You can also parse through the JSON file that is generated for more
+detailed information in slitherlog.json.
+
+To look for High Impact issues, search the JSON file for `"impact": "High"`.
