@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const { Gateway, Wallets } = require("fabric-network");
 const path = require("path");
 const fs = require('fs');

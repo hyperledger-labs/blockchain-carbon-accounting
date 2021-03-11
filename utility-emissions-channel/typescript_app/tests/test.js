@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 "use strict";
 var chai = require("chai");
 var chaiHttp = require("chai-http");

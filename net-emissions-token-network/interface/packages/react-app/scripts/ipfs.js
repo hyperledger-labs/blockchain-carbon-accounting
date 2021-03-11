@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const chalk = require("chalk");
 const ipfsApi = require("ipfs-http-client");
 const { clearLine } = require("readline");

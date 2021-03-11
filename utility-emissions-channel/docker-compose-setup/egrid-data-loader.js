@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 /**
  * This is to seed the Fabric data and test the method get_co2_emissions from the command line.
  *

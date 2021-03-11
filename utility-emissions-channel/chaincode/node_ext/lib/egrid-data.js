@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // this file in the chaincode stores the lists UtilityEmissionsFactorList and 
 // UtilityLookupList which are formerly stored on dynamodb
 //

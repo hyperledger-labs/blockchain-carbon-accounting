@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import * as fs from "fs";
 import * as AWS from "aws-sdk";
 import * as AWS_CONFIG from "../../config/aws-config";

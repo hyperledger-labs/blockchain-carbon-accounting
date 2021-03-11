@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { Transfer } from "../types/schema";
 import { Transfer as TransferEvent } from "../types/CeaErc20/erc20";
 import { addToken } from "./tokens";

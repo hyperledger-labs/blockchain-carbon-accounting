@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 exports.STATE_NAME_MAPPING = {
   AL: "Alabama",
   AK: "Alaska",

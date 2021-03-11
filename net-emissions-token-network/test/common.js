@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const { upgrades } = require("hardhat");
 
 exports.allTokenTypeId = [1, 2, 3];

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 // This file stores the contract address the interface will attempt to connect to
 // By default, these addresses are all set to the addresses returned by running the command:
 // npx hardhat run --network localhost scripts/deploy-all.js
