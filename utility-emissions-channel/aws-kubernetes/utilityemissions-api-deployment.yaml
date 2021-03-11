@@ -42,6 +42,18 @@ spec:
               value: "admin"
             - name: ADMIN_USER_PASSWD
               value: "adminpw"
+            - name: WALLET_PRIVATE_KEY
+              value: ""
+            - name: CONTRACT_ADDRESS
+              value: ""
+            - name: INFURA_PROJECT_ID
+              value: ""
+            - name: INFURA_PROJECT_SECRET
+              value: ""
+            - name: AWS_ACCESS_KEY_ID
+              value: "secret-id"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "secret-key"
           ports:
             - containerPort: 9000
           volumeMounts:

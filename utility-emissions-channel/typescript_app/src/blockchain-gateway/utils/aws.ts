@@ -2,8 +2,8 @@ import * as fs from "fs";
 import * as AWS from "aws-sdk";
 import * as AWS_CONFIG from "../../config/aws-config";
 
-const IAM_USER_KEY = AWS_CONFIG.AWS_ACCESS_KEY_ID;
-const IAM_USER_SECRET = AWS_CONFIG.AWS_SECRET_ACCESS_KEY;
+const IAM_USER_KEY = AWS_CONFIG.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+const IAM_USER_SECRET = AWS_CONFIG.AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
 
 function getS3Bucket() {
   let s3bucket: AWS.S3;
