@@ -16,6 +16,8 @@ import { checkDateConflict } from "../utils/dateUtils";
 import { Md5 } from "ts-md5/dist/md5";
 import { downloadFromS3 } from "../../blockchain-gateway/utils/aws";
 
+import { CHANNEL_NAME, CHAINCODE_NAME } from "../../config/config";
+
 export class EmissionsContractInvoke {
   constructor(message: string) {}
 
@@ -53,8 +55,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network = await gateway.getNetwork("utilityemissionchannel");
-      const contract = network.getContract("emissionscontract");
+      const network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Record Emissions ######
       let uuid = getNewUuid();
@@ -152,8 +154,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network = await gateway.getNetwork("utilityemissionchannel");
-      const contract = network.getContract("emissionscontract");
+      const network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract = network.getContract(CHAINCODE_NAME);
       // ###### Update Emissions Record ######
       const blockchainResult: Buffer = await contract.submitTransaction(
         "updateEmissionsRecord",
@@ -234,9 +236,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction("getEmissionsData", uuid);
@@ -317,9 +318,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
@@ -413,9 +413,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction(
@@ -505,9 +504,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction(
@@ -603,8 +601,8 @@ export class EmissionsContractInvoke {
       return response;
     }
 
-    const network: Network = await gateway.getNetwork("utilityemissionchannel");
-    const contract: Contract = network.getContract("emissionscontract");
+    const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+    const contract: Contract = network.getContract(CHAINCODE_NAME);
 
     // Check for date overlap
 

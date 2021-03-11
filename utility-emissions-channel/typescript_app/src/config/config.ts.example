@@ -20,3 +20,8 @@ export const AUDITORS = {"auditor1":
 
 export const ADMIN_USER_ID = "admin";
 export const ADMIN_USER_PASSWD = "adminpw";
+
+// "emissionscontract"
+export const CHAINCODE_NAME = "utilityemissions"
+
+export const CHANNEL_NAME = "utilityemissionchannel"

@@ -11,10 +11,14 @@ Run build from utility-emissions-channel directory
 
 ## Deploy api application Docker image to kubernetes cluster
 
+Create connection config json
+
+    $ cd utility-emissions-channel/aws-kubernetes/ccp-generate
+    $ ./ccp-generate.sh
+
+Create ConfigMap from connection config json
+
     $ cd utility-emissions-channel/aws-kubernetes
-
-Create ConfigMap from file
-
     $ kubectl create configmap utilityemissions-api-config --from-file=connection-opentaps.json -n fabric-production
 
 Deploy api application
