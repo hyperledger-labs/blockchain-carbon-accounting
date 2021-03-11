@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
 import { issue, encodeParameters, TOKEN_TYPES } from "../services/contract-functions";

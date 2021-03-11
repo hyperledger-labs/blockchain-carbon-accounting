@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
 const AWS = require("aws-sdk");
 

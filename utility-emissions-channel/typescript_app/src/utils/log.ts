@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import chalk from "chalk";
 
 export function log(level, msg) {
