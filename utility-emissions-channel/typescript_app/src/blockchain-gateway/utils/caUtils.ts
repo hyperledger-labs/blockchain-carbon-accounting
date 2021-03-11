@@ -7,6 +7,8 @@
 import { ADMIN_USER_ID, ADMIN_USER_PASSWD, AUDITORS } from "../../config/config";
 import { buildCCPAuditor } from "./gatewayUtils";
 
+const adminUserId = ADMIN_USER_ID || process.env.ADMIN_USER_ID;
+const adminUserPasswd = ADMIN_USER_PASSWD || process.env.ADMIN_USER_PASSWD;
 /**
  *
  * @param {*} FabricCAServices
@@ -22,6 +24,7 @@ export function buildCAClient(FabricCAServices, ccp, caHostName) {
     caInfo.caName
   );
 
+  console.log(`Built a CA url ${caInfo.url}`);
   console.log(`Built a CA Client named ${caInfo.caName}`);
   return caClient;
 }
@@ -30,7 +33,7 @@ export async function enrollAdmin(caClient, wallet, orgMspId) {
   try {
     let response = "";
     // Check to see if we've already enrolled the admin user.
-    const identity = await wallet.get(ADMIN_USER_ID);
+    const identity = await wallet.get(adminUserId);
     if (identity) {
       response = "An identity for the admin user already exists in the wallet";
       return response;
@@ -38,8 +41,8 @@ export async function enrollAdmin(caClient, wallet, orgMspId) {
 
     // Enroll the admin user, and import the new identity into the wallet.
     const enrollment = await caClient.enroll({
-      enrollmentID: ADMIN_USER_ID,
-      enrollmentSecret: ADMIN_USER_PASSWD,
+      enrollmentID: adminUserId,
+      enrollmentSecret: adminUserPasswd,
     });
     const x509Identity = {
       credentials: {
@@ -49,7 +52,7 @@ export async function enrollAdmin(caClient, wallet, orgMspId) {
       mspId: orgMspId,
       type: "X.509",
     };
-    await wallet.put(ADMIN_USER_ID, x509Identity);
+    await wallet.put(adminUserId, x509Identity);
     response =
       "Successfully enrolled admin user and imported it into the wallet";
     return response;
@@ -78,7 +81,7 @@ export async function registerAndEnrollUser(
     }
 
     // Must use an admin to register a new user
-    const adminIdentity = await wallet.get(ADMIN_USER_ID);
+    const adminIdentity = await wallet.get(adminUserId);
     if (!adminIdentity) {
       response =
         "An identity for the admin user does not exist in the wallet. Enroll the admin user before retrying";
@@ -89,7 +92,7 @@ export async function registerAndEnrollUser(
     const provider = wallet
       .getProviderRegistry()
       .getProvider(adminIdentity.type);
-    const adminUser = await provider.getUserContext(adminIdentity, ADMIN_USER_ID);
+    const adminUser = await provider.getUserContext(adminIdentity, adminUserId);
 
     // Register the user, enroll the user, and import the new identity into the wallet.
     // if affiliation is specified by client, the affiliation value must be configured in CA

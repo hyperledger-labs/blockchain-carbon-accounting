@@ -1,7 +1,3 @@
-export const WALET_IDENTITY_LABEL = "User1@auditor1.carbonAccounting.com";
-
-export const PATH_TO_MSP = "../../../../docker-compose-setup/organizations/peerOrganizations/auditor1.carbonAccounting.com/users/User1@auditor1.carbonAccounting.com/msp";
-
 export const AUDITORS = {"auditor1":
     {"conConfFile": "../../../../../../docker-compose-setup/organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json",
      "msp": "auditor1",
