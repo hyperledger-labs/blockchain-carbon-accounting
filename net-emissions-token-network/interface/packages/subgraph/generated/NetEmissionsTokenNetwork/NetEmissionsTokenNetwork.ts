@@ -1142,6 +1142,10 @@ export class InitializeCall__Inputs {
   constructor(call: InitializeCall) {
     this._call = call;
   }
+
+  get admin(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
 }
 
 export class InitializeCall__Outputs {

@@ -89,8 +89,14 @@ export function handleRoleGranted(event: RoleGranted): void {}
 export function handleRoleRevoked(event: RoleRevoked): void {}
 
 export function handleTokenCreated(event: TokenCreated): void {
-  // create token metadata
-  let token = new Token(event.params.tokenId.toString());
+
+  // get IDs of entities
+  let tokenId = event.params.tokenId.toString();
+  let holderId = event.params.issuee.toHexString()
+  let tokenBalanceId = tokenId + '-' + holderId;
+
+  // create token and metadata
+  let token = new Token(tokenId);
   let tokenTypeId = event.params.tokenTypeId;
   switch (tokenTypeId) {
     case 1:
@@ -113,23 +119,19 @@ export function handleTokenCreated(event: TokenCreated): void {
   token.metadata = event.params.metadata;
   token.manifest = event.params.manifest;
   token.description = event.params.description;
-  token.holders = [event.params.issuee.toString()];
+  token.holders = [holderId];
 
   // update holder
-  let holder = Holder.load(event.params.issuee.toString());
+  let holder = Holder.load(holderId);
   if (holder == null) { // create if necessary
-    holder = new Holder(event.params.issuee.toString());
+    holder = new Holder(holderId);
     holder.address = event.params.issuee;
   }
 
   // update token balances
-  let tokenBalance = TokenBalance.load(
-    event.params.tokenId.toString() + event.params.issuee.toString()
-  );
+  let tokenBalance = TokenBalance.load(tokenBalanceId);
   if (tokenBalance == null) { // create if necessary
-     tokenBalance = new TokenBalance(
-       event.params.tokenId.toString() + event.params.issuee.toString()
-     );
+     tokenBalance = new TokenBalance(tokenBalanceId);
     tokenBalance.token = token.id;
     tokenBalance.holder = holder.id;
   }
@@ -146,11 +148,17 @@ export function handleTokenCreated(event: TokenCreated): void {
 }
 
 export function handleTokenRetired(event: TokenRetired): void {
-  let tokenBalance = TokenBalance.load(
-    event.params.tokenId.toString() + event.params.account.toString()
-  );
+
+  // get ID of entity
+  let tokenBalanceId = event.params.tokenId.toString() + '-' + event.params.account.toHexString();
+
+  // load tokenBalance
+  let tokenBalance = TokenBalance.load(tokenBalanceId);
+
+  // update balances
   tokenBalance.available = tokenBalance.available.minus(event.params.amount);
   tokenBalance.retired = tokenBalance.retired.plus(event.params.amount);
+
   tokenBalance.save();
 }
 
@@ -159,22 +167,40 @@ export function handleTransferBatch(event: TransferBatch): void {
 }
 
 export function handleTransferSingle(event: TransferSingle): void {
-  let tokenBalanceSender = TokenBalance.load(
-    event.params.id.toString() + event.params.from.toString()
-  );
-  let tokenBalanceReceiver = TokenBalance.load(
-    event.params.id.toString() + event.params.to.toString()
-  )
+
+  // get IDs of entities
+  let receiver = event.params.to.toHexString();
+  let sender = event.params.from.toHexString();
+  let tokenId = event.params.id.toString();
+  let tokenBalanceSenderId = tokenId + '-' + sender;
+  let tokenBalanceReceiverId = tokenId + '-' + receiver;
+
+  // load tokenBalances; create reciever tokenBalance if necessary
+  let tokenBalanceSender = TokenBalance.load(tokenBalanceSenderId);
+  let tokenBalanceReceiver = TokenBalance.load(tokenBalanceReceiverId);
   if (tokenBalanceReceiver == null) { // create if necessary
-     tokenBalanceReceiver = new TokenBalance(
-       event.params.id.toString() + event.params.to.toString()
-     );
-    tokenBalanceReceiver.token = event.params.id.toString();
-    tokenBalanceReceiver.holder = event.params.to.toString();
+    tokenBalanceReceiver = new TokenBalance(tokenBalanceReceiverId);
+    tokenBalanceReceiver.token = tokenId;
+    tokenBalanceReceiver.holder = receiver;
   }
+
+  // update balances
   tokenBalanceSender.available = tokenBalanceSender.available.minus(event.params.value);
   tokenBalanceReceiver.available = tokenBalanceSender.available.plus(event.params.value);
+
+  // add recipient to token's holders
+  let token = Token.load(tokenId);
+  if (token.holders.includes(sender) === false) {
+    token.holders.push(sender);
+  }
+  // remove sender from token holders if no available or retired balance
+  if (tokenBalanceSender.available.isZero() && tokenBalanceSender.retired.isZero()) {
+    let holderToRemove = token.holders.indexOf(receiver);
+    token.holders.splice(holderToRemove, 1);
+  }
+
   tokenBalanceSender.save();
+  tokenBalanceReceiver.save();
 }
 
 export function handleURI(event: URI): void {}
