@@ -115,15 +115,21 @@ async function main() {
   const acceptAdmin = await governor.connect(deployer).__acceptAdmin();
   await advanceBlocks(1);
 
-  let timelockAdmin = await timelock.admin();
+  const timelockAdmin = await timelock.admin();
   console.assert(timelockAdmin === governor.address);
-  console.log("Executed __acceptAdmin() on Governor using deployer account. Timelock admin switched to Governor.")
+  console.log("Executed __acceptAdmin() on Governor using deployer account. Timelock admin switched to Governor.");
+
+  const setDaoAddress = await netEmissionsTokenNetwork.connect(deployer).setTimelock(timelock.address);
+  console.log("Set Timelock address on NetEmissionsTokenNetwork to give the DAO permission to make proposals.")
 }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
 main()
-  .then(() => process.exit(0))
+  .then(() => {
+    console.log("Done.");
+    process.exit(0);
+  })
   .catch((error) => {
     console.error(error);
     process.exit(1);

@@ -85,7 +85,7 @@ function App() {
                     <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/issue">
-                    <IssueForm provider={provider} roles={roles} />
+                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/transfer">
                     <TransferForm provider={provider} roles={roles} />
