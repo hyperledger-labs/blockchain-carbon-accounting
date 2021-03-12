@@ -382,24 +382,28 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 </Card.Text>
                 <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
                 <Row className="text-center mb-3">
-                  <Col className="text-success my-auto">
-                    YES: {addCommas(proposal.details.forVotes)}<br/>
-                    <Button
-                      className="mt-1"
-                      variant="success"
-                      disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
-                      onClick={() => vote(proposal.id, true)}
-                    >Vote for</Button>
-                  </Col>
-                  <Col className="text-danger my-auto">
-                    NO: {addCommas(proposal.details.againstVotes)}<br/>
-                    <Button
-                      className="mt-1"
-                      variant="danger"
-                      disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
-                      onClick={() => vote(proposal.id, false)}
-                    >Vote against</Button>
-                  </Col>
+
+                  { ( (proposal.state === "Active") && (proposal.receipt.hasVoted === false) && (daoTokenBalance > 0) ) &&
+                    <>
+                      <Col className="text-success my-auto">
+                        YES: {addCommas(proposal.details.forVotes)}<br/>
+                        <Button
+                          className="mt-1"
+                          variant="success"
+                          onClick={() => vote(proposal.id, true)}
+                        >Vote for</Button>
+                      </Col>
+                      <Col className="text-danger my-auto">
+                        NO: {addCommas(proposal.details.againstVotes)}<br/>
+                        <Button
+                          className="mt-1"
+                          variant="danger"
+                          onClick={() => vote(proposal.id, false)}
+                        >Vote against</Button>
+                      </Col>
+                    </>
+                  }
+
                 </Row>
                 { (proposal.receipt.hasVoted === true) &&
                   <p className="text-secondary text-center"><small>You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</small></p>
