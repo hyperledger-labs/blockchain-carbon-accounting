@@ -10,10 +10,9 @@
     "solc_args": "",
     "solc_disable_warnings": false,
     "json": "slitherlog.json",
-    "truffle_build_directory": "custom/path",
-    "truffle_version": "truffle@x.x.x",
-    "truffle_ignore_compile": false,
     "disable_color": false,
-    "filter_paths": "Governor.sol|DAOToken.sol|Timelock.sol|NetEmissionsTokenNetwork.sol",
+    "filter_paths": "",
     "legacy_ast": false
 }
+
+
