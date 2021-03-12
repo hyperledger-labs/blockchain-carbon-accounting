@@ -8,6 +8,14 @@ import TokenInfoModal from "./token-info-modal";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 
+function formatDate(timestamp) {
+  if (timestamp === 0) {
+    return "None";
+  } else {
+    return (new Date(timestamp * 1000)).toLocaleString();
+  }
+}
+
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
@@ -61,9 +69,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let tokenDetails = (await getTokenDetails(provider, i));
 
         // Format unix times to Date objects
-        let fromDateObj = new Date((tokenDetails.fromDate.toNumber()) * 1000);
-        let thruDateObj = new Date((tokenDetails.thruDate.toNumber()) * 1000);
-        let automaticRetireDateObj = new Date((tokenDetails.automaticRetireDate.toNumber()) * 1000);
+        let fromDate = formatDate(tokenDetails.fromDate.toNumber());
+        let thruDate = formatDate(tokenDetails.thruDate.toNumber());
+        let automaticRetireDate = formatDate(tokenDetails.automaticRetireDate.toNumber());
 
         // Format tokenType from tokenTypeId
         let tokenTypes = [
@@ -90,9 +98,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           retiredBalance: retiredBalance,
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
-          fromDate: fromDateObj.toLocaleString(),
-          thruDate: thruDateObj.toLocaleString(),
-          automaticRetireDate: automaticRetireDateObj.toLocaleString(),
+          fromDate: fromDate,
+          thruDate: thruDate,
+          automaticRetireDate: automaticRetireDate,
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
