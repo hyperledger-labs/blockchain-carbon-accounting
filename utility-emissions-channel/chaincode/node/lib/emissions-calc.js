@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const UOM_FACTORS = {
   wh: 1.0,
   kwh: 1000.0,

@@ -1,12 +1,18 @@
+// SPDX-License-Identifier: Apache-2.0
 import { ethers } from "ethers";
 import netEmissionsTokenNetworkAbi from "./NetEmissionsTokenNetwork.json";
-import { PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "./networkConfig";
+import { WALLET_PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "../../config/networkConfig";
 const tokenTypeId = 3;
+
+const walletPrivateKey = WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
+const contractAddress = CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
+const infuraProjectId = INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID;
+const infuraProjectSecret = INFURA_PROJECT_SECRET || process.env.INFURA_PROJECT_SECRET;
 
 function getProvider() {
   let provider = new ethers.providers.InfuraProvider("goerli", {
-    projectId: INFURA_PROJECT_ID,
-    projectSecret: INFURA_PROJECT_SECRET
+    projectId: infuraProjectId,
+    projectSecret: infuraProjectSecret
   });
   return provider;
 }
@@ -14,8 +20,8 @@ function getProvider() {
 export async function registerAuditedEmissionDealer(addressToRegister) {
   let contractResponse;
   let provider = getProvider();
-  //   let wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-  let contract = new ethers.Contract(CONTRACT_ADDRESS, netEmissionsTokenNetworkAbi.abi, provider);
+  // let wallet = new ethers.Wallet(walletPrivateKey,, provider);
+  let contract = new ethers.Contract(contractAddress, netEmissionsTokenNetworkAbi.abi, provider);
 
   let signer = provider.getSigner();
 
@@ -37,8 +43,8 @@ export async function issue(
   description
 ) {
   let provider = getProvider();
-  let wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-  let contract = new ethers.Contract(CONTRACT_ADDRESS, netEmissionsTokenNetworkAbi.abi, provider);
+  let wallet = new ethers.Wallet(walletPrivateKey, provider);
+  let contract = new ethers.Contract(contractAddress, netEmissionsTokenNetworkAbi.abi, provider);
 
   let signed = contract.connect(wallet);
   let issue = await signed
@@ -67,6 +73,6 @@ export async function issue(
     tokenId = parseInt(tokenIdRaw,16)
     console.log(`Got tokenId: ${tokenId}`);
   });
-  return `${CONTRACT_ADDRESS}:${tokenId}`;
-  
+  return `${contractAddress}:${tokenId}`;
+
 }

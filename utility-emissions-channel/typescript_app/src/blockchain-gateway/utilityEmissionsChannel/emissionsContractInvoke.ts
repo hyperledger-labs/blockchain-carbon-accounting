@@ -8,9 +8,6 @@ import { Contract, Gateway, Network, Wallet, Wallets } from "fabric-network";
 const path = require("path");
 import { setOrgDataCA } from "../utils/caUtils";
 import {
-  buildCCPAuditor1,
-  buildCCPAuditor2,
-  buildCCPAuditor3,
   buildWallet,
   setWalletPathByOrg,
 } from "../utils/gatewayUtils";
@@ -18,6 +15,8 @@ import { getNewUuid } from "../utils/uuid";
 import { checkDateConflict } from "../utils/dateUtils";
 import { Md5 } from "ts-md5/dist/md5";
 import { downloadFromS3 } from "../../blockchain-gateway/utils/aws";
+
+import { CHANNEL_NAME, CHAINCODE_NAME } from "../../config/config";
 
 export class EmissionsContractInvoke {
   constructor(message: string) {}
@@ -36,8 +35,7 @@ export class EmissionsContractInvoke {
   ) {
     try {
       let response = "";
-
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -57,8 +55,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network = await gateway.getNetwork("utilityemissionchannel");
-      const contract = network.getContract("emissionscontract");
+      const network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Record Emissions ######
       let uuid = getNewUuid();
@@ -136,8 +134,7 @@ export class EmissionsContractInvoke {
   ) {
     try {
       let response = "";
-
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -157,8 +154,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network = await gateway.getNetwork("utilityemissionchannel");
-      const contract = network.getContract("emissionscontract");
+      const network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract = network.getContract(CHAINCODE_NAME);
       // ###### Update Emissions Record ######
       const blockchainResult: Buffer = await contract.submitTransaction(
         "updateEmissionsRecord",
@@ -218,7 +215,9 @@ export class EmissionsContractInvoke {
   static async getEmissionsData(userId: any, orgName: any, uuid: string) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getEmissionsData, userId: ${userId}, orgName: ${orgName}, uuid: ${uuid}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -237,9 +236,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction("getEmissionsData", uuid);
@@ -299,7 +297,9 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsData(userId: any, orgName: any, utilityId: string, partyId: string) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getAllEmissionsData, userId: ${userId}, orgName: ${orgName}, utilityId: ${utilityId}, partyId: ${partyId}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -318,9 +318,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction("getAllEmissionsData", utilityId, partyId);
@@ -393,7 +392,9 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsDataByDateRange(userId: any, orgName: any, fromDate: string, thruDate: string) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getAllEmissionsDataByDateRange, userId: ${userId}, orgName: ${orgName}, fromDate: ${fromDate}, thruDate: ${thruDate}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -412,9 +413,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction(
@@ -483,7 +483,9 @@ export class EmissionsContractInvoke {
   static async getAllEmissionsDataByDateRangeAndParty(userId: any, orgName: any, fromDate: string, thruDate: string, partyId: any) {
     try {
       let response: string = "";
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
+      console.log(`getAllEmissionsDataByDateRangeAndParty, userId: ${userId}, orgName: ${orgName}, fromDate: ${fromDate}, thruDate: ${thruDate}, partyId: ${partyId}`);
 
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -502,9 +504,8 @@ export class EmissionsContractInvoke {
         return response;
       }
 
-      const network: Network = await gateway.getNetwork("utilityemissionchannel");
-
-      const contract: Contract = network.getContract("emissionscontract");
+      const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+      const contract: Contract = network.getContract(CHAINCODE_NAME);
 
       // ###### Get Emissions Data ######
       const blockchainResult: Buffer = await contract.evaluateTransaction(
@@ -580,8 +581,7 @@ export class EmissionsContractInvoke {
     thruDate: any
   ) {
     let response = "";
-
-    let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+    let { ccp, msp, caName } = setOrgDataCA(orgName);
 
     const walletPath: string = setWalletPathByOrg(orgName);
     console.log("+++++++++++++++++ Walletpath: " + walletPath);
@@ -601,8 +601,8 @@ export class EmissionsContractInvoke {
       return response;
     }
 
-    const network: Network = await gateway.getNetwork("utilityemissionchannel");
-    const contract: Contract = network.getContract("emissionscontract");
+    const network: Network = await gateway.getNetwork(CHANNEL_NAME);
+    const contract: Contract = network.getContract(CHAINCODE_NAME);
 
     // Check for date overlap
 

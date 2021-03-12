@@ -5,22 +5,26 @@
 
 # Change CC_PACKAGE_ID according to your output from `peer lifecycle chaincode queryinstalled`
 echo "+++++Export chaincode package identifier+++++"
-export CC_PACKAGE_ID=marbles:23b1cc9ddef0cee9758f75d4f3cf45831ca13b6fed601dc9a496764873b46917
+export CC_PACKAGE_ID=utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
 echo $CC_PACKAGE_ID
+
+#export CHAINCODE_NAME=marbles
+export CHAINCODE_NAME=utilityemissions
+echo $CHAINCODE_NAME
 
 echo
 echo "+++++Approve chaincode for my org+++++"
-./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --channelID utilityemissionchannel --name marbles --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
+./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
 
 echo
 echo "+++++Check commitreadiness of chaincode+++++"
-./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name marbles --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
+./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
 
 echo
 echo "+++++Commit chaincode+++++"
-./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --channelID utilityemissionchannel --name marbles --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} 
+./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} 
 
 echo
 echo "+++++Query commited chaincode+++++"
-./bin/peer lifecycle chaincode querycommitted --channelID utilityemissionchannel --name marbles --cafile ${ORDERER_ADDRESS}
+./bin/peer lifecycle chaincode querycommitted --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --cafile ${ORDERER_ADDRESS}
 

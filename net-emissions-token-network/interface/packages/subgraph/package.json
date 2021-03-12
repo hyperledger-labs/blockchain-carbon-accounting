@@ -1,5 +1,6 @@
 {
   "name": "net-emissions-token-network",
+  "version": "1.0.0",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",

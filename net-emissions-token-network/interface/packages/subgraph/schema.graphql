@@ -6,7 +6,6 @@ enum TokenType {
 
 type Token @entity {
   id: ID!
-  count: BigInt!
   type: TokenType!
   issuer: Bytes!
   issuee: Bytes!
@@ -16,18 +15,19 @@ type Token @entity {
   metadata: String
   manifest: String
   description: String
-  holders: [TokenHolders]! @derivedFrom(field: "holder")
+  holders: [Holder!] @relation
 }
 
+type TokenBalance @entity {
+  id: ID!
+  token: Token!
+  holder: Holder!
+  available: BigInt!
+  retired: BigInt!
+}
 
 type Holder @entity {
   id: ID!
   address: Bytes!
-  organizations: [UserOrganization!] @derivedFrom(field: "token")
-}
-
-type TokenHolder @entity {
-  id: ID!   # Set to `${holder.id}-${token.id}`
-  holder: Holder!
-  token: Token!
+  tokens: [TokenBalance!] @relation
 }

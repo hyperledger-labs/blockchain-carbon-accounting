@@ -7,52 +7,15 @@
 import fs from "fs";
 import path from "path";
 
-export function buildCCPAuditor1() {
-  // load the common connection configuration file
-  const ccpPath: string = path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "docker-compose-setup",
-    "organizations",
-    "peerOrganizations",
-    "auditor1.carbonAccounting.com",
-    "connection-auditor1.json"
-  );
-  const fileExists: boolean = fs.existsSync(ccpPath);
-  if (!fileExists) {
-    throw new Error(`no such file or directory: ${ccpPath}`);
+import { AUDITORS } from "../../config/config";
+
+export function buildCCPAuditor(auditor) {
+  console.log("buildCCPAuditor, auditor = ", auditor);
+  if (!AUDITORS.hasOwnProperty(auditor)) {
+      throw new Error(`AUDITORS contains no ${auditor}`);
   }
-  const contents: string = fs.readFileSync(ccpPath, "utf8");
-
-  // build a JSON object from the file contents
-  const ccp = JSON.parse(contents);
-
-  console.log(`Loaded the network configuration located at ${ccpPath}`);
-  return ccp;
-}
-
-export function buildCCPAuditor2() {
-  console.log("++++++++++++++++++++++++++++");
   // load the common connection configuration file
-  const ccpPath: string = path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "docker-compose-setup",
-    "organizations",
-    "peerOrganizations",
-    "auditor2.carbonAccounting.com",
-    "connection-auditor2.json"
-  );
+  const ccpPath: string = path.resolve(__dirname, AUDITORS[auditor]["conConfFile"]);
 
   const fileExists: boolean = fs.existsSync(ccpPath);
   if (!fileExists) {
@@ -61,35 +24,6 @@ export function buildCCPAuditor2() {
   const contents = fs.readFileSync(ccpPath, "utf8");
 
   console.log(contents);
-
-  // build a JSON object from the file contents
-  const ccp = JSON.parse(contents);
-
-  console.log(`Loaded the network configuration located at ${ccpPath}`);
-  return ccp;
-}
-
-export function buildCCPAuditor3() {
-  // load the common connection configuration file
-  const ccpPath: string = path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "..",
-    "docker-compose-setup",
-    "organizations",
-    "peerOrganizations",
-    "auditor3.carbonAccounting.com",
-    "connection-auditor3.json"
-  );
-  const fileExists: boolean = fs.existsSync(ccpPath);
-  if (!fileExists) {
-    throw new Error(`no such file or directory: ${ccpPath}`);
-  }
-  const contents: string = fs.readFileSync(ccpPath, "utf8");
 
   // build a JSON object from the file contents
   const ccp = JSON.parse(contents);
@@ -123,16 +57,11 @@ export function prettyJSONString(inputString) {
 export function setWalletPathByOrg(orgName) {
   let walletPath: string = "";
   console.log("OrgName: " + orgName);
-  switch (orgName) {
-    case "auditor1":
-      walletPath = path.join(__dirname, "..", "wallets", "auditor1");
-      break;
-    case "auditor2":
-      walletPath = path.join(__dirname, "..", "wallets", "auditor2");
-      break;
-    case "auditor3":
-      walletPath = path.join(__dirname, "..", "wallets", "auditor3");
-      break;
+
+  if (!AUDITORS.hasOwnProperty(orgName)) {
+      throw new Error(`AUDITORS contains no ${orgName}`);
   }
+  walletPath = path.join(__dirname,  AUDITORS[orgName]["walletPath"]);
+
   return walletPath;
 }

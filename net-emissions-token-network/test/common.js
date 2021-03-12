@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+const { upgrades } = require("hardhat");
+
 exports.allTokenTypeId = [1, 2, 3];
 exports.quantity = 10;
 exports.transferAmount = 5;
@@ -26,6 +29,15 @@ exports.deployContract = async function (contractName, param1, param2, param3) {
     contract = await Contract.deploy();
   }
 
+  await contract.deployed();
+  return contract;
+}
+
+exports.deployUpgradeableContract = async function (contractName) {
+  const Contract = await ethers.getContractFactory(contractName);
+  let allAddresses = await ethers.getSigners();
+  let admin = allAddresses[0];
+  let contract = await upgrades.deployProxy(Contract, [admin.address]);
   await contract.deployed();
   return contract;
 }

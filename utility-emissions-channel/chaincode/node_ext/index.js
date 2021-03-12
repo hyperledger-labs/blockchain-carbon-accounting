@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const shim = require('fabric-shim');
 const EmissionsRecordContract = require('./lib/emissionscontract.js');
 
@@ -59,7 +60,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
         fieldsMap.url,
         fieldsMap.md5);
 
-    return emissionsRecord;
+    return Buffer.from(JSON.stringify(emissionsRecord));
   }
 
   async updateEmissionsRecord(stub, args, thisClass) {
@@ -115,7 +116,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
         fieldsMap.md5,
         fieldsMap.tokenId);
 
-    return emissionsRecord;
+    return Buffer.from(JSON.stringify(emissionsRecord));
   }
 
   async getEmissionsData(stub, args, thisClass) {
@@ -127,7 +128,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let emissionsRecord = await erc.getEmissionsData(args[0]);
 
-    return emissionsRecord;
+    return Buffer.from(emissionsRecord);
   }
 
   async getAllEmissionsData(stub, args, thisClass) {
@@ -141,7 +142,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let emissionsRecord = await erc.getAllEmissionsData(args[0], args[1]);
 
-    return emissionsRecord;
+    return Buffer.from(emissionsRecord);
   }
 
   async getAllEmissionsDataByDateRange(stub, args, thisClass) {
@@ -155,7 +156,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let emissionsRecord = await erc.getAllEmissionsDataByDateRange(args[0], args[1]);
 
-    return emissionsRecord;
+    return Buffer.from(emissionsRecord);
   }
 
   async getAllEmissionsDataByDateRangeAndParty(stub, args, thisClass) {
@@ -169,7 +170,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let emissionsRecord = await erc.getAllEmissionsDataByDateRangeAndParty(args[0], args[1], args[1]);
 
-    return emissionsRecord;
+    return Buffer.from(emissionsRecord);
   }
 
   async importUtilityFactor(stub, args, thisClass) {
@@ -229,7 +230,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
         fieldsMap.renewables,
         fieldsMap.percent_of_renewables);
 
-    return utilityFactor;
+    return Buffer.from(JSON.stringify(utilityFactor));
   }
 
   async updateUtilityFactor(stub, args, thisClass) {
@@ -289,7 +290,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
         fieldsMap.renewables,
         fieldsMap.percent_of_renewables);
 
-    return utilityFactor;
+    return Buffer.from(JSON.stringify(utilityFactor));
   }
 
   async getUtilityFactor(stub, args, thisClass) {
@@ -301,7 +302,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let utilityFactor = await erc.getUtilityFactor(args[0]);
 
-    return utilityFactor;
+    return Buffer.from(utilityFactor);
   }
 
   async importUtilityIdentifier(stub, args, thisClass) {
@@ -333,7 +334,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
         fieldsMap.state_province,
         fieldsMap.divisions);
 
-    return utilityIdentifier;
+    return Buffer.from(JSON.stringify(utilityIdentifier));
   }
 
   async updateUtilityIdentifier(stub, args, thisClass) {
@@ -365,7 +366,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
         fieldsMap.state_province,
         fieldsMap.divisions);
 
-    return utilityIdentifier;
+    return Buffer.from(JSON.stringify(utilityIdentifier));
   }
 
   async getUtilityIdentifier(stub, args, thisClass) {
@@ -377,7 +378,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let utilityIdentifier = await erc.getUtilityIdentifier(args[0]);
 
-    return utilityIdentifier;
+    return Buffer.from(utilityIdentifier);
   }
 
   async getAllUtilityIdentifiers(stub, args, thisClass) {
@@ -386,7 +387,7 @@ class EmissionsChaincode extends shim.ChaincodeInterface  {
     let erc = new EmissionsRecordContract(stub);
     let utilityIdentifiers = await erc.getAllUtilityIdentifiers();
 
-    return utilityIdentifiers;
+    return Buffer.from(utilityIdentifiers);
   }
 
 }

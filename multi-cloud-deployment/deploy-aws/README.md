@@ -334,11 +334,11 @@ utilityemissionchannel
 #### 4.5. Deploy chaincode
 
 
-6. Deploy chaincode as external service
+##### 1. Deploy marbles example chaincode as external service
 
 Next, we deploy a sample chaincode to the utilityemissionchannel. Follow the next steps carefully.
 
-5.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric-production:7052"). If you use `fabric-production` namespace, than 
+1.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric-production:7052"). If you use `fabric-production` namespace, than 
 ``` shell
 # change dir to chaincode/packaging
 parentdir="$(pwd)"
@@ -356,7 +356,7 @@ $parentdir/bin/peer lifecycle chaincode install marbles-chaincode.tgz
 2021-01-16 13:20:31.383 MSK [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: marbles:d750084d91b0f536fb76471ed3854eb7892271a44b95563d1e7dbbb122f47469
 ```
 
-5.2 Copy the chaincode package identifier (here: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649) and paste into `./chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+1.2 Copy the chaincode package identifier (here: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649) and paste into `./chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
 ```shell
 # Query installed chaincode of peer
 ./bin/peer lifecycle chaincode queryinstalled
@@ -366,9 +366,9 @@ Installed chaincodes on peer:
 Package ID: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649, Label: marbles
 ```
 
-5.3 At this point, we need to build a docker image containing the chaincode as well as its runtime environment. You can check `./chaincode/Dockerfile` as an example. Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `udosson/chaincode-marbles:1.0` (Docker Hub, public)
+1.3 At this point, we need to build a docker image containing the chaincode as well as its runtime environment. You can check `./chaincode/Dockerfile` as an example. Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `udosson/chaincode-marbles:1.0` (Docker Hub, public)
 
-5.4. Now we can start the chaincode. The next command will create one pod (1 container) with one service. Change the value of yournamespace
+1.4. Now we can start the chaincode. The next command will create one pod (1 container) with one service. Change the value of yournamespace
 ```shell
 # Change dir to multi-cloud-deployment from ./chaincode/packaging
 cd ../..
@@ -391,7 +391,7 @@ fabric-orderer1-56688dbbdc-4dltz     1/1     Running   0          21m
 fabric-peer1-5cf97d7cb4-5gftb        2/2     Running   0          32m
 ```
 
-5.5 Next, we follow the [Chaincode Lifecyle](https://hyperledger-fabric.readthedocs.io/en/release-2.2/chaincode_lifecycle.html) by running the script `./deployCC.sh`. Take a look at the script and change the value of `CC_PACKAGE_ID`.
+1.5 Next, we follow the [Chaincode Lifecyle](https://hyperledger-fabric.readthedocs.io/en/release-2.2/chaincode_lifecycle.html) by running the script `./deployCC.sh`. Take a look at the script and change the value of `CC_PACKAGE_ID`.
 ```shell
 # Run deployCC.sh. Remember to change the value of CC_PACKAGE_ID
 ./deployCC.sh
@@ -404,7 +404,7 @@ Committed chaincode definition for chaincode 'marbles' on channel 'utilityemissi
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [sampleOrg: true]
 ```
 
-5.6. Invoke chaincode manually by running the following commands. If you get the expected results without any errors, you successfully deployed Hyperledger Fabric to your Kubernetes cluster. Congrats on that!!
+1.6. Invoke chaincode manually by running the following commands. If you get the expected results without any errors, you successfully deployed Hyperledger Fabric to your Kubernetes cluster. Congrats on that!!
 ```shell
 # Invoke chaincode
 peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C utilityemissionchannel -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
@@ -421,6 +421,95 @@ peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarb
 {"color":"blue","docType":"marble","name":"marble1","owner":"tom","size":35}
 ```
 
+##### 2. Deploy utilityemissions chaincode as external service
+
+Next, we deploy a utilityemissions chaincode to the utilityemissionchannel. Follow the next steps carefully.
+
+2.1. First, we package and install the chaincode to one peer. In `utility-emissions-channel/chaincode/packaging/packacking/connection.json` set the value of `your address` (e.g., "address": "chaincode-utilityemissions.fabric-production:7052"). If you use `fabric-production` namespace, than 
+``` shell
+# change dir to utility-emissions-channel/chaincode/packaging/packacking
+cd utility-emissions-channel/chaincode/packaging/packacking
+source ../../multi-cloud-deployment/deploy-aws/setEnv.sh
+
+# tar connection.json and metadata.json
+tar cfz code.tar.gz connection.json
+tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
+
+# install chaincecode package to peer
+../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode install utilityemissions-chaincode.tgz
+
+# Should print similar output to
+2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nQutilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97\022\020utilityemissions" > 
+2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
+```
+
+2.2 Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+```shell
+# Query installed chaincode of peer
+../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
+
+# Should print similar output to
+Installed chaincodes on peer:
+Package ID: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: utilityemissions
+```
+
+2.3 At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node_ext`.
+``` shell
+docker build -t krybalko/utilityemissions-chaincode:0.0.1 .
+```
+
+Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `krybalko/utilityemissions-chaincode:0.0.1` (Docker Hub, public)
+
+
+2.4. Now we can start the chaincode. The next command will create one pod (1 container) with one service. Change the value of yournamespace
+```shell
+# Change dir to multi-cloud-deployment from ./chaincode/packaging
+cd ../..
+
+# Start chaincode
+kubectl apply -f ./chaincode/deploy/chaincode-deployment.yaml -n fabric-production
+
+# Should print similar output to
+deployment.apps/chaincode-utilityemissions created
+service/chaincode-utilityemissions created
+
+# Wait for 1 minutes and check if peer is chaincode container is running
+kubectl get pods -n fabric-production
+
+# Should print a similar output
+NAME                                         READY   STATUS    RESTARTS   AGE
+chaincode-utilityemissions-89c496668-trf47   1/1     Running   0          22h
+fabric-ca-f949798db-8fv2q                    1/1     Running   0          12d
+fabric-orderer-6b94b74596-29rww              1/1     Running   0          12d
+fabric-peer-77b54dc4cf-kf7xl                 2/2     Running   0          12d
+```
+
+
+2.5. Next, we follow the [Chaincode Lifecyle](https://hyperledger-fabric.readthedocs.io/en/release-2.2/chaincode_lifecycle.html) by running the script `./deployCC.sh`. Take a look at the script and change the value of `CC_PACKAGE_ID`.
+```shell
+# Run deployCC.sh. Remember to change the value of CC_PACKAGE_ID
+./deployCC.sh
+
+# Should print a similar output
++++++Export chaincode package identifier+++++
+utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
+utilityemissions
+[...]
++++++Query commited chaincode+++++
+Committed chaincode definition for chaincode 'utilityemissions' on channel 'utilityemissionchannel':
+Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [opentaps: true]
+```
+
+2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/utility-emissions-channel#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
+
+After seeding  you can run a script to record and get the emissions:
+```shell
+# Record emission to utilityemissionchannel
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
+
+# Query emission data
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["7fe9ccb94fb1b0ee302b471cdfafbd4c"]}' 1
+```
 
 ## 5. Monitor Hyperledger Fabric network
 TBD. --> Hyperledger Explorer

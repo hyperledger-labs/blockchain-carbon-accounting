@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: Apache-2.0
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
+require('@openzeppelin/hardhat-upgrades');
 
 // Uncomment this line to compile to Optimism Virtual Machine
 // Make sure to run `npx hardhat clean` before recompiling 

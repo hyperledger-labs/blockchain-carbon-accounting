@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { Contract } from "@ethersproject/contracts";
 import { addresses, abis } from "@project/contracts";
 
@@ -17,6 +18,12 @@ const PROPOSAL_STATES = [
   "Expired",
   "Executed"
 ];
+
+export const TOKEN_TYPES = [
+  "Renewable Energy Certificate",
+  "Carbon Emissions Offset",
+  "Audited Emissions"
+]
 
 /*
  *
@@ -64,6 +71,11 @@ export async function getBlockNumber(w3provider) {
 export function encodeParameters(types, values) {
   let abi = new AbiCoder();
   return abi.encode(types, values);
+}
+
+export function decodeParameters(types, values) {
+  let abi = new AbiCoder();
+  return abi.decode(types, values);
 }
 
 /*
@@ -371,7 +383,7 @@ export async function getActions(w3provider, proposalId) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let actions;
   try {
-    actions = await contract.getReceipt(proposalId);
+    actions = await contract.getActions(proposalId);
   } catch (error) {
     actions = catchError(error);
   }

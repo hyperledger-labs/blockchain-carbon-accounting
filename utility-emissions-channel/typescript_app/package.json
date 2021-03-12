@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node app.ts",
-    "start": "node ./dist/typescript_app/app.js",
+    "start": "node ./dist/app.js",
     "prod": "yarn build && yarn start",
     "format": "prettier-standard '**/*.ts'",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"

@@ -1,4 +1,4 @@
-specVersion: 0.0.2
+specVersion: 0.0.3
 description: Net Emissions Token Network
 repository: https://github.com/hyperledger-labs/blockchain-carbon-accounting
 schema:
@@ -8,8 +8,9 @@ dataSources:
     name: NetEmissionsTokenNetwork
     network: goerli
     source:
-      address: "0x2d6b1634d419A768786f6dDD07a4f6240Ccff6C4"
+      address: "0xFF6106aFdF569dA66d24F6C238038E5cD4e0A28A"
       abi: NetEmissionsTokenNetwork
+      startBlock: 4416675
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.4
@@ -39,7 +40,9 @@ dataSources:
           handler: handleRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleRoleRevoked
-        - event: TokenCreated(uint256)
+        - event: TokenCreated(uint256,uint256,uint256,uint8,indexed address,indexed address,uint256,uint256,uint256,uint256,string,string,string)
+          handler: handleTokenCreated
+        - event: TokenRetired(indexed address,uint256,uint256)
           handler: handleTokenCreated
         - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
           handler: handleTransferBatch

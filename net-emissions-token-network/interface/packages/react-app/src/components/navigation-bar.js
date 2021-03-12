@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
@@ -47,7 +48,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
     if (roles.length === 5 && (role === "" || cachedRoles !== roles)) {
       if (roles[0] === true) {
-        setRole("Owner (superuser)");
+        setRole("Admin (superuser)");
       } else if (roles[1] === true) {
         setRole("REC Dealer");
       } else if (roles[2] === true) {

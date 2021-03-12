@@ -4,9 +4,11 @@
 
 "use strict";
 
-const adminUserId = "admin";
-const adminUserPasswd = "adminpw";
+import { ADMIN_USER_ID, ADMIN_USER_PASSWD, AUDITORS } from "../../config/config";
+import { buildCCPAuditor } from "./gatewayUtils";
 
+const adminUserId = ADMIN_USER_ID || process.env.ADMIN_USER_ID;
+const adminUserPasswd = ADMIN_USER_PASSWD || process.env.ADMIN_USER_PASSWD;
 /**
  *
  * @param {*} FabricCAServices
@@ -22,6 +24,7 @@ export function buildCAClient(FabricCAServices, ccp, caHostName) {
     caInfo.caName
   );
 
+  console.log(`Built a CA url ${caInfo.url}`);
   console.log(`Built a CA Client named ${caInfo.caName}`);
   return caClient;
 }
@@ -124,36 +127,19 @@ export async function registerAndEnrollUser(
   }
 }
 
-export function setOrgDataCA(
-  orgName,
-  buildCCPAuditor1,
-  buildCCPAuditor2,
-  buildCCPAuditor3
-) {
+export function setOrgDataCA(orgName) {
   let ccp;
   let msp;
   let caName;
   console.log("OrgName: " + orgName);
-  switch (orgName) {
-    case "auditor1":
-      ccp = buildCCPAuditor1();
-      msp = "auditor1";
-      caName = "ca.auditor1.carbonAccounting.com";
-      break;
-    case "auditor2":
-      ccp = buildCCPAuditor2();
-      msp = "auditor2";
-      caName = "ca.auditor2.carbonAccounting.com";
-      break;
-    case "auditor3":
-      ccp = buildCCPAuditor3();
-      msp = "auditor3";
-      caName = "ca.auditor3.carbonAccounting.com";
-      break;
-    default:
-      throw `Requested orgName ${orgName} is not allowed.`;
-      break;
+
+  if (!AUDITORS.hasOwnProperty(orgName)) {
+      throw new Error(`AUDITORS contains no ${orgName}`);
   }
+
+  ccp = buildCCPAuditor(orgName);
+  msp = AUDITORS[orgName]["msp"]
+  caName = AUDITORS[orgName]["caName"]
 
   return { ccp, msp, caName };
 }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
 const {
   deployDaoContracts,
@@ -53,6 +54,26 @@ describe("Climate DAO - Unit tests", function() {
     let balanceOfDaoUserAfterTransfer = await contracts.daoToken
       .balanceOf(DAOuser.address)
       .then((response) => expect(response.toString()).to.equal('1000000'));
+  });
+
+  it("should return quorum value of 4% of votes not held by owner", async function() {
+
+    let owner = contracts.addresses[0];
+    let DAOuser = contracts.addresses[1];
+
+    // check initial quorum (400k since no circulating supply)
+    let quorumInitial = await contracts.governor
+      .quorumVotes()
+      .then((response) => expect(response.toString()).to.equal('400000000000000000000000'));
+
+    // send tokens from owner to DAO user
+    let transferInitial = await contracts.daoToken.connect(owner)
+                                         .transfer(DAOuser.address, '10000000000000000000000000')
+
+    let quorumCheckTwo = await contracts.governor
+      .quorumVotes()
+      .then((response) => expect(response.toString()).to.equal('400000000000000000000000'));
+
   });
 
 });

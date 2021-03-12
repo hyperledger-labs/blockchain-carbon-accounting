@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: utilityemissions-api
+  namespace: fabric-production
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:

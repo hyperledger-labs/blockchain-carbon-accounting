@@ -1,14 +1,17 @@
+// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.7.0;
-pragma experimental ABIEncoderV2; // causes high gas usage, so only use for view functions
+pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 
-contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
-    
-    using SafeMath for uint256;
+contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+
+    using SafeMathUpgradeable for uint256;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -56,20 +59,25 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
 
     // Counts number of unique token IDs (auto-incrementing)
-    using Counters for Counters.Counter;
-    Counters.Counter private _numOfUniqueTokens;
+    CountersUpgradeable.Counter private _numOfUniqueTokens;
 
-    string[] private _TOKEN_TYPES = [
-        "Renewable Energy Certificate",
-        "Carbon Emissions Offset",
-        "Audited Emissions"
-    ];
+    string[] private _TOKEN_TYPES;
 
     // events
     event TokenCreated(
-        CarbonTokenDetails _tokenDetails, 
-        uint256 _availableBalanceOfIssuee, 
-        uint256 _retiredBalanceOfIssuee
+        uint256 availableBalance,
+        uint256 retiredBalance,
+        uint256 tokenId,
+        uint8 tokenTypeId,
+        address indexed issuer,
+        address indexed issuee,
+        uint256 fromDate,
+        uint256 thruDate,
+        uint256 dateCreated,
+        uint256 automaticRetireDate,
+        string metadata,
+        string manifest,
+        string description
     );
     event TokenRetired(
         address indexed account,
@@ -81,16 +89,26 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     event RegisteredDealer(address indexed account);
     event UnregisteredDealer(address indexed account);
 
-    constructor() ERC1155("localhost") {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    // Replaces constructor in OpenZeppelin Upgrades
+    function initialize(address admin) public initializer {
+
+        __ERC1155_init("");
+
+        _TOKEN_TYPES = [
+            "Renewable Energy Certificate",
+            "Carbon Emissions Offset",
+            "Audited Emissions"
+        ];
 
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
 
-        _setupRole(REGISTERED_DEALER, msg.sender);
-        _setupRole(REGISTERED_REC_DEALER, msg.sender);
-        _setupRole(REGISTERED_OFFSET_DEALER, msg.sender);
-        _setupRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
+        // Set-up admin
+        _setupRole(DEFAULT_ADMIN_ROLE, admin);
+        _setupRole(REGISTERED_DEALER, admin);
+        _setupRole(REGISTERED_REC_DEALER, admin);
+        _setupRole(REGISTERED_OFFSET_DEALER, admin);
+        _setupRole(REGISTERED_EMISSIONS_AUDITOR, admin);
     }
 
     modifier consumerOrDealer() {
@@ -218,9 +236,19 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
         // emit event with all token details and balances
         emit TokenCreated(
-            tokenInfo,
             quantity,
-            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee]
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee],
+            tokenInfo.tokenId,
+            tokenInfo.tokenTypeId,
+            tokenInfo.issuer,
+            tokenInfo.issuee,
+            tokenInfo.fromDate,
+            tokenInfo.thruDate,
+            tokenInfo.automaticRetireDate,
+            tokenInfo.dateCreated,
+            tokenInfo.metadata,
+            tokenInfo.manifest,
+            tokenInfo.description
         );
     }
 
