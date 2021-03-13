@@ -56,7 +56,6 @@ function ActionTitle(props) {
 
 export default function QueueExecuteProposalModal(props) {
 
-  const [proposalId, setProposalId] = useState("");
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -83,7 +82,7 @@ export default function QueueExecuteProposalModal(props) {
     try {
       let queueCall = await queue(
         props.provider,
-        proposalId
+        props.id
       );
       newResult = queueCall.toString()
     } catch (e) {
@@ -99,7 +98,7 @@ export default function QueueExecuteProposalModal(props) {
     try {
       let executeCall = await execute(
         props.provider,
-        proposalId
+        props.id
       );
       newResult = executeCall.toString()
     } catch (e) {
@@ -115,7 +114,7 @@ export default function QueueExecuteProposalModal(props) {
     try {
       let executeCall = await cancel(
         props.provider,
-        proposalId
+        props.id
       );
       newResult = executeCall.toString()
     } catch (e) {
@@ -124,8 +123,6 @@ export default function QueueExecuteProposalModal(props) {
     setIsSubmitting(false);
     setResult(newResult);
   }
-
-  function onProposalIdChange(event) { setProposalId(event.target.value); };
 
   return (
     <Modal
@@ -145,7 +142,11 @@ export default function QueueExecuteProposalModal(props) {
         <Form>
           <Form.Group>
             <Form.Label>Proposal ID</Form.Label>
-            <Form.Control type="text" placeholder="ID # of the proposal..." onChange={onProposalIdChange} />
+            <Form.Control
+              type="text"
+              disabled
+              value={props.id}
+            />
           </Form.Group>
         </Form>
 
@@ -167,7 +168,6 @@ export default function QueueExecuteProposalModal(props) {
         <Button onClick={props.onHide}>Close</Button>
         <ActionButton
           type={props.type}
-          proposalId={proposalId}
           provider={props.provider}
           onClick={handleAction}
         />

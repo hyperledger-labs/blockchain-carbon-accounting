@@ -73,6 +73,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
 
   const [proposalActionType, setProposalActionType] = useState("");
+  const [proposalActionId, setProposalActionId] = useState(1);
 
   const [selectedProposalIdDetails, setSelectedProposalIdDetails] = useState(1);
 
@@ -127,7 +128,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   async function fetchProposals() {
     let numberOfProposals = await getProposalCount(provider);
     console.log(numberOfProposals)
-    let prop = [];
+    let p = [];
 
     for (let i = numberOfProposals; i > 0; i--) {
       let i_toNumberFix;
@@ -150,7 +151,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
 
 
-      prop.push({
+      p.push({
         id: i_toNumberFix,
         details: {
           proposer: proposalDetails[1],
@@ -170,8 +171,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       });
     }
 
-    setProposals(prop);
-    setProposalsLength(prop.length || 0);
+    setProposals(p);
+    setProposalsLength(p.length || 0);
     setFetchingProposals(false);
   }
 
@@ -208,6 +209,12 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     fetchingBlockNumber
   ]);
 
+  function handleProposalAction(action, id) {
+    setProposalActionType(action);
+    setProposalActionId(id);
+    setQueueExecuteModalShow(true);
+  }
+
   return (
     <>
       <QueueExecuteProposalModal
@@ -217,6 +224,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         }}
         provider={provider}
         type={proposalActionType}
+        id={proposalActionId}
       />
 
       <DelegateDaoTokensModal
@@ -254,32 +262,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       <div className="d-flex justify-content-start align-items-center">
         <div className="pr-2">
-          <span className="mr-2 text-secondary">Proposals:</span>
-          <Button
-            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("queue") }}
-            disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
-            variant="warning"
-          >
-            Queue
-          </Button>
-          <Button
-            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("execute") }}
-            disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
-            variant="success"
-          >
-            Execute
-          </Button>
-          <Button
-            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("cancel") }}
-            disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
-            variant="danger"
-          >
-            Cancel
-          </Button>
-          <div className="my-2"></div>
           <Button
             block
             size="sm"
@@ -375,10 +357,22 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   <Button
                     size="sm"
                     variant="secondary"
+                    className="text-nowrap mr-2"
                     onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
                   >
                     Call details
                   </Button>
+                  { ( (proposal.state !== "Executed") && (daoTokenBalance > 0) ) &&
+                    <Button
+                      size="sm"
+                      onClick={ () => handleProposalAction("cancel", proposal.id) }
+                      disabled={(daoTokenBalance <= 0)}
+                      className="text-nowrap mr-2"
+                      variant="danger"
+                    >
+                      Cancel
+                    </Button>
+                  }
                 </Card.Text>
                 <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
                 <Row className="text-center mb-3">
@@ -404,12 +398,42 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     </>
                   }
 
+                  { ( (proposal.state === "Succeeded") && (daoTokenBalance > 0) ) &&
+                    <Col className="text-danger my-auto">
+                      <Button
+                        onClick={ () => handleProposalAction("queue", proposal.id) }
+                        disabled={(daoTokenBalance <= 0)}
+                        className="text-nowrap mr-2"
+                        variant="warning"
+                      >
+                        Queue
+                      </Button>
+                    </Col>
+                  }
+
+                  { ( (proposal.state === "Queued") && (daoTokenBalance > 0) ) &&
+                    <Col className="text-danger my-auto">
+                      <Button
+                        onClick={ () => handleProposalAction("execute", proposal.id) }
+                        disabled={(daoTokenBalance <= 0)}
+                        className="text-nowrap mr-2"
+                        variant="success"
+                      >
+                        Execute
+                      </Button>
+                    </Col>
+                  }
+
                 </Row>
+
                 { (proposal.receipt.hasVoted === true) &&
                   <p className="text-secondary text-center"><small>You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</small></p>
                 }
+
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
-                  <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
+                  <Col className="text-danger my-auto">
+                    <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
+                  </Col>
                 }
               </Card.Body>
             </Card>
