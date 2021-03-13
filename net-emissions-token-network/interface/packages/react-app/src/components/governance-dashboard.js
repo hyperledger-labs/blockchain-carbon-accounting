@@ -347,21 +347,26 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
             <Card key={key} className="m-2 col-lg pt-2">
               <Card.Body>
                   <div className="d-flex flex-wrap justify-content-between">
-                    <h5>Proposal #{proposal.id}</h5>
-                    <span className="text-primary">{proposal.state}</span>
+                    <div>
+                      <h5>Proposal #{proposal.id}</h5>
+                      <small>Proposer: {proposal.details.proposer}</small>
+                    </div>
+                    <div>
+                      <span className="text-primary">{proposal.state}</span>
+                      <br/>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="text-nowrap mt-2"
+                        onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
+                      >
+                        Details
+                      </Button>
+                    </div>
                   </div>
 
-                <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
                 <Card.Text>{proposal.description}</Card.Text>
                 <Card.Text>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="text-nowrap mr-2"
-                    onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
-                  >
-                    Call details
-                  </Button>
                   { ( (proposal.state !== "Executed") && (daoTokenBalance > 0) ) &&
                     <Button
                       size="sm"
