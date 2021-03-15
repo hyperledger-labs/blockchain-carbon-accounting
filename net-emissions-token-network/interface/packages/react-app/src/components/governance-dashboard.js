@@ -371,7 +371,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     {/* proposal action buttons */}
                     <Col className="text-right">
                       {/* cancel button */}
-                      { ( (proposal.state !== "Executed") && (daoTokenBalance > 0) ) &&
+                      { ( (proposal.state !== "Executed") && (proposal.state !== "Canceled") && (daoTokenBalance > 0) ) &&
                         <Button
                           size="sm"
                           onClick={ () => handleProposalAction("cancel", proposal.id) }
