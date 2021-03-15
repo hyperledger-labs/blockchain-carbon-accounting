@@ -21,6 +21,12 @@ Create ConfigMap from connection config json
     $ cd utility-emissions-channel/aws-kubernetes
     $ kubectl create configmap utilityemissions-api-config --from-file=./ccp-generate/connection-opentaps.json -n fabric-production
 
+Create ebs volume to store users wallets
+
+    $ aws ec2 --region us-west-2 create-volume --availability-zone us-west-2c --size 5
+
+Update PersistentVolume at ./utilityemissions-api-deployment.yaml with volumeID of created ebs
+
 Deploy api application
 
     $ kubectl apply -f ./utilityemissions-api-deployment.yaml -n fabric-production

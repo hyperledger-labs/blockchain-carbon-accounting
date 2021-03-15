@@ -61,7 +61,12 @@ export function setWalletPathByOrg(orgName) {
   if (!AUDITORS.hasOwnProperty(orgName)) {
       throw new Error(`AUDITORS contains no ${orgName}`);
   }
-  walletPath = path.join(__dirname,  AUDITORS[orgName]["walletPath"]);
+  let isPathAbsolute = AUDITORS[orgName]["isPathAbsolute"];
+  if (isPathAbsolute) {
+      walletPath = AUDITORS[orgName]["walletPath"];
+  } else {
+      walletPath = path.join(__dirname,  AUDITORS[orgName]["walletPath"]);
+  }
 
   return walletPath;
 }

@@ -15,7 +15,33 @@ spec:
   selector:
     app: utilityemissions-api
 ---
-
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-utilityemissions-api
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp2
+  awsElasticBlockStore:
+    fsType: ext4
+    volumeID: vol-xxxxxxxxxxxxxx
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: utilityemissions-api-pvc
+  namespace: fabric-production
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: pv-utilityemissions-api
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -33,6 +59,8 @@ spec:
       labels:
         app: utilityemissions-api
     spec:
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: utilityemissions-api
           image: krybalko/utilityemissions-api:0.0.1
@@ -60,6 +88,8 @@ spec:
             - name: config
               mountPath: "/config"
               readOnly: true
+            - name: utilityemissions-api-server-pvc
+              mountPath: /appdata
       volumes:
         # You set volumes at the Pod level, then mount them into containers inside that Pod
         - name: config
@@ -70,3 +100,6 @@ spec:
             items:
             - key: "connection-opentaps.json"
               path: "connection-opentaps.json"
+        - persistentVolumeClaim:
+            claimName: utilityemissions-api-pvc
+          name: utilityemissions-api-server-pvc
