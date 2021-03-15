@@ -62,8 +62,8 @@ async function main() {
   console.log("Governor deployed to:", governor.address);
 
   // delegate voting power to self
-  //const delegateTokensToSelf = await daoToken.connect(deployer).delegate(deployer.address);
-  //console.log("Delegated DAO token voting power to self.");
+  const delegateTokensToSelf = await daoToken.connect(deployer).delegate(deployer.address);
+  console.log("Delegated DAO token voting power to self.");
 
   // grant dealer role to Timelock contract
   const grantDealerRoleToTimelock1 = await netEmissionsTokenNetwork
