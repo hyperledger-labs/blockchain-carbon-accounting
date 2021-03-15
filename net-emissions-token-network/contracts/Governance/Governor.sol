@@ -1,3 +1,5 @@
+// @unsupported: ovm
+
 pragma solidity ^0.5.16;
 pragma experimental ABIEncoderV2;
 // SPDX-License-Identifier: BSD 3-Clause "New" or "Revised" License
