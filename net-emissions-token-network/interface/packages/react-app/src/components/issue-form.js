@@ -138,6 +138,7 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
         }}
         provider={provider}
         calldata={calldata}
+        description={description}
       />
 
       <SubmissionModal

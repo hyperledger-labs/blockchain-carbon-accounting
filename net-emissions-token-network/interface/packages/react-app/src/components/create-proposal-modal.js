@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
 
@@ -47,6 +47,10 @@ export default function CreateProposalModal(props) {
 
   function onDescriptionChange(event) { setDescription(event.target.value); };
 
+  useEffect(() => {
+    setDescription(props.description);
+  }, [props.description]);
+
   return (
     <Modal
       {...props}
@@ -66,7 +70,7 @@ export default function CreateProposalModal(props) {
         <Form>
           <Form.Group>
             <Form.Label>Description</Form.Label>
-            <Form.Control as="textarea" rows={2} placeholder="Describe the purpose of this proposal..." onChange={onDescriptionChange} />
+            <Form.Control as="textarea" rows={2} placeholder="Describe the purpose of this proposal..." value={description} onChange={onDescriptionChange} />
           </Form.Group>
           <Form.Group>
             <Form.Label>Calldata</Form.Label>
