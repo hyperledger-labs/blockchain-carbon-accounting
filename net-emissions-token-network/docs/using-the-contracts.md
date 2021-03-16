@@ -83,10 +83,10 @@ npx hardhat run --network xdai scripts/deploy-net-emissions-token-network.js
 
 By default, Hardhat compiles to the EVM using the given Solidity version in `hardhat.config.js`. To instead compile to the [OVM](https://optimism.io/): 
 
-1. Uncomment the line in `hardhat.config.js`:
+1. Set the `OVM` environment variable:
 
-```js
-// require("@eth-optimism/plugins/hardhat/compiler");
+```bash
+export OVM=1
 ```
 
 2. If build artifacts exist, run `npx hardhat clean`
