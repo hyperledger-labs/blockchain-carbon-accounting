@@ -77,9 +77,9 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
           signedInAddress,
           tokenTypeId,
           Number(quantity),
-          Number(fromDate),
-          Number(thruDate),
-          Number(automaticRetireDate),
+          Number(fromDate)/1000,
+          Number(thruDate)/1000,
+          Number(automaticRetireDate)/1000,
           metadata,
           manifest,
           ("Issued by DAO. " + description)
