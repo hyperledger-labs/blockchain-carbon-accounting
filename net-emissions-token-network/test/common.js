@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 const { upgrades } = require("hardhat");
+const { ethers } = require("./ethers-provider");
 
 exports.allTokenTypeId = [1, 2, 3];
 exports.quantity = 10;
