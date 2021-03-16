@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
-import { decodeParameters, TOKEN_TYPES } from "../services/contract-functions";
+import { decodeParameters, TOKEN_TYPES, formatDate } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
@@ -16,20 +16,17 @@ export default function ProposalCallDetailsModal(props) {
       let regExp = /\(([^)]+)\)/;
       let types = (regExp.exec(props.actions.signatures[actionNumber]))[1].split(",");
       let decodedCall = await decodeParameters(types, props.actions.calldatas[actionNumber]);
-      // Format unix times to Date objects
-      let fromDateObj = new Date((decodedCall[3].toNumber()) * 1000);
-      let thruDateObj = new Date((decodedCall[4].toNumber()) * 1000);
-      let automaticRetireDateObj = new Date((decodedCall[5].toNumber()) * 1000);
       setDecoded({
         address: decodedCall[0],
-        tokenType: TOKEN_TYPES[decodedCall[1]-1],
-        quantity: decodedCall[2].toNumber(),
-        fromDate: fromDateObj.toLocaleString(),
-        thruDate: thruDateObj.toLocaleString(),
-        automaticRetireDate: automaticRetireDateObj.toLocaleString(),
-        metadata: decodedCall[6],
-        manifest: decodedCall[7],
-        description: decodedCall[8],
+        proposer: decodedCall[1],
+        tokenType: TOKEN_TYPES[decodedCall[2]-1],
+        quantity: decodedCall[3].toNumber(),
+        fromDate: formatDate(decodedCall[4].toNumber()),
+        thruDate: formatDate(decodedCall[5].toNumber()),
+        automaticRetireDate: formatDate(decodedCall[6].toNumber()),
+        metadata: decodedCall[7],
+        manifest: decodedCall[8],
+        description: decodedCall[9],
       });
     }
     fetchDecodedParameters(0);
@@ -62,6 +59,7 @@ export default function ProposalCallDetailsModal(props) {
           <Form.Group>
             <Form.Label>Function parameters</Form.Label>
             <Form.Text>Address to issue to: {decoded.address}</Form.Text>
+            <Form.Text>Issuer/proposer: {decoded.proposer}</Form.Text>
             <Form.Text>Token type: {decoded.tokenType}</Form.Text>
             <Form.Text>Quantity of tokens: {decoded.quantity}</Form.Text>
             <Form.Text>From date: {decoded.fromDate}</Form.Text>

@@ -12,16 +12,18 @@ async function main() {
 
   const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
   const netEmissionsTokenNetwork = await hre.upgrades.deployProxy(NetEmissionsTokenNetwork, [deployer.address]);
-
-  // Initialize contract admin
   await netEmissionsTokenNetwork.deployed();
-  await netEmissionsTokenNetwork.connect(deployer).initialize(deployer.address);
 
   console.log("NetEmissionsTokenNetwork proxy deployed to:", netEmissionsTokenNetwork.address);
+
+  console.log("Make sure to set the Timelock address with setTimelock() so that the DAO can issue tokens with issueFromDAO().");
 }
 
 main()
-  .then(() => process.exit(0))
+  .then(() => {
+    console.log("Done.");
+    process.exit(0);
+  })
   .catch((error) => {
     console.error(error);
     process.exit(1);

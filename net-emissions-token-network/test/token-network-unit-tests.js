@@ -60,7 +60,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Failed to issue: tokenTypeId is invalid"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: tokenTypeId is invalid"
       );
     }
 
@@ -115,7 +115,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let getTokenTypeFail = await contract.getTokenType((tokenId2 + 1));
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::getTokenType: tokenId does not exist"
       );
     }
   });
@@ -201,7 +201,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let registerInvalidTokenTypeId = await contract.connect(owner).registerDealer(unregistered.address, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token type does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::registerDealer: tokenTypeId does not exist"
       );
     }
 
@@ -210,7 +210,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let unregisterInvalidTokenTypeId = await contract.connect(owner).unregisterDealer(unregistered.address, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token type does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::unregisterDealer: tokenTypeId does not exist"
       );
     }
 
@@ -219,7 +219,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let registerDealerFromDealerFail = await contract.connect(dealer).registerDealer(unregistered.address, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not the owner"
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
       );
     }
 
@@ -228,7 +228,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let unregisterFail = await contract.connect(unregistered).registerDealer(unregistered.address, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not the owner"
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
       );
     }
 
@@ -237,7 +237,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let unregisterSelfFail = await contract.connect(dealer).unregisterDealer(dealer.address, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not the owner"
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
       );
     }
 
@@ -411,7 +411,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumer).retire((tokenId+1), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::retire: tokenId does not exist"
       );
     }
 
@@ -420,7 +420,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumerTwo).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Not enough available balance to retire"
+        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
       );
     }
 
@@ -429,7 +429,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(unregistered).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You must be either a consumer or a dealer"
+        "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
       );
     }
 
@@ -438,7 +438,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumer).retire((tokenId), (quantity + 100));
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Not enough available balance to retire"
+        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
       );
     }
 
@@ -458,7 +458,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let getRetiredFail = await contract.connect(consumer).getTokenRetiredAmount(consumer.address, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::getTokenRetiredAmount: tokenId does not exist"
       );
     }    
 
@@ -506,7 +506,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let transferFail = await contract.connect(consumer).transfer(consumerTwo.address, 100, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::transfer: tokenId does not exist"
       );
     }
 
@@ -524,7 +524,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let transferFail = await contract.connect(consumer).transfer(consumer.address, tokenId, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Sender and receiver cannot be the same"
+        "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
       );
     }
 

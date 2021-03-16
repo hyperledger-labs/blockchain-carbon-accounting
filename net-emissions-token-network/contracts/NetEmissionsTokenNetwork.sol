@@ -58,6 +58,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
 
+    address private timelock;
+
     // Counts number of unique token IDs (auto-incrementing)
     CountersUpgradeable.Counter private _numOfUniqueTokens;
 
@@ -100,6 +102,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             "Audited Emissions"
         ];
 
+        timelock = address(0);
+
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
 
@@ -119,7 +123,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
 
         require(
             isConsumer || isRecDealer || isCeoDealer || isAeDealer,
-            "You must be either a consumer or a dealer"
+            "CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
         );
 
         _;
@@ -132,15 +136,23 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
 
         require(
             isRecDealer || isCeoDealer || isAeDealer,
-            "You are not a dealer"
+            "CLM8::onlyDealer: msg.sender not a dealer"
         );
         _;
     }
 
-    modifier onlyOwner() {
+    modifier onlyAdmin() {
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "You are not the owner"
+            "CLM8::onlyAdmin: msg.sender not the admin"
+        );
+        _;
+    }
+
+    modifier onlyDAO() {
+        require(
+            msg.sender == timelock,
+            "CLM8::onlyDAO: You are not the DAO"
         );
         _;
     }
@@ -176,9 +188,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * @param quantity of the token to mint For ex: if one needs 100 full tokens, the caller
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
-
     function issue(
-        address account,
+        address issuee,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -188,55 +199,114 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         string memory manifest,
         string memory description
     ) public onlyDealer {
-        _numOfUniqueTokens.increment();
-        CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens.current()];
+        return _issue(
+            issuee,
+            msg.sender,
+            tokenTypeId,
+            quantity,
+            fromDate,
+            thruDate,
+            automaticRetireDate,
+            metadata,
+            manifest,
+            description
+        );
+    }
+
+    /**
+     * @dev Issue function for DAO to use proposer as issuer
+     * Must be called from Timelock contract through a successful proposal
+     */
+    function issueFromDAO(
+        address issuee,
+        address proposer,
+        uint8 tokenTypeId,
+        uint256 quantity,
+        uint256 fromDate,
+        uint256 thruDate,
+        uint256 automaticRetireDate,
+        string memory metadata,
+        string memory manifest,
+        string memory description
+    ) public onlyDAO {
+        return _issue(
+            issuee,
+            proposer,
+            tokenTypeId,
+            quantity,
+            fromDate,
+            thruDate,
+            automaticRetireDate,
+            metadata,
+            manifest,
+            description
+        );
+    }
+
+    function _issue(
+        address _issuee,
+        address _issuer,
+        uint8 _tokenTypeId,
+        uint256 _quantity,
+        uint256 _fromDate,
+        uint256 _thruDate,
+        uint256 _automaticRetireDate,
+        string memory _metadata,
+        string memory _manifest,
+        string memory _description
+    ) internal {
+
         require(
-            tokenTypeIdIsValid(tokenTypeId),
-            "Failed to issue: tokenTypeId is invalid"
+            tokenTypeIdIsValid(_tokenTypeId),
+            "CLM8::_issue: tokenTypeId is invalid"
         );
 
-        if (tokenTypeId == 1) {
+        if (_tokenTypeId == 1) {
             require(
-                hasRole(REGISTERED_REC_DEALER, msg.sender),
-                "You are not a Renewable Energy Certificate dealer"
+                hasRole(REGISTERED_REC_DEALER, _issuer),
+                "CLM8::_issue: issuer not a registered REC dealer"
             );
-        } else if (tokenTypeId == 2) {
+        } else if (_tokenTypeId == 2) {
             require(
-                hasRole(REGISTERED_OFFSET_DEALER, msg.sender),
-                "You are not a Carbon Emissions Offset dealer"
+                hasRole(REGISTERED_OFFSET_DEALER, _issuer),
+                "CLM8::_issue: issuer not a registered offset dealer"
             );
         } else {
             require(
-                hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender),
-                "You are not an Audited Emissions dealer"
+                hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                "CLM8::_issue: issuer not a registered emissions auditor"
             );
         }
 
-        bytes memory callData;
+        // increment token identifier
+        _numOfUniqueTokens.increment();
+
+        // create token details
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens.current()];
 
         tokenInfo.tokenId = _numOfUniqueTokens.current();
-        tokenInfo.tokenTypeId = tokenTypeId;
-        tokenInfo.issuer = msg.sender;
-        tokenInfo.issuee = account;
-        tokenInfo.fromDate = fromDate;
-        tokenInfo.thruDate = thruDate;
-        tokenInfo.automaticRetireDate = automaticRetireDate;
+        tokenInfo.tokenTypeId = _tokenTypeId;
+        tokenInfo.issuee = _issuee;
+        tokenInfo.issuer = _issuer;
+        tokenInfo.fromDate = _fromDate;
+        tokenInfo.thruDate = _thruDate;
+        tokenInfo.automaticRetireDate = _automaticRetireDate;
         tokenInfo.dateCreated = block.timestamp;
-        tokenInfo.metadata = metadata;
-        tokenInfo.manifest = manifest;
-        tokenInfo.description = description;
+        tokenInfo.metadata = _metadata;
+        tokenInfo.manifest = _manifest;
+        tokenInfo.description = _description;
 
-        super._mint(account, _numOfUniqueTokens.current(), quantity, callData);
+        super._mint(_issuee, _numOfUniqueTokens.current(), _quantity, "");
 
         // retire audited emissions on mint
-        if (tokenTypeId == 3) {
-            super._burn(tokenInfo.issuee, tokenInfo.tokenId, quantity);
-            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee] = _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee].add(quantity);
+        if (_tokenTypeId == 3) {
+            super._burn(tokenInfo.issuee, tokenInfo.tokenId, _quantity);
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee] = _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee].add(_quantity);
         }
 
         // emit event with all token details and balances
         emit TokenCreated(
-            quantity,
+            _quantity,
             _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee],
             tokenInfo.tokenId,
             tokenInfo.tokenTypeId,
@@ -261,7 +331,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         view
         returns (string memory)
     {
-        require(tokenExists(tokenId), "tokenId does not exist");
+        require(tokenExists(tokenId), "CLM8::getTokenType: tokenId does not exist");
         string memory tokenType =
             _TOKEN_TYPES[(_tokenDetails[tokenId].tokenTypeId - 1)];
         return tokenType;
@@ -276,7 +346,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         view
         returns (uint256)
     {
-        require(tokenExists(tokenId), "tokenId does not exist");
+        require(tokenExists(tokenId), "CLM8::getTokenRetiredAmount: tokenId does not exist");
         uint256 amount = _retiredBalances[tokenId][account];
         return amount;
     }
@@ -290,8 +360,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 tokenId,
         uint256 amount
     ) external consumerOrDealer {
-        require(tokenExists(tokenId), "tokenId does not exist");
-        require( (amount <= super.balanceOf(msg.sender, tokenId)), "Not enough available balance to retire" );
+        require(tokenExists(tokenId), "CLM8::retire: tokenId does not exist");
+        require( (amount <= super.balanceOf(msg.sender, tokenId)), "CLM8::retire: not enough available balance to retire" );
 
         super._burn(msg.sender, tokenId, amount);
         _retiredBalances[tokenId][msg.sender] = _retiredBalances[tokenId][msg.sender].add(amount);
@@ -335,12 +405,12 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * @param account address to check roles
      */
     function getRoles(address account) external view returns (bool, bool, bool, bool, bool) {
-        bool isOwner = hasRole(DEFAULT_ADMIN_ROLE, account);
+        bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, account);
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
         bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, account);
         bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, account);
         bool isConsumer = hasRole(REGISTERED_CONSUMER, account);
-        return (isOwner, isRecDealer, isCeoDealer, isAeDealer, isConsumer);
+        return (isAdmin, isRecDealer, isCeoDealer, isAeDealer, isConsumer);
     }
 
     /**
@@ -350,9 +420,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      */
     function registerDealer(address account, uint8 tokenTypeId)
         external
-        onlyOwner
+        onlyAdmin
     {
-        require(tokenTypeIdIsValid(tokenTypeId), "Token type does not exist");
+        require(tokenTypeIdIsValid(tokenTypeId), "CLM8::registerDealer: tokenTypeId does not exist");
         if (tokenTypeId == 1) {
             grantRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
@@ -380,9 +450,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      */
     function unregisterDealer(address account, uint8 tokenTypeId)
         external
-        onlyOwner
+        onlyAdmin
     {
-        require(tokenTypeIdIsValid(tokenTypeId), "Token type does not exist");
+        require(tokenTypeIdIsValid(tokenTypeId), "CLM8::unregisterDealer: tokenTypeId does not exist");
         if (tokenTypeId == 1) {
             super.revokeRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
@@ -421,13 +491,15 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 tokenId,
         uint256 value
     ) external consumerOrDealer {
-        require(tokenExists(tokenId), "tokenId does not exist");
-        require(
-            isDealerOrConsumer(to),
-            "Recipient must be consumer or dealer"
-        );
-        require((msg.sender != to), "Sender and receiver cannot be the same");
+        require(tokenExists(tokenId), "CLM8::transfer: tokenId does not exist");
+        require((msg.sender != to), "CLM8::transfer: sender and receiver cannot be the same");
         super.safeTransferFrom(msg.sender, to, tokenId, value, "0x00");
+    }
+
+    function setTimelock(
+        address _timelock
+    ) external onlyAdmin {
+        timelock = _timelock;
     }
 
     function getAvailableAndRetired(address account, uint256 tokenId)
@@ -442,14 +514,12 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
 
     /**
      * @dev returns issuer of a given tokenId
-     * @param tokenId token to check
      */
     function getIssuer(uint256 tokenId)
         external
         view
         returns (address)
     {
-        require(tokenExists(tokenId), "tokenId does not exist");
         return _tokenDetails[tokenId].issuer;
     }
 
@@ -462,7 +532,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         view
         returns (CarbonTokenDetails memory)
     {
-        require(tokenExists(tokenId), "tokenId does not exist");
         return _tokenDetails[tokenId];
     }
 }

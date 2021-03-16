@@ -14,7 +14,7 @@ import Datetime from "react-datetime";
 
 import "react-datetime/css/react-datetime.css";
 
-export default function IssueForm({ provider, roles }) {
+export default function IssueForm({ provider, roles, signedInAddress }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -61,6 +61,7 @@ export default function IssueForm({ provider, roles }) {
         // types of params
         [
           'address',
+          'address',
           'uint8',
           'uint256',
           'uint256',
@@ -73,11 +74,12 @@ export default function IssueForm({ provider, roles }) {
         // value of params
         [
           address,
+          signedInAddress,
           tokenTypeId,
           Number(quantity),
-          Number(fromDate),
-          Number(thruDate),
-          Number(automaticRetireDate),
+          Number(fromDate)/1000,
+          Number(thruDate)/1000,
+          Number(automaticRetireDate)/1000,
           metadata,
           manifest,
           ("Issued by DAO. " + description)
@@ -91,8 +93,11 @@ export default function IssueForm({ provider, roles }) {
 
   // update calldata on input change
   useEffect(() => {
-    updateCalldata()
+    if (signedInAddress) {
+      updateCalldata();
+    }
   }, [
+    signedInAddress,
     onAddressChange,
     onTokenTypeIdChange,
     onQuantityChange,
@@ -133,6 +138,7 @@ export default function IssueForm({ provider, roles }) {
         }}
         provider={provider}
         calldata={calldata}
+        description={description}
       />
 
       <SubmissionModal
