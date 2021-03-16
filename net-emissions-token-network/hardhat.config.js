@@ -5,22 +5,14 @@ require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
 require('@openzeppelin/hardhat-upgrades');
 
-// Uncomment this line to compile to Optimism Virtual Machine
-// Make sure to run `npx hardhat clean` before recompiling 
-// require("@eth-optimism/plugins/hardhat/compiler");
+// Make sure to run `npx hardhat clean` before recompiling and testing
+if (process.env.OVM) {
+  require("@eth-optimism/plugins/hardhat/compiler");
+  require("@eth-optimism/plugins/hardhat/ethers");
+}
 
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
 // const ethereumConfig = require("./.ethereum-config");
-
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-task("accounts", "Prints the list of accounts", async () => {
-  const accounts = await ethers.getSigners();
-
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-});
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more

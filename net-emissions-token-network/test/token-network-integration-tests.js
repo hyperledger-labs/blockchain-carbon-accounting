@@ -15,6 +15,7 @@ const {
   createSnapshot,
   applySnapshot
 } = require("./common.js");
+const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Integration tests", function() {
 

@@ -12,4 +12,3 @@ See the documentation for more information and instructions:
 - See `docs/using-the-react-application.md` for running the React interface that connects to the contracts either locally with Hardhat Network or to a public chain
 - See `docs/verifying-contracts-with-etherscan.md` for verifying with Etherscan to be able to format and make contract calls from their interface
 - See `docs/testing-with-remix.md` for testing with the web-based Remix IDE with the remixd daemon
-
