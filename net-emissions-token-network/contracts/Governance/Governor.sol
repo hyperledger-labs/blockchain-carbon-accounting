@@ -311,6 +311,7 @@ contract Governor {
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "Governor::_castVote: voter already voted");
         uint96 votes = dclm8.getPriorVotes(voter, proposal.startBlock);
+        require(votes > 0, "Governor::_castVote: no eligible votes prior to proposal start block");
 
         if (support) {
             proposal.forVotes = add256(proposal.forVotes, votes);
