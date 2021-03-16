@@ -78,6 +78,14 @@ export function decodeParameters(types, values) {
   return abi.decode(types, values);
 }
 
+export function formatDate(timestamp) {
+  if (timestamp === 0) {
+    return "None";
+  } else {
+    return (new Date(timestamp * 1000)).toLocaleString();
+  }
+}
+
 /*
  *
  *  NetEmissionsTokenNetwork contract functions

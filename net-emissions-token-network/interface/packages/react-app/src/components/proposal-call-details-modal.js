@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
-import { decodeParameters, TOKEN_TYPES } from "../services/contract-functions";
+import { decodeParameters, TOKEN_TYPES, formatDate } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
@@ -16,18 +16,14 @@ export default function ProposalCallDetailsModal(props) {
       let regExp = /\(([^)]+)\)/;
       let types = (regExp.exec(props.actions.signatures[actionNumber]))[1].split(",");
       let decodedCall = await decodeParameters(types, props.actions.calldatas[actionNumber]);
-      // Format unix times to Date objects
-      let fromDateObj = new Date((decodedCall[4].toNumber()) * 1000);
-      let thruDateObj = new Date((decodedCall[5].toNumber()) * 1000);
-      let automaticRetireDateObj = new Date((decodedCall[6].toNumber()) * 1000);
       setDecoded({
         address: decodedCall[0],
         proposer: decodedCall[1],
         tokenType: TOKEN_TYPES[decodedCall[2]-1],
         quantity: decodedCall[3].toNumber(),
-        fromDate: fromDateObj.toLocaleString(),
-        thruDate: thruDateObj.toLocaleString(),
-        automaticRetireDate: automaticRetireDateObj.toLocaleString(),
+        fromDate: formatDate(decodedCall[4].toNumber()/1000),
+        thruDate: formatDate(decodedCall[5].toNumber()/1000),
+        automaticRetireDate: formatDate(decodedCall[6].toNumber()/1000),
         metadata: decodedCall[7],
         manifest: decodedCall[8],
         description: decodedCall[9],

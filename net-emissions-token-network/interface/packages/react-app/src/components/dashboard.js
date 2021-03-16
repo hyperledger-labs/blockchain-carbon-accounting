@@ -1,20 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
-import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired } from "../services/contract-functions";
+import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired, formatDate } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
-
-function formatDate(timestamp) {
-  if (timestamp === 0) {
-    return "None";
-  } else {
-    return (new Date(timestamp * 1000)).toLocaleString();
-  }
-}
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) => {
   // Modal display and token it is set to

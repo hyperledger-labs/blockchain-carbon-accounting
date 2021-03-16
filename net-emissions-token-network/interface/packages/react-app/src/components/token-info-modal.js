@@ -96,7 +96,7 @@ export default function TokenInfoModal(props) {
               <td>{props.token.fromDate}</td>
             </tr>
             <tr>
-              <td>Through date</td>
+              <td>Thru date</td>
               <td>{props.token.thruDate}</td>
             </tr>
             <tr>
