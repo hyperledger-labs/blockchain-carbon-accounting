@@ -33,10 +33,10 @@ describe("Climate DAO - Integration tests", function() {
   });
 
   it("should allow the owner to make and pass proposals to issue net emissions tokens to self", async function() {
-    // deploy NetEmissionsTokenNetwork
-    const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork");
-
     let owner = contracts.addresses[0];
+
+    // deploy NetEmissionsTokenNetwork
+    const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork", owner.address);
 
     // grant role of dealer to Timelock contract
     const grantDealerRoleToTimelock = await netEmissionsTokenNetwork.connect(owner).registerDealer(contracts.timelock.address,1);
@@ -45,6 +45,7 @@ describe("Climate DAO - Integration tests", function() {
     // set-up parameters for proposal external contract call
     let proposalCallParams = {
       account: owner.address,
+      proposer: owner.address,
       tokenTypeId: 1,
       quantity: 300,
       fromDate: 0,
@@ -59,13 +60,14 @@ describe("Climate DAO - Integration tests", function() {
     let proposal = {
       targets: [netEmissionsTokenNetwork.address], // contract to call
       values: [ 0 ], // number of wei sent with call, i.e. msg.value
-      signatures: ["issue(address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
+      signatures: ["issueFromDAO(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
       calldatas: [encodeParameters(
         // types of params
-        ['address', 'uint8', 'uint256', 'uint256', 'uint256', 'uint256', 'string', 'string', 'string'],
+        ['address', 'address', 'uint8', 'uint256', 'uint256', 'uint256', 'uint256', 'string', 'string', 'string'],
         // value of params
         [
           proposalCallParams.account,
+          proposalCallParams.proposer,
           proposalCallParams.tokenTypeId,
           proposalCallParams.quantity,
           proposalCallParams.fromDate,

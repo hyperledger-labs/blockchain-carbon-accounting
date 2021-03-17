@@ -2,16 +2,16 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
-contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
-    using SafeMathUpgradeable for uint256;
-    using CountersUpgradeable for CountersUpgradeable.Counter;
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -58,12 +58,16 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
 
-    address private timelock;
+    address private timelock = address(0);
 
     // Counts number of unique token IDs (auto-incrementing)
-    CountersUpgradeable.Counter private _numOfUniqueTokens;
+    Counters.Counter private _numOfUniqueTokens;
 
-    string[] private _TOKEN_TYPES;
+    string[] private _TOKEN_TYPES  = [
+        "Renewable Energy Certificate",
+        "Carbon Emissions Offset",
+        "Audited Emissions"
+    ];
 
     // events
     event TokenCreated(
@@ -92,17 +96,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     event UnregisteredDealer(address indexed account);
 
     // Replaces constructor in OpenZeppelin Upgrades
-    function initialize(address admin) public initializer {
-
-        __ERC1155_init("");
-
-        _TOKEN_TYPES = [
-            "Renewable Energy Certificate",
-            "Carbon Emissions Offset",
-            "Audited Emissions"
-        ];
-
-        timelock = address(0);
+    constructor(address admin) ERC1155("") {
 
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
