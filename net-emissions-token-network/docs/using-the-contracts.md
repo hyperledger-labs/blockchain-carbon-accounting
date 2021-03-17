@@ -104,3 +104,5 @@ To deploy contracts to a local Optimism development node after following the dir
 ```bash
 $ npx hardhat run --network ovm_localhost scripts/deploy-all.js
 ```
+
+Don't forget to set the addresses in `net-emissions-token-network/interface/packages/contracts/src/addresses.js` to connect to them via the React interface. The default contract addresses on the local node after running the script `deploy-all.js` are all commented out in that file to switch from Hardhat Network -- see `using-the-react-application.md` for more information on using the React application.
