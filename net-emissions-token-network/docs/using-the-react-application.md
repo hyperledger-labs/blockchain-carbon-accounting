@@ -82,13 +82,15 @@ Optimism is a layer-2 solution for EVM-based layer-1 chains. It runs in a separa
 npx hardhat run --network ovm_localhost scripts/deploy-all.js
 ```
 
-3. Start the React app with
+3. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js`, uncomment the Optimism localhost contract addresses already in the file and comment out the Hardhat Network contract addresses.
+
+4. Start the React app with
 
 ```bash
 yarn react-app:start
 ```
 
-4. After navigating to `localhost:3000` in the browser, add a new network to MetaMask by clicking the networking at the top and Custom RPC with these settings:
+5. After navigating to `localhost:3000` in the browser, add a new network to MetaMask by clicking the networking at the top and Custom RPC with these settings:
 
 - Network Name: Optimism Localhost
 - Chain ID: 31337
@@ -96,9 +98,9 @@ yarn react-app:start
 
 Refresh and make sure MetaMask says the account is "Connected" with a green dot.
 
-5. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
+6. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
 
-6. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
+7. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
 
 The test accounts are different from Hardhat Network's test accounts. You can use these to import into MetaMask to test with:
 
