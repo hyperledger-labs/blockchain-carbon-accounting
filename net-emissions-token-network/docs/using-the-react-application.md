@@ -12,7 +12,7 @@ From the `net-emissions.token-network/interface` directory, run
 yarn install
 ```
 
-## With Local Hardhat Network
+## With Hardhat Network local testnet
 
 To run a testnet locally via Hardhat Network:
 
@@ -72,17 +72,23 @@ You should now be connected to the contracts in Goerli and be able to interact w
 
 ## With Optimism local testnet
 
-Optimism is a layer-2 solution for EVM-based layer-1 chains.
+Optimism is a layer-2 solution for EVM-based layer-1 chains. It runs in a separate repository and can be used to test deployment to Optimism.
 
 1. Run a local Optimism testnet using the [`optimism-integration`](https://github.com/ethereum-optimism/optimism-integration) repository (see `using-the-contracts.md` for more information).
 
-2. Start the React app with
+2. In a separate terminal, deploy the contracts in `net-emissions-token-network/` with:
+
+```bash
+npx hardhat run --network ovm_localhost scripts/deploy-all.js
+```
+
+3. Start the React app with
 
 ```bash
 yarn react-app:start
 ```
 
-3. After navigating to `localhost:3000` in the browser, add a new network to MetaMask by clicking the networking at the top and Custom RPC with these settings:
+4. After navigating to `localhost:3000` in the browser, add a new network to MetaMask by clicking the networking at the top and Custom RPC with these settings:
 
 - Network Name: Optimism Localhost
 - Chain ID: 31337
@@ -90,9 +96,9 @@ yarn react-app:start
 
 Refresh and make sure MetaMask says the account is "Connected" with a green dot.
 
-4. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
+5. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
 
-5. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
+6. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
 
 The test accounts are different from Hardhat Network's test accounts. You can use these to import into MetaMask to test with:
 
@@ -109,4 +115,6 @@ Account #4: 0x640e7cc27b750144ed08ba09515f3416a988b6a3 (10000 ETH)
 Private Key: 0xea8b000efb33c49d819e8d6452f681eed55cdf7de47d655887fc0e318906f2e7
 ```
 
-You should now be connected to the contracts in Goerli and be able to interact with contracts deployed on it through the React application.
+Currently, `evm_mine` and `evm_increaseTime` are not supported on the node.
+
+You should now be connected to the contracts in a local Optimism development environment and be able to interact with contracts deployed on it through the React application.
