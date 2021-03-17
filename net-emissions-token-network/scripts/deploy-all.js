@@ -42,7 +42,7 @@ async function main() {
 
   // We get the contracts to deploy
   const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-  const netEmissionsTokenNetwork = await hre.upgrades.deployProxy(NetEmissionsTokenNetwork, [deployer.address]);
+  const netEmissionsTokenNetwork = await NetEmissionsTokenNetwork.deploy(deployer.address);
   await netEmissionsTokenNetwork.deployed();
   console.log("Net Emissions Token Network deployed to:", netEmissionsTokenNetwork.address);
 
@@ -62,20 +62,8 @@ async function main() {
   console.log("Governor deployed to:", governor.address);
 
   // delegate voting power to self
-  const delegateTokensToSelf = await daoToken.connect(deployer).delegate(deployer.address);
+  await daoToken.connect(deployer).delegate(deployer.address);
   console.log("Delegated DAO token voting power to self.");
-
-  // grant dealer role to Timelock contract
-  const grantDealerRoleToTimelock1 = await netEmissionsTokenNetwork
-  .connect(deployer)
-  .registerDealer(timelock.address, 1);
-  const grantDealerRoleToTimelock2 = await netEmissionsTokenNetwork
-  .connect(deployer)
-  .registerDealer(timelock.address, 2);
-  const grantDealerRoleToTimelock3 = await netEmissionsTokenNetwork
-  .connect(deployer)
-  .registerDealer(timelock.address, 3);
-  console.log("Granted all dealer roles to DAO.");
 
   // format transactions for Timelock to change admin to Governor
   let currentTime = Math.floor(Date.now() / 1000);
@@ -89,7 +77,7 @@ async function main() {
     ),
     eta: (currentTime + hoursToSeconds(50))
   }
-  const queueTimelockAdminToGovernor = await timelock.connect(deployer).queueTransaction(
+  await timelock.connect(deployer).queueTransaction(
     timelockNewAdmin.target,
     timelockNewAdmin.value,
     timelockNewAdmin.signature,
@@ -101,7 +89,7 @@ async function main() {
   await advanceHours(51);
 
   // execute setPendingAdmin on Timelock
-  const executeTimelockAdminToGovernor = await timelock.connect(deployer).executeTransaction(
+  await timelock.connect(deployer).executeTransaction(
     timelockNewAdmin.target,
     timelockNewAdmin.value,
     timelockNewAdmin.signature,
@@ -112,15 +100,15 @@ async function main() {
   await advanceBlocks(1);
 
   // accept admin role from Governor contract
-  const acceptAdmin = await governor.connect(deployer).__acceptAdmin();
+  await governor.connect(deployer).__acceptAdmin();
   await advanceBlocks(1);
 
   const timelockAdmin = await timelock.admin();
   console.assert(timelockAdmin === governor.address);
   console.log("Executed __acceptAdmin() on Governor using deployer account. Timelock admin switched to Governor.");
 
-  const setDaoAddress = await netEmissionsTokenNetwork.connect(deployer).setTimelock(timelock.address);
-  console.log("Set Timelock address on NetEmissionsTokenNetwork to give the DAO permission to make proposals.")
+  await netEmissionsTokenNetwork.connect(deployer).setTimelock(timelock.address);
+  console.log("Executed setTimelock() on NetEmissionsTokenNetwork to give the DAO permission to make proposals.")
 }
 
 // We recommend this pattern to be able to use async/await everywhere

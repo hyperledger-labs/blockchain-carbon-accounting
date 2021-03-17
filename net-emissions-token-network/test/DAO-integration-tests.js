@@ -17,12 +17,14 @@ describe("Climate DAO - Integration tests", function() {
   this.timeout(60000);
 
   // initialize governance contracts and create snapshot
+  let allAddresses;
   let contracts;
   let snapshot;
   let initialState;
 
   before(async () => {
     contracts = await deployDaoContracts();
+    allAddresses = contracts.addresses,
     snapshot = await createSnapshot();
     initialState = snapshot;
   });
@@ -32,15 +34,14 @@ describe("Climate DAO - Integration tests", function() {
     snapshot = await createSnapshot(); // snapshots can only be used once
   });
 
-  it("should allow the owner to make and pass proposals to issue net emissions tokens to self", async function() {
-    let owner = contracts.addresses[0];
+  it("should allow the owner to make and pass proposals to issue CLM8 tokens to self", async function() {
+    let owner = allAddresses[0];
 
     // deploy NetEmissionsTokenNetwork
     const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork", owner.address);
 
-    // grant role of dealer to Timelock contract
-    const grantDealerRoleToTimelock = await netEmissionsTokenNetwork.connect(owner).registerDealer(contracts.timelock.address,1);
-    expect(grantDealerRoleToTimelock);
+    // change timelock address
+    const setTimelockAddress = await netEmissionsTokenNetwork.setTimelock(contracts.timelock.address);
 
     // set-up parameters for proposal external contract call
     let proposalCallParams = {

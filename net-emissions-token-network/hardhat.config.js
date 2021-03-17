@@ -52,6 +52,10 @@ module.exports = {
       chainId: 1337
     },
 
+    ovm_localhost: {
+      url: `http://localhost:9545`
+    },
+
     // Uncomment the following lines if deploying contract to Goerli or running Etherscan verification
     // Deploy with npx hardhat run --network goerli scripts/deploy.js
     // goerli: {

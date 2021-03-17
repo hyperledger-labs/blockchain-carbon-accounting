@@ -59,7 +59,7 @@ This is the deployed address for your contract. To update references on the Reac
 
 6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
 
-### Deploying Net Emissions Token Network contract to Kovan or xDai
+## Deploying Net Emissions Token Network contract to Kovan or xDai
 
 Steps for deploying the contract to the Kovan testnet and xDai sidechain are similar as deploying to Goerli:
 
@@ -79,7 +79,9 @@ or
 npx hardhat run --network xdai scripts/deploy-net-emissions-token-network.js
 ```
 
-### Compiling with Optimism Virtual Machine
+## Using Optimism
+
+### Compiling to Optimism Virtual Machine (OVM)
 
 By default, Hardhat compiles to the EVM using the given Solidity version in `hardhat.config.js`. To instead compile to the [OVM](https://optimism.io/): 
 
@@ -92,3 +94,13 @@ export OVM=1
 2. If build artifacts exist, run `npx hardhat clean`
 
 2. Compile with `npx hardhat compile`
+
+### Testing and Deploying on OVM
+
+Some incompatibilities exist between Hardhat and Optimism, so the current recommended way to test is to use [Optimism Integration](https://github.com/ethereum-optimism/optimism-integration) to run a local Optimistic Ethereum environment.
+
+To deploy contracts to a local Optimism development node after following the directions on their README, run:
+
+```bash
+$ npx hardhat run --network ovm_localhost scripts/deploy-all.js
+```
