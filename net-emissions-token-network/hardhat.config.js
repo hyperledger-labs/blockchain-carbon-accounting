@@ -24,8 +24,6 @@ module.exports = {
   solidity: {
 
     compilers: [
-
-      // NetEmissionsTokenNetwork
       {
         version: "0.7.0",
         settings: {
@@ -34,11 +32,6 @@ module.exports = {
             runs: 200
           }
         }
-      },
-
-      // DAO
-      {
-        version: "0.5.16"
       }
     ]
 
@@ -56,15 +49,22 @@ module.exports = {
       url: `http://localhost:9545`
     },
 
+    // Uncomment the following lines if deploying contract to Optimism on Kovan
+    // Deploy with npx hardhat run --network optimism_kovan scripts/___.js
+    // optimism_kovan: {
+    //   url: `https://kovan.optimism.io/`,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // }
+
     // Uncomment the following lines if deploying contract to Goerli or running Etherscan verification
-    // Deploy with npx hardhat run --network goerli scripts/deploy.js
+    // Deploy with npx hardhat run --network goerli scripts/___.js
     // goerli: {
     //   url: `https://goerli.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
     // },
 
     // Uncomment the following lines if deploying contract to xDai
-    // Deploy with npx hardhat run --network xdai scripts/deploy.js
+    // Deploy with npx hardhat run --network xdai scripts/___.js
     // xdai: {
     //   url: "https://xdai.poanetwork.dev",
     //   chainId: 100,
@@ -72,7 +72,7 @@ module.exports = {
     // }
 
     // Uncomment the following lines if deploying contract to Kovan
-    // Deploy with npx hardhat run --network kovan scripts/deploy.js
+    // Deploy with npx hardhat run --network kovan scripts/___.js
     // kovan: {
     //   url: `https://kovan.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]

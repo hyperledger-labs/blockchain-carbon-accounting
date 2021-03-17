@@ -14,7 +14,7 @@ async function main() {
   const netEmissionsTokenNetwork = await NetEmissionsTokenNetwork.deploy(deployer.address);
   await netEmissionsTokenNetwork.deployed();
 
-  console.log("NetEmissionsTokenNetwork proxy deployed to:", netEmissionsTokenNetwork.address);
+  console.log("NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
 
   console.log("Make sure to set the Timelock address with setTimelock() so that the DAO has permission to issue tokens with issueFromDAO().");
 }
