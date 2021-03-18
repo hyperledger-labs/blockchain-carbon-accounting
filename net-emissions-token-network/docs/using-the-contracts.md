@@ -97,9 +97,9 @@ export OVM=1
 
 ### Testing and Deploying on OVM
 
-Some incompatibilities exist between Hardhat and Optimism, so the current recommended way to test is to use [Optimism Integration](https://github.com/ethereum-optimism/optimism-integration) to run a local Optimistic Ethereum environment.
+Some incompatibilities exist between Hardhat and Optimism, so the current recommended way to test is to use [Optimism Integration](https://github.com/ethereum-optimism/optimism-integration) to run a local Optimistic Ethereum environment.  Follow the directions under "Usage" in their [README](https://github.com/ethereum-optimism/optimism-integration#usage) and use `make up` to start their docker image.  (You can skip the tests step.) 
 
-To deploy contracts to a local Optimism development node after following the directions on their README, run:
+To deploy contracts to a local Optimism development node after following starting your local Optimism Ethereum environment, run:
 
 ```bash
 $ npx hardhat run --network ovm_localhost scripts/deploy-all.js
