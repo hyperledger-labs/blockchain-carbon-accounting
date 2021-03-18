@@ -20,13 +20,16 @@ describe("Climate DAO - Integration tests", function() {
   let allAddresses;
   let contracts;
   let snapshot;
-  let initialState;
+  let owner;
+  let netEmissionsTokenNetwork;
+  let numOfTokens = 0;
 
   before(async () => {
     contracts = await deployDaoContracts();
-    allAddresses = contracts.addresses,
+    allAddresses = contracts.addresses;
+    owner = allAddresses[0];
     snapshot = await createSnapshot();
-    initialState = snapshot;
+    netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork", owner.address);
   });
   beforeEach(async () => {
     // reset state of network
@@ -34,14 +37,10 @@ describe("Climate DAO - Integration tests", function() {
     snapshot = await createSnapshot(); // snapshots can only be used once
   });
 
-  it("should allow the owner to make and pass proposals to issue CLM8 tokens to self", async function() {
-    let owner = allAddresses[0];
-
-    // deploy NetEmissionsTokenNetwork
-    const netEmissionsTokenNetwork = await deployContract("NetEmissionsTokenNetwork", owner.address);
+  async function createProposal() {
 
     // change timelock address
-    const setTimelockAddress = await netEmissionsTokenNetwork.setTimelock(contracts.timelock.address);
+    await netEmissionsTokenNetwork.setTimelock(contracts.timelock.address);
 
     // set-up parameters for proposal external contract call
     let proposalCallParams = {
@@ -97,7 +96,7 @@ describe("Climate DAO - Integration tests", function() {
     let proposalId = proposalEvent.args[0].toNumber();
 
     // verify details of proposal
-    let getActions = await contracts.governor.getActions(proposalId)
+    await contracts.governor.getActions(proposalId)
     .then((response) => {
       expect(response.targets).to.deep.equal(proposal.targets);
       // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
@@ -107,7 +106,7 @@ describe("Climate DAO - Integration tests", function() {
 
     // try to execute proposal before it's been passed
     try {
-      let failedProposalExecute = await contracts.governor.connect(owner).execute(proposalId);
+      await contracts.governor.connect(owner).execute(proposalId);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert Governor::execute: proposal can only be executed if it is queued"
@@ -115,44 +114,147 @@ describe("Climate DAO - Integration tests", function() {
     }
 
     // get proposal state
-    let proposalStateBefore = await contracts.governor.state(proposalId)
+    await contracts.governor.state(proposalId)
     .then((response) => {
       expect(response).to.equal(0); // pending
     });
 
-    // cast vote for proposal by owner
     await advanceBlocks(1);
+
+    // get proposal state
+    await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(1); // active
+    });
+
+    return proposalId;
+
+  }
+
+  async function executeProposalAndConfirmSuccess(proposalId) {
+
+    await advanceHours(48);
+
+    // execute proposal
+    let executeProposal = await contracts.governor.connect(owner).execute(proposalId);
+    expect(executeProposal);
+
+    // check num of tokens
+    await netEmissionsTokenNetwork.getNumOfUniqueTokens()
+    .then((response) =>
+      expect(response.toString()).to.equal(String(numOfTokens+1))
+    );
+
+    numOfTokens++;
+
+  }
+
+  it("should allow the owner to make and pass proposals to issue CLM8 tokens to self", async function() {
+
+    let proposalId = createProposal();
+
+    // cast vote for proposal by owner
     let castVote = await contracts.governor.connect(owner).castVote(proposalId, true);
     expect(castVote);
 
     // get proposal state after vote cast
-    let proposalStateAfterVote = await contracts.governor.state(proposalId)
+    await contracts.governor.state(proposalId)
     .then((response) => {
       expect(response).to.equal(4); // passed since all votes counted
     });
 
     // get receipt of vote
-    let getReceipt = await contracts.governor.getReceipt(proposalId, owner.address)
+    await contracts.governor.getReceipt(proposalId, owner.address)
     .then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
+    });
+
+    // check for success
+    await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(4); // success
     });
 
     // queue proposal after it's successful
     let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
     expect(queueProposal);
 
-    await advanceHours(48);
-    const numOfNetEmissionsTokensBeforeProposalExecution = await netEmissionsTokenNetwork.getNumOfUniqueTokens()
-    .then((response) =>
-      expect(response.toString()).to.equal('0')
-    );
-    let executeProposal = await contracts.governor.connect(owner).execute(proposalId);
-    expect(executeProposal);
-    const numOfNetEmissionsTokensAfterProposalExecution = await netEmissionsTokenNetwork.getNumOfUniqueTokens()
-    .then((response) =>
-      expect(response.toString()).to.equal('1')
-    );
+    executeProposalAndConfirmSuccess(proposalId);
+
+  });
+
+  it("should pass if 3/4 of token holders vote yes on a proposal", async function() {
+
+    let quarterOfSupply = (await contracts.daoToken.balanceOf(owner.address)).div(4);
+
+    let holderOne = allAddresses[10];
+    let holderTwo = allAddresses[11];
+    let holderThree = allAddresses[12];
+    let holderFour = allAddresses[13];
+
+    // transfer DAO tokens to all holders
+    await contracts.daoToken.connect(owner).transfer(holderOne.address, quarterOfSupply);
+    await contracts.daoToken.connect(owner).transfer(holderTwo.address, quarterOfSupply);
+    await contracts.daoToken.connect(owner).transfer(holderThree.address, quarterOfSupply);
+    await contracts.daoToken.connect(owner).transfer(holderFour.address, quarterOfSupply);
+
+    let ownerbal = await contracts.daoToken.balanceOf(owner.address);
+    console.log(ownerbal.toString());
+
+    let proposalId = createProposal();
+
+    // cast two yes votes and one no vote
+    await contracts.governor.connect(holderOne).castVote(proposalId, true);
+    await contracts.governor.connect(holderTwo).castVote(proposalId, true);
+    await contracts.governor.connect(holderThree).castVote(proposalId, true);
+    await contracts.governor.connect(holderFour).castVote(proposalId, false);
+
+    // check for success
+    await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(4); // success
+    });
+
+    // queue proposal after it's successful
+    let queueProposal = await contracts.governor.connect(owner).queue(proposalId);
+    expect(queueProposal);
+
+    executeProposalAndConfirmSuccess(proposalId);
+
+  });
+
+  it("should fail if 1/4 of token holders vote yes on a proposal", async function() {
+
+    let quarterOfSupply = (await contracts.daoToken.balanceOf(owner.address)).div(4);
+
+    let holderOne = allAddresses[10];
+    let holderTwo = allAddresses[11];
+    let holderThree = allAddresses[12];
+    let holderFour = allAddresses[13];
+
+    // transfer DAO tokens to all holders
+    await contracts.daoToken.connect(owner).transfer(holderOne.address, quarterOfSupply);
+    await contracts.daoToken.connect(owner).transfer(holderTwo.address, quarterOfSupply);
+    await contracts.daoToken.connect(owner).transfer(holderThree.address, quarterOfSupply);
+    await contracts.daoToken.connect(owner).transfer(holderFour.address, quarterOfSupply);
+
+    let ownerbal = await contracts.daoToken.balanceOf(owner.address);
+    console.log(ownerbal.toString());
+
+    let proposalId = createProposal();
+
+    // cast two yes votes and one no vote
+    await contracts.governor.connect(holderOne).castVote(proposalId, true);
+    await contracts.governor.connect(holderTwo).castVote(proposalId, false);
+    await contracts.governor.connect(holderThree).castVote(proposalId, false);
+    await contracts.governor.connect(holderFour).castVote(proposalId, false);
+
+    // check for success
+    await contracts.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(3); // defeated
+    });
 
   });
 
