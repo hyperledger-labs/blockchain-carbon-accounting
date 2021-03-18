@@ -1,21 +1,4 @@
 apiVersion: v1
-kind: Service
-metadata:
-  name: utilityemissions-api
-  namespace: fabric-production
-spec:
-  type: LoadBalancer
-  ports:
-    - name: http
-      port: 80
-      targetPort: 9000
-    - name: https
-      port: 443
-      targetPort: 9000
-  selector:
-    app: utilityemissions-api
----
-apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: pv-utilityemissions-api

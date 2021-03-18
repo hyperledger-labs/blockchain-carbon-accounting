@@ -30,7 +30,7 @@ Update PersistentVolume at ./utilityemissions-api-deployment.yaml with volumeID 
 Deploy api application
 
     $ kubectl apply -f ./utilityemissions-api-deployment.yaml -n fabric-production
-    $ kubectl apply -f ./ingress-app.yaml -n fabric-production
+    $ kubectl apply -f ./utilityemissions-api-service.yaml -n fabric-production
 
 ## Set domain name
 
