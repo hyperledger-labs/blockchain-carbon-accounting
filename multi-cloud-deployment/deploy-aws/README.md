@@ -7,11 +7,9 @@ This is AWS specific deployment steps in addition to the main guide
 #### 3.1 Kubernetes
 You need to have a running Kubernetes cluster and deploy one nginx ingress controller to it.
 
-In order to run Kubernets cluster manually use [Getting started with Amazon EKS instruction](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html).
+In order to run Kubernets cluster manually, use [Getting started with Amazon EKS instruction](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html).
 
-Other option is [eksctl util](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) which creates Kubernetes cluster and nodes in one command.
-
-For example
+Or you can use the [eksctl util](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) which creates Kubernetes cluster and nodes in one command.  For example
 ```bash
 eksctl create cluster \
 --name cluster-4 \
@@ -513,19 +511,36 @@ $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args
 
 ## 5. Monitor Hyperledger Fabric network
 
-To login to the couchdb container use
+Fabric peer pod name could be found with commands like
 
-    $ kubectl exec --stdin --tty fabric-peer-77b54dc4cf-xxxxx -n fabric-production -c couchdb -- sh
-
-Fabric peer pod name could be found with command
-
+    $ kubectl get pods --all-namespaces
     $ kubectl get pods -n fabric-production
 
-You should see line like
+You should see lines like
 ```
 NAME                                         READY   STATUS    RESTARTS   AGE
 fabric-peer-77b54dc4cf-xxxxx                 2/2     Running   0          23d
 ```
+
+To login to the couchdb container use
+
+    $ kubectl exec --stdin --tty fabric-peer-77b54dc4cf-xxxxx -n fabric-production -c couchdb -- sh
+
+From there you could locally use `curl` to check out the couchdb:
+```
+# curl http://127.0.0.1:5984/
+{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"7ee7168378b0496c2e5f982effe3b9ad","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+```
+
+But this is not very nice.  You can also set up a port forward (see [details](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/)) like this:
+```
+$ kubectl port-forward fabric-peer-77b54dc4cf-xxxx -n fabric-production :5984
+Forwarding from 127.0.0.1:54125 -> 5984
+Forwarding from [::1]:54125 -> 5984
+```
+
+Then go to your `http://127.0.0.1:54125/_utils` (replace `54125` with the port number from `kubectl`) to access the CouchDB user interface.
+
 
 TBD. --> Hyperledger Explorer
 
