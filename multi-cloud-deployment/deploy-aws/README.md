@@ -512,6 +512,21 @@ $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args
 ```
 
 ## 5. Monitor Hyperledger Fabric network
+
+To login to the couchdb container use
+
+    $ kubectl exec --stdin --tty fabric-peer-77b54dc4cf-xxxxx -n fabric-production -c couchdb -- sh
+
+Fabric peer pod name could be found with command
+
+    $ kubectl get pods -n fabric-production
+
+You should see line like
+```
+NAME                                         READY   STATUS    RESTARTS   AGE
+fabric-peer-77b54dc4cf-xxxxx                 2/2     Running   0          23d
+```
+
 TBD. --> Hyperledger Explorer
 
 
