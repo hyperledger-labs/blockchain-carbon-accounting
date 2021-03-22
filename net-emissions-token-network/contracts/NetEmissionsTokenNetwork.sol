@@ -528,4 +528,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     {
         return _tokenDetails[tokenId];
     }
+
+    function selfDestruct()
+        external
+	onlyAdmin
+    {
+        selfdestruct(payable(address(this)));
+    }
+
 }

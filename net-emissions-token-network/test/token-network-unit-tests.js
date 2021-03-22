@@ -525,4 +525,21 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   });
 
+  it("should allow only the deployer/admin to destroy the contract", async function() {
+
+    // try to destroy from non-admin account
+    try {
+      let destroyFail = await contract.connect(allAddresses[1]).selfDestruct();
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
+      );
+    }
+
+    // destroy from admin account
+    let destroy = await contract.connect(allAddresses[0]).selfDestruct();
+    expect(destroy);
+	
+  });
+
 });
