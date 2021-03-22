@@ -179,7 +179,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev hook to retire all tokens on transfer if limitedMode == true and from != admin
+     * @dev hook to prevent transfers from non-admin account if limitedMode is on
      */
     function _beforeTokenTransfer(
         address operator,
@@ -192,11 +192,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         internal
         override
     {
-        if ( limitedMode && !hasRole(DEFAULT_ADMIN_ROLE, to) ) {
-            uint length = amounts.length;
-            for (uint i = 0; i < length; i++) {
-                super._burn(to, ids[i], amounts[i]);
-            }
+        if (limitedMode) {
+            require(
+                hasRole(DEFAULT_ADMIN_ROLE, operator),
+                "CLM8::_beforeTokenTransfer: limited mode on: only admin can transfer tokens"
+            );
         }
     }
 

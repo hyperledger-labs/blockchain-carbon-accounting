@@ -544,13 +544,20 @@ describe("Net Emissions Token Network - Unit tests", function() {
   it("should limit certain functions after limitedMode is set to true", async function() {
 
     let owner = allAddresses[0];
+    let consumer = allAddresses[1];
+    let consumerTwo = allAddresses[2];
+
+    let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract.connect(owner).registerConsumer(consumerTwo.address);
+    expect(registerConsumerTwo);
 
     // turn on limited mode
     await contract.connect(owner).setLimitedMode(true);
 
     // try to issue to an account other than admin
     try {
-      let issueFail = await contract.connect(owner).issue(
+      await contract.connect(owner).issue(
         allAddresses[1].address,
         allTokenTypeId[1],
         quantity,
@@ -564,6 +571,36 @@ describe("Net Emissions Token Network - Unit tests", function() {
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::_issue: limited mode on: issuer not timelock"
+      );
+    }
+
+    // temporarily turn off limited mode and issue tokens to owner (to simulate issuing with DAO)
+    await contract.connect(owner).setLimitedMode(false);
+    await contract.connect(owner).issue(
+      owner.address,
+      allTokenTypeId[1],
+      quantity,
+      fromDate,
+      thruDate,
+      automaticRetireDate,
+      metadata,
+      manifest,
+      description
+    );
+    await contract.connect(owner).setLimitedMode(true);
+
+    // check number of unique tokens before issuance
+    contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(1));
+
+    // transfer tokens to consumer
+    await contract.connect(owner).transfer(consumer.address, 1, transferAmount);
+
+    // try to transfer from consumer to consumerTwo
+    try {
+      await contract.connect(consumer).transfer(consumerTwo.address, 1, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer: limited mode on: only admin can transfer tokens"
       );
     }
 
