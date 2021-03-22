@@ -122,3 +122,13 @@ Private Key: 0xea8b000efb33c49d819e8d6452f681eed55cdf7de47d655887fc0e318906f2e7
 Currently, `evm_mine` and `evm_increaseTime` are not supported on the node.
 
 Don't forget to set the addresses in `net-emissions-token-network/interface/packages/contracts/src/addresses.js` to connect to them via the React interface and add the network to MetaMask. The default contract addresses on the local node after running the script `deploy-all.js` are all commented out in that file to switch from Hardhat Network -- see `using-the-react-application.md` for more information on using the React application.
+
+## Destroying the contract
+
+A `selfDestruct` function is provided only by use for the admin to delete the contract on a given network. This action cannot be undone. To destroy a CLM8 contract on Hardhat Network, run:
+
+```bash
+npx hardhat destroyClm8Contract --network localhost --contract 0x5FbDB2315678afecb367f032d93F642f64180aa3
+```
+
+Destroying contracts on other testnets and networks works similarily -- just make sure your `hardhat.config.js` has your wallet and network settings.
