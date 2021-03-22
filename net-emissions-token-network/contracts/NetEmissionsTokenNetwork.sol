@@ -13,6 +13,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
+    bool private limitedMode = false;
+
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
         keccak256("REGISTERED_DEALER");
@@ -254,6 +256,17 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             tokenTypeIdIsValid(_tokenTypeId),
             "CLM8::_issue: tokenTypeId is invalid"
         );
+
+        if (limitedMode) {
+            require(
+                _issuer == timelock,
+                "CLM8::_issue: limited mode on: issuer not timelock"
+            );
+            require(
+                hasRole(DEFAULT_ADMIN_ROLE, _issuee),
+                "CLM8::_issue: limited mode on: issuee not admin"
+            );
+        }
 
         if (_tokenTypeId == 1) {
             require(
@@ -531,9 +544,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
     function selfDestruct()
         external
-	onlyAdmin
+        onlyAdmin
     {
         selfdestruct(payable(address(this)));
+    }
+
+    function setLimitedMode(bool _limitedMode)
+        external
+        onlyAdmin
+    {
+        limitedMode = _limitedMode;
     }
 
 }

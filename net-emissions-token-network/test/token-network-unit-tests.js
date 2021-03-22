@@ -529,7 +529,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try to destroy from non-admin account
     try {
-      let destroyFail = await contract.connect(allAddresses[1]).selfDestruct();
+      await contract.connect(allAddresses[1]).selfDestruct();
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
@@ -539,7 +539,34 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // destroy from admin account
     let destroy = await contract.connect(allAddresses[0]).selfDestruct();
     expect(destroy);
-	
+  });
+
+  it("should limit certain functions after limitedMode is set to true", async function() {
+
+    let owner = allAddresses[0];
+
+    // turn on limited mode
+    await contract.connect(owner).setLimitedMode(true);
+
+    // try to issue to an account other than admin
+    try {
+      let issueFail = await contract.connect(owner).issue(
+        allAddresses[1].address,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: limited mode on: issuer not timelock"
+      );
+    }
+
   });
 
 });
