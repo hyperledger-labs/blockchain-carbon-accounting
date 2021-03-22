@@ -179,6 +179,28 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
+     * @dev hook to retire all tokens on transfer if limitedMode == true and from != admin
+     */
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    )
+        internal
+        override
+    {
+        if ( limitedMode && !hasRole(DEFAULT_ADMIN_ROLE, to) ) {
+            uint length = amounts.length;
+            for (uint i = 0; i < length; i++) {
+                super._burn(to, ids[i], amounts[i]);
+            }
+        }
+    }
+
+    /**
      * @dev External function to mint an amount of a token
      * Only authorized dealer of associated token type can call this function
      * @param quantity of the token to mint For ex: if one needs 100 full tokens, the caller
