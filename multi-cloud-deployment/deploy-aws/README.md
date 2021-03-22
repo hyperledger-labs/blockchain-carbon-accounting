@@ -441,7 +441,7 @@ tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
 2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
 ```
 
-2.2 Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+2.2. Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
 ```shell
 # Query installed chaincode of peer
 ../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
@@ -451,7 +451,7 @@ Installed chaincodes on peer:
 Package ID: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: utilityemissions
 ```
 
-2.3 At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node_ext`.
+2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node_ext`.
 ``` shell
 docker build -t krybalko/utilityemissions-chaincode:0.0.1 .
 ```
@@ -499,6 +499,24 @@ Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Ap
 ```
 
 2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/utility-emissions-channel#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
+
+Make sure you have node modules installed in the utility-emissions-channel/docker-compose-setup directory
+
+    $ cd utility-emissions-channel/docker-compose-setup
+    $ npm install
+
+and in the `multi-cloud-deployment/deploy-aws` directory run
+
+    $ source ./setEnv.sh
+
+and
+
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
+
 
 After seeding  you can run a script to record and get the emissions:
 ```shell
