@@ -15,6 +15,9 @@ docker exec -it cli /bin/bash ./network.sh up
 echo "Starting orderers, peers, and couchdb..."
 sh ./scripts/startAndConnectNetwork.sh
 
+echo "Starting ext chaincode..."
+sh ./scripts/startExtChaincode.sh
+
 echo "Creating the channel..."
 docker exec -it cli /bin/bash ./network.sh createChannel
 
