@@ -7,11 +7,9 @@ This is AWS specific deployment steps in addition to the main guide
 #### 3.1 Kubernetes
 You need to have a running Kubernetes cluster and deploy one nginx ingress controller to it.
 
-In order to run Kubernets cluster manually use [Getting started with Amazon EKS instruction](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html).
+In order to run Kubernets cluster manually, use [Getting started with Amazon EKS instruction](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-console.html).
 
-Other option is [eksctl util](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) which creates Kubernetes cluster and nodes in one command.
-
-For example
+Or you can use the [eksctl util](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html) which creates Kubernetes cluster and nodes in one command.  For example
 ```bash
 eksctl create cluster \
 --name cluster-4 \
@@ -443,7 +441,7 @@ tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
 2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
 ```
 
-2.2 Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+2.2. Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
 ```shell
 # Query installed chaincode of peer
 ../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
@@ -453,7 +451,7 @@ Installed chaincodes on peer:
 Package ID: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: utilityemissions
 ```
 
-2.3 At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node_ext`.
+2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node_ext`.
 ``` shell
 docker build -t krybalko/utilityemissions-chaincode:0.0.1 .
 ```
@@ -502,6 +500,24 @@ Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Ap
 
 2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/utility-emissions-channel#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
 
+Make sure you have node modules installed in the utility-emissions-channel/docker-compose-setup directory
+
+    $ cd utility-emissions-channel/docker-compose-setup
+    $ npm install
+
+and in the `multi-cloud-deployment/deploy-aws` directory run
+
+    $ source ./setEnv.sh
+
+and
+
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
+
+
 After seeding  you can run a script to record and get the emissions:
 ```shell
 # Record emission to utilityemissionchannel
@@ -512,6 +528,38 @@ $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args
 ```
 
 ## 5. Monitor Hyperledger Fabric network
+
+Fabric peer pod name could be found with commands like
+
+    $ kubectl get pods --all-namespaces
+    $ kubectl get pods -n fabric-production
+
+You should see lines like
+```
+NAME                                         READY   STATUS    RESTARTS   AGE
+fabric-peer-77b54dc4cf-xxxxx                 2/2     Running   0          23d
+```
+
+To login to the couchdb container use
+
+    $ kubectl exec --stdin --tty fabric-peer-77b54dc4cf-xxxxx -n fabric-production -c couchdb -- sh
+
+From there you could locally use `curl` to check out the couchdb:
+```
+# curl http://127.0.0.1:5984/
+{"couchdb":"Welcome","version":"2.3.1","git_sha":"c298091a4","uuid":"7ee7168378b0496c2e5f982effe3b9ad","features":["pluggable-storage-engines","scheduler"],"vendor":{"name":"The Apache Software Foundation"}}
+```
+
+But this is not very nice.  You can also set up a port forward (see [details](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/)) like this:
+```
+$ kubectl port-forward fabric-peer-77b54dc4cf-xxxx -n fabric-production :5984
+Forwarding from 127.0.0.1:54125 -> 5984
+Forwarding from [::1]:54125 -> 5984
+```
+
+Then go to your `http://127.0.0.1:54125/_utils` (replace `54125` with the port number from `kubectl`) to access the CouchDB user interface.
+
+
 TBD. --> Hyperledger Explorer
 
 

@@ -11,7 +11,7 @@ const {
   metadata,
   manifest,
   description,
-  deployUpgradeableContract,
+  deployContract,
   createSnapshot,
   applySnapshot
 } = require("./common.js");
@@ -19,10 +19,12 @@ const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Integration tests", function() {
 
+  let allAddresses;
   let snapshot;
   let contract;
   before(async () => {
-    contract = await deployUpgradeableContract("NetEmissionsTokenNetwork");
+    allAddresses = await ethers.getSigners();
+    contract = await deployContract("NetEmissionsTokenNetwork", allAddresses[0].address);
     snapshot = await createSnapshot();
   });
   beforeEach(async () => {
@@ -31,7 +33,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
   })
 
   it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -233,7 +234,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
   });
 
   it("should define a Carbon Emissions Offset, go through userflow with token", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -435,7 +435,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
   });
 
   it("should define an Audited Emissions, go through userflow with token", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];

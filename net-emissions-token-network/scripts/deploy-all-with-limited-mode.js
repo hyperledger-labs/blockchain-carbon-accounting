@@ -108,7 +108,10 @@ async function main() {
   console.log("Executed __acceptAdmin() on Governor using deployer account. Timelock admin switched to Governor.");
 
   await netEmissionsTokenNetwork.connect(deployer).setTimelock(timelock.address);
-  console.log("Executed setTimelock() on NetEmissionsTokenNetwork to give the DAO permission to make proposals.")
+  console.log("Executed setTimelock() on NetEmissionsTokenNetwork to give the DAO permission to make proposals.");
+
+  await netEmissionsTokenNetwork.connect(deployer).setLimitedMode(true);
+  console.log("Set limitedMode to true on NetEmissionsTokenNetwork.")
 }
 
 // We recommend this pattern to be able to use async/await everywhere

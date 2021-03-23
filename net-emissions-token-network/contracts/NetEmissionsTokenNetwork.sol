@@ -2,16 +2,18 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
-contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
-    using SafeMathUpgradeable for uint256;
-    using CountersUpgradeable for CountersUpgradeable.Counter;
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+
+    bool private limitedMode = false;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -58,12 +60,16 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
 
-    address private timelock;
+    address private timelock = address(0);
 
     // Counts number of unique token IDs (auto-incrementing)
-    CountersUpgradeable.Counter private _numOfUniqueTokens;
+    Counters.Counter private _numOfUniqueTokens;
 
-    string[] private _TOKEN_TYPES;
+    string[] private _TOKEN_TYPES  = [
+        "Renewable Energy Certificate",
+        "Carbon Emissions Offset",
+        "Audited Emissions"
+    ];
 
     // events
     event TokenCreated(
@@ -92,17 +98,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     event UnregisteredDealer(address indexed account);
 
     // Replaces constructor in OpenZeppelin Upgrades
-    function initialize(address admin) public initializer {
-
-        __ERC1155_init("");
-
-        _TOKEN_TYPES = [
-            "Renewable Energy Certificate",
-            "Carbon Emissions Offset",
-            "Audited Emissions"
-        ];
-
-        timelock = address(0);
+    constructor(address admin) ERC1155("") {
 
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
@@ -183,6 +179,28 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     }
 
     /**
+     * @dev hook to prevent transfers from non-admin account if limitedMode is on
+     */
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    )
+        internal
+        override
+    {
+        if (limitedMode) {
+            require(
+                hasRole(DEFAULT_ADMIN_ROLE, operator),
+                "CLM8::_beforeTokenTransfer: limited mode on: only admin can transfer tokens"
+            );
+        }
+    }
+
+    /**
      * @dev External function to mint an amount of a token
      * Only authorized dealer of associated token type can call this function
      * @param quantity of the token to mint For ex: if one needs 100 full tokens, the caller
@@ -260,6 +278,17 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             tokenTypeIdIsValid(_tokenTypeId),
             "CLM8::_issue: tokenTypeId is invalid"
         );
+
+        if (limitedMode) {
+            require(
+                _issuer == timelock,
+                "CLM8::_issue: limited mode on: issuer not timelock"
+            );
+            require(
+                hasRole(DEFAULT_ADMIN_ROLE, _issuee),
+                "CLM8::_issue: limited mode on: issuee not admin"
+            );
+        }
 
         if (_tokenTypeId == 1) {
             require(
@@ -534,4 +563,19 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     {
         return _tokenDetails[tokenId];
     }
+
+    function selfDestruct()
+        external
+        onlyAdmin
+    {
+        selfdestruct(payable(address(this)));
+    }
+
+    function setLimitedMode(bool _limitedMode)
+        external
+        onlyAdmin
+    {
+        limitedMode = _limitedMode;
+    }
+
 }

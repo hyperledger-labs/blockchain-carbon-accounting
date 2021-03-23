@@ -11,7 +11,7 @@ const {
   metadata,
   manifest,
   description,
-  deployUpgradeableContract,
+  deployContract,
   createSnapshot,
   applySnapshot
 } = require("./common.js");
@@ -19,10 +19,12 @@ const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Unit tests", function() {
 
+  let allAddresses;
   let snapshot;
   let contract;
   before(async () => {
-    contract = await deployUpgradeableContract("NetEmissionsTokenNetwork");
+    allAddresses = await ethers.getSigners();
+    contract = await deployContract("NetEmissionsTokenNetwork", allAddresses[0].address);
     snapshot = await createSnapshot();
   });
   beforeEach(async () => {
@@ -31,7 +33,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   })
 
   it("should auto-increment tokenId on two subsequent issuances, fail on incorrect issue calls", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -121,7 +122,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should return the correct roles after owner assigns them", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let recDealer = allAddresses[1];
@@ -186,7 +186,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should only allow the contract owner to register dealers", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -244,7 +243,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should return all token details correctly", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -316,7 +314,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should retire audited emissions tokens on issuance; disallow transfers", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -370,7 +367,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should fail when retire is called incorrectly", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -465,7 +461,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should fail when transfer is called incorrectly", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -525,6 +520,87 @@ describe("Net Emissions Token Network - Unit tests", function() {
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
+      );
+    }
+
+  });
+
+  it("should allow only the deployer/admin to destroy the contract", async function() {
+
+    // try to destroy from non-admin account
+    try {
+      await contract.connect(allAddresses[1]).selfDestruct();
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
+      );
+    }
+
+    // destroy from admin account
+    let destroy = await contract.connect(allAddresses[0]).selfDestruct();
+    expect(destroy);
+  });
+
+  it("should limit certain functions after limitedMode is set to true", async function() {
+
+    let owner = allAddresses[0];
+    let consumer = allAddresses[1];
+    let consumerTwo = allAddresses[2];
+
+    let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract.connect(owner).registerConsumer(consumerTwo.address);
+    expect(registerConsumerTwo);
+
+    // turn on limited mode
+    await contract.connect(owner).setLimitedMode(true);
+
+    // try to issue to an account other than admin
+    try {
+      await contract.connect(owner).issue(
+        allAddresses[1].address,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: limited mode on: issuer not timelock"
+      );
+    }
+
+    // temporarily turn off limited mode and issue tokens to owner (to simulate issuing with DAO)
+    await contract.connect(owner).setLimitedMode(false);
+    await contract.connect(owner).issue(
+      owner.address,
+      allTokenTypeId[1],
+      quantity,
+      fromDate,
+      thruDate,
+      automaticRetireDate,
+      metadata,
+      manifest,
+      description
+    );
+    await contract.connect(owner).setLimitedMode(true);
+
+    // check number of unique tokens before issuance
+    contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(1));
+
+    // transfer tokens to consumer
+    await contract.connect(owner).transfer(consumer.address, 1, transferAmount);
+
+    // try to transfer from consumer to consumerTwo
+    try {
+      await contract.connect(consumer).transfer(consumerTwo.address, 1, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer: limited mode on: only admin can transfer tokens"
       );
     }
 
