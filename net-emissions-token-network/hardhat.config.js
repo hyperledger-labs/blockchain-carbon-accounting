@@ -25,6 +25,17 @@ task("destroyClm8Contract", "Destroy a NetEmissionsTokenNetwork contract")
     await contract.connect(admin).selfDestruct();
   })
 
+// Task to set limited mode on NetEmissionsTokenNetwork
+task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
+  .addParam("value", "True or false to set limited mode")
+  .addParam("contract", "The CLM8 contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    await contract.connect(admin).setLimitedMode(taskArgs.boolean);
+  })
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */

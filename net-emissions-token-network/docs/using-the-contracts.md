@@ -132,3 +132,18 @@ npx hardhat destroyClm8Contract --network localhost --contract 0x5FbDB2315678afe
 ```
 
 Destroying contracts on other testnets and networks works similarily -- just make sure your `hardhat.config.js` has your wallet and network settings.
+
+## Toggling limited mode
+
+Limited mode enables:
+
+- Only the admin can register roles
+- Only the DAO's Timelock contract can issue tokens
+- Tokens can only be issued to the admin
+- Only the admin can transfer tokens
+
+To turn on limited mode on a given network, run the task:
+
+```bash
+npx hardhat setLimitedMode --network localhost --contract 0x5FbDB2315678afecb367f032d93F642f64180aa3 --value true
+```
