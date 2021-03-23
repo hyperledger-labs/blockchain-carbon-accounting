@@ -280,14 +280,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         );
 
         if (limitedMode) {
-            require(
-                _issuer == timelock,
-                "CLM8::_issue: limited mode on: issuer not timelock"
-            );
-            require(
-                hasRole(DEFAULT_ADMIN_ROLE, _issuee),
-                "CLM8::_issue: limited mode on: issuee not admin"
-            );
+            if (_tokenTypeId != 3 ) {
+                require(
+                    _issuer == timelock,
+                    "CLM8::_issue: limited mode on: issuer not timelock"
+                );
+                require(
+                    hasRole(DEFAULT_ADMIN_ROLE, _issuee),
+                    "CLM8::_issue: limited mode on: issuee not admin"
+                );
+            }
         }
 
         if (_tokenTypeId == 1) {
