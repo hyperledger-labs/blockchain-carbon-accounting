@@ -33,13 +33,18 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
-    await contract.connect(admin).setLimitedMode(taskArgs.boolean);
+    await contract.connect(admin).setLimitedMode(taskArgs.value);
   })
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  namedAccounts: {
+    deployer: {
+      default: 0
+    }
+  },
   solidity: {
 
     compilers: [
