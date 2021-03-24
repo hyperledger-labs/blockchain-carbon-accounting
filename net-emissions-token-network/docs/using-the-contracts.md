@@ -57,7 +57,7 @@ This is the deployed address for your contract. To update references on the Reac
 
 5. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`. Also change the `network` attribute to "Goerli" so that it shows up in the navigation bar of the React interface.
 
-6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`.
+6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/config/networkConfig.ts`.
 
 ## Deploying Net Emissions Token Network contract to Kovan or xDai
 
