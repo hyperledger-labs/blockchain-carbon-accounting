@@ -11,7 +11,7 @@ CC_NAME="emissionscontract"
 # MAX_RETRY=${11:-"5"}
 # VERBOSE=${12:-"false"}
 
-export FABRIC_CFG_PATH=$PWD/config/
+export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH
 
 # import utils
