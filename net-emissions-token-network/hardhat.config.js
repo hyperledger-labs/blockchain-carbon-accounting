@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
-//require('hardhat-deploy');
+require('hardhat-deploy');
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {

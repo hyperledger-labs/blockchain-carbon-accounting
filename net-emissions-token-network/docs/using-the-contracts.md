@@ -12,13 +12,17 @@ Clone this repository, navigate to the net-emissions-token-network directory, an
 
 - To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`)
 - To compile, run `npx hardhat compile`
+- To deploy to a given network (e.g. localhost), run `npx hardhat deploy --network localhost`
+- To run a test network, run `npx hardhat node --show-accounts`
 - To see all commands, run `npx hardhat`
 
-## Deploying Net Emissions Token Network contract to Goerli
+## Deploying contracts to a public testnet
 
-If you'd like to deploy the contract to the Goerli testnet for yourself, go to [Infura.io](https://infura.io/) to set up an account to connect to the network via the scripts, and start a project under the "Ethereum" tab. You will need the project ID.
+If you'd like to deploy the contract (e.g. the Goerli testnet) for yourself, you will need a network URL and account to deploy with.
 
-Next, connect your Metamask wallet to the Goerli Test Network and create an account on it.  This will be used as the account for deploying your contract.  Copy the private key for the new account.  Go to a [Goerli faucet](https://faucet.goerli.mudit.blog) to get some test ETH for your account 
+To connect to a common Ethereum testnet like Goerli, set up a developer account on [Infura.io](https://infura.io/) and create a free project under the Ethereum tab. You will need the project ID.
+
+Next, create an account on MetaMask and connect to Goerli under the networks tab. This account will be used to deploy the contract -- so it needs to be loaded with free testnet ETH from a [Goerli faucet](https://faucet.goerli.mudit.blog) by copy and pasting your public key and waiting for the ETH to arrive to your wallet. 
 
 Now follow these steps to deploy the contract to the Goerli testnet and update references to the address:
 
@@ -30,7 +34,7 @@ cp .ethereum-config.js.template .ethereum-config.js
 
 2.  Edit `.ethereum-config.js` and set the private key for your Ethereum deployment address and Infura key.
 
-3. Edit the file `hardhat.config.js` and uncomment these lines
+3. Edit the file `hardhat.config.js` and uncomment these lines (or uncomment the network you want to deploy to):
 
 ```bash
      // const ethereumConfig = require("./.ethereum-config");
@@ -41,43 +45,13 @@ cp .ethereum-config.js.template .ethereum-config.js
      //
 ```
 
-4. Deploy by via the deploy script with the following command:
+4. Deploy by via the deploy script (or replacing goerli with the network you want to deploy to):
 
 ```bash
-npx hardhat run --network goerli scripts/deploy-net-emissions-token-network.js
+npx hardhat deploy --network goerli
 ```
 
-You will get a result that says:
-
-```bash
-Net Emissions Token Network deployed to: 0x_________________________________
-```
-
-This is the deployed address for your contract. To update references on the React interface and Fabric API:
-
-5. Update the deployed address for the interface in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`. Also change the `network` attribute to "Goerli" so that it shows up in the navigation bar of the React interface.
-
-6. Update the deployed address for the Fabric API in `../utility-emissions-channel/typescript_app/src/config/networkConfig.ts`.
-
-## Deploying Net Emissions Token Network contract to Kovan or xDai
-
-Steps for deploying the contract to the Kovan testnet and xDai sidechain are similar as deploying to Goerli:
-
-1. Populate `.ethereum-config.js` with private keys.
-
-2. Edit `hardhat.config.js` and uncomment the network configuration you would like to deploy to under module.exports.networks.
-
-3. Deploy with
-
-```bash
-npx hardhat run --network kovan scripts/deploy-net-emissions-token-network.js
-```
-
-or 
-
-```bash
-npx hardhat run --network xdai scripts/deploy-net-emissions-token-network.js
-```
+The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.
 
 ## Using Optimism
 
@@ -102,7 +76,7 @@ Some incompatibilities exist between Hardhat and Optimism, so the current recomm
 To deploy contracts to a local Optimism development node after following starting your local Optimism Ethereum environment, run:
 
 ```bash
-$ npx hardhat run --network ovm_localhost scripts/deploy-all.js
+$ npx hardhat deploy --network ovm_localhost
 ```
 
 Use the test addresses for testing on the interface and elsewhere:
@@ -128,7 +102,7 @@ Don't forget to set the addresses in `net-emissions-token-network/interface/pack
 A `selfDestruct` function is provided only by use for the admin to delete the contract on a given network. This action cannot be undone. To destroy a CLM8 contract on Hardhat Network, run:
 
 ```bash
-npx hardhat destroyClm8Contract --network localhost --contract 0x5FbDB2315678afecb367f032d93F642f64180aa3
+npx hardhat destroyClm8Contract --network localhost --contract 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
 ```
 
 Destroying contracts on other testnets and networks works similarily -- just make sure your `hardhat.config.js` has your wallet and network settings.
@@ -145,5 +119,5 @@ Limited mode enables:
 To turn on limited mode on a given network, run the task:
 
 ```bash
-npx hardhat setLimitedMode --network localhost --contract 0x5FbDB2315678afecb367f032d93F642f64180aa3 --value true
+npx hardhat setLimitedMode --network localhost --contract 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853 --value true
 ```

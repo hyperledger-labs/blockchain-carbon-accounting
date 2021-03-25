@@ -25,26 +25,18 @@ yarn react-app:start
 2. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
 
 ```bash
-npx hardhat node
+npx hardhat node --show-accounts
 ```
 
-3. In a separate terminal, deploy the contracts in `net-emissions-token-network/` to the local Hardhat Network with:
+3. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.
 
-```bash
-npx hardhat run --network localhost scripts/deploy-all.js
-```
+4. Within the settings for localhost in MetaMask, be sure that the Chain ID is set to 1337.
 
-`deploy-all.js` is used for deploying the governance contracts in addition to the NetEmissionsTokenNetwork contract.
+5. In the MetaMask extension after navigating to the interface in the browser, change the network from Ethereum Mainnet to _Localhost 8545_. Make sure Metamask says the account is "Connected" with a green dot.
 
-4. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.
+6. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
 
-5. Within the settings for localhost in MetaMask, be sure that the Chain ID is set to 1337.
-
-6. In the MetaMask extension after navigating to the interface in the browser, change the network from Ethereum Mainnet to _Localhost 8545_. Make sure Metamask says the account is "Connected" with a green dot.
-
-7. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
-
-8. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
+7. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
 
 You should now be connected to your local testnet and be able to interact with contracts deployed on it through the React application.
 
@@ -79,7 +71,7 @@ Optimism is a layer-2 solution for EVM-based layer-1 chains. It runs in a separa
 2. In a separate terminal, deploy the contracts in `net-emissions-token-network/` with:
 
 ```bash
-npx hardhat run --network ovm_localhost scripts/deploy-all.js
+npx hardhat deploy --network ovm_localhost
 ```
 
 3. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js`, uncomment the Optimism localhost contract addresses already in the file and comment out the Hardhat Network contract addresses.
