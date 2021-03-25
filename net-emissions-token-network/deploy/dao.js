@@ -1,13 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-
-// helper functions
-hoursToSeconds = function (hours) {
-  return (hours * 60 * 60);
-}
-encodeParameters = function (types, values) {
-  let abi = new ethers.utils.AbiCoder();
-  return abi.encode(types, values);
-}
+const {
+  hoursToSeconds,
+  advanceHours,
+  advanceBlocks,
+  encodeParameters
+} = require("../test/common");
 
 module.exports = async ({
   deployments,
@@ -68,18 +65,62 @@ module.exports = async ({
   );
   console.log("Queued setPendingAdmin() on Timelock.");
 
-  console.log("---");
-  console.log("Please copy these values and call executeTransaction() on Timelock");
-  console.log("when the ETA is reached from the deployer address with these args:");
-  console.log("");
-  console.log(`target : ${timelockNewAdmin.target}`);
-  console.log(`value : ${timelockNewAdmin.value}`);
-  console.log(`signature : ${timelockNewAdmin.signature}`);
-  console.log(`data : ${timelockNewAdmin.data}`);
-  console.log(`eta : ${timelockNewAdmin.eta}`);
-  console.log("");
-  console.log("Afterwards, do not forget to call __acceptAdmin() on Governor to");
-  console.log("complete the admin switch.");
+  // perform time/block skip if local network to switch timelock admin automatically
+  if (!hre.network.live) {
+
+    await advanceHours(51);
+
+    // execute setPendingAdmin on Timelock
+    await execute(
+      'Timelock',
+      { from: deployer  },
+      'executeTransaction',
+      timelockNewAdmin.target,
+      timelockNewAdmin.value,
+      timelockNewAdmin.signature,
+      timelockNewAdmin.data,
+      timelockNewAdmin.eta
+    );
+    console.log("Executed setPendingAdmin() on Timelock.");
+    await advanceBlocks(1);
+
+    // accept admin role from Governor contract
+    await execute(
+      'Governor',
+      { from: deployer },
+      '__acceptAdmin'
+      
+    );
+    await advanceBlocks(1);
+
+    console.log("Called __acceptAdmin() on Governor.");
+
+    // delegate owner voting power to self
+    await execute(
+      'DAOToken',
+      { from: deployer },
+      'delegate',
+      deployer
+    );
+    console.log("Delegated voting power of deployer to self.")
+    
+    console.log("Done performing Timelock admin switch.");
+    
+  // otherwise, output args to complete the timelock admin switch
+  } else {
+    console.log("---");
+    console.log("Please copy these values and call executeTransaction() on Timelock");
+    console.log("when the ETA is reached from the deployer address with these args:");
+    console.log("");
+    console.log(`target : ${timelockNewAdmin.target}`);
+    console.log(`value : ${timelockNewAdmin.value}`);
+    console.log(`signature : ${timelockNewAdmin.signature}`);
+    console.log(`data : ${timelockNewAdmin.data}`);
+    console.log(`eta : ${timelockNewAdmin.eta}`);
+    console.log("");
+    console.log("Afterwards, do not forget to call __acceptAdmin() on Governor to");
+    console.log("complete the admin switch.");
+  }
 
 };
 

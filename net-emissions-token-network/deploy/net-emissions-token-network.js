@@ -3,7 +3,7 @@ module.exports = async ({
   deployments,
   getNamedAccounts
 }) => {
-  const {deploy} = deployments;
+  const {deploy, execute} = deployments;
   const {deployer} = await getNamedAccounts();
 
   console.log(`Deploying NetEmissionsTokenNetwork with account: ${deployer}`);
@@ -18,7 +18,17 @@ module.exports = async ({
 
   console.log("NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
 
-  console.log("Make sure to set the Timelock address with setTimelock() so that the DAO has permission to issue tokens with issueFromDAO().");
+  const timelock = await deployments.get('Timelock');
+  console.log("Timelock address set so that the DAO has permission to issue tokens with issueFromDAO().");
+
+  await execute(
+    'NetEmissionsTokenNetwork',
+    { from: deployer },
+    'setTimelock',
+    timelock.address
+  );
+
 };
 
 module.exports.tags = ['CLM8'];
+module.exports.dependencies = ['DAO'];
