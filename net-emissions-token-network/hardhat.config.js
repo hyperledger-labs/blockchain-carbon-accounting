@@ -78,7 +78,14 @@ module.exports = {
     // optimism_kovan: {
     //   url: `https://kovan.optimism.io/`,
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
-    // }
+    // },
+
+    // Uncomment the following lines if deploying contract to Arbitrum on Kovan
+    // Deploy with npx hardhat run --network arbitrum_kovan scripts/___.js
+    // arbitrum_kovan: {
+    //   url: `https://kovan4.arbitrum.io/rpc`,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // },
 
     // Uncomment the following lines if deploying contract to Goerli or running Etherscan verification
     // Deploy with npx hardhat run --network goerli scripts/___.js
