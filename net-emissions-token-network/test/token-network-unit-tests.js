@@ -607,7 +607,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // issue audited emissions token
     await contract.connect(owner).issue(
       consumer.address,
-      allTokenTypeId[1],
+      allTokenTypeId[2],
       quantity,
       fromDate,
       thruDate,

@@ -20,3 +20,5 @@ module.exports = async ({
 
   console.log("Make sure to set the Timelock address with setTimelock() so that the DAO has permission to issue tokens with issueFromDAO().");
 };
+
+module.exports.tags = ['CLM8'];
