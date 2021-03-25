@@ -194,8 +194,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     {
         if (limitedMode) {
             require(
-                hasRole(DEFAULT_ADMIN_ROLE, operator),
-                "CLM8::_beforeTokenTransfer: limited mode on: only admin can transfer tokens"
+                hasRole(DEFAULT_ADMIN_ROLE, operator) || hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
+                "CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
             );
         }
     }
@@ -283,11 +283,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             if (_tokenTypeId != 3 ) {
                 require(
                     _issuer == timelock,
-                    "CLM8::_issue: limited mode on: issuer not timelock"
+                    "CLM8::_issue(limited): issuer not timelock"
                 );
                 require(
                     hasRole(DEFAULT_ADMIN_ROLE, _issuee),
-                    "CLM8::_issue: limited mode on: issuee not admin"
+                    "CLM8::_issue(limited): issuee not admin"
                 );
             }
         }
@@ -471,6 +471,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param account address of the consumer
      */
     function registerConsumer(address account) external onlyDealer {
+        if (limitedMode) {
+            require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "CLM8::registerConsumer(limited): only admin can register consumers");
+        }
         grantRole(REGISTERED_CONSUMER, account);
         emit RegisteredConsumer(account);
     }
@@ -505,6 +508,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @param account address to be unregistered
      */
     function unregisterConsumer(address account) external onlyDealer {
+        if (limitedMode) {
+            require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "CLM8::unregisterConsumer(limited): only admin can unregister consumers");
+        }
         super.revokeRole(REGISTERED_CONSUMER, account);
         emit UnregisteredConsumer(account);
     }
