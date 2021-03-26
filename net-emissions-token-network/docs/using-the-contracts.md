@@ -8,12 +8,13 @@ This document describes compiling and deploying the contract with Hardhat.
 
 Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
 
-## Misc. contract commands
+## Contract commands
 
 - To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`)
 - To compile, run `npx hardhat compile`
-- To deploy to a given network (e.g. localhost), run `npx hardhat deploy --network localhost`
-- To run a test network, run `npx hardhat node --show-accounts`
+- To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
+- To run a local test network without deploying the contracts, run `npx hardhat node --no-deploy --show-accounts`
+- To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
 - To see all commands, run `npx hardhat`
 
 ## Deploying contracts to a public testnet
