@@ -43,7 +43,7 @@ cp .ethereum-config.js.template .ethereum-config.js
      // goerli: {
      //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
      //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
-     //
+     // },
 ```
 
 4. Deploy by via the deploy script (or replacing goerli with the network you want to deploy to):
@@ -53,6 +53,20 @@ npx hardhat deploy --network goerli
 ```
 
 The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.
+
+## Deploying to xDai
+
+xDai is an EVM-compatible sidechain with low gas fees where the native token (used to pay gas for transactions) is pegged to the dollar. To deploy or interact with contracts on xDai, your wallet needs to hold some xDai; fortunately you can use a free [faucet](https://blockscout.com/xdai/mainnet/faucet) to get a cent of xDai by entering your wallet address and solving a CAPTCHA.
+
+Connect to xDai via MetaMask by [importing the network through their instructions](https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup) to see your balances.
+
+Be sure your `.ethereum-config.js` has the private key of your deployer address, uncomment out the "xdai" network in `hardhat.config.js` (similar to the steps above) and deploy with:
+
+```bash
+npx hardhat deploy --network xdai
+```
+
+If any part of the deployment fails, you can run the command again and the deployment script will reuse the addresses previously automatically written to the `deployments` folder.
 
 ## Using Optimism
 

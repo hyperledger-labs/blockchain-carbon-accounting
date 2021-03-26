@@ -10,7 +10,6 @@ module.exports = async ({
 
   let netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
     from: deployer,
-    gasLimit: 4500000,
     args: [
       deployer
     ],
