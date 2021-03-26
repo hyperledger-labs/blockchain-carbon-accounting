@@ -39,10 +39,13 @@ contract DAOToken {
     uint8 public constant decimals = 18;
 
     /// @notice Total number of tokens in circulation
-    uint public constant totalSupply = 10000000e18; // 10 million dCLM8
+    uint public totalSupply = 10000000e18; // 10 million dCLM8
 
     /// @notice Initial holder of all DAO tokens
     address public initialHolder;
+
+    /// @notice Governor to be set after deploy for permissions to burn tokens (only set once)
+    address public governor = address(0);
 
     /// @dev Allowance amounts on behalf of others
     mapping (address => mapping (address => uint96)) internal allowances;
@@ -251,6 +254,18 @@ contract DAOToken {
         return checkpoints[account][lower].votes;
     }
 
+    function _burn(address account, uint96 amount) external {
+        require(account != address(0), "dCLM8::_burn: burn from the zero address");
+        require(msg.sender == governor, "dCLM8::_burn: must be governor");
+
+        uint96 accountBalance = balances[account];
+        require(accountBalance >= amount, "dCLM8::_burn: burn amount exceeds balance");
+        balances[account] = accountBalance - amount;
+        totalSupply -= amount;
+
+        emit Transfer(account, address(0), amount);
+    }
+
     function _delegate(address delegator, address delegatee) internal {
         address currentDelegate = delegates[delegator];
         uint96 delegatorBalance = balances[delegator];
@@ -335,11 +350,18 @@ contract DAOToken {
         return chainId;
     }
 
-    function getTotalSupply() external pure returns (uint) {
+    function getTotalSupply() external view returns (uint) {
         return totalSupply;
     }
 
     function getInitialHolder() external view returns (address) {
         return initialHolder;
     }
+
+    function setGovernor(address newGovernor) public {
+        require(msg.sender == initialHolder, "dCLM8::setGovernor: must be initial holder");
+        require(governor == address(0), "dCLM::setGovernor: governor can only be set once");
+        governor = newGovernor;
+    }
+
 }

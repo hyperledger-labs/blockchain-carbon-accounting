@@ -15,11 +15,15 @@ docker exec -it cli /bin/bash ./network.sh up
 echo "Starting orderers, peers, and couchdb..."
 sh ./scripts/startAndConnectNetwork.sh
 
-echo "Starting ext chaincode..."
-sh ./scripts/startExtChaincode.sh
-
 echo "Creating the channel..."
 docker exec -it cli /bin/bash ./network.sh createChannel
+
+echo "Install ext chaincode..."
+sudo bash ./scripts/installChaincode.sh 1 2
+sudo bash ./scripts/installChaincode.sh 1 1
+
+echo "Starting ext chaincode..."
+sh ./scripts/startExtChaincode.sh
 
 echo "Deploying CC..."
 docker exec -it cli /bin/bash ./network.sh deployCC

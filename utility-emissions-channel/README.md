@@ -8,10 +8,10 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 2. From `utility-emissions-channel/`, copy over the Amazon Web Services (AWS) configuration template file with:
 
 ```bash
-$ cp ./chaincode/node/lib/aws-config.js.template ./chaincode/node/lib/aws-config.js 
+$ cp ./typescript_app/src/config/aws-config.js.template ./typescript_app/src/config/aws-config.js
 ```
 
-3. If you want to use AWS S3 service to store documents, then fill in AWS credentials in `chaincode/node/lib/aws-config.js`:
+3. If you want to use AWS S3 service to store documents, then fill in AWS credentials in `typescript_app/src/config/aws-config.js`:
 
 ```js
     exports.AWS_ACCESS_KEY_ID = 'your_access_key';
@@ -25,10 +25,10 @@ Otherwise leave it unchanged, and you will be able to store your documents local
 4. From `utility-emissions-channel/`, copy over the Ethereum network configuration settings template file with:
 
 ```bash
-$ cp ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts.example ./typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts 
+$ cp ./typescript_app/src/config/networkConfig.ts.example ./typescript_app/src/config/networkConfig.ts
 ```
 
-5. Fill in Ethereum configuration settings in `typescript_app/src/blockchain-gateway/networkConfig.ts`:
+5. Fill in Ethereum configuration settings in `typescript_app/src/config/networkConfig.ts`:
 
 ```js
     export const PRIVATE_KEY = "private_key_of_ethereum_dealer_wallet";
@@ -224,7 +224,7 @@ $ sh ./scripts/reset.sh
 
 Through an endpoint in the REST API, you can retrieve a series of emissions records by date range and issue an Audited Emissions Token based on this data.  This currently works with public Ethereum networks, such as the [Goerli testnet](https://goerli.net/). 
 
-To set it up, Edit `typescript_app/src/blockchain-gateway/net-emissions-token-network/networkConfig.ts`:
+To set it up, Edit `typescript_app/src/config/networkConfig.ts`:
 * Set `IS_GOERLI` to `true`. 
 * Set the contract address on Goerli, your Infura keys, and the private key of your audited emissions dealer wallet.
 

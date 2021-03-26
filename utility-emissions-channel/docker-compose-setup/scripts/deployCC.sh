@@ -27,7 +27,7 @@ echo   - VERBOSE:$'\e[0;32m'$VERBOSE$'\e[0m'
 
 CC_SRC_LANGUAGE=`echo "$CC_SRC_LANGUAGE" | tr [:upper:] [:lower:]`
 
-FABRIC_CFG_PATH=$PWD/config/
+FABRIC_CFG_PATH=$PWD/fabric-config/
 
 
 

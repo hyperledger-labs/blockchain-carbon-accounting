@@ -392,4 +392,5 @@ interface Dclm8Interface {
     function getTotalSupply() external pure returns (uint);
     function balanceOf(address account) external view returns (uint);
     function getInitialHolder() external pure returns (address);
+    function _burn(address account, uint96 amount) external;
 }

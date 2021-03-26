@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
-require('@openzeppelin/hardhat-upgrades');
+require('hardhat-deploy');
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
@@ -25,10 +25,26 @@ task("destroyClm8Contract", "Destroy a NetEmissionsTokenNetwork contract")
     await contract.connect(admin).selfDestruct();
   })
 
+// Task to set limited mode on NetEmissionsTokenNetwork
+task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
+  .addParam("value", "True or false to set limited mode")
+  .addParam("contract", "The CLM8 contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    await contract.connect(admin).setLimitedMode(taskArgs.value);
+  })
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+  namedAccounts: {
+    deployer: {
+      default: 0
+    }
+  },
   solidity: {
 
     compilers: [
@@ -62,7 +78,14 @@ module.exports = {
     // optimism_kovan: {
     //   url: `https://kovan.optimism.io/`,
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
-    // }
+    // },
+
+    // Uncomment the following lines if deploying contract to Arbitrum on Kovan
+    // Deploy with npx hardhat run --network arbitrum_kovan scripts/___.js
+    // arbitrum_kovan: {
+    //   url: `https://kovan4.arbitrum.io/rpc`,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // },
 
     // Uncomment the following lines if deploying contract to Goerli or running Etherscan verification
     // Deploy with npx hardhat run --network goerli scripts/___.js

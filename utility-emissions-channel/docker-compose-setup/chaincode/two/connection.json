@@ -1,5 +1,5 @@
 {
-    "address": "chaincode-utilityemissions.carbonAccounting.com:9999",
+    "address": "chaincode-utilityemissions2.carbonAccounting.com:9999",
     "dial_timeout": "10s",
     "tls_required": false,
     "client_auth_required": false,

@@ -570,7 +570,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue: limited mode on: issuer not timelock"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): issuer not timelock"
       );
     }
 
@@ -600,9 +600,22 @@ describe("Net Emissions Token Network - Unit tests", function() {
       await contract.connect(consumer).transfer(consumerTwo.address, 1, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer: limited mode on: only admin can transfer tokens"
+        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
       );
     }
+
+    // issue audited emissions token
+    await contract.connect(owner).issue(
+      consumer.address,
+      allTokenTypeId[2],
+      quantity,
+      fromDate,
+      thruDate,
+      automaticRetireDate,
+      metadata,
+      manifest,
+      description
+    );
 
   });
 
