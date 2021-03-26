@@ -42,6 +42,14 @@ module.exports = async ({
   });
   console.log("Governor deployed to:", governor.address);
 
+  // set governor on DAOToken contract (for permission to burn tokens)
+  await execute(
+    'DAOToken',
+    { from: deployer },
+    'setGovernor',
+    governor.address
+  );
+
   // format transactions for Timelock to change admin to Governor
   let currentTime = Math.floor(Date.now() / 1000);
   let timelockNewAdmin = {

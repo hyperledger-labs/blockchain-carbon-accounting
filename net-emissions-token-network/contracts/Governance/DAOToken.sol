@@ -44,6 +44,9 @@ contract DAOToken {
     /// @notice Initial holder of all DAO tokens
     address public initialHolder;
 
+    /// @notice Governor to be set after deploy for permissions to burn tokens (only set once)
+    address public governor = address(0);
+
     /// @dev Allowance amounts on behalf of others
     mapping (address => mapping (address => uint96)) internal allowances;
 
@@ -251,8 +254,9 @@ contract DAOToken {
         return checkpoints[account][lower].votes;
     }
 
-    function _burn(address account, uint96 amount) internal virtual {
+    function _burn(address account, uint96 amount) external {
         require(account != address(0), "dCLM8::_burn: burn from the zero address");
+        require(msg.sender == governor, "dCLM8::_burn: must be governor");
 
         uint96 accountBalance = balances[account];
         require(accountBalance >= amount, "dCLM8::_burn: burn amount exceeds balance");
@@ -353,4 +357,11 @@ contract DAOToken {
     function getInitialHolder() external view returns (address) {
         return initialHolder;
     }
+
+    function setGovernor(address newGovernor) public {
+        require(msg.sender == initialHolder, "dCLM8::setGovernor: must be initial holder");
+        require(governor == address(0), "dCLM::setGovernor: governor can only be set once");
+        governor = newGovernor;
+    }
+
 }
