@@ -39,7 +39,7 @@ contract DAOToken {
     uint8 public constant decimals = 18;
 
     /// @notice Total number of tokens in circulation
-    uint public constant totalSupply = 10000000e18; // 10 million dCLM8
+    uint public totalSupply = 10000000e18; // 10 million dCLM8
 
     /// @notice Initial holder of all DAO tokens
     address public initialHolder;
@@ -251,6 +251,17 @@ contract DAOToken {
         return checkpoints[account][lower].votes;
     }
 
+    function _burn(address account, uint96 amount) internal virtual {
+        require(account != address(0), "dCLM8::_burn: burn from the zero address");
+
+        uint96 accountBalance = balances[account];
+        require(accountBalance >= amount, "dCLM8::_burn: burn amount exceeds balance");
+        balances[account] = accountBalance - amount;
+        totalSupply -= amount;
+
+        emit Transfer(account, address(0), amount);
+    }
+
     function _delegate(address delegator, address delegatee) internal {
         address currentDelegate = delegates[delegator];
         uint96 delegatorBalance = balances[delegator];
@@ -335,7 +346,7 @@ contract DAOToken {
         return chainId;
     }
 
-    function getTotalSupply() external pure returns (uint) {
+    function getTotalSupply() external view returns (uint) {
         return totalSupply;
     }
 
