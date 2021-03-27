@@ -7,4 +7,4 @@
 npm install
 pip3 install slither-analyzer
 rm -f slitherlog.json
-slither . --config-file slither.config.json
+python3 runSlither.py
