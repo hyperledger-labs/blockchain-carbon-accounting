@@ -75,11 +75,14 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [proposalActionType, setProposalActionType] = useState("");
   const [proposalActionId, setProposalActionId] = useState(1);
 
+  const [votesAmount, setVotesAmount] = useState(0);
+
   const [selectedProposalIdDetails, setSelectedProposalIdDetails] = useState(1);
 
   const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
 
-  function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); };
+  function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); }
+  function onVotesAmountChange(event) { setVotesAmount(event.target.value);  }
 
   async function handleSkipBlocks(blocks) {
     let localProvider = new JsonRpcProvider();
@@ -183,7 +186,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }
 
   async function vote(proposalId, support) {
-    let vote = await castVote(provider, proposalId, support);
+    let decimals = BigNumber.from("1000000000000000000");
+    let convertedVotes = (BigNumber.from(votesAmount)).mul(decimals);
+    let vote = await castVote(provider, proposalId, support, convertedVotes);
     setResult(vote);
   }
 
@@ -429,19 +434,33 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     <>
                       <Col className="text-success my-auto">
                         Total For: {addCommas(proposal.details.forVotes)}<br/>
-                        <Button
-                          className="mt-1"
-                          variant="success"
-                          onClick={() => vote(proposal.id, true)}
-                        >Vote for</Button>
+                        <InputGroup className="mt-1">
+                          <FormControl
+                            placeholder="Votes to cast for.."
+                            onChange={onVotesAmountChange}
+                          />
+                          <InputGroup.Append>
+                            <Button
+                              variant="success"
+                              onClick={() => vote(proposal.id, true)}
+                            >Vote for</Button>
+                          </InputGroup.Append>
+                        </InputGroup>
                       </Col>
                       <Col className="text-danger my-auto">
                         Total Against: {addCommas(proposal.details.againstVotes)}<br/>
-                        <Button
-                          className="mt-1"
-                          variant="danger"
-                          onClick={() => vote(proposal.id, false)}
-                        >Vote against</Button>
+                        <InputGroup className="mt-1">
+                          <FormControl
+                            placeholder="Votes to cast against..."
+                            onChange={onVotesAmountChange}
+                          />
+                          <InputGroup.Append>
+                            <Button
+                              variant="danger"
+                              onClick={() => vote(proposal.id, false)}
+                            >Vote against</Button>
+                          </InputGroup.Append>
+                        </InputGroup>
                       </Col>
                     </>
                   }
