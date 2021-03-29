@@ -1,5 +1,5 @@
 // Private key of Ethereum dealer wallet
-export const PRIVATE_KEY = "";
+export const WALLET_PRIVATE_KEY = "";
 
 // Address of contract to connect to on Goerli
 export const CONTRACT_ADDRESS = "";

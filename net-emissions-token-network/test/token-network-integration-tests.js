@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
 const {
   allTokenTypeId,
   quantity,
-  issuerId,
-  recipientId,
   retireAmount,
   transferAmount,
   fromDate,
@@ -16,13 +15,16 @@ const {
   createSnapshot,
   applySnapshot
 } = require("./common.js");
+const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Integration tests", function() {
 
+  let allAddresses;
   let snapshot;
   let contract;
   before(async () => {
-    contract = await deployContract("NetEmissionsTokenNetwork");
+    allAddresses = await ethers.getSigners();
+    contract = await deployContract("NetEmissionsTokenNetwork", allAddresses[0].address);
     snapshot = await createSnapshot();
   });
   beforeEach(async () => {
@@ -31,7 +33,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
   })
 
   it("should define a Renewable Energy Certificate, go through userflow with token", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -87,7 +88,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not a Renewable Energy Certificate dealer"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered REC dealer"
       );
     }
 
@@ -106,13 +107,13 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer");
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
     }
 
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get available/retire balance before transfer
@@ -233,7 +234,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
   });
 
   it("should define a Carbon Emissions Offset, go through userflow with token", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -289,7 +289,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not a Carbon Emissions Offset dealer"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered offset dealer"
       );
     }
 
@@ -308,13 +308,13 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer");
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
     }
 
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get available/retired balance before transfer
@@ -435,7 +435,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
   });
 
   it("should define an Audited Emissions, go through userflow with token", async function() {
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -491,7 +490,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not an Audited Emissions dealer"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered emissions auditor"
       );
     }
 
@@ -510,13 +509,13 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert You are not a dealer");
+      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
     }
 
     // Get ID of token just issued
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get available/retire balance

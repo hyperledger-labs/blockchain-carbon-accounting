@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 var path = require('path');
 
 module.exports = {

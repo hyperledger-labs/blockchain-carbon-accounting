@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# The bin/build script is responsible for building, compiling, or transforming the contents 
+# of a chaincode package into artifacts that can be used by release and run.
+#
+# The peer invokes build with three arguments:
+# bin/build CHAINCODE_SOURCE_DIR CHAINCODE_METADATA_DIR BUILD_OUTPUT_DIR
+#
+# When build is invoked, CHAINCODE_SOURCE_DIR contains the chaincode source and 
+# CHAINCODE_METADATA_DIR contains the metadata.json file from the chaincode package installed to the peer.
+# BUILD_OUTPUT_DIR is the directory where build must place artifacts needed by release and run. 
+# The build script should treat the input directories CHAINCODE_SOURCE_DIR and 
+# CHAINCODE_METADATA_DIR as read only, but the BUILD_OUTPUT_DIR is writeable.
+
+CHAINCODE_SOURCE_DIR="$1"
+CHAINCODE_METADATA_DIR="$2"
+BUILD_OUTPUT_DIR="$3"
+
+set -euo pipefail
+
+#external chaincodes expect connection.json file in the chaincode package
+if [ ! -f "$CHAINCODE_SOURCE_DIR/connection.json" ]; then
+    >&2 echo "$CHAINCODE_SOURCE_DIR/connection.json not found"
+    exit 1
+fi
+
+#simply copy the endpoint information to specified output location
+cp $CHAINCODE_SOURCE_DIR/connection.json $BUILD_OUTPUT_DIR/connection.json
+
+if [ -d "$CHAINCODE_SOURCE_DIR/metadata" ]; then
+    cp -a $CHAINCODE_SOURCE_DIR/metadata $BUILD_OUTPUT_DIR/metadata
+fi
+
+exit 0

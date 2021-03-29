@@ -1,9 +1,8 @@
+// SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
 const {
   allTokenTypeId,
   quantity,
-  issuerId,
-  recipientId,
   retireAmount,
   transferAmount,
   fromDate,
@@ -12,13 +11,28 @@ const {
   metadata,
   manifest,
   description,
-  deployContract
+  deployContract,
+  createSnapshot,
+  applySnapshot
 } = require("./common.js");
+const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Unit tests", function() {
+
+  let allAddresses;
+  let snapshot;
+  let contract;
+  before(async () => {
+    allAddresses = await ethers.getSigners();
+    contract = await deployContract("NetEmissionsTokenNetwork", allAddresses[0].address);
+    snapshot = await createSnapshot();
+  });
+  beforeEach(async () => {
+    await applySnapshot(snapshot);
+    snapshot = await createSnapshot(); // snapshots can only be used once
+  })
+
   it("should auto-increment tokenId on two subsequent issuances, fail on incorrect issue calls", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -47,7 +61,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Failed to issue: tokenTypeId is invalid"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue: tokenTypeId is invalid"
       );
     }
 
@@ -88,13 +102,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get ID of second issued token
     let transactionReceipt2 = await issue2.wait(0);
     let issueEvent2 = transactionReceipt2.events.pop();
-    let tokenId2 = issueEvent2.args[0].tokenId.toNumber();
+    let tokenId2 = issueEvent2.args[2].toNumber();
     expect(tokenId2).to.equal(2);
 
     // try getting tokenTypeId 
@@ -102,14 +116,12 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let getTokenTypeFail = await contract.getTokenType((tokenId2 + 1));
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::getTokenType: tokenId does not exist"
       );
     }
   });
 
   it("should return the correct roles after owner assigns them", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let recDealer = allAddresses[1];
@@ -174,8 +186,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should only allow the contract owner to register dealers", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let owner = allAddresses[0];
     let dealer = allAddresses[1];
@@ -190,7 +200,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let registerInvalidTokenTypeId = await contract.connect(owner).registerDealer(unregistered.address, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token type does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::registerDealer: tokenTypeId does not exist"
       );
     }
 
@@ -199,7 +209,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let unregisterInvalidTokenTypeId = await contract.connect(owner).unregisterDealer(unregistered.address, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Token type does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::unregisterDealer: tokenTypeId does not exist"
       );
     }
 
@@ -208,7 +218,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let registerDealerFromDealerFail = await contract.connect(dealer).registerDealer(unregistered.address, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not the owner"
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
       );
     }
 
@@ -217,7 +227,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let unregisterFail = await contract.connect(unregistered).registerDealer(unregistered.address, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not the owner"
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
       );
     }
 
@@ -226,15 +236,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let unregisterSelfFail = await contract.connect(dealer).unregisterDealer(dealer.address, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You are not the owner"
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
       );
     }
 
   });
 
   it("should return all token details correctly", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -264,7 +272,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
@@ -306,8 +314,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should retire audited emissions tokens on issuance; disallow transfers", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -339,7 +345,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // Get balances of both available and retired
@@ -361,8 +367,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
   });
 
   it("should fail when retire is called incorrectly", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -395,7 +399,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // retire token that does not exist
@@ -403,7 +407,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumer).retire((tokenId+1), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::retire: tokenId does not exist"
       );
     }
 
@@ -412,7 +416,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumerTwo).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Not enough available balance to retire"
+        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
       );
     }
 
@@ -421,7 +425,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(unregistered).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert You must be either a consumer or a dealer"
+        "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
       );
     }
 
@@ -430,7 +434,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let retireFail = await contract.connect(consumer).retire((tokenId), (quantity + 100));
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Not enough available balance to retire"
+        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
       );
     }
 
@@ -450,15 +454,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let getRetiredFail = await contract.connect(consumer).getTokenRetiredAmount(consumer.address, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::getTokenRetiredAmount: tokenId does not exist"
       );
     }    
 
   });
 
   it("should fail when transfer is called incorrectly", async function() {
-    let contract = await deployContract("NetEmissionsTokenNetwork");
-    const allAddresses = await ethers.getSigners();
 
     let dealer = allAddresses[1];
     let consumer = allAddresses[2];
@@ -491,7 +493,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
     let issueEvent = transactionReceipt.events.pop();
-    let tokenId = issueEvent.args[0].tokenId.toNumber();
+    let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
     // try transfer of token that does not exist
@@ -499,7 +501,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let transferFail = await contract.connect(consumer).transfer(consumerTwo.address, 100, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert tokenId does not exist"
+        "Error: VM Exception while processing transaction: revert CLM8::transfer: tokenId does not exist"
       );
     }
 
@@ -517,9 +519,103 @@ describe("Net Emissions Token Network - Unit tests", function() {
       let transferFail = await contract.connect(consumer).transfer(consumer.address, tokenId, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Sender and receiver cannot be the same"
+        "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
       );
     }
+
+  });
+
+  it("should allow only the deployer/admin to destroy the contract", async function() {
+
+    // try to destroy from non-admin account
+    try {
+      await contract.connect(allAddresses[1]).selfDestruct();
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
+      );
+    }
+
+    // destroy from admin account
+    let destroy = await contract.connect(allAddresses[0]).selfDestruct();
+    expect(destroy);
+  });
+
+  it("should limit certain functions after limitedMode is set to true", async function() {
+
+    let owner = allAddresses[0];
+    let consumer = allAddresses[1];
+    let consumerTwo = allAddresses[2];
+
+    let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract.connect(owner).registerConsumer(consumerTwo.address);
+    expect(registerConsumerTwo);
+
+    // turn on limited mode
+    await contract.connect(owner).setLimitedMode(true);
+
+    // try to issue to an account other than admin
+    try {
+      await contract.connect(owner).issue(
+        allAddresses[1].address,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): issuer not timelock"
+      );
+    }
+
+    // temporarily turn off limited mode and issue tokens to owner (to simulate issuing with DAO)
+    await contract.connect(owner).setLimitedMode(false);
+    await contract.connect(owner).issue(
+      owner.address,
+      allTokenTypeId[1],
+      quantity,
+      fromDate,
+      thruDate,
+      automaticRetireDate,
+      metadata,
+      manifest,
+      description
+    );
+    await contract.connect(owner).setLimitedMode(true);
+
+    // check number of unique tokens before issuance
+    contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(1));
+
+    // transfer tokens to consumer
+    await contract.connect(owner).transfer(consumer.address, 1, transferAmount);
+
+    // try to transfer from consumer to consumerTwo
+    try {
+      await contract.connect(consumer).transfer(consumerTwo.address, 1, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
+      );
+    }
+
+    // issue audited emissions token
+    await contract.connect(owner).issue(
+      consumer.address,
+      allTokenTypeId[2],
+      quantity,
+      fromDate,
+      thruDate,
+      automaticRetireDate,
+      metadata,
+      manifest,
+      description
+    );
 
   });
 

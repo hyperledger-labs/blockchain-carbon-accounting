@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import React from "react";
 
 import Modal from 'react-bootstrap/Modal';
@@ -95,7 +96,7 @@ export default function TokenInfoModal(props) {
               <td>{props.token.fromDate}</td>
             </tr>
             <tr>
-              <td>Through date</td>
+              <td>Thru date</td>
               <td>{props.token.thruDate}</td>
             </tr>
             <tr>

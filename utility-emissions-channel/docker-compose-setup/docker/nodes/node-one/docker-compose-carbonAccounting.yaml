@@ -81,7 +81,9 @@ services:
       - /var/run/:/host/var/run/
       - ../../../organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/msp:/etc/hyperledger/fabric/msp
       - ../../../organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls:/etc/hyperledger/fabric/tls
+      - ../../../fabric-config/core.yaml:/etc/hyperledger/fabric/core.yaml
       - peer1.auditor1.carbonAccounting.com:/var/hyperledger/production
+      - ../../../builders:/builders
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: peer node start
     ports:

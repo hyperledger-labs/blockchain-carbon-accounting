@@ -36,6 +36,24 @@ export class ApprovalForAll__Params {
   }
 }
 
+export class RegisteredConsumer extends ethereum.Event {
+  get params(): RegisteredConsumer__Params {
+    return new RegisteredConsumer__Params(this);
+  }
+}
+
+export class RegisteredConsumer__Params {
+  _event: RegisteredConsumer;
+
+  constructor(event: RegisteredConsumer) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class RegisteredDealer extends ethereum.Event {
   get params(): RegisteredDealer__Params {
     return new RegisteredDealer__Params(this);
@@ -145,8 +163,82 @@ export class TokenCreated__Params {
     this._event = event;
   }
 
-  get param0(): BigInt {
+  get availableBalance(): BigInt {
     return this._event.parameters[0].value.toBigInt();
+  }
+
+  get retiredBalance(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get tokenId(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get tokenTypeId(): i32 {
+    return this._event.parameters[3].value.toI32();
+  }
+
+  get issuer(): Address {
+    return this._event.parameters[4].value.toAddress();
+  }
+
+  get issuee(): Address {
+    return this._event.parameters[5].value.toAddress();
+  }
+
+  get fromDate(): BigInt {
+    return this._event.parameters[6].value.toBigInt();
+  }
+
+  get thruDate(): BigInt {
+    return this._event.parameters[7].value.toBigInt();
+  }
+
+  get dateCreated(): BigInt {
+    return this._event.parameters[8].value.toBigInt();
+  }
+
+  get automaticRetireDate(): BigInt {
+    return this._event.parameters[9].value.toBigInt();
+  }
+
+  get metadata(): string {
+    return this._event.parameters[10].value.toString();
+  }
+
+  get manifest(): string {
+    return this._event.parameters[11].value.toString();
+  }
+
+  get description(): string {
+    return this._event.parameters[12].value.toString();
+  }
+}
+
+export class TokenRetired extends ethereum.Event {
+  get params(): TokenRetired__Params {
+    return new TokenRetired__Params(this);
+  }
+}
+
+export class TokenRetired__Params {
+  _event: TokenRetired;
+
+  constructor(event: TokenRetired) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get tokenId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get amount(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
   }
 }
 
@@ -240,6 +332,24 @@ export class URI__Params {
   }
 }
 
+export class UnregisteredConsumer extends ethereum.Event {
+  get params(): UnregisteredConsumer__Params {
+    return new UnregisteredConsumer__Params(this);
+  }
+}
+
+export class UnregisteredConsumer__Params {
+  _event: UnregisteredConsumer;
+
+  constructor(event: UnregisteredConsumer) {
+    this._event = event;
+  }
+
+  get account(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+}
+
 export class UnregisteredDealer extends ethereum.Event {
   get params(): UnregisteredDealer__Params {
     return new UnregisteredDealer__Params(this);
@@ -324,36 +434,32 @@ export class NetEmissionsTokenNetwork__getTokenDetailsResultValue0Struct extends
     return this[3].toAddress();
   }
 
-  get uom(): string {
-    return this[4].toString();
-  }
-
   get fromDate(): BigInt {
-    return this[5].toBigInt();
+    return this[4].toBigInt();
   }
 
   get thruDate(): BigInt {
-    return this[6].toBigInt();
+    return this[5].toBigInt();
   }
 
   get dateCreated(): BigInt {
-    return this[7].toBigInt();
+    return this[6].toBigInt();
   }
 
   get automaticRetireDate(): BigInt {
-    return this[8].toBigInt();
+    return this[7].toBigInt();
   }
 
   get metadata(): string {
-    return this[9].toString();
+    return this[8].toString();
   }
 
   get manifest(): string {
-    return this[10].toString();
+    return this[9].toString();
   }
 
   get description(): string {
-    return this[11].toString();
+    return this[10].toString();
   }
 }
 
@@ -765,7 +871,7 @@ export class NetEmissionsTokenNetwork extends ethereum.SmartContract {
   ): NetEmissionsTokenNetwork__getTokenDetailsResultValue0Struct {
     let result = super.call(
       "getTokenDetails",
-      "getTokenDetails(uint256):((uint256,uint8,address,address,string,uint256,uint256,uint256,uint256,string,string,string))",
+      "getTokenDetails(uint256):((uint256,uint8,address,address,uint256,uint256,uint256,uint256,string,string,string))",
       [ethereum.Value.fromUnsignedBigInt(tokenId)]
     );
 
@@ -779,7 +885,7 @@ export class NetEmissionsTokenNetwork extends ethereum.SmartContract {
   > {
     let result = super.tryCall(
       "getTokenDetails",
-      "getTokenDetails(uint256):((uint256,uint8,address,address,string,uint256,uint256,uint256,uint256,string,string,string))",
+      "getTokenDetails(uint256):((uint256,uint8,address,address,uint256,uint256,uint256,uint256,string,string,string))",
       [ethereum.Value.fromUnsignedBigInt(tokenId)]
     );
     if (result.reverted) {
@@ -986,32 +1092,6 @@ export class NetEmissionsTokenNetwork extends ethereum.SmartContract {
   }
 }
 
-export class ConstructorCall extends ethereum.Call {
-  get inputs(): ConstructorCall__Inputs {
-    return new ConstructorCall__Inputs(this);
-  }
-
-  get outputs(): ConstructorCall__Outputs {
-    return new ConstructorCall__Outputs(this);
-  }
-}
-
-export class ConstructorCall__Inputs {
-  _call: ConstructorCall;
-
-  constructor(call: ConstructorCall) {
-    this._call = call;
-  }
-}
-
-export class ConstructorCall__Outputs {
-  _call: ConstructorCall;
-
-  constructor(call: ConstructorCall) {
-    this._call = call;
-  }
-}
-
 export class GrantRoleCall extends ethereum.Call {
   get inputs(): GrantRoleCall__Inputs {
     return new GrantRoleCall__Inputs(this);
@@ -1046,6 +1126,36 @@ export class GrantRoleCall__Outputs {
   }
 }
 
+export class InitializeCall extends ethereum.Call {
+  get inputs(): InitializeCall__Inputs {
+    return new InitializeCall__Inputs(this);
+  }
+
+  get outputs(): InitializeCall__Outputs {
+    return new InitializeCall__Outputs(this);
+  }
+}
+
+export class InitializeCall__Inputs {
+  _call: InitializeCall;
+
+  constructor(call: InitializeCall) {
+    this._call = call;
+  }
+
+  get admin(): Address {
+    return this._call.inputValues[0].value.toAddress();
+  }
+}
+
+export class InitializeCall__Outputs {
+  _call: InitializeCall;
+
+  constructor(call: InitializeCall) {
+    this._call = call;
+  }
+}
+
 export class IssueCall extends ethereum.Call {
   get inputs(): IssueCall__Inputs {
     return new IssueCall__Inputs(this);
@@ -1075,32 +1185,28 @@ export class IssueCall__Inputs {
     return this._call.inputValues[2].value.toBigInt();
   }
 
-  get uom(): string {
-    return this._call.inputValues[3].value.toString();
-  }
-
   get fromDate(): BigInt {
-    return this._call.inputValues[4].value.toBigInt();
+    return this._call.inputValues[3].value.toBigInt();
   }
 
   get thruDate(): BigInt {
-    return this._call.inputValues[5].value.toBigInt();
+    return this._call.inputValues[4].value.toBigInt();
   }
 
   get automaticRetireDate(): BigInt {
-    return this._call.inputValues[6].value.toBigInt();
+    return this._call.inputValues[5].value.toBigInt();
   }
 
   get metadata(): string {
-    return this._call.inputValues[7].value.toString();
+    return this._call.inputValues[6].value.toString();
   }
 
   get manifest(): string {
-    return this._call.inputValues[8].value.toString();
+    return this._call.inputValues[7].value.toString();
   }
 
   get description(): string {
-    return this._call.inputValues[9].value.toString();
+    return this._call.inputValues[8].value.toString();
   }
 }
 

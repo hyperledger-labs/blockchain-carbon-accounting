@@ -17,7 +17,7 @@
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.23",
     "hardhat": "^2.0.4",
-    "hardhat-deploy": "^0.7.0-beta.39",
+    "hardhat-deploy": "^0.7.0-beta.50",
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.2",
@@ -25,6 +25,8 @@
   },
   "dependencies": {
     "@eth-optimism/plugins": "0.0.16",
-    "@openzeppelin/contracts": "^3.3.0"
+    "@openzeppelin/contracts": "^3.3.0",
+    "@openzeppelin/contracts-upgradeable": "^3.4.1",
+    "@openzeppelin/hardhat-upgrades": "^1.6.0"
   }
 }

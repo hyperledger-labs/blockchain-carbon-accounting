@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
-import { issue, encodeParameters } from "../services/contract-functions";
+import { issue, encodeParameters, TOKEN_TYPES } from "../services/contract-functions";
 
 import SubmissionModal from "./submission-modal";
 import CreateProposalModal from "./create-proposal-modal";
@@ -13,7 +14,7 @@ import Datetime from "react-datetime";
 
 import "react-datetime/css/react-datetime.css";
 
-export default function IssueForm({ provider, roles }) {
+export default function IssueForm({ provider, roles, signedInAddress }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -60,6 +61,7 @@ export default function IssueForm({ provider, roles }) {
         // types of params
         [
           'address',
+          'address',
           'uint8',
           'uint256',
           'uint256',
@@ -72,14 +74,15 @@ export default function IssueForm({ provider, roles }) {
         // value of params
         [
           address,
+          signedInAddress,
           tokenTypeId,
           Number(quantity),
-          Number(fromDate),
-          Number(thruDate),
-          Number(automaticRetireDate),
+          Number(fromDate)/1000,
+          Number(thruDate)/1000,
+          Number(automaticRetireDate)/1000,
           metadata,
           manifest,
-          description
+          ("Issued by DAO. " + description)
         ]
       );
     } catch (error) {
@@ -90,8 +93,11 @@ export default function IssueForm({ provider, roles }) {
 
   // update calldata on input change
   useEffect(() => {
-    updateCalldata()
+    if (signedInAddress) {
+      updateCalldata();
+    }
   }, [
+    signedInAddress,
     onAddressChange,
     onTokenTypeIdChange,
     onQuantityChange,
@@ -132,6 +138,7 @@ export default function IssueForm({ provider, roles }) {
         }}
         provider={provider}
         calldata={calldata}
+        description={description}
       />
 
       <SubmissionModal
@@ -160,9 +167,9 @@ export default function IssueForm({ provider, roles }) {
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
-          <option value={1}>Renewable Energy Certificate</option>
-          <option value={2}>Carbon Emissions Offset</option>
-          <option value={3}>Audited Emissions</option>
+          <option value={1}>{TOKEN_TYPES[0]}</option>
+          <option value={2}>{TOKEN_TYPES[1]}</option>
+          <option value={3}>{TOKEN_TYPES[2]}</option>
         </Form.Control>
       </Form.Group>
       <Form.Group>

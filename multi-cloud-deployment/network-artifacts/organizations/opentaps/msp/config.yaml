@@ -1,0 +1,14 @@
+NodeOUs:
+  Enable: true
+  ClientOUIdentifier:
+    Certificate: cacerts/fabric-ca-opentaps-net-443-fabric-ca-opentaps-net.pem
+    OrganizationalUnitIdentifier: client
+  PeerOUIdentifier:
+    Certificate: cacerts/fabric-ca-opentaps-net-443-fabric-ca-opentaps-net.pem
+    OrganizationalUnitIdentifier: peer
+  AdminOUIdentifier:
+    Certificate: cacerts/fabric-ca-opentaps-net-443-fabric-ca-opentaps-net.pem
+    OrganizationalUnitIdentifier: admin
+  OrdererOUIdentifier:
+    Certificate: cacerts/fabric-ca-opentaps-net-443-fabric-ca-opentaps-net.pem
+    OrganizationalUnitIdentifier: orderer

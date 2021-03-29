@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
@@ -20,6 +21,7 @@ import {
 
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
 import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
+import ProposalCallDetailsModal from "./proposal-call-details-modal";
 
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -52,6 +54,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
   const [delegateModalShow, setDelegateModalShow] = useState(false);
+  const [callDetailsModalShow, setCallDetailsModalShow] = useState(false);
 
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
   const [daoTokenDelegates, setDaoTokenDelegates] = useState();
@@ -70,6 +73,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [skipBlocksAmount, setSkipBlocksAmount] = useState("");
 
   const [proposalActionType, setProposalActionType] = useState("");
+  const [proposalActionId, setProposalActionId] = useState(1);
+
+  const [selectedProposalIdDetails, setSelectedProposalIdDetails] = useState(1);
 
   const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
 
@@ -104,9 +110,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
     let delegatesCall = await delegates(provider, signedInAddress);
     let del = (
-      ( Number(delegatesCall) !== 0 )
+      ( delegatesCall.toLowerCase() !== signedInAddress.toLowerCase() )
         ? delegatesCall
-        : "None (please set using button above)")
+        : "You")
     ; // just display first address for now, @TODO display multisig delegatees
     setDaoTokenBalance(balance);
     setDaoTokenDelegates(del);
@@ -122,18 +128,15 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   async function fetchProposals() {
     let numberOfProposals = await getProposalCount(provider);
     console.log(numberOfProposals)
-    let prop = [];
+    let p = [];
 
     for (let i = numberOfProposals; i > 0; i--) {
-      console.log(`i : ${i}`)
-
       let i_toNumberFix;
       try {
         i_toNumberFix = i.toNumber();
       } catch (e) {
         i_toNumberFix = i;
       }
-      console.log(`i_toNumberFix : ${i_toNumberFix}`);
 
       let proposalDetails = await getProposalDetails(provider, i);
       let proposalState = await getProposalState(provider, i);
@@ -147,8 +150,13 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
 
+      let proposalIsEligibleToVote = (
+        (proposalState === "Active") &&
+        (proposalReceipt.hasVoted === false) &&
+        (daoTokenBalance > 0)
+      );
 
-      prop.push({
+      p.push({
         id: i_toNumberFix,
         details: {
           proposer: proposalDetails[1],
@@ -165,11 +173,12 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           votes: proposalReceipt[2].div(decimals).toNumber()
         },
         description: proposalDescription,
+        isEligibleToVote: proposalIsEligibleToVote
       });
     }
 
-    setProposals(prop);
-    setProposalsLength(prop.length || 0);
+    setProposals(p);
+    setProposalsLength(p.length || 0);
     setFetchingProposals(false);
   }
 
@@ -192,7 +201,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         fetchBlockNumber();
       }
 
-      if (proposalsLength === -1 && !fetchingProposals) {
+      if (proposalsLength === -1 && !fetchingProposals && daoTokenBalance !== -1) {
         setFetchingProposals(true);
         fetchProposals();
       }
@@ -206,6 +215,12 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     fetchingBlockNumber
   ]);
 
+  function handleProposalAction(action, id) {
+    setProposalActionType(action);
+    setProposalActionId(id);
+    setQueueExecuteModalShow(true);
+  }
+
   return (
     <>
       <QueueExecuteProposalModal
@@ -215,6 +230,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         }}
         provider={provider}
         type={proposalActionType}
+        id={proposalActionId}
       />
 
       <DelegateDaoTokensModal
@@ -227,6 +243,16 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         provider={provider}
       />
 
+      { (proposals.length > 0) &&
+      <ProposalCallDetailsModal
+        show={callDetailsModalShow}
+        title={"Proposal #" + selectedProposalIdDetails + " call details"}
+        onHide={() => {
+          setCallDetailsModalShow(false);
+        }}
+        actions={proposals[selectedProposalIdDetails-1].actions}
+      />
+      }
 
       { (isFetchingBlocks) &&
         <Alert variant="secondary" className="text-center">Mining block {blockNumber+1}...</Alert>
@@ -242,32 +268,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       <div className="d-flex justify-content-start align-items-center">
         <div className="pr-2">
-          <span className="mr-2 text-secondary">Proposals:</span>
-          <Button
-            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("queue") }}
-            disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
-            variant="warning"
-          >
-            Queue
-          </Button>
-          <Button
-            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("execute") }}
-            disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
-            variant="success"
-          >
-            Execute
-          </Button>
-          <Button
-            onClick={ ()=>{ setQueueExecuteModalShow(true); setProposalActionType("cancel") }}
-            disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
-            variant="danger"
-          >
-            Cancel
-          </Button>
-          <div className="my-2"></div>
           <Button
             block
             size="sm"
@@ -352,39 +352,122 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
          proposals.map((proposal, key) => (
             <Card key={key} className="m-2 col-lg pt-2">
               <Card.Body>
-                  <div className="d-flex flex-wrap justify-content-between">
-                    <h5>Proposal #{proposal.id}</h5>
-                    <span className="text-primary">{proposal.state}</span>
-                  </div>
+                  <Row className="pb-2">
 
-                <Card.Text><small>Proposer: {proposal.details.proposer}</small></Card.Text>
-                <Card.Text>{proposal.description}</Card.Text>
+                    <Col>
+                      <h5 style={{'display': 'inline-block'}}>
+                        <span className="mr-3">Proposal #{proposal.id}</span>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="my-1 text-nowrap"
+                          onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
+                        >
+                          Details
+                        </Button>
+                      </h5>
+                    </Col>
+
+                    {/* proposal action buttons */}
+                    <Col className="text-right">
+                      {/* cancel button */}
+                      { ( (proposal.state !== "Executed") && (proposal.state !== "Canceled") && (daoTokenBalance > 0) ) &&
+                        <Button
+                          size="sm"
+                          onClick={ () => handleProposalAction("cancel", proposal.id) }
+                          disabled={(daoTokenBalance <= 0)}
+                          className="text-nowrap ml-1 my-1"
+                          variant="danger"
+                        >
+                          Cancel
+                        </Button>
+                      }
+                      {/* queue button */}
+                      { ( (proposal.state === "Succeeded") && (daoTokenBalance > 0) ) &&
+                        <Button
+                          size="sm"
+                          onClick={ () => handleProposalAction("queue", proposal.id) }
+                          disabled={(daoTokenBalance <= 0)}
+                          className="text-nowrap ml-2 my-1"
+                          variant="warning"
+                        >
+                          Queue
+                        </Button>
+                      }
+                      {/* execute button */}
+                      { ( (proposal.state === "Queued") && (daoTokenBalance > 0) ) &&
+                        <Button
+                          size="sm"
+                          onClick={ () => handleProposalAction("execute", proposal.id) }
+                          disabled={(daoTokenBalance <= 0)}
+                          className="text-nowrap ml-2 my-1"
+                          variant="success"
+                        >
+                          Execute
+                        </Button>
+                      }
+                    </Col>
+
+                  </Row>
+
+                {/* proposal state */}
+                <Card.Text className="text-primary">
+                  <b>{proposal.state}</b>
+                </Card.Text>
+                <Card.Text>
+                    <small>Proposer: {proposal.details.proposer}</small>
+                </Card.Text>
+
+                <Card.Text className="py-2">{proposal.description}</Card.Text>
+                <Card.Text>
+                </Card.Text>
                 <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
                 <Row className="text-center mb-3">
-                  <Col className="text-success my-auto">
-                    YES: {addCommas(proposal.details.forVotes)}<br/>
-                    <Button
-                      className="mt-1"
-                      variant="success"
-                      disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
-                      onClick={() => vote(proposal.id, true)}
-                    >Vote for</Button>
-                  </Col>
-                  <Col className="text-danger my-auto">
-                    NO: {addCommas(proposal.details.againstVotes)}<br/>
-                    <Button
-                      className="mt-1"
-                      variant="danger"
-                      disabled={ (proposal.state !== "Active") || (proposal.receipt.hasVoted === true) || (daoTokenBalance <= 0) }
-                      onClick={() => vote(proposal.id, false)}
-                    >Vote against</Button>
-                  </Col>
+
+                  {/* voting buttons if eligible */}
+                  { proposal.isEligibleToVote &&
+                    <>
+                      <Col className="text-success my-auto">
+                        Total For: {addCommas(proposal.details.forVotes)}<br/>
+                        <Button
+                          className="mt-1"
+                          variant="success"
+                          onClick={() => vote(proposal.id, true)}
+                        >Vote for</Button>
+                      </Col>
+                      <Col className="text-danger my-auto">
+                        Total Against: {addCommas(proposal.details.againstVotes)}<br/>
+                        <Button
+                          className="mt-1"
+                          variant="danger"
+                          onClick={() => vote(proposal.id, false)}
+                        >Vote against</Button>
+                      </Col>
+                    </>
+                  }
+
+                  {/* voting results if ineligible */}
+                  { ( (proposal.state !== "Pending") && !proposal.isEligibleToVote ) &&
+                    <>
+                      <Col className="text-success my-auto">
+                        Total For: {addCommas(proposal.details.forVotes)}<br/>
+                      </Col>
+                      <Col className="text-danger my-auto">
+                        Total Against: {addCommas(proposal.details.againstVotes)}<br/>
+                      </Col>
+                    </>
+                  }
+
                 </Row>
+
                 { (proposal.receipt.hasVoted === true) &&
-                  <p className="text-secondary text-center"><small>You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</small></p>
+                  <p className="text-center py-2">You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</p>
                 }
+
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
-                  <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
+                  <Col className="text-danger my-auto">
+                    <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
+                  </Col>
                 }
               </Card.Body>
             </Card>

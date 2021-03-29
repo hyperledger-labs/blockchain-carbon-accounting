@@ -1,0 +1,174 @@
+Organizations:
+  - &emitras
+      Name: emitras
+      ID: emitras
+      SkipAsForeign: false
+      MSPDir: ./organizations/emitras/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: OR('emitras.admin', 'emitras.peer', 'emitras.client', 'emitras.orderer')
+        Writers:
+          Type: Signature
+          Rule: OR('emitras.admin', 'emitras.client', 'emitras.orderer')
+        Admins:
+          Type: Signature
+          Rule: OR('emitras.admin')
+        Endorsement:
+          Type: Signature
+          Rule: OR('emitras.peer')
+        Orderer:
+          Type: Signature
+          Rule: OR('emitras.orderer')
+      OrdererEndpoints:
+        - fabric-orderer1.emissionsaccounting.emitras.de:443
+      AnchorPeers:
+        - Host: fabric-peer1.emissionsaccounting.emitras.de
+          Port: 443
+
+  - &opentaps
+      Name: opentaps
+      ID: opentaps
+      SkipAsForeign: false
+      MSPDir: ./organizations/opentaps/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: OR('opentaps.admin', 'opentaps.peer', 'opentaps.client', 'opentaps.orderer')
+        Writers:
+          Type: Signature
+          Rule: OR('opentaps.admin', 'opentaps.client', 'opentaps.orderer')
+        Admins:
+          Type: Signature
+          Rule: OR('opentaps.admin')
+        Endorsement:
+          Type: Signature
+          Rule: OR('opentaps.peer')
+        Orderer:
+          Type: Signature
+          Rule: OR('opentaps.orderer')
+      OrdererEndpoints:
+        - fabric-orderer.opentaps.net:443
+      AnchorPeers:
+        - Host: fabric-peer.opentaps.net
+          Port: 443
+
+Capabilities:
+  Channel: &ChannelCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_0: true
+
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: MAJORITY Endorsement
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+Orderer: &OrdererDefaults
+  OrdererType: etcdraft
+  BatchTimeout: 2
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 98 MB
+    PreferredMaxBytes: 512 KB
+  Organizations:
+  EtcdRaft:
+    Consenters:
+      - Host: fabric-orderer1.emissionsaccounting.emitras.de
+        Port: 443
+        ClientTLSCert: ./organizations/emitras/orderers/fabric-orderer1.emissionsaccounting.emitras.de/tls/server.crt
+        ServerTLSCert: ./organizations/emitras/orderers/fabric-orderer1.emissionsaccounting.emitras.de/tls/server.crt
+      - Host: fabric-orderer.opentaps.net
+        Port: 443
+        ClientTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
+        ServerTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
+    Options:
+      TickInterval: 500ms
+      ElectionTick: 10
+      HeartbeatTick: 1
+      MaxInflightBlocks : 5
+      SnapshotIntervalSize : 16 MB
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: ANY Admins
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: ANY Orderer
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: ANY Readers
+    Writers:
+      Type: ImplicitMeta
+      Rule: ANY Writers
+    Admins:
+      Type: ImplicitMeta
+      Rule: MAJORITY Admins
+  Capabilities:
+    <<: *ChannelCapabilities
+
+Profiles:
+  MultipleOrgsChannel:
+    Consortium: CarbonAccountingConsortium
+    <<: *ChannelDefaults
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+          - *emitras
+          - *opentaps
+          # - *auditor3
+      Capabilities:
+          <<: *ApplicationCapabilities
+
+  MultiNodeEtcdRaft:
+    <<: *ChannelDefaults
+    Capabilities:
+      <<: *ChannelCapabilities
+    Orderer:
+      <<: *OrdererDefaults
+      OrdererType: etcdraft
+      Organizations:
+        - <<: *emitras
+        - <<: *opentaps
+        # - <<: *auditor3
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - <<: *emitras
+        - <<: *opentaps
+        # - <<: *auditor3
+    Consortiums:
+      CarbonAccountingConsortium:
+        Organizations:
+          - *emitras
+          - *opentaps
+          # - *auditor3

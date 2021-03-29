@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 
-import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired } from "../services/contract-functions";
+import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired, formatDate } from "../services/contract-functions";
 
 import TokenInfoModal from "./token-info-modal";
 
@@ -60,9 +61,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let tokenDetails = (await getTokenDetails(provider, i));
 
         // Format unix times to Date objects
-        let fromDateObj = new Date((tokenDetails.fromDate.toNumber()) * 1000);
-        let thruDateObj = new Date((tokenDetails.thruDate.toNumber()) * 1000);
-        let automaticRetireDateObj = new Date((tokenDetails.automaticRetireDate.toNumber()) * 1000);
+        let fromDate = formatDate(tokenDetails.fromDate.toNumber());
+        let thruDate = formatDate(tokenDetails.thruDate.toNumber());
+        let automaticRetireDate = formatDate(tokenDetails.automaticRetireDate.toNumber());
 
         // Format tokenType from tokenTypeId
         let tokenTypes = [
@@ -89,9 +90,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           retiredBalance: retiredBalance,
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
-          fromDate: fromDateObj.toLocaleString(),
-          thruDate: thruDateObj.toLocaleString(),
-          automaticRetireDate: automaticRetireDateObj.toLocaleString(),
+          fromDate: fromDate,
+          thruDate: thruDate,
+          automaticRetireDate: automaticRetireDate,
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,

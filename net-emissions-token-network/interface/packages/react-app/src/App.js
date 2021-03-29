@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import React, { useRef } from "react";
 import { useQuery } from "@apollo/react-hooks";
 
@@ -84,7 +85,7 @@ function App() {
                     <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/issue">
-                    <IssueForm provider={provider} roles={roles} />
+                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/transfer">
                     <TransferForm provider={provider} roles={roles} />

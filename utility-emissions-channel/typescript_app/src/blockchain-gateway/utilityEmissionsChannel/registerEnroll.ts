@@ -7,10 +7,8 @@
 import { Wallet, Wallets } from "fabric-network";
 import FabricCAServices from "fabric-ca-client";
 import { buildCAClient, registerAndEnrollUser, enrollAdmin, setOrgDataCA } from "../utils/caUtils";
+
 import {
-  buildCCPAuditor1,
-  buildCCPAuditor2,
-  buildCCPAuditor3,
   buildWallet,
   setWalletPathByOrg,
 } from "../utils/gatewayUtils";
@@ -21,7 +19,7 @@ export class EmissionsContractInvoke {
 
   static async registerOrgAdmin(orgName) {
     try {
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
 
       // Build instance of fabric ca client
       const caClient = buildCAClient(FabricCAServices, ccp, caName);
@@ -52,7 +50,8 @@ export class EmissionsContractInvoke {
 
   static async registerUser(userId, orgName, affiliation) {
     try {
-      let { ccp, msp, caName } = setOrgDataCA(orgName, buildCCPAuditor1, buildCCPAuditor2, buildCCPAuditor3);
+      let { ccp, msp, caName } = setOrgDataCA(orgName);
+
       console.log("+++++++++++++++++++++++++++++++++++");
       console.log(ccp);
       console.log(msp);

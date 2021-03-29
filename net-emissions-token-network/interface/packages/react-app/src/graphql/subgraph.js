@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { gql } from "apollo-boost";
 
 // See more example queries on https://thegraph.com/explorer/subgraph/paulrberg/create-eth-app

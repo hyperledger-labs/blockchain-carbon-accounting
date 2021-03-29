@@ -1,0 +1,14 @@
+NodeOUs:
+  Enable: true
+  ClientOUIdentifier:
+    Certificate: cacerts/fabric-ca-emissionsaccounting-emitras-de-443-fabric-ca-emissionsaccounting-emitras-de.pem
+    OrganizationalUnitIdentifier: client
+  PeerOUIdentifier:
+    Certificate: cacerts/fabric-ca-emissionsaccounting-emitras-de-443-fabric-ca-emissionsaccounting-emitras-de.pem
+    OrganizationalUnitIdentifier: peer
+  AdminOUIdentifier:
+    Certificate: cacerts/fabric-ca-emissionsaccounting-emitras-de-443-fabric-ca-emissionsaccounting-emitras-de.pem
+    OrganizationalUnitIdentifier: admin
+  OrdererOUIdentifier:
+    Certificate: cacerts/fabric-ca-emissionsaccounting-emitras-de-443-fabric-ca-emissionsaccounting-emitras-de.pem
+    OrganizationalUnitIdentifier: orderer

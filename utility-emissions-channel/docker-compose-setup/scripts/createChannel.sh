@@ -120,7 +120,7 @@ verifyResult() {
   fi
 }
 
-FABRIC_CFG_PATH=${PWD}/configtx
+FABRIC_CFG_PATH=${PWD}/fabric-config
 
 ## Create channeltx
 echo "### Generating channel create transaction '${CHANNEL_NAME}.tx' ###"
@@ -129,8 +129,6 @@ createChannelTx
 ## Create anchorpeertx
 echo "### Generating anchor peer update transactions ###"
 createAncorPeerTx
-
-FABRIC_CFG_PATH=$PWD/config/
 
 ## Create channel
 echo "Creating channel "$CHANNEL_NAME
