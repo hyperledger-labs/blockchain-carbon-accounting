@@ -3,6 +3,7 @@ const { expect } = require("chai");
 const {
   advanceBlocks,
   advanceHours,
+  hoursToBlocks,
   encodeParameters,
 } = require("./common.js");
 const { getNamedAccounts } = require("hardhat");
@@ -203,12 +204,21 @@ describe("Climate DAO - Integration tests", function() {
 
     advanceBlocks(2);
 
-    // cast two yes votes and one no vote
+    // check for active
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(1); // active
+    });
+    
+    // cast three yes votes and one no vote
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true);
     await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true);
     await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, true);
     await governor.connect(await ethers.getSigner(dealer4)).castVote(proposal, false);
 
+    console.log("Advancing blocks...")
+    advanceBlocks(hoursToBlocks(150));
+    
     // check for success
     await governor.state(proposal)
     .then((response) => {

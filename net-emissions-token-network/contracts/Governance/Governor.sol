@@ -316,12 +316,8 @@ contract Governor {
             proposal.againstVotes = add256(proposal.againstVotes, votes);
         }
 
-        // check total votes vs DAO token supply. If it matches, set eta to zero so state is successful
-        uint totalVotes = add256(proposal.forVotes, proposal.againstVotes);
-        if (dclm8.getTotalSupply() == totalVotes) {
-            proposal.eta = 0;
-            proposal.endBlock = sub256(block.number,1);
-        }
+        // burn used dCLM8 tokens
+        dclm8._burn(voter, votes);
 
         receipt.hasVoted = true;
         receipt.support = support;

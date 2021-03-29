@@ -47,8 +47,9 @@ module.exports = {
     dealer1: { default: 1 },
     dealer2: { default: 2 },
     dealer3: { default: 3 },
-    consumer1: { default: 4 },
-    consumer2: { default: 5 },
+    dealer4: { default: 4 },
+    consumer1: { default: 5 },
+    consumer2: { default: 6 },
   },
 
   solidity: {
