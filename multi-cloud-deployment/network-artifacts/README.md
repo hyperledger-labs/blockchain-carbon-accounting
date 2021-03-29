@@ -9,3 +9,16 @@ The following data is stored:
 - genesis-files
 --- orderer.genesis.block 
 --- utilityemissionchannel.tx
+
+### Create config maps of channel articats
+1. Orderer
+```bash
+# create configmap of orderer.genesis.block
+kubectl create cm system-genesis-block  --from-file=./network-artifacts/genesis-files/orderer.genesis.block -n yournamespce
+```
+
+2. Peer
+```bash
+# Create configmap of channel tx
+kubectl create cm utilityemissionchannel  --from-file=./network-artifacts/genesis-files/utilityemissionchannel.tx -n yournamespace
+```

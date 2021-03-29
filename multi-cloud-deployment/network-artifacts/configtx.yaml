@@ -26,59 +26,32 @@ Organizations:
         - Host: fabric-peer1.emissionsaccounting.emitras.de
           Port: 443
 
-  # - &auditor2
-  #     Name: auditor2
-  #     ID: auditor2
-  #     SkipAsForeign: false
-  #     MSPDir: ./organizations/ORGANIZATION/msp
-  #     Policies:
-  #       Readers:
-  #         Type: Signature
-  #         Rule: OR('auditor2.admin', 'auditor2.peer', 'auditor2.client', 'auditor2.orderer')
-  #       Writers:
-  #         Type: Signature
-  #         Rule: OR('auditor2.admin', 'auditor2.client', 'auditor2.orderer')
-  #       Admins:
-  #         Type: Signature
-  #         Rule: OR('auditor2.admin')
-  #       Endorsement:
-  #         Type: Signature
-  #         Rule: OR('auditor2.peer')
-  #       Orderer:
-  #         Type: Signature
-  #         Rule: OR('auditor2.orderer')
-  #     OrdererEndpoints:
-  #       - orderer1.auditor2.carbonAccounting.com:8050
-  #     AnchorPeers:
-  #       - Host: peer1.auditor2.carbonAccounting.com
-  #         Port: 8051
-
-  # - &auditor3
-  #     Name: auditor3
-  #     ID: auditor3
-  #     SkipAsForeign: false
-  #     MSPDir: ./organizations/ORGANIZATION/msp
-  #     Policies:
-  #       Readers:
-  #         Type: Signature
-  #         Rule: OR('auditor3.admin', 'auditor3.peer', 'auditor3.client', 'auditor3.orderer')
-  #       Writers:
-  #         Type: Signature
-  #         Rule: OR('auditor3.admin', 'auditor3.client', 'auditor3.orderer')
-  #       Admins:
-  #         Type: Signature
-  #         Rule: OR('auditor3.admin')
-  #       Endorsement:
-  #         Type: Signature
-  #         Rule: OR('auditor3.peer')
-  #       Orderer:
-  #         Type: Signature
-  #         Rule: OR('auditor3.orderer')
-  #     OrdererEndpoints:
-  #       - orderer1.auditor3.carbonAccounting.com:9050
-  #     AnchorPeers:
-  #       - Host: peer1.auditor3.carbonAccounting.com
-  #         Port: 9051
+  - &opentaps
+      Name: opentaps
+      ID: opentaps
+      SkipAsForeign: false
+      MSPDir: ./organizations/opentaps/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: OR('opentaps.admin', 'opentaps.peer', 'opentaps.client', 'opentaps.orderer')
+        Writers:
+          Type: Signature
+          Rule: OR('opentaps.admin', 'opentaps.client', 'opentaps.orderer')
+        Admins:
+          Type: Signature
+          Rule: OR('opentaps.admin')
+        Endorsement:
+          Type: Signature
+          Rule: OR('opentaps.peer')
+        Orderer:
+          Type: Signature
+          Rule: OR('opentaps.orderer')
+      OrdererEndpoints:
+        - fabric-orderer.opentaps.net:443
+      AnchorPeers:
+        - Host: fabric-peer.opentaps.net
+          Port: 443
 
 Capabilities:
   Channel: &ChannelCapabilities
@@ -123,14 +96,10 @@ Orderer: &OrdererDefaults
         Port: 443
         ClientTLSCert: ./organizations/emitras/orderers/fabric-orderer1.emissionsaccounting.emitras.de/tls/server.crt
         ServerTLSCert: ./organizations/emitras/orderers/fabric-orderer1.emissionsaccounting.emitras.de/tls/server.crt
-      # - Host: orderer1.auditor2.carbonAccounting.com
-      #   Port: 8050
-      #   ClientTLSCert: ../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/server.crt
-      #   ServerTLSCert: ../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/server.crt
-      # - Host: orderer1.auditor3.carbonAccounting.com
-      #   Port: 9050
-      #   ClientTLSCert: ../organizations/peerOrganizations/auditor3.carbonAccounting.com/orderers/orderer1.auditor3.carbonAccounting.com/tls/server.crt
-      #   ServerTLSCert: ../organizations/peerOrganizations/auditor3.carbonAccounting.com/orderers/orderer1.auditor3.carbonAccounting.com/tls/server.crt
+      - Host: fabric-orderer.opentaps.net
+        Port: 443
+        ClientTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
+        ServerTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
     Options:
       TickInterval: 500ms
       ElectionTick: 10
@@ -175,7 +144,7 @@ Profiles:
       <<: *ApplicationDefaults
       Organizations:
           - *emitras
-          # - *auditor2
+          - *opentaps
           # - *auditor3
       Capabilities:
           <<: *ApplicationCapabilities
@@ -189,17 +158,17 @@ Profiles:
       OrdererType: etcdraft
       Organizations:
         - <<: *emitras
-        # - <<: *auditor2
+        - <<: *opentaps
         # - <<: *auditor3
     Application:
       <<: *ApplicationDefaults
       Organizations:
         - <<: *emitras
-        # - <<: *auditor2
+        - <<: *opentaps
         # - <<: *auditor3
     Consortiums:
       CarbonAccountingConsortium:
         Organizations:
           - *emitras
-          # - *auditor2
+          - *opentaps
           # - *auditor3
