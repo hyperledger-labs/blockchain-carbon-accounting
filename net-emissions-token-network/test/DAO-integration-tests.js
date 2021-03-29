@@ -211,10 +211,16 @@ describe("Climate DAO - Integration tests", function() {
     });
     
     // cast three yes votes and one no vote
-    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true);
-    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true);
-    await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, true);
-    await governor.connect(await ethers.getSigner(dealer4)).castVote(proposal, false);
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, quarterOfSupply);
+    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, quarterOfSupply);
+    await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, true, quarterOfSupply);
+    await governor.connect(await ethers.getSigner(dealer4)).castVote(proposal, false, quarterOfSupply);
+
+    // check dclm8 balance of dealer1 after vote
+    await daoToken.balanceOf(dealer1)
+    .then((response) => {
+      expect(response).to.equal(0);
+    });
 
     console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(150));
