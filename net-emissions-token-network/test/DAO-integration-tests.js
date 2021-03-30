@@ -210,8 +210,15 @@ describe("Climate DAO - Integration tests", function() {
       expect(response).to.equal(1); // active
     });
     
-    // cast three yes votes and one no vote
-    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, quarterOfSupply);
+    // cast a yes votes and test if vote is equal to sqrt
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, 100);
+
+    await governor.getReceipt(proposal, dealer1)
+      .then((response) => {
+        expect(response.votes).to.equal(10);
+      });
+
+    // cast two more yes votes and one no vote
     await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, quarterOfSupply);
     await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, true, quarterOfSupply);
     await governor.connect(await ethers.getSigner(dealer4)).castVote(proposal, false, quarterOfSupply);
@@ -219,7 +226,9 @@ describe("Climate DAO - Integration tests", function() {
     // check dclm8 balance of dealer1 after vote
     await daoToken.balanceOf(dealer1)
     .then((response) => {
-      expect(response).to.equal(0);
+      expect(response).to.equal(
+        quarterOfSupply.sub(ethers.BigNumber.from(100))
+      );
     });
 
     console.log("Advancing blocks...")

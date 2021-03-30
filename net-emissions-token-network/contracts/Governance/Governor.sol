@@ -35,14 +35,13 @@ contract Governor {
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     function quorumVotes() public view returns (uint) {
         uint initialHolderBalance = dclm8.balanceOf(dclm8.getInitialHolder());
-        uint totalSupply = dclm8.getTotalSupply();
-        uint daoTokensInCirculation = totalSupply - initialHolderBalance;
-        // if tokens in circulation, let 4% of those tokens be the quorum
+        uint daoTokensInCirculation = dclm8.getTotalSupply() - initialHolderBalance;
+        // if tokens in circulation, let sqrt(4%) of those tokens be the quorum
         if (daoTokensInCirculation != 0) {
-            return div256(daoTokensInCirculation, 25); // divide by 25 to get ~4% of DAO tokens in circulation
+            return sqrt(div256(daoTokensInCirculation, 25));
         }
-        // otherwise, default to 4% of total supply
-        return 400000e18; // 400,000 = 4% of Dclm8
+        // otherwise, default to sqrt(4% of total supply)
+        return 632455532033;
     }
 
     /// @notice The number of votes required in order for a voter to become a proposer
@@ -311,10 +310,12 @@ contract Governor {
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
 
+        uint96 quadraticVote = uint96(sqrt(votes));
+
         if (support) {
-            proposal.forVotes = add256(proposal.forVotes, votes);
+            proposal.forVotes = add256(proposal.forVotes, quadraticVote);
         } else {
-            proposal.againstVotes = add256(proposal.againstVotes, votes);
+            proposal.againstVotes = add256(proposal.againstVotes, quadraticVote);
         }
 
         // burn used dCLM8 tokens
@@ -322,9 +323,9 @@ contract Governor {
 
         receipt.hasVoted = true;
         receipt.support = support;
-        receipt.votes = votes;
+        receipt.votes = quadraticVote;
 
-        emit VoteCast(voter, proposalId, support, votes);
+        emit VoteCast(voter, proposalId, support, quadraticVote);
     }
 
     function __acceptAdmin() public {
@@ -361,10 +362,20 @@ contract Governor {
     function div256(uint256 a, uint256 b) internal pure returns (uint256) {
         return _div(a, b, "division by zero");
     }
+
     function _div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
         require(b > 0, errorMessage);
         uint256 c = a / b;
         return c;
+    }
+
+    function sqrt(uint x) internal pure returns (uint y) {
+        uint z = (x + 1) / 2;
+        y = x;
+        while (z < y) {
+            y = z;
+            z = (x / z + z) / 2;
+        }
     }
 
     function getChainId() internal pure returns (uint) {

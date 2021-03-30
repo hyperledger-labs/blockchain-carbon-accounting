@@ -130,7 +130,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   async function fetchProposals() {
     let numberOfProposals = await getProposalCount(provider);
-    console.log(numberOfProposals)
     let p = [];
 
     for (let i = numberOfProposals; i > 0; i--) {
@@ -146,7 +145,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       let proposalDescription = await getDescription(provider, i);
       let proposalActions = await getActions(provider, i);
 
-      let decimals = BigNumber.from("1000000000000000000");
+      let decimals = BigNumber.from("1000000000");
       let forVotes = proposalDetails[5].div(decimals).toNumber();
       let againstVotes = proposalDetails[6].div(decimals).toNumber();
 
@@ -173,7 +172,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         receipt: {
           hasVoted: proposalReceipt[0],
           support: proposalReceipt[1],
-          votes: proposalReceipt[2].div(decimals).toNumber()
+          votes: proposalReceipt[2].div(decimals).toString()
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
