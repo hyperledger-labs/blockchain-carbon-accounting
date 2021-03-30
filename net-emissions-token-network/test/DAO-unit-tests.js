@@ -1,76 +1,61 @@
 // SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
-const {
-  deployDaoContracts,
-  createSnapshot,
-  applySnapshot,
-  deployContract,
-  encodeParameters,
-  advanceBlocks,
-  advanceHours
-} = require("./common.js");
+const { getNamedAccounts } = require("hardhat");
 
 describe("Climate DAO - Unit tests", function() {
 
-  // initialize governance contracts and create snapshot
-  let contracts;
-  let snapshot;
-
-  before(async () => {
-    contracts = await deployDaoContracts();
-    snapshot = await createSnapshot();
-  });
   beforeEach(async () => {
-    // reset state of network
-    await applySnapshot(snapshot);
-    snapshot = await createSnapshot(); // snapshots can only be used once
+    await deployments.fixture();
   });
 
   it("should allow DAO token holders to transfer around tokens", async function() {
 
-    let owner = contracts.addresses[0];
-    let DAOuser = contracts.addresses[1];
+    const { deployer, consumer1 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
 
-    // check balance of owner before transfer (right after deployment)
-    let balanceOfOwnerBeforeTransfer = await contracts.daoToken
-      .balanceOf(owner.address)
+    // check balance of deployer before transfer (right after deployment)
+    await daoToken
+      .balanceOf(deployer)
       .then((response) => expect(response.toString()).to.equal('10000000000000000000000000'));
 
-    // check balance of DAOuser before transfer
-    let balanceOfDaoUserBeforeTransfer = await contracts.daoToken
-      .balanceOf(DAOuser.address)
+    // check balance of consumer1 before transfer
+    await daoToken
+      .balanceOf(consumer1)
       .then((response) => expect(response.toString()).to.equal('0'));
 
     // send some DAO tokens from owner to DAOuser
-    let transferTokensFromOwnerToDaoUser = await contracts.daoToken.connect(owner).transfer(DAOuser.address, 1000000);
-    expect(transferTokensFromOwnerToDaoUser);
+    await daoToken
+      .connect(await ethers.getSigner(deployer))
+      .transfer(consumer1, 1000000);
 
     // check balance of owner after transfer
-    let balanceOfOwnerAfterTransfer = await contracts.daoToken
-      .balanceOf(owner.address)
+    await daoToken
+      .balanceOf(deployer)
       .then((response) => expect(response.toString()).to.equal('9999999999999999999000000'));
 
     // check balance of DAOuser after transfer
-    let balanceOfDaoUserAfterTransfer = await contracts.daoToken
-      .balanceOf(DAOuser.address)
+    await daoToken
+      .balanceOf(consumer1)
       .then((response) => expect(response.toString()).to.equal('1000000'));
   });
 
   it("should return quorum value of 4% of votes not held by owner", async function() {
 
-    let owner = contracts.addresses[0];
-    let DAOuser = contracts.addresses[1];
+    const { deployer, consumer1 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
 
     // check initial quorum (400k since no circulating supply)
-    let quorumInitial = await contracts.governor
+    await governor
       .quorumVotes()
       .then((response) => expect(response.toString()).to.equal('400000000000000000000000'));
 
-    // send tokens from owner to DAO user
-    let transferInitial = await contracts.daoToken.connect(owner)
-                                         .transfer(DAOuser.address, '10000000000000000000000000')
+    // send tokens from deployer to DAO user
+    await daoToken
+      .connect(await ethers.getSigner(deployer))
+      .transfer(consumer1, '10000000000000000000000000')
 
-    let quorumCheckTwo = await contracts.governor
+    await governor
       .quorumVotes()
       .then((response) => expect(response.toString()).to.equal('400000000000000000000000'));
 

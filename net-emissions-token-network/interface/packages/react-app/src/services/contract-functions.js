@@ -409,13 +409,13 @@ export async function getDescription(w3provider, proposalId) {
   return description;
 }
 
-export async function castVote(w3provider, proposalId, support) {
+export async function castVote(w3provider, proposalId, support, votes) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = await contract.connect(signer);
   let castVote;
   try {
-    let castVoteCall = await signed.castVote(proposalId, support);
+    let castVoteCall = await signed.castVote(proposalId, support, votes);
     castVote = SUCCESS_MSG;
   } catch (error) {
     castVote = catchError(error);

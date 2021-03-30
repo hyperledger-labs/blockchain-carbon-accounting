@@ -4,6 +4,7 @@ require("solidity-coverage");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-deploy');
+require('hardhat-deploy-ethers');
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
@@ -40,11 +41,17 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
+
   namedAccounts: {
-    deployer: {
-      default: 0
-    }
+    deployer: { default: 0 },
+    dealer1: { default: 1 },
+    dealer2: { default: 2 },
+    dealer3: { default: 3 },
+    dealer4: { default: 4 },
+    consumer1: { default: 5 },
+    consumer2: { default: 6 },
   },
+
   solidity: {
 
     compilers: [
@@ -59,7 +66,7 @@ module.exports = {
       }
     ]
 
-    
+
   },
   gasReporter: {
     currency: 'USD',

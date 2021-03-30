@@ -289,26 +289,27 @@ contract Governor {
         }
     }
 
-    function castVote(uint proposalId, bool support) public {
-        return _castVote(msg.sender, proposalId, support);
+    function castVote(uint proposalId, bool support, uint96 votes) public {
+        return _castVote(msg.sender, proposalId, support, votes);
     }
 
-    function castVoteBySig(uint proposalId, bool support, uint8 v, bytes32 r, bytes32 s) public {
+    function castVoteBySig(uint proposalId, bool support, uint8 v, bytes32 r, bytes32 s, uint96 votes) public {
         bytes32 domainSeparator = keccak256(abi.encode(DOMAIN_TYPEHASH, keccak256(bytes(name)), getChainId(), address(this)));
         bytes32 structHash = keccak256(abi.encode(BALLOT_TYPEHASH, proposalId, support));
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, structHash));
         address signatory = ecrecover(digest, v, r, s);
         require(signatory != address(0), "Governor::castVoteBySig: invalid signature");
-        return _castVote(signatory, proposalId, support);
+        return _castVote(signatory, proposalId, support, votes);
     }
 
-    function _castVote(address voter, uint proposalId, bool support) internal {
+    function _castVote(address voter, uint proposalId, bool support, uint96 votes) internal {
         require(state(proposalId) == ProposalState.Active, "Governor::_castVote: voting is closed");
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
         require(receipt.hasVoted == false, "Governor::_castVote: voter already voted");
-        uint96 votes = dclm8.getPriorVotes(voter, proposal.startBlock);
         require(votes > 0, "Governor::_castVote: no eligible votes prior to proposal start block");
+        uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
+        require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
 
         if (support) {
             proposal.forVotes = add256(proposal.forVotes, votes);
@@ -316,12 +317,8 @@ contract Governor {
             proposal.againstVotes = add256(proposal.againstVotes, votes);
         }
 
-        // check total votes vs DAO token supply. If it matches, set eta to zero so state is successful
-        uint totalVotes = add256(proposal.forVotes, proposal.againstVotes);
-        if (dclm8.getTotalSupply() == totalVotes) {
-            proposal.eta = 0;
-            proposal.endBlock = sub256(block.number,1);
-        }
+        // burn used dCLM8 tokens
+        dclm8._burn(voter, votes);
 
         receipt.hasVoted = true;
         receipt.support = support;
