@@ -45,10 +45,10 @@ describe("Climate DAO - Unit tests", function() {
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
 
-    // check initial quorum (400k since no circulating supply)
+    // check initial quorum (sqrt(400k) since no circulating supply)
     await governor
       .quorumVotes()
-      .then((response) => expect(response.toString()).to.equal('400000000000000000000000'));
+      .then((response) => expect(response.toString()).to.equal('632455532033'));
 
     // send tokens from deployer to DAO user
     await daoToken
@@ -57,7 +57,7 @@ describe("Climate DAO - Unit tests", function() {
 
     await governor
       .quorumVotes()
-      .then((response) => expect(response.toString()).to.equal('400000000000000000000000'));
+      .then((response) => expect(response.toString()).to.equal('632455532033'));
 
   });
 
