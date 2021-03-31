@@ -55,6 +55,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string metadata;
         string manifest;
         string description;
+
+        uint8 _totalHolders;
+        mapping (uint8 => address) holders;
     }
 
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
@@ -197,6 +200,21 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                 hasRole(DEFAULT_ADMIN_ROLE, operator) || hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
                 "CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
             );
+        }
+
+        if (to == address(0)) {
+            return;
+        }
+
+        // update token holders in token details
+        for (uint i = 0; i < ids.length; i++) {
+            CarbonTokenDetails storage token = _tokenDetails[ids[i]];
+
+            // add "to" to token details if not found in token holders
+            if (super.balanceOf(to, ids[i]) == 0) {
+                token._totalHolders++;
+                token.holders[token._totalHolders] = to;
+            }
         }
     }
 
@@ -561,15 +579,56 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev returns the entire details of a given tokenId
+     * @dev returns the details of a given tokenId, omitting holders
      * @param tokenId token to check
      */
+    struct Clm8TokenReturnDetails {
+        uint256 tokenId;
+        uint8 tokenTypeId;
+        address issuer;
+        address issuee;
+        uint256 fromDate;
+        uint256 thruDate;
+        uint256 dateCreated;
+        uint256 automaticRetireDate;
+        string metadata;
+        string manifest;
+        string description;
+    }
     function getTokenDetails(uint256 tokenId)
         external
         view
-        returns (CarbonTokenDetails memory)
+        returns (Clm8TokenReturnDetails memory)
     {
-        return _tokenDetails[tokenId];
+        Clm8TokenReturnDetails memory tokenDetails;
+        tokenDetails.tokenId = _tokenDetails[tokenId].tokenId;
+        tokenDetails.tokenTypeId = _tokenDetails[tokenId].tokenTypeId;
+        tokenDetails.issuer = _tokenDetails[tokenId].issuer;
+        tokenDetails.issuee = _tokenDetails[tokenId].issuee;
+        tokenDetails.fromDate = _tokenDetails[tokenId].fromDate;
+        tokenDetails.thruDate = _tokenDetails[tokenId].thruDate;
+        tokenDetails.dateCreated = _tokenDetails[tokenId].dateCreated;
+        tokenDetails.automaticRetireDate = _tokenDetails[tokenId].automaticRetireDate;
+        tokenDetails.metadata = _tokenDetails[tokenId].metadata;
+        tokenDetails.manifest = _tokenDetails[tokenId].manifest;
+        tokenDetails.description = _tokenDetails[tokenId].description;
+
+        return tokenDetails;
+    }
+
+    function getHolders(uint256 tokenId)
+        external
+        view
+        returns (address[] memory)
+    {
+        CarbonTokenDetails storage token = _tokenDetails[tokenId];
+        address[] memory holders = new address[](token._totalHolders);
+
+        for (uint8 i = 1; i <= token._totalHolders; i++) {
+            holders[i-1] = token.holders[i];
+        }
+
+        return holders;
     }
 
     function selfDestruct()
