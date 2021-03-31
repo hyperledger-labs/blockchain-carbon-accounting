@@ -145,7 +145,6 @@ Profiles:
       Organizations:
           - *emitras
           - *opentaps
-          # - *auditor3
       Capabilities:
           <<: *ApplicationCapabilities
 
@@ -159,16 +158,13 @@ Profiles:
       Organizations:
         - <<: *emitras
         - <<: *opentaps
-        # - <<: *auditor3
     Application:
       <<: *ApplicationDefaults
       Organizations:
         - <<: *emitras
         - <<: *opentaps
-        # - <<: *auditor3
     Consortiums:
       CarbonAccountingConsortium:
         Organizations:
           - *emitras
           - *opentaps
-          # - *auditor3
