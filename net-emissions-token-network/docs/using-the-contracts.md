@@ -162,10 +162,10 @@ npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetw
 
 ## Analyzing with Slither
 
-To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 and installed and run the script with:
+[Slither](https://github.com/crytic/slither) is a powerful Solidity static analysis framework written in Python.  To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 are installed.  Then from `net-emissions-token-network/` sub-directory, run the script with:
 
 ```bash
-sh startSlither.sh
+sh runSlither.sh
 ```
 
-The results of the analysis will be outputted as JSON files to `SlitherResults/`. Those files can be viewed in a text editor for more detailed results than the console output.
+The results of the analysis will be outputted as JSON files to `SlitherResults/`. Those files can be viewed with [Slither printer](https://github.com/crytic/slither/wiki/Printer-documentation).
