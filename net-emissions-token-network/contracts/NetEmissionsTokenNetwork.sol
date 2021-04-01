@@ -302,8 +302,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         if (limitedMode) {
             if (_tokenTypeId != 3 ) {
                 require(
-                    _issuer == timelock,
-                    "CLM8::_issue(limited): issuer not timelock"
+                    msg.sender == timelock,
+                    "CLM8::_issue(limited): msg.sender not timelock"
                 );
                 require(
                     hasRole(DEFAULT_ADMIN_ROLE, _issuee),
