@@ -13,7 +13,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
-    bool private limitedMode = false;
+    bool private limitedMode;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -112,6 +112,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _setupRole(REGISTERED_REC_DEALER, admin);
         _setupRole(REGISTERED_OFFSET_DEALER, admin);
         _setupRole(REGISTERED_EMISSIONS_AUDITOR, admin);
+
+        limitedMode = false;
     }
 
     modifier consumerOrDealer() {

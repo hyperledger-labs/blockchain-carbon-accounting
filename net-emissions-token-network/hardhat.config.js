@@ -34,7 +34,7 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
-    await contract.connect(admin).setLimitedMode(taskArgs.value);
+    await contract.connect(admin).setLimitedMode( (taskArgs.value) == "true" ? true : false );
   })
 
 /**
