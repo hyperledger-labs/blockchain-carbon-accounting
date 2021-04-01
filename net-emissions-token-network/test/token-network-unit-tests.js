@@ -570,7 +570,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): issuer not timelock"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
       );
     }
 

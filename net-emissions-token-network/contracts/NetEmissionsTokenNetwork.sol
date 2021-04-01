@@ -199,7 +199,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     {
         if (limitedMode) {
             require(
-                hasRole(DEFAULT_ADMIN_ROLE, operator) || hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
+                operator == timelock ||
+                hasRole(DEFAULT_ADMIN_ROLE, operator) ||
+                hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
                 "CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
             );
         }
@@ -300,7 +302,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         );
 
         if (limitedMode) {
-            if (_tokenTypeId != 3 ) {
+            if (_tokenTypeId == 1 || _tokenTypeId == 2 ) {
                 require(
                     msg.sender == timelock,
                     "CLM8::_issue(limited): msg.sender not timelock"
@@ -310,24 +312,24 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                     "CLM8::_issue(limited): issuee not admin"
                 );
             }
+        } else {
+            if (_tokenTypeId == 1) {
+                require(
+                    hasRole(REGISTERED_REC_DEALER, _issuer),
+                    "CLM8::_issue: issuer not a registered REC dealer"
+                );
+            } else if (_tokenTypeId == 2) {
+                require(
+                    hasRole(REGISTERED_OFFSET_DEALER, _issuer),
+                    "CLM8::_issue: issuer not a registered offset dealer"
+                );
+            }
         }
 
-        if (_tokenTypeId == 1) {
-            require(
-                hasRole(REGISTERED_REC_DEALER, _issuer),
-                "CLM8::_issue: issuer not a registered REC dealer"
-            );
-        } else if (_tokenTypeId == 2) {
-            require(
-                hasRole(REGISTERED_OFFSET_DEALER, _issuer),
-                "CLM8::_issue: issuer not a registered offset dealer"
-            );
-        } else {
-            require(
-                hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
-                "CLM8::_issue: issuer not a registered emissions auditor"
-            );
-        }
+        require(
+            hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+            "CLM8::_issue: issuer not a registered emissions auditor"
+        );
 
         // increment token identifier
         _numOfUniqueTokens.increment();
