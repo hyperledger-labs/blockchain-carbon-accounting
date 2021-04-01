@@ -81,6 +81,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
 
+  const [hasRole, setHasRole] = useState(false);
+
   function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); }
   function onVotesAmountChange(event) { setVotesAmount(event.target.value);  }
 
@@ -194,12 +196,18 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   // If address and provider detected then fetch balances/proposals
   useEffect(() => {
     if (provider) {
+
+      if (!hasRole && Array.isArray(roles)) {
+        setHasRole(roles.some(e => e));
+      }
+
       if (signedInAddress) {
         if (daoTokenBalance === -1 && !fetchingDaoTokenBalance) {
           setFetchingDaoTokenBalance(true);
           fetchDaoTokenBalance();
         }
       }
+
       if (blockNumber === -1 && !fetchingBlockNumber) {
         setFetchingBlockNumber(true);
         fetchBlockNumber();
@@ -209,6 +217,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         setFetchingProposals(true);
         fetchProposals();
       }
+
     }
   }, [
     signedInAddress,
@@ -375,7 +384,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     {/* proposal action buttons */}
                     <Col className="text-right">
                       {/* cancel button */}
-                      { ( (proposal.state !== "Executed") && (proposal.state !== "Canceled") && (daoTokenBalance > 0) ) &&
+                      { ( (proposal.state !== "Executed") && (proposal.state !== "Canceled") && (hasRole) ) &&
                         <Button
                           size="sm"
                           onClick={ () => handleProposalAction("cancel", proposal.id) }
@@ -387,7 +396,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                         </Button>
                       }
                       {/* queue button */}
-                      { ( (proposal.state === "Succeeded") && (daoTokenBalance > 0) ) &&
+                      { ( (proposal.state === "Succeeded") && (hasRole) ) &&
                         <Button
                           size="sm"
                           onClick={ () => handleProposalAction("queue", proposal.id) }
@@ -399,7 +408,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                         </Button>
                       }
                       {/* execute button */}
-                      { ( (proposal.state === "Queued") && (daoTokenBalance > 0) ) &&
+                      { ( (proposal.state === "Queued") && (hasRole) ) &&
                         <Button
                           size="sm"
                           onClick={ () => handleProposalAction("execute", proposal.id) }
