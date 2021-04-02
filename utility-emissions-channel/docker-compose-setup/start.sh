@@ -25,8 +25,15 @@ sudo bash ./scripts/installChaincode.sh 1 1
 echo "Starting ext chaincode..."
 sh ./scripts/startExtChaincode.sh
 
-echo "Deploying CC..."
-docker exec -it cli /bin/bash ./network.sh deployCC
+#echo "Deploying CC..."
+#docker exec -it cli /bin/bash ./network.sh deployCC
+
+echo "Deploying CC Ext..."
+sudo bash ./scripts/deployCCExt.sh 1 1
+sudo bash ./scripts/deployCCExt.sh 1 2
+
+sleep 20
+sudo bash ./scripts/commitCCExt.sh 1 1
 
 echo "Starting the api..."
 ./scripts/startApi.sh

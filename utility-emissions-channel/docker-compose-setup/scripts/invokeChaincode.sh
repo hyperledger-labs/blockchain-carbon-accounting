@@ -1,5 +1,6 @@
 CHANNEL_NAME="utilityemissionchannel"
-CC_NAME="emissionscontract"
+#CC_NAME="emissionscontract"
+CC_NAME="utilityemissions"
 # CC_SRC_PATH=${3:-"NA"}
 # CC_SRC_LANGUAGE=${4:-"javascript"}
 # CC_VERSION=${5:-"1.0"}

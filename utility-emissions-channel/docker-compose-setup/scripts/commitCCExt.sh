@@ -28,22 +28,17 @@ verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to u
 echo "===================== Query chaincode on $PEERS on channel '$CHANNEL_NAME' ===================== "
 echo
 
-echo $ORDERER_ADDRESS
-
-echo $LOG_FILE_NAME
-export CC_PACKAGE_ID=`cat ${LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier: "); print a[2]}'`
-echo $CC_PACKAGE_ID
-
-
 echo $CHAINCODE_NAME
 echo
-echo "+++++Approve chaincode for my org+++++"
-./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
+echo "+++++Commit chaincode+++++"
+./bin/peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp/tlscacerts/tlsca.auditor1.carbonAccounting.com-cert.pem --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --peerAddresses localhost:7051 --tlsRootCertFiles ${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/peers/peer1.auditor1.carbonAccounting.com/tls/ca.crt --peerAddresses localhost:8051 --tlsRootCertFiles ./organizations/peerOrganizations/auditor2.carbonAccounting.com/peers/peer1.auditor2.carbonAccounting.com/tls/ca.crt --version 1.0 --sequence 1
+
+sleep 10
 
 echo
-echo "+++++Check commitreadiness of chaincode+++++"
-./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
+echo "+++++Query commited chaincode+++++"
+./bin/peer lifecycle chaincode querycommitted --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --cafile ${ORDERER_ADDRESS}
+
 
 ### Examples
-# sudo bash ./scripts/deployCCExt.sh 1 1
-# sudo bash ./scripts/deployCCExt.sh 1 2
+# sudo bash ./scripts/commitCCExt.sh 1 1

@@ -25,6 +25,7 @@ export const ADMIN_USER_ID = "admin";
 export const ADMIN_USER_PASSWD = "adminpw";
 
 // ext chaincode "utilityemissions"
-export const CHAINCODE_NAME = "emissionscontract"
+// old chaincode "emissionscontract"
+export const CHAINCODE_NAME = "utilityemissions"
 
 export const CHANNEL_NAME = "utilityemissionchannel"
