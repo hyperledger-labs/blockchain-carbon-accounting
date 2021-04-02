@@ -273,7 +273,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       { (result) && <Alert variant="primary" dismissible onClose={() => setResult("")}>{result}</Alert>}
 
       <h2>Governance</h2>
-      <p>View, vote on, or modify proposals to issue tokens for DAO token holders. Delegate your vote before a proposal is created to be eligible to cast your votes on it.</p>
+      <p>View, vote on, or modify proposals to issue CLM8 tokens for DAO token (dCLM8) holders. Your votes count as the square root of dCLM8 you vote on a proposal with, and the full amount you voted with is burned after you cast a vote.</p>
 
       { (networkNameLowercase !== "hardhat") &&
         <p><a href={etherscanPage}>See contract on Etherscan</a></p>
