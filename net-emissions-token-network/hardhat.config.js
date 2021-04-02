@@ -47,13 +47,19 @@ task("migrateClm8Contract", "Move the tokens and balances of an old CLM8 contrac
     const oldContract = await NetEmissionsTokenNetwork.attach(taskArgs.oldContract);
     const newContract = await NetEmissionsTokenNetwork.attach(taskArgs.newContract);
 
-    const numOfTokens = (await oldContract.connect(admin).getNumOfUniqueTokens()).toNumber();
+    // require number of tokens on new contract to be zero
+    if ( (await newContract.getNumOfUniqueTokens()).toNumber() !== 0 ) {
+      console.log("New contract must have a blank state (no tokens). Exiting without action.");
+      return;
+    }
+
+    const numOfTokens = (await oldContract.getNumOfUniqueTokens()).toNumber();
     let tokens = [];
-    let accounts = [];
 
     // get details of every token and find all accounts on contract
     for (let i = 1; i <= numOfTokens; i++) {
 
+      // get details of given token on old contract
       let details = await oldContract.getTokenDetails(i);
       tokens.push({
         issuer: details.issuer,
@@ -65,23 +71,61 @@ task("migrateClm8Contract", "Move the tokens and balances of an old CLM8 contrac
         metadata: details.metadata,
         manifest: details.manifest,
         description: details.description,
+        holders: [],
+        balances: []
       });
 
-      let holders = await oldContract.getHolders(i);
+      // get holders of given token on old contract
+      tokens[i-1].holders = await oldContract.getHolders(i);
 
-      // add new accounts found in token holders
-      for (let j = 0; j < holders.length; j++) {
-        let holder = holders[j];
-        if (!accounts.includes(holder)) {
-          accounts.push(holder);
-        }
+      // get balances of given token for each address on old contract
+      for (let j = 0; j < tokens[i-1].holders.length; j++) {
+        let balance = await oldContract.balanceOf(tokens[i-1].holders[j], i);
+
+        tokens[i-1].balances.push(balance);
       }
+
+      // mint token on new contract to initial issuee
+      console.log(`Issuing token of ID ${i+1}...`);
+      await newContract.connect(admin).issueOnBehalf(
+        details.issuee,
+        details.issuer,
+        details.tokenTypeId,
+        tokens[i].balances[0],
+        details.fromDate,
+        details.thruDate,
+        details.automaticRetireDate,
+        details.metadata,
+        details.manifest,
+        details.description
+      );
+
+      // distribute balances to other holders (skipping first holder)
+      for (let j = 1; j < tokens[i-1].holders.length; j++) {
+
+        let to = tokens[i-1].holders[j];
+        let quantity = tokens[i-1].balances[j];
+        console.log(to);
+
+        // skip blank balances
+        if (quantity.toNumber() === 0)
+          continue;
+
+        console.log(`Minting more tokens of ID ${i+1} to address ${to}...`);
+        await newContract.connect(admin).mint(
+          to,
+          i,
+          quantity
+        );
+      }
+
     }
 
-    console.log("tokens: ");
+    console.log("Tokens queried: ");
     console.log(tokens);
-    console.log("accounts: ");
-    console.log(accounts);
+
+    console.log(`${tokens.length} CLM8 tokens minted on new contract ${taskArgs.newContract}. You can now call \`npx hardhat destroyClm8Contract\` with the old contract to destroy it.`);
+
   });
 
 /**

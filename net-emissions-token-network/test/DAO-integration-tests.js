@@ -28,7 +28,7 @@ async function createProposal(params) {
   let proposal = {
     targets: [params.netEmissionsTokenNetwork.address], // contract to call
     values: [ 0 ], // number of wei sent with call, i.e. msg.value
-    signatures: ["issueFromDAO(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
+    signatures: ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
     calldatas: [encodeParameters(
       // types of params
       ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],

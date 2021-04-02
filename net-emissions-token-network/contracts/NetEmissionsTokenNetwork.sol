@@ -150,14 +150,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _;
     }
 
-    modifier onlyDAO() {
-        require(
-            msg.sender == timelock,
-            "CLM8::onlyDAO: You are not the DAO"
-        );
-        _;
-    }
-
     /**
      * @dev returns true if the tokenId exists
      */
@@ -254,12 +246,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev Issue function for DAO to use proposer as issuer
+     * @dev Issue function for DAO (on limited mode) or admin to manually pass issuer
      * Must be called from Timelock contract through a successful proposal
+     * or by admin if limited mode is set to false
      */
-    function issueFromDAO(
+    function issueOnBehalf(
         address issuee,
-        address proposer,
+        address issuer,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -268,10 +261,23 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory metadata,
         string memory manifest,
         string memory description
-    ) public onlyDAO {
+    ) public {
+
+        if (limitedMode) {
+            require(
+                msg.sender == timelock,
+                "CLM8::issueOnBehalf: call must come from DAO"
+            );
+        } else {
+            require(
+                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+                "CLM8::issueOnBehalf: call must come from admin"
+            );
+        }
+
         return _issue(
             issuee,
-            proposer,
+            issuer,
             tokenTypeId,
             quantity,
             fromDate,
@@ -326,10 +332,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             }
         }
 
-        require(
-            hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
-            "CLM8::_issue: issuer not a registered emissions auditor"
-        );
+        if (_tokenTypeId == 3) {
+            require(
+                hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                "CLM8::_issue: issuer not a registered emissions auditor"
+            );
+        }
 
         // increment token identifier
         _numOfUniqueTokens.increment();
@@ -373,6 +381,21 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             tokenInfo.manifest,
             tokenInfo.description
         );
+    }
+
+    /**
+     * @dev mints more of an existing token
+     * @param to reciepient of token
+     * @param tokenId token to mint more of
+     * @param quantity amount to mint
+     */
+    function mint(address to, uint256 tokenId, uint256 quantity)
+        external
+        onlyAdmin
+    {
+        require(tokenExists(tokenId), "CLM8::mint: tokenId does not exist");
+        require(!limitedMode, "CLM8::mint: cannot mint new tokens in limited mode");
+        super._mint(to, tokenId, quantity, "");
     }
 
     /**

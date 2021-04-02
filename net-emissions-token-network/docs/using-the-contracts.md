@@ -167,6 +167,31 @@ You can turn it off with:
 npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value false
 ```
 
+## Migrating CLM8 tokens from an old contract to a new one
+
+A Hardhat task `migrateClm8Contract` is provided to copy the tokens and balances from one contract to a newly deployed blank contract. The old contract must be live in order to be read from. Currently, only tokens and available balances are migrated (roles and retired balances are yet to be implemented).
+
+To test migrating tokens locally from one contract to another:
+
+1. Deploy the first set of contracts with `npx hardhat node`.
+
+2. Create some tokens on the contract by connecting through the React interface.
+
+3. Deploy a new version of the contracts with:
+
+```bash
+npx hardhat deploy --network localhost --reset
+```
+
+4. Ensure limited mode is off on the new contract, and run the command (replacing the values in brackets with the correct addresses):
+
+```bash
+npx hardhat migrateClm8Contract --network localhost --old-contract [old_contract] --new-contract [new_contract]
+```
+
+If successful, the script will return a message like: "5 CLM8 tokens minted on new contract [new_contract]. You can now call `npx hardhat destroyClm8Contract` with the old contract to destroy it."
+
+Now you can self destruct the old contract.
 
 ## Analyzing with Slither
 
