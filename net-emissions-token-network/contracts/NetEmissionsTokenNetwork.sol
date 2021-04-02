@@ -263,17 +263,10 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory description
     ) public {
 
-        if (limitedMode) {
-            require(
-                msg.sender == timelock,
-                "CLM8::issueOnBehalf: call must come from DAO"
-            );
-        } else {
-            require(
-                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-                "CLM8::issueOnBehalf: call must come from admin"
-            );
-        }
+        require(
+            (msg.sender == timelock) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "CLM8::issueOnBehalf: call must come from DAO or admin"
+        );
 
         return _issue(
             issuee,
@@ -317,6 +310,11 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                     hasRole(DEFAULT_ADMIN_ROLE, _issuee),
                     "CLM8::_issue(limited): issuee not admin"
                 );
+            } else if (_tokenTypeId == 3) {
+                require(
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                    "CLM8::_issue: issuer not a registered emissions auditor"
+                );
             }
         } else {
             if (_tokenTypeId == 1) {
@@ -329,14 +327,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                     hasRole(REGISTERED_OFFSET_DEALER, _issuer),
                     "CLM8::_issue: issuer not a registered offset dealer"
                 );
+            } else if (_tokenTypeId == 3) {
+                require(
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                    "CLM8::_issue: issuer not a registered emissions auditor"
+                );
             }
-        }
-
-        if (_tokenTypeId == 3) {
-            require(
-                hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
-                "CLM8::_issue: issuer not a registered emissions auditor"
-            );
         }
 
         // increment token identifier
