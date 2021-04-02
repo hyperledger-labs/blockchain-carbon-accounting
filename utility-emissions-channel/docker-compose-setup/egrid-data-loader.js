@@ -16,8 +16,6 @@ const async = require("async");
 const yargs = require("yargs");
 const NAME_MAPPINGS = require("./abrevToName.js");
 
-const EmissionsCalc = require("../chaincode/node/lib/emissions-calc.js");
-
 const { execSync } = require("child_process");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec)

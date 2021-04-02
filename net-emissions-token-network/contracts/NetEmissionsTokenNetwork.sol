@@ -13,7 +13,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
-    bool private limitedMode = false;
+    bool private limitedMode;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -55,6 +55,9 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string metadata;
         string manifest;
         string description;
+
+        uint8 _totalHolders;
+        mapping (uint8 => address) holders;
     }
 
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
@@ -109,6 +112,8 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _setupRole(REGISTERED_REC_DEALER, admin);
         _setupRole(REGISTERED_OFFSET_DEALER, admin);
         _setupRole(REGISTERED_EMISSIONS_AUDITOR, admin);
+
+        limitedMode = false;
     }
 
     modifier consumerOrDealer() {
@@ -141,14 +146,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "CLM8::onlyAdmin: msg.sender not the admin"
-        );
-        _;
-    }
-
-    modifier onlyDAO() {
-        require(
-            msg.sender == timelock,
-            "CLM8::onlyDAO: You are not the DAO"
         );
         _;
     }
@@ -194,9 +191,26 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     {
         if (limitedMode) {
             require(
-                hasRole(DEFAULT_ADMIN_ROLE, operator) || hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
+                operator == timelock ||
+                hasRole(DEFAULT_ADMIN_ROLE, operator) ||
+                hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
                 "CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
             );
+        }
+
+        if (to == address(0)) {
+            return;
+        }
+
+        // update token holders in token details
+        for (uint i = 0; i < ids.length; i++) {
+            CarbonTokenDetails storage token = _tokenDetails[ids[i]];
+
+            // add "to" to token details if not found in token holders
+            if (super.balanceOf(to, ids[i]) == 0) {
+                token._totalHolders++;
+                token.holders[token._totalHolders] = to;
+            }
         }
     }
 
@@ -232,12 +246,13 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev Issue function for DAO to use proposer as issuer
+     * @dev Issue function for DAO (on limited mode) or admin to manually pass issuer
      * Must be called from Timelock contract through a successful proposal
+     * or by admin if limited mode is set to false
      */
-    function issueFromDAO(
+    function issueOnBehalf(
         address issuee,
-        address proposer,
+        address issuer,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -246,10 +261,16 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory metadata,
         string memory manifest,
         string memory description
-    ) public onlyDAO {
+    ) public {
+
+        require(
+            (msg.sender == timelock) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "CLM8::issueOnBehalf: call must come from DAO or admin"
+        );
+
         return _issue(
             issuee,
-            proposer,
+            issuer,
             tokenTypeId,
             quantity,
             fromDate,
@@ -280,33 +301,38 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         );
 
         if (limitedMode) {
-            if (_tokenTypeId != 3 ) {
+            if (_tokenTypeId == 1 || _tokenTypeId == 2 ) {
                 require(
-                    _issuer == timelock,
-                    "CLM8::_issue(limited): issuer not timelock"
+                    msg.sender == timelock,
+                    "CLM8::_issue(limited): msg.sender not timelock"
                 );
                 require(
                     hasRole(DEFAULT_ADMIN_ROLE, _issuee),
                     "CLM8::_issue(limited): issuee not admin"
                 );
+            } else if (_tokenTypeId == 3) {
+                require(
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                    "CLM8::_issue: issuer not a registered emissions auditor"
+                );
             }
-        }
-
-        if (_tokenTypeId == 1) {
-            require(
-                hasRole(REGISTERED_REC_DEALER, _issuer),
-                "CLM8::_issue: issuer not a registered REC dealer"
-            );
-        } else if (_tokenTypeId == 2) {
-            require(
-                hasRole(REGISTERED_OFFSET_DEALER, _issuer),
-                "CLM8::_issue: issuer not a registered offset dealer"
-            );
         } else {
-            require(
-                hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
-                "CLM8::_issue: issuer not a registered emissions auditor"
-            );
+            if (_tokenTypeId == 1) {
+                require(
+                    hasRole(REGISTERED_REC_DEALER, _issuer),
+                    "CLM8::_issue: issuer not a registered REC dealer"
+                );
+            } else if (_tokenTypeId == 2) {
+                require(
+                    hasRole(REGISTERED_OFFSET_DEALER, _issuer),
+                    "CLM8::_issue: issuer not a registered offset dealer"
+                );
+            } else if (_tokenTypeId == 3) {
+                require(
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                    "CLM8::_issue: issuer not a registered emissions auditor"
+                );
+            }
         }
 
         // increment token identifier
@@ -351,6 +377,21 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             tokenInfo.manifest,
             tokenInfo.description
         );
+    }
+
+    /**
+     * @dev mints more of an existing token
+     * @param to reciepient of token
+     * @param tokenId token to mint more of
+     * @param quantity amount to mint
+     */
+    function mint(address to, uint256 tokenId, uint256 quantity)
+        external
+        onlyAdmin
+    {
+        require(tokenExists(tokenId), "CLM8::mint: tokenId does not exist");
+        require(!limitedMode, "CLM8::mint: cannot mint new tokens in limited mode");
+        super._mint(to, tokenId, quantity, "");
     }
 
     /**
@@ -561,15 +602,56 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev returns the entire details of a given tokenId
+     * @dev returns the details of a given tokenId, omitting holders
      * @param tokenId token to check
      */
+    struct Clm8TokenReturnDetails {
+        uint256 tokenId;
+        uint8 tokenTypeId;
+        address issuer;
+        address issuee;
+        uint256 fromDate;
+        uint256 thruDate;
+        uint256 dateCreated;
+        uint256 automaticRetireDate;
+        string metadata;
+        string manifest;
+        string description;
+    }
     function getTokenDetails(uint256 tokenId)
         external
         view
-        returns (CarbonTokenDetails memory)
+        returns (Clm8TokenReturnDetails memory)
     {
-        return _tokenDetails[tokenId];
+        Clm8TokenReturnDetails memory tokenDetails;
+        tokenDetails.tokenId = _tokenDetails[tokenId].tokenId;
+        tokenDetails.tokenTypeId = _tokenDetails[tokenId].tokenTypeId;
+        tokenDetails.issuer = _tokenDetails[tokenId].issuer;
+        tokenDetails.issuee = _tokenDetails[tokenId].issuee;
+        tokenDetails.fromDate = _tokenDetails[tokenId].fromDate;
+        tokenDetails.thruDate = _tokenDetails[tokenId].thruDate;
+        tokenDetails.dateCreated = _tokenDetails[tokenId].dateCreated;
+        tokenDetails.automaticRetireDate = _tokenDetails[tokenId].automaticRetireDate;
+        tokenDetails.metadata = _tokenDetails[tokenId].metadata;
+        tokenDetails.manifest = _tokenDetails[tokenId].manifest;
+        tokenDetails.description = _tokenDetails[tokenId].description;
+
+        return tokenDetails;
+    }
+
+    function getHolders(uint256 tokenId)
+        external
+        view
+        returns (address[] memory)
+    {
+        CarbonTokenDetails storage token = _tokenDetails[tokenId];
+        address[] memory holders = new address[](token._totalHolders);
+
+        for (uint8 i = 1; i <= token._totalHolders; i++) {
+            holders[i-1] = token.holders[i];
+        }
+
+        return holders;
     }
 
     function selfDestruct()

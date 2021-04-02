@@ -6,16 +6,39 @@ This document describes compiling and deploying the contract with Hardhat.
 
 ## Installation and use
 
-Clone this repository, navigate to the net-emissions-token-network directory, and run `npm install`
+After cloning this repository, navigate to the `net-emissions-token-network` directory, and run `npm install`
 
-## Contract commands
+## Testing with Hardhat
 
-- To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`)
-- To compile, run `npx hardhat compile`
-- To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
-- To run a local test network without deploying the contracts, run `npx hardhat node --no-deploy --show-accounts`
-- To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
+[Hardhat](https://hardhat.org/) is an Ethereum development and testing environment which is great for deploying and testing the contracts locally.  Again from the `net-emissions-token-network` directory:
+
 - To see all commands, run `npx hardhat`
+- To compile, run `npx hardhat compile`
+- To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`)
+- To run a local test network without deploying the contracts, run `npx hardhat node --no-deploy --show-accounts`
+- To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
+- To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
+
+After deploying to hardhat locally, you will see the addresse of the deployed contracts:
+
+```
+$ npx hardhat node --show-accounts
+Nothing to compile
+Deploying DAO with account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Timelock deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
+DAO Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+Governor deployed to: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+Initialized Governor address on DAOToken.
+Queued setPendingAdmin() on Timelock.
+Executed setPendingAdmin() on Timelock.
+Called __acceptAdmin() on Governor.
+Delegated voting power of deployer to self.
+Done performing Timelock admin switch.
+Deploying NetEmissionsTokenNetwork with account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+NetEmissionsTokenNetwork deployed to: 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
+Timelock address set so that the DAO has permission to issue tokens with issueFromDAO().
+Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
+```
 
 ## Deploying contracts to a public testnet
 
@@ -124,25 +147,58 @@ Destroying contracts on other testnets and networks works similarily -- just mak
 
 ## Toggling limited mode
 
-Limited mode enables:
+The limited mode is useful in production environments.  Once it is enabled:
 
 - Only the admin can register roles
-- Only the DAO's Timelock contract can issue tokens
+- Only the DAO's Timelock contract can issue carbon offsets and REC tokens.  Emissions audits tokens can be issued as usual by emissions auditors.
 - Tokens can only be issued to the admin
 - Only the admin can transfer tokens
+- Once transferred from the admin to a recipient, they are immediately retired in the recipient's account.
 
 To turn on limited mode on a given network, run the task:
 
 ```bash
-npx hardhat setLimitedMode --network localhost --contract 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853 --value true
+npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value true
 ```
+
+You can turn it off with:
+
+```bash
+npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value false
+```
+
+## Migrating CLM8 tokens from an old contract to a new one
+
+A Hardhat task `migrateClm8Contract` is provided to copy the tokens and balances from one contract to a newly deployed blank contract. The old contract must be live in order to be read from. Currently, only tokens and available balances are migrated (roles and retired balances are yet to be implemented).
+
+To test migrating tokens locally from one contract to another:
+
+1. Deploy the first set of contracts with `npx hardhat node`.
+
+2. Create some tokens on the contract by connecting through the React interface.
+
+3. Deploy a new version of the contracts with:
+
+```bash
+npx hardhat deploy --network localhost --reset
+```
+
+4. Ensure limited mode is off on the new contract, and run the command (replacing the values in brackets with the correct addresses):
+
+```bash
+npx hardhat migrateClm8Contract --network localhost --old-contract [old_contract] --new-contract [new_contract]
+```
+
+If successful, the script will return a message like: "5 CLM8 tokens minted on new contract [new_contract]. You can now call `npx hardhat destroyClm8Contract` with the old contract to destroy it."
+
+Now you can self destruct the old contract.
 
 ## Analyzing with Slither
 
-To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 and installed and run the script with:
+[Slither](https://github.com/crytic/slither) is a powerful Solidity static analysis framework written in Python.  To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 are installed.  Then from `net-emissions-token-network/` sub-directory, run the script with:
 
 ```bash
-sh startSlither.sh
+sh runSlither.sh
 ```
 
-The results of the analysis will be outputted as JSON files to `SlitherResults/`. Those files can be viewed in a text editor for more detailed results than the console output.
+The results of the analysis will be outputted as JSON files to `SlitherResults/`. Those files can be viewed with [Slither printer](https://github.com/crytic/slither/wiki/Printer-documentation).

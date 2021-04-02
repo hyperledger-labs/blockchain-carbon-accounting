@@ -18,7 +18,7 @@ module.exports = async ({
   console.log("NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
 
   const timelock = await deployments.get('Timelock');
-  console.log("Timelock address set so that the DAO has permission to issue tokens with issueFromDAO().");
+  console.log("Timelock address set so that the DAO has permission to issue tokens with issueOnBehalf().");
 
   await execute(
     'NetEmissionsTokenNetwork',

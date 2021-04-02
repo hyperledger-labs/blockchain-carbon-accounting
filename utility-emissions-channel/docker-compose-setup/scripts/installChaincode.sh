@@ -14,7 +14,9 @@ export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH
 
 # import utils
-. scripts/envVar.sh true
+# use 'true' when run script on local computer
+# use 'false' when run script with docker exec cli
+. scripts/envVar.sh false
 
 fcn_call=$1
 shift
@@ -39,7 +41,7 @@ cd ../..
 
 ./bin/peer lifecycle chaincode install chaincode/${CC_SUBDIR}/utilityemissions-chaincode.tgz >&$LOG_FILE_NAME
 
-export CHAINCODE_CCID=`cat ${LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier:"); print a[2]}'`
+export CHAINCODE_CCID=`cat ${LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier: "); print a[2]}'`
 
 sed -i -e "s!CHAINCODE_CCID=.*!CHAINCODE_CCID=${CHAINCODE_CCID}!g" docker/nodes/${NODE_SUBDIR}/docker-compose-chaincode.yaml
 

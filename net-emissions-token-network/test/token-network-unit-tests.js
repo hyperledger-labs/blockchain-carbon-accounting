@@ -570,7 +570,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): issuer not timelock"
+        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
       );
     }
 
@@ -616,6 +616,45 @@ describe("Net Emissions Token Network - Unit tests", function() {
       manifest,
       description
     );
+
+  });
+
+  it("should store the holders of tokens in the token details", async function() {
+
+    let owner = allAddresses[0];
+    let consumer = allAddresses[1];
+
+    let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
+    expect(registerConsumer);
+
+    // issue token to owner
+    await contract
+      .connect(owner)
+      .issue(
+        owner.address,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+
+    // transfer some to consumer
+    await contract
+      .connect(owner)
+      .transfer(consumer.address, 1, 1);
+
+    // check to see if balances are stored
+    await contract
+      .getHolders(1)
+      .then((response) => {
+        expect(response).to.deep.equal([owner.address, consumer.address])
+      });
+
+    // @TODO: implement and test retired balances
 
   });
 

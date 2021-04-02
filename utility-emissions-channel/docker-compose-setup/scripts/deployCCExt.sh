@@ -1,14 +1,32 @@
 CHANNEL_NAME="utilityemissionchannel"
+CC_NN=${2}
 LOG_FILE_NAME=chaincode${2}_log.txt
 
+export CHAINCODE_NAME=utilityemissions
 export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH
 
 export ORDERER_ADDRESS=localhost:7050
 export ORDERER_TLSCA=${PWD}/organizations/peerOrganizations/auditor1.carbonAccounting.com/tlsca/tlsca.auditor1.carbonAccounting.com-cert.pem
+export ORDERER_OVERRIDE=orderer1.auditor1.carbonAccounting.com
+
+if [ $CC_NN -eq 2 ]; then
+  export ORDERER_ADDRESS=localhost:8050
+  export ORDERER_TLSCA=${PWD}/organizations/peerOrganizations/auditor2.carbonAccounting.com/tlsca/tlsca.auditor2.carbonAccounting.com-cert.pem
+  export ORDERER_OVERRIDE=orderer1.auditor2.carbonAccounting.com
+fi
 
 # import utils
-. scripts/envVar.sh true
+# use 'true' when run script on local computer and comment out ORDERER_ADDRESS reset
+# use 'false' when run script with docker exec cli
+. scripts/envVar.sh false
+
+export ORDERER_ADDRESS=orderer1.auditor1.carbonAccounting.com:7050
+if [ $CC_NN -eq 2 ]; then
+  export ORDERER_ADDRESS=orderer1.auditor2.carbonAccounting.com:8050
+fi
+
+#-------------------------------------------------------------------
 
 fcn_call=$1
 shift
@@ -22,29 +40,19 @@ echo
 echo $ORDERER_ADDRESS
 
 echo $LOG_FILE_NAME
-export CC_PACKAGE_ID=`cat ${LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier:"); print a[2]}'`
+export CC_PACKAGE_ID=`cat ${LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier: "); print a[2]}'`
 echo $CC_PACKAGE_ID
 
-export CHAINCODE_NAME=utilityemissions
-echo $CHAINCODE_NAME
 
+echo $CHAINCODE_NAME
 echo
 echo "+++++Approve chaincode for my org+++++"
-./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
+./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
 
 echo
 echo "+++++Check commitreadiness of chaincode+++++"
 ./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
 
-echo
-echo "+++++Commit chaincode+++++"
-./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} 
-
-echo
-echo "+++++Query commited chaincode+++++"
-./bin/peer lifecycle chaincode querycommitted --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --cafile ${ORDERER_TLSCA}
-
-
 ### Examples
 # sudo bash ./scripts/deployCCExt.sh 1 1
-
+# sudo bash ./scripts/deployCCExt.sh 1 2

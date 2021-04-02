@@ -62,22 +62,25 @@ exports.deployDaoContracts = async function () {
   const owner = allAddresses[0];
   console.log("deployDaoContracts() : Deploying Timelock, DAO token, and Governor contracts...");
 
-  // 1) deploy timelock contract
+  // deploy timelock contract
   //      param1 - admin address
   //      param2 - delay in unix time
   const timelock = await exports.deployContract("Timelock", owner.address, exports.hoursToSeconds(48));
 
-  // 2) deploy ERC-20 governance token
+  // deploy ERC-20 governance token
   //      param1 - initial holder of all tokens
   const daoToken = await exports.deployContract("DAOToken", owner.address);
 
-  // 3) deploy governor contract
+  // deploy governor contract
   //      param1 - timelock address
   //      param2 - governance token address
   //      param3 - guardian address
   const governor = await exports.deployContract("Governor", timelock.address, daoToken.address, owner.address);
 
-  // 4) setPendingAdmin in timelock contract to governor contract so it will controlled by the DAO
+  // set governor in DAOToken contract
+  await daoToken.setGovernor(governor.address);
+
+  // setPendingAdmin in timelock contract to governor contract so it will controlled by the DAO
   console.log("deployDaoContracts() : Setting admin in Timelock to Governor contract...");
 
   // format transactions for Timelock to change admin to Governor
@@ -92,7 +95,7 @@ exports.deployDaoContracts = async function () {
     ),
     eta: (currentTime + exports.hoursToSeconds(50))
   }
-  const queueTimelockAdminToGovernor = await timelock.connect(owner).queueTransaction(
+  await timelock.connect(owner).queueTransaction(
     timelockNewAdmin.target,
     timelockNewAdmin.value,
     timelockNewAdmin.signature,
@@ -104,7 +107,7 @@ exports.deployDaoContracts = async function () {
   await exports.advanceHours(51);
 
   // execute setPendingAdmin on Timelock
-  const executeTimelockAdminToGovernor = await timelock.connect(owner).executeTransaction(
+  await timelock.connect(owner).executeTransaction(
     timelockNewAdmin.target,
     timelockNewAdmin.value,
     timelockNewAdmin.signature,
@@ -115,7 +118,7 @@ exports.deployDaoContracts = async function () {
   await exports.advanceBlocks(1);
 
   // accept admin role from Governor contract
-  const acceptAdmin = governor.connect(owner).__acceptAdmin();
+  governor.connect(owner).__acceptAdmin();
   await exports.advanceBlocks(1);
 
   console.log("deployDaoContracts() : Called __acceptAdmin() on Governor.");
