@@ -37,6 +37,53 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
     await contract.connect(admin).setLimitedMode( (taskArgs.value) == "true" ? true : false );
   })
 
+// Task to move the state of one NetEmissionsTokenNetwork contract to another
+task("migrateClm8Contract", "Move the tokens and balances of an old CLM8 contract to a blank one")
+  .addParam("oldContract", "The old CLM8 contract to read from")
+  .addParam("newContract", "The new CLM8 contract to write to (must be deployed with no tokens issued)")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const oldContract = await NetEmissionsTokenNetwork.attach(taskArgs.oldContract);
+    const newContract = await NetEmissionsTokenNetwork.attach(taskArgs.newContract);
+
+    const numOfTokens = (await oldContract.connect(admin).getNumOfUniqueTokens()).toNumber();
+    let tokens = [];
+    let accounts = [];
+
+    // get details of every token and find all accounts on contract
+    for (let i = 1; i <= numOfTokens; i++) {
+
+      let details = await oldContract.getTokenDetails(i);
+      tokens.push({
+        issuer: details.issuer,
+        issuee: details.issuee,
+        tokenTypeId: details.tokenTypeId,
+        fromDate: details.fromDate,
+        thruDate: details.thruDate,
+        automaticRetireDate: details.automaticRetireDate,
+        metadata: details.metadata,
+        manifest: details.manifest,
+        description: details.description,
+      });
+
+      let holders = await oldContract.getHolders(i);
+
+      // add new accounts found in token holders
+      for (let j = 0; j < holders.length; j++) {
+        let holder = holders[j];
+        if (!accounts.includes(holder)) {
+          accounts.push(holder);
+        }
+      }
+    }
+
+    console.log("tokens: ");
+    console.log(tokens);
+    console.log("accounts: ");
+    console.log(accounts);
+  });
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
