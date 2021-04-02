@@ -29,7 +29,7 @@ You need to have a running Kubernetes cluster. You need to deploy one nginx ingr
 
 ###### Nginx Controller Config
 Go to https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider and copy the `deploy.yaml` file to your filesystem according to your cloud provider.
-In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/opentaps/blockchain-carbon-accounting/blob/c20466ec19018fb1afac31c50e58455b9db7a944/multi-cloud-deployment/deploy-digitalocean/kubernetes-ingress-controller-deploy.yaml#L353) of the nginx ingress for DigitalOcean (do). 
+In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/multi-cloud-deployment/deploy-digitalocean/kubernetes-ingress-controller-deployment.yaml#L353) of the nginx ingress for DigitalOcean (do). 
 
 ##### Ingress Service Config
 Next, you need to prepare your ingress to route the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. As a starting point you can use `deploy-digitalocean/ingress-fabric-services-deployment.yaml´. 
