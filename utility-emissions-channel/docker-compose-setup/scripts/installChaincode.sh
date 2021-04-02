@@ -14,7 +14,9 @@ export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH
 
 # import utils
-. scripts/envVar.sh true
+# use 'true' when run script on local computer
+# use 'false' when run script with docker exec cli
+. scripts/envVar.sh false
 
 fcn_call=$1
 shift

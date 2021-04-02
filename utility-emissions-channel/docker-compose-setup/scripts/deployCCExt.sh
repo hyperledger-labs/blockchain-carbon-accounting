@@ -17,7 +17,16 @@ if [ $CC_NN -eq 2 ]; then
 fi
 
 # import utils
-. scripts/envVar.sh true
+# use 'true' when run script on local computer and comment out ORDERER_ADDRESS reset
+# use 'false' when run script with docker exec cli
+. scripts/envVar.sh false
+
+export ORDERER_ADDRESS=orderer1.auditor1.carbonAccounting.com:7050
+if [ $CC_NN -eq 2 ]; then
+  export ORDERER_ADDRESS=orderer1.auditor2.carbonAccounting.com:8050
+fi
+
+#-------------------------------------------------------------------
 
 fcn_call=$1
 shift
