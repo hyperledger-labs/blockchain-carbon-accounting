@@ -423,18 +423,18 @@ peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarb
 
 Next, we deploy a utilityemissions chaincode to the utilityemissionchannel. Follow the next steps carefully.
 
-2.1. First, we package and install the chaincode to one peer. In `utility-emissions-channel/chaincode/packaging/packacking/connection.json` set the value of `your address` (e.g., "address": "chaincode-utilityemissions.fabric-production:7052"). If you use `fabric-production` namespace, than 
+2.1. First, we package and install the chaincode to one peer. In `utility-emissions-channel/chaincode/packaging/connection.json` set the value of `your address` (e.g., "address": "chaincode-utilityemissions.fabric-production:7052"). If you use `fabric-production` namespace, than 
 ``` shell
-# change dir to utility-emissions-channel/chaincode/packaging/packacking
-cd utility-emissions-channel/chaincode/packaging/packacking
-source ../../multi-cloud-deployment/deploy-aws/setEnv.sh
+# change dir to utility-emissions-channel/chaincode/packaging
+cd utility-emissions-channel/chaincode/packaging
+source ../../../multi-cloud-deployment/deploy-aws/setEnv.sh
 
 # tar connection.json and metadata.json
 tar cfz code.tar.gz connection.json
 tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
 
 # install chaincecode package to peer
-../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode install utilityemissions-chaincode.tgz
+../../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode install utilityemissions-chaincode.tgz
 
 # Should print similar output to
 2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nQutilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97\022\020utilityemissions" > 
@@ -444,7 +444,7 @@ tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
 2.2. Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
 ```shell
 # Query installed chaincode of peer
-../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
+../../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
 
 # Should print similar output to
 Installed chaincodes on peer:
