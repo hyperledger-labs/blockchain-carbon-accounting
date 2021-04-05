@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
 
+import { getLimitedMode } from "../services/contract-functions";
+
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
@@ -44,6 +46,8 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
   const [role, setRole] = useState("");
   const [cachedRoles, setCachedRoles] = useState([]);
 
+  const [limitedMode, setLimitedMode] = useState(null);
+
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
     if (roles.length === 5 && (role === "" || cachedRoles !== roles)) {
@@ -63,6 +67,18 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       setCachedRoles(roles);
     }
   }, [roles, role, signedInAddress, cachedRoles]);
+
+  useEffect(() => {
+
+    async function fetchLimitedMode() {
+      let res = await getLimitedMode(provider);
+      setLimitedMode(res);
+    }
+
+    if (limitedMode == null && signedInAddress) {
+      fetchLimitedMode();
+    }
+  }, [limitedMode, signedInAddress, provider]);
 
   function truncateAddress(addr) {
     let prefix = addr.substring(0,6);
@@ -91,6 +107,13 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
                 <Row className="d-flex justify-content-center">
                   <small className="text-secondary">{addresses.network}</small>
                 </Row>
+
+                { (limitedMode === true) &&
+                  <Row className="d-flex justify-content-center">
+                    <small className="text-danger">Limited mode</small>
+                  </Row>
+                }
+
               </Nav.Item>
               <Nav.Item style={{padding: ".5rem .5rem"}}>
                 <span className="text-secondary">{truncateAddress(signedInAddress)}</span>

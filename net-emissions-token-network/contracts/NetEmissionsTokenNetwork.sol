@@ -13,7 +13,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
 
-    bool private limitedMode;
+    bool public limitedMode;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
