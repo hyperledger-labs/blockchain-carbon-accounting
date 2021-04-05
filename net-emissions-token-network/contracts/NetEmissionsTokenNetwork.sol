@@ -14,6 +14,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     using Counters for Counters.Counter;
 
     bool public limitedMode;
+    address public admin;
 
     // Generic dealer role for registering/unregistering consumers
     bytes32 public constant REGISTERED_DEALER =
@@ -95,17 +96,18 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     event UnregisteredDealer(address indexed account);
 
     // Replaces constructor in OpenZeppelin Upgrades
-    constructor(address admin) ERC1155("") {
+    constructor(address _admin) ERC1155("") {
 
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
 
         // Set-up admin
-        _setupRole(DEFAULT_ADMIN_ROLE, admin);
-        _setupRole(REGISTERED_DEALER, admin);
-        _setupRole(REGISTERED_REC_DEALER, admin);
-        _setupRole(REGISTERED_OFFSET_DEALER, admin);
-        _setupRole(REGISTERED_EMISSIONS_AUDITOR, admin);
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(REGISTERED_DEALER, _admin);
+        _setupRole(REGISTERED_REC_DEALER, _admin);
+        _setupRole(REGISTERED_OFFSET_DEALER, _admin);
+        _setupRole(REGISTERED_EMISSIONS_AUDITOR, _admin);
+        admin = _admin;
 
         limitedMode = false;
     }

@@ -23,7 +23,7 @@ import GET_TRANSFERS from "./graphql/subgraph";
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
-  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles] = useWeb3Modal();
+  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode] = useWeb3Modal();
 
   const [location] = useLocation();
 
@@ -45,6 +45,7 @@ function App() {
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         signedInAddress={signedInAddress}
         roles={roles}
+        limitedMode={limitedMode}
       />
 
       {/* Tabs to pages */}
@@ -85,7 +86,7 @@ function App() {
                     <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/issue">
-                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} />
+                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                   </Route>
                   <Route path="/transfer">
                     <TransferForm provider={provider} roles={roles} />

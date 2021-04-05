@@ -169,6 +169,17 @@ export async function getLimitedMode(w3provider) {
   return limitedMode;
 }
 
+export async function getAdmin(w3provider) {
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let admin;
+  try {
+    admin = await contract.admin();
+  } catch (error) {
+    admin = error.message;
+  }
+  return admin;
+}
+
 export async function issue(
   w3provider,
   address,

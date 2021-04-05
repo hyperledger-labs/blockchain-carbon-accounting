@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
 
-import { getLimitedMode } from "../services/contract-functions";
-
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
@@ -41,12 +39,10 @@ const tooltipCopiedAddress = (props) => (
   </Tooltip>
 );
 
-export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles }) {
+export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode }) {
   
   const [role, setRole] = useState("");
   const [cachedRoles, setCachedRoles] = useState([]);
-
-  const [limitedMode, setLimitedMode] = useState(null);
 
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
@@ -67,18 +63,6 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       setCachedRoles(roles);
     }
   }, [roles, role, signedInAddress, cachedRoles]);
-
-  useEffect(() => {
-
-    async function fetchLimitedMode() {
-      let res = await getLimitedMode(provider);
-      setLimitedMode(res);
-    }
-
-    if (limitedMode == null && signedInAddress) {
-      fetchLimitedMode();
-    }
-  }, [limitedMode, signedInAddress, provider]);
 
   function truncateAddress(addr) {
     let prefix = addr.substring(0,6);
