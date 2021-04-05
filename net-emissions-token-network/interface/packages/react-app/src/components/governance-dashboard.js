@@ -441,10 +441,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   { proposal.isEligibleToVote &&
                     <>
                       <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)}<br/>
+                        Total For: {addCommas(proposal.details.forVotes)} votes (~{addCommas(proposal.details.forVotes ** 2)} dCLM8<br/>
                         <InputGroup className="mt-1">
                           <FormControl
-                            placeholder="Votes to cast for.."
+                            placeholder="dCLM8 to vote for.."
                             onChange={onVotesAmountChange}
                           />
                           <InputGroup.Append>
@@ -456,10 +456,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                         </InputGroup>
                       </Col>
                       <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)}<br/>
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes (~{addCommas(proposal.details.againstVotes ** 2)} dCLM8<br/>
                         <InputGroup className="mt-1">
                           <FormControl
-                            placeholder="Votes to cast against..."
+                            placeholder="dCLM8 to vote against..."
                             onChange={onVotesAmountChange}
                           />
                           <InputGroup.Append>
@@ -477,10 +477,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   { ( (proposal.state !== "Pending") && !proposal.isEligibleToVote ) &&
                     <>
                       <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)}<br/>
+                        Total For: {addCommas(proposal.details.forVotes)} votes (~{addCommas(proposal.details.forVotes ** 2)} dCLM8)<br/>
                       </Col>
                       <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)}<br/>
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes (~{addCommas(proposal.details.againstVotes ** 2)} dCLM8)<br/>
                       </Col>
                     </>
                   }
