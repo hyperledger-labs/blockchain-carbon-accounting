@@ -150,8 +150,9 @@ Destroying contracts on other testnets and networks works similarily -- just mak
 The limited mode is useful in production environments.  Once it is enabled:
 
 - Only the admin can register roles
-- Only the DAO's Timelock contract can issue carbon offsets and REC tokens.  Emissions audits tokens can be issued as usual by emissions auditors.
-- Tokens can only be issued to the admin
+- Only the DAO's Timelock contract can issue carbon offsets and REC tokens.  
+- Offset and REC tokens can only be issued to the admin.  
+- Emissions audits tokens can be issued as usual by emissions auditors.
 - Only the admin can transfer tokens
 - Once transferred from the admin to a recipient, they are immediately retired in the recipient's account.
 
