@@ -68,12 +68,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     // Counts number of unique token IDs (auto-incrementing)
     Counters.Counter private _numOfUniqueTokens;
 
-    string[] private _TOKEN_TYPES  = [
-        "Renewable Energy Certificate",
-        "Carbon Emissions Offset",
-        "Audited Emissions"
-    ];
-
     // events
     event TokenCreated(
         uint256 availableBalance,
@@ -162,7 +156,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns true if the tokenTypeId is valid
      */
     function tokenTypeIdIsValid(uint8 tokenTypeId) private view returns (bool) {
-        if ((tokenTypeId > 0) && (tokenTypeId <= _TOKEN_TYPES.length)) {
+        if ((tokenTypeId > 0) && (tokenTypeId <= 3)) {
             return true;
         }
         return false; // no matching tokenId
@@ -187,27 +181,41 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         bytes memory data
     )
         internal
+        virtual
         override
     {
-        if (limitedMode) {
-            require(
-                operator == timelock ||
-                hasRole(DEFAULT_ADMIN_ROLE, operator) ||
-                hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
-                "CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
-            );
-        }
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
 
-        if (to == address(0)) {
-            return;
-        }
-
-        // update token holders in token details
         for (uint i = 0; i < ids.length; i++) {
+
             CarbonTokenDetails storage token = _tokenDetails[ids[i]];
 
+            // disable most transfers if limitedMode is on
+            if (limitedMode) {
+
+                // allow retiring/burning one's tokens
+                if (to == address(0)) {
+                    continue;
+                }
+
+                // for tokenType 1 and 2, only the timelock and DAO can transfer/issue
+                // for tokenType 3, only emissions auditors can transfer/issue
+                // (and they are automatically retired right after)
+                if (token.tokenTypeId != 3) {
+                    require(
+                        operator == timelock || hasRole(DEFAULT_ADMIN_ROLE, operator),
+                        "CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
+                    );
+                } else {
+                    require(
+                        hasRole(REGISTERED_EMISSIONS_AUDITOR, operator),
+                        "CLM8::_beforeTokenTransfer(limited): only emissions auditors can issue audited emissions"
+                    );
+                }
+            }
+
             // add "to" to token details if not found in token holders
-            if (super.balanceOf(to, ids[i]) == 0) {
+            if (to != address(0) && super.balanceOf(to, ids[i]) == 0) {
                 token._totalHolders++;
                 token.holders[token._totalHolders] = to;
             }
@@ -310,10 +318,14 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                     hasRole(DEFAULT_ADMIN_ROLE, _issuee),
                     "CLM8::_issue(limited): issuee not admin"
                 );
+                require(
+                    hasRole(REGISTERED_REC_DEALER, _issuer) || hasRole(REGISTERED_OFFSET_DEALER, _issuer),
+                    "CLM8::_issue(limited): proposer not a registered dealer"
+                );
             } else if (_tokenTypeId == 3) {
                 require(
                     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
-                    "CLM8::_issue: issuer not a registered emissions auditor"
+                    "CLM8::_issue(limited): issuer not a registered emissions auditor"
                 );
             }
         } else {
@@ -404,9 +416,15 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         returns (string memory)
     {
         require(tokenExists(tokenId), "CLM8::getTokenType: tokenId does not exist");
-        string memory tokenType =
-            _TOKEN_TYPES[(_tokenDetails[tokenId].tokenTypeId - 1)];
-        return tokenType;
+        CarbonTokenDetails storage token = _tokenDetails[tokenId];
+
+        if (token.tokenTypeId == 1) {
+            return "Renewable Energy Certificate";
+        } else if (token.tokenTypeId == 2) {
+            return "Carbon Emissions Offset";
+        }
+        return "Audited Emissions";
+
     }
 
     /**

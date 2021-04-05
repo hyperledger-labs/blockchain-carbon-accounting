@@ -276,7 +276,6 @@ describe("Net Emissions Token Network - Unit tests", function() {
     expect(tokenId).to.equal(1);
 
     let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
-      // console.log(response)
       expect(response.tokenId.toNumber()).to.equal(tokenId);
       expect(response.issuer).to.equal(dealer.address);
       expect(response.issuee).to.equal(consumer.address);
@@ -546,11 +545,17 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let owner = allAddresses[0];
     let consumer = allAddresses[1];
     let consumerTwo = allAddresses[2];
+    let dealer = allAddresses[3];
+    let dealerTwo = allAddresses[4];
 
     let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
     expect(registerConsumer);
     let registerConsumerTwo = await contract.connect(owner).registerConsumer(consumerTwo.address);
     expect(registerConsumerTwo);
+    let registerDealer = await contract.connect(owner).registerDealer(dealer.address, allTokenTypeId[2]);
+    expect(registerDealer);
+    let registerDealerTwo = await contract.connect(owner).registerDealer(dealerTwo.address, allTokenTypeId[1]);
+    expect(registerDealerTwo);
 
     // turn on limited mode
     await contract.connect(owner).setLimitedMode(true);
@@ -558,7 +563,26 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // try to issue to an account other than admin
     try {
       await contract.connect(owner).issue(
-        allAddresses[1].address,
+        consumer.address,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
+      );
+    }
+
+    // try to issue from carbon offsets dealer
+    try {
+      await contract.connect(dealerTwo).issue(
+        owner.address,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -600,12 +624,12 @@ describe("Net Emissions Token Network - Unit tests", function() {
       await contract.connect(consumer).transfer(consumerTwo.address, 1, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and emissions auditors can transfer tokens"
+        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
       );
     }
 
-    // issue audited emissions token
-    await contract.connect(owner).issue(
+    // issue audited emissions token from dealer
+    await contract.connect(dealer).issue(
       consumer.address,
       allTokenTypeId[2],
       quantity,
@@ -616,6 +640,21 @@ describe("Net Emissions Token Network - Unit tests", function() {
       manifest,
       description
     );
+
+    // send tokens to dealer from owner
+    await contract.connect(owner).transfer(dealer.address, 1, transferAmount);
+
+    // try to transfer from dealer to consumer
+    try {
+      await contract.connect(dealer).transfer(consumer.address, 1, transferAmount);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
+      );
+    }
+
+    // try to retire from consumer
+    await contract.connect(consumer).retire(1, transferAmount);
 
   });
 
