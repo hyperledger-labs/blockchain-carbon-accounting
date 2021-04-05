@@ -224,7 +224,7 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
             size="lg"
             block
             onClick={() => setCreateModalShow(true)}
-            disabled={(calldata.length === 0) || String(quantity).length === 0}
+            disabled={(calldata.length === 0) || String(quantity).length === 0 || tokenTypeId == 3}
           >
             Create a DAO proposal
           </Button>
