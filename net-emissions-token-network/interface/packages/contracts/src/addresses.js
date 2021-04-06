@@ -48,6 +48,21 @@ const networksAndAddresses = {
     }
   },
 
+  xdai: {
+    network: "xDai",
+    tokenNetwork: {
+      address: "0xf7B361Fe2dE41Cd092D2c777D2136CB8E3C2B146", // deployed 2021-04-06
+    },
+    dao: {
+      governor: {
+        address: "0x7137EB87725D61d69e6543E7b498bC4780AF1608", // deployed 2021-04-06
+      },
+      daoToken: {
+        address: "0xe0E06767718e04A51c99C3A1cfc63a42950616a1", // deployed 2021-04-06
+      }
+    }
+  },
+
 }
 
 const addresses = networksAndAddresses.hardhat;
