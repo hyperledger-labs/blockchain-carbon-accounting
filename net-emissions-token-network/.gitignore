@@ -6,6 +6,5 @@ artifacts
 coverage
 coverage.json
 .ethereum-config.js
-.openzeppelin
 deployments/localhost
 SlitherResults

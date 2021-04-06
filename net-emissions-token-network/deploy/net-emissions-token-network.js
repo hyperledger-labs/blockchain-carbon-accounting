@@ -3,22 +3,25 @@ module.exports = async ({
   deployments,
   getNamedAccounts
 }) => {
-  const {deploy, execute} = deployments;
+  const {execute, deploy} = deployments;
+  const { ethers, upgrades } = require("hardhat");
   const {deployer} = await getNamedAccounts();
 
   console.log(`Deploying NetEmissionsTokenNetwork with account: ${deployer}`);
 
   let netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
     from: deployer,
-    args: [
-      deployer
-    ],
+    proxy: {
+      owner: deployer,
+      proxyContract: "OptimizedTransparentProxy",
+      methodName: 'initialize'
+    },
+    args: [ deployer ],
   });
 
   console.log("NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
 
   const timelock = await deployments.get('Timelock');
-  console.log("Timelock address set so that the DAO has permission to issue tokens with issueOnBehalf().");
 
   await execute(
     'NetEmissionsTokenNetwork',
@@ -26,6 +29,7 @@ module.exports = async ({
     'setTimelock',
     timelock.address
   );
+  console.log("Timelock address set so that the DAO has permission to issue tokens with issueOnBehalf().");
 
 };
 

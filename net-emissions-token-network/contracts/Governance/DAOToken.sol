@@ -1,6 +1,6 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
-// SPDX-License-Identifier: BSD 3-Clause "New" or "Revised" License
+// SPDX-License-Identifier: BSD-3-Clause
 
 /* Copyright 2021 Compound Labs, Inc.
 Redistribution and use in source and binary forms, with or without

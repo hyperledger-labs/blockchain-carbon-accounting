@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
+const { getNamedAccounts } = require("hardhat");
 const {
   allTokenTypeId,
   quantity,
@@ -11,53 +12,45 @@ const {
   metadata,
   manifest,
   description,
-  deployContract,
-  createSnapshot,
-  applySnapshot
 } = require("./common.js");
 const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Unit tests", function() {
 
-  let allAddresses;
-  let snapshot;
   let contract;
-  before(async () => {
-    allAddresses = await ethers.getSigners();
-    contract = await deployContract("NetEmissionsTokenNetwork", allAddresses[0].address);
-    snapshot = await createSnapshot();
-  });
   beforeEach(async () => {
-    await applySnapshot(snapshot);
-    snapshot = await createSnapshot(); // snapshots can only be used once
-  })
+    await deployments.fixture();
+    contract = await ethers.getContract('NetEmissionsTokenNetwork');
+  });
 
   it("should auto-increment tokenId on two subsequent issuances, fail on incorrect issue calls", async function() {
 
-    let dealer = allAddresses[1];
-    let consumer = allAddresses[2];
+    const { dealer1, consumer1 } = await getNamedAccounts();
 
-    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
-    expect(registerDealer);
-    let registerDealerTwo = await contract.registerDealer(dealer.address, allTokenTypeId[2]);
-    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    await contract.registerDealer(dealer1, allTokenTypeId[1]);
+    await contract.registerDealer(dealer1, allTokenTypeId[2]);
+    let registerConsumer = await contract
+      .connect(await ethers.getSigner(dealer1))
+      .registerConsumer(consumer1);
     expect(registerConsumer);
 
     // check number of unique tokens before issuance
-    let numUniqueTokensBefore = await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(0));
+    await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(0));
 
     // try issuing with wrong tokenTypeId 
     try {
-      let issueFail = await contract.connect(dealer).issue(
-        consumer.address,
-        "4",
-        quantity,
-        fromDate,
-        thruDate,
-        automaticRetireDate,
-        metadata,
-        manifest,
-        description
+      await contract
+        .connect(await ethers.getSigner(dealer1))
+        .issue(
+          consumer1,
+          "4",
+          quantity,
+          fromDate,
+          thruDate,
+          automaticRetireDate,
+          metadata,
+          manifest,
+          description
         );
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -66,9 +59,9 @@ describe("Net Emissions Token Network - Unit tests", function() {
     }
 
     let issue = await contract
-      .connect(dealer)
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        consumer.address,
+        consumer1,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -81,9 +74,9 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Check to be certain mint did not return errors
     expect(issue);
     let issue2 = await contract
-      .connect(dealer)
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        consumer.address,
+        consumer1,
         allTokenTypeId[2],
         quantity,
         fromDate,
@@ -97,7 +90,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     expect(issue2);
 
     // check number of unique tokens after issuance
-    let numUniqueTokensAfter = await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(2));
+    await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(2));
 
     // Get ID of first issued token
     let transactionReceipt = await issue.wait(0);
@@ -113,7 +106,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try getting tokenTypeId 
     try {
-      let getTokenTypeFail = await contract.getTokenType((tokenId2 + 1));
+      await contract.getTokenType((tokenId2 + 1));
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::getTokenType: tokenId does not exist"
@@ -123,81 +116,74 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   it("should return the correct roles after owner assigns them", async function() {
 
-    let owner = allAddresses[0];
-    let recDealer = allAddresses[1];
-    let ceoDealer = allAddresses[2];
-    let aeDealer = allAddresses[3];
-    let consumer = allAddresses[4];
-    let unregistered = allAddresses[5];
+    const { deployer, dealer1, dealer2, dealer3, consumer1, unregistered } = await getNamedAccounts();
 
     // register roles
-    let registerRecdealer = await contract.registerDealer(recDealer.address, allTokenTypeId[0]);
-    let registerCeodealer = await contract.registerDealer(ceoDealer.address, allTokenTypeId[1]);
-    let registerAedealer = await contract.registerDealer(aeDealer.address, allTokenTypeId[2]);
-    let registerconsumer = await contract.registerConsumer(consumer.address);
+    let registerRecdealer = await contract.registerDealer(dealer1, allTokenTypeId[0]);
+    let registerCeodealer = await contract.registerDealer(dealer2, allTokenTypeId[1]);
+    let registerAedealer = await contract.registerDealer(dealer3, allTokenTypeId[2]);
+    let registerconsumer = await contract.registerConsumer(consumer1);
     expect(registerRecdealer);
     expect(registerCeodealer);
     expect(registerAedealer);
     expect(registerconsumer);
 
     // @TODO: Remove owner role from dealers
-    let ownerRoles = await contract
-      .getRoles(owner.address)
+    await contract
+      .getRoles(deployer)
       .then((response) => expect(response).to.deep.equal([true, true, true, true, false]));
-    let recDealerRoles = await contract
-      .getRoles(recDealer.address)
+    await contract
+      .getRoles(dealer1)
       .then((response) => expect(response).to.deep.equal([false, true, false, false, false]));
-    let ceoDealerRoles = await contract
-      .getRoles(ceoDealer.address)
+    await contract
+      .getRoles(dealer2)
       .then((response) => expect(response).to.deep.equal([false, false, true, false, false]));
-    let aeDealerRoles = await contract
-      .getRoles(aeDealer.address)
+    await contract
+      .getRoles(dealer3)
       .then((response) => expect(response).to.deep.equal([false, false, false, true, false]));
-    let consumerRoles = await contract
-      .getRoles(consumer.address)
+    await contract
+      .getRoles(consumer1)
       .then((response) => expect(response).to.deep.equal([false, false, false, false, true]));
-    let unregisteredRoles = await contract
-      .getRoles(unregistered.address)
+    await contract
+      .getRoles(unregistered)
       .then((response) => expect(response).to.deep.equal([false, false, false, false, false]));
 
     // check assigning another dealer role to recDealer
-    let registerRecdealerTwo = await contract.registerDealer(recDealer.address, allTokenTypeId[1]);
+    let registerRecdealerTwo = await contract.registerDealer(dealer1, allTokenTypeId[1]);
     expect(registerRecdealerTwo);
-    let recDealerRolesTwo = await contract
-      .getRoles(recDealer.address)
+    await contract
+      .getRoles(dealer1)
       .then((response) => expect(response).to.deep.equal([false, true, true, false, false]));
 
     // check unregistering that role from recDealer
-    let unregisterRecdealer = await contract.unregisterDealer(recDealer.address, allTokenTypeId[1]);
-    let recDealerRolesThree = await contract
-      .getRoles(recDealer.address)
+    await contract.unregisterDealer(dealer1, allTokenTypeId[1]);
+    await contract
+      .getRoles(dealer1)
       .then((response) => expect(response).to.deep.equal([false, true, false, false, false]));
 
     // check if recDealer is dealer
-    let isRecDealerDealer = await contract
-      .isDealerRegistered(recDealer.address)
+    await contract
+      .isDealerRegistered(dealer1)
       .then((response) => expect(response).to.equal(true));
 
     // check if unregistered is dealer
-    let isUnregisteredDealer = await contract
-      .isDealerRegistered(unregistered.address)
+    await contract
+      .isDealerRegistered(unregistered)
       .then((response) => expect(response).to.equal(false));
 
   });
 
   it("should only allow the contract owner to register dealers", async function() {
 
-    let owner = allAddresses[0];
-    let dealer = allAddresses[1];
-    let unregistered = allAddresses[2];
+    const { deployer, dealer1, unregistered } = await getNamedAccounts();
 
     // register dealer
-    let registerDealer = await contract.connect(owner).registerDealer(dealer.address, allTokenTypeId[0]);
+    let registerDealer = await contract.connect(await ethers.getSigner(deployer)).registerDealer(dealer1, allTokenTypeId[0]);
     expect(registerDealer);
 
     // try registering dealer of invalid tokenTypeId
     try {
-      let registerInvalidTokenTypeId = await contract.connect(owner).registerDealer(unregistered.address, 100);
+      await contract.connect(await ethers.getSigner(deployer)).registerDealer(unregistered, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::registerDealer: tokenTypeId does not exist"
@@ -206,7 +192,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try unregistering dealer of invalid tokenTypeId
     try {
-      let unregisterInvalidTokenTypeId = await contract.connect(owner).unregisterDealer(unregistered.address, 100);
+      await contract.connect(await ethers.getSigner(deployer)).unregisterDealer(unregistered, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::unregisterDealer: tokenTypeId does not exist"
@@ -215,7 +201,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try registering another dealer from dealer account
     try {
-      let registerDealerFromDealerFail = await contract.connect(dealer).registerDealer(unregistered.address, allTokenTypeId[0]);
+      await contract.connect(await ethers.getSigner(dealer1)).registerDealer(unregistered, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
@@ -224,7 +210,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try registering dealer from unregistered account
     try {
-      let unregisterFail = await contract.connect(unregistered).registerDealer(unregistered.address, allTokenTypeId[0]);
+      await contract.connect(await ethers.getSigner(unregistered)).registerDealer(unregistered, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
@@ -233,7 +219,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try unregistering self
     try {
-      let unregisterSelfFail = await contract.connect(dealer).unregisterDealer(dealer.address, allTokenTypeId[0]);
+      await contract.connect(await ethers.getSigner(dealer1)).unregisterDealer(dealer1, allTokenTypeId[0]);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
@@ -244,19 +230,18 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   it("should return all token details correctly", async function() {
 
-    let dealer = allAddresses[1];
-    let consumer = allAddresses[2];
+    const { dealer1, consumer1 } = await getNamedAccounts();
 
-    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
+    let registerDealer = await contract.registerDealer(dealer1, allTokenTypeId[1]);
     expect(registerDealer);
 
-    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    let registerConsumer = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer1);
     expect(registerConsumer);
 
     let issue = await contract
-      .connect(dealer)
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        consumer.address,
+        consumer1,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -275,10 +260,10 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let tokenId = issueEvent.args[2].toNumber();
     expect(tokenId).to.equal(1);
 
-    let getTokenDetails = await contract.getTokenDetails(tokenId).then((response) => {
+    await contract.getTokenDetails(tokenId).then((response) => {
       expect(response.tokenId.toNumber()).to.equal(tokenId);
-      expect(response.issuer).to.equal(dealer.address);
-      expect(response.issuee).to.equal(consumer.address);
+      expect(response.issuer).to.equal(dealer1);
+      expect(response.issuee).to.equal(consumer1);
       expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
       expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
       expect(response.thruDate.toNumber()).to.equal(Number(thruDate));
@@ -288,13 +273,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
       expect(response.description).to.equal(description);
     });
 
-    let getIssuer = await contract.getIssuer(tokenId).then((response) => {
-      expect(response).to.equal(dealer.address);
+    await contract.getIssuer(tokenId).then((response) => {
+      expect(response).to.equal(dealer1);
     });
 
     // try to get token details of token that does not exist
     try {
-      let getDetailsFail = await contract.connect(consumer).getTokenDetails(100);
+      await contract.connect(await ethers.getSigner(consumer1)).getTokenDetails(100);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert tokenId does not exist"
@@ -303,7 +288,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try to get issuer of token that does not exist
     try {
-      let getIssuerFail = await contract.connect(consumer).getIssuer(100);
+      await contract.connect(await ethers.getSigner(consumer1)).getIssuer(100);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert tokenId does not exist"
@@ -314,21 +299,19 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   it("should retire audited emissions tokens on issuance; disallow transfers", async function() {
 
-    let dealer = allAddresses[1];
-    let consumer = allAddresses[2];
-    let consumerTwo = allAddresses[3];
+    const { dealer1, consumer1, consumer2 } = await getNamedAccounts();
 
-    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[2]);
+    let registerDealer = await contract.registerDealer(dealer1, allTokenTypeId[2]);
     expect(registerDealer);
-    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    let registerConsumer = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer1);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
+    let registerConsumerTwo = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer2);
     expect(registerConsumerTwo);
 
     let issue = await contract
-      .connect(dealer)
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        consumer.address,
+        consumer1,
         allTokenTypeId[2],
         quantity,
         fromDate,
@@ -350,13 +333,13 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // Get balances of both available and retired
     let expectedAvailable = "0";
     let expectedRetire = quantity.toString();
-    let afterIssuance = await contract
-      .getAvailableAndRetired(consumer.address, tokenId)
+    await contract
+      .getAvailableAndRetired(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
 
     // Try to transfer
     try {
-      let transferFail = await contract.connect(consumer).transfer(consumerTwo.address, tokenId, transferAmount);
+      await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer2, tokenId, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
@@ -367,22 +350,19 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   it("should fail when retire is called incorrectly", async function() {
 
-    let dealer = allAddresses[1];
-    let consumer = allAddresses[2];
-    let consumerTwo = allAddresses[3];
-    let unregistered = allAddresses[4];
+    const { dealer1, consumer1, consumer2, unregistered } = await getNamedAccounts();
 
-    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
+    let registerDealer = await contract.registerDealer(dealer1, allTokenTypeId[1]);
     expect(registerDealer);
-    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    let registerConsumer = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer1);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
+    let registerConsumerTwo = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer2);
     expect(registerConsumerTwo);
 
     let issue = await contract
-      .connect(dealer)
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        consumer.address,
+        consumer1,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -403,7 +383,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // retire token that does not exist
     try {
-      let retireFail = await contract.connect(consumer).retire((tokenId+1), retireAmount);
+      await contract.connect(await ethers.getSigner(consumer1)).retire((tokenId+1), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::retire: tokenId does not exist"
@@ -412,7 +392,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // retire from wrong account
     try {
-      let retireFail = await contract.connect(consumerTwo).retire((tokenId), retireAmount);
+      await contract.connect(await ethers.getSigner(consumer2)).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
@@ -421,7 +401,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // retire from unregistered account
     try {
-      let retireFail = await contract.connect(unregistered).retire((tokenId), retireAmount);
+      await contract.connect(await ethers.getSigner(unregistered)).retire((tokenId), retireAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
@@ -430,7 +410,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // retire more than available balance
     try {
-      let retireFail = await contract.connect(consumer).retire((tokenId), (quantity + 100));
+      await contract.connect(await ethers.getSigner(consumer1)).retire((tokenId), (quantity + 100));
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
@@ -438,45 +418,42 @@ describe("Net Emissions Token Network - Unit tests", function() {
     }
 
     // retire correctly
-    let beforeRetireBalances = await contract
-      .getAvailableAndRetired(consumer.address, tokenId)
+    await contract
+      .getAvailableAndRetired(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${quantity},${0}`));
-    
-    let retire = await contract.connect(consumer).retire(tokenId, retireAmount);
 
-    let afterTransferBalances = await contract
-      .getAvailableAndRetired(consumer.address, tokenId)
+    await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId, retireAmount);
+
+    await contract
+      .getAvailableAndRetired(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${(quantity - retireAmount)},${retireAmount}`));
 
     // get token retired amount of tokenID that does not exist
     try {
-      let getRetiredFail = await contract.connect(consumer).getTokenRetiredAmount(consumer.address, 100);
+      await contract.connect(await ethers.getSigner(consumer1)).getTokenRetiredAmount(consumer1, 100);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::getTokenRetiredAmount: tokenId does not exist"
       );
-    }    
+    }
 
   });
 
   it("should fail when transfer is called incorrectly", async function() {
 
-    let dealer = allAddresses[1];
-    let consumer = allAddresses[2];
-    let consumerTwo = allAddresses[3];
-    let unregistered = allAddresses[4];
+    const { dealer1, consumer1, consumer2, unregistered } = await getNamedAccounts();
 
-    let registerDealer = await contract.registerDealer(dealer.address, allTokenTypeId[1]);
+    let registerDealer = await contract.registerDealer(dealer1, allTokenTypeId[1]);
     expect(registerDealer);
-    let registerConsumer = await contract.connect(dealer).registerConsumer(consumer.address);
+    let registerConsumer = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer1);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(dealer).registerConsumer(consumerTwo.address);
+    let registerConsumerTwo = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer2);
     expect(registerConsumerTwo);
 
     let issue = await contract
-      .connect(dealer)
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        consumer.address,
+        consumer1,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -497,7 +474,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try transfer of token that does not exist
     try {
-      let transferFail = await contract.connect(consumer).transfer(consumerTwo.address, 100, transferAmount);
+      await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer2, 100, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::transfer: tokenId does not exist"
@@ -506,7 +483,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try to transfer to unregistered recipient
     try {
-      let transferFail = await contract.connect(consumer).transfer(unregistered.address, tokenId, transferAmount);
+      await contract.connect(await ethers.getSigner(consumer1)).transfer(unregistered, tokenId, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert Recipient must be consumer or dealer"
@@ -515,7 +492,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try to transfer to self
     try {
-      let transferFail = await contract.connect(consumer).transfer(consumer.address, tokenId, transferAmount);
+      await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer1, tokenId, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
@@ -524,46 +501,26 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   });
 
-  it("should allow only the deployer/admin to destroy the contract", async function() {
-
-    // try to destroy from non-admin account
-    try {
-      await contract.connect(allAddresses[1]).selfDestruct();
-    } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::onlyAdmin: msg.sender not the admin"
-      );
-    }
-
-    // destroy from admin account
-    let destroy = await contract.connect(allAddresses[0]).selfDestruct();
-    expect(destroy);
-  });
-
   it("should limit certain functions after limitedMode is set to true", async function() {
 
-    let owner = allAddresses[0];
-    let consumer = allAddresses[1];
-    let consumerTwo = allAddresses[2];
-    let dealer = allAddresses[3];
-    let dealerTwo = allAddresses[4];
+    const { deployer, dealer1, dealer2, consumer1, consumer2 } = await getNamedAccounts();
 
-    let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
+    let registerConsumer = await contract.connect(await ethers.getSigner(deployer)).registerConsumer(consumer1);
     expect(registerConsumer);
-    let registerConsumerTwo = await contract.connect(owner).registerConsumer(consumerTwo.address);
+    let registerConsumerTwo = await contract.connect(await ethers.getSigner(deployer)).registerConsumer(consumer2);
     expect(registerConsumerTwo);
-    let registerDealer = await contract.connect(owner).registerDealer(dealer.address, allTokenTypeId[2]);
+    let registerDealer = await contract.connect(await ethers.getSigner(deployer)).registerDealer(dealer1, allTokenTypeId[2]);
     expect(registerDealer);
-    let registerDealerTwo = await contract.connect(owner).registerDealer(dealerTwo.address, allTokenTypeId[1]);
+    let registerDealerTwo = await contract.connect(await ethers.getSigner(deployer)).registerDealer(dealer2, allTokenTypeId[1]);
     expect(registerDealerTwo);
 
     // turn on limited mode
-    await contract.connect(owner).setLimitedMode(true);
+    await contract.connect(await ethers.getSigner(deployer)).setLimitedMode(true);
 
     // try to issue to an account other than admin
     try {
-      await contract.connect(owner).issue(
-        consumer.address,
+      await contract.connect(await ethers.getSigner(deployer)).issue(
+        consumer1,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -581,8 +538,8 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try to issue from carbon offsets dealer
     try {
-      await contract.connect(dealerTwo).issue(
-        owner.address,
+      await contract.connect(await ethers.getSigner(dealer2)).issue(
+        deployer,
         allTokenTypeId[1],
         quantity,
         fromDate,
@@ -599,9 +556,9 @@ describe("Net Emissions Token Network - Unit tests", function() {
     }
 
     // temporarily turn off limited mode and issue tokens to owner (to simulate issuing with DAO)
-    await contract.connect(owner).setLimitedMode(false);
-    await contract.connect(owner).issue(
-      owner.address,
+    await contract.connect(await ethers.getSigner(deployer)).setLimitedMode(false);
+    await contract.connect(await ethers.getSigner(deployer)).issue(
+      deployer,
       allTokenTypeId[1],
       quantity,
       fromDate,
@@ -611,17 +568,17 @@ describe("Net Emissions Token Network - Unit tests", function() {
       manifest,
       description
     );
-    await contract.connect(owner).setLimitedMode(true);
+    await contract.connect(await ethers.getSigner(deployer)).setLimitedMode(true);
 
     // check number of unique tokens before issuance
     contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(1));
 
     // transfer tokens to consumer
-    await contract.connect(owner).transfer(consumer.address, 1, transferAmount);
+    await contract.connect(await ethers.getSigner(deployer)).transfer(consumer1, 1, transferAmount);
 
     // try to transfer from consumer to consumerTwo
     try {
-      await contract.connect(consumer).transfer(consumerTwo.address, 1, transferAmount);
+      await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer2, 1, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
@@ -629,8 +586,8 @@ describe("Net Emissions Token Network - Unit tests", function() {
     }
 
     // issue audited emissions token from dealer
-    await contract.connect(dealer).issue(
-      consumer.address,
+    await contract.connect(await ethers.getSigner(dealer1)).issue(
+      consumer1,
       allTokenTypeId[2],
       quantity,
       fromDate,
@@ -642,11 +599,11 @@ describe("Net Emissions Token Network - Unit tests", function() {
     );
 
     // send tokens to dealer from owner
-    await contract.connect(owner).transfer(dealer.address, 1, transferAmount);
+    await contract.connect(await ethers.getSigner(deployer)).transfer(dealer1, 1, transferAmount);
 
     // try to transfer from dealer to consumer
     try {
-      await contract.connect(dealer).transfer(consumer.address, 1, transferAmount);
+      await contract.connect(await ethers.getSigner(dealer1)).transfer(consumer1, 1, transferAmount);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
@@ -654,47 +611,19 @@ describe("Net Emissions Token Network - Unit tests", function() {
     }
 
     // try to retire from consumer
-    await contract.connect(consumer).retire(1, transferAmount);
+    await contract.connect(await ethers.getSigner(consumer1)).retire(1, transferAmount);
 
   });
 
-  it("should store the holders of tokens in the token details", async function() {
+  it("should allow upgrading by admin", async function() {
+    const { deployer } = await getNamedAccounts();
 
-    let owner = allAddresses[0];
-    let consumer = allAddresses[1];
+    const NetEmissionsTokenNetwork = await ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const NetEmissionsTokenNetworkV2 = await ethers.getContractFactory("NetEmissionsTokenNetworkV2");
 
-    let registerConsumer = await contract.connect(owner).registerConsumer(consumer.address);
-    expect(registerConsumer);
-
-    // issue token to owner
-    await contract
-      .connect(owner)
-      .issue(
-        owner.address,
-        allTokenTypeId[1],
-        quantity,
-        fromDate,
-        thruDate,
-        automaticRetireDate,
-        metadata,
-        manifest,
-        description
-      );
-
-    // transfer some to consumer
-    await contract
-      .connect(owner)
-      .transfer(consumer.address, 1, 1);
-
-    // check to see if balances are stored
-    await contract
-      .getHolders(1)
-      .then((response) => {
-        expect(response).to.deep.equal([owner.address, consumer.address])
-      });
-
-    // @TODO: implement and test retired balances
-
+    const instance = await upgrades.deployProxy(NetEmissionsTokenNetwork, [deployer]);
+    const upgraded = await upgrades.upgradeProxy(instance.address, NetEmissionsTokenNetworkV2);
+    expect(upgraded);
   });
 
 });

@@ -5,6 +5,7 @@ require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
+require('@openzeppelin/hardhat-upgrades');
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
@@ -37,95 +38,20 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
     await contract.connect(admin).setLimitedMode( (taskArgs.value) == "true" ? true : false );
   })
 
-// Task to move the state of one NetEmissionsTokenNetwork contract to another
-task("migrateClm8Contract", "Move the tokens and balances of an old CLM8 contract to a blank one")
-  .addParam("oldContract", "The old CLM8 contract to read from")
-  .addParam("newContract", "The new CLM8 contract to write to (must be deployed with no tokens issued)")
+// Task to upgrade NetEmissionsTokenNetwork contract
+task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
+  .addParam("oldcontract", "The old CLM8 contract to upgrade")
   .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
-    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const oldContract = await NetEmissionsTokenNetwork.attach(taskArgs.oldContract);
-    const newContract = await NetEmissionsTokenNetwork.attach(taskArgs.newContract);
-
-    // require number of tokens on new contract to be zero
-    if ( (await newContract.getNumOfUniqueTokens()).toNumber() !== 0 ) {
-      console.log("New contract must have a blank state (no tokens). Exiting without action.");
-      return;
-    }
-
-    const numOfTokens = (await oldContract.getNumOfUniqueTokens()).toNumber();
-    let tokens = [];
-
-    // get details of every token and find all accounts on contract
-    for (let i = 1; i <= numOfTokens; i++) {
-
-      // get details of given token on old contract
-      let details = await oldContract.getTokenDetails(i);
-      tokens.push({
-        issuer: details.issuer,
-        issuee: details.issuee,
-        tokenTypeId: details.tokenTypeId,
-        fromDate: details.fromDate,
-        thruDate: details.thruDate,
-        automaticRetireDate: details.automaticRetireDate,
-        metadata: details.metadata,
-        manifest: details.manifest,
-        description: details.description,
-        holders: [],
-        balances: []
-      });
-
-      // get holders of given token on old contract
-      tokens[i-1].holders = await oldContract.getHolders(i);
-
-      // get balances of given token for each address on old contract
-      for (let j = 0; j < tokens[i-1].holders.length; j++) {
-        let balance = await oldContract.balanceOf(tokens[i-1].holders[j], i);
-
-        tokens[i-1].balances.push(balance);
-      }
-
-      // mint token on new contract to initial issuee
-      console.log(`Issuing token of ID ${i+1}...`);
-      await newContract.connect(admin).issueOnBehalf(
-        details.issuee,
-        details.issuer,
-        details.tokenTypeId,
-        tokens[i].balances[0],
-        details.fromDate,
-        details.thruDate,
-        details.automaticRetireDate,
-        details.metadata,
-        details.manifest,
-        details.description
-      );
-
-      // distribute balances to other holders (skipping first holder)
-      for (let j = 1; j < tokens[i-1].holders.length; j++) {
-
-        let to = tokens[i-1].holders[j];
-        let quantity = tokens[i-1].balances[j];
-        console.log(to);
-
-        // skip blank balances
-        if (quantity.toNumber() === 0)
-          continue;
-
-        console.log(`Minting more tokens of ID ${i+1} to address ${to}...`);
-        await newContract.connect(admin).mint(
-          to,
-          i,
-          quantity
-        );
-      }
-
-    }
-
-    console.log("Tokens queried: ");
-    console.log(tokens);
-
-    console.log(`${tokens.length} CLM8 tokens minted on new contract ${taskArgs.newContract}. You can now call \`npx hardhat destroyClm8Contract\` with the old contract to destroy it.`);
-
+    const { ethers, upgrades } = require("hardhat");
+    const {deployer} = await getNamedAccounts();
+    const NetEmissionsTokenNetworkV2 = await ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const netEmissionsTokenNetworkV2 = await upgrades.upgradeProxy(
+      taskArgs.oldcontract,
+      NetEmissionsTokenNetworkV2,
+      { from: deployer }
+    );
+    await netEmissionsTokenNetworkV2.deployed();
+    console.log("Upgraded NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
   });
 
 /**
@@ -141,6 +67,7 @@ module.exports = {
     dealer4: { default: 4 },
     consumer1: { default: 5 },
     consumer2: { default: 6 },
+    unregistered: { default: 7 }
   },
 
   solidity: {
