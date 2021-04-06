@@ -40,18 +40,29 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
 
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
-  .addParam("oldcontract", "The old CLM8 contract to upgrade")
   .setAction(async taskArgs => {
-    const { ethers, upgrades } = require("hardhat");
     const {deployer} = await getNamedAccounts();
-    const NetEmissionsTokenNetworkV2 = await ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const netEmissionsTokenNetworkV2 = await upgrades.upgradeProxy(
-      taskArgs.oldcontract,
-      NetEmissionsTokenNetworkV2,
-      { from: deployer }
-    );
-    await netEmissionsTokenNetworkV2.deployed();
-    console.log("Upgraded NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
+
+    const {deploy, get} = deployments;
+
+    // output current implementation address
+    current = await get("NetEmissionsTokenNetwork");
+    console.log("Current NetEmissionsTokenNetwork (to be overwritten):", current.implementation);
+
+    // deploy V2
+    let netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
+      from: deployer,
+      proxy: {
+        owner: deployer,
+        proxyContract: "OptimizedTransparentProxy",
+      },
+      contract: "NetEmissionsTokenNetworkV2",
+      args: [ deployer ],
+    });
+
+    // output new implementation address
+    console.log("New NetEmissionsTokenNetwork implementation deployed to:", netEmissionsTokenNetwork.implementation);
+    console.log(`The same address ${netEmissionsTokenNetwork.address} can be used to interact with the contract.`);
   });
 
 /**

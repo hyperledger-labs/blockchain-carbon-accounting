@@ -160,27 +160,21 @@ npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetw
 
 ## Upgrading CLM8 contract from an old contract to a new one
 
-A Hardhat task `migrateClm8Contract` is provided that utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades). Upgrading currently works in the unit tests, but the task is still in progress (an error is returned "Proxy admin is not the one registered in the network manifest").
+A Hardhat task `upgradeClm8Contract` is provided, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades). The contract address that users and the interface interact with will remain the same after it is upgraded -- when the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.
 
-To test upgrading contracts locally from an old one to a newly deployed one:
+To test upgrading contracts locally:
 
-1. Deploy the first set of contracts with `npx hardhat node`.
+1. Deploy the first set of contracts (including `NetEmissionsTokenNetwork.sol`) with `npx hardhat node`.
 
 2. Create some tokens on the contract by connecting through the React interface.
 
-3. Deploy a new version of the contracts with:
+3. Run the command (after ensuring the `deployments/localhost` directory has your current implementation) to upgrade to `NetEmissionsTokenNetworkV2.sol`:
 
 ```bash
-npx hardhat deploy --network localhost --reset
+npx hardhat upgradeClm8Contract --network localhost
 ```
 
-4. Run the command (replacing the value in brackets with the correct address):
-
-```bash
-npx hardhat upgradeClm8Contract --network localhost --old-contract [old_contract]
-```
-
-If successful, the script will return the newly deployed contract address. The old contract will automatically be made unusable, so there is no need to self-destruct it.
+If successful, the script will return both the old implementation contract address and the newly one, and the state of the current variables will remain the same. The old implementation will automatically be made unusable, so there is no need to self-destruct it.
 
 ## Analyzing with Slither
 

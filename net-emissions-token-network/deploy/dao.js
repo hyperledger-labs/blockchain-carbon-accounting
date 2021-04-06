@@ -131,7 +131,7 @@ module.exports = async ({
     
   // otherwise, output args to complete the timelock admin switch
   } else {
-    if (timelockNewAdmin && skippedActions > 2) {
+    if (timelockNewAdmin && skippedActions < 2) {
       console.log("---");
       console.log("Please copy these values and call executeTransaction() on Timelock");
       console.log("when the ETA is reached from the deployer address with these args:");
