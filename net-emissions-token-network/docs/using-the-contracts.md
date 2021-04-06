@@ -158,9 +158,9 @@ You can turn it off with:
 npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value false
 ```
 
-## Upgrading CLM8 contract from an old contract to a new one
+## Upgrading CLM8 contract implementation
 
-A Hardhat task `upgradeClm8Contract` is provided, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades). The contract address that users and the interface interact with will remain the same after it is upgraded -- when the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.
+A Hardhat task `upgradeClm8Contract` is provided to upgrade the contract with new features while keeping the same address, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades). When the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.
 
 To test upgrading contracts locally:
 
@@ -175,6 +175,8 @@ npx hardhat upgradeClm8Contract --network localhost
 ```
 
 If successful, the script will return both the old implementation contract address and the newly one, and the state of the current variables will remain the same. The old implementation will automatically be made unusable, so there is no need to self-destruct it.
+
+Upgrading contracts on a testnet is similar -- just make sure that the network and Ethereum config is in `hardhat.config.js` and that it isn't commented out. If upgrading on an network via an Infura URL (like Goerli), you'll need an Infura key too. See more information on using the config files at the top of this document.
 
 ## Analyzing with Slither
 
