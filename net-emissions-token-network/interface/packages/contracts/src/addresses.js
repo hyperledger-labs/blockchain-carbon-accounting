@@ -18,6 +18,23 @@ const networksAndAddresses = {
     }
   },
 
+  goerli: {
+    network: "Goerli Testnet",
+    tokenNetwork: {
+      address: "0x45Cd99F9C3b657D092c5BA81C8c39C99a81DA4C4",   
+    },
+    dao: {
+      governor: {
+        address: "0x9F4590684d1DD950dF65Dc71D39f782bc3af317A", 
+      },
+      daoToken: {
+        address: "0x67E5b82809f28aA321818b90bF5c603D954f87C8", 
+      }
+    }
+  },
+
+
+
   optimism_integration: {
     network: "Optimism Local",
     tokenNetwork: {
@@ -65,6 +82,7 @@ const networksAndAddresses = {
 
 }
 
+// change this to the network you want
 const addresses = networksAndAddresses.hardhat;
 
 export default addresses;
