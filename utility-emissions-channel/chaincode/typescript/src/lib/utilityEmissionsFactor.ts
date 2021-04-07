@@ -84,7 +84,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
     let queryString = '';
     let iterator: Iterators.StateQueryIterator;
     while (!iterator && retryCount <= maxYearLookup) {
-      if (year) {
+      if (year !== undefined) {
         queryString = `{
                 "selector" : {
                   "class": {
