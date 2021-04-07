@@ -3,29 +3,30 @@
 */
 
 /* tslint:disable:max-classes-per-file */
-import { ChaincodeStub, Iterators } from 'fabric-shim';
-import { State } from '../util/state';
-import { WorldState } from '../util/worldstate';
+import { ChaincodeStub, Iterators } from "fabric-shim";
+import { ErrStateNotFound } from "../util/const";
+import { State } from "../util/state";
+import { WorldState } from "../util/worldstate";
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
-  'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
+  "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem";
 
-interface UtilityEmissionsFactorInterface {
-  class: string;
+export interface UtilityEmissionsFactorInterface {
+  class?: string;
   uuid: string;
   year: string;
-  country: string;
+  country?: string;
   division_type: string;
   division_id: string;
-  division_name: string;
-  net_generation: string;
-  net_generation_uom: string;
-  co2_equivalent_emissions: string;
-  co2_equivalent_emissions_uom: string;
-  source: string;
-  non_renewables: string;
-  renewables: string;
-  percent_of_renewables: string;
+  division_name?: string;
+  net_generation?: string;
+  net_generation_uom?: string;
+  co2_equivalent_emissions?: string;
+  co2_equivalent_emissions_uom?: string;
+  source?: string;
+  non_renewables?: string;
+  renewables?: string;
+  percent_of_renewables?: string;
 }
 
 export class UtilityEmissionsFactor extends State {
@@ -34,11 +35,10 @@ export class UtilityEmissionsFactor extends State {
     super([
       _factor.uuid,
       _factor.year,
-      _factor.year,
       _factor.division_type,
       _factor.division_id,
     ]);
-    Object.assign(this.factor, _factor);
+    this.factor = _factor;
     this.factor.class = UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
   }
   toBuffer(): Uint8Array {
@@ -81,7 +81,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
   }> {
     const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
     let retryCount = 0;
-    let queryString = '';
+    let queryString = "";
     let iterator: Iterators.StateQueryIterator;
     while (!iterator && retryCount <= maxYearLookup) {
       if (year !== undefined) {
@@ -115,10 +115,13 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
               }
             }
           }`;
-        iterator = await this.stub.getQueryResult(queryString);
-        retryCount++;
       }
-      return this.getAssetFromIterator(iterator);
+      iterator = await this.stub.getQueryResult(queryString);
+      retryCount++;
     }
+    if (!iterator){
+      throw new Error(`${ErrStateNotFound} : failed to get Utility Emissions Factors By division`)
+    }
+    return this.getAssetFromIterator(iterator);
   }
 }
