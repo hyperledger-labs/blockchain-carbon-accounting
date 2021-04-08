@@ -259,13 +259,13 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             disabled={
               (calldata.length === 0) ||
               String(quantity).length === 0 ||
-              tokenTypeId === 3
+              tokenTypeId === "3"
             }
           >
+    {/* !(limitedMode && ((roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true))) */}
             Create a DAO proposal
           </Button>
         </Col>
-              {/* !((roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)) */}
 
         { (limitedMode !== true) &&
           <Col>
