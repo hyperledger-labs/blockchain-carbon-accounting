@@ -10,6 +10,7 @@ import {
   issue,
   registerAuditedEmissionDealer,
 } from "../../blockchain-gateway/net-emissions-token-network/auditedEmissionsToken";
+import { API_URL } from "../../config/config";
 
 const APP_VERSION = "v1";
 export const router = express.Router();
@@ -87,7 +88,7 @@ router.post(
         } catch (error) {
           console.error(error);
         }
-        
+
       }
 
       console.log(`# RECORDING EMISSIONS DATA TO UTILITYEMISSIONS CHANNEL`);
@@ -291,6 +292,7 @@ router.post(
       const description = "Audited Utility Emissions";
       let metadata = new Object();
       metadata["org"] = orgName;
+      metadata["type"] = "Utility Emissions";
       metadata["partyId"] = [];
       metadata["renewableEnergyUseAmount"] = 0;
       metadata["nonrenewableEnergyUseAmount"] = 0;
@@ -302,7 +304,7 @@ router.post(
       metadata["thruDates"] = [];
 
       let quantity = 0;
-      let manifest = []; // stores uuids
+      let manifestIds = []; // stores uuids
       let fetchedEmissionsRecords = []; // stores fetched emissions records for updating tokenId on fabric after auditing
 
       // later, we look through the unix timestamp of all fetched emissions to find the earliest and latest dates
@@ -369,13 +371,14 @@ router.post(
         metadata["nonrenewableEnergyUseAmount"] += emissionsRecord.nonrenewableEnergyUseAmount;
 
         quantity += ((emissionsRecord.emissionsAmount).toFixed(3) * 1000);
-        manifest.push(emissionsRecord.uuid);
+        manifestIds.push(emissionsRecord.uuid);
       }
 
       if (metadata["utilityIds"].length === 0) {
         throw new Error("No emissions records found; nothing to audit");
       }
 
+      let manifest = "URL: " + API_URL + "/api/" + APP_VERSION + "/utilityemissionchannel/emissionscontract/getEmissionsData/, UUID: " + manifestIds.join(", ");
       console.log(`quantity: ${quantity}`);
       let tokenId = await issue(
         addressToIssue,
@@ -384,7 +387,7 @@ router.post(
         thruDate,
         toTimestamp(automaticRetireDate).toFixed(),
         JSON.stringify(metadata),
-        manifest.join(", "),
+        manifest,
         description
       );
 
@@ -417,7 +420,7 @@ router.post(
       result["thruDate"] = thruDate;
       result["automaticRetireDate"] = automaticRetireDate;
       result["metadata"] = metadata;
-      result["manifest"] = manifest.join(", ");
+      result["manifest"] = manifest;
       result["description"] = description;
 
       res.status(200).send(result);

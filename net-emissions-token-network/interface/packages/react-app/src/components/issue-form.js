@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useState, useEffect } from "react";
 
-import { issue, encodeParameters, TOKEN_TYPES } from "../services/contract-functions";
+import { issue, encodeParameters, TOKEN_TYPES, getAdmin } from "../services/contract-functions";
 
 import SubmissionModal from "./submission-modal";
 import CreateProposalModal from "./create-proposal-modal";
@@ -14,10 +14,13 @@ import Datetime from "react-datetime";
 
 import "react-datetime/css/react-datetime.css";
 
-export default function IssueForm({ provider, roles, signedInAddress }) {
+export default function IssueForm({ provider, roles, signedInAddress, limitedMode }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
+
+  // admin address (if contract is in limitedMode)
+  const [adminAddress, setAdminAddress] = useState("");
 
   // Form inputs
   const [address, setAddress] = useState("");
@@ -73,7 +76,7 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
         ],
         // value of params
         [
-          address,
+          (limitedMode === true ? adminAddress : address),
           signedInAddress,
           tokenTypeId,
           Number(quantity),
@@ -106,8 +109,17 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
     onAutomaticRetireDateChange,
     onMetadataChange,
     onManifestChange,
-    onDescriptionChange
+    onDescriptionChange,
   ]);
+
+  useEffect(() => {
+    async function fetchAdmin() {
+      setAdminAddress(await getAdmin(provider));
+    }
+    if (limitedMode === true) {
+      fetchAdmin();
+    }
+  }, [limitedMode, provider]);
 
   async function submit() {
     // If quantity has 3 decimals, multiply by 1000 before passing to the contract
@@ -150,20 +162,40 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
 
       <h2>Issue tokens</h2>
       <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, or Audited Emissions) to registered consumers.</p>
-      <Form.Group>
-        <Form.Label>Address</Form.Label>
-        <Form.Control
-          type="input"
-          placeholder="0x000..."
-          value={address}
-          onChange={onAddressChange}
-          onBlur={() => setInitializedAddressInput(true)}
-          style={(address || !initializedAddressInput) ? {} : inputError}
-        />
-        <Form.Text className="text-muted">
-          Must be a registered consumer.
-        </Form.Text>
-      </Form.Group>
+
+      { (limitedMode !== true)
+        ?
+        <Form.Group>
+          <Form.Label>Address</Form.Label>
+          <Form.Control
+            type="input"
+            placeholder="0x000..."
+            value={address}
+            onChange={onAddressChange}
+            onBlur={() => setInitializedAddressInput(true)}
+            style={(address || !initializedAddressInput) ? {} : inputError}
+          />
+          <Form.Text className="text-muted">
+            Must be a registered consumer.
+          </Form.Text>
+        </Form.Group>
+        :
+        <Form.Group>
+          <Form.Label>Address</Form.Label>
+          <Form.Control
+            type="input"
+            value={adminAddress}
+            disabled
+            onBlur={() => setInitializedAddressInput(true)}
+            style={(address || !initializedAddressInput) ? {} : inputError}
+          />
+          <Form.Text className="text-muted">
+            Always set to admin address in limited mode.
+          </Form.Text>
+        </Form.Group>
+      }
+
+
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
@@ -224,26 +256,37 @@ export default function IssueForm({ provider, roles, signedInAddress }) {
             size="lg"
             block
             onClick={() => setCreateModalShow(true)}
-            disabled={(calldata.length === 0) || String(quantity).length === 0}
+            disabled={
+              (calldata.length === 0) ||
+              String(quantity).length === 0 ||
+              tokenTypeId === 3
+            }
           >
             Create a DAO proposal
           </Button>
         </Col>
-        <Col>
-          {/* Only enable issue if role is found */}
-          { (roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)
-            ? <Button
-                variant="primary"
-                size="lg"
-                block
-                onClick={handleSubmit}
-                disabled={(calldata.length === 0) || String(quantity).length === 0}
-              >
-                Issue
-              </Button>
-            : <Button variant="primary" size="lg" block disabled>Must be a dealer</Button>
-          }
-        </Col>
+              {/* !((roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)) */}
+
+        { (limitedMode !== true) &&
+          <Col>
+            {/* Only enable issue if role is found */}
+            { (roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)
+              ?
+                <Button
+                  variant="primary"
+                  size="lg"
+                  block
+                  onClick={handleSubmit}
+                  disabled={(calldata.length === 0) || String(quantity).length === 0}
+                >
+                  Issue
+                </Button>
+              :
+                <Button variant="primary" size="lg" block disabled>Must be a dealer</Button>
+            }
+          </Col>
+        }
+
       </Row>
       
     </>

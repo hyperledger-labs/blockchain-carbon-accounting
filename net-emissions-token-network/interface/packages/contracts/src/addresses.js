@@ -6,7 +6,7 @@ const networksAndAddresses = {
   hardhat: {
     network: "Hardhat Network",
     tokenNetwork: {
-      address: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6", // default Hardhat Network deployment address with npx hardhat node
+      address: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788", // default Hardhat Network deployment address with npx hardhat node
     },
     dao: {
       governor: {
@@ -17,6 +17,23 @@ const networksAndAddresses = {
       }
     }
   },
+
+  goerli: {
+    network: "Goerli Testnet",
+    tokenNetwork: {
+      address: "0x45Cd99F9C3b657D092c5BA81C8c39C99a81DA4C4",   
+    },
+    dao: {
+      governor: {
+        address: "0x9F4590684d1DD950dF65Dc71D39f782bc3af317A", 
+      },
+      daoToken: {
+        address: "0x67E5b82809f28aA321818b90bF5c603D954f87C8", 
+      }
+    }
+  },
+
+
 
   optimism_integration: {
     network: "Optimism Local",
@@ -48,8 +65,24 @@ const networksAndAddresses = {
     }
   },
 
+  xdai: {
+    network: "xDai",
+    tokenNetwork: {
+      address: "0xf7B361Fe2dE41Cd092D2c777D2136CB8E3C2B146", // deployed 2021-04-06
+    },
+    dao: {
+      governor: {
+        address: "0x7137EB87725D61d69e6543E7b498bC4780AF1608", // deployed 2021-04-06
+      },
+      daoToken: {
+        address: "0xe0E06767718e04A51c99C3A1cfc63a42950616a1", // deployed 2021-04-06
+      }
+    }
+  },
+
 }
 
+// change this to the network you want
 const addresses = networksAndAddresses.hardhat;
 
 export default addresses;

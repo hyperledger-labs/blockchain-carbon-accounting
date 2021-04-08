@@ -42,6 +42,8 @@ module.exports = async ({
   });
   console.log("Governor deployed to:", governor.address);
 
+  let skippedActions = 0;
+
   // set governor on DAOToken contract (for permission to burn tokens)
   try {
     await execute(
@@ -53,6 +55,7 @@ module.exports = async ({
     console.log("Initialized Governor address on DAOToken.")
   } catch (e) {
     console.log("Skipped setGovernor() on DAOToken.");
+    skippedActions++;
   }
 
   // format transactions for Timelock to change admin to Governor
@@ -81,11 +84,12 @@ module.exports = async ({
     console.log("Queued setPendingAdmin() on Timelock.");
 
   } catch (e) {
-    console.log("Skipped changing admin on Governor to Timelock.")
+    console.log("Skipped changing admin on Governor to Timelock.");
+    skippedActions++;
   }
 
   // perform time/block skip if local network to switch timelock admin automatically
-  if (!hre.network.live) {
+  if (!hre.network.live && skippedActions < 2) {
 
     await advanceHours(51);
 
@@ -127,7 +131,7 @@ module.exports = async ({
     
   // otherwise, output args to complete the timelock admin switch
   } else {
-    if (timelockNewAdmin) {
+    if (timelockNewAdmin && skippedActions < 2) {
       console.log("---");
       console.log("Please copy these values and call executeTransaction() on Timelock");
       console.log("when the ETA is reached from the deployer address with these args:");

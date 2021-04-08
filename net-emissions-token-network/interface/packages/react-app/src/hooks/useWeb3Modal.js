@@ -4,7 +4,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
-import { getRoles } from "../services/contract-functions";
+import { getRoles, getLimitedMode } from "../services/contract-functions";
 
 // Enter a valid infura key here to avoid being rate limited
 // You can get a key for free at https://infura.io/register
@@ -17,6 +17,7 @@ function useWeb3Modal(config = {}) {
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
   const [roles, setRoles] = useState([]);
+  const [limitedMode, setLimitedMode] = useState(null);
   const { autoLoad = true, infuraId = INFURA_ID, NETWORK = NETWORK_NAME } = config;
 
   // Web3Modal also supports many other wallets.
@@ -41,10 +42,6 @@ function useWeb3Modal(config = {}) {
     setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
-  async function fetchRoles() {
-    setRoles(await getRoles(provider, signedInAddress));
-  };
-
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
@@ -63,10 +60,20 @@ function useWeb3Modal(config = {}) {
   }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
 
   useEffect(() => {
-    fetchRoles();
-  }, [signedInAddress]);
 
-  return [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles];
+    async function fetchRoles() {
+      setRoles(await getRoles(provider, signedInAddress));
+    };
+    async function fetchLimitedMode() {
+      setLimitedMode(await getLimitedMode(provider));
+    }
+
+    fetchRoles();
+    fetchLimitedMode();
+
+  }, [provider, signedInAddress]);
+
+  return [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode];
 }
 
 export default useWeb3Modal;

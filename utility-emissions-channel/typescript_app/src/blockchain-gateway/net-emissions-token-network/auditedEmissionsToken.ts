@@ -6,14 +6,20 @@ const tokenTypeId = 3;
 
 const walletPrivateKey = WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
 const contractAddress = CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
-const infuraProjectId = INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID;
-const infuraProjectSecret = INFURA_PROJECT_SECRET || process.env.INFURA_PROJECT_SECRET;
+// const infuraProjectId = INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID;
+// const infuraProjectSecret = INFURA_PROJECT_SECRET || process.env.INFURA_PROJECT_SECRET;
 
 function getProvider() {
-  let provider = new ethers.providers.InfuraProvider("goerli", {
-    projectId: infuraProjectId,
-    projectSecret: infuraProjectSecret
-  });
+  // Goerli
+  // let provider = new ethers.providers.InfuraProvider("goerli", {
+  //   projectId: infuraProjectId,
+  //   projectSecret: infuraProjectSecret
+  // });
+
+  // xDai
+  let provider = new ethers.providers.JsonRpcProvider(
+    "https://rpc.xdaichain.com/"
+  );
   return provider;
 }
 

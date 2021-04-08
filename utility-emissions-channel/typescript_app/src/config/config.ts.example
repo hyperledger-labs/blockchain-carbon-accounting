@@ -29,3 +29,5 @@ export const ADMIN_USER_PASSWD = "adminpw";
 export const CHAINCODE_NAME = "utilityemissions"
 
 export const CHANNEL_NAME = "utilityemissionchannel"
+
+export const API_URL = "https://utilityemissions.opentaps.net"

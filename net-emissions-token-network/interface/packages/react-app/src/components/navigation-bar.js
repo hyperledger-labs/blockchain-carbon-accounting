@@ -39,7 +39,7 @@ const tooltipCopiedAddress = (props) => (
   </Tooltip>
 );
 
-export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles }) {
+export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode }) {
   
   const [role, setRole] = useState("");
   const [cachedRoles, setCachedRoles] = useState([]);
@@ -91,6 +91,13 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
                 <Row className="d-flex justify-content-center">
                   <small className="text-secondary">{addresses.network}</small>
                 </Row>
+
+                { (limitedMode === true) &&
+                  <Row className="d-flex justify-content-center">
+                    <small className="text-danger">Limited mode</small>
+                  </Row>
+                }
+
               </Nav.Item>
               <Nav.Item style={{padding: ".5rem .5rem"}}>
                 <span className="text-secondary">{truncateAddress(signedInAddress)}</span>

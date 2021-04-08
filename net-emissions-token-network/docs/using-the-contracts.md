@@ -135,23 +135,14 @@ Currently, `evm_mine` and `evm_increaseTime` are not supported on the node.
 
 Don't forget to set the addresses in `net-emissions-token-network/interface/packages/contracts/src/addresses.js` to connect to them via the React interface and add the network to MetaMask. The default contract addresses on the local node after running the script `deploy-all.js` are all commented out in that file to switch from Hardhat Network -- see `using-the-react-application.md` for more information on using the React application.
 
-## Destroying the contract
-
-A `selfDestruct` function is provided only by use for the admin to delete the contract on a given network. This action cannot be undone. To destroy a CLM8 contract on Hardhat Network, run:
-
-```bash
-npx hardhat destroyClm8Contract --network localhost --contract 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
-```
-
-Destroying contracts on other testnets and networks works similarily -- just make sure your `hardhat.config.js` has your wallet and network settings.
-
 ## Toggling limited mode
 
 The limited mode is useful in production environments.  Once it is enabled:
 
 - Only the admin can register roles
-- Only the DAO's Timelock contract can issue carbon offsets and REC tokens.  Emissions audits tokens can be issued as usual by emissions auditors.
-- Tokens can only be issued to the admin
+- Only the DAO's Timelock contract can issue carbon offsets and REC tokens.  
+- Offset and REC tokens can only be issued to the admin.  
+- Emissions audits tokens can be issued as usual by emissions auditors.
 - Only the admin can transfer tokens
 - Once transferred from the admin to a recipient, they are immediately retired in the recipient's account.
 
@@ -167,31 +158,25 @@ You can turn it off with:
 npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value false
 ```
 
-## Migrating CLM8 tokens from an old contract to a new one
+## Upgrading CLM8 contract implementation
 
-A Hardhat task `migrateClm8Contract` is provided to copy the tokens and balances from one contract to a newly deployed blank contract. The old contract must be live in order to be read from. Currently, only tokens and available balances are migrated (roles and retired balances are yet to be implemented).
+A Hardhat task `upgradeClm8Contract` is provided to upgrade the contract with new features while keeping the same address, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades). When the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.
 
-To test migrating tokens locally from one contract to another:
+To test upgrading contracts locally:
 
-1. Deploy the first set of contracts with `npx hardhat node`.
+1. Deploy the first set of contracts (including `NetEmissionsTokenNetwork.sol`) with `npx hardhat node`.
 
 2. Create some tokens on the contract by connecting through the React interface.
 
-3. Deploy a new version of the contracts with:
+3. Run the command (after ensuring the `deployments/localhost` directory has your current implementation) to upgrade to `NetEmissionsTokenNetworkV2.sol`:
 
 ```bash
-npx hardhat deploy --network localhost --reset
+npx hardhat upgradeClm8Contract --network localhost
 ```
 
-4. Ensure limited mode is off on the new contract, and run the command (replacing the values in brackets with the correct addresses):
+If successful, the script will return both the old implementation contract address and the newly one, and the state of the current variables will remain the same. The old implementation will automatically be made unusable, so there is no need to self-destruct it.
 
-```bash
-npx hardhat migrateClm8Contract --network localhost --old-contract [old_contract] --new-contract [new_contract]
-```
-
-If successful, the script will return a message like: "5 CLM8 tokens minted on new contract [new_contract]. You can now call `npx hardhat destroyClm8Contract` with the old contract to destroy it."
-
-Now you can self destruct the old contract.
+Upgrading contracts on a testnet is similar -- just make sure that the network and Ethereum config is in `hardhat.config.js` and that it isn't commented out. If upgrading on an network via an Infura URL (like Goerli), you'll need an Infura key too. See more information on using the config files at the top of this document.
 
 ## Analyzing with Slither
 

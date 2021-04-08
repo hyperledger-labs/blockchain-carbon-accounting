@@ -451,7 +451,7 @@ Installed chaincodes on peer:
 Package ID: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: utilityemissions
 ```
 
-2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node_ext`.
+2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/node`.
 ``` shell
 docker build -t krybalko/utilityemissions-chaincode:0.0.1 .
 ```
