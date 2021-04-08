@@ -14,6 +14,7 @@ const EMISSION_CLASS_IDENTIFIER =
 
 export interface EmissionsRecordInterface {
   class: string;
+  key: string;
   uuid: string;
   utilityId: string;
   partyId: string;
@@ -42,8 +43,9 @@ export class EmissionsRecord extends State {
       _record.fromDate,
       _record.thruDate,
     ]);
-    Object.assign(this.record, _record);
+    this.record = _record;
     this.record.class = EMISSION_CLASS_IDENTIFIER;
+    this.record.key = this.getKey();
   }
   toBuffer(): Uint8Array {
     return State.serialize<EmissionsRecordInterface>(this.record);

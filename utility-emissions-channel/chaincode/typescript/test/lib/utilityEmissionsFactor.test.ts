@@ -1,26 +1,26 @@
-import { createStubInstance } from "sinon";
-import { ChaincodeStub } from "fabric-shim";
+import { createStubInstance } from 'sinon';
+import { ChaincodeStub } from 'fabric-shim';
 
 import {
   UtilityEmissionsFactor,
   UtilityEmissionsFactorInterface,
   UtilityEmissionsFactorState,
-} from "../../src/lib/utilityEmissionsFactor";
-import { assert } from "chai";
+} from '../../src/lib/utilityEmissionsFactor';
+import { assert } from 'chai';
 
-let testData: UtilityEmissionsFactorInterface = {
-  uuid: "id",
-  year: "2021",
-  division_type: "division_type",
-  division_id: "division_id",
+const testData: UtilityEmissionsFactorInterface = {
+  uuid: 'id',
+  year: '2021',
+  division_type: 'division_type',
+  division_id: 'division_id',
 };
 
-describe("lib/utilityEmissionsFactor.ts", () => {
+describe('lib/utilityEmissionsFactor.ts', () => {
   let states: { [key: string]: Uint8Array };
   let stub: UtilityEmissionsFactorState;
   beforeEach(() => {
     states = {};
-    let ccStub = createStubInstance(ChaincodeStub);
+    const ccStub = createStubInstance(ChaincodeStub);
     stub = new UtilityEmissionsFactorState(ccStub);
     ccStub.putState.callsFake(
       async (key: string, value: Uint8Array): Promise<void> => {
@@ -33,17 +33,17 @@ describe("lib/utilityEmissionsFactor.ts", () => {
       }
     );
   });
-  describe("addUtilityEmissionsFactor", () => {
-    it("success adding new utility factor", async () => {
-      let factor = new UtilityEmissionsFactor(testData);
+  describe('addUtilityEmissionsFactor', () => {
+    it('success adding new utility factor', async () => {
+      const factor = new UtilityEmissionsFactor(testData);
       await stub.addUtilityEmissionsFactor(factor, factor.getKey());
       assert.exists(states[factor.getKey()]);
       assert.deepEqual(states[factor.getKey()], factor.toBuffer());
     });
   });
-  describe("getUtilityEmissionsFactor", () => {
-    it("success retrieving state", async () => {
-      let factor = new UtilityEmissionsFactor(testData);
+  describe('getUtilityEmissionsFactor', () => {
+    it('success retrieving state', async () => {
+      const factor = new UtilityEmissionsFactor(testData);
       states[factor.getKey()] = factor.toBuffer();
       let error: Error;
       let asset: UtilityEmissionsFactor;
@@ -56,8 +56,8 @@ describe("lib/utilityEmissionsFactor.ts", () => {
       assert.notExists(error);
       assert.deepEqual(asset.toBuffer(), factor.toBuffer());
     });
-    it("error generate while retrieving non-existing asset", async () => {
-      let factor = new UtilityEmissionsFactor(testData);
+    it('error generate while retrieving non-existing asset', async () => {
+      const factor = new UtilityEmissionsFactor(testData);
       let error: Error;
       let asset: UtilityEmissionsFactor;
       try {
@@ -69,6 +69,6 @@ describe("lib/utilityEmissionsFactor.ts", () => {
       assert.exists(error);
     });
   });
-  
+
   // TODO : add getUtilityEmissionsFactorsByDivision
 });

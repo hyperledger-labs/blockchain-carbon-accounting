@@ -1,18 +1,24 @@
 /*
     SPDX-License-Identifier: Apache-2.0
 */
+/**
+ * The release of GHG into the atmosphere depends mainly on the activity and the product.
+ * In order to estimate GHG emissions per unit of available activity,
+ * we need to use a factor called emission factor (EF).
+ */
 
 /* tslint:disable:max-classes-per-file */
-import { ChaincodeStub, Iterators } from "fabric-shim";
-import { ErrStateNotFound } from "../util/const";
-import { State } from "../util/state";
-import { WorldState } from "../util/worldstate";
+import { ChaincodeStub, Iterators } from 'fabric-shim';
+import { ErrStateNotFound } from '../util/const';
+import { State } from '../util/state';
+import { WorldState } from '../util/worldstate';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
-  "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem";
+  'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
 
 export interface UtilityEmissionsFactorInterface {
   class?: string;
+  key?: string;
   uuid: string;
   year: string;
   country?: string;
@@ -40,6 +46,7 @@ export class UtilityEmissionsFactor extends State {
     ]);
     this.factor = _factor;
     this.factor.class = UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+    this.factor.key = this.getKey();
   }
   toBuffer(): Uint8Array {
     return State.serialize<UtilityEmissionsFactorInterface>(this.factor);
@@ -81,7 +88,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
   }> {
     const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
     let retryCount = 0;
-    let queryString = "";
+    let queryString = '';
     let iterator: Iterators.StateQueryIterator;
     while (!iterator && retryCount <= maxYearLookup) {
       if (year !== undefined) {
@@ -119,8 +126,10 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
       iterator = await this.stub.getQueryResult(queryString);
       retryCount++;
     }
-    if (!iterator){
-      throw new Error(`${ErrStateNotFound} : failed to get Utility Emissions Factors By division`)
+    if (!iterator) {
+      throw new Error(
+        `${ErrStateNotFound} : failed to get Utility Emissions Factors By division`
+      );
     }
     return this.getAssetFromIterator(iterator);
   }

@@ -4,8 +4,11 @@
 
 import { ChaincodeStub, Iterators } from 'fabric-shim';
 import { State } from './state';
-import { ErrStateNotFound, ErrInvalidQueryString } from './const';
-
+import {
+  ErrStateNotFound,
+  ErrInvalidQueryString,
+  ErrStateAlreadyExists,
+} from './const';
 /**
  * WorldState class is a wrapper around chaincode stub
  * for managing lifecycle of a asset of type T (interface) on HL fabric
@@ -14,6 +17,7 @@ import { ErrStateNotFound, ErrInvalidQueryString } from './const';
  * - getState
  * - query
  * - getAssetFromIterator
+ * - updateState
  */
 export abstract class WorldState<T> extends State {
   constructor(protected stub: ChaincodeStub) {
@@ -22,7 +26,24 @@ export abstract class WorldState<T> extends State {
   }
 
   protected async addState(id: string, asset: T): Promise<void> {
-    return this.stub.putState(id, State.serialize(asset));
+    let error: Error;
+    try {
+      await this.getState(id);
+    } catch (err) {
+      error = err as Error;
+    }
+    if (!error) {
+      throw new Error(
+        `${ErrStateAlreadyExists} : asset with ID = ${id} already exists`
+      );
+    }
+    return await this.stub.putState(id, State.serialize(asset));
+  }
+
+  protected async updateState(id: string, asset: T): Promise<void> {
+    // check if asset exists or not
+    await this.getState(id);
+    return await this.addState(id, asset);
   }
 
   protected async getState(id: string): Promise<T> {
