@@ -267,7 +267,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
           </Button>
         </Col>
 
-        { (limitedMode !== true) &&
+        { ( !limitedMode || tokenTypeId === "3" ) &&
           <Col>
             {/* Only enable issue if role is found */}
             { (roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true)

@@ -167,7 +167,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
       }
 
       {/* Only display registration/unregistration tokens if owner or dealer */}
-      {( (!limitedMode) && (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true)) &&
+      {( (!limitedMode) && (roles[0] === true)) &&
         <>
           <h4>Register/unregister dealers and consumers</h4>
           <Form.Group>
@@ -200,7 +200,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         </>
       }
 
-    {( (limitedMode) && (roles[0] === false || (roles[1] === true || roles[2] === true || roles[3] === true))) &&
+    {( (!limitedMode) && (roles[0] === false || (roles[1] === true || roles[2] === true || roles[3] === true))) &&
      <>
           <h4>Register/unregister consumers</h4>
           <Form.Group>
