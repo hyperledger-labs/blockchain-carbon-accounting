@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Please use this template for reporting suspected bugs.
-labels: "bug"
+labels: 'bug'
 ---
 
 # Issue
