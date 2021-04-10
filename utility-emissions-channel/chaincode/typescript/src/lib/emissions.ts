@@ -13,21 +13,21 @@ const EMISSION_CLASS_IDENTIFIER =
   'org.hyperledger.blockchain-carbon-accounting.emissionsrecord';
 
 export interface EmissionsRecordInterface {
-  class: string;
-  key: string;
-  uuid: string;
-  utilityId: string;
-  partyId: string;
-  fromDate: string;
-  thruDate: string;
-  emissionsAmount: number;
-  renewableEnergyUseAmount: number;
-  nonrenewableEnergyUseAmount: number;
-  energyUseUom: string;
-  factorSource: string;
-  url: string;
-  md5: string;
-  tokenId: string;
+  class?: string;
+  key?: string;
+  uuid?: string;
+  utilityId?: string;
+  partyId?: string;
+  fromDate?: string;
+  thruDate?: string;
+  emissionsAmount?: number;
+  renewableEnergyUseAmount?: number;
+  nonrenewableEnergyUseAmount?: number;
+  energyUseUom?: string;
+  factorSource?: string;
+  url?: string;
+  md5?: string;
+  tokenId?: string;
 }
 
 /**
@@ -78,21 +78,19 @@ export class EmissionRecordState extends WorldState<EmissionsRecordInterface> {
     record: EmissionsRecord,
     uuid: string
   ): Promise<void> {
-    return await this.addState(uuid, record.record);
+    return await this.updateState(uuid, record.record);
   }
   async getAllEmissionRecords(
     utilityId: string,
     partyId: string
-  ): Promise<{ [key: string]: EmissionsRecordInterface }> {
+  ): Promise<EmissionsRecordInterface[]> {
     const queryString = `{"selector": {"class": "${EMISSION_CLASS_IDENTIFIER}","utilityId": "${utilityId}", "partyId": "${partyId}"}}`;
     return await this.query(queryString);
   }
   async getAllEmissionsDataByDateRange(
-    fromDate: number,
-    thruDate: number
-  ): Promise<{
-    [key: string]: EmissionsRecordInterface;
-  }> {
+    fromDate: string,
+    thruDate: string
+  ): Promise<EmissionsRecordInterface[]> {
     const queryString = `{
       "selector": {
         "class": {
@@ -109,10 +107,10 @@ export class EmissionRecordState extends WorldState<EmissionsRecordInterface> {
     return await this.query(queryString);
   }
   async getAllEmissionsDataByDateRangeAndParty(
-    fromDate: number,
-    thruDate: number,
+    fromDate: string,
+    thruDate: string,
     partyId: string
-  ): Promise<{ [key: string]: EmissionsRecordInterface }> {
+  ): Promise<EmissionsRecordInterface[]> {
     const queryString = `{
       "selector": {
         "class": {

@@ -43,21 +43,20 @@ export abstract class WorldState<T> extends State {
   protected async updateState(id: string, asset: T): Promise<void> {
     // check if asset exists or not
     await this.getState(id);
-    return await this.addState(id, asset);
+    return await this.stub.putState(id, State.serialize(asset));
   }
 
   protected async getState(id: string): Promise<T> {
     let byteState: Uint8Array;
-    try {
-      byteState = await this.stub.getState(id);
-    } catch (error) {
-      throw new Error(`${ErrStateNotFound} : asset with ID = ${id} not found`);
+    byteState = await this.stub.getState(id);
+    if (!byteState  || byteState.length === 0){
+       throw new Error(`${ErrStateNotFound} : asset with ID = ${id} not found`);
     }
     return State.deserialize<T>(byteState);
   }
   protected async query(
     queryString: string = `{"selector": {}}`
-  ): Promise<{ [key: string]: T }> {
+  ): Promise<T[]> {
     let iterator: Iterators.StateQueryIterator;
     try {
       iterator = await this.stub.getQueryResult(queryString);
@@ -68,12 +67,12 @@ export abstract class WorldState<T> extends State {
   }
   protected async getAssetFromIterator(
     iterator: Iterators.StateQueryIterator
-  ): Promise<{ [key: string]: T }> {
-    const out: { [key: string]: T } = {};
+  ): Promise<T[]> {
+    const out:T[] = [];
     let result = await iterator.next();
     while (!result.done) {
       try {
-        out[result.value.key] = State.deserialize<T>(result.value.value);
+        out.push(State.deserialize<T>(result.value.value));
         result = await iterator.next();
       } catch (error) {
         break;

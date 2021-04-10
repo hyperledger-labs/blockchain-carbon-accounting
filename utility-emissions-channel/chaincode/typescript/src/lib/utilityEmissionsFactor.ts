@@ -12,6 +12,8 @@ import { ChaincodeStub, Iterators } from 'fabric-shim';
 import { ErrStateNotFound } from '../util/const';
 import { State } from '../util/state';
 import { WorldState } from '../util/worldstate';
+import { getYearFromDate } from './emissions-calc';
+import { UtilityLookupItemInterface } from './utilityLookupItem';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
   'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
@@ -20,10 +22,10 @@ export interface UtilityEmissionsFactorInterface {
   class?: string;
   key?: string;
   uuid: string;
-  year: string;
+  year?: string;
   country?: string;
-  division_type: string;
-  division_id: string;
+  division_type?: string;
+  division_id?: string;
   division_name?: string;
   net_generation?: string;
   net_generation_uom?: string;
@@ -77,15 +79,13 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
     factor: UtilityEmissionsFactor,
     uuid: string
   ): Promise<void> {
-    return await this.addState(uuid, factor.factor);
+    return await this.updateState(uuid, factor.factor);
   }
   async getUtilityEmissionsFactorsByDivision(
     divisionID: string,
     divisionType: string,
     year?: number
-  ): Promise<{
-    [key: string]: UtilityEmissionsFactorInterface;
-  }> {
+  ): Promise<UtilityEmissionsFactorInterface[]> {
     const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
     let retryCount = 0;
     let queryString = '';
@@ -132,5 +132,42 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
       );
     }
     return this.getAssetFromIterator(iterator);
+  }
+
+  // used by recordEmissions
+  async getEmissionsFactorByLookupItem(lookup:UtilityLookupItemInterface,thruDate:string):Promise<UtilityEmissionsFactor>{
+    const hasStateData = lookup.state_province.length > 0;
+    const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
+    const isNonUSCountry = lookup.divisions.division_type.toLowerCase() === 'country' && lookup.divisions.division_id.toLowerCase() !== 'usa';
+    let divisionID:string;
+    let divisionType:string;
+    let year:number;
+    if (hasStateData){
+      divisionID = lookup.state_province;
+      divisionType = 'STATE';
+    }else if (isNercRegion){
+      divisionID = lookup.divisions.division_id;
+      divisionType = lookup.divisions.division_type;
+    }else if (isNonUSCountry){
+      divisionID = lookup.divisions.division_id;
+      divisionType = 'Country';
+    }else{
+      divisionID = 'USA';
+      divisionType = 'Country';
+    }
+
+    try {
+      year = getYearFromDate(thruDate);
+    } catch (error) {
+      console.error('could not fetch year');
+      console.error(error);
+    }
+
+    console.log('fetching utilityFactors');
+    const utilityFactors = await this.getUtilityEmissionsFactorsByDivision(divisionID,divisionType,year);
+    if (utilityFactors.length === 0){
+      throw new Error('No utility emissions factor found for given query');
+    }
+    return new UtilityEmissionsFactor(utilityFactors[0]);
   }
 }
