@@ -69,7 +69,7 @@ function App() {
 
         {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
         <Link href="access-control"><Nav.Link eventKey="access-control">
-                                      {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
+                                      {( (!limitedMode && isOwnerOrDealer) ^ (limitedMode && isOwner) )
                                    ? "Manage roles"
                                    : "My roles"
                                   }
