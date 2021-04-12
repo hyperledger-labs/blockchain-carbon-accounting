@@ -33,6 +33,21 @@ const networksAndAddresses = {
     }
   },
 
+  xdai: {
+    network: "Xdai Mainet",
+    tokenNetwork: {
+      address: "0xf7B361Fe2dE41Cd092D2c777D2136CB8E3C2B146",   
+    },
+    dao: {
+      governor: {
+        address: "0x7137EB87725D61d69e6543E7b498bC4780AF1608", 
+      },
+      daoToken: {
+        address: "0xe0E06767718e04A51c99C3A1cfc63a42950616a1", 
+      }
+    }
+  },
+
 
 
   optimism_integration: {

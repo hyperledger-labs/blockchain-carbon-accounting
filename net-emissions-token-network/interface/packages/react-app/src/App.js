@@ -36,6 +36,7 @@ function App() {
   }, [loading, error, data]);
 
   let isOwnerOrDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true);
+  let isOwner = (roles[0] === true);
 
   return (
     <>
@@ -60,12 +61,15 @@ function App() {
         <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
         <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
 
-        <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
+        {(!limitedMode && isOwner) &&
+          <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
+        }
+
         <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
         {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
         <Link href="access-control"><Nav.Link eventKey="access-control">
-                                  {(isOwnerOrDealer)
+                                      {( (!limitedMode && isOwnerOrDealer) ^ (limitedMode && isOwner) )
                                    ? "Manage roles"
                                    : "My roles"
                                   }
@@ -95,7 +99,7 @@ function App() {
                     <RetireForm provider={provider} roles={roles} />
                   </Route>
                   <Route path="/access-control">
-                    <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} />
+                    <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
                   </Route>
                 </Switch>
               </Tab.Content>
