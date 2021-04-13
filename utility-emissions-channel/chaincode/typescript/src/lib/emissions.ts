@@ -6,7 +6,7 @@
 
 import { ChaincodeStub } from 'fabric-shim';
 import { State } from '../util/state';
-import { WorldState } from '../util/worldstate';
+import { QueryResult, WorldState } from '../util/worldstate';
 
 // EMISSION_CLASS_IDENTIFIER : identifier for emissions record inside HL Fabric
 const EMISSION_CLASS_IDENTIFIER =
@@ -83,14 +83,14 @@ export class EmissionRecordState extends WorldState<EmissionsRecordInterface> {
   async getAllEmissionRecords(
     utilityId: string,
     partyId: string
-  ): Promise<EmissionsRecordInterface[]> {
+  ): Promise<QueryResult<EmissionsRecordInterface>[]> {
     const queryString = `{"selector": {"class": "${EMISSION_CLASS_IDENTIFIER}","utilityId": "${utilityId}", "partyId": "${partyId}"}}`;
     return await this.query(queryString);
   }
   async getAllEmissionsDataByDateRange(
     fromDate: string,
     thruDate: string
-  ): Promise<EmissionsRecordInterface[]> {
+  ): Promise<QueryResult<EmissionsRecordInterface>[]> {
     const queryString = `{
       "selector": {
         "class": {
@@ -110,7 +110,7 @@ export class EmissionRecordState extends WorldState<EmissionsRecordInterface> {
     fromDate: string,
     thruDate: string,
     partyId: string
-  ): Promise<EmissionsRecordInterface[]> {
+  ): Promise<QueryResult<EmissionsRecordInterface>[]> {
     const queryString = `{
       "selector": {
         "class": {

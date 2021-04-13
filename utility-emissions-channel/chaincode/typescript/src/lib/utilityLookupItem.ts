@@ -4,7 +4,7 @@
 
 import { ChaincodeStub } from 'fabric-shim';
 import { State } from '../util/state';
-import { WorldState } from '../util/worldstate';
+import { QueryResult, WorldState } from '../util/worldstate';
 
 /* tslint:disable:max-classes-per-file */
 
@@ -60,7 +60,7 @@ export class UtilityLookupItemState extends WorldState<UtilityLookupItemInterfac
     return new UtilityLookupItem(await this.getState(uuid));
   }
 
-  async getAllUtilityLookupItems(): Promise<UtilityLookupItemInterface[]> {
+  async getAllUtilityLookupItems(): Promise<QueryResult<UtilityLookupItemInterface>[]> {
     const queryString = `{"selector": {"class": "${UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER}"}}`;
     return await this.query(queryString);
   }

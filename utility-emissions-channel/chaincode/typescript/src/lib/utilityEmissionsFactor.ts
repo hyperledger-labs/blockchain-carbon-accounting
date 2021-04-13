@@ -11,7 +11,7 @@
 import { ChaincodeStub, Iterators } from 'fabric-shim';
 import { ErrStateNotFound } from '../util/const';
 import { State } from '../util/state';
-import { WorldState } from '../util/worldstate';
+import { QueryResult, WorldState } from '../util/worldstate';
 import { getYearFromDate } from './emissions-calc';
 import { UtilityLookupItemInterface } from './utilityLookupItem';
 
@@ -85,12 +85,12 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
     divisionID: string,
     divisionType: string,
     year?: number
-  ): Promise<UtilityEmissionsFactorInterface[]> {
+  ): Promise<QueryResult<UtilityEmissionsFactorInterface>[]> {
     const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
     let retryCount = 0;
     let queryString = '';
-    let iterator: Iterators.StateQueryIterator;
-    while (!iterator && retryCount <= maxYearLookup) {
+    let results: QueryResult<UtilityEmissionsFactorInterface>[] = [];
+    while (results.length === 0 && retryCount <= maxYearLookup) {
       if (year !== undefined) {
         queryString = `{
                 "selector" : {
@@ -123,15 +123,16 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
             }
           }`;
       }
-      iterator = await this.stub.getQueryResult(queryString);
+      const iterator = await this.stub.getQueryResult(queryString);
+      results = await this.getAssetFromIterator(iterator);
       retryCount++;
     }
-    if (!iterator) {
+    if (results.length === 0) {
       throw new Error(
         `${ErrStateNotFound} : failed to get Utility Emissions Factors By division`
       );
     }
-    return this.getAssetFromIterator(iterator);
+    return results;
   }
 
   // used by recordEmissions
@@ -168,6 +169,6 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
     if (utilityFactors.length === 0){
       throw new Error('No utility emissions factor found for given query');
     }
-    return new UtilityEmissionsFactor(utilityFactors[0]);
+    return new UtilityEmissionsFactor(utilityFactors[0].Record);
   }
 }

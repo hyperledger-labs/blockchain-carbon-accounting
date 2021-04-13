@@ -19,6 +19,11 @@ import {
  * - getAssetFromIterator
  * - updateState
  */
+export interface QueryResult<T>{
+  Key:string;
+  Record:T;
+}
+
 export abstract class WorldState<T> extends State {
   constructor(protected stub: ChaincodeStub) {
     // keys are not used for the WorldState class
@@ -56,7 +61,7 @@ export abstract class WorldState<T> extends State {
   }
   protected async query(
     queryString: string = `{"selector": {}}`
-  ): Promise<T[]> {
+  ): Promise<QueryResult<T>[]> {
     let iterator: Iterators.StateQueryIterator;
     try {
       iterator = await this.stub.getQueryResult(queryString);
@@ -67,12 +72,12 @@ export abstract class WorldState<T> extends State {
   }
   protected async getAssetFromIterator(
     iterator: Iterators.StateQueryIterator
-  ): Promise<T[]> {
-    const out:T[] = [];
+  ): Promise<QueryResult<T>[]> {
+    const out:QueryResult<T>[] = [];
     let result = await iterator.next();
     while (!result.done) {
       try {
-        out.push(State.deserialize<T>(result.value.value));
+        out.push({Key: result.value.key, Record: State.deserialize<T>(result.value.value)}as QueryResult<T>);
         result = await iterator.next();
       } catch (error) {
         break;
