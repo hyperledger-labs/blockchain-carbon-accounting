@@ -44,3 +44,11 @@ exports.get_year_from_date = function(date) {
   }
   return year;
 };
+
+exports.get_full_year_from_date = function(date) {
+  var time = new Date(date);
+  if (!time.getFullYear){
+    throw new Error(`${date} date format not supported`);
+  }
+  return time.getFullYear();
+};
