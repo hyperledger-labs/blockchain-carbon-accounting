@@ -251,8 +251,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Row className="mt-4">
         <Col>
 
-          {/* if in limited mode, require dealer role to make a DAO proposal */}
-          { (limitedMode && (!roles[0] || !roles[1] || !roles[2] || !roles[3]))
+          {/* if in limited mode, require dealer role (except AE) to make a DAO proposal */}
+          { (limitedMode && (!roles[0] || !roles[1] || !roles[2]))
             ?
             <Button
               variant="success"
