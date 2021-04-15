@@ -148,8 +148,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       let proposalActions = await getActions(provider, i);
 
       let decimals = BigNumber.from("1000000000");
+      let decimalsRaw = "1000000000000000000";
       let forVotes = proposalDetails[5].div(decimals).toNumber();
       let againstVotes = proposalDetails[6].div(decimals).toNumber();
+      let rawForVotes = proposalDetails[7].div(decimalsRaw).toNumber();
+      let rawAgainstVotes = proposalDetails[8].div(decimalsRaw).toNumber();
 
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
@@ -166,6 +169,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           proposer: proposalDetails[1],
           forVotes: forVotes,
           againstVotes: againstVotes,
+          rawForVotes: rawForVotes,
+          rawAgainstVotes: rawAgainstVotes,
           startBlock: (proposalDetails[3].toNumber() + 1),
           endBlock: proposalDetails[4].toNumber()
         },
@@ -174,7 +179,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         receipt: {
           hasVoted: proposalReceipt[0],
           support: proposalReceipt[1],
-          votes: proposalReceipt[2].div(decimals).toString()
+          votes: proposalReceipt[2].div(decimals).toString(),
+          rawVotes: proposalReceipt[3].div(decimalsRaw).toString()
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
@@ -339,7 +345,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
               <p>
                 Your DAO tokens: {addCommas(daoTokenBalance)}
                 { (daoTokenBalance !== 0) &&
-                  <> ({percentOfSupply}% of entire supply)</>
+                  <> (~{percentOfSupply}% of entire supply)</>
                 }
               </p>
             </>
@@ -441,7 +447,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   { proposal.isEligibleToVote &&
                     <>
                       <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes (~{addCommas(proposal.details.forVotes ** 2)} dCLM8<br/>
+                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8)<br/>
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote for.."
@@ -456,7 +462,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                         </InputGroup>
                       </Col>
                       <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes (~{addCommas(proposal.details.againstVotes ** 2)} dCLM8<br/>
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8)<br/>
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote against..."
@@ -477,10 +483,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   { ( (proposal.state !== "Pending") && !proposal.isEligibleToVote ) &&
                     <>
                       <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes (~{addCommas(proposal.details.forVotes ** 2)} dCLM8)<br/>
+                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8)<br/>
                       </Col>
                       <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes (~{addCommas(proposal.details.againstVotes ** 2)} dCLM8)<br/>
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8)<br/>
                       </Col>
                     </>
                   }
@@ -488,7 +494,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 </Row>
 
                 { (proposal.receipt.hasVoted === true) &&
-                  <p className="text-center py-2">You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.</p>
+                  <p className="text-center py-2">You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes using {addCommas(proposal.receipt.rawVotes)} dCLM8.</p>
                 }
 
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
