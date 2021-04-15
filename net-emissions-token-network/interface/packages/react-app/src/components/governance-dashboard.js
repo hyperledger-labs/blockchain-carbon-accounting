@@ -46,7 +46,7 @@ function addCommas(str){
 
 const networkNameLowercase = (addresses.network.split(" "))[0].toLowerCase(); // "Hardhat Network" -> "hardhat"
 
-const etherscanPage = `https://${networkNameLowercase}.etherscan.io/address/${addresses.dao.governor.address}#writeContract`;
+const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.dao.governor.address}/transactions`;
 
 export default function GovernanceDashboard({ provider, roles, signedInAddress }) {
 
@@ -281,8 +281,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <h2>Governance</h2>
       <p>View, vote on, or modify proposals to issue CLM8 tokens for DAO token (dCLM8) holders. Your votes count as the square root of dCLM8 you vote on a proposal with, and the full amount you voted with is burned after you cast a vote.</p>
 
-      { (networkNameLowercase !== "hardhat") &&
-        <p><a href={etherscanPage}>See contract on Etherscan</a></p>
+      { (networkNameLowercase === "xdai") &&
+        <p><a href={blockscoutPage}>See contract on Blockscout</a></p>
       }
 
       <div className="d-flex justify-content-start align-items-center">
