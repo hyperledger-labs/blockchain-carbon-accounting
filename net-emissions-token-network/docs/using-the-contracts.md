@@ -19,7 +19,7 @@ After cloning this repository, navigate to the `net-emissions-token-network` dir
 - To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
 - To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
 
-After deploying to hardhat locally, you will see the addresse of the deployed contracts:
+After deploying to hardhat locally, you will see the addresses of the deployed contracts:
 
 ```
 $ npx hardhat node --show-accounts
