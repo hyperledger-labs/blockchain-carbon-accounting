@@ -163,7 +163,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <h2>Issue tokens</h2>
       <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, or Audited Emissions) to registered consumers.</p>
 
-      { (limitedMode !== true)
+      { ((limitedMode === false) || (tokenTypeId === "3"))
         ?
         <Form.Group>
           <Form.Label>Address</Form.Label>
