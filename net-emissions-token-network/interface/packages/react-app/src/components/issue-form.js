@@ -159,11 +159,10 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         body={result}
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
-
       <h2>Issue tokens</h2>
       <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, or Audited Emissions) to registered consumers.</p>
 
-      { ((limitedMode === false) || (tokenTypeId === "3"))
+      { ((!limitedMode) || (tokenTypeId === "3"))
         ?
         <Form.Group>
           <Form.Label>Address</Form.Label>
@@ -251,20 +250,34 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
       <Row className="mt-4">
         <Col>
-          <Button
-            variant="success"
-            size="lg"
-            block
-            onClick={() => setCreateModalShow(true)}
-            disabled={
-              (calldata.length === 0) ||
-              String(quantity).length === 0 ||
-              tokenTypeId === "3"
-            }
-          >
-    {/* !(limitedMode && ((roles.length === 5) && (roles[1] === true || roles[2] === true || roles[3] === true))) */}
-            Create a DAO proposal
-          </Button>
+
+          {/* if in limited mode, require dealer role to make a DAO proposal */}
+          { (limitedMode && (!roles[0] || !roles[1] || !roles[2] || !roles[3]))
+            ?
+            <Button
+              variant="success"
+              size="lg"
+              block
+              disabled={true}
+            >
+              Must be a registered dealer
+            </Button>
+            :
+            <Button
+              variant="success"
+              size="lg"
+              block
+              onClick={() => setCreateModalShow(true)}
+              disabled={
+                (calldata.length === 0) ||
+                String(quantity).length === 0 ||
+                tokenTypeId === "3"
+              }
+            >
+              Create a DAO proposal
+            </Button>
+          }
+
         </Col>
 
         { ( !limitedMode || tokenTypeId === "3" ) &&
@@ -282,7 +295,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                   Issue
                 </Button>
               :
-                <Button variant="primary" size="lg" block disabled>Must be a dealer</Button>
+                <Button variant="primary" size="lg" block disabled>Must be a registered dealer</Button>
             }
           </Col>
         }
