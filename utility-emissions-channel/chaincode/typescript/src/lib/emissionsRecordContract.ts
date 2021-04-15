@@ -62,6 +62,9 @@ export class EmissionsRecordContract {
   }
 
   async updateEmissionsRecord(recordI:EmissionsRecordInterface):Promise<Uint8Array>{
+    if (recordI['partyId']) {
+        recordI['partyId'] = SHA256(recordI['partyId']).toString();
+    }
     const record = new EmissionsRecord(recordI);
     await this.emissionsState.updateEmissionsRecord(record,recordI.uuid);
     return record.toBuffer();
