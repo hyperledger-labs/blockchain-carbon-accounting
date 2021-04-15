@@ -290,7 +290,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                   size="lg"
                   block
                   onClick={handleSubmit}
-                  disabled={(calldata.length === 0) || String(quantity).length === 0}
+              disabled={(calldata.length === 0) || String(quantity).length === 0 || String(address).length === 0}
                 >
                   Issue
                 </Button>
