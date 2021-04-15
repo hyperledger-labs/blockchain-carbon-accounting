@@ -17,7 +17,7 @@ spec:
         app: chaincode-utilityemissions
     spec:
       containers:
-        - image: krybalko/utilityemissions-chaincode:0.0.1
+        - image: krybalko/utilityemissions-chaincode:0.0.2
           name: chaincode-utilityemissions
           imagePullPolicy: Always
           env:
