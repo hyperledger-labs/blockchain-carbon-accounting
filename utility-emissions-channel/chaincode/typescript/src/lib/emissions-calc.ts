@@ -33,7 +33,7 @@ export const getUomFactor = (uom: string): number => {
 
 export const getYearFromDate = (date: string): number => {
   const time = new Date(date);
-  if (!time.getFullYear){
+  if (!time.getFullYear()){
     throw new Error(
       `${ErrInvalidDateFormat} : ${date} date format not supported`
     );
