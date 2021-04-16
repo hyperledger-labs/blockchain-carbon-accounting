@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ethers } from "ethers";
 import netEmissionsTokenNetworkAbi from "./NetEmissionsTokenNetwork.json";
-import { WALLET_PRIVATE_KEY, CONTRACT_ADDRESS, INFURA_PROJECT_ID, INFURA_PROJECT_SECRET } from "../../config/networkConfig";
+import {
+  WALLET_PRIVATE_KEY,
+  CONTRACT_ADDRESS,
+  INFURA_PROJECT_ID,
+  INFURA_PROJECT_SECRET,
+  JSON_RPC_URL
+} from "../../config/networkConfig";
 const tokenTypeId = 3;
 
 const walletPrivateKey = WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
 const contractAddress = CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
+const jsonRpcUrl = JSON_RPC_URL || process.env.JSON_RPC_URL || "https://rpc.xdaichain.com/";
 // const infuraProjectId = INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID;
 // const infuraProjectSecret = INFURA_PROJECT_SECRET || process.env.INFURA_PROJECT_SECRET;
 
@@ -17,9 +24,7 @@ function getProvider() {
   // });
 
   // xDai
-  let provider = new ethers.providers.JsonRpcProvider(
-    "https://rpc.xdaichain.com/"
-  );
+  let provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
   return provider;
 }
 

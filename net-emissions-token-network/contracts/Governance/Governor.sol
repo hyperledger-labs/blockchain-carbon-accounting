@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 contract Governor {
     /// @notice The name of this contract
-    string public constant name = "Climate DAO Governor";
+    string public constant name = "CLM8 DAO Governor";
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     function quorumVotes() public view returns (uint) {
@@ -102,6 +102,12 @@ contract Governor {
         // @notice Current number of votes in opposition to this proposal
         uint againstVotes;
 
+        // @notice Current non-curved number of CLM8 burned to make for votes
+        uint rawForVotes;
+
+        // @notice Current non-curved number of CLM8 burned to make against votes
+        uint rawAgainstVotes;
+
         // @notice Flag marking whether the proposal has been canceled
         bool canceled;
 
@@ -123,8 +129,11 @@ contract Governor {
         // @notice Whether or not the voter supports the proposal
         bool support;
 
-        // @notice The number of votes the voter had, which were cast
+        // @notice The number of votes from the sqrt of CLM8 sent
         uint96 votes;
+
+        // @notice The number of CLM8 burned for votes
+        uint96 rawVotes;
     }
 
     /// @notice Possible states that a proposal may be in
@@ -202,6 +211,8 @@ contract Governor {
         p.endBlock = endBlock;
         p.forVotes = 0;
         p.againstVotes = 0;
+        p.rawForVotes = 0;
+        p.rawAgainstVotes = 0;
         p.canceled = false;
         p.executed = false;
         p.description = description;
@@ -314,8 +325,10 @@ contract Governor {
 
         if (support) {
             proposal.forVotes = add256(proposal.forVotes, quadraticVote);
+            proposal.rawForVotes = add256(proposal.rawForVotes, votes);
         } else {
             proposal.againstVotes = add256(proposal.againstVotes, quadraticVote);
+            proposal.rawAgainstVotes = add256(proposal.rawAgainstVotes, votes);
         }
 
         // burn used dCLM8 tokens
@@ -324,6 +337,7 @@ contract Governor {
         receipt.hasVoted = true;
         receipt.support = support;
         receipt.votes = quadraticVote;
+        receipt.rawVotes = votes;
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
     }

@@ -130,6 +130,7 @@ class UtilityEmissionsFactorList extends StateList {
     let retryCount = 0; // increment on retry
     let stringQuery;
     let iterator;
+    let results = [];
 
     // fetch data while iterator is unset and retry count does not exceed year lookback
     while (!(Symbol.iterator in Object(iterator)) && (retryCount <= maximumYearLookback)) {
@@ -165,23 +166,25 @@ class UtilityEmissionsFactorList extends StateList {
           }
         }`;
       }
+      console.log("queryString:", stringQuery);
       iterator = await this.stub.getQueryResult(stringQuery);
       retryCount++;
-    }
-    
-    let results = [];
-    let result = await iterator.next();
-    while (!result.done) {
-      let strValue = Buffer.from(result.value.value.toString()).toString("utf8");
-      let record;
-      try {
-        record = JSON.parse(strValue);
-      } catch (err) {
-        console.log(err);
-        record = strValue;
+
+      let result = await iterator.next();
+      while (!result.done) {
+        let strValue = Buffer.from(result.value.value.toString()).toString("utf8");
+        let record;
+        try {
+          record = JSON.parse(strValue);
+        } catch (err) {
+          console.log(err);
+          record = strValue;
+        }
+        results.push({ Key: result.value.key, Record: record });
+        result = await iterator.next();
       }
-      results.push({ Key: result.value.key, Record: record });
-      result = await iterator.next();
+
+      if (results.length > 0) break;
     }
     return JSON.stringify(results);
   }

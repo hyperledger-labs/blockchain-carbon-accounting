@@ -2,7 +2,7 @@ import { ChaincodeStub } from 'fabric-shim';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
 import { getCO2EmissionFactor } from './emissions-calc';
 import { UtilityEmissionsFactor, UtilityEmissionsFactorInterface, UtilityEmissionsFactorState } from './utilityEmissionsFactor';
-import {MD5} from 'crypto-js';
+import {MD5, SHA256} from 'crypto-js';
 import {
   UtilityLookupItemInterface,
   UtilityLookupItemState,
@@ -39,11 +39,12 @@ export class EmissionsRecordContract {
 
       // create an instance of the emissions record
       const uuid = MD5(utilityId + partyId + fromDate + thruDate).toString();
+      const partyIdsha256 = SHA256(partyId).toString();
 
       const emissionI:EmissionsRecordInterface = {
         uuid,
         utilityId,
-        partyId,
+        partyId: partyIdsha256,
         fromDate,
         thruDate,
         emissionsAmount: co2Emission.emission.value,
@@ -61,6 +62,9 @@ export class EmissionsRecordContract {
   }
 
   async updateEmissionsRecord(recordI:EmissionsRecordInterface):Promise<Uint8Array>{
+    if (recordI['partyId']) {
+        recordI['partyId'] = SHA256(recordI['partyId']).toString();
+    }
     const record = new EmissionsRecord(recordI);
     await this.emissionsState.updateEmissionsRecord(record,recordI.uuid);
     return record.toBuffer();
@@ -70,7 +74,8 @@ export class EmissionsRecordContract {
     return record.toBuffer();
   }
   async getAllEmissionsData(utilityId:string, partyId:string):Promise<Uint8Array>{
-    const records = await this.emissionsState.getAllEmissionRecords(utilityId,partyId);
+    const partyIdsha256 = SHA256(partyId).toString();
+    const records = await this.emissionsState.getAllEmissionRecords(utilityId,partyIdsha256);
     return Buffer.from(JSON.stringify(records));
   }
   async getAllEmissionsDataByDateRange(fromDate:string, thruDate:string):Promise<Uint8Array>{
@@ -78,7 +83,8 @@ export class EmissionsRecordContract {
     return Buffer.from(JSON.stringify(records));
   }
   async getAllEmissionsDataByDateRangeAndParty(fromDate:string, thruDate:string, partyId:string):Promise<Uint8Array>{
-    const records = await this.emissionsState.getAllEmissionsDataByDateRangeAndParty(fromDate,thruDate,partyId);
+    const partyIdsha256 = SHA256(partyId).toString();
+    const records = await this.emissionsState.getAllEmissionsDataByDateRangeAndParty(fromDate,thruDate,partyIdsha256);
     return Buffer.from(JSON.stringify(records));
   }
   async importUtilityFactor(factorI:UtilityEmissionsFactorInterface){
