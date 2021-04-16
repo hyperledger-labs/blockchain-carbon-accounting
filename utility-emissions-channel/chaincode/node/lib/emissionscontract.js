@@ -201,7 +201,7 @@ class EmissionsRecordContract {
     // filter matching year if found
     let year;
     try {
-      year = EmissionsCalc.get_year_from_date(thruDate);
+      year = EmissionsCalc.get_full_year_from_date(thruDate);
       if (year) { queryParams.year = year }
     } catch (error) {
       console.error("Could not fetch year");

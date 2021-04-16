@@ -9,3 +9,5 @@ export const INFURA_PROJECT_ID = "";
 
 // Infura project secret
 export const INFURA_PROJECT_SECRET = "";
+
+export const JSON_RPC_URL = "";

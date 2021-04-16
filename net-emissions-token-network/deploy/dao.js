@@ -10,8 +10,10 @@ module.exports = async ({
   deployments,
   getNamedAccounts
 }) => {
-  const {deploy, execute} = deployments;
+  const {deploy, execute, get} = deployments;
   const {deployer} = await getNamedAccounts();
+
+  daoToken = await get("DAOToken");
 
   console.log(`Deploying DAO with account: ${deployer}`);
 
@@ -23,14 +25,6 @@ module.exports = async ({
     ],
   });
   console.log("Timelock deployed to:", timelock.address);
-
-  let daoToken = await deploy('DAOToken', {
-    from: deployer,
-    args: [
-      deployer // inital token holder
-    ],
-  });
-  console.log("DAO Token deployed to:", daoToken.address);
 
   let governor = await deploy('Governor', {
     from: deployer,
@@ -112,20 +106,10 @@ module.exports = async ({
       'Governor',
       { from: deployer },
       '__acceptAdmin'
-      
     );
     await advanceBlocks(1);
 
     console.log("Called __acceptAdmin() on Governor.");
-
-    // delegate owner voting power to self
-    await execute(
-      'DAOToken',
-      { from: deployer },
-      'delegate',
-      deployer
-    );
-    console.log("Delegated voting power of deployer to self.")
     
     console.log("Done performing Timelock admin switch.");
     
@@ -150,3 +134,4 @@ module.exports = async ({
 };
 
 module.exports.tags = ['DAO'];
+module.exports.dependencies = ['DAOToken'];

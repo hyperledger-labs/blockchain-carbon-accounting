@@ -1,0 +1,14 @@
+NodeOUs:
+  Enable: true
+  ClientOUIdentifier:
+    Certificate: cacerts/fabric-ca-opensolarx-com-443-fabric-ca-opensolarx-com.pem
+    OrganizationalUnitIdentifier: client
+  PeerOUIdentifier:
+    Certificate: cacerts/fabric-ca-opensolarx-com-443-fabric-ca-opensolarx-com.pem
+    OrganizationalUnitIdentifier: peer
+  AdminOUIdentifier:
+    Certificate: cacerts/fabric-ca-opensolarx-com-443-fabric-ca-opensolarx-com.pem
+    OrganizationalUnitIdentifier: admin
+  OrdererOUIdentifier:
+    Certificate: cacerts/fabric-ca-opensolarx-com-443-fabric-ca-opensolarx-com.pem
+    OrganizationalUnitIdentifier: orderer
