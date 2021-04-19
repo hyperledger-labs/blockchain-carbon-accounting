@@ -102,10 +102,10 @@ contract Governor {
         // @notice Current number of votes in opposition to this proposal
         uint againstVotes;
 
-        // @notice Current non-curved number of CLM8 burned to make for votes
+        // @notice Current staked number of CLM8 signifying a for vote to burn or return after voting period
         uint rawForVotes;
 
-        // @notice Current non-curved number of CLM8 burned to make against votes
+        // @notice Current staked number of CLM8 signifying a against vote to burn or return after voting period
         uint rawAgainstVotes;
 
         // @notice Flag marking whether the proposal has been canceled
@@ -331,8 +331,8 @@ contract Governor {
             proposal.rawAgainstVotes = add256(proposal.rawAgainstVotes, votes);
         }
 
-        // burn used dCLM8 tokens
-        dclm8._burn(voter, votes);
+        // lock dCLM8 tokens
+        dclm8._lockTokens(voter, votes);
 
         receipt.hasVoted = true;
         receipt.support = support;
@@ -340,6 +340,10 @@ contract Governor {
         receipt.rawVotes = votes;
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
+    }
+
+    function refundClm8(uint proposalId) public {
+        // 
     }
 
     function __acceptAdmin() public {
@@ -414,5 +418,5 @@ interface Dclm8Interface {
     function getTotalSupply() external pure returns (uint);
     function balanceOf(address account) external view returns (uint);
     function getInitialHolder() external pure returns (address);
-    function _burn(address account, uint96 amount) external;
+    function _lockTokens(address src, uint96 amount) external;
 }

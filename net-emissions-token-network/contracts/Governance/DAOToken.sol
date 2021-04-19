@@ -292,6 +292,15 @@ contract DAOToken {
         }
     }
 
+    function _lockTokens(address src, uint96 amount) external {
+        require(msg.sender == governor, "dCLM8::lockTokens: must be governor");
+
+        balances[src] = sub96(balances[src], amount, "dCLM8::_transferTokens: transfer amount exceeds balance");
+        balances[governor] = add96(balances[governor], amount, "dCLM8::_transferTokens: transfer amount overflows");
+
+        emit Transfer(src, governor, amount);
+    }
+
     function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
         if (srcRep != dstRep && amount > 0) {
             if (srcRep != address(0)) {
