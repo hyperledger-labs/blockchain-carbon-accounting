@@ -54,7 +54,7 @@ contract Governor {
     function votingDelay() public pure returns (uint) { return 1; } // 1 block
 
     /// @notice The duration of voting on a proposal, in blocks
-    function votingPeriod() public pure returns (uint) { return 17280; } // ~3 days in blocks (assuming 15s blocks)
+    function votingPeriod() public pure returns (uint) { return 5760; } // ~3 days in blocks (assuming 5s blocks)
 
     /// @notice The address of the timelock
     TimelockInterface public timelock;
