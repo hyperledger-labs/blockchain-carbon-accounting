@@ -175,7 +175,7 @@ contract Governor {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address dclm8_, address guardian_) public {
+    constructor(address timelock_, address dclm8_, address guardian_) {
         timelock = TimelockInterface(timelock_);
         dclm8 = Dclm8Interface(dclm8_);
         guardian = guardian_;
@@ -226,6 +226,10 @@ contract Governor {
     function queue(uint proposalId) public {
         require(state(proposalId) == ProposalState.Succeeded, "Governor::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
+
+        // burn all dCLM8 associated with this proposal
+        dclm8._burn(address(this), uint96(add256(proposal.rawForVotes, proposal.rawAgainstVotes)));
+
         uint eta = add256(block.timestamp, timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
             _queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
@@ -419,4 +423,5 @@ interface Dclm8Interface {
     function balanceOf(address account) external view returns (uint);
     function getInitialHolder() external pure returns (address);
     function _lockTokens(address src, uint96 amount) external;
+    function _burn(address account, uint96 amount) external;
 }
