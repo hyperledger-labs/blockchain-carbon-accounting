@@ -38,6 +38,17 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
     await contract.connect(admin).setLimitedMode( (taskArgs.value) == "true" ? true : false );
   })
 
+// Task to set quorum on Governor
+task("setQuorum", "Set the quorum value on a Governor contract")
+  .addParam("value", "The new quorum value (remember to account for 18 decimal places)")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    await contract.connect(admin).setQuorum( String(taskArgs.value) );
+  })
+
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
   .setAction(async taskArgs => {
