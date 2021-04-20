@@ -131,4 +131,64 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("should allow one to refund their locked dCLM8 on an active proposal", async function () {
+
+    const { deployer } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // create a proposal
+    let proposal = createProposal({
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    // vote yes
+    let halfOfSupply = fullSupply.div(2);
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, halfOfSupply);
+
+    // check to see deployer dCLM8 balance is zero
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(halfOfSupply));
+
+    // check receipt
+    await governor.getReceipt(proposal, deployer)
+    .then((response) => {
+      expect(response.hasVoted).to.equal(true);
+      expect(response.support).to.equal(true);
+      expect(response.votes).to.equal("2236067977499"); // ~sqrt(halfOfSupply)
+      expect(response.rawVotes).to.equal(halfOfSupply);
+    });
+
+    // refund locked dCLM8
+    await governor.refund(1, halfOfSupply);
+
+    // check to see deployer dCLM8 balance is full
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    // check receipt
+    await governor.getReceipt(proposal, deployer)
+    .then((response) => {
+      expect(response.hasVoted).to.equal(true);
+      expect(response.support).to.equal(true);
+      expect(response.votes).to.equal(0);
+      expect(response.rawVotes).to.equal(0);
+    });
+
+  });
+
+
 });

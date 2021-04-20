@@ -346,8 +346,38 @@ contract Governor {
         emit VoteCast(voter, proposalId, support, quadraticVote);
     }
 
-    function refundClm8(uint proposalId) public {
-        // 
+    function refund(uint proposalId, uint96 amount) public {
+
+        Proposal storage proposal = proposals[proposalId];
+        Receipt storage receipt = proposal.receipts[msg.sender];
+
+        require(receipt.hasVoted == true, "Governor::refundClm8: user has not voted");
+        require(amount <= receipt.rawVotes, "Governor::refundClm8: amount exceeds locked dCLM8");
+
+        bool isActive = state(proposalId) == ProposalState.Active;
+        bool isDefeatedByQuorum = state(proposalId) == ProposalState.Defeated && proposal.forVotes < quorumVotes();
+        require(isActive || isDefeatedByQuorum, "Governor::refundClm8: proposal must be active or defeated by failed quorum");
+
+        // refund dCLM8 from this contract
+        dclm8.transfer(msg.sender, amount);
+
+        uint96 quadraticVote = uint96(sqrt(amount));
+
+        // if proposal is active, subtract amount from votes and locked dCLM8 amounts
+        if (isActive) {
+            if (receipt.support) {
+                proposal.forVotes = sub256(proposal.forVotes, quadraticVote);
+                proposal.rawForVotes = sub256(proposal.rawForVotes, amount);
+            } else {
+                proposal.againstVotes = sub256(proposal.againstVotes, quadraticVote);
+                proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, amount);
+            }
+        }
+
+        // update receipt
+        receipt.votes = uint96(sub256(receipt.votes, quadraticVote));
+        receipt.rawVotes = uint96(sub256(receipt.rawVotes, amount));
+
     }
 
     function __acceptAdmin() public {
@@ -424,4 +454,5 @@ interface Dclm8Interface {
     function getInitialHolder() external pure returns (address);
     function _lockTokens(address src, uint96 amount) external;
     function _burn(address account, uint96 amount) external;
+    function transfer(address dst, uint rawAmount) external returns (bool);
 }
