@@ -5,7 +5,7 @@ This project utilizes [hardhat-deploy](https://hardhat.org/plugins/hardhat-deplo
 - Automatic setup after deploying the contracts (including initializing the admin of the Timelock contract and granting cross-contract permissions)
 - When `npx hardhat node` is run to start the Hardhat Network for testing contracts locally, the deployment process is automatically called
 - The tests (run with `npx hardhat test`) run hardhat-deploy locally before they are called so that the deployment process doesn't have to replicated
-- Deployment information is saved in the `deployments` folder
+- Deployment information is saved in the `deployments/` folder
 - Contracts can be deployed individually using the `--tags` argument
 
 ## Under the hood
@@ -30,7 +30,7 @@ module.exports.tags = ['DAO'];
 module.exports.dependencies = ['DAOToken'];
 ```
 
-The tag 'DAO' is set so that the Timelock and Governor can be deployed individually with `npx hardhat deploy --tags DAO`. There is also a dependency for the DAOToken, because the Governor takes an argument for the address of the DAOToken. Fortunately, the deploy script takes care of this automatically, but it gives us flexibility to deploy contracts individually.
+The tag 'DAO' is set so that the Timelock and Governor can be deployed individually with `npx hardhat deploy --tags DAO`. (The other tags are 'CLM8' for NetEmissionsTokenNetwork.sol and 'DAOToken' for DAOToken.sol.) We also see a dependency for the contract DAOToken, because the Governor takes an argument for the address of the DAOToken so it must be deployed first. If a tag is deployed individually and the dependency is not yet deployed or not located in the `deployments/` folder, the script will automatically deploy the dependency, otherwise it will reuse the already deployed contract defined in the `deployments/` folder. This use of dependencies and tags makes it easier to deploy contracts individually if ever necessary.
 
 ### hardhat-deploy
 
@@ -58,14 +58,14 @@ console.log("Timelock deployed to:", timelock.address);
 
 ```js
 await execute(
-  'Timelock',
-  { from: deployer },
-  'queueTransaction',
-  timelockNewAdmin.target,
-  timelockNewAdmin.value,
-  timelockNewAdmin.signature,
-  timelockNewAdmin.data,
-  timelockNewAdmin.eta
+  'Timelock',                 // contract to call
+  { from: deployer },         // options (e.g. from address)
+  'queueTransaction',         // function on contract to call
+  timelockNewAdmin.target,    // contract argument 1
+  timelockNewAdmin.value,     // contract argument 2
+  timelockNewAdmin.signature, // contract argument 3
+  timelockNewAdmin.data,      // contract argument 4
+  timelockNewAdmin.eta        // contract argument 5
 );
 console.log("Queued setPendingAdmin() on Timelock.");
 ```
