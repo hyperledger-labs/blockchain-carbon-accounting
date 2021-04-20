@@ -131,7 +131,7 @@ exports.createProposal = async function (params) {
   // get proposal state
   await params.governor.state(proposalId)
     .then((response) => {
-      expect(response).to.equal(0); // pending
+      expect(response).to.equal(exports.proposalStates.pending);
   });
 
   await exports.advanceBlocks(1);
@@ -139,7 +139,7 @@ exports.createProposal = async function (params) {
   // get proposal state
   await params.governor.state(proposalId)
     .then((response) => {
-      expect(response).to.equal(1); // active
+      expect(response).to.equal(exports.proposalStates.active);
     });
 
   return proposalId;
@@ -150,7 +150,7 @@ exports.executeProposalAndConfirmSuccess = async function (proposalId, params) {
 
   let numTokensBefore = await params.netEmissionsTokenNetwork.getNumOfUniqueTokens();
 
-  await advanceHours(48);
+  await exports.advanceHours(48);
 
   // execute proposal
   let executeProposal = await params.governor.connect(params.deployer).execute(proposalId);
