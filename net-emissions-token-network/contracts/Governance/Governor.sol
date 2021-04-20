@@ -32,16 +32,16 @@ contract Governor {
     /// @notice The name of this contract
     string public constant name = "CLM8 DAO Governor";
 
+    uint private quorum = 632455532033;  // ~3162 dCLM8 or sqrt(4% of total supply)
+
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     function quorumVotes() public view returns (uint) {
-        uint initialHolderBalance = dclm8.balanceOf(dclm8.getInitialHolder());
-        uint daoTokensInCirculation = dclm8.getTotalSupply() - initialHolderBalance;
-        // if tokens in circulation, let sqrt(4%) of those tokens be the quorum
-        if (daoTokensInCirculation != 0) {
-            return sqrt(div256(daoTokensInCirculation, 25));
-        }
-        // otherwise, default to sqrt(4% of total supply)
-        return 632455532033;
+        return quorum;
+    }
+
+    function setQuorum(uint _quorum) external {
+        require(msg.sender == guardian, "Governor::setQuorum: must be guardian");
+        quorum = _quorum;
     }
 
     /// @notice The number of votes required in order for a voter to become a proposer

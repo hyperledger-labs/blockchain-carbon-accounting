@@ -190,5 +190,39 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("should allow only the guardian to set the quorum", async function () {
+    const { deployer, dealer1 } = await getNamedAccounts();
+    const governor = await ethers.getContract('Governor');
+
+    // check initial quorum
+    await governor
+      .quorumVotes()
+      .then((response) => {
+        expect(response).to.equal(632455532033);
+      });
+
+    // try to set quorum from auditor
+    try {
+      await governor
+        .connect(await ethers.getSigner(dealer1))
+        .setQuorum(1000000); 
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Governor::setQuorum: must be guardian"
+      );
+    }
+    
+    // set new quorum from deployer
+    await governor
+      .connect(await ethers.getSigner(deployer))
+      .setQuorum(1000000); 
+    
+    // check updated quorum
+    await governor
+      .quorumVotes()
+      .then((response) => {
+        expect(response).to.equal(1000000);
+      });
+  });
 
 });
