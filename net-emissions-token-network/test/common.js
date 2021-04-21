@@ -57,7 +57,7 @@ exports.createProposal = async function (params) {
   // set-up parameters for proposal external contract call
   let proposalCallParams = {
     account: params.deployer,
-    proposer: params.deployer,
+    proposer: params.proposer,
     tokenTypeId: 1,
     quantity: 300,
     fromDate: 0,
@@ -94,7 +94,7 @@ exports.createProposal = async function (params) {
 
   // make proposal
   let makeProposal = await params.governor
-    .connect(await ethers.getSigner(params.deployer))
+    .connect(await ethers.getSigner(params.proposer))
     .propose(
       proposal.targets,
       proposal.values,

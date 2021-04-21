@@ -48,7 +48,7 @@ describe("Climate DAO - Unit tests", function() {
       .then((response) => expect(response.toString()).to.equal('1000000'));
   });
 
-  it("should return quorum value of 4% of votes not held by owner", async function() {
+  it("should return quorum value of ~sqrt(4% of dCLM8)", async function() {
 
     const { deployer, consumer1 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
@@ -85,16 +85,13 @@ describe("Climate DAO - Unit tests", function() {
 
     // create a proposal
     let proposal = createProposal({
+      proposer: deployer,
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
     advanceBlocks(2);
-
-    // @TODO: implement staking when a proposal is made
-    // check to see that deployer dCLM8 balance is lower
-    // check to see that governor dCLM8 balance is higher
 
     // cast vote from dealer1
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, halfOfSupply);
@@ -140,6 +137,7 @@ describe("Climate DAO - Unit tests", function() {
 
     // create a proposal
     let proposal = createProposal({
+      proposer: deployer,
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
@@ -205,18 +203,18 @@ describe("Climate DAO - Unit tests", function() {
     try {
       await governor
         .connect(await ethers.getSigner(dealer1))
-        .setQuorum(1000000); 
+        .setQuorum(1000000);
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert Governor::setQuorum: must be guardian"
       );
     }
-    
+
     // set new quorum from deployer
     await governor
       .connect(await ethers.getSigner(deployer))
-      .setQuorum(1000000); 
-    
+      .setQuorum(1000000);
+
     // check updated quorum
     await governor
       .quorumVotes()
@@ -240,6 +238,7 @@ describe("Climate DAO - Unit tests", function() {
 
     // create a proposal
     let proposal = createProposal({
+      proposer: deployer,
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,

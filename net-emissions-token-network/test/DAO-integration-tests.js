@@ -86,6 +86,7 @@ describe("Climate DAO - Integration tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer4, quarterOfSupply);
 
     let proposal = createProposal({
+      proposer: dealer1,
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
@@ -100,11 +101,12 @@ describe("Climate DAO - Integration tests", function() {
     });
     
     // cast a yes votes and test if vote is equal to sqrt
-    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, 100);
+    let dealer1AmountToVote = quarterOfSupply.sub("100000000000000000000000")
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, dealer1AmountToVote);
 
     await governor.getReceipt(proposal, dealer1)
       .then((response) => {
-        expect(response.votes).to.equal(10);
+        expect(response.votes).to.equal(Math.floor(Math.sqrt(dealer1AmountToVote)));
       });
 
     // cast two more yes votes and one no vote
@@ -115,10 +117,12 @@ describe("Climate DAO - Integration tests", function() {
     // check dclm8 balance of dealer1 after vote
     await daoToken.balanceOf(dealer1)
     .then((response) => {
-      expect(response).to.equal(
-        quarterOfSupply.sub(ethers.BigNumber.from(100))
-      );
+      expect(response).to.equal("0");
     });
+
+    console.log(`forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
+    console.log(`rawForVotes : ${(await governor.proposals(1)).rawForVotes.toString()}`);
+    console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
 
     console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(150));
