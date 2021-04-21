@@ -194,8 +194,11 @@ contract Governor {
           require(proposersLatestProposalState != ProposalState.Pending, "Governor::propose: one live proposal per proposer, found an already pending proposal");
         }
 
+        // lock 3/4 of tokens, burn the other 1/4
         require(dclm8.balanceOf(msg.sender) >= proposalThreshold(), "Governor::propose: not enough balance to lock dCLM8 with proposal");
-        dclm8._lockTokens(msg.sender, uint96(proposalThreshold()));
+        uint amountToBurn = div256(proposalThreshold(), 4);
+        dclm8._burn(msg.sender, uint96(amountToBurn));
+        dclm8._lockTokens(msg.sender, uint96(sub256(proposalThreshold(), amountToBurn)));
 
         uint startBlock = add256(block.number, votingDelay());
         uint endBlock = add256(startBlock, votingPeriod());

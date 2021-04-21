@@ -104,7 +104,7 @@ describe("Climate DAO - Unit tests", function() {
     // check to see that governor dCLM8 balance is higher (plus proposal deposit)
     await daoToken
       .balanceOf(governor.address)
-      .then((response) => expect(response).to.equal("5100000000000000000000000"));
+      .then((response) => expect(response).to.equal("5075000000000000000000000"));
 
     console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(150));
