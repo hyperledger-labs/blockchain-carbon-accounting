@@ -158,6 +158,16 @@ You can turn it off with:
 npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value false
 ```
 
+## Setting quorum value
+
+By default, the quorum (minimum number of votes in order for a proposal to succeed) is 3162 dCLM8 or about sqrt(4% of total supply). The guardian can set this value by running the task:
+
+```bash
+npx hardhat setQuorum --network localhost --contract <Governor deployed address> --value 1000000000000000000000
+```
+
+In this example, we are lowering the quorum from 3162 dCLM8 to 1000 dCLM8. Notice that the 1000 is followed by 18 zeros, since the dCLM8 token has 18 decimals places so zeros must be padded on the value in order to get the correct order of magnitude.
+
 ## Upgrading CLM8 contract implementation
 
 A Hardhat task `upgradeClm8Contract` is provided to upgrade the contract with new features while keeping the same address, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades) to create separate contracts for the implementation and the contract you call (like an API and its implementation.)  When the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.

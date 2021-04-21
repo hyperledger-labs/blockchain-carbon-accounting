@@ -32,7 +32,7 @@ contract Governor {
     /// @notice The name of this contract
     string public constant name = "CLM8 DAO Governor";
 
-    uint private quorum = 632455532033;  // ~3162 dCLM8 or sqrt(4% of total supply)
+    uint private quorum = 3126e18;  // 3162 dCLM8 or about sqrt(4% of total supply)
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     function quorumVotes() public view returns (uint) {
