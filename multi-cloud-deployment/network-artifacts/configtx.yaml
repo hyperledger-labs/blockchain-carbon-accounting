@@ -77,7 +77,7 @@ Organizations:
       OrdererEndpoints:
         - fabric-orderer.opensolarx.com:443
       AnchorPeers:
-        - Host: fabric-peer.opensolarx.com.com
+        - Host: fabric-peer.opensolarx.com
           Port: 443
 
 Capabilities:
