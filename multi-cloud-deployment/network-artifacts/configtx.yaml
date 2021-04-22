@@ -127,7 +127,7 @@ Orderer: &OrdererDefaults
         Port: 443
         ClientTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
         ServerTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
-      - Host: fabric-orderer.opentaps.net
+      - Host: fabric-orderer.opensolarx.com
         Port: 443
         ClientTLSCert: ./organizations/opensolarx/orderers/fabric-orderer.opensolarx.com/tls/server.crt
         ServerTLSCert: ./organizations/opensolarx/orderers/fabric-orderer.opensolarx.com/tls/server.crt
