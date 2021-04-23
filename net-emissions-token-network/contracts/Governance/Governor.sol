@@ -376,15 +376,19 @@ contract Governor {
         // if msg.sender is proposer and succeeded, set to proposal threshold plus votes
         // otherwise, set to user's raw vote count (in dCLM8)
         bool proposalPassedAndIsProposer =
-            (state(proposalId) == ProposalState.Succeeded || state(proposalId) == ProposalState.Defeated)
-            && msg.sender == proposal.proposer;
+            msg.sender == proposal.proposer && (
+                state(proposalId) == ProposalState.Succeeded ||
+                state(proposalId) == ProposalState.Defeated ||
+                state(proposalId) == ProposalState.Canceled
+            );
         if (proposalPassedAndIsProposer) {
-            if (state(proposalId) == ProposalState.Defeated && proposal.forVotes < quorumVotes()) {
+            // you only get your full stake back if the proposal succeeded, otherwise 3/4 of it
+            if (state(proposalId) == ProposalState.Succeeded) {
+                amount = proposalThreshold() + receipt.rawVotes;
+            } else {
                 uint256 quarterOfProposalThreshold = div256(proposalThreshold(), 4);
                 dclm8._burn(address(this), uint96(quarterOfProposalThreshold));
                 amount = uint96(sub256(proposalThreshold(), quarterOfProposalThreshold)) + receipt.rawVotes;
-            } else {
-                amount = proposalThreshold() + receipt.rawVotes;
             }
         } else {
             amount = receipt.rawVotes;
