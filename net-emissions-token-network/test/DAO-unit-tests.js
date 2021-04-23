@@ -17,9 +17,9 @@ describe("Climate DAO - Unit tests", function() {
     await deployments.fixture();
   });
 
-  it("should allow DAO token holders to transfer around tokens", async function() {
+  it("DAO tokens can only be transferred from the initial holder and not by another party", async function() {
 
-    const { deployer, consumer1 } = await getNamedAccounts();
+    const { deployer, consumer1, consumer2 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
 
     // check balance of deployer before transfer (right after deployment)
@@ -46,6 +46,16 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken
       .balanceOf(consumer1)
       .then((response) => expect(response.toString()).to.equal('1000000'));
+      
+    try {
+        await daoToken
+           .connect(await ethers.getSigner(consumer1))
+           .transfer(consumer2, 1000000);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert dCLM8::transfer: sender must be initial holder"
+      );
+    }
   });
 
   it("should return quorum value of ~sqrt(4% of dCLM8)", async function() {
