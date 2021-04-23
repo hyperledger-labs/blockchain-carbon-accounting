@@ -369,7 +369,6 @@ contract DAOToken {
 
     function setGovernor(address newGovernor) public {
         require(msg.sender == initialHolder, "dCLM8::setGovernor: must be initial holder");
-        require(governor == address(0), "dCLM::setGovernor: governor can only be set once");
         governor = newGovernor;
     }
 
