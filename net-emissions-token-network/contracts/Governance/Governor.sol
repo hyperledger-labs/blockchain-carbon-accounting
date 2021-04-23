@@ -334,10 +334,11 @@ contract Governor {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
 
-        // @TODO: allow for topping off vote
-        require(receipt.hasVoted == false, "Governor::_castVote: voter already voted");
+        // allow topping off vote
+        if (receipt.hasVoted == true) {
+            require(receipt.support == support, "Governor::_castVote: can only top off same vote without refunding");
+        }
 
-        require(votes > 0, "Governor::_castVote: no eligible votes prior to proposal start block");
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
 
@@ -356,8 +357,8 @@ contract Governor {
 
         receipt.hasVoted = true;
         receipt.support = support;
-        receipt.votes = quadraticVote;
-        receipt.rawVotes = votes;
+        receipt.votes = uint96(add256(receipt.votes, quadraticVote));
+        receipt.rawVotes = uint96(add256(receipt.rawVotes, votes));
         receipt.hasRefunded = false;
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
@@ -370,7 +371,6 @@ contract Governor {
         require(receipt.hasRefunded == false, "Governor::refund: already refunded this proposal");
 
         uint amount;
-        uint96 quadraticAmount;
 
         // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
         // if msg.sender is proposer and succeeded, set to proposal threshold plus votes
@@ -398,22 +398,21 @@ contract Governor {
         // refund dCLM8 from this contract
         dclm8.transfer(msg.sender, amount);
 
-        quadraticAmount = uint96(sqrt(amount));
-
         // if an active proposal, subtract amount from votes and locked dCLM8 amounts
         if (isActive) {
             if (receipt.support) {
-                proposal.forVotes = sub256(proposal.forVotes, quadraticAmount);
+                proposal.forVotes = sub256(proposal.forVotes, receipt.votes);
                 proposal.rawForVotes = sub256(proposal.rawForVotes, amount);
             } else {
-                proposal.againstVotes = sub256(proposal.againstVotes, quadraticAmount);
+                proposal.againstVotes = sub256(proposal.againstVotes, receipt.votes);
                 proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, amount);
             }
         }
 
         // update receipt
-        receipt.votes = uint96(sub256(receipt.votes, quadraticAmount));
+        receipt.votes = uint96(sub256(receipt.votes, receipt.votes));
         receipt.rawVotes = uint96(sub256(receipt.rawVotes, amount));
+        receipt.hasVoted = false;
         receipt.hasRefunded = true;
 
     }

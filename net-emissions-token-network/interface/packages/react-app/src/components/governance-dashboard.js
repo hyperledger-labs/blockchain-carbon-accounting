@@ -179,7 +179,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       let proposalIsEligibleToVote = (
         (proposalState === "Active") &&
-        (proposalReceipt.hasVoted === false) &&
         (daoTokenBalance > 0)
       );
 
@@ -251,7 +250,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider, blockNumber, fetchingBlockNumber, setFetchingBlockNumber, fetchBlockNumber]);
 
   useEffect(() => {
-    if (provider && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
+    if (provider && daoTokenBalance > 0 && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
       setFetchingProposals(true);
       fetchProposals();
     }
@@ -486,7 +485,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   { proposal.isEligibleToVote &&
                     <>
                       <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8)<br/>
+                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote for.."
@@ -501,7 +500,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                         </InputGroup>
                       </Col>
                       <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8)<br/>
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote against..."

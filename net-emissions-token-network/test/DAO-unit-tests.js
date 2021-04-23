@@ -180,7 +180,7 @@ describe("Climate DAO - Unit tests", function() {
     // check receipt
     await governor.getReceipt(proposal, deployer)
     .then((response) => {
-      expect(response.hasVoted).to.equal(true);
+      expect(response.hasVoted).to.equal(false);
       expect(response.support).to.equal(true);
       expect(response.votes).to.equal(0);
       expect(response.rawVotes).to.equal(0);
@@ -250,6 +250,55 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken
        .balanceOf(deployer)
        .then((response) => expect(response).to.equal("9900000000000000000000000"));
+
+  });
+
+  it("should allow users to top off a vote", async function () {
+
+    const { deployer } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    // initial vote
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, 100);
+
+    // top off vote
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, 100);
+
+    // try to vote with different support
+    try {
+      await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, false, 100);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Governor::_castVote: can only top off same vote without refunding"
+      );
+    }
+
+    // check receipt
+    await governor.getReceipt(proposal, deployer)
+    .then((response) => {
+      expect(response.hasVoted).to.equal(true);
+      expect(response.support).to.equal(true);
+      expect(response.votes).to.equal(20);
+      expect(response.rawVotes).to.equal(200);
+    });
 
   });
 
