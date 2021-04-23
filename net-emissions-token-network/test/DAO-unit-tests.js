@@ -182,7 +182,7 @@ describe("Climate DAO - Unit tests", function() {
     .then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
-      expect(response.votes).to.equal(0); // @TODO fix me
+      expect(response.votes).to.equal(0);
       expect(response.rawVotes).to.equal(0);
     });
 

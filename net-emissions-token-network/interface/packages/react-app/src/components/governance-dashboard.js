@@ -251,11 +251,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider, blockNumber, fetchingBlockNumber, setFetchingBlockNumber, fetchBlockNumber]);
 
   useEffect(() => {
-    if (provider && proposalsLength === -1 && !fetchingProposals) {
+    if (provider && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
       setFetchingProposals(true);
       fetchProposals();
     }
-  }, [provider, proposalsLength, fetchingProposals, setFetchingProposals, fetchProposals]);
+  }, [provider, signedInAddress, proposalsLength, fetchingProposals, setFetchingProposals, fetchProposals]);
 
   useEffect(() => {
     if (provider && quorum === -1 && !fetchingQuorum) {
