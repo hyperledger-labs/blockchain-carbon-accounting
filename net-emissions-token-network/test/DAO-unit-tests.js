@@ -57,7 +57,7 @@ describe("Climate DAO - Unit tests", function() {
     // check initial quorum (sqrt(400k) since no circulating supply)
     await governor
       .quorumVotes()
-      .then((response) => expect(response.toString()).to.equal('632455532033'));
+      .then((response) => expect(response.toString()).to.equal('632000000000'));
 
     // send tokens from deployer to DAO user
     await daoToken
@@ -66,7 +66,7 @@ describe("Climate DAO - Unit tests", function() {
 
     await governor
       .quorumVotes()
-      .then((response) => expect(response.toString()).to.equal('632455532033'));
+      .then((response) => expect(response.toString()).to.equal('632000000000'));
 
   });
 
@@ -104,7 +104,7 @@ describe("Climate DAO - Unit tests", function() {
     // check to see that governor dCLM8 balance is higher (plus proposal deposit)
     await daoToken
       .balanceOf(governor.address)
-      .then((response) => expect(response).to.equal("5075000000000000000000000"));
+      .then((response) => expect(response).to.equal("5100000000000000000000000"));
 
     console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(150));
@@ -170,19 +170,19 @@ describe("Climate DAO - Unit tests", function() {
     });
 
     // refund locked dCLM8
-    await governor.refund(1, halfOfSupply);
+    await governor.connect(await ethers.getSigner(deployer)).refund(1);
 
-    // check to see deployer dCLM8 balance is full
+    // check to see deployer dCLM8 balance is full minus the deposit
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal(fullSupply));
+       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
 
     // check receipt
     await governor.getReceipt(proposal, deployer)
     .then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
-      expect(response.votes).to.equal(0);
+      expect(response.votes).to.equal(0); // @TODO fix me
       expect(response.rawVotes).to.equal(0);
     });
 
@@ -196,7 +196,7 @@ describe("Climate DAO - Unit tests", function() {
     await governor
       .quorumVotes()
       .then((response) => {
-        expect(response).to.equal(632455532033);
+        expect(response).to.equal(632000000000);
       });
 
     // try to set quorum from auditor

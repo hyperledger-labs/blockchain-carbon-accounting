@@ -49,6 +49,34 @@ task("setQuorum", "Set the quorum value on a Governor contract")
     await contract.connect(admin).setQuorum( String(taskArgs.value) );
   })
 
+// Task to set proposal threshold on Governor
+task("setProposalThreshold", "Set the proposal threshold on a Governor contract")
+  .addParam("value", "The minimum amount of dCLM8 required to lock with a proposal")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    await contract.connect(admin).setProposalThreshold( String(taskArgs.value) );
+  })
+
+task("getQuorum", "Return the quorum value (minimum number of votes for a proposal to pass)")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    console.log((await contract.connect(admin).quorumVotes()).toString());
+  })
+task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 required to stake with a proposal)")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    console.log((await contract.connect(admin).proposalThreshold()).toString());
+  })
+
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
   .setAction(async taskArgs => {

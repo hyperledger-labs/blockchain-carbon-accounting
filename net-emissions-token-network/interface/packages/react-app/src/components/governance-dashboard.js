@@ -16,7 +16,10 @@ import {
   getReceipt,
   getDescription,
   getActions,
-  delegates
+  delegates,
+  refund,
+  getQuorum,
+  getProposalThreshold
 } from "../services/contract-functions";
 
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
@@ -83,6 +86,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [hasRole, setHasRole] = useState(false);
 
+  const [quorum, setQuorum] = useState(-1);
+  const [fetchingQuorum, setFetchingQuorum] = useState(false);
+  const [proposalThreshold, setProposalThreshold] = useState(-1);
+  const [fetchingProposalThreshold, setFetchingProposalThreshold] = useState(false);
+
   function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); }
   function onVotesAmountChange(event) { setVotesAmount(event.target.value);  }
 
@@ -128,6 +136,18 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     let blockNum = await getBlockNumber(provider);
     setBlockNumber(blockNum);
     setFetchingBlockNumber(false);
+  }
+
+  async function fetchQuorum() {
+    let q = addCommas( (await getQuorum(provider)).div("1000000000") );
+    setQuorum(q);
+    setFetchingQuorum(false);
+  }
+
+  async function fetchProposalThreshold() {
+    let p = addCommas( (await getProposalThreshold(provider)).div("1000000000000000000") );
+    setProposalThreshold(p);
+    setFetchingProposalThreshold(false);
   }
 
   async function fetchProposals() {
@@ -199,46 +219,59 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setResult(vote);
   }
 
-  // If address and provider detected then fetch balances/proposals
-  useEffect(() => {
-    if (provider) {
-
-      if (!hasRole && Array.isArray(roles)) {
-        setHasRole(roles.some(e => e));
-      }
-
-      if (signedInAddress) {
-        if (daoTokenBalance === -1 && !fetchingDaoTokenBalance) {
-          setFetchingDaoTokenBalance(true);
-          fetchDaoTokenBalance();
-        }
-      }
-
-      if (blockNumber === -1 && !fetchingBlockNumber) {
-        setFetchingBlockNumber(true);
-        fetchBlockNumber();
-      }
-
-      if (proposalsLength === -1 && !fetchingProposals && daoTokenBalance !== -1) {
-        setFetchingProposals(true);
-        fetchProposals();
-      }
-
-    }
-  }, [
-    signedInAddress,
-    fetchingDaoTokenBalance,
-    proposals,
-    fetchingProposals,
-    blockNumber,
-    fetchingBlockNumber
-  ]);
+  async function refundDclm8(proposalId) {
+    let r = await refund(provider, proposalId);
+    setResult(r);
+  }
 
   function handleProposalAction(action, id) {
     setProposalActionType(action);
     setProposalActionId(id);
     setQueueExecuteModalShow(true);
   }
+
+
+  useEffect(() => {
+    if (provider && !hasRole && Array.isArray(roles))
+      setHasRole(roles.some(e => e));
+  }, [provider, hasRole, roles, setHasRole]);
+
+  useEffect(() => {
+    if (provider && signedInAddress && daoTokenBalance === -1 && !fetchingDaoTokenBalance) {
+      setFetchingDaoTokenBalance(true);
+      fetchDaoTokenBalance();
+    }
+  }, [provider, signedInAddress, daoTokenBalance, fetchingDaoTokenBalance, setFetchingDaoTokenBalance, fetchDaoTokenBalance]);
+
+  useEffect(() => {
+    if (provider && blockNumber === -1 && !fetchingBlockNumber) {
+      setFetchingBlockNumber(true);
+      fetchBlockNumber();
+    }
+  }, [provider, blockNumber, fetchingBlockNumber, setFetchingBlockNumber, fetchBlockNumber]);
+
+  useEffect(() => {
+    if (provider && proposalsLength === -1 && !fetchingProposals) {
+      setFetchingProposals(true);
+      fetchProposals();
+    }
+  }, [provider, proposalsLength, fetchingProposals, setFetchingProposals, fetchProposals]);
+
+  useEffect(() => {
+    if (provider && quorum === -1 && !fetchingQuorum) {
+      setFetchingQuorum(true);
+      fetchQuorum();
+    }
+  }, [provider, quorum, fetchingQuorum, setFetchingQuorum, fetchQuorum]);
+
+  useEffect(() => {
+    if (provider && proposalThreshold === -1 && !fetchingProposalThreshold) {
+      setFetchingProposalThreshold(true);
+      fetchProposalThreshold();
+    }
+  }, [provider, proposalThreshold, fetchingProposalThreshold, setFetchingProposalThreshold, fetchProposalThreshold]);
+
+
 
   return (
     <>
@@ -342,17 +375,23 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         <Col>
           { (daoTokenBalance !== -1) &&
             <>
-              <p>
+              <small>
                 Your DAO tokens: {addCommas(daoTokenBalance)}
                 { (daoTokenBalance !== 0) &&
                   <> (~{percentOfSupply}% of entire supply)</>
                 }
-              </p>
+              </small>
             </>
           }
         </Col>
         <Col className="text-right">
-          <p>{(blockNumber !== -1) && <>Current block: {blockNumber}</>}</p>
+          <small>
+            {(blockNumber !== -1) && <>Current block: {blockNumber}</>}
+            <br/>
+            {(quorum !== -1) && <>Quorum: {quorum} votes (~{addCommas(quorum ** 2)} dCLM8)</>}
+            <br/>
+            {(proposalThreshold !== -1) && <>Proposal threshold: {proposalThreshold} dCLM8</>}
+          </small>
         </Col>
       </Row>
 
@@ -494,7 +533,18 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 </Row>
 
                 { (proposal.receipt.hasVoted === true) &&
-                  <p className="text-center py-2">You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes using {addCommas(proposal.receipt.rawVotes)} dCLM8.</p>
+                  <p className="text-center py-2">
+                    You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.
+                    <br/>
+                    <Button
+                      size="sm"
+                      onClick={ () => refundDclm8(proposal.id) }
+                      className="text-nowrap mt-2"
+                      variant="danger"
+                    >
+                      Refund {addCommas(proposal.receipt.rawVotes)} dCLM8 and all votes
+                    </Button>
+                  </p>
                 }
 
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
