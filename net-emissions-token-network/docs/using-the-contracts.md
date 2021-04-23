@@ -19,7 +19,7 @@ After cloning this repository, navigate to the `net-emissions-token-network` dir
 - To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
 - To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
 
-After deploying to hardhat locally, you will see the addresses of the deployed contracts:
+After deploying to hardhat locally, and you will see the addresses of the deployed contracts as well as 20 accounts available for testing:
 
 ```
 $ npx hardhat node --show-accounts
@@ -39,6 +39,14 @@ NetEmissionsTokenNetwork deployed to: 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
 Timelock address set so that the DAO has permission to issue tokens with issueFromDAO().
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
+
+You can then run this command to set up roles for some of those accounts:
+
+```
+$ npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>
+```
+
+
 
 ## Deploying contracts to a public testnet
 
