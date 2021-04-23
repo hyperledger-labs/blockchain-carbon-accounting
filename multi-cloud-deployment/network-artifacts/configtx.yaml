@@ -52,6 +52,33 @@ Organizations:
       AnchorPeers:
         - Host: fabric-peer.opentaps.net
           Port: 443
+      
+  - &opensolarx
+      Name: opensolarx
+      ID: opensolarx
+      SkipAsForeign: false
+      MSPDir: ./organizations/opensolarx/msp
+      Policies:
+        Readers:
+          Type: Signature
+          Rule: OR('opensolarx.admin', 'opensolarx.peer', 'opensolarx.client', 'opensolarx.orderer')
+        Writers:
+          Type: Signature
+          Rule: OR('opensolarx.admin', 'opensolarx.client', 'opensolarx.orderer')
+        Admins:
+          Type: Signature
+          Rule: OR('opensolarx.admin')
+        Endorsement:
+          Type: Signature
+          Rule: OR('opensolarx.peer')
+        Orderer:
+          Type: Signature
+          Rule: OR('opensolarx.orderer')
+      OrdererEndpoints:
+        - fabric-orderer.opensolarx.com:443
+      AnchorPeers:
+        - Host: fabric-peer.opensolarx.com
+          Port: 443
 
 Capabilities:
   Channel: &ChannelCapabilities
@@ -100,6 +127,10 @@ Orderer: &OrdererDefaults
         Port: 443
         ClientTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
         ServerTLSCert: ./organizations/opentaps/orderers/fabric-orderer.opentaps.net/tls/server.crt
+      - Host: fabric-orderer.opensolarx.com
+        Port: 443
+        ClientTLSCert: ./organizations/opensolarx/orderers/fabric-orderer.opensolarx.com/tls/server.crt
+        ServerTLSCert: ./organizations/opensolarx/orderers/fabric-orderer.opensolarx.com/tls/server.crt
     Options:
       TickInterval: 500ms
       ElectionTick: 10
@@ -145,6 +176,7 @@ Profiles:
       Organizations:
           - *emitras
           - *opentaps
+          - *opensolarx
       Capabilities:
           <<: *ApplicationCapabilities
 
@@ -158,13 +190,16 @@ Profiles:
       Organizations:
         - <<: *emitras
         - <<: *opentaps
+        - <<: *opensolarx
     Application:
       <<: *ApplicationDefaults
       Organizations:
         - <<: *emitras
         - <<: *opentaps
+        - <<: *opensolarx
     Consortiums:
       CarbonAccountingConsortium:
         Organizations:
           - *emitras
           - *opentaps
+          - *opensolarx
