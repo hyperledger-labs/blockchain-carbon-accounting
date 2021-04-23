@@ -176,6 +176,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
+      let refundProposal = (await getProposalThreshold(provider)).div("1000000000000000000").mul(3).div(4).toNumber();
 
       let proposalIsEligibleToVote = (
         (proposalState === "Active") &&
@@ -199,7 +200,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           hasVoted: proposalReceipt[0],
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
-          rawVotes: proposalReceipt[3].div(decimalsRaw).toString()
+          rawVotes: proposalReceipt[3].div(decimalsRaw),
+          rawRefund: proposalReceipt[3].div(decimalsRaw).toNumber() + refundProposal
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
@@ -541,7 +543,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                       className="text-nowrap mt-2"
                       variant="danger"
                     >
-                      Refund {addCommas(proposal.receipt.rawVotes)} dCLM8 and all votes
+                      Refund {addCommas(proposal.receipt.rawRefund)} dCLM8
                     </Button>
                   </p>
                 }
