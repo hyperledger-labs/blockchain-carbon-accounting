@@ -414,8 +414,8 @@ contract Governor {
         }
 
         // update receipt
-        receipt.votes = uint96(sub256(receipt.votes, receipt.votes));
-        receipt.rawVotes = uint96(sub256(receipt.rawVotes, amount));
+        receipt.votes = 0;
+        receipt.rawVotes = 0;
         receipt.hasVoted = false;
         receipt.hasRefunded = true;
 
