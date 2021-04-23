@@ -147,6 +147,10 @@ contract DAOToken {
      * @return Whether or not the transfer succeeded
      */
     function transfer(address dst, uint rawAmount) external returns (bool) {
+        if ((msg.sender != initialHolder) && (msg.sender != governor)) {
+            revert("dCLM8::transfer: sender must be initial holder or DAO governor");
+        }
+                
         uint96 amount = safe96(rawAmount, "dCLM8::transfer: amount exceeds 96 bits");
         _transferTokens(msg.sender, dst, amount);
         return true;
@@ -160,6 +164,10 @@ contract DAOToken {
      * @return Whether or not the transfer succeeded
      */
     function transferFrom(address src, address dst, uint rawAmount) external returns (bool) {
+        if ((src != initialHolder) && (src != governor)) {
+            revert("dCLM8::transfer: sender must be initial holder or DAO governor");
+        }
+        
         address spender = msg.sender;
         uint96 spenderAllowance = allowances[src][spender];
         uint96 amount = safe96(rawAmount, "dCLM8::approve: amount exceeds 96 bits");
@@ -292,6 +300,15 @@ contract DAOToken {
         }
     }
 
+    function _lockTokens(address src, uint96 amount) external {
+        require(msg.sender == governor, "dCLM8::lockTokens: must be governor");
+
+        balances[src] = sub96(balances[src], amount, "dCLM8::_transferTokens: transfer amount exceeds balance");
+        balances[governor] = add96(balances[governor], amount, "dCLM8::_transferTokens: transfer amount overflows");
+
+        emit Transfer(src, governor, amount);
+    }
+
     function _moveDelegates(address srcRep, address dstRep, uint96 amount) internal {
         if (srcRep != dstRep && amount > 0) {
             if (srcRep != address(0)) {
@@ -360,7 +377,6 @@ contract DAOToken {
 
     function setGovernor(address newGovernor) public {
         require(msg.sender == initialHolder, "dCLM8::setGovernor: must be initial holder");
-        require(governor == address(0), "dCLM::setGovernor: governor can only be set once");
         governor = newGovernor;
     }
 

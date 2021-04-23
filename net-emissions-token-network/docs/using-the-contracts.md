@@ -19,7 +19,7 @@ After cloning this repository, navigate to the `net-emissions-token-network` dir
 - To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
 - To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
 
-After deploying to hardhat locally, you will see the addresses of the deployed contracts:
+After deploying to hardhat locally, and you will see the addresses of the deployed contracts as well as 20 accounts available for testing:
 
 ```
 $ npx hardhat node --show-accounts
@@ -39,6 +39,14 @@ NetEmissionsTokenNetwork deployed to: 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
 Timelock address set so that the DAO has permission to issue tokens with issueFromDAO().
 Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
+
+You can then run this command to set up roles for some of those accounts:
+
+```
+$ npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>
+```
+
+
 
 ## Deploying contracts to a public testnet
 
@@ -156,6 +164,38 @@ You can turn it off with:
 
 ```bash
 npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetwork deployed address> --value false
+```
+
+## Setting/getting quorum value
+
+By default, the quorum (minimum number of votes in order for a proposal to succeed) is 632 votes or about sqrt(4% of total supply). The guardian can set this value by running the task:
+
+```bash
+npx hardhat setQuorum --network localhost --contract <Governor deployed address> --value 1000000000000
+```
+
+In this example, we are lowering the quorum from 3162 dCLM8 to 1000 dCLM8. Notice that the 1000 is followed by 9 zeros, since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
+
+To get the current quorum, run the similar task:
+
+```bash
+npx hardhat getQuorum --network localhost --contract <Governor deployed address> 
+```
+
+## Setting/getting proposal threshold
+
+In the original Compound DAO design, the proposal threshold is the minimum amount of DAO tokens required to make a proposal. In our system, this amount of dCLM8 is locked with a proposal by being sent to the Governor contract for safekeeping until the proposal has passed or failed. If the proposal did not pass quorum, the proposer can refund for 3/4 of their staked tokens. The guardian can also set adjust this value if needed:
+
+```bash
+npx hardhat setProposalThreshold --network localhost --contract <Governor deployed address> --value 1000000000000000000000
+```
+
+This value represents a dCLM8 amount with no sqrt calculation, so 18 zeros must be padded to the end of the number. By default, it is set to 100,000 or 1% of the dCLM8 supply.
+
+Similarily, you can easily see the value by running the similar task:
+
+```bash
+npx hardhat getProposalThreshold --network localhost --contract <Governor deployed address>
 ```
 
 ## Upgrading CLM8 contract implementation

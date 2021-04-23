@@ -486,3 +486,39 @@ export async function cancel(w3provider, proposalId) {
   }
   return cancel;
 }
+
+export async function refund(w3provider, proposalId) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let signed = await contract.connect(signer);
+  let refund;
+  try {
+    let refundCall = await signed.refund(proposalId);
+    refund = SUCCESS_MSG;
+  } catch (error) {
+    refund = catchError(error);
+  }
+  return refund;
+}
+
+export async function getQuorum(w3provider) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let quorum;
+  try {
+    quorum = await contract.quorumVotes();
+  } catch (error) {
+    quorum = catchError(error);
+  }
+  return quorum;
+}
+
+export async function getProposalThreshold(w3provider) {
+  let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
+  let proposalThreshold;
+  try {
+    proposalThreshold = await contract.proposalThreshold();
+  } catch (error) {
+    proposalThreshold = catchError(error);
+  }
+  return proposalThreshold;
+}

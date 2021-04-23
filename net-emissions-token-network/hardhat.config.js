@@ -38,6 +38,66 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
     await contract.connect(admin).setLimitedMode( (taskArgs.value) == "true" ? true : false );
   })
 
+// Task to set quorum on Governor
+task("setQuorum", "Set the quorum value on a Governor contract")
+  .addParam("value", "The new quorum value (remember to account for 18 decimal places)")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    await contract.connect(admin).setQuorum( String(taskArgs.value) );
+  })
+
+// Task to set proposal threshold on Governor
+task("setProposalThreshold", "Set the proposal threshold on a Governor contract")
+  .addParam("value", "The minimum amount of dCLM8 required to lock with a proposal")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    await contract.connect(admin).setProposalThreshold( String(taskArgs.value) );
+  })
+
+task("getQuorum", "Return the quorum value (minimum number of votes for a proposal to pass)")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    console.log((await contract.connect(admin).quorumVotes()).toString());
+  })
+task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 required to stake with a proposal)")
+  .addParam("contract", "The Governor contract")
+  .setAction(async taskArgs => {
+    const [admin] = await ethers.getSigners();
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const contract = await Governor.attach(taskArgs.contract);
+    console.log((await contract.connect(admin).proposalThreshold()).toString());
+  })
+task("setTestAccountRoles", "Set default account roles for testing")
+  .addParam("contract", "The CLM8 contract")
+  .setAction(async taskArgs => {
+    const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+    
+    const [admin] = await ethers.getSigners();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    
+    await contract.connect(admin).registerDealer(dealer1, 1);  // REC dealer
+    console.log("Account " + dealer1 + " is now a REC dealer");
+    await contract.connect(admin).registerDealer(dealer2, 3);  // emissions auditor
+    console.log("Account " + dealer2 + " is now an emissions auditor");
+    await contract.connect(admin).registerDealer(dealer3, 2);  // offsets dealer
+    console.log("Account " + dealer3 + " is now an offsets  dealer");
+
+    await contract.connect(admin).registerConsumer(consumer1);  
+    console.log("Account " + consumer1 + " is now a consumer");
+    await contract.connect(admin).registerConsumer(consumer2);  
+    console.log("Account " + consumer2 + " is now a consumer");
+})
+
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
   .setAction(async taskArgs => {
@@ -65,19 +125,51 @@ task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deploy
     console.log(`The same address ${netEmissionsTokenNetwork.address} can be used to interact with the contract.`);
   });
 
+task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live DAO contract")
+  .addParam("timelock", "")
+  .addParam("governor", "")
+  .addParam("target", "")
+  .addParam("value", "")
+  .addParam("signature", "")
+  .addParam("data", "")
+  .addParam("eta", "")
+  .setAction(async taskArgs => {
+    const {get} = deployments;
+
+    const Timelock = await hre.ethers.getContractFactory("Timelock");
+    const timelock = await Timelock.attach(taskArgs.timelock);
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const governor = await Governor.attach(taskArgs.governor);
+
+    await timelock.executeTransaction(
+      taskArgs.target,
+      taskArgs.value,
+      taskArgs.signature,
+      taskArgs.data,
+      taskArgs.eta
+    );
+    console.log("Executed setPendingAdmin() on Timelock.");
+
+    await governor.__acceptAdmin();
+    console.log("Called __acceptAdmin() on Governor.");
+
+    console.log("Done performing Timelock admin switch.");
+  });
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
 
   namedAccounts: {
+    // these are based on the accounts you see when run $ npx hardhat node --show-acounts
     deployer: { default: 0 },
     dealer1: { default: 1 },
     dealer2: { default: 2 },
     dealer3: { default: 3 },
     dealer4: { default: 4 },
-    consumer1: { default: 5 },
-    consumer2: { default: 6 },
+    consumer1: { default: 19 },
+    consumer2: { default: 18 },
     unregistered: { default: 7 }
   },
 

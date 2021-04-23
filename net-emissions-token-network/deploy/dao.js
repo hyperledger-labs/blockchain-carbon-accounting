@@ -86,6 +86,7 @@ module.exports = async ({
   if (!hre.network.live && skippedActions < 2) {
 
     await advanceHours(51);
+    console.log(`Advanced 51 hours.`);
 
     // execute setPendingAdmin on Timelock
     await execute(
@@ -110,24 +111,20 @@ module.exports = async ({
     await advanceBlocks(1);
 
     console.log("Called __acceptAdmin() on Governor.");
-    
+
     console.log("Done performing Timelock admin switch.");
     
   // otherwise, output args to complete the timelock admin switch
   } else {
     if (timelockNewAdmin && skippedActions < 2) {
-      console.log("---");
-      console.log("Please copy these values and call executeTransaction() on Timelock");
-      console.log("when the ETA is reached from the deployer address with these args:");
-      console.log("");
-      console.log(`target : ${timelockNewAdmin.target}`);
-      console.log(`value : ${timelockNewAdmin.value}`);
-      console.log(`signature : ${timelockNewAdmin.signature}`);
-      console.log(`data : ${timelockNewAdmin.data}`);
-      console.log(`eta : ${timelockNewAdmin.eta}`);
-      console.log("");
-      console.log("Afterwards, do not forget to call __acceptAdmin() on Governor to");
-      console.log("complete the admin switch.");
+      let date = new Date(timelockNewAdmin.eta * 1000);
+      console.log(`---`);
+      console.log(`Please copy and paste this command after ${date.toString()}`);
+      console.log(`to complete the Timelock admin switch:`);
+      console.log(``);
+      console.log(`npx hardhat completeTimelockAdminSwitch --network ${hre.network.name} --timelock ${timelock.address} --governor ${governor.address} --target ${timelockNewAdmin.target} --value ${timelockNewAdmin.value} --signature "${timelockNewAdmin.signature}" --data ${timelockNewAdmin.data} --eta ${timelockNewAdmin.eta}`);
+      console.log(``);
+      console.log(`---`);
     }
   }
 

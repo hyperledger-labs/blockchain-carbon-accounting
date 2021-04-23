@@ -32,20 +32,16 @@ contract Governor {
     /// @notice The name of this contract
     string public constant name = "CLM8 DAO Governor";
 
+    uint private quorum = 632e9; // sqrt(4% of supply) dCLM8
+    uint private thresholdToStakeProposal = 100000e18; // 100,000 = 1% of Dclm8
+
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
     function quorumVotes() public view returns (uint) {
-        uint initialHolderBalance = dclm8.balanceOf(dclm8.getInitialHolder());
-        uint daoTokensInCirculation = dclm8.getTotalSupply() - initialHolderBalance;
-        // if tokens in circulation, let sqrt(4%) of those tokens be the quorum
-        if (daoTokensInCirculation != 0) {
-            return sqrt(div256(daoTokensInCirculation, 25));
-        }
-        // otherwise, default to sqrt(4% of total supply)
-        return 632455532033;
+        return quorum;
     }
 
     /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public pure returns (uint) { return 100000e18; } // 100,000 = 1% of Dclm8
+    function proposalThreshold() public view returns (uint) { return thresholdToStakeProposal; }
 
     /// @notice The maximum number of actions that can be included in a proposal
     function proposalMaxOperations() public pure returns (uint) { return 10; } // 10 actions
@@ -54,7 +50,7 @@ contract Governor {
     function votingDelay() public pure returns (uint) { return 1; } // 1 block
 
     /// @notice The duration of voting on a proposal, in blocks
-    function votingPeriod() public pure returns (uint) { return 17280; } // ~3 days in blocks (assuming 15s blocks)
+    function votingPeriod() public pure returns (uint) { return 5760; } // ~3 days in blocks (assuming 5s blocks)
 
     /// @notice The address of the timelock
     TimelockInterface public timelock;
@@ -102,10 +98,10 @@ contract Governor {
         // @notice Current number of votes in opposition to this proposal
         uint againstVotes;
 
-        // @notice Current non-curved number of CLM8 burned to make for votes
+        // @notice Current staked number of CLM8 signifying a for vote to burn or return after voting period
         uint rawForVotes;
 
-        // @notice Current non-curved number of CLM8 burned to make against votes
+        // @notice Current staked number of CLM8 signifying a against vote to burn or return after voting period
         uint rawAgainstVotes;
 
         // @notice Flag marking whether the proposal has been canceled
@@ -134,6 +130,9 @@ contract Governor {
 
         // @notice The number of CLM8 burned for votes
         uint96 rawVotes;
+
+        // @notice Whether or not a user has refunded their locked tokens if eligible
+        bool hasRefunded;
     }
 
     /// @notice Possible states that a proposal may be in
@@ -175,14 +174,24 @@ contract Governor {
     /// @notice An event emitted when a proposal has been executed in the Timelock
     event ProposalExecuted(uint id);
 
-    constructor(address timelock_, address dclm8_, address guardian_) public {
+    constructor(address timelock_, address dclm8_, address guardian_) {
         timelock = TimelockInterface(timelock_);
         dclm8 = Dclm8Interface(dclm8_);
         guardian = guardian_;
     }
 
+    function setProposalThreshold(uint _proposalThreshold) external {
+        require(msg.sender == guardian, "Governor::setProposalThreshold: must be guardian");
+        thresholdToStakeProposal = _proposalThreshold;
+    }
+
+    function setQuorum(uint _quorum) external {
+        require(msg.sender == guardian, "Governor::setQuorum: must be guardian");
+        quorum = _quorum;
+    }
+
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        require(dclm8.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold(), "Governor::propose: proposer votes below proposal threshold");
+        require(dclm8.getPriorVotes(msg.sender, sub256(block.number, 1)) >= proposalThreshold(), "Governor::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "Governor::propose: proposal function information arity mismatch");
         require(targets.length != 0, "Governor::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "Governor::propose: too many actions");
@@ -193,6 +202,10 @@ contract Governor {
           require(proposersLatestProposalState != ProposalState.Active, "Governor::propose: one live proposal per proposer, found an already active proposal");
           require(proposersLatestProposalState != ProposalState.Pending, "Governor::propose: one live proposal per proposer, found an already pending proposal");
         }
+
+        // lock proposal threshold (the refund function handles the logic for eligible amount to withdraw)
+        require(dclm8.balanceOf(msg.sender) >= proposalThreshold(), "Governor::propose: not enough balance to lock dCLM8 with proposal");
+        dclm8._lockTokens(msg.sender, uint96(proposalThreshold()));
 
         uint startBlock = add256(block.number, votingDelay());
         uint endBlock = add256(startBlock, votingPeriod());
@@ -226,6 +239,10 @@ contract Governor {
     function queue(uint proposalId) public {
         require(state(proposalId) == ProposalState.Succeeded, "Governor::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
+
+        // burn all dCLM8 associated with this proposal
+        dclm8._burn(address(this), uint96(add256(proposal.rawForVotes, proposal.rawAgainstVotes)));
+
         uint eta = add256(block.timestamp, timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
             _queueOrRevert(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], eta);
@@ -316,8 +333,12 @@ contract Governor {
         require(state(proposalId) == ProposalState.Active, "Governor::_castVote: voting is closed");
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
-        require(receipt.hasVoted == false, "Governor::_castVote: voter already voted");
-        require(votes > 0, "Governor::_castVote: no eligible votes prior to proposal start block");
+
+        // allow topping off vote
+        if (receipt.hasVoted == true) {
+            require(receipt.support == support, "Governor::_castVote: can only top off same vote without refunding");
+        }
+
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
 
@@ -331,15 +352,73 @@ contract Governor {
             proposal.rawAgainstVotes = add256(proposal.rawAgainstVotes, votes);
         }
 
-        // burn used dCLM8 tokens
-        dclm8._burn(voter, votes);
+        // lock dCLM8 tokens
+        dclm8._lockTokens(voter, votes);
 
         receipt.hasVoted = true;
         receipt.support = support;
-        receipt.votes = quadraticVote;
-        receipt.rawVotes = votes;
+        receipt.votes = uint96(add256(receipt.votes, quadraticVote));
+        receipt.rawVotes = uint96(add256(receipt.rawVotes, votes));
+        receipt.hasRefunded = false;
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
+    }
+
+    function refund(uint proposalId) external {
+        Proposal storage proposal = proposals[proposalId];
+        Receipt storage receipt = proposal.receipts[msg.sender];
+
+        require(receipt.hasRefunded == false, "Governor::refund: already refunded this proposal");
+
+        uint amount;
+
+        // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
+        // if msg.sender is proposer and succeeded, set to proposal threshold plus votes
+        // otherwise, set to user's raw vote count (in dCLM8)
+        bool proposalPassedAndIsProposer =
+            msg.sender == proposal.proposer && (
+                state(proposalId) == ProposalState.Succeeded ||
+                state(proposalId) == ProposalState.Defeated ||
+                state(proposalId) == ProposalState.Canceled
+            );
+        if (proposalPassedAndIsProposer) {
+            // you only get your full stake back if the proposal succeeded, otherwise 3/4 of it
+            if (state(proposalId) == ProposalState.Succeeded) {
+                amount = proposalThreshold() + receipt.rawVotes;
+            } else {
+                uint256 quarterOfProposalThreshold = div256(proposalThreshold(), 4);
+                dclm8._burn(address(this), uint96(quarterOfProposalThreshold));
+                amount = uint96(sub256(proposalThreshold(), quarterOfProposalThreshold)) + receipt.rawVotes;
+            }
+        } else {
+            amount = receipt.rawVotes;
+        }
+        require(amount > 0, "Governor::refund: nothing to refund");
+
+        bool isActive = state(proposalId) == ProposalState.Active;
+        bool isDefeatedByQuorum = state(proposalId) == ProposalState.Defeated && proposal.forVotes < quorumVotes();
+        require(isActive || isDefeatedByQuorum || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
+
+        // refund dCLM8 from this contract
+        dclm8.transfer(msg.sender, amount);
+
+        // if an active proposal, subtract amount from votes and locked dCLM8 amounts
+        if (isActive) {
+            if (receipt.support) {
+                proposal.forVotes = sub256(proposal.forVotes, receipt.votes);
+                proposal.rawForVotes = sub256(proposal.rawForVotes, amount);
+            } else {
+                proposal.againstVotes = sub256(proposal.againstVotes, receipt.votes);
+                proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, amount);
+            }
+        }
+
+        // update receipt
+        receipt.votes = 0;
+        receipt.rawVotes = 0;
+        receipt.hasVoted = false;
+        receipt.hasRefunded = true;
+
     }
 
     function __acceptAdmin() public {
@@ -414,5 +493,7 @@ interface Dclm8Interface {
     function getTotalSupply() external pure returns (uint);
     function balanceOf(address account) external view returns (uint);
     function getInitialHolder() external pure returns (address);
+    function _lockTokens(address src, uint96 amount) external;
     function _burn(address account, uint96 amount) external;
+    function transfer(address dst, uint rawAmount) external returns (bool);
 }
