@@ -104,6 +104,37 @@ task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deploy
     console.log(`The same address ${netEmissionsTokenNetwork.address} can be used to interact with the contract.`);
   });
 
+task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live DAO contract")
+  .addParam("timelock", "")
+  .addParam("governor", "")
+  .addParam("target", "")
+  .addParam("value", "")
+  .addParam("signature", "")
+  .addParam("data", "")
+  .addParam("eta", "")
+  .setAction(async taskArgs => {
+    const {get} = deployments;
+
+    const Timelock = await hre.ethers.getContractFactory("Timelock");
+    const timelock = await Timelock.attach(taskArgs.timelock);
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const governor = await Governor.attach(taskArgs.governor);
+
+    await timelock.executeTransaction(
+      taskArgs.target,
+      taskArgs.value,
+      taskArgs.signature,
+      taskArgs.data,
+      taskArgs.eta
+    );
+    console.log("Executed setPendingAdmin() on Timelock.");
+
+    await governor.__acceptAdmin();
+    console.log("Called __acceptAdmin() on Governor.");
+
+    console.log("Done performing Timelock admin switch.");
+  });
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
