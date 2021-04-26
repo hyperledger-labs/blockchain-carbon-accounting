@@ -218,6 +218,18 @@ If successful, the script will return both the old implementation contract addre
 
 Upgrading contracts on a testnet is similar -- just make sure that the network and Ethereum config is in `hardhat.config.js` and that it isn't commented out. If upgrading on an network via an Infura URL (like Goerli), you'll need an Infura key too. See more information on using the config files at the top of this document.
 
+## Upgrading Governor.sol and Timelock.sol without upgrading DAOToken.sol
+
+In the case that new changes are made to the DAO (Governor.sol and/or its Timelock.sol) and we want to deploy a new version of it to a production environment but we also want to keep the same DAOToken.sol contract, we can utilize the hardhat-deploy plugin's tags/dependencies features to easily deploy some contracts individually while reusing others. To upgrade just the DAO:
+
+1. Make sure the current addresses of the contracts you'd like to upgrade are in `deployments/<network>/` after running `npx hardhat deploy --network <network>`
+
+2. Navigate to `deployments/<network>/` and rename or delete the current references to the Governor and Timelock, which are `Governor.json` and `Timelock.json`
+
+3. Navigate back to `net-emissions-token-network/` and run `npx hardhat deploy --network <network>`
+
+Now instead of running the full deployment for every contract, the deployment script will reuse the current DAOToken and NetEmissionsTokenNetwork addresses on the network you're using and point it to the new DAO contracts.
+
 ## Analyzing with Slither
 
 [Slither](https://github.com/crytic/slither) is a powerful Solidity static analysis framework written in Python.  To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 are installed.  Then from `net-emissions-token-network/` sub-directory, run the script with:
