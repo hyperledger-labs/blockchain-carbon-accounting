@@ -184,7 +184,7 @@ By default, the quorum (minimum number of votes in order for a proposal to succe
 npx hardhat setQuorum --network localhost --contract <Governor deployed address> --value 1000000000000
 ```
 
-In this example, we are lowering the quorum from 3162 dCLM8 to 1000 dCLM8. Notice that the 1000 is followed by 9 zeros, since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
+In this example, we are changing the quorum to 1000 dCLM8. Notice that the 1000 is followed by 9 zeros, since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
 
 To get the current quorum, run the similar task:
 
