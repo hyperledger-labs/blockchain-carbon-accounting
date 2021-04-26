@@ -176,7 +176,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
-      let refundProposal = (await getProposalThreshold(provider)).div("1000000000000000000").mul(3).div(4).toNumber();
+
+      let refundProposal = (
+        ( signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase() && (proposalState === "Canceled" || proposalState === "Defeated") )
+          ? (await getProposalThreshold(provider)).div("1000000000000000000").mul(3).div(4).toNumber()
+          : BigNumber.from("0").toNumber())
 
       let proposalIsEligibleToVote = (
         (proposalState === "Active") &&
