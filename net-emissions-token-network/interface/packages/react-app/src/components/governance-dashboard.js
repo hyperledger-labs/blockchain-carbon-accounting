@@ -538,13 +538,19 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 </Row>
 
+                { (proposal.receipt.hasVoted === true) &&
+                  <p className="text-center py-2">
+                    You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.
+                  </p>
+                }
+
                 { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
                   <Col className="text-danger my-auto">
                     <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
                   </Col>
                 }
 
-                { (proposal.receipt.hasVoted && !proposal.receipt.hasRefunded && proposal.receipt.rawRefund > 0) &&
+                { ( (proposal.receipt.hasVoted || proposal.state === "Canceled") && !proposal.receipt.hasRefunded && proposal.receipt.rawRefund > 0) &&
                   <p className="text-center py-2">
                     <Button
                       size="sm"
