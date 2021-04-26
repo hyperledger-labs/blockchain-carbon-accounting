@@ -550,7 +550,12 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   </Col>
                 }
 
-                { ( (proposal.receipt.hasVoted || proposal.state === "Canceled") && !proposal.receipt.hasRefunded && proposal.receipt.rawRefund > 0) &&
+                { (
+                    (
+                      proposal.receipt.hasVoted || (proposal.details.proposer.toLowerCase() == signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded") || proposal.state === "Defeated") ) &&
+                      !proposal.receipt.hasRefunded &&
+                      proposal.receipt.rawRefund > 0
+                  ) &&
                   <p className="text-center py-2">
                     <Button
                       size="sm"
