@@ -178,7 +178,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
 
       let refundProposal = (
-        ( signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase() && (proposalState === "Canceled" || proposalState === "Defeated") )
+        ( signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase() && (proposalState === "Canceled" || (proposalState === "Defeated" && forVotes < quorum)) )
           ? (await getProposalThreshold(provider)).div("1000000000000000000").mul(3).div(4).toNumber()
           : BigNumber.from("0").toNumber())
 
@@ -202,6 +202,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         actions: proposalActions,
         receipt: {
           hasVoted: proposalReceipt[0],
+          hasRefunded: proposalReceipt[4],
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
           rawVotes: proposalReceipt[3].div(decimalsRaw),
@@ -556,6 +557,19 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   <Col className="text-danger my-auto">
                     <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
                   </Col>
+                }
+
+                { (proposal.state === "Canceled" && proposal.receipt.hasRefunded !== true && proposal.receipt.rawRefund > 0) &&
+                  <p className="text-center py-2">
+                    <Button
+                      size="sm"
+                      onClick={ () => refundDclm8(proposal.id) }
+                      className="text-nowrap mt-2"
+                      variant="danger"
+                    >
+                      Refund {addCommas(proposal.receipt.rawRefund)} dCLM8
+                    </Button>
+                  </p>
                 }
               </Card.Body>
             </Card>
