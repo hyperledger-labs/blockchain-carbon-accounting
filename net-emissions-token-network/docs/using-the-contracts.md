@@ -83,6 +83,14 @@ cp .ethereum-config.js.template .ethereum-config.js
 npx hardhat deploy --network goerli
 ```
 
+5. Make sure to copy and paste the timelock admin switch command to complete in two days (for example, here is a snippet of the deployment output):
+
+```
+Please copy and paste this command after Wed Apr 28 2021 11:27:38 GMT-0400 (Eastern Daylight Time) to complete the Timelock admin switch:
+
+npx hardhat completeTimelockAdminSwitch --network goerli --timelock 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --governor 0x7c385742B2332b65D536396bdcb10EE7Db821eA9 --target 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --value 0 --signature "setPendingAdmin(address)" --data 0x0000000000000000000000007c385742b2332b65d536396bdcb10ee7db821ea9 --eta 1619623658
+```
+
 The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.
 
 ## Deploying to xDai
@@ -96,6 +104,8 @@ Be sure your `.ethereum-config.js` has the private key of your deployer address,
 ```bash
 npx hardhat deploy --network xdai
 ```
+
+Be sure to copy the command to complete the Timelock admin switch in two days from the time of deployment (example in the section above).
 
 If any part of the deployment fails, you can run the command again and the deployment script will reuse the addresses previously automatically written to the `deployments` folder.
 
