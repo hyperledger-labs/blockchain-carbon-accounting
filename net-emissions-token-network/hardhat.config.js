@@ -237,6 +237,13 @@ module.exports = {
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
     // }
 
+    // Uncomment the following lines if deploying contract to Ropsten - See https://infura.io/docs/ethereum#section/Choose-a-Network
+    // Deploy with npx hardhat run --network ropsten scripts/___.js
+    // ropsten: {
+    //   url: `https://ropsten.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // },
+
   },
   // Uncomment if running contract verification
   // etherscan: {
