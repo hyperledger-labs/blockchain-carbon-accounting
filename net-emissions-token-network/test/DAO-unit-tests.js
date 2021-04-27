@@ -53,7 +53,7 @@ describe("Climate DAO - Unit tests", function() {
            .transfer(consumer2, 1000000);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert dCLM8::transfer: sender must be initial holder"
+        "Error: VM Exception while processing transaction: revert dCLM8::transfer: sender must be initial holder or DAO governor"
       );
     }
   });
