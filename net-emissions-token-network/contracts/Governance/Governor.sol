@@ -131,8 +131,11 @@ contract Governor {
         // @notice The number of CLM8 burned for votes
         uint96 rawVotes;
 
-        // @notice Whether or not a user has refunded their locked tokens if eligible
-        bool hasRefunded;
+        // @notice Whether or not a user has refunded their votes tokens if eligible
+        bool hasVotesRefunded;
+
+        // @notice Whether or not a user has refunded their stake tokens if eligible
+        bool hasStakeRefunded;
     }
 
     /// @notice Possible states that a proposal may be in
@@ -359,7 +362,8 @@ contract Governor {
         receipt.support = support;
         receipt.votes = uint96(add256(receipt.votes, quadraticVote));
         receipt.rawVotes = uint96(add256(receipt.rawVotes, votes));
-        receipt.hasRefunded = false;
+        receipt.hasVotesRefunded = false;
+        receipt.hasStakeRefunded = false;
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
     }
@@ -368,9 +372,10 @@ contract Governor {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[msg.sender];
 
-        require(receipt.hasRefunded == false, "Governor::refund: already refunded this proposal");
+        require(receipt.hasVotesRefunded == false || receipt.hasStakeRefunded == false, "Governor::refund: already refunded this proposal");
 
         uint amount;
+        bool hasStakeRefunded = receipt.hasStakeRefunded;
 
         // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
         // if msg.sender is proposer and succeeded, set to proposal threshold plus votes
@@ -389,6 +394,7 @@ contract Governor {
                 uint256 quarterOfProposalThreshold = div256(proposalThreshold(), 4);
                 dclm8._burn(address(this), uint96(quarterOfProposalThreshold));
                 amount = uint96(sub256(proposalThreshold(), quarterOfProposalThreshold)) + receipt.rawVotes;
+                hasStakeRefunded = true;
             }
         } else {
             amount = receipt.rawVotes;
@@ -417,7 +423,8 @@ contract Governor {
         receipt.votes = 0;
         receipt.rawVotes = 0;
         receipt.hasVoted = false;
-        receipt.hasRefunded = true;
+        receipt.hasVotesRefunded = true;
+        receipt.hasStakeRefunded = hasStakeRefunded;
 
     }
 

@@ -202,7 +202,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         actions: proposalActions,
         receipt: {
           hasVoted: proposalReceipt[0],
-          hasRefunded: proposalReceipt[4],
+          hasVotesRefunded: proposalReceipt[4],
+          hasStakeRefunded: proposalReceipt[5],
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
           rawVotes: proposalReceipt[3].div(decimalsRaw),
@@ -212,6 +213,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         isEligibleToVote: proposalIsEligibleToVote
       });
     }
+
+    console.log(p);
 
     setProposals(p);
     setProposalsLength(p.length || 0);
@@ -552,8 +555,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 { (
                     (
-                      proposal.receipt.hasVoted || (proposal.details.proposer.toLowerCase() == signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded") || proposal.state === "Defeated") ) &&
-                      !proposal.receipt.hasRefunded &&
+                      proposal.receipt.hasVoted || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Defeated")) ) &&
+                      (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
                       proposal.receipt.rawRefund > 0
                   ) &&
                   <p className="text-center py-2">
