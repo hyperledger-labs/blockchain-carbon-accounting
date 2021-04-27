@@ -355,4 +355,54 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("should allow a proposer to refund votes while active and then refund stake after canceled", async function () {
+
+    const { deployer } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    // initial vote
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, 100);
+
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("9899999999999999999999900"));
+
+    // refund votes
+    await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
+
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
+
+    // cancel
+    await governor.connect(await ethers.getSigner(deployer)).cancel(proposal);
+
+    // refund stake
+    await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
+
+    // check to see deployer dCLM8 balance is full minus 1/4 stake
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal("9975000000000000000000000"));
+
+  });
+
 });
