@@ -243,8 +243,8 @@ contract Governor {
         require(state(proposalId) == ProposalState.Succeeded, "Governor::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
 
-        // burn all dCLM8 associated with this proposal
-        dclm8._burn(address(this), uint96(add256(proposal.rawForVotes, proposal.rawAgainstVotes)));
+        // burn all dCLM8 associated with this proposal (minus proposalThreshold for reward)
+        dclm8._burn(address(this), uint96(sub256(add256(proposal.rawForVotes, proposal.rawAgainstVotes), proposalThreshold())));
 
         uint eta = add256(block.timestamp, timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -383,13 +383,15 @@ contract Governor {
         bool proposalPassedAndIsProposer =
             msg.sender == proposal.proposer && (
                 state(proposalId) == ProposalState.Succeeded ||
+                state(proposalId) == ProposalState.Queued ||
+                state(proposalId) == ProposalState.Executed ||
                 state(proposalId) == ProposalState.Defeated ||
                 state(proposalId) == ProposalState.Canceled
             );
         if (proposalPassedAndIsProposer) {
-            // you only get your full stake back if the proposal succeeded, otherwise 3/4 of it
-            if (state(proposalId) == ProposalState.Succeeded) {
-                amount = proposalThreshold() + receipt.rawVotes;
+            // you only get your full stake back if the proposal succeeded/queued/executed, otherwise 3/4 of it plus votes
+            if (state(proposalId) == ProposalState.Succeeded || state(proposalId) == ProposalState.Queued || state(proposalId) == ProposalState.Executed) {
+                amount = proposalThreshold();
             } else {
                 uint256 quarterOfProposalThreshold = div256(proposalThreshold(), 4);
                 dclm8._burn(address(this), uint96(quarterOfProposalThreshold));
