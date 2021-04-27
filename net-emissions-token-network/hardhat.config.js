@@ -97,6 +97,27 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerConsumer(consumer2);  
     console.log("Account " + consumer2 + " is now a consumer");
 })
+task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
+  .addParam("contract", "The dCLM8 token")
+  .setAction(async taskArgs => {
+    const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+    
+    const [admin] = await ethers.getSigners();    
+    const daoToken = await hre.ethers.getContractFactory("DAOToken");
+    const contract = await daoToken.attach(taskArgs.contract);
+    
+    await contract.connect(admin).transfer(dealer1, '500000000000000000000000');
+    console.log ("Gave 500000 DAO Tokens to " + dealer1);
+    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    console.log ("Gave 500000 DAO Tokens to " + dealer2);
+    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    console.log ("Gave 500000 DAO Tokens to " + dealer3);
+    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    console.log ("Gave 500000 DAO Tokens to " + consumer1);
+    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    console.log ("Gave 500000 DAO Tokens to " + consumer2);
+
+})
 
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
