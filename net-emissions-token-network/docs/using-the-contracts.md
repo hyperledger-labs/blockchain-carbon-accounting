@@ -46,7 +46,11 @@ You can then run this command to set up roles for some of those accounts:
 $ npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>
 ```
 
+To test the DAO, use this command to give the DAO tokens to your test accounts:
 
+```
+$ npx hardhat giveDaoTokens --network localhost --contract <DaoToken address>
+```
 
 ## Deploying contracts to a public testnet
 

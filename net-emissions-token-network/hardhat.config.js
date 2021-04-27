@@ -110,13 +110,12 @@ task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
     console.log ("Gave 500000 DAO Tokens to " + dealer1);
     await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
     console.log ("Gave 500000 DAO Tokens to " + dealer2);
-    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    await contract.connect(admin).transfer(dealer3, '500000000000000000000000');
     console.log ("Gave 500000 DAO Tokens to " + dealer3);
-    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    await contract.connect(admin).transfer(consumer1, '500000000000000000000000');
     console.log ("Gave 500000 DAO Tokens to " + consumer1);
-    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
+    await contract.connect(admin).transfer(consumer2, '500000000000000000000000');
     console.log ("Gave 500000 DAO Tokens to " + consumer2);
-
 })
 
 // Task to upgrade NetEmissionsTokenNetwork contract
