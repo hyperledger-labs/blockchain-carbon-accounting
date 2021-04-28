@@ -566,7 +566,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                       className="text-nowrap mt-2"
                       variant="danger"
                     >
-                      Refund {addCommas(proposal.receipt.rawRefund)} dCLM8
+                      { (proposal.state === "Active")
+                        ? <span>Cancel My Vote</span>
+                        : <span>Refund {addCommas(proposal.receipt.rawRefund)} dCLM8</span>
+                      }
                     </Button>
                   </p>
                 }
