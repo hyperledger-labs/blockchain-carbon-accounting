@@ -41,13 +41,14 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
 
 // Task to set quorum on Governor
 task("setQuorum", "Set the quorum value on a Governor contract")
-  .addParam("value", "The new quorum value (remember to account for 18 decimal places)")
+  .addParam("value", "The new quorum value in votes")
   .addParam("contract", "The Governor contract")
   .setAction(async taskArgs => {
     const [admin] = await ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
     const contract = await Governor.attach(taskArgs.contract);
-    await contract.connect(admin).setQuorum( String(taskArgs.value) );
+    // since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
+    await contract.connect(admin).setQuorum( ethers.BigNumber.from(taskArgs.value).mul(ethers.BigNumber.from("1000000000")));
   })
 
 // Task to set proposal threshold on Governor
@@ -67,7 +68,8 @@ task("getQuorum", "Return the quorum value (minimum number of votes for a propos
     const [admin] = await ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
     const contract = await Governor.attach(taskArgs.contract);
-    console.log((await contract.connect(admin).quorumVotes()).toString());
+    let quorum = (await contract.connect(admin).quorumVotes()).toString();
+    console.log(ethers.BigNumber.from(quorum).div(ethers.BigNumber.from("1000000000")).toString());
   })
 task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 required to stake with a proposal)")
   .addParam("contract", "The Governor contract")
