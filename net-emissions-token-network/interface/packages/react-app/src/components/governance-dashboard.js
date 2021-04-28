@@ -260,7 +260,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider, blockNumber, fetchingBlockNumber, setFetchingBlockNumber, fetchBlockNumber]);
 
   useEffect(() => {
-    if (provider && daoTokenBalance > 0 && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
+    if (provider && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
       setFetchingProposals(true);
       fetchProposals();
     }
