@@ -17,17 +17,6 @@ if (process.env.OVM) {
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
 // const ethereumConfig = require("./.ethereum-config");
 
-
-// Task to destroy a NetEmissionsTokenNetwork contract
-task("destroyClm8Contract", "Destroy a NetEmissionsTokenNetwork contract")
-  .addParam("contract", "The CLM8 contract to destroy")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
-    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
-    await contract.connect(admin).selfDestruct();
-  })
-
 // Task to set limited mode on NetEmissionsTokenNetwork
 task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
   .addParam("value", "True or false to set limited mode")
