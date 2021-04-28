@@ -20,11 +20,12 @@ exports.proposalStates = {
   pending: 0,
   active: 1,
   canceled: 2,
-  defeated: 3,
-  succeeded: 4,
-  queued: 5,
-  expired: 6,
-  executed: 7
+  quorumFailed: 3,
+  defeated: 4,
+  succeeded: 5,
+  queued: 6,
+  expired: 7,
+  executed: 8
 }
 
 exports.hoursToSeconds = function (hours) {

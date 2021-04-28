@@ -143,6 +143,7 @@ contract Governor {
         Pending,
         Active,
         Canceled,
+        QuorumFailed,
         Defeated,
         Succeeded,
         Queued,
@@ -306,7 +307,9 @@ contract Governor {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotes()) {
+        } else if (proposal.forVotes + proposal.againstVotes < quorumVotes()) {
+            return ProposalState.QuorumFailed;
+        } else if (proposal.forVotes <= proposal.againstVotes) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
