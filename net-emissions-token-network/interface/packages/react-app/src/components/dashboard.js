@@ -115,7 +115,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
 
         // Push token to myBalances or myIssuedTokens in state
         if (token.availableBalance > 0 || token.retiredBalance > 0) {
-          newMyBalances.push(token);
+          newMyBalances.push({ ...token });
+          console.log("newMyBalances pushed -> ", newMyBalances);
         }
         if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
