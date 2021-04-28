@@ -6,6 +6,7 @@ require("@nomiclabs/hardhat-etherscan");
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
 require('@openzeppelin/hardhat-upgrades');
+require("@ethersproject/bignumber");
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
@@ -106,16 +107,20 @@ task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
     const daoToken = await hre.ethers.getContractFactory("DAOToken");
     const contract = await daoToken.attach(taskArgs.contract);
     
-    await contract.connect(admin).transfer(dealer1, '500000000000000000000000');
-    console.log ("Gave 500000 DAO Tokens to " + dealer1);
-    await contract.connect(admin).transfer(dealer2, '500000000000000000000000');
-    console.log ("Gave 500000 DAO Tokens to " + dealer2);
-    await contract.connect(admin).transfer(dealer3, '500000000000000000000000');
-    console.log ("Gave 500000 DAO Tokens to " + dealer3);
-    await contract.connect(admin).transfer(consumer1, '500000000000000000000000');
-    console.log ("Gave 500000 DAO Tokens to " + consumer1);
-    await contract.connect(admin).transfer(consumer2, '500000000000000000000000');
-    console.log ("Gave 500000 DAO Tokens to " + consumer2);
+    let decimals = ethers.BigNumber.from("1000000000000000000");
+    let tokens = ethers.BigNumber.from("500000");
+    let i = tokens.mul(decimals);
+    
+    await contract.connect(admin).transfer(dealer1, i);
+    console.log ("Gave " + tokens + " DAO Tokens to " + dealer1);
+    await contract.connect(admin).transfer(dealer2, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${dealer2}`);
+    await contract.connect(admin).transfer(dealer3, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${dealer3}`);
+    await contract.connect(admin).transfer(consumer1, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${consumer1}`);
+    await contract.connect(admin).transfer(consumer2, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${consumer2}`);
 })
 
 // Task to upgrade NetEmissionsTokenNetwork contract
