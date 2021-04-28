@@ -477,4 +477,123 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("should not allow a proposer to refund anything if a vote fails", async function () {
+
+    const { deployer } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    await daoToken
+       .balanceOf(governor.address)
+       .then((response) => expect(response.toString()).to.equal("100000000000000000000000"));
+
+    // initial vote
+    let voteAmount = "400000000000000000000000" // 400,000
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, false, voteAmount);
+
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("9500000000000000000000000"));
+
+    await daoToken
+       .balanceOf(governor.address)
+       .then((response) => expect(response.toString()).to.equal("500000000000000000000000"));
+
+    // time skip
+    console.log("Advancing blocks...")
+    advanceBlocks(hoursToBlocks(150));
+
+    // check for defeat
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.defeated);
+    });
+
+    // try to refund
+    try {
+      await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
+    } catch (err) {
+      expect(err.toString()).to.equal(
+        "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      );
+    }
+
+  });
+
+  it("should allow a proposer to refund 3/4 stake if quorum fails", async function () {
+
+    const { deployer } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    await daoToken
+       .balanceOf(governor.address)
+       .then((response) => expect(response.toString()).to.equal("100000000000000000000000"));
+
+    // initial vote
+    let voteAmount = "300000000000000000000000" // 300,000
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
+
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("9400000000000000000000000"));
+
+    await daoToken
+       .balanceOf(governor.address)
+       .then((response) => expect(response.toString()).to.equal("600000000000000000000000"));
+
+    // time skip
+    console.log("Advancing blocks...")
+    advanceBlocks(hoursToBlocks(150));
+
+    // check for defeat
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.quorumFailed);
+    });
+
+    // refund
+    await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
+
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("9475000000000000000000000"));
+
+  });
+
+
 });
