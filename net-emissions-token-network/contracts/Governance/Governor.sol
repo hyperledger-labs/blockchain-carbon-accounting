@@ -243,9 +243,11 @@ contract Governor {
                 descriptions[i]
             );
 
+            ids[i] = id;
+
             // set parent references in child proposals
             if (i > 0) {
-                Proposal storage p = proposals[i];
+                Proposal storage p = proposals[id];
                 p.parentProposalId = ids[0];
             }
         }
