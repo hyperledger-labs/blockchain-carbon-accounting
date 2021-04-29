@@ -113,6 +113,12 @@ contract Governor {
         // @notes Description of the proposal
         string description;
 
+        // @notice id for parent proposal (if a child multi-attribute proposal)
+        uint parentProposalId;
+
+        // @notice for child proposal (if a parent multi-attribute proposal)
+        uint[] childProposalIds;
+
         // @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
     }
@@ -194,18 +200,22 @@ contract Governor {
         quorum = _quorum;
     }
 
+    function proposeMultiAttribute(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string[] memory descriptions) public returns (uint) {
+        // unlike propose(), we require only 1 function call per proposal in a multi-attribute proposal
+        // so each array value in the arguments can be assumed to be a unique proposal
+        require(targets.length == descriptions.length, "Governor::propose: proposal function information arity mismatch");
+
+        // iterate through targets.length and call propose(targets[i], values[i], ..., descriptions[i])
+        uint[] memory childIds;
+
+        // create parent proposal and populate childProposalIds property with childIds
+    }
+
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         require(dclm8.getPriorVotes(msg.sender, sub256(block.number, 1)) >= proposalThreshold(), "Governor::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "Governor::propose: proposal function information arity mismatch");
         require(targets.length != 0, "Governor::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "Governor::propose: too many actions");
-
-        uint latestProposalId = latestProposalIds[msg.sender];
-        if (latestProposalId != 0) {
-          ProposalState proposersLatestProposalState = state(latestProposalId);
-          require(proposersLatestProposalState != ProposalState.Active, "Governor::propose: one live proposal per proposer, found an already active proposal");
-          require(proposersLatestProposalState != ProposalState.Pending, "Governor::propose: one live proposal per proposer, found an already pending proposal");
-        }
 
         // lock proposal threshold (the refund function handles the logic for eligible amount to withdraw)
         require(dclm8.balanceOf(msg.sender) >= proposalThreshold(), "Governor::propose: not enough balance to lock dCLM8 with proposal");
