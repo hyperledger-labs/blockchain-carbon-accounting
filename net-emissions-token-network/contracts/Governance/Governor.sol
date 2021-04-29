@@ -413,7 +413,13 @@ contract Governor {
             }
             hasStakeRefunded = true;
         } else {
-            amount = receipt.rawVotes;
+            // If someone tries to cancel their vote (i.e. proposal state is active) they lose 5% of their tokens.
+            if (state(proposalId) == ProposalState.Active) {
+                uint256 tokensToLose = div256(receipt.rawVotes, 20);
+                amount = uint96(sub256(receipt.rawVotes, tokensToLose));
+            } else {
+                amount = receipt.rawVotes;
+            }
         }
         require(amount > 0, "Governor::refund: nothing to refund");
 

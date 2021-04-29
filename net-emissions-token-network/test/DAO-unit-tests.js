@@ -139,7 +139,7 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
-  it("should allow one to refund their locked dCLM8 on an active proposal", async function () {
+  it("should allow one to refund their locked dCLM8 minus 5% on an active proposal", async function () {
 
     const { deployer } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
@@ -186,7 +186,7 @@ describe("Climate DAO - Unit tests", function() {
     // check to see deployer dCLM8 balance is full minus the deposit
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("9652500000000000000000000"));
 
     // check receipt
     await governor.getReceipt(proposal, deployer)
@@ -380,18 +380,19 @@ describe("Climate DAO - Unit tests", function() {
     advanceBlocks(2);
 
     // initial vote
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, 100);
+    let voteAmount = "200000000000000000000000" // 200,000
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
 
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9899999999999999999999900"));
+       .then((response) => expect(response.toString()).to.equal("9700000000000000000000000"));
 
     // refund votes
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("9890000000000000000000000"));
 
     // cancel
     await governor.connect(await ethers.getSigner(deployer)).cancel(proposal);
@@ -402,7 +403,7 @@ describe("Climate DAO - Unit tests", function() {
     // check to see deployer dCLM8 balance is full minus 1/4 stake
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9975000000000000000000000"));
+       .then((response) => expect(response).to.equal("9965000000000000000000000"));
 
   });
 
