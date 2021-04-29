@@ -804,4 +804,82 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("should not allow a user to get their voted tokens back after votes cancel period is ended", async function () {
+
+    const { deployer, dealer1 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    await daoToken
+       .balanceOf(governor.address)
+       .then((response) => expect(response.toString()).to.equal("2600000000000000000000000"));
+
+    let deployerBalance = await daoToken.balanceOf(deployer)
+
+    // initial vote
+    let voteAmount = "200000000000000000000000" // 200,000
+    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
+
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("4700000000000000000000000"));
+
+    await daoToken
+       .balanceOf(governor.address)
+       .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
+
+    // time skip
+    console.log("Advancing blocks...")
+    advanceBlocks(hoursToBlocks(5));
+
+    // check for success
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.active);
+    });
+
+    await daoToken
+       .balanceOf(dealer1)
+       .then((response) => expect(response.toString()).to.equal("2300000000000000000000000"));
+
+    let refundError = null;
+    // try to refund
+    try {
+      await governor.connect(await ethers.getSigner(dealer1)).refund(proposal);
+    } catch (err) {
+      refundError = err.toString();
+    }
+
+    expect(refundError).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund, votes cancel period is ended"
+    );
+
+    await daoToken
+       .balanceOf(dealer1)
+       .then((response) => expect(response.toString()).to.equal("2300000000000000000000000"));
+
+  });
+
 });

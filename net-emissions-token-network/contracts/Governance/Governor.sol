@@ -52,6 +52,9 @@ contract Governor {
     /// @notice The duration of voting on a proposal, in blocks
     function votingPeriod() public pure returns (uint) { return 5760; } // ~3 days in blocks (assuming 5s blocks)
 
+    /// @notice The duration of the votes cancel period, in blocks
+    function votesCancelPeriod() public pure returns (uint) { return 320; } // 4 hours
+
     /// @notice The address of the timelock
     TimelockInterface public timelock;
 
@@ -142,6 +145,9 @@ contract Governor {
 
         // @notice Whether or not a user has refunded their stake tokens if eligible
         bool hasStakeRefunded;
+
+        // @notice The block at which votes cancel period ends
+        uint endVotesCancelPeriodBlock;
     }
 
     /// @notice Possible states that a proposal may be in
@@ -377,6 +383,7 @@ contract Governor {
         receipt.rawVotes = uint96(add256(receipt.rawVotes, votes));
         receipt.hasVotesRefunded = false;
         receipt.hasStakeRefunded = false;
+        receipt.endVotesCancelPeriodBlock = add256(block.number, votesCancelPeriod());
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
     }
@@ -386,6 +393,11 @@ contract Governor {
         Receipt storage receipt = proposal.receipts[msg.sender];
 
         require(receipt.hasVotesRefunded == false || receipt.hasStakeRefunded == false, "Governor::refund: already refunded this proposal");
+
+        // should not allow cancel user votes after proposal cancel period ended
+        if (state(proposalId) == ProposalState.Active) {
+            require(block.number <= receipt.endVotesCancelPeriodBlock, "Governor::refund: not eligible for refund, votes cancel period is ended");
+        }
 
         uint amount;
         bool hasStakeRefunded = receipt.hasStakeRefunded;
