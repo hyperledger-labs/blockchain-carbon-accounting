@@ -176,11 +176,17 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
+      let refundProposal = BigNumber.from("0").toNumber();
 
-      let refundProposal = (
-        ( signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase() && (proposalState === "Canceled" || (proposalState === "Defeated" && forVotes < quorum)) )
-          ? (await getProposalThreshold(provider)).div("1000000000000000000").mul(3).div(4).toNumber()
-          : BigNumber.from("0").toNumber())
+      if (signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase()) {
+        let proposalThreshold = (await getProposalThreshold(provider)).div(decimalsRaw).toNumber();
+        let currentVotes = proposalReceipt[3].div(decimalsRaw).toNumber()
+        if (proposalState === "Succeeded") {
+          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(2).toNumber();
+        } else if (proposalState === "Canceled" || proposalState === "QuorumFailed") {
+          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(4).toNumber();
+        }
+      }
 
       let proposalIsEligibleToVote = (
         (proposalState === "Active") &&
@@ -207,7 +213,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
           rawVotes: proposalReceipt[3].div(decimalsRaw),
-          rawRefund: proposalReceipt[3].div(decimalsRaw).toNumber() + refundProposal
+          rawRefund: refundProposal
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote

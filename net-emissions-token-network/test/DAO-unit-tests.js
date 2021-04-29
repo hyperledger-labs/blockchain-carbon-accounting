@@ -352,7 +352,7 @@ describe("Climate DAO - Unit tests", function() {
     // check to see deployer dCLM8 balance is full minus 1/4 stake
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9975000000000000000000000"));
+       .then((response) => expect(response).to.equal("9974999999999999999999975"));
 
   });
 
@@ -406,9 +406,9 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
-  it("should allow a proposer to refund stake and votes if it succeeds", async function () {
+  it("should allow a proposer to refund 150% of the stake if it succeeds", async function () {
 
-    const { deployer } = await getNamedAccounts();
+    const { deployer, dealer1 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
@@ -418,6 +418,10 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken
        .balanceOf(deployer)
        .then((response) => expect(response).to.equal(fullSupply));
+
+    let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
     let proposal = createProposal({
@@ -431,19 +435,22 @@ describe("Climate DAO - Unit tests", function() {
 
     await daoToken
        .balanceOf(governor.address)
-       .then((response) => expect(response.toString()).to.equal("100000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("2600000000000000000000000"));
+
+    let deployerBalance = await daoToken.balanceOf(deployer)
 
     // initial vote
-    let voteAmount = "400000000000000000000000" // 400,000
+    let voteAmount = "200000000000000000000000" // 200,000
     await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
 
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9500000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("4700000000000000000000000"));
 
     await daoToken
        .balanceOf(governor.address)
-       .then((response) => expect(response.toString()).to.equal("500000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
 
     // time skip
     console.log("Advancing blocks...")
@@ -455,25 +462,13 @@ describe("Climate DAO - Unit tests", function() {
       expect(response).to.equal(proposalStates.succeeded);
     });
 
-    // queue proposal after it's successful
-    let queueProposal = await governor
-      .connect(await ethers.getSigner(deployer))
-      .queue(proposal);
-    expect(queueProposal);
-
-    executeProposalAndConfirmSuccess(proposal, {
-      deployer: deployer,
-      governor: governor,
-      netEmissionsTokenNetwork: netEmissionsTokenNetwork
-    });
-
     // refund
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
-    // check to see deployer dCLM8 balance is full minus vote
+    // check to see deployer dCLM8 balance after refund 4,700,000 + ((100,000 + 200,000) * 1.5) = 5,150,000
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9600000000000000000000000"));
+       .then((response) => expect(response).to.equal("5150000000000000000000000"));
 
   });
 
@@ -606,6 +601,5 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
 
   });
-
 
 });

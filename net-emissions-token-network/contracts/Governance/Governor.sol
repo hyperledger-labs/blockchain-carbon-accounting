@@ -381,7 +381,7 @@ contract Governor {
         bool hasStakeRefunded = receipt.hasStakeRefunded;
 
         // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
-        // if msg.sender is proposer and succeeded, set to proposal threshold plus votes
+        // if msg.sender is proposer and succeeded, set to 150% proposal threshold plus votes
         // otherwise, set to user's raw vote count (in dCLM8)
         bool proposalPassedAndIsProposer =
             msg.sender == proposal.proposer && (
@@ -389,26 +389,26 @@ contract Governor {
                 state(proposalId) == ProposalState.Queued ||
                 state(proposalId) == ProposalState.Executed ||
                 state(proposalId) == ProposalState.Defeated ||
+                state(proposalId) == ProposalState.QuorumFailed ||
                 state(proposalId) == ProposalState.Canceled
             );
         if (proposalPassedAndIsProposer) {
-            // you only get your full stake back if the proposal succeeded/queued/executed, otherwise 3/4 of it plus votes
+            // you get your 150% stake back if the proposal succeeded/queued/executed, otherwise 3/4 of proposal threshold plus votes
             if (state(proposalId) == ProposalState.Succeeded || state(proposalId) == ProposalState.Queued || state(proposalId) == ProposalState.Executed) {
-                amount = proposalThreshold();
+                amount = (proposalThreshold() + receipt.rawVotes) * 3 / 2;
             } else {
-                uint256 quarterOfProposalThreshold = div256(proposalThreshold(), 4);
-                dclm8._burn(address(this), uint96(quarterOfProposalThreshold));
-                amount = uint96(sub256(proposalThreshold(), quarterOfProposalThreshold)) + receipt.rawVotes;
-                hasStakeRefunded = true;
+                uint256 quarterOfStake = div256(add256(proposalThreshold(), receipt.rawVotes), 4);
+                dclm8._burn(address(this), uint96(quarterOfStake));
+                amount = uint96(quarterOfStake * 3);
             }
+            hasStakeRefunded = true;
         } else {
             amount = receipt.rawVotes;
         }
         require(amount > 0, "Governor::refund: nothing to refund");
 
         bool isActive = state(proposalId) == ProposalState.Active;
-        bool isDefeatedByQuorum = (state(proposalId) == ProposalState.Defeated && proposal.forVotes < quorumVotes()) || state(proposalId) == ProposalState.QuorumFailed;
-        require(isActive || isDefeatedByQuorum || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
+        require(isActive || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
 
         // refund dCLM8 from this contract
         dclm8.transfer(msg.sender, amount);
