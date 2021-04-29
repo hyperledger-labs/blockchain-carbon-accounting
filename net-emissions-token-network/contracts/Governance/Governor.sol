@@ -119,7 +119,7 @@ contract Governor {
         // @notice id for parent proposal (if a child multi-attribute proposal)
         uint parentProposalId;
 
-        // @notice for child proposal (if a parent multi-attribute proposal)
+        // @notice ids for child proposals (if a parent multi-attribute proposal)
         uint[] childProposalIds;
 
         // @notice Receipts of ballots for the entire set of voters
@@ -206,15 +206,54 @@ contract Governor {
         quorum = _quorum;
     }
 
+    function _setChildProposalIds(uint[] memory ids) internal {
+        Proposal storage p = proposals[ids[0]];
+        for (uint i = 1; i < ids.length; i++) {
+            p.childProposalIds.push(ids[i]);
+        }
+    }
+
     function proposeMultiAttribute(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string[] memory descriptions) public returns (uint) {
+        // targets[0] => master proposal, targets[1] => child proposal #1, targets[2] => child proposal #2...
         // unlike propose(), we require only 1 function call per proposal in a multi-attribute proposal
         // so each array value in the arguments can be assumed to be a unique proposal
         require(targets.length == descriptions.length, "Governor::propose: proposal function information arity mismatch");
 
-        // iterate through targets.length and call propose(targets[i], values[i], ..., descriptions[i])
-        uint[] memory childIds;
+        // iterate through targets.length and call propose() for each proposal
+        // 0 is parent, 1..n are children
+        uint[] memory ids = new uint[](targets.length);
+        for (uint i = 0; i < targets.length; i++) {
 
-        // create parent proposal and populate childProposalIds property with childIds
+            // wrap arguments in arrays
+            address[] memory target = new address[](1);
+            uint[] memory value = new uint[](1);
+            string[] memory signature = new string[](1);
+            bytes[] memory data = new bytes[](1);
+            target[0] = targets[i];
+            value[0] = values[i];
+            signature[0] = signatures[i];
+            data[0] = calldatas[i];
+
+            // make proposal
+            uint id = propose(
+                target,
+                value,
+                signature,
+                data,
+                descriptions[i]
+            );
+
+            // set parent references in child proposals
+            if (i > 0) {
+                Proposal storage p = proposals[i];
+                p.parentProposalId = id;
+            }
+        }
+
+        // set children on parent proposal
+        _setChildProposalIds(ids);
+
+        return ids[0];
     }
 
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
