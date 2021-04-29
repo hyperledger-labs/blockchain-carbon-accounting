@@ -183,7 +183,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         let currentVotes = proposalReceipt[3].div(decimalsRaw).toNumber()
         if (proposalState === "Succeeded") {
           refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(2).toNumber();
-        } else if (proposalState === "Canceled" || proposalState === "QuorumFailed") {
+        } else if (proposalState === "Canceled" || proposalState === "Quorum Failed") {
           refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(4).toNumber();
         }
       }
