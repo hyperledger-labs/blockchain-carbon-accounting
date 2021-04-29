@@ -559,6 +559,12 @@ describe("Climate DAO - Unit tests", function() {
     });
 
     advanceBlocks(2);
+    // should remove thresholdToStakeProposal which went into governor
+    // -  100000000000000000000000
+    // = 9900000000000000000000000
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
 
     await daoToken
        .balanceOf(governor.address)
@@ -568,13 +574,17 @@ describe("Climate DAO - Unit tests", function() {
     let voteAmount = "300000000000000000000000" // 300,000
     await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
 
+    // check the balance
+    // -  300000000000000000000000
+    // -  100000000000000000000000
+    // = 9600000000000000000000000
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9400000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("9600000000000000000000000"));
 
     await daoToken
        .balanceOf(governor.address)
-       .then((response) => expect(response.toString()).to.equal("600000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("400000000000000000000000"));
 
     // time skip
     console.log("Advancing blocks...")
@@ -589,9 +599,11 @@ describe("Climate DAO - Unit tests", function() {
     // refund
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
+    // Refund 3/4 of 400k so balance should be -100k of the initial value
+    // = 9900000000000000000000000
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9475000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
 
   });
 
