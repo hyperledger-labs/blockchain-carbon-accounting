@@ -178,7 +178,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
       let refundProposal = BigNumber.from("0").toNumber();
 
-      if (proposalState === "Active") {
+      if (proposalState === "Active" || proposalState === "Quorum Failed") {
         refundProposal = proposalReceipt[3].div(decimalsRaw).toNumber();
       }
 

@@ -424,7 +424,8 @@ contract Governor {
         require(amount > 0, "Governor::refund: nothing to refund");
 
         bool isActive = state(proposalId) == ProposalState.Active;
-        require(isActive || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
+        bool isQuorumFailed = state(proposalId) == ProposalState.QuorumFailed;
+        require(isActive || isQuorumFailed || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
 
         // refund dCLM8 from this contract
         dclm8.transfer(msg.sender, amount);
