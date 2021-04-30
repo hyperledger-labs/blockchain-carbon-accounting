@@ -14,6 +14,7 @@ describe("Climate DAO - Integration tests", function() {
   
   // increase time for tests (block skips can take a while)
   this.timeout(60000);
+  const hoursToAdvanceBlocks = 74;
 
   beforeEach(async () => {
     await deployments.fixture();
@@ -124,8 +125,7 @@ describe("Climate DAO - Integration tests", function() {
     console.log(`rawForVotes : ${(await governor.proposals(1)).rawForVotes.toString()}`);
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
 
-    console.log("Advancing blocks...")
-    advanceBlocks(hoursToBlocks(150));
+    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
     
     // check for success
     await governor.state(proposal)
@@ -178,8 +178,7 @@ describe("Climate DAO - Integration tests", function() {
     console.log(`forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
     console.log(`againstVotes: ${(await governor.proposals(1)).againstVotes.toString()}`);
     
-    console.log("Advancing blocks...")
-    advanceBlocks(hoursToBlocks(150));
+    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
     
     await governor.state(proposal)
     .then((response) => {
@@ -221,8 +220,7 @@ describe("Climate DAO - Integration tests", function() {
     console.log(`forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
     console.log(`againstVotes: ${(await governor.proposals(1)).againstVotes.toString()}`);
     
-    console.log("Advancing blocks...")
-    advanceBlocks(hoursToBlocks(150));
+    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
    
     // check for defeat
     await governor.state(proposal)

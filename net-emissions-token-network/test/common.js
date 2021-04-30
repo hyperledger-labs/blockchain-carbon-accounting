@@ -33,7 +33,7 @@ exports.hoursToSeconds = function (hours) {
 }
 
 exports.hoursToBlocks = function (hours) {
-  return (hours * 140); // assuming 15s blocks similar to Governor.sol
+  return (hours * 80); // assuming 5s blocks similar to Governor.sol
 }
 
 exports.encodeParameters = function (types, values) {
@@ -42,6 +42,7 @@ exports.encodeParameters = function (types, values) {
 }
 
 exports.advanceBlocks = async function (blocks) {
+  console.log(`Advancing blocks: ${blocks} ...`);
   for (let i = 0; i <= blocks; i++) {
     ethers.provider.send("evm_mine");
   }

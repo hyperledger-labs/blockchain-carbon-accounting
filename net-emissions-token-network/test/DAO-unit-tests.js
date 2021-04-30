@@ -118,7 +118,6 @@ describe("Climate DAO - Unit tests", function() {
       .balanceOf(governor.address)
       .then((response) => expect(response).to.equal("5100000000000000000000000"));
 
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
@@ -478,7 +477,6 @@ describe("Climate DAO - Unit tests", function() {
       );
 
     // time skip
-    console.log("Advancing blocks...");
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
@@ -537,7 +535,6 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("500000000000000000000000"));
 
     // time skip
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for defeat
@@ -609,7 +606,6 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("400000000000000000000000"));
 
     // time skip
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for defeat
@@ -677,7 +673,6 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
 
     // time skip
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
@@ -745,7 +740,6 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
 
     // time skip
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
@@ -814,7 +808,6 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("2700000000000000000000000"));
 
     // time skip
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
@@ -876,7 +869,6 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
 
     // time skip
-    console.log("Advancing blocks...")
     advanceBlocks(hoursToBlocks(5));
 
     // check for success
