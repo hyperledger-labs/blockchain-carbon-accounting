@@ -358,13 +358,25 @@ contract Governor {
     function state(uint proposalId) public view returns (ProposalState) {
         require(proposalCount >= proposalId && proposalId > 0, "Governor::state: invalid proposal id");
         Proposal storage proposal = proposals[proposalId];
+
+        // check if child proposal
+        bool isChildProposal = false;
+        bool isParentProposal = false;
+        if (proposal.parentProposalId > 0) {
+            isChildProposal = true;
+        } else if (proposal.childProposalIds.length > 0) {
+            isParentProposal = true;
+        }
+
+        // TODO: for parent proposals, add up all the votes for and against of all child proposals for quorum
+        // all sub-proposals must pass for parent to pass; if any fails, parent fails
         if (proposal.canceled) {
             return ProposalState.Canceled;
         } else if (block.number <= proposal.startBlock) {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes + proposal.againstVotes < quorumVotes()) {
+        } else if ( !isChildProposal && (proposal.forVotes + proposal.againstVotes < quorumVotes()) ) {
             return ProposalState.QuorumFailed;
         } else if (proposal.forVotes <= proposal.againstVotes) {
             return ProposalState.Defeated;
@@ -401,6 +413,8 @@ contract Governor {
         if (receipt.hasVoted == true) {
             require(receipt.support == support, "Governor::_castVote: can only top off same vote without refunding");
         }
+
+        // TODO: if parent proposal, split vote equally between child proposals and return early
 
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
