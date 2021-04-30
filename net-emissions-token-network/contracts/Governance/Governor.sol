@@ -443,6 +443,8 @@ contract Governor {
         uint amount;
         bool hasStakeRefunded = receipt.hasStakeRefunded;
 
+        // if msg.sender is proposer and the vote is defeated because there were many votes against, the proposer does not get any tokens back.
+        require (!(msg.sender == proposal.proposer && state(proposalId) == ProposalState.Defeated), "Governor::refund: not eligible for refund");
         // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
         // if msg.sender is proposer and succeeded, set to 150% proposal threshold plus votes
         // otherwise, set to user's raw vote count (in dCLM8)
