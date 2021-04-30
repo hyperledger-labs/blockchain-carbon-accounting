@@ -329,10 +329,10 @@ contract Governor {
 
     function cancel(uint proposalId) public {
         ProposalState currentState = state(proposalId);
-        require(currentState != ProposalState.Executed, "Governor::cancel: cannot cancel executed proposal");
+        require(currentState == ProposalState.Active, "Governor::cancel: proposal should be active");
 
         Proposal storage proposal = proposals[proposalId];
-        require(msg.sender == guardian || dclm8.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "Governor::cancel: proposer above threshold");
+        require(msg.sender == guardian || msg.sender == proposal.proposer, "Governor::cancel: you cannot cancel proposal");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {

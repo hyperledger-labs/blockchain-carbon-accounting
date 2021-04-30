@@ -217,7 +217,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
           rawVotes: proposalReceipt[3].div(decimalsRaw),
-          rawRefund: refundProposal
+          rawRefund: refundProposal,
+          endVotesCancelPeriodBlock: proposalReceipt[6].toNumber()
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
