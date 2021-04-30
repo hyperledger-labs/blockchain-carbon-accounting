@@ -514,40 +514,48 @@ describe("Net Emissions Token Network - Unit tests", function() {
     expect(tokenId).to.equal(1);
 
     // retire token that does not exist
+    let error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).retire((tokenId+1), retireAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::retire: tokenId does not exist"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::retire: tokenId does not exist"
+    );
 
     // retire from wrong account
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer2)).retire((tokenId), retireAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
+    );
 
     // retire from unregistered account
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(unregistered)).retire((tokenId), retireAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
+    );
 
     // retire more than available balance
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).retire((tokenId), (quantity + 100));
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
+    );
 
     // retire correctly
     await contract
@@ -561,13 +569,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
       .then((response) => expect(response.toString()).to.equal(`${(quantity - retireAmount)},${retireAmount}`));
 
     // get token retired amount of tokenID that does not exist
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).getTokenRetiredAmount(consumer1, 100);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::getTokenRetiredAmount: tokenId does not exist"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::getTokenRetiredAmount: tokenId does not exist"
+    );
 
   });
 
@@ -605,31 +615,37 @@ describe("Net Emissions Token Network - Unit tests", function() {
     expect(tokenId).to.equal(1);
 
     // try transfer of token that does not exist
+    let error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer2, 100, transferAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::transfer: tokenId does not exist"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::transfer: tokenId does not exist"
+    );
 
     // try to transfer to unregistered recipient
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).transfer(unregistered, tokenId, transferAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert Recipient must be consumer or dealer"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::transfer: Recipient must be consumer or dealer"
+    );
 
     // try to transfer to self
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer1, tokenId, transferAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
+    );
 
   });
 
@@ -650,6 +666,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     await contract.connect(await ethers.getSigner(deployer)).setLimitedMode(true);
 
     // try to issue to an account other than admin
+    let error = null;
     try {
       await contract.connect(await ethers.getSigner(deployer)).issue(
         consumer1,
@@ -663,12 +680,14 @@ describe("Net Emissions Token Network - Unit tests", function() {
         description
       );
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
+    );
 
     // try to issue from carbon offsets dealer
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(dealer2)).issue(
         deployer,
@@ -682,10 +701,11 @@ describe("Net Emissions Token Network - Unit tests", function() {
         description
       );
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::_issue(limited): msg.sender not timelock"
+    );
 
     // temporarily turn off limited mode and issue tokens to owner (to simulate issuing with DAO)
     await contract.connect(await ethers.getSigner(deployer)).setLimitedMode(false);
@@ -709,13 +729,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
     await contract.connect(await ethers.getSigner(deployer)).transfer(consumer1, 1, transferAmount);
 
     // try to transfer from consumer to consumerTwo
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer2, 1, transferAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
+    );
 
     // issue audited emissions token from dealer
     await contract.connect(await ethers.getSigner(dealer1)).issue(
@@ -734,13 +756,15 @@ describe("Net Emissions Token Network - Unit tests", function() {
     await contract.connect(await ethers.getSigner(deployer)).transfer(dealer1, 1, transferAmount);
 
     // try to transfer from dealer to consumer
+    error = null;
     try {
       await contract.connect(await ethers.getSigner(dealer1)).transfer(consumer1, 1, transferAmount);
     } catch (err) {
-      expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
-      );
+      error = err.toString();
     }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
+    );
 
     // try to retire from consumer
     await contract.connect(await ethers.getSigner(consumer1)).retire(1, transferAmount);

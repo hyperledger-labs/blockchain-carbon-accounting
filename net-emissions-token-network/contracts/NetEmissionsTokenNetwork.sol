@@ -598,6 +598,11 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 value
     ) external consumerOrDealer {
         require(tokenExists(tokenId), "CLM8::transfer: tokenId does not exist");
+        // receiver must be Consumer or Dealer
+        require(
+            hasRole(REGISTERED_CONSUMER, to) ||hasRole(REGISTERED_DEALER, to),
+            "CLM8::transfer: Recipient must be consumer or dealer"
+        );
         require((msg.sender != to), "CLM8::transfer: sender and receiver cannot be the same");
         super.safeTransferFrom(msg.sender, to, tokenId, value, "0x00");
     }
