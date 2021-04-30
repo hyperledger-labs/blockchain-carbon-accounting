@@ -68,6 +68,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
       for (let i = 1; i <= numOfUniqueTokens; i++) {
         // Fetch token details
         let tokenDetails = await getTokenDetails(provider, i);
+        console.log('--- tokenDetails', tokenDetails);
 
         // Format unix times to Date objects
         let fromDate = formatDate(tokenDetails.fromDate.toNumber());
@@ -111,6 +112,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
+          totalIssued: tokenDetails.totalIssued.toNumber(),
+          totalRetired: tokenDetails.totalRetired.toNumber(),
         };
 
         // Push token to myBalances or myIssuedTokens in state
@@ -226,6 +229,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
                   <th>ID</th>
                   <th>Type</th>
                   <th>Description</th>
+                  <th>Issued</th>
+                  <th>Retired</th>
                 </tr>
               </thead>
               <tbody>
@@ -239,6 +244,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
                       <td>{token.description}</td>
+                      <td>{token.totalIssued}</td>
+                      <td>{token.totalRetired}</td>
                     </tr>
                   ))}
               </tbody>
