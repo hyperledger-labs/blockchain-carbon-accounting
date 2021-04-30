@@ -27,7 +27,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
 
     // create a proposal
-    let proposal = createMultiAttributeProposal({
+    let proposal = await createMultiAttributeProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -38,6 +38,53 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     await governor
       .proposalCount()
       .then((response) => expect(response.toString()).to.equal("4"));
+
+  });
+
+  it("should split vote three ways to children when voting on a parent proposal", async function () {
+
+    const { deployer } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // create a proposal
+    let proposal = await createMultiAttributeProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    console.log(proposal);
+    // vote on parent proposal
+    await governor
+      .connect(await ethers.getSigner(deployer))
+      .castVote(1, true, "1000000000000000000000"); // 1000 dCLM8
+
+    // check receipts for each proposal
+    console.log(`Proposal #1 receipt: ${(await governor.getReceipt(1, deployer))}`)
+    console.log(`Proposal #2 receipt: ${(await governor.getReceipt(2, deployer))}`)
+    console.log(`Proposal #3 receipt: ${(await governor.getReceipt(3, deployer))}`)
+    console.log(`Proposal #4 receipt: ${(await governor.getReceipt(4, deployer))}`)
+    console.log(`Proposal #1 details: ${(await governor.proposals(1))}`)
+
+    await governor.getReceipt(1, deployer).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    await governor.getReceipt(2, deployer).then((response) => {
+      expect(response.votes).to.equal("18257418583");
+      expect(response.rawVotes).to.equal("333333333333333333333");
+    });
+    await governor.getReceipt(3, deployer).then((response) => {
+      expect(response.votes).to.equal("18257418583");
+      expect(response.rawVotes).to.equal("333333333333333333333");
+    });
+    await governor.getReceipt(4, deployer).then((response) => {
+      expect(response.votes).to.equal("18257418583");
+      expect(response.rawVotes).to.equal("333333333333333333333");
+    });
 
   });
 
