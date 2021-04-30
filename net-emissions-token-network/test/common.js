@@ -151,7 +151,7 @@ exports.createProposal = async function (params) {
 exports.createMultiAttributeProposal = async function (params) {
 
   // set-up parameters for proposal external contract call
-  let proposalCallParamsParent = {
+  let proposalCallParams = {
     account: params.deployer,
     proposer: params.proposer,
     tokenTypeId: 1,
@@ -162,18 +162,6 @@ exports.createMultiAttributeProposal = async function (params) {
     metadata: "metadata",
     manifest: "manifest",
     description: "parent description"
-  }
-  let proposalCallParamsChild = {
-    account: params.deployer,
-    proposer: params.proposer,
-    tokenTypeId: 1,
-    quantity: 300,
-    fromDate: 0,
-    thruDate: 0,
-    automaticRetireDate: 0,
-    metadata: "metadata",
-    manifest: "manifest",
-    description: "child description"
   }
 
   // set-up child and parent proposal parameters (don't wrap any values in arrays yet)
@@ -186,39 +174,25 @@ exports.createMultiAttributeProposal = async function (params) {
       ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
       // value of params
       [
-        proposalCallParamsParent.account,
-        proposalCallParamsParent.proposer,
-        proposalCallParamsParent.tokenTypeId,
-        proposalCallParamsParent.quantity,
-        proposalCallParamsParent.fromDate,
-        proposalCallParamsParent.thruDate,
-        proposalCallParamsParent.automaticRetireDate,
-        proposalCallParamsParent.metadata,
-        proposalCallParamsParent.manifest,
-        proposalCallParamsParent.description
+        proposalCallParams.account,
+        proposalCallParams.proposer,
+        proposalCallParams.tokenTypeId,
+        proposalCallParams.quantity,
+        proposalCallParams.fromDate,
+        proposalCallParams.thruDate,
+        proposalCallParams.automaticRetireDate,
+        proposalCallParams.metadata,
+        proposalCallParams.manifest,
+        proposalCallParams.description
       ]),
     description: "Parent test proposal" // description of proposal
   };
+  // except for the description, it doesn't really matter what we put here since child proposals are never executed
   let proposalChild = {
-    targets: params.netEmissionsTokenNetwork.address, // contract to call
+    targets: "0x0000000000000000000000000000000000000000", // contract to call
     values: 0, // number of wei sent with call, i.e. msg.value
-    signatures: "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)", // function in contract to call
-    calldatas: exports.encodeParameters(
-      // types of params
-      ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
-      // value of params
-      [
-        proposalCallParamsChild.account,
-        proposalCallParamsChild.proposer,
-        proposalCallParamsChild.tokenTypeId,
-        proposalCallParamsChild.quantity,
-        proposalCallParamsChild.fromDate,
-        proposalCallParamsChild.thruDate,
-        proposalCallParamsChild.automaticRetireDate,
-        proposalCallParamsChild.metadata,
-        proposalCallParamsChild.manifest,
-        proposalCallParamsChild.description
-      ]),
+    signatures: "", // function in contract to call
+    calldatas: "0x",
     description: "Child test proposal" // description of proposal
   };
 
