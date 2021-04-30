@@ -208,7 +208,7 @@ contract Governor {
 
     function _setChildProposalIds(uint[] memory ids) internal {
         Proposal storage p = proposals[ids[0]];
-        for (uint i = 1; i < ids.length; i++) {
+        for (uint i = 1; i < ids.length; i++) { // skip 1 because 0 is the parent proposal
             p.childProposalIds.push(ids[i]);
         }
     }
@@ -414,10 +414,18 @@ contract Governor {
             require(receipt.support == support, "Governor::_castVote: can only top off same vote without refunding");
         }
 
-        // TODO: if parent proposal, split vote equally between child proposals and return early
-
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
+
+        // if parent proposal, split vote equally between child proposals and return early
+        uint numChildProposals = proposal.childProposalIds.length;
+        if (numChildProposals > 0) {
+            uint96 splitVotes = uint96(div256(votes, numChildProposals)); // TODO: check math
+            for (uint i = 0; i < numChildProposals; i++) {
+                _castVote(msg.sender, proposal.childProposalIds[i], support, splitVotes);
+            }
+            return;
+        }
 
         uint96 quadraticVote = uint96(sqrt(votes));
 
