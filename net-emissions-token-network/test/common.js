@@ -148,6 +148,119 @@ exports.createProposal = async function (params) {
 
 }
 
+exports.createMultiAttributeProposal = async function (params) {
+
+  // set-up parameters for proposal external contract call
+  let proposalCallParamsParent = {
+    account: params.deployer,
+    proposer: params.proposer,
+    tokenTypeId: 1,
+    quantity: 300,
+    fromDate: 0,
+    thruDate: 0,
+    automaticRetireDate: 0,
+    metadata: "metadata",
+    manifest: "manifest",
+    description: "parent description"
+  }
+  let proposalCallParamsChild = {
+    account: params.deployer,
+    proposer: params.proposer,
+    tokenTypeId: 1,
+    quantity: 300,
+    fromDate: 0,
+    thruDate: 0,
+    automaticRetireDate: 0,
+    metadata: "metadata",
+    manifest: "manifest",
+    description: "child description"
+  }
+
+  // set-up child and parent proposal parameters (don't wrap any values in arrays yet)
+  let proposalParent = {
+    targets: params.netEmissionsTokenNetwork.address, // contract to call
+    values: 0, // number of wei sent with call, i.e. msg.value
+    signatures: "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)", // function in contract to call
+    calldatas: exports.encodeParameters(
+      // types of params
+      ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
+      // value of params
+      [
+        proposalCallParamsParent.account,
+        proposalCallParamsParent.proposer,
+        proposalCallParamsParent.tokenTypeId,
+        proposalCallParamsParent.quantity,
+        proposalCallParamsParent.fromDate,
+        proposalCallParamsParent.thruDate,
+        proposalCallParamsParent.automaticRetireDate,
+        proposalCallParamsParent.metadata,
+        proposalCallParamsParent.manifest,
+        proposalCallParamsParent.description
+      ]),
+    description: "Parent test proposal" // description of proposal
+  };
+  let proposalChild = {
+    targets: params.netEmissionsTokenNetwork.address, // contract to call
+    values: 0, // number of wei sent with call, i.e. msg.value
+    signatures: "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)", // function in contract to call
+    calldatas: exports.encodeParameters(
+      // types of params
+      ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
+      // value of params
+      [
+        proposalCallParamsChild.account,
+        proposalCallParamsChild.proposer,
+        proposalCallParamsChild.tokenTypeId,
+        proposalCallParamsChild.quantity,
+        proposalCallParamsChild.fromDate,
+        proposalCallParamsChild.thruDate,
+        proposalCallParamsChild.automaticRetireDate,
+        proposalCallParamsChild.metadata,
+        proposalCallParamsChild.manifest,
+        proposalCallParamsChild.description
+      ]),
+    description: "Child test proposal" // description of proposal
+  };
+
+  // format proposals (0 => parent, 1..n => children)
+  // use 1 parent and 3 children (duplicated) for this test
+  let proposal = {
+    targets: [ proposalParent.targets, proposalChild.targets, proposalChild.targets, proposalChild.targets, ],
+    values: [ proposalParent.values, proposalChild.values, proposalChild.values, proposalChild.values, ],
+    signatures: [ proposalParent.signatures, proposalChild.signatures, proposalChild.signatures, proposalChild.signatures, ],
+    calldatas: [ proposalParent.calldatas, proposalChild.calldatas, proposalChild.calldatas, proposalChild.calldatas, ],
+    descriptions: [ proposalParent.description, proposalChild.description, proposalChild.description, proposalChild.description, ]
+  };
+
+  // make proposal
+  let makeProposal = await params.governor
+    .connect(await ethers.getSigner(params.proposer))
+    .proposeMultiAttribute(
+      proposal.targets,
+      proposal.values,
+      proposal.signatures,
+      proposal.calldatas,
+      proposal.descriptions
+    );
+
+  // get ID of proposal just made
+  let proposalTransactionReceipt = await makeProposal.wait(0);
+  let proposalEvent = proposalTransactionReceipt.events.pop();
+  let proposalId = proposalEvent.args[0].toNumber();
+
+  await exports.advanceBlocks(1);
+
+  // get proposal state
+  await params.governor.state(proposalId)
+    .then((response) => {
+      expect(response).to.equal(exports.proposalStates.active);
+    });
+
+  return proposalId;
+
+}
+
+
 exports.executeProposalAndConfirmSuccess = async function (proposalId, params) {
 
   let numTokensBefore = await params.netEmissionsTokenNetwork.getNumOfUniqueTokens();
