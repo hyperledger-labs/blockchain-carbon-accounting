@@ -60,6 +60,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         string metadata;
         string manifest;
         string description;
+        uint256 totalIssued;
+        uint256 totalRetired;
     }
 
     // Counts number of unique token IDs (auto-incrementing)
@@ -367,13 +369,14 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         tokenInfo.metadata = _metadata;
         tokenInfo.manifest = _manifest;
         tokenInfo.description = _description;
+        tokenInfo.totalIssued = _quantity;
+        tokenInfo.totalRetired = uint256(0);
 
         super._mint(_issuee, _numOfUniqueTokens.current(), _quantity, "");
 
         // retire audited emissions on mint
         if (_tokenTypeId == 3) {
-            super._burn(tokenInfo.issuee, tokenInfo.tokenId, _quantity);
-            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee] = _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee].add(_quantity);
+            _retire(tokenInfo.issuee, tokenInfo.tokenId, _quantity);
         }
 
         // emit event with all token details and balances
@@ -456,13 +459,22 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         require(tokenExists(tokenId), "CLM8::retire: tokenId does not exist");
         require( (amount <= super.balanceOf(msg.sender, tokenId)), "CLM8::retire: not enough available balance to retire" );
 
-        super._burn(msg.sender, tokenId, amount);
-        _retiredBalances[tokenId][msg.sender] = _retiredBalances[tokenId][msg.sender].add(amount);
+        _retire(msg.sender, tokenId, amount);
         emit TokenRetired(
             msg.sender,
             tokenId,
             amount
         );
+    }
+
+    function _retire(
+        address _address,
+        uint256 tokenId,
+        uint256 _quantity
+    ) internal {
+        super._burn(_address, tokenId, _quantity);
+        _tokenDetails[tokenId].totalRetired = _tokenDetails[tokenId].totalRetired.add(_quantity);
+        _retiredBalances[tokenId][_address] = _retiredBalances[tokenId][_address].add(_quantity);
     }
 
     /**

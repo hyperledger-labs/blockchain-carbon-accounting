@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 const { getNamedAccounts } = require("hardhat");
 const {
   allTokenTypeId,
@@ -37,7 +37,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // check number of unique tokens before issuance
     await contract.getNumOfUniqueTokens().then((response) => expect(response).to.equal(0));
 
-    // try issuing with wrong tokenTypeId 
+    // try issuing with wrong tokenTypeId
     try {
       await contract
         .connect(await ethers.getSigner(dealer1))
@@ -104,7 +104,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let tokenId2 = issueEvent2.args[2].toNumber();
     expect(tokenId2).to.equal(2);
 
-    // try getting tokenTypeId 
+    // try getting tokenTypeId
     try {
       await contract.getTokenType((tokenId2 + 1));
     } catch (err) {
@@ -271,6 +271,8 @@ describe("Net Emissions Token Network - Unit tests", function() {
       expect(response.metadata).to.equal(metadata);
       expect(response.manifest).to.equal(manifest);
       expect(response.description).to.equal(description);
+      expect(response.totalIssued).to.equal(quantity);
+      expect(response.totalRetired).to.equal(0);
     });
 
     await contract.getIssuer(tokenId).then((response) => {
@@ -295,6 +297,127 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     }
 
+  });
+
+  it("should track totalRetired and totalIssued", async function () {
+    const { dealer1, consumer1, consumer2 } = await getNamedAccounts();
+
+    let registerDealer = await contract.registerDealer(
+      dealer1,
+      allTokenTypeId[1]
+    );
+    expect(registerDealer);
+    let registerConsumer = await contract
+      .connect(await ethers.getSigner(dealer1))
+      .registerConsumer(consumer1);
+    expect(registerConsumer);
+    let registerConsumerTwo = await contract
+      .connect(await ethers.getSigner(dealer1))
+      .registerConsumer(consumer2);
+    expect(registerConsumerTwo);
+
+    let issue = await contract
+      .connect(await ethers.getSigner(dealer1))
+      .issue(
+        consumer1,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        automaticRetireDate,
+        metadata,
+        manifest,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop();
+    let tokenId = issueEvent.args[2].toNumber();
+    expect(tokenId).to.equal(1);
+
+    // check token total amounts
+    await contract.getTokenDetails(tokenId).then((response) => {
+      expect(response.tokenId.toNumber()).to.equal(tokenId);
+      expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
+      expect(response.totalIssued).to.equal(quantity);
+      expect(response.totalRetired).to.equal(0);
+    });
+
+    // Get balances of both available and retired
+    let expectedAvailable = quantity.toString();
+    let expectedRetire = "0";
+    await contract
+      .getAvailableAndRetired(consumer1, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(
+          `${expectedAvailable},${expectedRetire}`
+        )
+      );
+
+    // Transfer some to Consumer 2
+    await contract
+      .connect(await ethers.getSigner(consumer1))
+      .transfer(consumer2, tokenId, transferAmount);
+
+    // Check new balances
+    let expectedAvailable1 = (quantity - transferAmount).toString();
+    await contract
+      .getAvailableAndRetired(consumer1, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(
+          `${expectedAvailable1},${expectedRetire}`
+        )
+      );
+    await contract
+      .getAvailableAndRetired(consumer2, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(
+          `${transferAmount},${expectedRetire}`
+        )
+      );
+
+    // Consumer 1 Retire some tokens (3)
+    let retireQty1 = 3;
+    await contract
+      .connect(await ethers.getSigner(consumer1))
+      .retire(tokenId, retireQty1);
+
+    // Consumer 2 Retire some tokens (1)
+    let retireQty2 = 1;
+    await contract
+      .connect(await ethers.getSigner(consumer2))
+      .retire(tokenId, retireQty2);
+
+    // Check new balances
+    let expectedAvailable1_2 = (quantity - transferAmount - retireQty1).toString();
+    let expectedRetire1_2 = retireQty1.toString();
+    let expectedAvailable2_2 = (transferAmount - retireQty2).toString();
+    let expectedRetire2_2 = retireQty2.toString();
+    await contract
+      .getAvailableAndRetired(consumer1, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(
+          `${expectedAvailable1_2},${expectedRetire1_2}`
+        )
+      );
+    await contract
+      .getAvailableAndRetired(consumer2, tokenId)
+      .then((response) =>
+        expect(response.toString()).to.equal(
+          `${expectedAvailable2_2},${expectedRetire2_2}`
+        )
+      );
+
+    // check token total amounts
+    await contract.getTokenDetails(tokenId).then((response) => {
+      expect(response.tokenId.toNumber()).to.equal(tokenId);
+      expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
+      expect(response.totalIssued).to.equal(quantity);
+      expect(response.totalRetired).to.equal(retireQty1 + retireQty2);
+    });
   });
 
   it("should retire audited emissions tokens on issuance; disallow transfers", async function() {
@@ -337,9 +460,18 @@ describe("Net Emissions Token Network - Unit tests", function() {
       .getAvailableAndRetired(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
 
-    // Try to transfer
+    // check token total amounts
+    await contract.getTokenDetails(tokenId).then((response) => {
+      expect(response.tokenId.toNumber()).to.equal(tokenId);
+      expect(response.tokenTypeId).to.equal(allTokenTypeId[2]);
+      expect(response.totalIssued).to.equal(quantity);
+      expect(response.totalRetired).to.equal(quantity);
+    });
+
+    // Try to transfer, this should fail
     try {
       await contract.connect(await ethers.getSigner(consumer1)).transfer(consumer2, tokenId, transferAmount);
+      assert.fail(0, 1, 'Exception not thrown, expected a "ERC1155: insufficient balance for transfer" error.');
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"

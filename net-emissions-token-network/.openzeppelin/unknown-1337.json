@@ -9,9 +9,9 @@
         "types": {}
       }
     },
-    "c5e67551049f41a699b219cb1eb6b26aebe3e94fb4ec433174517972222c2136": {
+    "04a414c1b58cd791eafc34b7f7c9e0a096aab48a6bb64125e6cd8dff7a90ba82": {
       "address": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
-      "txHash": "0x387394bf6bc29a58defb21cfdff74677eac3af362539f8079ef055aa32da2a83",
+      "txHash": "0x3ca11f6c2e93318d930bb8d1d7429b30b78fb3eaf45513dd20f53355811a616d",
       "layout": {
         "storage": [
           {
@@ -102,19 +102,19 @@
             "contract": "NetEmissionsTokenNetwork",
             "label": "_numOfUniqueTokens",
             "type": "t_struct(Counter)2327_storage",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:63"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:65"
           },
           {
             "contract": "NetEmissionsTokenNetwork",
             "label": "_tokenDetails",
-            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)2933_storage)",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:66"
+            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)2937_storage)",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:68"
           },
           {
             "contract": "NetEmissionsTokenNetwork",
             "label": "_retiredBalances",
             "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:67"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:69"
           }
         ],
         "types": {
@@ -136,10 +136,10 @@
           "t_uint256": {
             "label": "uint256"
           },
-          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)2933_storage)": {
+          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)2937_storage)": {
             "label": "mapping(uint256 => struct NetEmissionsTokenNetwork.CarbonTokenDetails)"
           },
-          "t_struct(CarbonTokenDetails)2933_storage": {
+          "t_struct(CarbonTokenDetails)2937_storage": {
             "label": "struct NetEmissionsTokenNetwork.CarbonTokenDetails",
             "members": [
               {
@@ -185,6 +185,14 @@
               {
                 "label": "description",
                 "type": "t_string_storage"
+              },
+              {
+                "label": "totalIssued",
+                "type": "t_uint256"
+              },
+              {
+                "label": "totalRetired",
+                "type": "t_uint256"
               }
             ]
           },
@@ -274,6 +282,6 @@
   },
   "admin": {
     "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
-    "txHash": "0xf6df112bdcfcc5f502dc87b5511a6aba38780489f84987739ca92e48ea1294e2"
+    "txHash": "0xa3a88f156999365b04e205ff65a850710f17b6e3df74e06fee48f05f690fe445"
   }
 }
