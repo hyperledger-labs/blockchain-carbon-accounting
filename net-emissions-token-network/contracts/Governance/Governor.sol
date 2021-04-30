@@ -359,7 +359,7 @@ contract Governor {
         require(proposalCount >= proposalId && proposalId > 0, "Governor::state: invalid proposal id");
         Proposal storage proposal = proposals[proposalId];
 
-        // check if child proposal
+        // check if parent/child proposal
         bool isChildProposal = false;
         bool isParentProposal = false;
         if (proposal.parentProposalId > 0) {
@@ -368,17 +368,39 @@ contract Governor {
             isParentProposal = true;
         }
 
-        // TODO: for parent proposals, add up all the votes for and against of all child proposals for quorum
+        // calculate votes and quorum
+        // for parent proposals, add up all the votes for and against of all child proposals for quorum
         // all sub-proposals must pass for parent to pass; if any fails, parent fails
+        // TODO: optimize more for gas savings by returning early when possible and test edge cases
+        uint forVotes;
+        uint againstVotes;
+        if (isParentProposal) {
+            for (uint i = 0; i < proposal.childProposalIds.length; i++) {
+                Proposal storage child = proposals[proposal.childProposalIds[i]];
+
+                // return defeated state early if non-active proposal and more against votes than for votes
+                if (block.number > proposal.endBlock && child.forVotes <= child.againstVotes) {
+                    return ProposalState.Defeated;
+                }
+
+                // add up votes for each child proposal
+                forVotes = uint96(add256(child.forVotes, forVotes));
+                againstVotes = uint96(add256(child.againstVotes, againstVotes));
+            }
+        } else {
+            forVotes = proposal.forVotes;
+            againstVotes = proposal.againstVotes;
+        }
+
         if (proposal.canceled) {
             return ProposalState.Canceled;
         } else if (block.number <= proposal.startBlock) {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if ( !isChildProposal && (proposal.forVotes + proposal.againstVotes < quorumVotes()) ) {
+        } else if ( forVotes + againstVotes < quorumVotes() ) {
             return ProposalState.QuorumFailed;
-        } else if (proposal.forVotes <= proposal.againstVotes) {
+        } else if (forVotes <= againstVotes) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
