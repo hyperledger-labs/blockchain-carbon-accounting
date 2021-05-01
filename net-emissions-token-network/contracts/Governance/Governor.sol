@@ -52,6 +52,9 @@ contract Governor {
     /// @notice The duration of voting on a proposal, in blocks
     function votingPeriod() public pure returns (uint) { return 5760; } // ~3 days in blocks (assuming 5s blocks)
 
+    /// @notice The duration of the votes cancel period, in blocks
+    function votesCancelPeriod() public pure returns (uint) { return 320; } // 4 hours
+
     /// @notice The address of the timelock
     TimelockInterface public timelock;
 
@@ -113,6 +116,12 @@ contract Governor {
         // @notes Description of the proposal
         string description;
 
+        // @notice id for parent proposal (if a child multi-attribute proposal)
+        uint parentProposalId;
+
+        // @notice ids for child proposals (if a parent multi-attribute proposal)
+        uint[] childProposalIds;
+
         // @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
     }
@@ -131,8 +140,14 @@ contract Governor {
         // @notice The number of CLM8 burned for votes
         uint96 rawVotes;
 
-        // @notice Whether or not a user has refunded their locked tokens if eligible
-        bool hasRefunded;
+        // @notice Whether or not a user has refunded their votes tokens if eligible
+        bool hasVotesRefunded;
+
+        // @notice Whether or not a user has refunded their stake tokens if eligible
+        bool hasStakeRefunded;
+
+        // @notice The block at which votes cancel period ends
+        uint endVotesCancelPeriodBlock;
     }
 
     /// @notice Possible states that a proposal may be in
@@ -140,6 +155,7 @@ contract Governor {
         Pending,
         Active,
         Canceled,
+        QuorumFailed,
         Defeated,
         Succeeded,
         Queued,
@@ -190,18 +206,63 @@ contract Governor {
         quorum = _quorum;
     }
 
+    function _setChildProposalIds(uint[] memory ids) internal {
+        Proposal storage p = proposals[ids[0]];
+        for (uint i = 1; i < ids.length; i++) { // skip 1 because 0 is the parent proposal
+            p.childProposalIds.push(ids[i]);
+        }
+    }
+
+    function proposeMultiAttribute(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string[] memory descriptions) public returns (uint) {
+        // targets[0] => master proposal, targets[1] => child proposal #1, targets[2] => child proposal #2...
+        // unlike propose(), we require only 1 function call per proposal in a multi-attribute proposal
+        // so each array value in the arguments can be assumed to be a unique proposal
+        require(targets.length == descriptions.length, "Governor::propose: proposal function information arity mismatch");
+
+        // iterate through targets.length and call propose() for each proposal
+        // 0 is parent, 1..n are children
+        uint[] memory ids = new uint[](targets.length);
+        for (uint i = 0; i < targets.length; i++) {
+
+            // wrap arguments in arrays
+            address[] memory target = new address[](1);
+            uint[] memory value = new uint[](1);
+            string[] memory signature = new string[](1);
+            bytes[] memory data = new bytes[](1);
+            target[0] = targets[i];
+            value[0] = values[i];
+            signature[0] = signatures[i];
+            data[0] = calldatas[i];
+
+            // make proposal
+            uint id = propose(
+                target,
+                value,
+                signature,
+                data,
+                descriptions[i]
+            );
+
+            ids[i] = id;
+
+            // set parent references in child proposals
+            if (i > 0) {
+                Proposal storage p = proposals[id];
+                p.parentProposalId = ids[0];
+            }
+        }
+
+        // set children on parent proposal
+        _setChildProposalIds(ids);
+
+        return ids[0];
+    }
+
     function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
         require(dclm8.getPriorVotes(msg.sender, sub256(block.number, 1)) >= proposalThreshold(), "Governor::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "Governor::propose: proposal function information arity mismatch");
         require(targets.length != 0, "Governor::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "Governor::propose: too many actions");
-
-        uint latestProposalId = latestProposalIds[msg.sender];
-        if (latestProposalId != 0) {
-          ProposalState proposersLatestProposalState = state(latestProposalId);
-          require(proposersLatestProposalState != ProposalState.Active, "Governor::propose: one live proposal per proposer, found an already active proposal");
-          require(proposersLatestProposalState != ProposalState.Pending, "Governor::propose: one live proposal per proposer, found an already pending proposal");
-        }
 
         // lock proposal threshold (the refund function handles the logic for eligible amount to withdraw)
         require(dclm8.balanceOf(msg.sender) >= proposalThreshold(), "Governor::propose: not enough balance to lock dCLM8 with proposal");
@@ -240,8 +301,8 @@ contract Governor {
         require(state(proposalId) == ProposalState.Succeeded, "Governor::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
 
-        // burn all dCLM8 associated with this proposal
-        dclm8._burn(address(this), uint96(add256(proposal.rawForVotes, proposal.rawAgainstVotes)));
+        // burn all dCLM8 associated with this proposal (minus proposalThreshold for reward)
+        dclm8._burn(address(this), uint96(sub256(add256(proposal.rawForVotes, proposal.rawAgainstVotes), proposalThreshold())));
 
         uint eta = add256(block.timestamp, timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -268,10 +329,10 @@ contract Governor {
 
     function cancel(uint proposalId) public {
         ProposalState currentState = state(proposalId);
-        require(currentState != ProposalState.Executed, "Governor::cancel: cannot cancel executed proposal");
+        require(currentState == ProposalState.Active, "Governor::cancel: proposal should be active");
 
         Proposal storage proposal = proposals[proposalId];
-        require(msg.sender == guardian || dclm8.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold(), "Governor::cancel: proposer above threshold");
+        require(msg.sender == guardian || msg.sender == proposal.proposer, "Governor::cancel: you cannot cancel proposal");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -297,13 +358,49 @@ contract Governor {
     function state(uint proposalId) public view returns (ProposalState) {
         require(proposalCount >= proposalId && proposalId > 0, "Governor::state: invalid proposal id");
         Proposal storage proposal = proposals[proposalId];
+
+        // check if parent/child proposal
+        bool isChildProposal = false;
+        bool isParentProposal = false;
+        if (proposal.parentProposalId > 0) {
+            isChildProposal = true;
+        } else if (proposal.childProposalIds.length > 0) {
+            isParentProposal = true;
+        }
+
+        // calculate votes and quorum
+        // for parent proposals, add up all the votes for and against of all child proposals for quorum
+        // all sub-proposals must pass for parent to pass; if any fails, parent fails
+        // TODO: optimize more for gas savings by returning early when possible and test edge cases
+        uint forVotes;
+        uint againstVotes;
+        if (isParentProposal) {
+            for (uint i = 0; i < proposal.childProposalIds.length; i++) {
+                Proposal storage child = proposals[proposal.childProposalIds[i]];
+
+                // return defeated state early if non-active proposal and more against votes than for votes
+                if (block.number > proposal.endBlock && child.forVotes <= child.againstVotes) {
+                    return ProposalState.Defeated;
+                }
+
+                // add up votes for each child proposal
+                forVotes = uint96(add256(child.forVotes, forVotes));
+                againstVotes = uint96(add256(child.againstVotes, againstVotes));
+            }
+        } else {
+            forVotes = proposal.forVotes;
+            againstVotes = proposal.againstVotes;
+        }
+
         if (proposal.canceled) {
             return ProposalState.Canceled;
         } else if (block.number <= proposal.startBlock) {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if (proposal.forVotes <= proposal.againstVotes || proposal.forVotes < quorumVotes()) {
+        } else if ( forVotes + againstVotes < quorumVotes() ) {
+            return ProposalState.QuorumFailed;
+        } else if (forVotes <= againstVotes) {
             return ProposalState.Defeated;
         } else if (proposal.eta == 0) {
             return ProposalState.Succeeded;
@@ -342,6 +439,16 @@ contract Governor {
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
 
+        // if parent proposal, split vote equally between child proposals and return early
+        uint numChildProposals = proposal.childProposalIds.length;
+        if (numChildProposals > 0) {
+            uint96 splitVotes = uint96(div256(votes, numChildProposals)); // TODO: check math
+            for (uint i = 0; i < numChildProposals; i++) {
+                _castVote(msg.sender, proposal.childProposalIds[i], support, splitVotes);
+            }
+            return;
+        }
+
         uint96 quadraticVote = uint96(sqrt(votes));
 
         if (support) {
@@ -359,7 +466,9 @@ contract Governor {
         receipt.support = support;
         receipt.votes = uint96(add256(receipt.votes, quadraticVote));
         receipt.rawVotes = uint96(add256(receipt.rawVotes, votes));
-        receipt.hasRefunded = false;
+        receipt.hasVotesRefunded = false;
+        receipt.hasStakeRefunded = false;
+        receipt.endVotesCancelPeriodBlock = add256(block.number, votesCancelPeriod());
 
         emit VoteCast(voter, proposalId, support, quadraticVote);
     }
@@ -368,36 +477,54 @@ contract Governor {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[msg.sender];
 
-        require(receipt.hasRefunded == false, "Governor::refund: already refunded this proposal");
+        require(receipt.hasVotesRefunded == false || receipt.hasStakeRefunded == false, "Governor::refund: already refunded this proposal");
+
+        // should not allow cancel user votes after proposal cancel period ended
+        if (state(proposalId) == ProposalState.Active) {
+            require(block.number <= receipt.endVotesCancelPeriodBlock, "Governor::refund: not eligible for refund, votes cancel period is ended");
+        }
 
         uint amount;
+        bool hasStakeRefunded = receipt.hasStakeRefunded;
 
+        // if msg.sender is proposer and the vote is defeated because there were many votes against, the proposer does not get any tokens back.
+        require (!(msg.sender == proposal.proposer && state(proposalId) == ProposalState.Defeated), "Governor::refund: not eligible for refund");
         // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
-        // if msg.sender is proposer and succeeded, set to proposal threshold plus votes
+        // if msg.sender is proposer and succeeded, set to 150% proposal threshold plus votes
         // otherwise, set to user's raw vote count (in dCLM8)
         bool proposalPassedAndIsProposer =
             msg.sender == proposal.proposer && (
                 state(proposalId) == ProposalState.Succeeded ||
+                state(proposalId) == ProposalState.Queued ||
+                state(proposalId) == ProposalState.Executed ||
                 state(proposalId) == ProposalState.Defeated ||
+                state(proposalId) == ProposalState.QuorumFailed ||
                 state(proposalId) == ProposalState.Canceled
             );
         if (proposalPassedAndIsProposer) {
-            // you only get your full stake back if the proposal succeeded, otherwise 3/4 of it
-            if (state(proposalId) == ProposalState.Succeeded) {
-                amount = proposalThreshold() + receipt.rawVotes;
+            // you get your 150% stake back if the proposal succeeded/queued/executed, otherwise 3/4 of proposal threshold plus votes
+            if (state(proposalId) == ProposalState.Succeeded || state(proposalId) == ProposalState.Queued || state(proposalId) == ProposalState.Executed) {
+                amount = (proposalThreshold() + receipt.rawVotes) * 3 / 2;
             } else {
-                uint256 quarterOfProposalThreshold = div256(proposalThreshold(), 4);
-                dclm8._burn(address(this), uint96(quarterOfProposalThreshold));
-                amount = uint96(sub256(proposalThreshold(), quarterOfProposalThreshold)) + receipt.rawVotes;
+                uint256 quarterOfStake = div256(add256(proposalThreshold(), receipt.rawVotes), 4);
+                dclm8._burn(address(this), uint96(quarterOfStake));
+                amount = uint96(quarterOfStake * 3);
             }
+            hasStakeRefunded = true;
         } else {
-            amount = receipt.rawVotes;
+            // If someone tries to cancel their vote (i.e. proposal state is active) they lose 5% of their tokens.
+            if (state(proposalId) == ProposalState.Active) {
+                uint256 tokensToLose = div256(receipt.rawVotes, 20);
+                amount = uint96(sub256(receipt.rawVotes, tokensToLose));
+            } else {
+                amount = receipt.rawVotes;
+            }
         }
         require(amount > 0, "Governor::refund: nothing to refund");
 
         bool isActive = state(proposalId) == ProposalState.Active;
-        bool isDefeatedByQuorum = state(proposalId) == ProposalState.Defeated && proposal.forVotes < quorumVotes();
-        require(isActive || isDefeatedByQuorum || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
+        bool isQuorumFailed = state(proposalId) == ProposalState.QuorumFailed;
+        require(isActive || isQuorumFailed || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
 
         // refund dCLM8 from this contract
         dclm8.transfer(msg.sender, amount);
@@ -417,7 +544,8 @@ contract Governor {
         receipt.votes = 0;
         receipt.rawVotes = 0;
         receipt.hasVoted = false;
-        receipt.hasRefunded = true;
+        receipt.hasVotesRefunded = true;
+        receipt.hasStakeRefunded = hasStakeRefunded;
 
     }
 

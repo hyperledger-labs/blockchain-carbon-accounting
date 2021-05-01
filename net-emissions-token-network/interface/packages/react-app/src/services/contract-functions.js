@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Contract } from "@ethersproject/contracts";
-import { addresses, abis } from "@project/contracts";
-
 import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
+import { Contract } from "@ethersproject/contracts";
+import { abis, addresses } from "@project/contracts";
+
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
 const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/g;
@@ -12,11 +12,12 @@ const PROPOSAL_STATES = [
   "Pending",
   "Active",
   "Canceled",
+  "Quorum Failed",
   "Defeated",
   "Succeeded",
   "Queued",
   "Expired",
-  "Executed"
+  "Executed",
 ];
 
 export const TOKEN_TYPES = [
@@ -36,7 +37,7 @@ function catchError(error) {
 
   // try to extract error message, otherwise return raw error
   let formatted_error;
-    
+
   if (error.message.startsWith("invalid ENS name")) {
     formatted_error = "Missing or invalid parameter.";
   } else if (error.message.startsWith("invalid BigNumber string")) {
@@ -49,7 +50,7 @@ function catchError(error) {
       formatted_error = error.message;
     }
   }
-  
+
   return formatted_error;
 }
 

@@ -1,12 +1,22 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
-
-import { getNumOfUniqueTokens, getTokenDetails, getAvailableAndRetired, formatDate } from "../services/contract-functions";
-
-import TokenInfoModal from "./token-info-modal";
-
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState
+} from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
+import {
+  formatDate,
+  getAvailableAndRetired,
+  getNumOfUniqueTokens,
+  getTokenDetails
+} from "../services/contract-functions";
+import TokenInfoModal from "./token-info-modal";
+
+
+
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) => {
   // Modal display and token it is set to
@@ -46,7 +56,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
   }
 
   async function fetchBalances() {
-    
+
     let newMyBalances = [];
     let newMyIssuedTokens = [];
 
@@ -56,24 +66,30 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
 
       // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= numOfUniqueTokens; i++) {
-
         // Fetch token details
-        let tokenDetails = (await getTokenDetails(provider, i));
+        let tokenDetails = await getTokenDetails(provider, i);
+        console.log('--- tokenDetails', tokenDetails);
 
         // Format unix times to Date objects
         let fromDate = formatDate(tokenDetails.fromDate.toNumber());
         let thruDate = formatDate(tokenDetails.thruDate.toNumber());
-        let automaticRetireDate = formatDate(tokenDetails.automaticRetireDate.toNumber());
+        let automaticRetireDate = formatDate(
+          tokenDetails.automaticRetireDate.toNumber()
+        );
 
         // Format tokenType from tokenTypeId
         let tokenTypes = [
           "Renewable Energy Certificate",
           "Carbon Emissions Offset",
-          "Audited Emissions"
+          "Audited Emissions",
         ];
 
         // Fetch available and retired balances
-        let balances = (await getAvailableAndRetired(provider, signedInAddress, i));
+        let balances = await getAvailableAndRetired(
+          provider,
+          signedInAddress,
+          i
+        );
         let availableBalance = balances[0].toNumber();
         let retiredBalance = balances[1].toNumber();
 
@@ -96,14 +112,25 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
-        }
+          totalIssued: tokenDetails.totalIssued.toNumber(),
+          totalRetired: tokenDetails.totalRetired.toNumber(),
+        };
 
         // Push token to myBalances or myIssuedTokens in state
         if (token.availableBalance > 0 || token.retiredBalance > 0) {
-          newMyBalances.push(token);
+          newMyBalances.push({ ...token });
+          console.log("newMyBalances pushed -> ", newMyBalances);
         }
         if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
+          let issueeBalances = await getAvailableAndRetired(
+            provider,
+            tokenDetails.issuee,
+            i
+          );
+          token.issueeAvailableBalance = issueeBalances[0].toNumber();
+          token.issueeRetiredBalance = issueeBalances[1].toNumber();
+          token.showIssueeBalance = true;
         }
       }
 
@@ -202,6 +229,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
                   <th>ID</th>
                   <th>Type</th>
                   <th>Description</th>
+                  <th>Issued</th>
+                  <th>Retired</th>
                 </tr>
               </thead>
               <tbody>
@@ -215,6 +244,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
                       <td>{token.description}</td>
+                      <td>{token.totalIssued}</td>
+                      <td>{token.totalRetired}</td>
                     </tr>
                   ))}
               </tbody>

@@ -176,7 +176,21 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       // get votes for signed in user
       let proposalReceipt = await getReceipt(provider, i, signedInAddress);
-      let refundProposal = (await getProposalThreshold(provider)).div("1000000000000000000").mul(3).div(4).toNumber();
+      let refundProposal = BigNumber.from("0").toNumber();
+
+      if (proposalState === "Active" || proposalState === "Quorum Failed") {
+        refundProposal = proposalReceipt[3].div(decimalsRaw).toNumber();
+      }
+
+      if (signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase()) {
+        let proposalThreshold = (await getProposalThreshold(provider)).div(decimalsRaw).toNumber();
+        let currentVotes = proposalReceipt[3].div(decimalsRaw).toNumber()
+        if (proposalState === "Succeeded") {
+          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(2).toNumber();
+        } else if (proposalState === "Canceled" || proposalState === "Quorum Failed") {
+          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(4).toNumber();
+        }
+      }
 
       let proposalIsEligibleToVote = (
         (proposalState === "Active") &&
@@ -198,15 +212,20 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         actions: proposalActions,
         receipt: {
           hasVoted: proposalReceipt[0],
+          hasVotesRefunded: proposalReceipt[4],
+          hasStakeRefunded: proposalReceipt[5],
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
           rawVotes: proposalReceipt[3].div(decimalsRaw),
-          rawRefund: proposalReceipt[3].div(decimalsRaw).toNumber() + refundProposal
+          rawRefund: refundProposal,
+          endVotesCancelPeriodBlock: proposalReceipt[6].toNumber()
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
       });
     }
+
+    console.log(p);
 
     setProposals(p);
     setProposalsLength(p.length || 0);
@@ -252,7 +271,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider, blockNumber, fetchingBlockNumber, setFetchingBlockNumber, fetchBlockNumber]);
 
   useEffect(() => {
-    if (provider && daoTokenBalance > 0 && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
+    if (provider && daoTokenBalance >= 0 && signedInAddress && proposalsLength === -1 && !fetchingProposals) {
       setFetchingProposals(true);
       fetchProposals();
     }
@@ -536,15 +555,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 { (proposal.receipt.hasVoted === true) &&
                   <p className="text-center py-2">
                     You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.
-                    <br/>
-                    <Button
-                      size="sm"
-                      onClick={ () => refundDclm8(proposal.id) }
-                      className="text-nowrap mt-2"
-                      variant="danger"
-                    >
-                      Refund {addCommas(proposal.receipt.rawRefund)} dCLM8
-                    </Button>
                   </p>
                 }
 
@@ -552,6 +562,27 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   <Col className="text-danger my-auto">
                     <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
                   </Col>
+                }
+
+                { (
+                    (
+                      proposal.receipt.hasVoted || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Defeated")) ) &&
+                      (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
+                      proposal.receipt.rawRefund > 0
+                  ) &&
+                  <p className="text-center py-2">
+                    <Button
+                      size="sm"
+                      onClick={ () => refundDclm8(proposal.id) }
+                      className="text-nowrap mt-2"
+                      variant="danger"
+                    >
+                      { (proposal.state === "Active")
+                        ? <span>Cancel My Vote</span>
+                        : <span>Refund {addCommas(proposal.receipt.rawRefund)} dCLM8</span>
+                      }
+                    </Button>
+                  </p>
                 }
               </Card.Body>
             </Card>

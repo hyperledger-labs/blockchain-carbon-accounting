@@ -6,6 +6,7 @@ require("@nomiclabs/hardhat-etherscan");
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
 require('@openzeppelin/hardhat-upgrades');
+require("@ethersproject/bignumber");
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
@@ -15,17 +16,6 @@ if (process.env.OVM) {
 
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
 // const ethereumConfig = require("./.ethereum-config");
-
-
-// Task to destroy a NetEmissionsTokenNetwork contract
-task("destroyClm8Contract", "Destroy a NetEmissionsTokenNetwork contract")
-  .addParam("contract", "The CLM8 contract to destroy")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
-    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
-    await contract.connect(admin).selfDestruct();
-  })
 
 // Task to set limited mode on NetEmissionsTokenNetwork
 task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
@@ -40,13 +30,14 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
 
 // Task to set quorum on Governor
 task("setQuorum", "Set the quorum value on a Governor contract")
-  .addParam("value", "The new quorum value (remember to account for 18 decimal places)")
+  .addParam("value", "The new quorum value in votes")
   .addParam("contract", "The Governor contract")
   .setAction(async taskArgs => {
     const [admin] = await ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
     const contract = await Governor.attach(taskArgs.contract);
-    await contract.connect(admin).setQuorum( String(taskArgs.value) );
+    // since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
+    await contract.connect(admin).setQuorum( ethers.BigNumber.from(taskArgs.value).mul(ethers.BigNumber.from("1000000000")));
   })
 
 // Task to set proposal threshold on Governor
@@ -66,7 +57,8 @@ task("getQuorum", "Return the quorum value (minimum number of votes for a propos
     const [admin] = await ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
     const contract = await Governor.attach(taskArgs.contract);
-    console.log((await contract.connect(admin).quorumVotes()).toString());
+    let quorum = (await contract.connect(admin).quorumVotes()).toString();
+    console.log(ethers.BigNumber.from(quorum).div(ethers.BigNumber.from("1000000000")).toString());
   })
 task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 required to stake with a proposal)")
   .addParam("contract", "The Governor contract")
@@ -96,6 +88,30 @@ task("setTestAccountRoles", "Set default account roles for testing")
     console.log("Account " + consumer1 + " is now a consumer");
     await contract.connect(admin).registerConsumer(consumer2);  
     console.log("Account " + consumer2 + " is now a consumer");
+})
+task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
+  .addParam("contract", "The dCLM8 token")
+  .setAction(async taskArgs => {
+    const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+    
+    const [admin] = await ethers.getSigners();    
+    const daoToken = await hre.ethers.getContractFactory("DAOToken");
+    const contract = await daoToken.attach(taskArgs.contract);
+    
+    let decimals = ethers.BigNumber.from("1000000000000000000");
+    let tokens = ethers.BigNumber.from("500000");
+    let i = tokens.mul(decimals);
+    
+    await contract.connect(admin).transfer(dealer1, i);
+    console.log ("Gave " + tokens + " DAO Tokens to " + dealer1);
+    await contract.connect(admin).transfer(dealer2, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${dealer2}`);
+    await contract.connect(admin).transfer(dealer3, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${dealer3}`);
+    await contract.connect(admin).transfer(consumer1, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${consumer1}`);
+    await contract.connect(admin).transfer(consumer2, i);
+    console.log (`Gave ${tokens} DAO Tokens to ${consumer2}`);
 })
 
 // Task to upgrade NetEmissionsTokenNetwork contract
@@ -236,6 +252,13 @@ module.exports = {
     //   url: `https://kovan.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
     // }
+
+    // Uncomment the following lines if deploying contract to Ropsten - See https://infura.io/docs/ethereum#section/Choose-a-Network
+    // Deploy with npx hardhat run --network ropsten scripts/___.js
+    // ropsten: {
+    //   url: `https://ropsten.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // },
 
   },
   // Uncomment if running contract verification

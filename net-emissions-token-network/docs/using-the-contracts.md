@@ -46,7 +46,11 @@ You can then run this command to set up roles for some of those accounts:
 $ npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>
 ```
 
+To test the DAO, use this command to give the DAO tokens to your test accounts:
 
+```
+$ npx hardhat giveDaoTokens --network localhost --contract <DaoToken address>
+```
 
 ## Deploying contracts to a public testnet
 
@@ -83,6 +87,14 @@ cp .ethereum-config.js.template .ethereum-config.js
 npx hardhat deploy --network goerli
 ```
 
+5. Make sure to copy and paste the timelock admin switch command to complete in two days (for example, here is a snippet of the deployment output):
+
+```
+Please copy and paste this command after Wed Apr 28 2021 11:27:38 GMT-0400 (Eastern Daylight Time) to complete the Timelock admin switch:
+
+npx hardhat completeTimelockAdminSwitch --network goerli --timelock 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --governor 0x7c385742B2332b65D536396bdcb10EE7Db821eA9 --target 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --value 0 --signature "setPendingAdmin(address)" --data 0x0000000000000000000000007c385742b2332b65d536396bdcb10ee7db821ea9 --eta 1619623658
+```
+
 The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.
 
 ## Deploying to xDai
@@ -96,6 +108,8 @@ Be sure your `.ethereum-config.js` has the private key of your deployer address,
 ```bash
 npx hardhat deploy --network xdai
 ```
+
+Be sure to copy the command to complete the Timelock admin switch in two days from the time of deployment (example in the section above).
 
 If any part of the deployment fails, you can run the command again and the deployment script will reuse the addresses previously automatically written to the `deployments` folder.
 
@@ -171,10 +185,8 @@ npx hardhat setLimitedMode --network localhost --contract <NetEmissionsTokenNetw
 By default, the quorum (minimum number of votes in order for a proposal to succeed) is 632 votes or about sqrt(4% of total supply). The guardian can set this value by running the task:
 
 ```bash
-npx hardhat setQuorum --network localhost --contract <Governor deployed address> --value 1000000000000
+npx hardhat setQuorum --network localhost --contract <Governor deployed address> --value <votes>
 ```
-
-In this example, we are lowering the quorum from 3162 dCLM8 to 1000 dCLM8. Notice that the 1000 is followed by 9 zeros, since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
 
 To get the current quorum, run the similar task:
 
@@ -217,6 +229,18 @@ npx hardhat upgradeClm8Contract --network localhost
 If successful, the script will return both the old implementation contract address and the new one, and the contract address to be called, which remains the same.  The state of the current variables will remain the same. The old implementation will automatically be made unusable, so there is no need to self-destruct it.
 
 Upgrading contracts on a testnet is similar -- just make sure that the network and Ethereum config is in `hardhat.config.js` and that it isn't commented out. If upgrading on an network via an Infura URL (like Goerli), you'll need an Infura key too. See more information on using the config files at the top of this document.
+
+## Upgrading Governor.sol and Timelock.sol without upgrading DAOToken.sol
+
+In the case that new changes are made to the DAO (Governor.sol and/or its Timelock.sol) and we want to deploy a new version of it to a production environment but we also want to keep the same DAOToken.sol contract, we can utilize the hardhat-deploy plugin's tags/dependencies features to easily deploy some contracts individually while reusing others. To upgrade just the DAO:
+
+1. Make sure the current addresses of the contracts you'd like to upgrade are in `deployments/<network>/` after running `npx hardhat deploy --network <network>`
+
+2. Navigate to `deployments/<network>/` and rename or delete the current references to the Governor and Timelock, which are `Governor.json` and `Timelock.json`
+
+3. Navigate back to `net-emissions-token-network/` and run `npx hardhat deploy --network <network>`
+
+Now instead of running the full deployment for every contract, the deployment script will reuse the current DAOToken and NetEmissionsTokenNetwork addresses on the network you're using and point it to the new DAO contracts.
 
 ## Analyzing with Slither
 
