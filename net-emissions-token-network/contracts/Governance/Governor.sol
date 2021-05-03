@@ -67,6 +67,9 @@ contract Governor {
     /// @notice The total number of proposals
     uint public proposalCount;
 
+    /// @notice The duration of the proposal cancel period, in blocks
+    function proposalCancelPeriod() public pure returns (uint) { return 320; } // 4 hours
+
     struct Proposal {
         // @notice Unique id for looking up a proposal
         uint id;
@@ -124,6 +127,9 @@ contract Governor {
 
         // @notice Receipts of ballots for the entire set of voters
         mapping (address => Receipt) receipts;
+
+        // @notice The block at which proposal cancel period ends
+        uint endProposalCancelPeriodBlock;
     }
 
     /// @notice Ballot receipt record for a voter
@@ -270,6 +276,7 @@ contract Governor {
 
         uint startBlock = add256(block.number, votingDelay());
         uint endBlock = add256(startBlock, votingPeriod());
+        uint endProposalCancelPeriodBlock = add256(startBlock, proposalCancelPeriod());
 
         proposalCount++;
 
@@ -290,6 +297,7 @@ contract Governor {
         p.canceled = false;
         p.executed = false;
         p.description = description;
+        p.endProposalCancelPeriodBlock = endProposalCancelPeriodBlock;
 
         latestProposalIds[p.proposer] = p.id;
 
@@ -333,6 +341,8 @@ contract Governor {
 
         Proposal storage proposal = proposals[proposalId];
         require(msg.sender == guardian || msg.sender == proposal.proposer, "Governor::cancel: you cannot cancel proposal");
+
+        require(block.number <= proposal.endProposalCancelPeriodBlock, "Governor::cancel: you cannot cancel proposal, cancel period is ended");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {

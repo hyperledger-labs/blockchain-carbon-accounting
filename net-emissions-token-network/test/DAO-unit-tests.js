@@ -947,4 +947,60 @@ describe("Climate DAO - Unit tests", function() {
     });
   });
 
+  it("should not allow a proposer to cancel a proposal after proposal cancel period is ended", async function () {
+
+    const { deployer, dealer1 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: dealer1,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    // check state
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.active);
+    });
+
+    // time skip
+    advanceBlocks(hoursToBlocks(5));
+
+    let cancelError = null;
+    try {
+      await governor.connect(await ethers.getSigner(dealer1)).cancel(proposal);
+    } catch (err) {
+      cancelError = err.toString();
+    }
+
+    expect(cancelError).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::cancel: you cannot cancel proposal, cancel period is ended"
+    );
+
+    // check state
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.active);
+    });
+
+  });
+
+
 });
