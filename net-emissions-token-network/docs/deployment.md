@@ -77,3 +77,131 @@ daoToken = await get("DAOToken"); // required to deploy Timelock and Governor
 ```
 
 Finally, `deployer` represents the deployer account defined in `hardhat.config.js` and `.ethereum-config.js`. See `using-the-contracts.md` for more information on setting the deployer account.
+
+## Deploying contracts to a public testnet
+
+If you'd like to deploy the contract (e.g. the Goerli testnet) for yourself, you will need a network URL and account to deploy with.
+
+To connect to a common Ethereum testnet like Goerli, set up a developer account on [Infura.io](https://infura.io/) and create a free project under the Ethereum tab. You will need the project ID.
+
+Next, create an account on MetaMask and connect to Goerli under the networks tab. This account will be used to deploy the contract -- so it needs to be loaded with free testnet ETH from a [Goerli faucet](https://faucet.goerli.mudit.blog) by copy and pasting your public key and waiting for the ETH to arrive to your wallet. 
+
+Now follow these steps to deploy the contract to the Goerli testnet and update references to the address:
+
+1. Create `.ethereum-config.js` by copying the template with 
+
+```bash
+cp .ethereum-config.js.template .ethereum-config.js
+```
+
+2.  Edit `.ethereum-config.js` and set the private key for your Ethereum deployment address and Infura key.
+
+3. Edit the file `hardhat.config.js` and uncomment these lines (or uncomment the network you want to deploy to):
+
+```bash
+     // const ethereumConfig = require("./.ethereum-config");
+     ...
+     // goerli: {
+     //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
+     //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
+     // },
+```
+
+4. Deploy by via the deploy script (or replacing goerli with the network you want to deploy to):
+
+```bash
+npx hardhat deploy --network goerli
+```
+
+5. Make sure to copy and paste the timelock admin switch command to complete in two days (for example, here is an example from a particular deployment -- you will get your own):
+
+```
+Please copy and paste this command after Wed Apr 28 2021 11:27:38 GMT-0400 (Eastern Daylight Time) to complete the Timelock admin switch:
+
+npx hardhat completeTimelockAdminSwitch --network goerli --timelock 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --governor 0x7c385742B2332b65D536396bdcb10EE7Db821eA9 --target 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --value 0 --signature "setPendingAdmin(address)" --data 0x0000000000000000000000007c385742b2332b65d536396bdcb10ee7db821ea9 --eta 1619623658
+```
+
+The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.  Copy this and run it again in two days.
+
+This `completeTimelockAdminSwitch` task does two things: run executeTransaction() on the Timelock to call setPendingAdmin() to the Governor contract 
+(since it is deployed after Timelock and must be set manually after deployment), and then call __acceptAdmin() on Governor to complete the switch. 
+Most of the parameters are for the first command:
+
+```
+timelock - address of Timelock
+governor - address of Governor
+target - target contract for executeTransaction() call, in this case the Timelock
+value - amount of ETH to send with executeTransaction() call
+signature - function to call on target contract for executeTransaction() call, in this case setPendingAdmin
+data - encoded function arguments for executeTransaction() call, which is the encoded new admin address
+eta - unix time when executeTransaction() can be called (must be 2 days in future)
+```
+
+Due to latency on the network, this task may return an error such as 
+
+```
+   ProviderError: execution reverted: Timelock::acceptAdmin: Call must come from pendingAdmin.
+```
+
+This means that executeTransaction() is still running when acceptAdmin() was called.  Try commenting out the block for executeTransaction() in `hardhat.config.js`
+and submitting the request again.   
+
+## Deploying to xDai
+
+xDai is an EVM-compatible sidechain with low gas fees where the native token (used to pay gas for transactions) is pegged to the dollar. To deploy or interact with contracts on xDai, your wallet needs to hold some xDai; fortunately you can use a free [faucet](https://blockscout.com/xdai/mainnet/faucet) to get a cent of xDai by entering your wallet address and solving a CAPTCHA.
+
+Connect to xDai via MetaMask by [importing the network through their instructions](https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup) to see your balances.
+
+Be sure your `.ethereum-config.js` has the private key of your deployer address, uncomment out the "xdai" network in `hardhat.config.js` (similar to the steps above) and deploy with:
+
+```bash
+npx hardhat deploy --network xdai
+```
+
+Be sure to copy the command to complete the Timelock admin switch in two days from the time of deployment (example in the section above).
+
+If any part of the deployment fails, you can run the command again and the deployment script will reuse the addresses previously automatically written to the `deployments` folder.
+
+## Using Optimism
+
+### Compiling to Optimism Virtual Machine (OVM)
+
+By default, Hardhat compiles to the EVM using the given Solidity version in `hardhat.config.js`. To instead compile to the [OVM](https://optimism.io/): 
+
+1. Set the `OVM` environment variable:
+
+```bash
+export OVM=1
+```
+
+2. If build artifacts exist, run `npx hardhat clean`
+
+2. Compile with `npx hardhat compile`
+
+### Testing and Deploying on OVM
+
+Some incompatibilities exist between Hardhat and Optimism, so the current recommended way to test is to use [Optimism Integration](https://github.com/ethereum-optimism/optimism-integration) to run a local Optimistic Ethereum environment.  Follow the directions under "Usage" in their [README](https://github.com/ethereum-optimism/optimism-integration#usage) and use `make up` to start their docker image.  (You can skip the tests step.) 
+
+To deploy contracts to a local Optimism development node after following starting your local Optimism Ethereum environment, run:
+
+```bash
+$ npx hardhat deploy --network ovm_localhost
+```
+
+Use the test addresses for testing on the interface and elsewhere:
+```
+Account #0: 0x023ffdc1530468eb8c8eebc3e38380b5bc19cc5d (10000 ETH) - deployer/owner address
+Private Key: 0x754fde3f5e60ef2c7649061e06957c29017fe21032a8017132c0078e37f6193a
+Account #1: 0x0e0e05cf14349469ee3b45dc2fce50e11b9449b8 (10000 ETH)
+Private Key: 0xd2ab07f7c10ac88d5f86f1b4c1035d5195e81f27dbe62ad65e59cbf88205629b
+Account #2: 0x432c38a44381668eda4a3152209abbfae065b44d (10000 ETH)
+Private Key: 0x23d9aeeaa08ab710a57972eb56fc711d9ab13afdecc92c89586e0150bfa380a6
+Account #3: 0x5eeabfdd0f31cebf32f8abf22da451fe46eac131 (10000 ETH)
+Private Key: 0x5b1c2653250e5c580dcb4e51c2944455e144c57ebd6a0645bd359d2e69ca0f0c
+Account #4: 0x640e7cc27b750144ed08ba09515f3416a988b6a3 (10000 ETH)
+Private Key: 0xea8b000efb33c49d819e8d6452f681eed55cdf7de47d655887fc0e318906f2e7
+```
+
+Currently, `evm_mine` and `evm_increaseTime` are not supported on the node.
+
+Don't forget to set the addresses in `net-emissions-token-network/interface/packages/contracts/src/addresses.js` to connect to them via the React interface and add the network to MetaMask. The default contract addresses on the local node after running the script `deploy-all.js` are all commented out in that file to switch from Hardhat Network -- see `using-the-react-application.md` for more information on using the React application.
