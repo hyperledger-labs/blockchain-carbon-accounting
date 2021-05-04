@@ -87,7 +87,7 @@ cp .ethereum-config.js.template .ethereum-config.js
 npx hardhat deploy --network goerli
 ```
 
-5. Make sure to copy and paste the timelock admin switch command to complete in two days (for example, here is a snippet of the deployment output):
+5. Make sure to copy and paste the timelock admin switch command to complete in two days (for example, here is an example from a particular deployment -- you will get your own):
 
 ```
 Please copy and paste this command after Wed Apr 28 2021 11:27:38 GMT-0400 (Eastern Daylight Time) to complete the Timelock admin switch:
@@ -95,7 +95,30 @@ Please copy and paste this command after Wed Apr 28 2021 11:27:38 GMT-0400 (East
 npx hardhat completeTimelockAdminSwitch --network goerli --timelock 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --governor 0x7c385742B2332b65D536396bdcb10EE7Db821eA9 --target 0xE13Ec0c623e67486267B54dd28E172A94f72B527 --value 0 --signature "setPendingAdmin(address)" --data 0x0000000000000000000000007c385742b2332b65d536396bdcb10ee7db821ea9 --eta 1619623658
 ```
 
-The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.
+The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.  Copy this and run it again in two days.
+
+This `completeTimelockAdminSwitch` task does two things: run executeTransaction() on the Timelock to call setPendingAdmin() to the Governor contract 
+(since it is deployed after Timelock and must be set manually after deployment), and then call __acceptAdmin() on Governor to complete the switch. 
+Most of the parameters are for the first command:
+
+```
+timelock - address of Timelock
+governor - address of Governor
+target - target contract for executeTransaction() call, in this case the Timelock
+value - amount of ETH to send with executeTransaction() call
+signature - function to call on target contract for executeTransaction() call, in this case setPendingAdmin
+data - encoded function arguments for executeTransaction() call, which is the encoded new admin address
+eta - unix time when executeTransaction() can be called (must be 2 days in future)
+```
+
+Due to latency on the network, this task may return an error such as 
+
+```
+   ProviderError: execution reverted: Timelock::acceptAdmin: Call must come from pendingAdmin.
+```
+
+This means that executeTransaction() is still running when acceptAdmin() was called.  Try commenting out the block for executeTransaction() in `hardhat.config.js`
+and submitting the request again.   
 
 ## Deploying to xDai
 
@@ -234,11 +257,11 @@ Upgrading contracts on a testnet is similar -- just make sure that the network a
 
 In the case that new changes are made to the DAO (Governor.sol and/or its Timelock.sol) and we want to deploy a new version of it to a production environment but we also want to keep the same DAOToken.sol contract, we can utilize the hardhat-deploy plugin's tags/dependencies features to easily deploy some contracts individually while reusing others. To upgrade just the DAO:
 
-1. Make sure the current addresses of the contracts you'd like to upgrade are in `deployments/<network>/` after running `npx hardhat deploy --network <network>`
+1. Make sure the current addresses of the contracts you don't need to upgrade are correctly set in the .json files in `deployments/<network>/` after running `npx hardhat deploy --network <network>`
 
-2. Navigate to `deployments/<network>/` and rename or delete the current references to the Governor and Timelock, which are `Governor.json` and `Timelock.json`
+2. Rename or delete the current references in `deployments/<network>/` to the Governor and Timelock, which are `Governor.json` and `Timelock.json`
 
-3. Navigate back to `net-emissions-token-network/` and run `npx hardhat deploy --network <network>`
+3. From `net-emissions-token-network/`, run `npx hardhat deploy --network <network>` again
 
 Now instead of running the full deployment for every contract, the deployment script will reuse the current DAOToken and NetEmissionsTokenNetwork addresses on the network you're using and point it to the new DAO contracts.
 
