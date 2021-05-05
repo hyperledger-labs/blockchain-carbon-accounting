@@ -44,7 +44,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
 
   it("should split vote three ways to children when voting on a parent proposal and fail if quorum is not reached", async function () {
 
-    const { deployer, dealer1, dealer2 } = await getNamedAccounts();
+    const { deployer, dealer1, dealer2, dealer3 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
@@ -53,11 +53,15 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, ethers.BigNumber.from("500000").mul(decimals));
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer2, ethers.BigNumber.from("500000").mul(decimals));
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer3, ethers.BigNumber.from("500000").mul(decimals));
+
+    console.log("***** deployer = ", deployer);
 
     console.log("***** before voting *****")
     console.log(`Deployer dao token balance = ${(await daoToken.balanceOf(deployer)).div(decimals)}`);
     console.log(`Dealer1 dao token balance = ${(await daoToken.balanceOf(dealer1)).div(decimals)}`);
     console.log(`Dealer2 dao token balance = ${(await daoToken.balanceOf(dealer2)).div(decimals)}`);
+    console.log(`Dealer3 dao token balance = ${(await daoToken.balanceOf(dealer3)).div(decimals)}`);
     
     // create a proposal
     let proposal = await createMultiAttributeProposal({
@@ -68,6 +72,9 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     });
 
     console.log('createMultiAttributeProposal returned : ', proposal);
+
+    console.log("***** after create proposal *****")
+    console.log(`Deployer dao token balance = ${(await daoToken.balanceOf(deployer)).div(decimals)}`);
 
     // total votes on parent and child proposals
     console.log(`1 forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
@@ -117,6 +124,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     console.log(`Deployer dao token balance = ${(await daoToken.balanceOf(deployer)).div(decimals)}`);
     console.log(`Dealer1 dao token balance = ${(await daoToken.balanceOf(dealer1)).div(decimals)}`);
     console.log(`Dealer2 dao token balance = ${(await daoToken.balanceOf(dealer2)).div(decimals)}`);
+    console.log(`Dealer3 dao token balance = ${(await daoToken.balanceOf(dealer3)).div(decimals)}`);
 
     // total votes on parent and child proposals
     console.log(`1 forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
@@ -135,22 +143,22 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     // - child votes increased by the split amount: 100000000000000000000000 + 833333333333333333333 = 100833333333333333333333
     // - quadratic vote : sqrt(100833333333333333333333) = 317542648054
 
-    await governor.getReceipt(1, deployer).then((response) => {
+    await governor.getReceipt(1, dealer3).then((response) => {
       console.log(`1 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
       expect(response.votes).to.equal("316227766016");
       expect(response.rawVotes).to.equal("100000000000000000000000");
     });
-    await governor.getReceipt(2, deployer).then((response) => {
+    await governor.getReceipt(2, dealer3).then((response) => {
       console.log(`2 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
       expect(response.votes).to.equal("317542648054");
       expect(response.rawVotes).to.equal("100833333333333333333333");
     });
-    await governor.getReceipt(3, deployer).then((response) => {
+    await governor.getReceipt(3, dealer3).then((response) => {
       console.log(`3 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
       expect(response.votes).to.equal("317542648054");
       expect(response.rawVotes).to.equal("100833333333333333333333");
     });
-    await governor.getReceipt(4, deployer).then((response) => {
+    await governor.getReceipt(4, dealer3).then((response) => {
       console.log(`4 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
       expect(response.votes).to.equal("317542648054");
       expect(response.rawVotes).to.equal("100833333333333333333333");
