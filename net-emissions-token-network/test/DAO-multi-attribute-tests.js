@@ -197,8 +197,27 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     await governor.state(proposal)
     .then((response) => {
       expect(response).to.equal(proposalStates.quorumFailed);
-    });    
+    });
+
+
+    let dealer2Balance = (await daoToken.balanceOf(dealer2)).div(decimals);
+    await governor.connect(await ethers.getSigner(dealer2)).refund(3);
+    let dealer2BalanceAfterRefund = (await daoToken.balanceOf(dealer2)).div(decimals);
+
+    expect(dealer2BalanceAfterRefund.sub(dealer2Balance)).to.equal("2000");
     
+    let dealer1Balance = (await daoToken.balanceOf(dealer1)).div(decimals);
+    await governor.connect(await ethers.getSigner(dealer1)).refund(2);
+    let dealer1BalanceAfterRefund = (await daoToken.balanceOf(dealer1)).div(decimals);
+
+    expect(dealer1BalanceAfterRefund.sub(dealer1Balance)).to.equal("2000");
+
+    let deployerBalance = (await daoToken.balanceOf(deployer)).div(decimals);
+    await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
+    let deployerBalanceAfterRefund = (await daoToken.balanceOf(deployer)).div(decimals);
+
+    // 2500 * 0.75 = 1875
+    expect(deployerBalanceAfterRefund.sub(deployerBalance)).to.equal("1875");
   });
 
 });
