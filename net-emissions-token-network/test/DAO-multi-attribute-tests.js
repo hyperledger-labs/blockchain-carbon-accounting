@@ -67,7 +67,39 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    console.log(proposal);
+    console.log('createMultiAttributeProposal returned : ', proposal);
+
+    // total votes on parent and child proposals
+    console.log(`1 forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
+    console.log(`1 rawForVotes : ${(await governor.proposals(1)).rawForVotes.toString()}`);
+    console.log(`2 forVotes    : ${(await governor.proposals(2)).forVotes.toString()}`);
+    console.log(`2 rawForVotes : ${(await governor.proposals(2)).rawForVotes.toString()}`);
+    console.log(`3 forVotes    : ${(await governor.proposals(3)).forVotes.toString()}`);
+    console.log(`3 rawForVotes : ${(await governor.proposals(3)).rawForVotes.toString()}`);
+    console.log(`4 forVotes    : ${(await governor.proposals(4)).forVotes.toString()}`);
+    console.log(`4 rawForVotes : ${(await governor.proposals(4)).rawForVotes.toString()}`);
+    console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
+    
+    // deployer's receipt: should have votes equal to the threshold (100000000000000000000000)
+    // since this calls `propose` for each proposal this means each one including the parent
+    // currently ends up with `threshold` votes ...
+    await governor.getReceipt(1, deployer).then((response) => {
+      expect(response.votes).to.equal("316227766016");
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+    });
+    await governor.getReceipt(2, deployer).then((response) => {
+      expect(response.votes).to.equal("316227766016");
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+    });
+    await governor.getReceipt(3, deployer).then((response) => {
+      expect(response.votes).to.equal("316227766016");
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+    });
+    await governor.getReceipt(4, deployer).then((response) => {
+      expect(response.votes).to.equal("316227766016");
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+    });
+
     // vote on parent proposal
     await governor
       .connect(await ethers.getSigner(deployer))
@@ -98,21 +130,30 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
     
     // deployer's receipt: 2500 votes split evenly on 3 proposals, 0 votes on parent proposal, 833.33 votes on each child (2500/3), sqrt of which is 28.867
+    // note this adds to the original threshold votes for deployer...
+    // - parent votes for Deployer are unchanged
+    // - child votes increased by the split amount: 100000000000000000000000 + 833333333333333333333 = 100833333333333333333333
+    // - quadratic vote : sqrt(100833333333333333333333) = 317542648054
+
     await governor.getReceipt(1, deployer).then((response) => {
-      expect(response.votes).to.equal("0");
-      expect(response.rawVotes).to.equal("0");
+      console.log(`1 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
+      expect(response.votes).to.equal("316227766016");
+      expect(response.rawVotes).to.equal("100000000000000000000000");
     });
     await governor.getReceipt(2, deployer).then((response) => {
-      expect(response.votes).to.equal("28867513459");
-      expect(response.rawVotes).to.equal("833333333333333333333");
+      console.log(`2 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
+      expect(response.votes).to.equal("317542648054");
+      expect(response.rawVotes).to.equal("100833333333333333333333");
     });
     await governor.getReceipt(3, deployer).then((response) => {
-      expect(response.votes).to.equal("28867513459");
-      expect(response.rawVotes).to.equal("833333333333333333333");
+      console.log(`3 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
+      expect(response.votes).to.equal("317542648054");
+      expect(response.rawVotes).to.equal("100833333333333333333333");
     });
     await governor.getReceipt(4, deployer).then((response) => {
-      expect(response.votes).to.equal("28867513459");
-      expect(response.rawVotes).to.equal("833333333333333333333");
+      console.log(`4 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
+      expect(response.votes).to.equal("317542648054");
+      expect(response.rawVotes).to.equal("100833333333333333333333");
     });
     
     // dealer1 receipt: 2000 votes on proposal 2 which is the first child proposal, 0 votes on other proposals 

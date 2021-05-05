@@ -11,7 +11,7 @@ const {
 const { getNamedAccounts } = require("hardhat");
 
 describe("Climate DAO - Integration tests", function() {
-  
+
   // increase time for tests (block skips can take a while)
   this.timeout(60000);
   const hoursToAdvanceBlocks = 74;
@@ -100,14 +100,21 @@ describe("Climate DAO - Integration tests", function() {
     .then((response) => {
       expect(response).to.equal(proposalStates.active);
     });
-    
-    // cast a yes votes and test if vote is equal to sqrt
+
+    // check the proposal already has a yes vote from the proposer equal to the proposal threshold
+    // raw: 100000000000000000000000
+    await governor.getReceipt(proposal, dealer1)
+    .then((response) => {
+      expect(response.votes).to.equal(Math.floor(Math.sqrt(100000000000000000000000)));
+    });
+
+    // cast the remaining of the votes
     let dealer1AmountToVote = quarterOfSupply.sub("100000000000000000000000")
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, dealer1AmountToVote);
 
     await governor.getReceipt(proposal, dealer1)
       .then((response) => {
-        expect(response.votes).to.equal(Math.floor(Math.sqrt(dealer1AmountToVote)));
+      expect(response.votes).to.equal(Math.floor(Math.sqrt(quarterOfSupply)));
       });
 
     // cast two more yes votes and one no vote
@@ -121,12 +128,8 @@ describe("Climate DAO - Integration tests", function() {
       expect(response).to.equal("0");
     });
 
-    console.log(`forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
-    console.log(`rawForVotes : ${(await governor.proposals(1)).rawForVotes.toString()}`);
-    console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
-
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
-    
+
     // check for success
     await governor.state(proposal)
     .then((response) => {
@@ -169,7 +172,7 @@ describe("Climate DAO - Integration tests", function() {
     });
 
     advanceBlocks(2);
-    
+
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "1000000000000000000000");
     await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, "1000000000000000000000");
     await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, false, "1000000000000000000000");
@@ -177,9 +180,9 @@ describe("Climate DAO - Integration tests", function() {
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
     console.log(`forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
     console.log(`againstVotes: ${(await governor.proposals(1)).againstVotes.toString()}`);
-    
+
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
-    
+
     await governor.state(proposal)
     .then((response) => {
       expect(response).to.equal(proposalStates.quorumFailed);
@@ -211,17 +214,17 @@ describe("Climate DAO - Integration tests", function() {
 
     advanceBlocks(2);
 
-    // cast 1/4 of votes for and 2 1/10 against.  In quadratic voting this is like casting sqrt(25) for and 2*sqrt(10) against, which is 5 votes for and 6.66 votes against.  
+    // cast 1/4 of votes for and 2 1/10 against.  In quadratic voting this is like casting sqrt(25) for and 2*sqrt(10) against, which is 5 votes for and 6.66 votes against.
     await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, quarterOfSupply);
     await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, false, tenthOfSupply);
     await governor.connect(await ethers.getSigner(dealer4)).castVote(proposal, false, tenthOfSupply);
-    
+
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
     console.log(`forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
     console.log(`againstVotes: ${(await governor.proposals(1)).againstVotes.toString()}`);
-    
+
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
-   
+
     // check for defeat
     await governor.state(proposal)
     .then((response) => {

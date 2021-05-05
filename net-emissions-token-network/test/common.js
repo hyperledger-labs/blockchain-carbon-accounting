@@ -54,8 +54,15 @@ exports.advanceHours = async function (hours) {
   ethers.provider.send("evm_mine"); // mine a block after
 }
 
-exports.createProposal = async function (params) {
+exports.getProposalIdFromProposalTransactionReceipt = function (receipt) {
+  for (let i = receipt.events.length-1; i >= 0; i--) {
+    let e = receipt.events[i];
+    if (e.event == "ProposalCreated") return e.args[0].toNumber();
+  }
+  return null;
+};
 
+exports.createProposal = async function (params) {
   // set-up parameters for proposal external contract call
   let proposalCallParams = {
     account: params.deployer,
@@ -67,31 +74,47 @@ exports.createProposal = async function (params) {
     automaticRetireDate: 0,
     metadata: "metadata",
     manifest: "manifest",
-    description: "description"
-  }
+    description: "description",
+  };
 
   // set-up proposal parameters
   let proposal = {
     targets: [params.netEmissionsTokenNetwork.address], // contract to call
-    values: [ 0 ], // number of wei sent with call, i.e. msg.value
-    signatures: ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
-    calldatas: [exports.encodeParameters(
-      // types of params
-      ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
-      // value of params
-      [
-        proposalCallParams.account,
-        proposalCallParams.proposer,
-        proposalCallParams.tokenTypeId,
-        proposalCallParams.quantity,
-        proposalCallParams.fromDate,
-        proposalCallParams.thruDate,
-        proposalCallParams.automaticRetireDate,
-        proposalCallParams.metadata,
-        proposalCallParams.manifest,
-        proposalCallParams.description
-      ])],
-    description: "Test proposal" // description of proposal
+    values: [0], // number of wei sent with call, i.e. msg.value
+    signatures: [
+      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",
+    ], // function in contract to call
+    calldatas: [
+      exports.encodeParameters(
+        // types of params
+        [
+          "address",
+          "address",
+          "uint8",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+          "string",
+          "string",
+          "string",
+        ],
+        // value of params
+        [
+          proposalCallParams.account,
+          proposalCallParams.proposer,
+          proposalCallParams.tokenTypeId,
+          proposalCallParams.quantity,
+          proposalCallParams.fromDate,
+          proposalCallParams.thruDate,
+          proposalCallParams.automaticRetireDate,
+          proposalCallParams.metadata,
+          proposalCallParams.manifest,
+          proposalCallParams.description,
+        ]
+      ),
+    ],
+    description: "Test proposal", // description of proposal
   };
 
   // make proposal
@@ -105,19 +128,17 @@ exports.createProposal = async function (params) {
       proposal.description
     );
 
-  // get ID of proposal just made
+  // get ID of proposal just made, find the corresponding event
   let proposalTransactionReceipt = await makeProposal.wait(0);
-  let proposalEvent = proposalTransactionReceipt.events.pop();
-  let proposalId = proposalEvent.args[0].toNumber();
+  let proposalId = exports.getProposalIdFromProposalTransactionReceipt(proposalTransactionReceipt);
 
   // verify details of proposal
-  await params.governor.getActions(proposalId)
-    .then((response) => {
-      expect(response.targets).to.deep.equal(proposal.targets);
-      // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
-      expect(response.signatures).to.deep.equal(proposal.signatures);
-      expect(response.calldatas).to.deep.equal(proposal.calldatas);
-    });
+  await params.governor.getActions(proposalId).then((response) => {
+    expect(response.targets).to.deep.equal(proposal.targets);
+    // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
+    expect(response.signatures).to.deep.equal(proposal.signatures);
+    expect(response.calldatas).to.deep.equal(proposal.calldatas);
+  });
 
   // try to execute proposal before it's been passed
   try {
@@ -131,22 +152,19 @@ exports.createProposal = async function (params) {
   }
 
   // get proposal state
-  await params.governor.state(proposalId)
-    .then((response) => {
-      expect(response).to.equal(exports.proposalStates.pending);
+  await params.governor.state(proposalId).then((response) => {
+    expect(response).to.equal(exports.proposalStates.pending);
   });
 
   await exports.advanceBlocks(1);
 
   // get proposal state
-  await params.governor.state(proposalId)
-    .then((response) => {
-      expect(response).to.equal(exports.proposalStates.active);
-    });
+  await params.governor.state(proposalId).then((response) => {
+    expect(response).to.equal(exports.proposalStates.active);
+  });
 
   return proposalId;
-
-}
+};
 
 exports.createMultiAttributeProposal = async function (params) {
 
@@ -219,8 +237,7 @@ exports.createMultiAttributeProposal = async function (params) {
 
   // get ID of proposal just made
   let proposalTransactionReceipt = await makeProposal.wait(0);
-  let proposalEvent = proposalTransactionReceipt.events.pop();
-  let proposalId = proposalEvent.args[0].toNumber();
+  let proposalId = exports.getProposalIdFromProposalTransactionReceipt(proposalTransactionReceipt);
 
   await exports.advanceBlocks(1);
 
