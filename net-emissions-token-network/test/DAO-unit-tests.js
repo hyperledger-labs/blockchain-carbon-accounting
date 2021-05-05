@@ -377,7 +377,7 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
-  it("should give 3/4 of stake plus votes back after canceling proposal", async function () {
+  it("should allow proposer to refund their votes back minus 5% after canceling proposal", async function () {
 
     const { deployer } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
@@ -415,10 +415,10 @@ describe("Climate DAO - Unit tests", function() {
     // refund
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
-    // check to see deployer dCLM8 balance is full minus 1/4 stake
+    // check to see deployer dCLM8 balance is full minus 5%
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9974999999999999999999975"));
+       .then((response) => expect(response).to.equal("9994999999999999999999995"));
 
   });
 
@@ -467,10 +467,10 @@ describe("Climate DAO - Unit tests", function() {
     // refund stake
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
-    // check to see deployer dCLM8 balance is full minus 1/4 stake
+    // check to see deployer dCLM8 balance is full minus 5%
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9965000000000000000000000"));
+       .then((response) => expect(response).to.equal("9985000000000000000000000"));
 
   });
 

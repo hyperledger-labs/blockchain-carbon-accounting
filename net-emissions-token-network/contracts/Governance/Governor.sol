@@ -525,13 +525,23 @@ contract Governor {
                 state(proposalId) == ProposalState.Canceled
             );
         if (proposalPassedAndIsProposer) {
-            // you get your 150% back if the proposal succeeded/queued/executed, otherwise 3/4 of votes
+            // you get your 150% back if the proposal succeeded/queued/executed
             if (state(proposalId) == ProposalState.Succeeded || state(proposalId) == ProposalState.Queued || state(proposalId) == ProposalState.Executed) {
                 amount = (receipt.rawVotes) * 3 / 2;
             } else {
-                uint256 quarterOfStake = div256(receipt.rawVotes, 4);
-                dclm8._burn(address(this), uint96(quarterOfStake));
-                amount = uint96(quarterOfStake * 3);
+                if (state(proposalId) == ProposalState.QuorumFailed) {
+                    // proposer loose 75% of votes
+                    uint256 quarterOfStake = div256(receipt.rawVotes, 4);
+                    dclm8._burn(address(this), uint96(quarterOfStake));
+                    amount = uint96(quarterOfStake * 3);
+                } else {
+                    // otherwise proposer loose 5% of votes
+                    uint256 tokensToRefund = receipt.rawVotes;
+                    uint256 tokensToLose = div256(tokensToRefund, 20);
+                    amount = uint96(sub256(tokensToRefund, tokensToLose));
+                    // lost tokens are burned
+                    dclm8._burn(address(this), uint96(tokensToLose));
+                }
             }
             hasStakeRefunded = true;
         } else {

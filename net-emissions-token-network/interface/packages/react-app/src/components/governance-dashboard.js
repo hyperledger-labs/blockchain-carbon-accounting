@@ -183,12 +183,14 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       }
 
       if (signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase()) {
-        let proposalThreshold = (await getProposalThreshold(provider)).div(decimalsRaw).toNumber();
         let currentVotes = proposalReceipt[3].div(decimalsRaw).toNumber()
         if (proposalState === "Succeeded") {
-          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(2).toNumber();
-        } else if (proposalState === "Canceled" || proposalState === "Quorum Failed") {
-          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(4).toNumber();
+          refundProposal = BigNumber.from(currentVotes).mul(3).div(2).toNumber();
+        } else if (proposalState === "Quorum Failed") {
+          refundProposal = BigNumber.from(currentVotes).mul(3).div(4).toNumber();
+        } else if (proposalState === "Canceled") {
+          let tokensToLose = BigNumber.from(currentVotes).div(20);
+          refundProposal = BigNumber.from(currentVotes).sub(tokensToLose).toNumber();
         }
       }
 
