@@ -345,6 +345,7 @@ contract Governor {
         require(msg.sender == guardian || msg.sender == proposal.proposer, "Governor::cancel: you cannot cancel proposal");
 
         require(block.number <= proposal.endProposalCancelPeriodBlock, "Governor::cancel: you cannot cancel proposal, cancel period is ended");
+        require(proposal.rawForVotes <= proposalThreshold() && proposal.rawAgainstVotes <= proposalThreshold(), "Governor::cancel: you cannot cancel proposal with someone voted");
 
         proposal.canceled = true;
         for (uint i = 0; i < proposal.targets.length; i++) {

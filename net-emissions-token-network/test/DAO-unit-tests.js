@@ -402,13 +402,6 @@ describe("Climate DAO - Unit tests", function() {
        .balanceOf(deployer)
        .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
 
-    // initial vote
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, 100);
-
-    await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9899999999999999999999900"));
-
     // cancel
     await governor.connect(await ethers.getSigner(deployer)).cancel(proposal);
 
@@ -418,59 +411,7 @@ describe("Climate DAO - Unit tests", function() {
     // check to see deployer dCLM8 balance is full minus 5%
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9994999999999999999999995"));
-
-  });
-
-  it("should allow a proposer to refund votes while active and then refund stake after canceled", async function () {
-
-    const { deployer } = await getNamedAccounts();
-    const daoToken = await ethers.getContract('DAOToken');
-    const governor = await ethers.getContract('Governor');
-    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
-
-    // check to see deployer dCLM8 balance is full
-    let fullSupply = await daoToken.balanceOf(deployer);
-    await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response).to.equal(fullSupply));
-
-    // create a proposal
-    let proposal = createProposal({
-      proposer: deployer,
-      deployer: deployer,
-      governor: governor,
-      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
-    });
-
-    advanceBlocks(2);
-
-    // initial vote
-    let voteAmount = "200000000000000000000000" // 200,000
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
-
-    await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9700000000000000000000000"));
-
-    // refund votes, there are 300k so far but it cannot go below the threshold of 100k
-    // so 200k will be refunded minus the 5% burned -> 190k
-    await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
-
-    await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("9890000000000000000000000"));
-
-    // cancel
-    await governor.connect(await ethers.getSigner(deployer)).cancel(proposal);
-
-    // refund stake
-    await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
-
-    // check to see deployer dCLM8 balance is full minus 5%
-    await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9985000000000000000000000"));
+       .then((response) => expect(response).to.equal("9995000000000000000000000"));
 
   });
 
@@ -1066,5 +1007,48 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("should not allow a proposer to cancel a proposal if someone has voted", async function () {
+
+    const { deployer, dealer1, dealer2 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer2, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: dealer1,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    let voteAmount = "200000000000000000000000" // 200,000
+    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, voteAmount);
+
+    let cancelError = null;
+    try {
+      await governor.connect(await ethers.getSigner(dealer1)).cancel(proposal);
+    } catch (err) {
+      cancelError = err.toString();
+    }
+
+    expect(cancelError).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::cancel: you cannot cancel proposal with someone voted"
+    );
+
+  });
 
 });
