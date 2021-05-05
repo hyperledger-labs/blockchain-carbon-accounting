@@ -109,7 +109,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
 
     // vote on parent proposal
     await governor
-      .connect(await ethers.getSigner(deployer))
+      .connect(await ethers.getSigner(dealer3))
       .castVote(1, true, ethers.BigNumber.from("2500").mul(decimals)); // 1 is the parent proposal
 
     await governor
