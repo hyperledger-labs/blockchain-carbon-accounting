@@ -123,14 +123,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         }
         if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
-          let issueeBalances = await getAvailableAndRetired(
-            provider,
-            tokenDetails.issuee,
-            i
-          );
-          token.issueeAvailableBalance = issueeBalances[0].toNumber();
-          token.issueeRetiredBalance = issueeBalances[1].toNumber();
-          token.showIssueeBalance = true;
+          token.isMyIssuedToken = true;
         }
       }
 
