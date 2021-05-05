@@ -34,6 +34,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
+    console.log(proposal);
     // check for 1 parent proposal and 3 child proposals
     await governor
       .proposalCount()
@@ -41,13 +42,23 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
 
   });
 
-  it("should split vote three ways to children when voting on a parent proposal", async function () {
+  it("should split vote three ways to children when voting on a parent proposal and fail if quorum is not reached", async function () {
 
-    const { deployer } = await getNamedAccounts();
+    const { deployer, dealer1, dealer2 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+    
+    let decimals = ethers.BigNumber.from("1000000000000000000");
+    
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, ethers.BigNumber.from("500000").mul(decimals));
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer2, ethers.BigNumber.from("500000").mul(decimals));
 
+    console.log("***** before voting *****")
+    console.log(`Deployer dao token balance = ${(await daoToken.balanceOf(deployer)).div(decimals)}`);
+    console.log(`Dealer1 dao token balance = ${(await daoToken.balanceOf(dealer1)).div(decimals)}`);
+    console.log(`Dealer2 dao token balance = ${(await daoToken.balanceOf(dealer2)).div(decimals)}`);
+    
     // create a proposal
     let proposal = await createMultiAttributeProposal({
       proposer: deployer,
@@ -60,32 +71,93 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     // vote on parent proposal
     await governor
       .connect(await ethers.getSigner(deployer))
-      .castVote(1, true, "1000000000000000000000"); // 1000 dCLM8
+      .castVote(1, true, ethers.BigNumber.from("2500").mul(decimals)); // 1 is the parent proposal
 
-    // check receipts for each proposal
-    console.log(`Proposal #1 receipt: ${(await governor.getReceipt(1, deployer))}`)
-    console.log(`Proposal #2 receipt: ${(await governor.getReceipt(2, deployer))}`)
-    console.log(`Proposal #3 receipt: ${(await governor.getReceipt(3, deployer))}`)
-    console.log(`Proposal #4 receipt: ${(await governor.getReceipt(4, deployer))}`)
-    console.log(`Proposal #1 details: ${(await governor.proposals(1))}`)
+    await governor
+      .connect(await ethers.getSigner(dealer1))
+      .castVote(2, true, ethers.BigNumber.from("2000").mul(decimals)); // 2 is the first child proposal
 
+    await governor
+      .connect(await ethers.getSigner(dealer2))
+      .castVote(3, true, ethers.BigNumber.from("2000").mul(decimals)); // 3 is the second child proposal
+
+    console.log("***** after voting *****");
+    console.log(`Deployer dao token balance = ${(await daoToken.balanceOf(deployer)).div(decimals)}`);
+    console.log(`Dealer1 dao token balance = ${(await daoToken.balanceOf(dealer1)).div(decimals)}`);
+    console.log(`Dealer2 dao token balance = ${(await daoToken.balanceOf(dealer2)).div(decimals)}`);
+
+    // total votes on parent and child proposals
+    console.log(`1 forVotes    : ${(await governor.proposals(1)).forVotes.toString()}`);
+    console.log(`1 rawForVotes : ${(await governor.proposals(1)).rawForVotes.toString()}`);
+    console.log(`2 forVotes    : ${(await governor.proposals(2)).forVotes.toString()}`);
+    console.log(`2 rawForVotes : ${(await governor.proposals(2)).rawForVotes.toString()}`);
+    console.log(`3 forVotes    : ${(await governor.proposals(3)).forVotes.toString()}`);
+    console.log(`3 rawForVotes : ${(await governor.proposals(3)).rawForVotes.toString()}`);
+    console.log(`4 forVotes    : ${(await governor.proposals(4)).forVotes.toString()}`);
+    console.log(`4 rawForVotes : ${(await governor.proposals(4)).rawForVotes.toString()}`);
+    console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
+    
+    // deployer's receipt: 2500 votes split evenly on 3 proposals, 0 votes on parent proposal, 833.33 votes on each child (2500/3), sqrt of which is 28.867
     await governor.getReceipt(1, deployer).then((response) => {
       expect(response.votes).to.equal("0");
       expect(response.rawVotes).to.equal("0");
     });
     await governor.getReceipt(2, deployer).then((response) => {
-      expect(response.votes).to.equal("18257418583");
-      expect(response.rawVotes).to.equal("333333333333333333333");
+      expect(response.votes).to.equal("28867513459");
+      expect(response.rawVotes).to.equal("833333333333333333333");
     });
     await governor.getReceipt(3, deployer).then((response) => {
-      expect(response.votes).to.equal("18257418583");
-      expect(response.rawVotes).to.equal("333333333333333333333");
+      expect(response.votes).to.equal("28867513459");
+      expect(response.rawVotes).to.equal("833333333333333333333");
     });
     await governor.getReceipt(4, deployer).then((response) => {
-      expect(response.votes).to.equal("18257418583");
-      expect(response.rawVotes).to.equal("333333333333333333333");
+      expect(response.votes).to.equal("28867513459");
+      expect(response.rawVotes).to.equal("833333333333333333333");
     });
-
+    
+    // dealer1 receipt: 2000 votes on proposal 2 which is the first child proposal, 0 votes on other proposals 
+    await governor.getReceipt(1, dealer1).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    await governor.getReceipt(2, dealer1).then((response) => {
+      expect(response.votes).to.equal("44721359549");
+      expect(response.rawVotes).to.equal("2000000000000000000000");
+    });
+    await governor.getReceipt(3, dealer1).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    await governor.getReceipt(4, dealer1).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    
+    // dealer2 receipt: 2000 votes on proposal 3 which is the first child proposal, 0 votes on other proposals
+    await governor.getReceipt(1, dealer2).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    await governor.getReceipt(2, dealer2).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    await governor.getReceipt(3, dealer2).then((response) => {
+      expect(response.votes).to.equal("44721359549");
+      expect(response.rawVotes).to.equal("2000000000000000000000");
+    });
+    await governor.getReceipt(4, dealer2).then((response) => {
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
+    });
+    
+    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+        
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.quorumFailed);
+    });    
+    
   });
 
 });
