@@ -1076,4 +1076,66 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
+  it("votes and raw votes should be conformed", async function () {
+
+    const { deployer, dealer1, dealer2 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    let decimals = ethers.BigNumber.from("1000000000000000000");
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);
+    await daoToken
+       .balanceOf(deployer)
+       .then((response) => expect(response).to.equal(fullSupply));
+
+    let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer2, quarterOfSupply);
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+
+    // after create proposal : sqrt(100000000000000000000000) = 316227766016
+    let forVotes = (await governor.proposals(proposal)).forVotes;
+    let rawForVotes = (await governor.proposals(1)).rawForVotes;
+
+    expect(rawForVotes).to.equal("100000000000000000000000");
+    expect(forVotes).to.equal("316227766016");
+
+    let voteAmount = "200000000000000000000000" // 200,000
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
+
+    // after first voting: sqrt(100000000000000000000000)
+    //                   + sqrt(200000000000000000000000)
+    //                   = 763441361515
+    forVotes = (await governor.proposals(proposal)).forVotes;
+    rawForVotes = (await governor.proposals(1)).rawForVotes;
+
+    expect(rawForVotes).to.equal("300000000000000000000000");
+    expect(forVotes).to.equal("763441361515");
+
+    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, voteAmount);
+
+    // after second voting: sqrt(100000000000000000000000)
+    //                    + sqrt(200000000000000000000000)
+    //                    + sqrt(200000000000000000000000)
+    //                    = 1210654957014
+    forVotes = (await governor.proposals(proposal)).forVotes;
+    rawForVotes = (await governor.proposals(1)).rawForVotes;
+
+    expect(rawForVotes).to.equal("500000000000000000000000");
+    expect(forVotes).to.equal("1210654957014");
+  });
+
 });
