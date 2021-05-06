@@ -137,31 +137,29 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     console.log(`4 rawForVotes : ${(await governor.proposals(4)).rawForVotes.toString()}`);
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
     
-    // deployer's receipt: 2500 votes split evenly on 3 proposals, 0 votes on parent proposal, 833.33 votes on each child (2500/3), sqrt of which is 28.867
-    // note this adds to the original threshold votes for deployer...
+    // dealer3's receipt: 2500 votes split evenly on 3 proposals, 0 votes on parent proposal, 833.33 votes on each child (2500/3), sqrt of which is 28.867
     // - parent votes for Deployer are unchanged
-    // - child votes increased by the split amount: 100000000000000000000000 + 833333333333333333333 = 100833333333333333333333
-    // - quadratic vote : sqrt(100833333333333333333333) = 317542648054
-
+    // - child votes increased by the split amount: 833333333333333333333
+    // - quadratic vote : sqrt(833333333333333333333) = 28867513459
     await governor.getReceipt(1, dealer3).then((response) => {
       console.log(`1 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
-      expect(response.votes).to.equal("316227766016");
-      expect(response.rawVotes).to.equal("100000000000000000000000");
+      expect(response.votes).to.equal("0");
+      expect(response.rawVotes).to.equal("0");
     });
     await governor.getReceipt(2, dealer3).then((response) => {
       console.log(`2 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
-      expect(response.votes).to.equal("317542648054");
-      expect(response.rawVotes).to.equal("100833333333333333333333");
+      expect(response.votes).to.equal("28867513459");
+      expect(response.rawVotes).to.equal("833333333333333333333");
     });
     await governor.getReceipt(3, dealer3).then((response) => {
       console.log(`3 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
-      expect(response.votes).to.equal("317542648054");
-      expect(response.rawVotes).to.equal("100833333333333333333333");
+      expect(response.votes).to.equal("28867513459");
+      expect(response.rawVotes).to.equal("833333333333333333333");
     });
     await governor.getReceipt(4, dealer3).then((response) => {
       console.log(`4 Deployer receipt : votes =  ${response.votes} , rawVotes = ${response.rawVotes}`);
-      expect(response.votes).to.equal("317542648054");
-      expect(response.rawVotes).to.equal("100833333333333333333333");
+      expect(response.votes).to.equal("28867513459");
+      expect(response.rawVotes).to.equal("833333333333333333333");
     });
     
     // dealer1 receipt: 2000 votes on proposal 2 which is the first child proposal, 0 votes on other proposals 
@@ -211,21 +209,29 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     let dealer2Balance = (await daoToken.balanceOf(dealer2)).div(decimals);
     await governor.connect(await ethers.getSigner(dealer2)).refund(3);
     let dealer2BalanceAfterRefund = (await daoToken.balanceOf(dealer2)).div(decimals);
-
     expect(dealer2BalanceAfterRefund.sub(dealer2Balance)).to.equal("2000");
     
     let dealer1Balance = (await daoToken.balanceOf(dealer1)).div(decimals);
     await governor.connect(await ethers.getSigner(dealer1)).refund(2);
     let dealer1BalanceAfterRefund = (await daoToken.balanceOf(dealer1)).div(decimals);
-
     expect(dealer1BalanceAfterRefund.sub(dealer1Balance)).to.equal("2000");
+
+    let dealer3Balance = (await daoToken.balanceOf(dealer3)).div(decimals);
+    // refund only one of the child proposal for the 833 split amount
+    await governor.connect(await ethers.getSigner(dealer3)).refund(3);
+    let dealer3BalanceAfterRefund = (await daoToken.balanceOf(dealer3)).div(decimals);
+    expect(dealer3BalanceAfterRefund.sub(dealer3Balance)).to.equal("833");
+    // refund the other child proposals
+    await governor.connect(await ethers.getSigner(dealer3)).refund(2);
+    await governor.connect(await ethers.getSigner(dealer3)).refund(4);
+    dealer3BalanceAfterRefund = (await daoToken.balanceOf(dealer3)).div(decimals);
+    expect(dealer3BalanceAfterRefund.sub(dealer3Balance)).to.equal("2500");
 
     let deployerBalance = (await daoToken.balanceOf(deployer)).div(decimals);
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
     let deployerBalanceAfterRefund = (await daoToken.balanceOf(deployer)).div(decimals);
-
-    // 2500 * 0.75 = 1875
-    expect(deployerBalanceAfterRefund.sub(deployerBalance)).to.equal("1875");
+    // 100,000 * 0.75 = 75,000
+    expect(deployerBalanceAfterRefund.sub(deployerBalance)).to.equal("75000");
   });
 
 });

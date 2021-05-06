@@ -175,46 +175,6 @@ describe("Climate DAO - Unit tests", function() {
     let supply2 = await daoToken.balanceOf(deployer);  // 4,900k
     expect(supply2).to.equal("4900000000000000000000000");
 
-    // vote yes for remaining of half of fullSupply
-    await governor
-      .connect(await ethers.getSigner(deployer))
-      .castVote(proposal, true, supply2);
-
-    // check to see deployer dCLM8 balance is now 0
-    await daoToken
-      .balanceOf(deployer)
-      .then((response) => expect(response).to.equal("0"));
-
-    // check receipt
-    await governor.getReceipt(proposal, deployer).then((response) => {
-      expect(response.hasVoted).to.equal(true);
-      expect(response.support).to.equal(true);
-      expect(response.rawVotes).to.equal(halfOfSupply);
-      expect(response.votes).to.equal("2236067977499"); // ~sqrt(halfOfSupply)
-    });
-
-    // refund locked dCLM8
-    await governor.connect(await ethers.getSigner(deployer)).refund(1);
-
-    // check to see deployer dCLM8 balance
-    // note they lose 5% of the votes for cancelling their vote
-    // and the proposal threshold applies so 100k votes cannot be refunded
-    // so 4,900k minus 5% = 4,655k
-    // for a balance of 4,655k
-    await daoToken
-      .balanceOf(deployer)
-      .then((response) =>
-        expect(response.toString()).to.equal("4655000000000000000000000")
-      );
-
-    // check receipt, note: deployer is still mark as hasVoted
-    await governor.getReceipt(proposal, deployer).then((response) => {
-      expect(response.hasVoted).to.equal(true);
-      expect(response.support).to.equal(true);
-      expect(response.votes).to.equal("316227766016");
-      expect(response.rawVotes).to.equal("100000000000000000000000");
-    });
-
     // check with dealer1, since he is not the proposer the refund will result in all his votes
     // being canceled minus 5%
 
@@ -231,7 +191,7 @@ describe("Climate DAO - Unit tests", function() {
       expect(response.rawVotes).to.equal("200000000000000000000000");
     });
 
-    // refund 
+    // refund
     await governor.connect(await ethers.getSigner(dealer1)).refund(1);
     // lost 5% so 10k and balance will be 4,990k
     await daoToken
@@ -318,16 +278,24 @@ describe("Climate DAO - Unit tests", function() {
 
   it("should allow users to top off a vote", async function () {
 
-    const { deployer } = await getNamedAccounts();
+    const { deployer, dealer1 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
 
     // check to see deployer dCLM8 balance is full
-    let fullSupply = await daoToken.balanceOf(deployer);
+    let fullSupply = await daoToken.balanceOf(deployer);  // 10,000k
+    expect(fullSupply).to.equal("10000000000000000000000000");
+    let halfOfSupply = fullSupply.div(2); // 5,000k
+    expect(halfOfSupply).to.equal("5000000000000000000000000");
+
+    // give half supply to dealer1
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, halfOfSupply);
     await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response).to.equal(fullSupply));
+      .balanceOf(dealer1)
+      .then((response) =>
+        expect(response.toString()).to.equal(halfOfSupply)
+      );
 
     // create a proposal
     let proposal = createProposal({
@@ -347,9 +315,18 @@ describe("Climate DAO - Unit tests", function() {
       expect(response.votes).to.equal("316227766016"); // ~sqrt(threshold)
     });
 
+    // add similar vote from delaer1
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "100000000000000000000000");
+    await governor.getReceipt(proposal, dealer1).then((response) => {
+      expect(response.hasVoted).to.equal(true);
+      expect(response.support).to.equal(true);
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+      expect(response.votes).to.equal("316227766016"); // ~sqrt(threshold)
+    });
+
     // top off vote
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, "100000000000000000000000");
-    await governor.getReceipt(proposal, deployer).then((response) => {
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "100000000000000000000000");
+    await governor.getReceipt(proposal, dealer1).then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
       expect(response.rawVotes).to.equal("200000000000000000000000");
@@ -359,7 +336,7 @@ describe("Climate DAO - Unit tests", function() {
     // try to vote with different support
     let error = null;
     try {
-      await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, false, 100);
+      await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, false, 100);
     } catch (err) {
       error = err.toString();
     }
@@ -368,7 +345,7 @@ describe("Climate DAO - Unit tests", function() {
     );
 
     // check receipt, should be unchanged from previously
-    await governor.getReceipt(proposal, deployer).then((response) => {
+    await governor.getReceipt(proposal, dealer1).then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
       expect(response.rawVotes).to.equal("200000000000000000000000");
@@ -456,22 +433,24 @@ describe("Climate DAO - Unit tests", function() {
     // initial vote
     let voteAmount = "200000000000000000000000"; // 200,000
     await governor
-      .connect(await ethers.getSigner(deployer))
-      .castVote(proposal, true, voteAmount);
-    await governor
       .connect(await ethers.getSigner(dealer1))
       .castVote(proposal, true, voteAmount);
 
     await daoToken
       .balanceOf(deployer)
       .then((response) =>
-        expect(response.toString()).to.equal("4700000000000000000000000")
+        expect(response.toString()).to.equal("4900000000000000000000000")
+      );
+    await daoToken
+      .balanceOf(dealer1)
+      .then((response) =>
+        expect(response.toString()).to.equal("2300000000000000000000000")
       );
 
     await daoToken
       .balanceOf(governor.address)
       .then((response) =>
-        expect(response.toString()).to.equal("3000000000000000000000000")
+        expect(response.toString()).to.equal("2800000000000000000000000")
       );
 
     // time skip
@@ -485,11 +464,11 @@ describe("Climate DAO - Unit tests", function() {
     // refund
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
-    // check to see deployer dCLM8 balance after refund 4,700,000 + ((100,000 + 200,000) * 1.5) = 5,150,000
+    // check to see deployer dCLM8 balance after refund 4,900,000 + ((100,000) * 1.5) = 5,050,000
     await daoToken
       .balanceOf(deployer)
       .then((response) =>
-        expect(response).to.equal("5150000000000000000000000")
+        expect(response).to.equal("5050000000000000000000000")
       );
   });
 
@@ -565,8 +544,7 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
-  it("should allow a proposer to refund 3/4 stake if quorum fails", async function () {
-
+  it("should not allow the proposer to top off vote", async function () {
     const { deployer } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
@@ -585,9 +563,7 @@ describe("Climate DAO - Unit tests", function() {
     });
 
     advanceBlocks(2);
-    // should remove thresholdToStakeProposal which went into governor
-    // -  100000000000000000000000
-    // = 9900000000000000000000000
+    // the thresholdProposal was used as votes
     await daoToken
       .balanceOf(deployer)
       .then((response) => expect(response.toString()).to.equal("9900000000000000000000000"));
@@ -596,21 +572,74 @@ describe("Climate DAO - Unit tests", function() {
       .balanceOf(governor.address)
       .then((response) => expect(response.toString()).to.equal("100000000000000000000000"));
 
-    // initial vote
-    let voteAmount = "200000000000000000000000" // 200,000
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
 
-    // check the balance
-    // -  200000000000000000000000
-    // -  100000000000000000000000
-    // = 9700000000000000000000000
+    // try to add more votes
+    let error = null;
+    try {
+      let voteAmount = "200000000000000000000000" // 200,000
+      await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
+    } catch (err) {
+      error = err.toString();
+    }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::_castVote: proposer cannot top off vote"
+    );
+  });
+
+  it("should allow a proposer to refund 3/4 stake if quorum fails", async function () {
+
+    const { deployer, dealer1 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    // check to see deployer dCLM8 balance is full
+    let fullSupply = await daoToken.balanceOf(deployer);  // 10,000k
+    expect(fullSupply).to.equal("10000000000000000000000000");
+    let halfOfSupply = fullSupply.div(2); // 5,000k
+    expect(halfOfSupply).to.equal("5000000000000000000000000");
+
+    // give half supply to dealer1
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, halfOfSupply);
+    await daoToken
+      .balanceOf(dealer1)
+      .then((response) =>
+        expect(response.toString()).to.equal(halfOfSupply)
+      );
+
+    // create a proposal
+    let proposal = createProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+    });
+
+    advanceBlocks(2);
+    // the thresholdProposal was used as votes
     await daoToken
       .balanceOf(deployer)
-      .then((response) => expect(response.toString()).to.equal("9700000000000000000000000"));
+      .then((response) => expect(response.toString()).to.equal("4900000000000000000000000"));
 
     await daoToken
       .balanceOf(governor.address)
-      .then((response) => expect(response.toString()).to.equal("300000000000000000000000"));
+      .then((response) => expect(response.toString()).to.equal("100000000000000000000000"));
+
+    // add votes from dealer1
+    let voteAmount = "20000000000000000000000" // 20,000
+    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
+
+    // check the balances
+    await daoToken
+      .balanceOf(deployer)
+      .then((response) => expect(response.toString()).to.equal("4900000000000000000000000"));
+    await daoToken
+      .balanceOf(dealer1)
+      .then((response) => expect(response.toString()).to.equal("4980000000000000000000000"));
+
+    await daoToken
+      .balanceOf(governor.address)
+      .then((response) => expect(response.toString()).to.equal("120000000000000000000000"));
 
     // time skip
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
@@ -624,11 +653,11 @@ describe("Climate DAO - Unit tests", function() {
     // refund
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
-    // Refund 3/4 of 300k so balance should be -75k of the initial value
-    // = 9925000000000000000000000
+    // Refund 3/4 of 100k so balance should be -25k of the initial value
+    // = 4975000000000000000000000
     await daoToken
       .balanceOf(deployer)
-      .then((response) => expect(response.toString()).to.equal("9925000000000000000000000"));
+      .then((response) => expect(response.toString()).to.equal("4975000000000000000000000"));
 
   });
 
@@ -643,8 +672,8 @@ describe("Climate DAO - Unit tests", function() {
     // check to see deployer dCLM8 balance is full
     let fullSupply = await daoToken.balanceOf(deployer);
     await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response).to.equal(fullSupply));
+      .balanceOf(deployer)
+      .then((response) => expect(response).to.equal(fullSupply));
 
     let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
@@ -661,23 +690,20 @@ describe("Climate DAO - Unit tests", function() {
     advanceBlocks(2);
 
     await daoToken
-       .balanceOf(governor.address)
-       .then((response) => expect(response.toString()).to.equal("2600000000000000000000000"));
-
-    let deployerBalance = await daoToken.balanceOf(deployer)
+      .balanceOf(governor.address)
+      .then((response) => expect(response.toString()).to.equal("2600000000000000000000000"));
 
     // initial vote
     let voteAmount = "200000000000000000000000" // 200,000
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
 
     await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("4700000000000000000000000"));
+      .balanceOf(deployer)
+      .then((response) => expect(response.toString()).to.equal("4900000000000000000000000"));
 
     await daoToken
-       .balanceOf(governor.address)
-       .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
+      .balanceOf(governor.address)
+      .then((response) => expect(response.toString()).to.equal("2800000000000000000000000"));
 
     // time skip
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
@@ -862,16 +888,15 @@ describe("Climate DAO - Unit tests", function() {
 
     // initial vote
     let voteAmount = "200000000000000000000000" // 200,000
-    await governor.connect(await ethers.getSigner(deployer)).castVote(proposal, true, voteAmount);
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
 
     await daoToken
        .balanceOf(deployer)
-       .then((response) => expect(response.toString()).to.equal("4700000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("4900000000000000000000000"));
 
     await daoToken
        .balanceOf(governor.address)
-       .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
+       .then((response) => expect(response.toString()).to.equal("2800000000000000000000000"));
 
     // time skip
     advanceBlocks(hoursToBlocks(5));

@@ -73,18 +73,33 @@ describe("Climate DAO - Integration tests", function() {
   // });
 
   it("should pass if 3/4 of token holders vote yes on a proposal", async function() {
-
-    const { deployer, dealer1, dealer2, dealer3, dealer4 } = await getNamedAccounts();
-    const daoToken = await ethers.getContract('DAOToken');
-    const governor = await ethers.getContract('Governor');
-    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+    const {
+      deployer,
+      dealer1,
+      dealer2,
+      dealer3,
+      dealer4,
+    } = await getNamedAccounts();
+    const daoToken = await ethers.getContract("DAOToken");
+    const governor = await ethers.getContract("Governor");
+    const netEmissionsTokenNetwork = await ethers.getContract(
+      "NetEmissionsTokenNetwork"
+    );
 
     // transfer DAO tokens to all holders
     let quarterOfSupply = (await daoToken.balanceOf(deployer)).div(4);
-    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, quarterOfSupply);
-    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer2, quarterOfSupply);
-    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer3, quarterOfSupply);
-    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer4, quarterOfSupply);
+    await daoToken
+      .connect(await ethers.getSigner(deployer))
+      .transfer(dealer1, quarterOfSupply);
+    await daoToken
+      .connect(await ethers.getSigner(deployer))
+      .transfer(dealer2, quarterOfSupply);
+    await daoToken
+      .connect(await ethers.getSigner(deployer))
+      .transfer(dealer3, quarterOfSupply);
+    await daoToken
+      .connect(await ethers.getSigner(deployer))
+      .transfer(dealer4, quarterOfSupply);
 
     let proposal = createProposal({
       proposer: dealer1,
@@ -96,43 +111,49 @@ describe("Climate DAO - Integration tests", function() {
     advanceBlocks(2);
 
     // check for active
-    await governor.state(proposal)
-    .then((response) => {
+    await governor.state(proposal).then((response) => {
       expect(response).to.equal(proposalStates.active);
     });
 
     // check the proposal already has a yes vote from the proposer equal to the proposal threshold
     // raw: 100000000000000000000000
-    await governor.getReceipt(proposal, dealer1)
-    .then((response) => {
-      expect(response.votes).to.equal(Math.floor(Math.sqrt(100000000000000000000000)));
+    await governor.getReceipt(proposal, dealer1).then((response) => {
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+      expect(response.votes).to.equal(
+        Math.floor(Math.sqrt(100000000000000000000000))
+      );
     });
 
-    // cast the remaining of the votes
-    let dealer1AmountToVote = quarterOfSupply.sub("100000000000000000000000")
-    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, dealer1AmountToVote);
-
-    await governor.getReceipt(proposal, dealer1)
-      .then((response) => {
-      expect(response.votes).to.equal(Math.floor(Math.sqrt(quarterOfSupply)));
-      });
-
     // cast two more yes votes and one no vote
-    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, quarterOfSupply);
-    await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, true, quarterOfSupply);
-    await governor.connect(await ethers.getSigner(dealer4)).castVote(proposal, false, quarterOfSupply);
+    await governor
+      .connect(await ethers.getSigner(dealer2))
+      .castVote(proposal, true, quarterOfSupply);
+    await governor
+      .connect(await ethers.getSigner(dealer3))
+      .castVote(proposal, true, quarterOfSupply);
+    await governor
+      .connect(await ethers.getSigner(dealer4))
+      .castVote(proposal, false, quarterOfSupply);
 
-    // check dclm8 balance of dealer1 after vote
-    await daoToken.balanceOf(dealer1)
-    .then((response) => {
+    // check dclm8 balances after vote
+    await daoToken.balanceOf(dealer1).then((response) => {
+      // quarterSupply minus 100k
+      expect(response).to.equal("2400000000000000000000000");
+    });
+    await daoToken.balanceOf(dealer2).then((response) => {
+      expect(response).to.equal("0");
+    });
+    await daoToken.balanceOf(dealer3).then((response) => {
+      expect(response).to.equal("0");
+    });
+    await daoToken.balanceOf(dealer4).then((response) => {
       expect(response).to.equal("0");
     });
 
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
-    await governor.state(proposal)
-    .then((response) => {
+    await governor.state(proposal).then((response) => {
       expect(response).to.equal(proposalStates.succeeded);
     });
 
@@ -145,9 +166,8 @@ describe("Climate DAO - Integration tests", function() {
     executeProposalAndConfirmSuccess(proposal, {
       deployer: deployer,
       governor: governor,
-      netEmissionsTokenNetwork: netEmissionsTokenNetwork
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
-
   });
 
   it("should fail quorum if total of votes for and against is below quorum", async function() {
@@ -173,7 +193,6 @@ describe("Climate DAO - Integration tests", function() {
 
     advanceBlocks(2);
 
-    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "1000000000000000000000");
     await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, "1000000000000000000000");
     await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, false, "1000000000000000000000");
 

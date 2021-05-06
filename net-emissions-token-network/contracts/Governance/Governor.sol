@@ -444,9 +444,10 @@ contract Governor {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
 
-        // allow topping off vote
+        // allow topping off vote, except for the proposer
         if (receipt.hasVoted == true) {
             require(receipt.support == support, "Governor::_castVote: can only top off same vote without refunding");
+            require(msg.sender != proposal.proposer, "Governor::_castVote: proposer cannot top off vote");
         }
 
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
