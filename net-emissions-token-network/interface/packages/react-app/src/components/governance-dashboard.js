@@ -509,6 +509,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     <>
                       <Col className="text-success my-auto">
                         Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
+                        { (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase()) &&
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote for.."
@@ -521,9 +522,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                             >Vote for</Button>
                           </InputGroup.Append>
                         </InputGroup>
+                        }
                       </Col>
                       <Col className="text-danger my-auto">
                         Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
+                        { (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase()) &&
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote against..."
@@ -536,6 +539,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                             >Vote against</Button>
                           </InputGroup.Append>
                         </InputGroup>
+                        }
                       </Col>
                     </>
                   }
@@ -568,9 +572,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 { (
                     (
-                      proposal.receipt.hasVoted || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Defeated")) ) &&
-                      (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
-                      proposal.receipt.rawRefund > 0
+                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Defeated")) 
+                    ) &&
+                    (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
+                     proposal.receipt.rawRefund > 0
                   ) &&
                   <p className="text-center py-2">
                     <Button
