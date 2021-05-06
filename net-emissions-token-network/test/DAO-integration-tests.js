@@ -116,7 +116,7 @@ describe("Climate DAO - Integration tests", function() {
     });
 
     // check the proposal already has a yes vote from the proposer equal to the proposal threshold
-    // raw: 100000000000000000000000
+    // raw: 100000000000000000000000 or 100000 voting tokens
     await governor.getReceipt(proposal, dealer1).then((response) => {
       expect(response.rawVotes).to.equal("100000000000000000000000");
       expect(response.votes).to.equal(
@@ -193,7 +193,7 @@ describe("Climate DAO - Integration tests", function() {
 
     advanceBlocks(2);
 
-    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, "1000000000000000000000");
+    await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, "1000000000000000000000");  // 1000 voting tokens
     await governor.connect(await ethers.getSigner(dealer3)).castVote(proposal, false, "1000000000000000000000");
 
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
@@ -201,6 +201,9 @@ describe("Climate DAO - Integration tests", function() {
     console.log(`againstVotes: ${(await governor.proposals(1)).againstVotes.toString()}`);
 
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+
+    // quorum fails because dealer1 votes 100000 by making proposal, dealer2 1000, dealer3 1000
+    // so total is 316.227766016 + 31.622776601 + 31.622776601 < 632
 
     await governor.state(proposal)
     .then((response) => {

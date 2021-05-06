@@ -137,7 +137,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     console.log(`4 rawForVotes : ${(await governor.proposals(4)).rawForVotes.toString()}`);
     console.log(`quorumVotes : ${(await governor.quorumVotes()).toString()}`);
     
-    // dealer3's receipt: 2500 votes split evenly on 3 proposals, 0 votes on parent proposal, 833.33 votes on each child (2500/3), sqrt of which is 28.867
+    // dealer3's receipt: 2500 voting tokens split evenly on 3 proposals, 0 voting tokens on parent proposal, 833.33 voting tokens on each child (2500/3), sqrt of which is 28.867 votes
     // - parent votes for Deployer are unchanged
     // - child votes increased by the split amount: 833333333333333333333
     // - quadratic vote : sqrt(833333333333333333333) = 28867513459
@@ -180,7 +180,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       expect(response.rawVotes).to.equal("0");
     });
     
-    // dealer2 receipt: 2000 votes on proposal 3 which is the first child proposal, 0 votes on other proposals
+    // dealer2 receipt: 2000 voting tokens on proposal 3 which is the first child proposal, 0 voting tokens on other proposals
     await governor.getReceipt(1, dealer2).then((response) => {
       expect(response.votes).to.equal("0");
       expect(response.rawVotes).to.equal("0");
@@ -199,7 +199,8 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
     });
     
     advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
-        
+
+    // quorum fails because deployer votes 100000 dealer1 2000 dealer2 2000 dealer3 2500 so that's 316.3 + 50 + 2*44.7 = 455.74 < 632        
     await governor.state(proposal)
     .then((response) => {
       expect(response).to.equal(proposalStates.quorumFailed);
