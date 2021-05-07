@@ -241,7 +241,7 @@ contract Governor {
             data[0] = calldatas[i];
 
             // make proposal
-            uint id = propose(
+            uint id = _createProposal(
                 target,
                 value,
                 signature,
@@ -260,12 +260,13 @@ contract Governor {
 
         // set children on parent proposal
         _setChildProposalIds(ids);
+        // also vote for the proposal
+        _castVoteInternal(msg.sender, ids[0], true, uint96(proposalThreshold()));
 
         return ids[0];
     }
 
-    function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
-        require(dclm8.getPriorVotes(msg.sender, sub256(block.number, 1)) >= proposalThreshold(), "Governor::propose: proposer votes below proposal threshold");
+    function _createProposal(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) internal returns (uint proposalId) {
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "Governor::propose: proposal function information arity mismatch");
         require(targets.length != 0, "Governor::propose: must provide actions");
         require(targets.length <= proposalMaxOperations(), "Governor::propose: too many actions");
@@ -276,7 +277,6 @@ contract Governor {
         uint startBlock = add256(block.number, votingDelay());
         uint endBlock = add256(startBlock, votingPeriod());
         uint endProposalCancelPeriodBlock = add256(startBlock, proposalCancelPeriod());
-
         proposalCount++;
 
         Proposal storage p = proposals[proposalCount];
@@ -301,10 +301,16 @@ contract Governor {
         latestProposalIds[p.proposer] = p.id;
 
         emit ProposalCreated(p.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
-
-        // also vote for the proposal
-        _castVoteInternal(msg.sender, p.id, true, uint96(proposalThreshold()));
         return p.id;
+    }
+
+
+    function propose(address[] memory targets, uint[] memory values, string[] memory signatures, bytes[] memory calldatas, string memory description) public returns (uint) {
+        require(dclm8.getPriorVotes(msg.sender, sub256(block.number, 1)) >= proposalThreshold(), "Governor::propose: proposer votes below proposal threshold");
+        uint pid = _createProposal(targets, values, signatures, calldatas, description);
+        // also vote for the proposal
+        _castVoteInternal(msg.sender, pid, true, uint96(proposalThreshold()));
+        return pid;
     }
 
     function queue(uint proposalId) public {
@@ -380,6 +386,8 @@ contract Governor {
         } else if (proposal.childProposalIds.length > 0) {
             isParentProposal = true;
         }
+
+        console.log("Governor::state", proposalId, isParentProposal, isChildProposal);
 
         // calculate votes and quorum
         // for parent proposals, add up all the votes for and against of all child proposals for quorum
@@ -548,15 +556,10 @@ contract Governor {
             hasStakeRefunded = true;
         } else {
             // If someone tries to cancel their vote (i.e. proposal state is active) they lose 5% of their tokens.
-            // the proposer may not drop his vote below the proposalThreshold though
+            // the proposer cannot vote less
             if (state(proposalId) == ProposalState.Active) {
+                require(!isProposer, "Governor::refund: proposer may not change his vote amount");
                 uint256 tokensToRefund = receipt.rawVotes;
-                if (isProposer) {
-                    tokensToRefund = uint96(sub256(tokensToRefund, proposalThreshold()));
-                    rawVoteAmount = tokensToRefund;
-                    // adjust the votes, we should be equal to sqrt(proposalThreshold())
-                    voteAmount = sub256(voteAmount, sqrt(proposalThreshold()));
-                }
                 uint256 tokensToLose = div256(tokensToRefund, 20);
                 amount = uint96(sub256(tokensToRefund, tokensToLose));
                 // lost tokens are burned

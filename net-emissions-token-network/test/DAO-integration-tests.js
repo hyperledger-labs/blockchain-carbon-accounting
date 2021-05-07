@@ -101,7 +101,7 @@ describe("Climate DAO - Integration tests", function() {
       .connect(await ethers.getSigner(deployer))
       .transfer(dealer4, quarterOfSupply);
 
-    // for the proposal to work, the issuer must be a REC dealer
+    // for the proposal to work for the specified token type, the issuer must be a REC dealer
     await netEmissionsTokenNetwork
       .connect(await ethers.getSigner(deployer))
       .registerDealer(dealer1, 1);  // REC dealer
@@ -111,6 +111,7 @@ describe("Climate DAO - Integration tests", function() {
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+      tokenTypeId: 1
     });
 
     advanceBlocks(2);

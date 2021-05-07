@@ -55,7 +55,8 @@ exports.advanceHours = async function (hours) {
 }
 
 exports.getProposalIdFromProposalTransactionReceipt = function (receipt) {
-  for (let i = receipt.events.length-1; i >= 0; i--) {
+  console.log('getProposalIdFromProposalTransactionReceipt...', receipt);
+  for (let i = 0; i < receipt.events.length; i++) {
     let e = receipt.events[i];
     if (e.event == "ProposalCreated") return e.args[0].toNumber();
   }
@@ -67,7 +68,7 @@ exports.createProposal = async function (params) {
   let proposalCallParams = {
     account: params.deployer,
     proposer: params.proposer,
-    tokenTypeId: 1,
+    tokenTypeId: params.tokenTypeId || 1,
     quantity: 300,
     fromDate: 0,
     thruDate: 0,
@@ -216,12 +217,28 @@ exports.createMultiAttributeProposal = async function (params) {
 
   // format proposals (0 => parent, 1..n => children)
   // use 1 parent and 3 children (duplicated) for this test
+  let numChildren = 3
+  if (params.numChildren) {
+    numChildren = params.numChildren;
+  }
+  let _targets = [proposalParent.targets];
+  let _values = [proposalParent.values];
+  let _signatures = [proposalParent.signatures];
+  let _calldatas = [proposalParent.calldatas];
+  let _description = [proposalParent.description];
+  for (let i=0; i<numChildren; i++) {
+    _targets.push(proposalChild.targets);
+    _values.push(proposalChild.values);
+    _signatures.push(proposalChild.signatures);
+    _calldatas.push(proposalChild.calldatas);
+    _description.push(proposalChild.description + " " + i);
+  }
   let proposal = {
-    targets: [ proposalParent.targets, proposalChild.targets, proposalChild.targets, proposalChild.targets, ],
-    values: [ proposalParent.values, proposalChild.values, proposalChild.values, proposalChild.values, ],
-    signatures: [ proposalParent.signatures, proposalChild.signatures, proposalChild.signatures, proposalChild.signatures, ],
-    calldatas: [ proposalParent.calldatas, proposalChild.calldatas, proposalChild.calldatas, proposalChild.calldatas, ],
-    descriptions: [ proposalParent.description, proposalChild.description, proposalChild.description, proposalChild.description, ]
+    targets: _targets,
+    values: _values,
+    signatures: _signatures,
+    calldatas: _calldatas,
+    descriptions: _description
   };
 
   // make proposal
