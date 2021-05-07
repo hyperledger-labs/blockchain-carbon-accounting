@@ -102,7 +102,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     // cast vote from dealer1
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, halfOfSupply);
@@ -117,7 +117,7 @@ describe("Climate DAO - Unit tests", function() {
       .balanceOf(governor.address)
       .then((response) => expect(response).to.equal("5100000000000000000000000"));
 
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
     await governor.state(proposal)
@@ -168,7 +168,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     // check deployer balance after proposal is half supply minus threshold
     let supply2 = await daoToken.balanceOf(deployer);  // 4,900k
@@ -254,24 +254,28 @@ describe("Climate DAO - Unit tests", function() {
 
     // check to see deployer dCLM8 balance is full
     let fullSupply = await daoToken.balanceOf(deployer);
-    await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response).to.equal(fullSupply));
+    expect(fullSupply).to.equal("10000000000000000000000000");
 
     // create a proposal
-    createProposal({
+    let proposal = createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
+
+    // check state
+    await governor.state(proposal)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.active);
+    });
 
     // check to see deployer dCLM8 balance is decreased
     await daoToken
-       .balanceOf(deployer)
-       .then((response) => expect(response).to.equal("9900000000000000000000000"));
+      .balanceOf(deployer)
+      .then((response) => expect(response).to.equal("9900000000000000000000000"));
 
   });
 
@@ -304,7 +308,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     // initial vote is equal to the threshold
     await governor.getReceipt(proposal, deployer).then((response) => {
@@ -372,7 +376,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
        .balanceOf(deployer)
@@ -421,7 +425,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
       .balanceOf(governor.address)
@@ -453,7 +457,7 @@ describe("Climate DAO - Unit tests", function() {
       );
 
     // time skip
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
     await governor.state(proposal).then((response) => {
@@ -500,7 +504,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
       .balanceOf(governor.address)
@@ -522,7 +526,7 @@ describe("Climate DAO - Unit tests", function() {
       .then((response) => expect(response.toString()).to.equal("500000000000000000000000"));
 
     // time skip
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for defeat
     await governor.state(proposal)
@@ -561,7 +565,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
     // the thresholdProposal was used as votes
     await daoToken
       .balanceOf(deployer)
@@ -614,7 +618,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
     // the thresholdProposal was used as votes
     await daoToken
       .balanceOf(deployer)
@@ -641,7 +645,7 @@ describe("Climate DAO - Unit tests", function() {
       .then((response) => expect(response.toString()).to.equal("120000000000000000000000"));
 
     // time skip
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for defeat
     await governor.state(proposal)
@@ -686,7 +690,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
       .balanceOf(governor.address)
@@ -705,7 +709,7 @@ describe("Climate DAO - Unit tests", function() {
       .then((response) => expect(response.toString()).to.equal("2800000000000000000000000"));
 
     // time skip
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
     await governor.state(proposal)
@@ -751,7 +755,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
        .balanceOf(governor.address)
@@ -770,7 +774,7 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("3000000000000000000000000"));
 
     // time skip
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
     await governor.state(proposal)
@@ -816,7 +820,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
        .balanceOf(dealer1)
@@ -836,7 +840,7 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("2610000000000000000000000"));
 
     // time skip
-    advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
     // check for success
     await governor.state(proposal)
@@ -877,7 +881,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     await daoToken
        .balanceOf(governor.address)
@@ -896,7 +900,7 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response.toString()).to.equal("2800000000000000000000000"));
 
     // time skip
-    advanceBlocks(hoursToBlocks(5));
+    await advanceBlocks(hoursToBlocks(5));
 
     // check for success
     await governor.state(proposal)
@@ -952,7 +956,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     let cancelError = null;
     try {
@@ -999,7 +1003,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     // check state
     await governor.state(proposal)
@@ -1008,7 +1012,7 @@ describe("Climate DAO - Unit tests", function() {
     });
 
     // time skip
-    advanceBlocks(hoursToBlocks(5));
+    await advanceBlocks(hoursToBlocks(5));
 
     let cancelError = null;
     try {
@@ -1055,7 +1059,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     let voteAmount = "200000000000000000000000" // 200,000
     await governor.connect(await ethers.getSigner(dealer2)).castVote(proposal, true, voteAmount);
@@ -1099,7 +1103,7 @@ describe("Climate DAO - Unit tests", function() {
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,
     });
 
-    advanceBlocks(2);
+    await advanceBlocks(2);
 
     // after create proposal : sqrt(100000000000000000000000) = 316227766016
     let forVotes = (await governor.proposals(proposal)).forVotes;
