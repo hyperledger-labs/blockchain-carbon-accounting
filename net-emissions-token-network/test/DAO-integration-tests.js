@@ -101,6 +101,11 @@ describe("Climate DAO - Integration tests", function() {
       .connect(await ethers.getSigner(deployer))
       .transfer(dealer4, quarterOfSupply);
 
+    // for the proposal to work, the issuer must be a REC dealer
+    await netEmissionsTokenNetwork
+      .connect(await ethers.getSigner(deployer))
+      .registerDealer(dealer1, 1);  // REC dealer
+
     let proposal = createProposal({
       proposer: dealer1,
       deployer: deployer,
@@ -163,7 +168,7 @@ describe("Climate DAO - Integration tests", function() {
       .queue(proposal);
     expect(queueProposal);
 
-    executeProposalAndConfirmSuccess(proposal, {
+    await executeProposalAndConfirmSuccess(proposal, {
       deployer: deployer,
       governor: governor,
       netEmissionsTokenNetwork: netEmissionsTokenNetwork,

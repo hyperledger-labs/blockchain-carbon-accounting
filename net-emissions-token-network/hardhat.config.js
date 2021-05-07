@@ -72,11 +72,11 @@ task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async taskArgs => {
     const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
-    
+
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
-    
+
     await contract.connect(admin).registerDealer(dealer1, 1);  // REC dealer
     console.log("Account " + dealer1 + " is now a REC dealer");
     await contract.connect(admin).registerDealer(dealer2, 3);  // emissions auditor
@@ -84,24 +84,24 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerDealer(dealer3, 2);  // offsets dealer
     console.log("Account " + dealer3 + " is now an offsets  dealer");
 
-    await contract.connect(admin).registerConsumer(consumer1);  
+    await contract.connect(admin).registerConsumer(consumer1);
     console.log("Account " + consumer1 + " is now a consumer");
-    await contract.connect(admin).registerConsumer(consumer2);  
+    await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
 })
 task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
   .addParam("contract", "The dCLM8 token")
   .setAction(async taskArgs => {
     const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
-    
-    const [admin] = await ethers.getSigners();    
+
+    const [admin] = await ethers.getSigners();
     const daoToken = await hre.ethers.getContractFactory("DAOToken");
     const contract = await daoToken.attach(taskArgs.contract);
-    
+
     let decimals = ethers.BigNumber.from("1000000000000000000");
     let tokens = ethers.BigNumber.from("500000");
     let i = tokens.mul(decimals);
-    
+
     await contract.connect(admin).transfer(dealer1, i);
     console.log ("Gave " + tokens + " DAO Tokens to " + dealer1);
     await contract.connect(admin).transfer(dealer2, i);
@@ -193,7 +193,7 @@ module.exports = {
 
     compilers: [
       {
-        version: "0.7.0",
+        version: "0.7.6",
         settings: {
           optimizer: {
             enabled: true,

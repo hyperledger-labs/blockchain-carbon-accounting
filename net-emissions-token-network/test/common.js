@@ -254,18 +254,24 @@ exports.createMultiAttributeProposal = async function (params) {
 
 exports.executeProposalAndConfirmSuccess = async function (proposalId, params) {
 
-  let numTokensBefore = await params.netEmissionsTokenNetwork.getNumOfUniqueTokens();
+  let numTokensBefore = await params.netEmissionsTokenNetwork
+    .connect(await ethers.getSigner(params.deployer))
+    .getNumOfUniqueTokens();
 
-  await exports.advanceHours(48);
+  await exports.advanceHours(49);
 
   // execute proposal
-  let executeProposal = await params.governor.connect(params.deployer).execute(proposalId);
+  let executeProposal = await params.governor
+    .connect(await ethers.getSigner(params.deployer))
+    .execute(proposalId);
   expect(executeProposal);
 
   // check num of tokens
-  await params.netEmissionsTokenNetwork.getNumOfUniqueTokens()
+  await params.netEmissionsTokenNetwork
+    .connect(await ethers.getSigner(params.deployer))
+    .getNumOfUniqueTokens()
     .then((response) =>
-      expect(response.toString()).to.equal(String(numTokensBefore+1))
+      expect(response.toString()).to.equal(String(numTokensBefore.add(1)))
     );
 
 }

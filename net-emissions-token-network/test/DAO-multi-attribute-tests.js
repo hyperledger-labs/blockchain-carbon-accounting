@@ -4,8 +4,7 @@ const {
   advanceBlocks,
   createMultiAttributeProposal,
   hoursToBlocks,
-  proposalStates,
-  executeProposalAndConfirmSuccess
+  proposalStates
 } = require("./common.js");
 const { getNamedAccounts } = require("hardhat");
 
