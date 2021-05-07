@@ -647,13 +647,13 @@ describe("Climate DAO - Unit tests", function() {
     // time skip
     await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
 
-    // check for defeat
+    // check for quorum failed
     await governor.state(proposal)
     .then((response) => {
       expect(response).to.equal(proposalStates.quorumFailed);
     });
 
-    // refund
+    // refund the original proposer
     await governor.connect(await ethers.getSigner(deployer)).refund(proposal);
 
     // Refund 3/4 of 100k so balance should be -25k of the initial value
@@ -665,7 +665,7 @@ describe("Climate DAO - Unit tests", function() {
   });
 
 
-  it("should not allow a user to get their voted tokens back if a proposal is succeeded", async function () {
+  it("should not allow a non-proposing voter to get their voted tokens back if a proposal is succeeded", async function () {
 
     const { deployer, dealer1 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
@@ -730,7 +730,7 @@ describe("Climate DAO - Unit tests", function() {
     );
   });
 
-  it("should not allow a user to get their voted tokens back if a proposal is defeated", async function () {
+  it("should not allow a non-proposing voter to get their voted tokens back if a proposal is defeated", async function () {
 
     const { deployer, dealer1 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
