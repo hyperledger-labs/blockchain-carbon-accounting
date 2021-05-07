@@ -572,7 +572,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 { (
                     (
-                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Defeated")) 
+                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
                     ) &&
                     (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
                      proposal.receipt.rawRefund > 0
