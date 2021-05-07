@@ -34,7 +34,7 @@ describe("Climate DAO - Unit tests", function() {
       .balanceOf(consumer1)
       .then((response) => expect(response.toString()).to.equal('0'));
 
-    // send some DAO tokens from owner to DAOuser
+    // send some DAO tokens from owner to DAO user
     await daoToken
       .connect(await ethers.getSigner(deployer))
       .transfer(consumer1, 1000000);
@@ -44,7 +44,7 @@ describe("Climate DAO - Unit tests", function() {
       .balanceOf(deployer)
       .then((response) => expect(response.toString()).to.equal('9999999999999999999000000'));
 
-    // check balance of DAOuser after transfer
+    // check balance of DAO user after transfer
     await daoToken
       .balanceOf(consumer1)
       .then((response) => expect(response.toString()).to.equal('1000000'));
@@ -260,7 +260,7 @@ describe("Climate DAO - Unit tests", function() {
        .then((response) => expect(response).to.equal(fullSupply));
 
     // create a proposal
-    let proposal = createProposal({
+    createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -315,7 +315,7 @@ describe("Climate DAO - Unit tests", function() {
       expect(response.votes).to.equal("316227766016"); // ~sqrt(threshold)
     });
 
-    // add similar vote from delaer1
+    // add similar vote from dealer1
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "100000000000000000000000");
     await governor.getReceipt(proposal, dealer1).then((response) => {
       expect(response.hasVoted).to.equal(true);
@@ -827,8 +827,6 @@ describe("Climate DAO - Unit tests", function() {
        .balanceOf(governor.address)
        .then((response) => expect(response.toString()).to.equal("2600000000000000000000000"));
 
-    let deployerBalance = await daoToken.balanceOf(deployer)
-
     // initial dealer1 vote
     let voteAmount = "10000000000000000000000" // 10,000
     await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, voteAmount);
@@ -1082,8 +1080,6 @@ describe("Climate DAO - Unit tests", function() {
     const daoToken = await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
-
-    let decimals = ethers.BigNumber.from("1000000000000000000");
 
     // check to see deployer dCLM8 balance is full
     let fullSupply = await daoToken.balanceOf(deployer);
