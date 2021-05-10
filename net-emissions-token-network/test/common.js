@@ -54,44 +54,67 @@ exports.advanceHours = async function (hours) {
   ethers.provider.send("evm_mine"); // mine a block after
 }
 
-exports.createProposal = async function (params) {
+exports.getProposalIdFromProposalTransactionReceipt = function (receipt) {
+  for (let i = 0; i < receipt.events.length; i++) {
+    let e = receipt.events[i];
+    if (e.event == "ProposalCreated") return e.args[0].toNumber();
+  }
+  return null;
+};
 
+exports.createProposal = async function (params) {
   // set-up parameters for proposal external contract call
   let proposalCallParams = {
     account: params.deployer,
     proposer: params.proposer,
-    tokenTypeId: 1,
+    tokenTypeId: params.tokenTypeId || 1,
     quantity: 300,
     fromDate: 0,
     thruDate: 0,
     automaticRetireDate: 0,
     metadata: "metadata",
     manifest: "manifest",
-    description: "description"
-  }
+    description: "description",
+  };
 
   // set-up proposal parameters
   let proposal = {
     targets: [params.netEmissionsTokenNetwork.address], // contract to call
-    values: [ 0 ], // number of wei sent with call, i.e. msg.value
-    signatures: ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)"], // function in contract to call
-    calldatas: [exports.encodeParameters(
-      // types of params
-      ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
-      // value of params
-      [
-        proposalCallParams.account,
-        proposalCallParams.proposer,
-        proposalCallParams.tokenTypeId,
-        proposalCallParams.quantity,
-        proposalCallParams.fromDate,
-        proposalCallParams.thruDate,
-        proposalCallParams.automaticRetireDate,
-        proposalCallParams.metadata,
-        proposalCallParams.manifest,
-        proposalCallParams.description
-      ])],
-    description: "Test proposal" // description of proposal
+    values: [0], // number of wei sent with call, i.e. msg.value
+    signatures: [
+      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",
+    ], // function in contract to call
+    calldatas: [
+      exports.encodeParameters(
+        // types of params
+        [
+          "address",
+          "address",
+          "uint8",
+          "uint256",
+          "uint256",
+          "uint256",
+          "uint256",
+          "string",
+          "string",
+          "string",
+        ],
+        // value of params
+        [
+          proposalCallParams.account,
+          proposalCallParams.proposer,
+          proposalCallParams.tokenTypeId,
+          proposalCallParams.quantity,
+          proposalCallParams.fromDate,
+          proposalCallParams.thruDate,
+          proposalCallParams.automaticRetireDate,
+          proposalCallParams.metadata,
+          proposalCallParams.manifest,
+          proposalCallParams.description,
+        ]
+      ),
+    ],
+    description: "Test proposal", // description of proposal
   };
 
   // make proposal
@@ -105,19 +128,17 @@ exports.createProposal = async function (params) {
       proposal.description
     );
 
-  // get ID of proposal just made
+  // get ID of proposal just made, find the corresponding event
   let proposalTransactionReceipt = await makeProposal.wait(0);
-  let proposalEvent = proposalTransactionReceipt.events.pop();
-  let proposalId = proposalEvent.args[0].toNumber();
+  let proposalId = exports.getProposalIdFromProposalTransactionReceipt(proposalTransactionReceipt);
 
   // verify details of proposal
-  await params.governor.getActions(proposalId)
-    .then((response) => {
-      expect(response.targets).to.deep.equal(proposal.targets);
-      // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
-      expect(response.signatures).to.deep.equal(proposal.signatures);
-      expect(response.calldatas).to.deep.equal(proposal.calldatas);
-    });
+  await params.governor.getActions(proposalId).then((response) => {
+    expect(response.targets).to.deep.equal(proposal.targets);
+    // @TODO: response.values seems to return a function rather than a value, so check this against proposal.values
+    expect(response.signatures).to.deep.equal(proposal.signatures);
+    expect(response.calldatas).to.deep.equal(proposal.calldatas);
+  });
 
   // try to execute proposal before it's been passed
   try {
@@ -131,22 +152,19 @@ exports.createProposal = async function (params) {
   }
 
   // get proposal state
-  await params.governor.state(proposalId)
-    .then((response) => {
-      expect(response).to.equal(exports.proposalStates.pending);
+  await params.governor.state(proposalId).then((response) => {
+    expect(response).to.equal(exports.proposalStates.pending);
   });
 
   await exports.advanceBlocks(1);
 
   // get proposal state
-  await params.governor.state(proposalId)
-    .then((response) => {
-      expect(response).to.equal(exports.proposalStates.active);
-    });
+  await params.governor.state(proposalId).then((response) => {
+    expect(response).to.equal(exports.proposalStates.active);
+  });
 
   return proposalId;
-
-}
+};
 
 exports.createMultiAttributeProposal = async function (params) {
 
@@ -198,12 +216,28 @@ exports.createMultiAttributeProposal = async function (params) {
 
   // format proposals (0 => parent, 1..n => children)
   // use 1 parent and 3 children (duplicated) for this test
+  let numChildren = 3
+  if (params.numChildren) {
+    numChildren = params.numChildren;
+  }
+  let _targets = [proposalParent.targets];
+  let _values = [proposalParent.values];
+  let _signatures = [proposalParent.signatures];
+  let _calldatas = [proposalParent.calldatas];
+  let _description = [proposalParent.description];
+  for (let i=0; i<numChildren; i++) {
+    _targets.push(proposalChild.targets);
+    _values.push(proposalChild.values);
+    _signatures.push(proposalChild.signatures);
+    _calldatas.push(proposalChild.calldatas);
+    _description.push(proposalChild.description + " " + i);
+  }
   let proposal = {
-    targets: [ proposalParent.targets, proposalChild.targets, proposalChild.targets, proposalChild.targets, ],
-    values: [ proposalParent.values, proposalChild.values, proposalChild.values, proposalChild.values, ],
-    signatures: [ proposalParent.signatures, proposalChild.signatures, proposalChild.signatures, proposalChild.signatures, ],
-    calldatas: [ proposalParent.calldatas, proposalChild.calldatas, proposalChild.calldatas, proposalChild.calldatas, ],
-    descriptions: [ proposalParent.description, proposalChild.description, proposalChild.description, proposalChild.description, ]
+    targets: _targets,
+    values: _values,
+    signatures: _signatures,
+    calldatas: _calldatas,
+    descriptions: _description
   };
 
   // make proposal
@@ -219,8 +253,7 @@ exports.createMultiAttributeProposal = async function (params) {
 
   // get ID of proposal just made
   let proposalTransactionReceipt = await makeProposal.wait(0);
-  let proposalEvent = proposalTransactionReceipt.events.pop();
-  let proposalId = proposalEvent.args[0].toNumber();
+  let proposalId = exports.getProposalIdFromProposalTransactionReceipt(proposalTransactionReceipt);
 
   await exports.advanceBlocks(1);
 
@@ -237,18 +270,24 @@ exports.createMultiAttributeProposal = async function (params) {
 
 exports.executeProposalAndConfirmSuccess = async function (proposalId, params) {
 
-  let numTokensBefore = await params.netEmissionsTokenNetwork.getNumOfUniqueTokens();
+  let numTokensBefore = await params.netEmissionsTokenNetwork
+    .connect(await ethers.getSigner(params.deployer))
+    .getNumOfUniqueTokens();
 
-  await exports.advanceHours(48);
+  await exports.advanceHours(49);
 
   // execute proposal
-  let executeProposal = await params.governor.connect(params.deployer).execute(proposalId);
+  let executeProposal = await params.governor
+    .connect(await ethers.getSigner(params.deployer))
+    .execute(proposalId);
   expect(executeProposal);
 
   // check num of tokens
-  await params.netEmissionsTokenNetwork.getNumOfUniqueTokens()
+  await params.netEmissionsTokenNetwork
+    .connect(await ethers.getSigner(params.deployer))
+    .getNumOfUniqueTokens()
     .then((response) =>
-      expect(response.toString()).to.equal(String(numTokensBefore+1))
+      expect(response.toString()).to.equal(String(numTokensBefore.add(1)))
     );
 
 }

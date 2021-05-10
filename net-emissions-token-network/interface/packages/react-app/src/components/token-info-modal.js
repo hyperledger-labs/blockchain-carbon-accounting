@@ -16,12 +16,12 @@ export default function TokenInfoModal(props) {
       <Modal.Body>
         <Row className="mt-2 mb-4 mr-3">
           {/* Available and retired balances */}
-          {props.token.showIssueeBalance ?
+          {props.token.isMyIssuedToken ?
             <Col className="col-5 offset-1 text-right">
-              <h5 className="text-secondary">Issuee's Available Balance</h5>
-              <h1>{props.token.issueeAvailableBalance}</h1>
-              <h5 className="text-secondary">Issuee's Retired Balance</h5>
-              <h2>{props.token.issueeRetiredBalance}</h2>
+              <h5 className="text-secondary">Total Issued</h5>
+              <h1>{props.token.totalIssued}</h1>
+              <h5 className="text-secondary">Total Retired</h5>
+              <h2>{props.token.totalRetired}</h2>
             </Col>
             :
             <Col className="col-4 offset-1 text-right">
@@ -56,7 +56,7 @@ export default function TokenInfoModal(props) {
           </Col>
 
           {/* transfer and retire buttons (enabled if available balance) */}
-          {!props.token.showIssueeBalance &&
+          {!props.token.isMyIssuedToken &&
           <Col className="col-3">
             <br />
             <Row className="text-left mb-2">

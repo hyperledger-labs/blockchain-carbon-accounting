@@ -14,20 +14,24 @@ export default function ProposalCallDetailsModal(props) {
   useEffect(() => {
     async function fetchDecodedParameters(actionNumber) {
       let regExp = /\(([^)]+)\)/;
-      let types = (regExp.exec(props.actions.signatures[actionNumber]))[1].split(",");
-      let decodedCall = await decodeParameters(types, props.actions.calldatas[actionNumber]);
-      setDecoded({
-        address: decodedCall[0],
-        proposer: decodedCall[1],
-        tokenType: TOKEN_TYPES[decodedCall[2]-1],
-        quantity: decodedCall[3].toNumber(),
-        fromDate: formatDate(decodedCall[4].toNumber()),
-        thruDate: formatDate(decodedCall[5].toNumber()),
-        automaticRetireDate: formatDate(decodedCall[6].toNumber()),
-        metadata: decodedCall[7],
-        manifest: decodedCall[8],
-        description: decodedCall[9],
-      });
+      console.log('*** fetchDecodedParameters', actionNumber, props.actions.signatures);
+      let sigs = props.actions.signatures[actionNumber];
+      if (sigs.length) {
+        let types = (regExp.exec(sigs))[1].split(",");
+        let decodedCall = await decodeParameters(types, props.actions.calldatas[actionNumber]);
+        setDecoded({
+          address: decodedCall[0],
+          proposer: decodedCall[1],
+          tokenType: TOKEN_TYPES[decodedCall[2]-1],
+          quantity: decodedCall[3].toNumber(),
+          fromDate: formatDate(decodedCall[4].toNumber()),
+          thruDate: formatDate(decodedCall[5].toNumber()),
+          automaticRetireDate: formatDate(decodedCall[6].toNumber()),
+          metadata: decodedCall[7],
+          manifest: decodedCall[8],
+          description: decodedCall[9],
+        });
+      }
     }
     fetchDecodedParameters(0);
   }, [props.actions.signatures, props.actions.calldatas]);

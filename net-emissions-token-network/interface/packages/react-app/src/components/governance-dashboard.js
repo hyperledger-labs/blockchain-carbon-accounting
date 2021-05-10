@@ -183,12 +183,14 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       }
 
       if (signedInAddress.toLowerCase() === proposalDetails[1].toLowerCase()) {
-        let proposalThreshold = (await getProposalThreshold(provider)).div(decimalsRaw).toNumber();
         let currentVotes = proposalReceipt[3].div(decimalsRaw).toNumber()
         if (proposalState === "Succeeded") {
-          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(2).toNumber();
-        } else if (proposalState === "Canceled" || proposalState === "Quorum Failed") {
-          refundProposal = BigNumber.from(currentVotes + proposalThreshold).mul(3).div(4).toNumber();
+          refundProposal = BigNumber.from(currentVotes).mul(3).div(2).toNumber();
+        } else if (proposalState === "Quorum Failed") {
+          refundProposal = BigNumber.from(currentVotes).mul(3).div(4).toNumber();
+        } else if (proposalState === "Canceled") {
+          let tokensToLose = BigNumber.from(currentVotes).div(20);
+          refundProposal = BigNumber.from(currentVotes).sub(tokensToLose).toNumber();
         }
       }
 
@@ -225,7 +227,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       });
     }
 
-    console.log(p);
+    console.log('governance-dashboard proposals: ', p);
 
     setProposals(p);
     setProposalsLength(p.length || 0);
@@ -428,7 +430,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <div className="d-flex flex-wrap justify-content-around row">
         {(proposals !== []) &&
          proposals.map((proposal, key) => (
-            <Card key={key} className="m-2 col-lg pt-2">
+            <Card key={key} className="m-2 col-12 pt-2">
               <Card.Body>
                   <Row className="pb-2">
 
@@ -507,6 +509,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     <>
                       <Col className="text-success my-auto">
                         Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
+                        { (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase()) &&
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote for.."
@@ -519,9 +522,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                             >Vote for</Button>
                           </InputGroup.Append>
                         </InputGroup>
+                        }
                       </Col>
                       <Col className="text-danger my-auto">
                         Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
+                        { (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase()) &&
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote against..."
@@ -534,6 +539,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                             >Vote against</Button>
                           </InputGroup.Append>
                         </InputGroup>
+                        }
                       </Col>
                     </>
                   }
@@ -566,9 +572,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 { (
                     (
-                      proposal.receipt.hasVoted || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Defeated")) ) &&
-                      (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
-                      proposal.receipt.rawRefund > 0
+                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
+                    ) &&
+                    (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
+                     proposal.receipt.rawRefund > 0
                   ) &&
                   <p className="text-center py-2">
                     <Button
