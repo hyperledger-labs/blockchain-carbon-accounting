@@ -227,7 +227,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       });
     }
 
-    console.log(p);
+    console.log('governance-dashboard proposals: ', p);
 
     setProposals(p);
     setProposalsLength(p.length || 0);
@@ -430,7 +430,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       <div className="d-flex flex-wrap justify-content-around row">
         {(proposals !== []) &&
          proposals.map((proposal, key) => (
-            <Card key={key} className="m-2 col-lg pt-2">
+            <Card key={key} className="m-2 col-12 pt-2">
               <Card.Body>
                   <Row className="pb-2">
 
