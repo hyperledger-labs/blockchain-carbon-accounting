@@ -14,6 +14,11 @@ if (process.env.OVM) {
   require("@eth-optimism/plugins/hardhat/ethers");
 }
 
+let encodeParameters = function (types, values) {
+  let abi = new ethers.utils.AbiCoder();
+  return abi.encode(types, values);
+};
+
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
 // const ethereumConfig = require("./.ethereum-config");
 
@@ -77,18 +82,114 @@ task("setTestAccountRoles", "Set default account roles for testing")
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
 
-    await contract.connect(admin).registerDealer(dealer1, 1);  // REC dealer
+    await contract.connect(admin).registerDealer(dealer1, 1); // REC dealer
     console.log("Account " + dealer1 + " is now a REC dealer");
-    await contract.connect(admin).registerDealer(dealer2, 3);  // emissions auditor
+    await contract.connect(admin).registerDealer(dealer2, 3); // emissions auditor
     console.log("Account " + dealer2 + " is now an emissions auditor");
-    await contract.connect(admin).registerDealer(dealer3, 2);  // offsets dealer
+    await contract.connect(admin).registerDealer(dealer3, 2); // offsets dealer
     console.log("Account " + dealer3 + " is now an offsets  dealer");
 
     await contract.connect(admin).registerConsumer(consumer1);
     console.log("Account " + consumer1 + " is now a consumer");
     await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
-})
+  });
+task("createTestProposal", "Create a test proposal using the default account roles for testing")
+  .addParam("governor", "The Governor contract")
+  .addParam("contract", "The CLM8 contract")
+  .setAction(async (taskArgs) => {
+    const { dealer1, dealer2 } = await getNamedAccounts();
+
+    const [admin] = await ethers.getSigners();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const govContract = await Governor.attach(taskArgs.governor);
+
+    let calldatas = [
+      encodeParameters(
+        // types of params
+        ["address","address","uint8","uint256","uint256","uint256","uint256","string","string","string",],
+        // value of params
+        [
+          dealer2, // account
+          dealer1, // proposer
+          1, // tokenTypeId
+          50, // qty
+          0, // fromDate
+          0, // thruDate
+          0, // automaticRetireDate
+          "some metadata",
+          "a manifest",
+          "some action inside a test proposal",
+        ]
+      ),
+    ];
+
+    await govContract.connect(admin).propose(
+      [contract.address], // targets
+      [0], // values
+      ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",], // signatures
+      calldatas,
+      "a test proposal"
+    );
+  });
+task("createTestMultiProposal", "Create a test multi proposal using the default account roles for testing")
+  .addParam("governor", "The Governor contract")
+  .addParam("contract", "The CLM8 contract")
+  .addOptionalParam("children", "The number of children to add, defaults to 3", 3, types.int)
+  .setAction(async (taskArgs) => {
+    const { dealer1, dealer2 } = await getNamedAccounts();
+
+    const [admin] = await ethers.getSigners();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const Governor = await hre.ethers.getContractFactory("Governor");
+    const govContract = await Governor.attach(taskArgs.governor);
+
+    let calldatas = [
+      encodeParameters(
+        // types of params
+        ["address","address","uint8","uint256","uint256","uint256","uint256","string","string","string",],
+        // value of params
+        [
+          dealer2, // account
+          dealer1, // proposer
+          1, // tokenTypeId
+          50, // qty
+          0, // fromDate
+          0, // thruDate
+          0, // automaticRetireDate
+          "some metadata",
+          "a manifest",
+          "some action inside a test proposal",
+        ]
+      ),
+    ];
+
+    let targets = [contract.address];
+    let values = [0];
+    let signatures = [
+      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",
+    ];
+    let descriptions = ["a test proposal"];
+    for (let i = 0; i < taskArgs.children; i++) {
+      // except for the description, it doesn't really matter what we put here since child proposals are never executed
+      targets.push("0x0000000000000000000000000000000000000000");
+      values.push(0);
+      signatures.push("");
+      calldatas.push("0x");
+      descriptions.push("A test child proposal " + i);
+    }
+
+    await govContract.connect(admin).proposeMultiAttribute(
+      targets, // targets
+      values, // values
+      signatures, // signatures
+      calldatas,
+      descriptions
+    );
+  });
 task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
   .addParam("contract", "The dCLM8 token")
   .setAction(async taskArgs => {
@@ -122,7 +223,7 @@ task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deploy
     const {deploy, get} = deployments;
 
     // output current implementation address
-    current = await get("NetEmissionsTokenNetwork");
+    let current = await get("NetEmissionsTokenNetwork");
     console.log("Current NetEmissionsTokenNetwork (to be overwritten):", current.implementation);
 
     // deploy V2
