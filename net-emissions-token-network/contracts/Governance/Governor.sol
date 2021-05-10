@@ -387,8 +387,6 @@ contract Governor {
             isParentProposal = true;
         }
 
-        console.log("Governor::state", proposalId, isParentProposal, isChildProposal);
-
         // calculate votes and quorum
         // for parent proposals, add up all the votes for and against of all child proposals for quorum
         // all sub-proposals must pass for parent to pass; if any fails, parent fails
@@ -509,8 +507,28 @@ contract Governor {
 
         require(receipt.hasVotesRefunded == false || receipt.hasStakeRefunded == false, "Governor::refund: already refunded this proposal");
 
+        ProposalState pState = state(proposalId);
+
+        // check if parent/child proposal
+        // if it is a child proposal, consider the state of the parent proposal
+        bool isChildProposal = false;
+        bool isParentProposal = false;
+        ProposalState parentState = pState;
+        if (proposal.parentProposalId > 0) {
+            isChildProposal = true;
+            parentState = state(proposal.parentProposalId);
+            // if the parent Quorum Failed, consider the child to also be Quorum Failed
+            // if the parent is Defeated (which it is if any of the child is Defeated), consider this child to also be Defeated
+            if (parentState == ProposalState.QuorumFailed || parentState == ProposalState.Defeated) {
+                pState = parentState;
+            }
+        } else if (proposal.childProposalIds.length > 0) {
+            isParentProposal = true;
+        }
+        // same for Succeeded / Defeated
+
         // should not allow cancel user votes after proposal cancel period ended
-        if (state(proposalId) == ProposalState.Active) {
+        if (pState == ProposalState.Active) {
             require(block.number <= receipt.endVotesCancelPeriodBlock, "Governor::refund: not eligible for refund, votes cancel period is ended");
         }
 
@@ -521,31 +539,31 @@ contract Governor {
         bool isProposer = (msg.sender == proposal.proposer);
 
         // if msg.sender is proposer and the vote is defeated because there were many votes against, the proposer does not get any tokens back.
-        require (!(isProposer && state(proposalId) == ProposalState.Defeated), "Governor::refund: not eligible for refund");
+        require (!(isProposer && pState == ProposalState.Defeated), "Governor::refund: not eligible for refund");
         // if msg.sender is proposer and failed quorum, set amount to 3/4 of proposal threshold plus votes
         // if msg.sender is proposer and succeeded, set to 150% proposal threshold plus votes
         // otherwise, set to user's raw vote count (in dCLM8)
         bool proposalPassedAndIsProposer =
             isProposer && (
-                state(proposalId) == ProposalState.Succeeded ||
-                state(proposalId) == ProposalState.Queued ||
-                state(proposalId) == ProposalState.Executed ||
-                state(proposalId) == ProposalState.Defeated ||
-                state(proposalId) == ProposalState.QuorumFailed ||
-                state(proposalId) == ProposalState.Canceled
+                pState == ProposalState.Succeeded ||
+                pState == ProposalState.Queued ||
+                pState == ProposalState.Executed ||
+                pState == ProposalState.Defeated ||
+                pState == ProposalState.QuorumFailed ||
+                pState == ProposalState.Canceled
             );
         if (proposalPassedAndIsProposer) {
             // you get your 150% back if the proposal succeeded/queued/executed
-            if (state(proposalId) == ProposalState.Succeeded || state(proposalId) == ProposalState.Queued || state(proposalId) == ProposalState.Executed) {
+            if (pState == ProposalState.Succeeded || pState == ProposalState.Queued || pState == ProposalState.Executed) {
                 amount = (receipt.rawVotes) * 3 / 2;
             } else {
-                if (state(proposalId) == ProposalState.QuorumFailed) {
+                if (pState == ProposalState.QuorumFailed) {
                     // proposer loose 75% of votes
                     uint256 quarterOfStake = div256(receipt.rawVotes, 4);
                     dclm8._burn(address(this), uint96(quarterOfStake));
                     amount = uint96(quarterOfStake * 3);
                 } else {
-                    // otherwise proposer loose 5% of votes
+                    // otherwise proposer lose 5% of votes
                     uint256 tokensToRefund = receipt.rawVotes;
                     uint256 tokensToLose = div256(tokensToRefund, 20);
                     amount = uint96(sub256(tokensToRefund, tokensToLose));
@@ -557,7 +575,7 @@ contract Governor {
         } else {
             // If someone tries to cancel their vote (i.e. proposal state is active) they lose 5% of their tokens.
             // the proposer cannot vote less
-            if (state(proposalId) == ProposalState.Active) {
+            if (pState == ProposalState.Active) {
                 require(!isProposer, "Governor::refund: proposer may not change his vote amount");
                 uint256 tokensToRefund = receipt.rawVotes;
                 uint256 tokensToLose = div256(tokensToRefund, 20);
@@ -570,8 +588,8 @@ contract Governor {
         }
         require(amount > 0, "Governor::refund: nothing to refund");
 
-        bool isActive = state(proposalId) == ProposalState.Active;
-        bool isQuorumFailed = state(proposalId) == ProposalState.QuorumFailed;
+        bool isActive = pState == ProposalState.Active;
+        bool isQuorumFailed = pState == ProposalState.QuorumFailed;
         require(isActive || isQuorumFailed || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
 
         // refund dCLM8 from this contract

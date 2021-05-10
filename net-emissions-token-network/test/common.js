@@ -55,7 +55,6 @@ exports.advanceHours = async function (hours) {
 }
 
 exports.getProposalIdFromProposalTransactionReceipt = function (receipt) {
-  console.log('getProposalIdFromProposalTransactionReceipt...', receipt);
   for (let i = 0; i < receipt.events.length; i++) {
     let e = receipt.events[i];
     if (e.event == "ProposalCreated") return e.args[0].toNumber();
