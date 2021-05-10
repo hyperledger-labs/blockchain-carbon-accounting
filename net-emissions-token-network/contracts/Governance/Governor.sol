@@ -419,7 +419,7 @@ contract Governor {
             return ProposalState.Pending;
         } else if (block.number <= proposal.endBlock) {
             return ProposalState.Active;
-        } else if ( forVotes + againstVotes < quorumVotes() ) {
+        } else if ( !isChildProposal && forVotes + againstVotes < quorumVotes() ) {
             return ProposalState.QuorumFailed;
         } else if (forVotes <= againstVotes) {
             return ProposalState.Defeated;
