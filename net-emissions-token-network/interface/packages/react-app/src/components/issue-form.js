@@ -13,7 +13,6 @@ import SubmissionModal from "./submission-modal";
 
 
 
-
 export default function IssueForm({ provider, roles, signedInAddress, limitedMode }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
@@ -42,7 +41,11 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
   function onAddressChange(event) { setAddress(event.target.value); };
-  function onTokenTypeIdChange(event) { setTokenTypeId(event.target.value); };
+  function onTokenTypeIdChange(event) {
+    console.log('** onTokenTypeIdChange', event.target.value);
+    setTokenTypeId(event.target.value);
+    console.log('** onTokenTypeIdChange ->', tokenTypeId);
+  };
   function onQuantityChange(event) { setQuantity(event.target.value); };
   function onFromDateChange(event) { setFromDate(event._d); };
   function onThruDateChange(event) { setThruDate(event._d); };
@@ -148,6 +151,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         onHide={() => {
           setCreateModalShow(false);
         }}
+        token={tokenTypeId}
         provider={provider}
         calldata={calldata}
         description={description}
@@ -274,7 +278,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                 tokenTypeId === "3"
               }
             >
-              Create a DAO proposal
+              Create a DAO proposal token
             </Button>
           }
 

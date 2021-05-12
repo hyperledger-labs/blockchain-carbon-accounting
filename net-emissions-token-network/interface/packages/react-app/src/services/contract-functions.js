@@ -389,7 +389,33 @@ export async function propose(w3provider, targets, values, signatures, calldatas
   let signed = await contract.connect(signer);
   let proposal;
   try {
-    let proposalCall = await signed.propose(targets, values, signatures, calldatas, description);
+    if (targets && targets.length) {
+      console.log(
+        "propose calling proposeMultiAttribute with",
+        targets,
+        values,
+        signatures,
+        calldatas,
+        description
+      );
+      await signed.proposeMultiAttribute(
+        targets,
+        values,
+        signatures,
+        calldatas,
+        description
+      );
+    } else {
+      console.log(
+        "propose calling propose with",
+        targets,
+        values,
+        signatures,
+        calldatas,
+        description
+      );
+      await signed.propose(targets, values, signatures, calldatas, description);
+    }
     proposal = SUCCESS_MSG;
   } catch (error) {
     let err = catchError(error);
