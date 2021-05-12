@@ -1,39 +1,54 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useCallback, useState, useEffect } from "react";
-
-import { addresses } from "@project/contracts";
-
 import { BigNumber } from "@ethersproject/bignumber";
-import { JsonRpcProvider } from "@ethersproject/providers"
-
-import {
-  daoTokenBalanceOf,
-  getProposalCount,
-  getProposalDetails,
-  getProposalState,
-  getBlockNumber,
-  castVote,
-  getReceipt,
-  getDescription,
-  getActions,
-  delegates,
-  refund,
-  getQuorum,
-  getProposalThreshold
-} from "../services/contract-functions";
-
-import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
-import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
-import ProposalCallDetailsModal from "./proposal-call-details-modal";
-
+import { JsonRpcProvider } from "@ethersproject/providers";
+import { addresses } from "@project/contracts";
+import React, { useCallback, useEffect, useState } from "react";
+import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
-import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import Spinner from "react-bootstrap/Spinner";
-import Alert from "react-bootstrap/Alert";
-import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
+import InputGroup from "react-bootstrap/InputGroup";
+import Row from "react-bootstrap/Row";
+import Spinner from "react-bootstrap/Spinner";
+import {
+  castVote, daoTokenBalanceOf,
+
+
+
+
+
+
+
+
+  delegates, getActions, getBlockNumber,
+
+
+  getDescription, getProposalCount,
+  getProposalDetails,
+  getProposalState,
+
+
+
+
+
+
+
+
+  getProposalThreshold, getQuorum, getReceipt,
+
+
+
+  refund
+} from "../services/contract-functions";
+import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
+import ProposalCallDetailsModal from "./proposal-call-details-modal";
+import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
+
+
+
+
+
 
 function addCommas(str){
   str += '';
@@ -64,6 +79,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
 
   const [proposals, setProposals] = useState([]);
+  const [childProposals, setChildProposals] = useState({});
   const [proposalsLength, setProposalsLength] = useState(-1);
   const [fetchingProposals, setFetchingProposals] = useState(false);
 
@@ -153,6 +169,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const fetchProposals = useCallback(async () => {
     let numberOfProposals = await getProposalCount(provider);
     let p = [];
+    let cps = {};
 
     for (let i = numberOfProposals; i > 0; i--) {
       let i_toNumberFix;
@@ -163,6 +180,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       }
 
       let proposalDetails = await getProposalDetails(provider, i);
+      let parentProposal = proposalDetails.parentProposalId;
+      let proposalId = proposalDetails.id;
       let proposalState = await getProposalState(provider, i);
       let proposalDescription = await getDescription(provider, i);
       let proposalActions = await getActions(provider, i);
@@ -199,8 +218,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         (daoTokenBalance > 0)
       );
 
-      p.push({
+      let proposal = {
         id: i_toNumberFix,
+        realId: proposalId,
         details: {
           proposer: proposalDetails[1],
           forVotes: forVotes,
@@ -223,12 +243,25 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
-      });
+      };
+
+      if (parentProposal && parentProposal.toNumber() > 0) {
+        // if this has a parent proposal, add it there
+        if (!cps[parentProposal]) {
+          cps[parentProposal] = [proposal];
+        } else {
+          cps[parentProposal].push(proposal);
+        }
+      } else {
+        // else add it directly to the main list
+        p.push(proposal);
+      }
     }
 
     console.log('governance-dashboard proposals: ', p);
 
     setProposals(p);
+    setChildProposals(cps);
     setProposalsLength(p.length || 0);
     setFetchingProposals(false);
   }, [provider, daoTokenBalance, signedInAddress]);
@@ -590,6 +623,111 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     </Button>
                   </p>
                 }
+
+                { childProposals[proposal.realId] ?
+                  childProposals[proposal.realId].map(cp =>
+                    <Card key={cp.realId} className="m-2 col-12 pt-2">
+                      <Card.Body>
+
+                      {/* child proposal state */}
+                      <Card.Text className="text-primary">
+                        <b>{cp.state}</b>
+                      </Card.Text>
+
+                      <Card.Text className="py-2">{cp.description}</Card.Text>
+                      <Row className="text-center mb-3">
+
+                        {/* voting buttons if eligible */}
+                        { cp.isEligibleToVote &&
+                          <>
+                            <Col className="text-success my-auto">
+                              Total For: {addCommas(cp.details.forVotes)} votes ({addCommas(cp.details.rawForVotes)} dCLM8 locked)<br/>
+                              { (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
+                              <InputGroup className="mt-1">
+                                <FormControl
+                                  placeholder="dCLM8 to vote for.."
+                                  onChange={onVotesAmountChange}
+                                />
+                                <InputGroup.Append>
+                                  <Button
+                                    variant="success"
+                                    onClick={() => vote(cp.id, true)}
+                                  >Vote for</Button>
+                                </InputGroup.Append>
+                              </InputGroup>
+                              }
+                            </Col>
+                            <Col className="text-danger my-auto">
+                              Total Against: {addCommas(cp.details.againstVotes)} votes ({addCommas(cp.details.rawAgainstVotes)} dCLM8 locked)<br/>
+                              { (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
+                              <InputGroup className="mt-1">
+                                <FormControl
+                                  placeholder="dCLM8 to vote against..."
+                                  onChange={onVotesAmountChange}
+                                />
+                                <InputGroup.Append>
+                                  <Button
+                                    variant="danger"
+                                    onClick={() => vote(cp.id, false)}
+                                  >Vote against</Button>
+                                </InputGroup.Append>
+                              </InputGroup>
+                              }
+                            </Col>
+                          </>
+                        }
+
+                        {/* voting results if ineligible */}
+                        { ( (cp.state !== "Pending") && !cp.isEligibleToVote ) &&
+                          <>
+                            <Col className="text-success my-auto">
+                              Total For: {addCommas(cp.details.forVotes)} votes ({addCommas(cp.details.rawForVotes)} dCLM8)<br/>
+                            </Col>
+                            <Col className="text-danger my-auto">
+                              Total Against: {addCommas(cp.details.againstVotes)} votes ({addCommas(cp.details.rawAgainstVotes)} dCLM8)<br/>
+                            </Col>
+                          </>
+                        }
+
+                      </Row>
+
+                      { (cp.receipt.hasVoted === true) &&
+                        <p className="text-center py-2">
+                          You voted {(cp.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(cp.receipt.votes)} votes.
+                        </p>
+                      }
+
+                      { (cp.state !== "Active" && cp.receipt.hasVoted !== true) &&
+                        <Col className="text-danger my-auto">
+                          <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
+                        </Col>
+                      }
+
+                      { (
+                          (
+                            (cp.receipt.hasVoted && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase())) || (cp.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (cp.state === "Canceled" || cp.state === "Succeeded" || cp.state === "Quorum Failed"))
+                          ) &&
+                          (!cp.receipt.hasVotesRefunded) &&
+                          cp.receipt.rawRefund > 0
+                        ) &&
+                        <p className="text-center py-2">
+                          <Button
+                            size="sm"
+                            onClick={ () => refundDclm8(cp.id) }
+                            className="text-nowrap mt-2"
+                            variant="danger"
+                          >
+                            { (cp.state === "Active")
+                              ? <span>Cancel My Vote</span>
+                              : <span>Refund {addCommas(cp.receipt.rawRefund)} dCLM8</span>
+                            }
+                          </Button>
+                        </p>
+                      }
+                      </Card.Body>
+                    </Card>
+                  )
+                : null }
               </Card.Body>
             </Card>
           ))
