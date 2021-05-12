@@ -55,64 +55,62 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     setSubmissionModalShow(true);
   }
 
-  // update calldata in background in case user wants to copy it with button
-  const updateCalldata = useCallback(() => {
-    let encodedCalldata;
-    try {
-      encodedCalldata = encodeParameters(
-        // types of params
-        [
-          'address',
-          'address',
-          'uint8',
-          'uint256',
-          'uint256',
-          'uint256',
-          'uint256',
-          'string',
-          'string',
-          'string'
-        ],
-        // value of params
-        [
-          (limitedMode === true ? adminAddress : address),
-          signedInAddress,
-          tokenTypeId,
-          Number(quantity),
-          Number(fromDate)/1000,
-          Number(thruDate)/1000,
-          Number(automaticRetireDate)/1000,
-          metadata,
-          manifest,
-          ("Issued by DAO. " + description)
-        ]
-      );
-    } catch (error) {
-      encodedCalldata = "";
-    }
-    setCalldata(encodedCalldata);
-  }, [limitedMode, adminAddress, address, tokenTypeId, quantity, fromDate, thruDate, automaticRetireDate, metadata, manifest, description, signedInAddress]);
-
   // update calldata on input change
   useEffect(() => {
+    console.log('useEffect setCalldata...');
     if (signedInAddress) {
-      updateCalldata();
+      let encodedCalldata;
+      try {
+        encodedCalldata = encodeParameters(
+          // types of params
+          [
+            'address',
+            'address',
+            'uint8',
+            'uint256',
+            'uint256',
+            'uint256',
+            'uint256',
+            'string',
+            'string',
+            'string'
+          ],
+          // value of params
+          [
+            (limitedMode === true ? adminAddress : address),
+            signedInAddress,
+            tokenTypeId,
+            Number(quantity),
+            Number(fromDate)/1000,
+            Number(thruDate)/1000,
+            Number(automaticRetireDate)/1000,
+            metadata,
+            manifest,
+            ("Issued by DAO. " + description)
+          ]
+        );
+      } catch (error) {
+        encodedCalldata = "";
+      }
+      setCalldata(encodedCalldata);
     }
   }, [
-    updateCalldata,
     signedInAddress,
-    onAddressChange,
-    onTokenTypeIdChange,
-    onQuantityChange,
-    onFromDateChange,
-    onThruDateChange,
-    onAutomaticRetireDateChange,
-    onMetadataChange,
-    onManifestChange,
-    onDescriptionChange,
+    limitedMode,
+    adminAddress,
+    address,
+    tokenTypeId,
+    quantity,
+    fromDate,
+    thruDate,
+    automaticRetireDate,
+    metadata,
+    manifest,
+    description,
   ]);
 
   useEffect(() => {
+    console.log('useEffect fetchAdmin...');
     async function fetchAdmin() {
       setAdminAddress(await getAdmin(provider));
     }

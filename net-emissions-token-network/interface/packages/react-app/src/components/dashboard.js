@@ -57,6 +57,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
   }
 
   const fetchBalances = useCallback(async () => {
+    console.log('useCallback fetchBalances...', provider, signedInAddress);
 
     let newMyBalances = [];
     let newMyIssuedTokens = [];
@@ -147,7 +148,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         fetchBalances();
       }
     }
-  }, [provider, signedInAddress, myBalances, fetchingTokens, fetchBalances]);
+  }, [provider, signedInAddress]);
 
   function pointerHover(e) {
     e.target.style.cursor = "pointer";
