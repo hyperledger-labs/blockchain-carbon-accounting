@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useState
@@ -55,7 +56,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
     fetchBalances();
   }
 
-  async function fetchBalances() {
+  const fetchBalances = useCallback(async () => {
 
     let newMyBalances = [];
     let newMyIssuedTokens = [];
@@ -136,7 +137,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
     setMyIssuedTokens(newMyIssuedTokens);
     setFetchingTokens(false);
     setError("");
-  }
+  }, [provider, signedInAddress]);
 
   // If address and provider detected then fetch balances
   useEffect(() => {
@@ -146,7 +147,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         fetchBalances();
       }
     }
-  }, [signedInAddress]);
+  }, [provider, signedInAddress, myBalances, fetchingTokens, fetchBalances]);
 
   function pointerHover(e) {
     e.target.style.cursor = "pointer";

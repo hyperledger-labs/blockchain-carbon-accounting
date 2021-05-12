@@ -325,7 +325,7 @@ export async function delegate(w3provider, delegatee) {
   let signed = await contract.connect(signer);
   let delegate;
   try {
-    let delegateCall = await signed.delegate(delegatee);
+    await signed.delegate(delegatee);
     delegate = SUCCESS_MSG;
   } catch (error) {
     delegate = catchError(error);
@@ -464,7 +464,7 @@ export async function castVote(w3provider, proposalId, support, votes) {
   let signed = await contract.connect(signer);
   let castVote;
   try {
-    let castVoteCall = await signed.castVote(proposalId, support, votes);
+    await signed.castVote(proposalId, support, votes);
     castVote = SUCCESS_MSG;
   } catch (error) {
     castVote = catchError(error);
@@ -478,7 +478,7 @@ export async function queue(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let queue;
   try {
-    let queueCall = await signed.queue(proposalId);
+    await signed.queue(proposalId);
     queue = SUCCESS_MSG;
   } catch (error) {
     queue = catchError(error);
@@ -492,7 +492,7 @@ export async function execute(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let execute;
   try {
-    let executeCall = await signed.execute(proposalId);
+    await signed.execute(proposalId);
     execute = SUCCESS_MSG;
   } catch (error) {
     execute = catchError(error);
@@ -506,7 +506,7 @@ export async function cancel(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let cancel;
   try {
-    let cancelCall = await signed.cancel(proposalId);
+    await signed.cancel(proposalId);
     cancel = SUCCESS_MSG;
   } catch (error) {
     cancel = catchError(error);
@@ -520,7 +520,7 @@ export async function refund(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let refund;
   try {
-    let refundCall = await signed.refund(proposalId);
+    await signed.refund(proposalId);
     refund = SUCCESS_MSG;
   } catch (error) {
     refund = catchError(error);

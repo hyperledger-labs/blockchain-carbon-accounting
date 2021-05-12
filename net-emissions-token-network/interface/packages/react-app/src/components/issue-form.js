@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -40,19 +40,15 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  function onAddressChange(event) { setAddress(event.target.value); };
-  function onTokenTypeIdChange(event) {
-    console.log('** onTokenTypeIdChange', event.target.value);
-    setTokenTypeId(event.target.value);
-    console.log('** onTokenTypeIdChange ->', tokenTypeId);
-  };
-  function onQuantityChange(event) { setQuantity(event.target.value); };
-  function onFromDateChange(event) { setFromDate(event._d); };
-  function onThruDateChange(event) { setThruDate(event._d); };
-  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d); };
-  function onMetadataChange(event) { setMetadata(event.target.value); };
-  function onManifestChange(event) { setManifest(event.target.value); };
-  function onDescriptionChange(event) { setDescription(event.target.value); };
+  const onAddressChange = useCallback((event) => { setAddress(event.target.value); }, []);
+  const onTokenTypeIdChange = useCallback((event) => { setTokenTypeId(event.target.value); }, []);
+  const onQuantityChange = useCallback((event) => { setQuantity(event.target.value); }, []);
+  const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
+  const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
+  const onAutomaticRetireDateChange = useCallback((event) => { setAutomaticRetireDate(event._d); }, []);
+  const onMetadataChange = useCallback((event) => { setMetadata(event.target.value); }, []);
+  const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
+  const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
 
   function handleSubmit() {
     submit();
@@ -60,7 +56,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   }
 
   // update calldata in background in case user wants to copy it with button
-  function updateCalldata() {
+  const updateCalldata = useCallback(() => {
     let encodedCalldata;
     try {
       encodedCalldata = encodeParameters(
@@ -95,7 +91,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       encodedCalldata = "";
     }
     setCalldata(encodedCalldata);
-  }
+  }, [limitedMode, adminAddress, address, tokenTypeId, quantity, fromDate, thruDate, automaticRetireDate, metadata, manifest, description, signedInAddress]);
 
   // update calldata on input change
   useEffect(() => {
@@ -103,6 +99,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       updateCalldata();
     }
   }, [
+    updateCalldata,
     signedInAddress,
     onAddressChange,
     onTokenTypeIdChange,

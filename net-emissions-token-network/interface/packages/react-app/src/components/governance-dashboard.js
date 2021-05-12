@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
 
@@ -42,7 +42,7 @@ function addCommas(str){
   var x2 = x.length > 1 ? '.' + x[1] : '';
   var rgx = /(\d+)(\d{3})/;
   while (rgx.test(x1)) {
-    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+    x1 = x1.replace(rgx, '$1,$2');
   }
   return x1 + x2;
 }
@@ -111,15 +111,15 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setResult(`Skipped ${blocks} blocks. Please refresh in a few seconds to see the updated current block!`);
   }
 
-  async function handleSkipTimestamp(days) {
+  const handleSkipTimestamp = useCallback(async (days) => {
     let localProvider = new JsonRpcProvider();
     let seconds = (days * 24 * 60 * 60); // 1 day
     await localProvider.send("evm_increaseTime", [seconds])
     await localProvider.send("evm_mine");
     setResult(`Added ${days} days to block timestamp. No need to refresh!`);
-  }
+  }, []);
 
-  async function fetchDaoTokenBalance() {
+  const fetchDaoTokenBalance = useCallback(async () => {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
     let delegatesCall = await delegates(provider, signedInAddress);
     let del = (
@@ -130,27 +130,27 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setDaoTokenBalance(balance);
     setDaoTokenDelegates(del);
     setFetchingDaoTokenBalance(false);
-  }
+  }, [provider, signedInAddress]);
 
-  async function fetchBlockNumber() {
+  const fetchBlockNumber = useCallback(async () => {
     let blockNum = await getBlockNumber(provider);
     setBlockNumber(blockNum);
     setFetchingBlockNumber(false);
-  }
+  }, [provider]);
 
-  async function fetchQuorum() {
+  const fetchQuorum = useCallback(async () => {
     let q = addCommas( (await getQuorum(provider)).div("1000000000") );
     setQuorum(q);
     setFetchingQuorum(false);
-  }
+  }, [provider]);
 
-  async function fetchProposalThreshold() {
+  const fetchProposalThreshold = useCallback(async () => {
     let p = addCommas( (await getProposalThreshold(provider)).div("1000000000000000000") );
     setProposalThreshold(p);
     setFetchingProposalThreshold(false);
-  }
+  }, [provider]);
 
-  async function fetchProposals() {
+  const fetchProposals = useCallback(async () => {
     let numberOfProposals = await getProposalCount(provider);
     let p = [];
 
@@ -231,7 +231,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setProposals(p);
     setProposalsLength(p.length || 0);
     setFetchingProposals(false);
-  }
+  }, [provider, daoTokenBalance, signedInAddress]);
 
   async function vote(proposalId, support) {
     let decimals = BigNumber.from("1000000000000000000");
@@ -276,7 +276,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       setFetchingProposals(true);
       fetchProposals();
     }
-  }, [provider, signedInAddress, proposalsLength, fetchingProposals, setFetchingProposals, fetchProposals]);
+  }, [provider, signedInAddress, proposalsLength, fetchingProposals, setFetchingProposals, fetchProposals, daoTokenBalance]);
 
   useEffect(() => {
     if (provider && quorum === -1 && !fetchingQuorum) {
@@ -508,7 +508,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     <>
                       <Col className="text-success my-auto">
                         Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
-                        { (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase()) &&
+                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote for.."
@@ -525,7 +525,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                       </Col>
                       <Col className="text-danger my-auto">
                         Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
-                        { (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase()) &&
+                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
                         <InputGroup className="mt-1">
                           <FormControl
                             placeholder="dCLM8 to vote against..."
@@ -571,7 +571,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 { (
                     (
-                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
+                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
                     ) &&
                     (!proposal.receipt.hasVotesRefunded) &&
                      proposal.receipt.rawRefund > 0

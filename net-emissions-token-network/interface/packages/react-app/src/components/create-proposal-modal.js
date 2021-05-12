@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { addresses } from "@project/contracts";
-import React, { createRef, useEffect, useRef, useState } from "react";
+import React, { createRef, useCallback, useEffect, useRef, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
@@ -59,51 +59,55 @@ export default function CreateProposalModal(props) {
     setResult(newResult);
   }
 
-  function onDescriptionChange(event) { setDescription(event.target.value); };
+  const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
 
-  function createProposalAttributes(desc) {
+  const createProposalAttributes = useCallback((desc) => {
     const newAttrs = [...proposalAttributes];
-    console.log('createProposalAttribute', desc);
     desc.forEach(e => {
       newAttrs.push({description: e});
     })
-    console.log('createProposalAttribute newAttrs', newAttrs);
     setProposalAttributes(newAttrs);
-    console.log('createProposalAttribute now', proposalAttributes);
     proposalAttributeRefs.current = newAttrs.map((_, i) => proposalAttributeRefs.current[i] ? proposalAttributeRefs.current[i] : createRef());
-  }
+  }, [proposalAttributes, setProposalAttributes]);
 
-  function addProposalAttribute() {
+  const addProposalAttribute = useCallback(() => {
     createProposalAttributes(['']);
     setTimeout(() => {
       proposalAttributeRefs.current[proposalAttributeRefs.current.length-1].current.focus();
     }, 0);
-  }
-  function updateProposalAtIndex(e, i) {
+  }, [createProposalAttributes]);
+
+  const updateProposalAtIndex = useCallback((e, i) => {
     const newAttrs = [...proposalAttributes];
     newAttrs[i].description = e.target.value;
     setProposalAttributes(newAttrs);
-  }
-  function removeProposalAttribute(i) {
+  }, [proposalAttributes, setProposalAttributes]);
+
+  const removeProposalAttribute = useCallback((i) => {
     if (i > proposalAttributes.length) return;
     setProposalAttributes(attrs => attrs.slice(0, i).concat(attrs.slice(i + 1, attrs.length)));
     proposalAttributeRefs.current = proposalAttributes.map((_, i) => proposalAttributeRefs.current[i] ? proposalAttributeRefs.current[i] : createRef());
-  }
+  }, [proposalAttributes, setProposalAttributes]);
 
   useEffect(() => {
     setDescription(props.description);
   }, [props.description]);
 
   useEffect(() => {
-    console.log("create-proposal-modal::token changed to ", props.token);
     // preset some attributes
     if (props.token === 2 || props.token === "2") {
-      createProposalAttributes(['Real', 'Additional', 'Realistic Baselines', 'Permanent', 'Adequate Leakage Accounting']);
+      createProposalAttributes([
+        "Real",
+        "Additional",
+        "Realistic Baselines",
+        "Permanent",
+        "Adequate Leakage Accounting",
+      ]);
     } else {
       setProposalAttributes([]);
       proposalAttributeRefs.current = [];
     }
-  }, [props.token]);
+  }, [createProposalAttributes, props.token]);
 
   return (
     <Modal

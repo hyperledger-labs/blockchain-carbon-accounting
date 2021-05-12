@@ -5,8 +5,6 @@ import { useQuery } from "@apollo/react-hooks";
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
