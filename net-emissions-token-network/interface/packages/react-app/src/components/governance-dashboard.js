@@ -215,12 +215,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         receipt: {
           hasVoted: proposalReceipt[0],
           hasVotesRefunded: proposalReceipt[4],
-          hasStakeRefunded: proposalReceipt[5],
           support: proposalReceipt[1],
           votes: proposalReceipt[2].div(decimals).toString(),
           rawVotes: proposalReceipt[3].div(decimalsRaw),
           rawRefund: refundProposal,
-          endVotesCancelPeriodBlock: proposalReceipt[6].toNumber()
+          endVotesCancelPeriodBlock: proposalReceipt[5].toNumber()
         },
         description: proposalDescription,
         isEligibleToVote: proposalIsEligibleToVote
@@ -574,7 +573,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     (
                       (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() != signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
                     ) &&
-                    (!proposal.receipt.hasVotesRefunded || !proposal.receipt.hasStakeRefunded) &&
+                    (!proposal.receipt.hasVotesRefunded) &&
                      proposal.receipt.rawRefund > 0
                   ) &&
                   <p className="text-center py-2">
