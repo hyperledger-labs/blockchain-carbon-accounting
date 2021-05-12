@@ -59,7 +59,10 @@ function App() {
         }
 
         <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
-        <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+        {isOwnerOrDealer ? 
+          <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+          : null
+        }
 
         {((limitedMode && isOwner) || !limitedMode) &&
           <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>

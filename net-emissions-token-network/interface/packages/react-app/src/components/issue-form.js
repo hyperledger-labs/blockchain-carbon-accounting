@@ -139,7 +139,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     borderColor: '#dc3545'
   };
 
-  return (
+  return (roles[0] || roles[1] || roles[2] || roles[3]) ? (
     <>
 
       <CreateProposalModal
@@ -198,9 +198,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
-          <option value={1}>{TOKEN_TYPES[0]}</option>
-          <option value={2}>{TOKEN_TYPES[1]}</option>
-          <option value={3}>{TOKEN_TYPES[2]}</option>
+          {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
+          {(roles[0] || roles[2]) ? <option value={1}>{TOKEN_TYPES[1]}</option> : null}
+          {(roles[0] || roles[3]) ? <option value={1}>{TOKEN_TYPES[2]}</option> : null}
         </Form.Control>
       </Form.Group>
       <Form.Group>
@@ -303,5 +303,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       </Row>
       
     </>
+  ) : (
+    <p>You must be a registered dealer to issue tokens.</p>
   );
 }
