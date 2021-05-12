@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
-
-import { issue, encodeParameters, TOKEN_TYPES, getAdmin } from "../services/contract-functions";
-
-import SubmissionModal from "./submission-modal";
-import CreateProposalModal from "./create-proposal-modal";
-
+import React, { useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
-
 import "react-datetime/css/react-datetime.css";
+import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/contract-functions";
+import CreateProposalModal from "./create-proposal-modal";
+import SubmissionModal from "./submission-modal";
+
+
+
+
 
 export default function IssueForm({ provider, roles, signedInAddress, limitedMode }) {
 
@@ -199,8 +199,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
           {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
-          {(roles[0] || roles[2]) ? <option value={1}>{TOKEN_TYPES[1]}</option> : null}
-          {(roles[0] || roles[3]) ? <option value={1}>{TOKEN_TYPES[2]}</option> : null}
+          {(roles[0] || roles[2]) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
+          {(roles[0] || roles[3]) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
         </Form.Control>
       </Form.Group>
       <Form.Group>
@@ -216,7 +216,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         {/* Display whether decimal is needed or not */}
         <Form.Text className="text-muted">
           {(tokenTypeId === "3")
-            ? "Must not contain more than three decimal values." 
+            ? "Must not contain more than three decimal values."
             : "Must be an integer value."
           }
         </Form.Text>
@@ -301,7 +301,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         }
 
       </Row>
-      
+
     </>
   ) : (
     <p>You must be a registered dealer to issue tokens.</p>
