@@ -95,6 +95,7 @@ export default function CreateProposalModal(props) {
 
   useEffect(() => {
     // preset some attributes
+    console.log("props.token", props.token);
     if (props.token === 2 || props.token === "2") {
       createProposalAttributes([
         "Real",

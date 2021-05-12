@@ -117,6 +117,16 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     }
   }, [limitedMode, provider]);
 
+  useEffect(() => {
+    if (roles[0] || roles[1]) {
+      setTokenTypeId("1");
+    } else if (roles[0] || roles[2]) {
+      setTokenTypeId("2");
+    } else if (roles[0] || roles[3]) {
+      setTokenTypeId("3");
+    }
+  }, [roles]);
+
   async function submit() {
     // If quantity has 3 decimals, multiply by 1000 before passing to the contract
     let quantity_formatted;
