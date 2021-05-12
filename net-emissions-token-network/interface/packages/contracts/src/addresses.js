@@ -33,23 +33,6 @@ const networksAndAddresses = {
     }
   },
 
-  xdai: {
-    network: "xDai Mainnet",
-    tokenNetwork: {
-      address: "0xf7B361Fe2dE41Cd092D2c777D2136CB8E3C2B146",   
-    },
-    dao: {
-      governor: {
-        address: "0x7137EB87725D61d69e6543E7b498bC4780AF1608", 
-      },
-      daoToken: {
-        address: "0xe0E06767718e04A51c99C3A1cfc63a42950616a1", 
-      }
-    }
-  },
-
-
-
   optimism_integration: {
     network: "Optimism Local",
     tokenNetwork: {
@@ -95,6 +78,20 @@ const networksAndAddresses = {
     }
   },
 
+  ropsten: {
+    network: "Ropsten",
+    tokenNetwork: {
+      address: "0xDf582cE97A933f6987b19838985874E4434207A2", // deployed 2021-04-06
+    },
+    dao: {
+      governor: {
+        address: "0x6E21205682C80E6BD2d292561BA8b736186132ED", // deployed 2021-04-29
+      },
+      daoToken: {
+        address: "0xD32E793008B0FbD13C889E291bc049483Da316bA", // deployed 2021-04-29
+      }
+    }
+  },
 }
 
 // change this to the network you want
