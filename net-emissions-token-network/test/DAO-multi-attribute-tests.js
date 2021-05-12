@@ -1204,4 +1204,128 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
 
   });
 
+  it("should not allow refund on child proposal or parent proposal, for defeated proposal", async function () {
+
+    const { deployer, dealer1, dealer2 } = await getNamedAccounts();
+    const daoToken = await ethers.getContract('DAOToken');
+    const governor = await ethers.getContract('Governor');
+    const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
+
+    let decimals = ethers.BigNumber.from("1000000000000000000");
+
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer1, ethers.BigNumber.from("500000").mul(decimals));
+    await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer2, ethers.BigNumber.from("500000").mul(decimals));
+
+    // create a proposal with 2 child proposal
+    await createMultiAttributeProposal({
+      proposer: deployer,
+      deployer: deployer,
+      governor: governor,
+      netEmissionsTokenNetwork: netEmissionsTokenNetwork,
+      numChildren: 10
+    });
+
+    // check the proposal votes
+    await governor.proposals(1).then((response) => {
+      // accounted votes of child proposals into the parent proposal as well
+      expect(response.rawForVotes).to.equal("100000000000000000000000");
+      expect(response.forVotes).to.equal("316227766016");
+      expect(response.againstVotes).to.equal("0");
+      expect(response.rawAgainstVotes).to.equal("0");
+    });
+    for (let i=1; i<=10; i++) {
+      await governor.proposals(1+i).then((response) => {
+        expect(response.rawForVotes).to.equal("10000000000000000000000");
+        expect(response.forVotes).to.equal("100000000000");
+        expect(response.againstVotes).to.equal("0");
+        expect(response.rawAgainstVotes).to.equal("0");
+      });
+    }
+
+    // dealer1 votes 200k against on the whole proposal (parent)
+    await governor
+      .connect(await ethers.getSigner(dealer1))
+      .castVote(1, false, ethers.BigNumber.from("200000").mul(decimals));
+    await governor.getReceipt(1, dealer1).then((response) => {
+      expect(response.support).to.equal(false);
+      expect(response.rawVotes).to.equal("200000000000000000000000");
+      expect(response.votes).to.equal("447213595499");
+    });
+    for (let i=1; i<=10; i++) {
+      await governor.getReceipt(1+i, dealer1).then((response) => {
+        expect(response.support).to.equal(false);
+        expect(response.rawVotes).to.equal("20000000000000000000000");
+        expect(response.votes).to.equal("141421356237");
+      });
+    }
+
+    // dealer2 votes 20k against on the child 2 and 3
+    await governor
+      .connect(await ethers.getSigner(dealer2))
+      .castVote(2, false, ethers.BigNumber.from("20000").mul(decimals));
+    await governor
+      .connect(await ethers.getSigner(dealer2))
+      .castVote(3, false, ethers.BigNumber.from("20000").mul(decimals));
+    await governor.getReceipt(1, dealer2).then((response) => {
+      expect(response.support).to.equal(false);
+      expect(response.rawVotes).to.equal("40000000000000000000000");
+      expect(response.votes).to.equal("200000000000");
+    });
+    // first 2 child
+    for (let i=1; i<=2; i++) {
+      await governor.getReceipt(1+i, dealer2).then((response) => {
+        expect(response.support).to.equal(false);
+        expect(response.rawVotes).to.equal("20000000000000000000000");
+        expect(response.votes).to.equal("141421356237");
+      });
+    }
+
+    await advanceBlocks(hoursToBlocks(hoursToAdvanceBlocks));
+
+    // proposal defeated
+    await governor.state(1)
+    .then((response) => {
+      expect(response).to.equal(proposalStates.defeated);
+    });
+
+    // attempt to refund on the parent proposal
+    let error = null;
+    try {
+      await governor.connect(await ethers.getSigner(deployer)).refund(1);
+    } catch (err) {
+      error = err.toString();
+    }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+    );
+    error = null;
+    try {
+      await governor.connect(await ethers.getSigner(dealer1)).refund(1);
+    } catch (err) {
+      error = err.toString();
+    }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+    );
+
+    // attempts to refund on children
+    error = null;
+    try {
+      await governor.connect(await ethers.getSigner(dealer2)).refund(2);
+    } catch (err) {
+      error = err.toString();
+    }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+    );
+    error = null;
+    try {
+      await governor.connect(await ethers.getSigner(dealer2)).refund(3);
+    } catch (err) {
+      error = err.toString();
+    }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+    );
+  });
 });
