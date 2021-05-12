@@ -62,7 +62,6 @@ export default function CreateProposalModal(props) {
   const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
 
   const createProposalAttributes = useCallback((desc) => {
-    console.log('useCallback createProposalAttributes...');
     const newAttrs = [...proposalAttributes];
     desc.forEach(e => {
       newAttrs.push({description: e});
@@ -72,7 +71,6 @@ export default function CreateProposalModal(props) {
   }, [setProposalAttributes]);
 
   const addProposalAttribute = useCallback(() => {
-    console.log('useCallback addProposalAttribute...');
     createProposalAttributes(['']);
     setTimeout(() => {
       proposalAttributeRefs.current[proposalAttributeRefs.current.length-1].current.focus();
@@ -80,26 +78,22 @@ export default function CreateProposalModal(props) {
   }, [createProposalAttributes]);
 
   const updateProposalAtIndex = useCallback((e, i) => {
-    console.log('useCallback updateProposalAtIndex...');
     const newAttrs = [...proposalAttributes];
     newAttrs[i].description = e.target.value;
     setProposalAttributes(newAttrs);
   }, [setProposalAttributes]);
 
   const removeProposalAttribute = useCallback((i) => {
-    console.log('useCallback removeProposalAttribute...');
     if (i > proposalAttributes.length) return;
     setProposalAttributes(attrs => attrs.slice(0, i).concat(attrs.slice(i + 1, attrs.length)));
     proposalAttributeRefs.current = proposalAttributes.map((_, x) => proposalAttributeRefs.current[x] ? proposalAttributeRefs.current[x] : createRef());
   }, [setProposalAttributes]);
 
   useEffect(() => {
-    console.log('useEffect props.description...');
     setDescription(props.description);
   }, [props.description]);
 
   useEffect(() => {
-    console.log('useEffect props.token ?...', props.token);
     // preset some attributes
     if (props.token === 2 || props.token === "2") {
       createProposalAttributes([

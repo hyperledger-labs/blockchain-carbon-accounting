@@ -57,7 +57,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
   }
 
   const fetchBalances = useCallback(async () => {
-    console.log('useCallback fetchBalances...', provider, signedInAddress);
 
     let newMyBalances = [];
     let newMyIssuedTokens = [];

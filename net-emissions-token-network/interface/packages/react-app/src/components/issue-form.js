@@ -57,7 +57,6 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
   // update calldata on input change
   useEffect(() => {
-    console.log('useEffect setCalldata...');
     if (signedInAddress) {
       let encodedCalldata;
       try {
@@ -110,7 +109,6 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   ]);
 
   useEffect(() => {
-    console.log('useEffect fetchAdmin...');
     async function fetchAdmin() {
       setAdminAddress(await getAdmin(provider));
     }
