@@ -100,6 +100,22 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           retiredBalance = (retiredBalance / 1000).toFixed(3);
         }
 
+        let totalIssued = "";
+        try {
+          totalIssued = tokenDetails.totalIssued.toNumber();
+        } catch (error) {
+          console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
+          totalIssued = "";
+        }
+
+        let totalRetired = "";
+        try {
+          totalRetired = tokenDetails.totalRetired.toNumber();
+        } catch (error) {
+          console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
+          totalRetired = "";
+        }
+
         let token = {
           tokenId: tokenDetails.tokenId.toNumber(),
           tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
@@ -113,8 +129,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
-          totalIssued: tokenDetails.totalIssued.toNumber(),
-          totalRetired: tokenDetails.totalRetired.toNumber(),
+          totalIssued: totalIssued,
+          totalRetired: totalRetired,
         };
 
         // Push token to myBalances or myIssuedTokens in state
