@@ -389,14 +389,14 @@ export async function propose(w3provider, targets, values, signatures, calldatas
   let signed = await contract.connect(signer);
   let proposal;
   try {
-    if (targets && targets.length) {
+    if (targets && targets.length > 1) {
       console.log(
         "propose calling proposeMultiAttribute with",
-        targets,
+        {targets,
         values,
         signatures,
         calldatas,
-        description
+        description}
       );
       await signed.proposeMultiAttribute(
         targets,
@@ -408,18 +408,18 @@ export async function propose(w3provider, targets, values, signatures, calldatas
     } else {
       console.log(
         "propose calling propose with",
-        targets,
+        {targets,
         values,
         signatures,
         calldatas,
-        description
+        description}
       );
       await signed.propose(targets, values, signatures, calldatas, description);
     }
     proposal = SUCCESS_MSG;
   } catch (error) {
+    console.error(error);
     let err = catchError(error);
-    console.log(err);
     proposal = err + " Is your delegatee set?";
   }
   return proposal;
