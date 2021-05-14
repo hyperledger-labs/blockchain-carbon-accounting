@@ -55,10 +55,19 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     setSubmissionModalShow(true);
   }
 
+  function disableIssueButton(calldata, quantity, address) {
+    let qty = Number(quantity);
+    return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
+  }
+
   // update calldata on input change
   useEffect(() => {
     if (signedInAddress) {
       let encodedCalldata;
+      let qty = Number(quantity);
+      if (tokenTypeId === "3") {
+        qty = Math.round(quantity * 1000);
+      }
       try {
         encodedCalldata = encodeParameters(
           // types of params
@@ -79,7 +88,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             (limitedMode === true ? adminAddress : address),
             signedInAddress,
             tokenTypeId,
-            Number(quantity),
+            qty,
             Number(fromDate)/1000,
             Number(thruDate)/1000,
             Number(automaticRetireDate)/1000,
@@ -277,7 +286,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
               onClick={() => setCreateModalShow(true)}
               disabled={
                 (calldata.length === 0) ||
-                String(quantity).length === 0 ||
+                Number(quantity) === 0 ||
                 tokenTypeId === "3"
               }
             >
@@ -297,7 +306,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                   size="lg"
                   block
                   onClick={handleSubmit}
-              disabled={(calldata.length === 0) || String(quantity).length === 0 || String(address).length === 0}
+              disabled={disableIssueButton(calldata, quantity, address)}
                 >
                   Issue
                 </Button>
