@@ -103,6 +103,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let totalIssued = "";
         try {
           totalIssued = tokenDetails.totalIssued.toNumber();
+          if (tokenDetails.tokenTypeId === 3) {
+            totalIssued = (totalIssued / 1000).toFixed(3);
+          }
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
           totalIssued = "";
@@ -111,6 +114,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let totalRetired = "";
         try {
           totalRetired = tokenDetails.totalRetired.toNumber();
+          if (tokenDetails.tokenTypeId === 3) {
+            totalRetired = (totalRetired / 1000).toFixed(3);
+          }
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
           totalRetired = "";
