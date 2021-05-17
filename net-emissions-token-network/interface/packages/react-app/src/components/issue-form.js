@@ -10,9 +10,6 @@ import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/cont
 import CreateProposalModal from "./create-proposal-modal";
 import SubmissionModal from "./submission-modal";
 
-
-
-
 export default function IssueForm({ provider, roles, signedInAddress, limitedMode }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
@@ -65,9 +62,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     if (signedInAddress) {
       let encodedCalldata;
       let qty = Number(quantity);
-      if (tokenTypeId === "3") {
-        qty = Math.round(quantity * 1000);
-      }
+      qty = Math.round(quantity * 1000);
+
       try {
         encodedCalldata = encodeParameters(
           // types of params
@@ -137,13 +133,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   }, [roles]);
 
   async function submit() {
-    // If quantity has 3 decimals, multiply by 1000 before passing to the contract
+    // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
     let quantity_formatted;
-    if (tokenTypeId === "3") {
-      quantity_formatted = Math.round(quantity * 1000);
-    } else {
-      quantity_formatted = quantity;
-    }
+    quantity_formatted = Math.round(quantity * 1000);
 
     let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
     setResult(result.toString());
@@ -223,7 +215,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
-          placeholder={(tokenTypeId === "3") ? "100.000" : "100"}
+          placeholder="0.000"
           value={quantity}
           onChange={onQuantityChange}
           onBlur={() => setInitializedQuantityInput(true)}
@@ -231,10 +223,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         />
         {/* Display whether decimal is needed or not */}
         <Form.Text className="text-muted">
-          {(tokenTypeId === "3")
-            ? "Must not contain more than three decimal values."
-            : "Must be an integer value."
-          }
+          Must not contain more than three decimal values.
         </Form.Text>
       </Form.Group>
       <Form.Row>

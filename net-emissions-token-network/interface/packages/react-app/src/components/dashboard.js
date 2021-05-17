@@ -94,18 +94,14 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let availableBalance = balances[0].toNumber();
         let retiredBalance = balances[1].toNumber();
 
-        // Format decimal points for audited emissions tokens
-        if (tokenDetails.tokenTypeId === 3) {
-          availableBalance = (availableBalance / 1000).toFixed(3);
-          retiredBalance = (retiredBalance / 1000).toFixed(3);
-        }
+        // Format decimal points for all tokens
+        availableBalance = (availableBalance / 1000).toFixed(3);
+        retiredBalance = (retiredBalance / 1000).toFixed(3);
 
         let totalIssued = "";
         try {
           totalIssued = tokenDetails.totalIssued.toNumber();
-          if (tokenDetails.tokenTypeId === 3) {
-            totalIssued = (totalIssued / 1000).toFixed(3);
-          }
+          totalIssued = (totalIssued / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
           totalIssued = "";
@@ -114,9 +110,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let totalRetired = "";
         try {
           totalRetired = tokenDetails.totalRetired.toNumber();
-          if (tokenDetails.tokenTypeId === 3) {
-            totalRetired = (totalRetired / 1000).toFixed(3);
-          }
+          totalRetired = (totalRetired / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
           totalRetired = "";
