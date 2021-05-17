@@ -367,6 +367,10 @@ contract DAOToken {
         return chainId;
     }
 
+    function addToTotalSupply(uint amount) public {
+        totalSupply += amount;
+    }
+
     function getTotalSupply() external view returns (uint) {
         return totalSupply;
     }
