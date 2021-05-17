@@ -368,6 +368,7 @@ contract DAOToken {
     }
 
     function addToTotalSupply(uint amount) public {
+        require(msg.sender == initialHolder, "dCLM8::addToTotalSupply: must be initial holder");
         totalSupply += amount;
     }
 
