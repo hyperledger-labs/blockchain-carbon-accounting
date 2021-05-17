@@ -31,7 +31,8 @@ export default function RetireForm({ provider, roles }) {
   }
 
   async function fetchRetire() {
-    let result = await retire(provider, tokenId, amount);
+    let qty = Math.round(amount * 1000);
+    let result = await retire(provider, tokenId, qty);
     setResult(result.toString());
   }
 
@@ -81,14 +82,14 @@ export default function RetireForm({ provider, roles }) {
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
-          placeholder="100"
+          placeholder="0.000"
           value={amount}
           onChange={onAmountChange}
           onBlur={() => setInitializedAmountInput(true)}
           style={(amount || !initializedAmountInput) ? {} : inputError}
         />
       </Form.Group>
-      
+
       {/* Only enable retires if role is found */}
       { (roles.length === 5) && (roles.some(r => r === true))
         ? <Button variant="danger" size="lg" block onClick={handleRetire}>Retire</Button>
