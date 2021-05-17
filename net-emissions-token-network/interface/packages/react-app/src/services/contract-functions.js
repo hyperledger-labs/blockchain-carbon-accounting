@@ -306,6 +306,19 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
  *
  */
 
+export async function daoTokenTotalSupply(w3provider) {
+  let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
+  let balance;
+  try {
+    let fetchedBalance = await contract.getTotalSupply();
+    let decimals = BigNumber.from("1000000000000000000");
+    balance = fetchedBalance.div(decimals).toNumber();
+  } catch (error) {
+    balance = error.message;
+  }
+  return balance;
+}
+
 export async function daoTokenBalanceOf(w3provider, account) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let balance;

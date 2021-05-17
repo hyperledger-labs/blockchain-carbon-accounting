@@ -12,43 +12,24 @@ import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import Spinner from "react-bootstrap/Spinner";
 import {
-  castVote, daoTokenBalanceOf,
-
-
-
-
-
-
-
-
-  delegates, getActions, getBlockNumber,
-
-
-  getDescription, getProposalCount,
+  castVote,
+  daoTokenBalanceOf,
+  daoTokenTotalSupply,
+  delegates,
+  getActions,
+  getBlockNumber,
+  getDescription,
+  getProposalCount,
   getProposalDetails,
   getProposalState,
-
-
-
-
-
-
-
-
-  getProposalThreshold, getQuorum, getReceipt,
-
-
-
+  getProposalThreshold,
+  getQuorum,
+  getReceipt,
   refund
 } from "../services/contract-functions";
 import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
 import ProposalCallDetailsModal from "./proposal-call-details-modal";
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
-
-
-
-
-
 
 function addCommas(str){
   str += '';
@@ -68,12 +49,11 @@ const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.
 
 export default function GovernanceDashboard({ provider, roles, signedInAddress }) {
 
-  const supply = 10000000; // 10 million total DAO tokens
-
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
   const [delegateModalShow, setDelegateModalShow] = useState(false);
   const [callDetailsModalShow, setCallDetailsModalShow] = useState(false);
 
+  const [daoTokenSupply, setDaoTokenSupply] = useState(10000000);
   const [daoTokenBalance, setDaoTokenBalance] = useState(-1);
   const [daoTokenDelegates, setDaoTokenDelegates] = useState();
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
@@ -98,7 +78,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
   const [selectedProposalIdDetails, setSelectedProposalIdDetails] = useState(1);
 
-  const percentOfSupply = ((daoTokenBalance / supply) * 100).toFixed(2);
+  const percentOfSupply = ((daoTokenBalance / daoTokenSupply) * 100).toFixed(2);
 
   const [hasRole, setHasRole] = useState(false);
 
@@ -134,6 +114,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     await localProvider.send("evm_mine");
     setResult(`Added ${days} days to block timestamp. No need to refresh!`);
   }, []);
+
+  const fetchDaoTokenSupply = useCallback(async () => {
+    let balance = await daoTokenTotalSupply(provider);
+    setDaoTokenSupply(balance);
+  }, [provider, signedInAddress]);
 
   const fetchDaoTokenBalance = useCallback(async () => {
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
@@ -286,9 +271,11 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
 
   useEffect(() => {
-    if (provider && !hasRole && Array.isArray(roles))
+    if (provider && !hasRole && Array.isArray(roles)) {
       setHasRole(roles.some(e => e));
-  }, [provider, hasRole, roles, setHasRole]);
+    }
+    fetchDaoTokenSupply();
+  }, [provider, hasRole, roles, setHasRole, fetchDaoTokenSupply]);
 
   useEffect(() => {
     if (provider && signedInAddress && daoTokenBalance === -1 && !fetchingDaoTokenBalance) {
