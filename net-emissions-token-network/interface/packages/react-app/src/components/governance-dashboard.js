@@ -531,110 +531,17 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                 </Card.Text>
 
                 <Card.Text className="py-2">{proposal.description}</Card.Text>
-                <Card.Text>
-                </Card.Text>
-                <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
-                <Row className="text-center mb-3">
+                <Card.Text></Card.Text>
 
-                  {/* voting buttons if eligible */}
-                  { proposal.isEligibleToVote &&
-                    <>
-                      <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
-                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
-                        <InputGroup className="mt-1">
-                          <FormControl
-                            placeholder="dCLM8 to vote for.."
-                            onChange={onVotesAmountChange}
-                          />
-                          <InputGroup.Append>
-                            <Button
-                              variant="success"
-                              onClick={() => vote(proposal.id, true)}
-                            >Vote for</Button>
-                          </InputGroup.Append>
-                        </InputGroup>
-                        }
-                      </Col>
-                      <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
-                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
-                        <InputGroup className="mt-1">
-                          <FormControl
-                            placeholder="dCLM8 to vote against..."
-                            onChange={onVotesAmountChange}
-                          />
-                          <InputGroup.Append>
-                            <Button
-                              variant="danger"
-                              onClick={() => vote(proposal.id, false)}
-                            >Vote against</Button>
-                          </InputGroup.Append>
-                        </InputGroup>
-                        }
-                      </Col>
-                    </>
-                  }
-
-                  {/* voting results if ineligible */}
-                  { ( (proposal.state !== "Pending") && !proposal.isEligibleToVote ) &&
-                    <>
-                      <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8)<br/>
-                      </Col>
-                      <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8)<br/>
-                      </Col>
-                    </>
-                  }
-
-                </Row>
-
-                { (proposal.receipt.hasVoted === true) &&
-                  <p className="text-center py-2">
-                    You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.
-                  </p>
-                }
-
-                { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
-                  <Col className="text-danger my-auto">
-                    <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
-                  </Col>
-                }
-
-                { (
-                    (
-                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
-                    ) &&
-                    (!proposal.receipt.hasVotesRefunded) &&
-                     proposal.receipt.rawRefund > 0
-                  ) &&
-                  <p className="text-center py-2">
-                    <Button
-                      size="sm"
-                      onClick={ () => refundDclm8(proposal.id) }
-                      className="text-nowrap mt-2"
-                      variant="danger"
-                    >
-                      { (proposal.state === "Active")
-                        ? <span>Cancel My Vote</span>
-                        : <span>Refund {addCommas(proposal.receipt.rawRefund)} dCLM8</span>
-                      }
-                    </Button>
-                  </p>
-                }
 
                 { childProposals[proposal.realId] ?
                   childProposals[proposal.realId].map(cp =>
                     <Card key={cp.realId} className="m-2 col-12 pt-2">
-                      <Card.Body>
+                      <Card.Body className="p-1">
 
                       {/* child proposal state */}
-                      <Card.Text className="text-primary">
-                        <b>{cp.state}</b>
-                      </Card.Text>
+                      <Card.Text>{cp.description}</Card.Text>
 
-                      <Card.Text className="py-2">{cp.description}</Card.Text>
                       <Row className="text-center mb-3">
 
                         {/* voting buttons if eligible */}
@@ -728,6 +635,97 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                     </Card>
                   )
                 : null }
+
+                <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
+                <Row className="text-center mb-3">
+
+                  {/* voting buttons if eligible */}
+                  { proposal.isEligibleToVote &&
+                    <>
+                      <Col className="text-success my-auto">
+                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
+                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
+                        <InputGroup className="mt-1">
+                          <FormControl
+                            placeholder="dCLM8 to vote for.."
+                            onChange={onVotesAmountChange}
+                          />
+                          <InputGroup.Append>
+                            <Button
+                              variant="success"
+                              onClick={() => vote(proposal.id, true)}
+                            >Vote for</Button>
+                          </InputGroup.Append>
+                        </InputGroup>
+                        }
+                      </Col>
+                      <Col className="text-danger my-auto">
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
+                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
+                        <InputGroup className="mt-1">
+                          <FormControl
+                            placeholder="dCLM8 to vote against..."
+                            onChange={onVotesAmountChange}
+                          />
+                          <InputGroup.Append>
+                            <Button
+                              variant="danger"
+                              onClick={() => vote(proposal.id, false)}
+                            >Vote against</Button>
+                          </InputGroup.Append>
+                        </InputGroup>
+                        }
+                      </Col>
+                    </>
+                  }
+
+                  {/* voting results if ineligible */}
+                  { ( (proposal.state !== "Pending") && !proposal.isEligibleToVote ) &&
+                    <>
+                      <Col className="text-success my-auto">
+                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8)<br/>
+                      </Col>
+                      <Col className="text-danger my-auto">
+                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8)<br/>
+                      </Col>
+                    </>
+                  }
+
+                </Row>
+
+                { (proposal.receipt.hasVoted === true) &&
+                  <p className="text-center py-2">
+                    You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.
+                  </p>
+                }
+
+                { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
+                  <Col className="text-danger my-auto">
+                    <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
+                  </Col>
+                }
+
+                { (
+                    (
+                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
+                    ) &&
+                    (!proposal.receipt.hasVotesRefunded) &&
+                     proposal.receipt.rawRefund > 0
+                  ) &&
+                  <p className="text-center py-2">
+                    <Button
+                      size="sm"
+                      onClick={ () => refundDclm8(proposal.id) }
+                      className="text-nowrap mt-2"
+                      variant="danger"
+                    >
+                      { (proposal.state === "Active")
+                        ? <span>Cancel My Vote</span>
+                        : <span>Refund {addCommas(proposal.receipt.rawRefund)} dCLM8</span>
+                      }
+                    </Button>
+                  </p>
+                }
               </Card.Body>
             </Card>
           ))
