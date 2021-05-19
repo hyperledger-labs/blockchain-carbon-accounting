@@ -132,16 +132,6 @@ export default function CreateProposalModal(props) {
             <Form.Control as="textarea" rows={2} placeholder="Describe the purpose of this proposal..." value={description} onChange={onDescriptionChange} />
           </Form.Group>
 
-          {(proposalAttributes !== []) &&
-            proposalAttributes.map((proposalAttribute, i) => (
-              <Form.Group key={i}>
-                <Button className="mb-3 float-right" variant="danger" size="sm" onClick={() => removeProposalAttribute(i)}>Remove</Button>
-                <Form.Label>Attribute</Form.Label>
-                <Form.Control ref={proposalAttributeRefs.current[i]} as="textarea" placeholder="The proposal attribute description" value={proposalAttribute.description} onChange={e=>updateProposalAtIndex(e,i)} />
-              </Form.Group>
-            ))
-          }
-
           <Button className="mb-3 float-right" variant="success" size="sm" onClick={() => addProposalAttribute()}>Add Attribute</Button>
           <Form.Group>
             <Form.Label>Calldata</Form.Label>
