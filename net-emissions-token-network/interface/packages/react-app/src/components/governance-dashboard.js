@@ -312,22 +312,23 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     }
   }, [provider, proposalThreshold, fetchingProposalThreshold, setFetchingProposalThreshold, fetchProposalThreshold]);
 
+  const hasCancelOrRefund = (cp) => (
+    (
+      (cp.receipt.hasVoted && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()))
+      || (cp.details.proposer.toLowerCase() === signedInAddress.toLowerCase()
+          && (cp.state === "Canceled" || cp.state === "Succeeded" || cp.state === "Quorum Failed"))
+    ) &&
+    (!cp.receipt.hasVotesRefunded) &&
+    cp.receipt.rawRefund > 0
+  ) 
 
   const renderCancelOrRefund = (cp) => 
-  { return (
-      (
-        (cp.receipt.hasVoted && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()))
-        || (cp.details.proposer.toLowerCase() === signedInAddress.toLowerCase()
-            && (cp.state === "Canceled" || cp.state === "Succeeded" || cp.state === "Quorum Failed"))
-      ) &&
-      (!cp.receipt.hasVotesRefunded) &&
-      cp.receipt.rawRefund > 0
-    ) &&
-    <p className="text-center">
+  { return hasCancelOrRefund(cp) &&
+    <div className="text-center mx-1">
       <Button
         size="sm"
         onClick={ () => refundDclm8(cp.id) }
-        className="text-nowrap mt-2"
+        className="text-nowrap"
         variant="danger"
       >
         { (cp.state === "Active")
@@ -335,7 +336,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
           : <span>Refund {addCommas(cp.receipt.rawRefund)} dCLM8</span>
         }
       </Button>
-    </p>
+    </div>
   }
 
   const renderYouVoted = (cp) => {
@@ -343,6 +344,59 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       You voted {(cp.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(cp.receipt.rawVotes)} dCLM8.
     </p>)
   }
+
+  const renderVoteCount = (votes, rawVotes, showVotes) => {
+    return showVotes ? 
+        <>{addCommas(votes)} votes ({addCommas(rawVotes)} dCLM8)</>
+      : <>{addCommas(rawVotes)} dCLM8</>
+  }
+
+  const renderVoteButtons = (cp, showVotes, showAsTotal) => {
+    return (cp.isEligibleToVote || cp.state !== "Pending") &&
+      <div className="my-auto col-lg-7 col-lg p-0 mr-2">
+        <Row className="justify-content-between mx-1">
+          <div className="text-success">{showAsTotal?"Total":""} For: {renderVoteCount(cp.details.forVotes, cp.details.rawForVotes, showVotes)}</div>
+          <div className="text-danger">{showAsTotal?"Total":""} Against: {renderVoteCount(cp.details.againstVotes, cp.details.rawAgainstVotes, showVotes)}</div>
+        </Row>
+        { cp.isEligibleToVote && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
+        <InputGroup className="mt-1">
+          <FormControl
+            placeholder="dCLM8 to vote.."
+            onChange={onVotesAmountChange}
+          />
+          { (!cp.receipt.hasVoted || cp.receipt.support) &&
+          <InputGroup.Append>
+            <Button
+              variant="success"
+              onClick={() => vote(cp.id, true)}
+            >Vote for</Button>
+          </InputGroup.Append>
+          }
+          { (!cp.receipt.hasVoted || !cp.receipt.support) &&
+          <InputGroup.Append>
+            <Button
+              variant="danger"
+              onClick={() => vote(cp.id, false)}
+            >Vote against</Button>
+          </InputGroup.Append>
+          }
+        </InputGroup>
+        }
+      </div>
+  }
+
+  const renderYourVote = (cp) => (hasCancelOrRefund(cp) || cp.receipt.hasVoted === true) && 
+    <Row className="align-items-center justify-content-end">
+      { renderYouVoted(cp) }
+      { renderCancelOrRefund(cp) }
+    </Row>
+
+  const renderMustBeActiveIfNeeded = (cp) =>(cp.state !== "Active" && cp.receipt.hasVoted !== true) &&
+    <Row className="align-items-center justify-content-end">
+      <p className="p-0 m-0 mr-2 text-secondary text-right">
+        <small>Must be an active proposal to vote.</small>
+      </p>
+    </Row>
 
   return (
     <>
@@ -480,66 +534,67 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         {(proposals !== []) &&
          proposals.map((proposal, key) => (
             <Card key={key} className="m-2 col-12 pt-2">
-              <Card.Body>
-                  <Row>
+              <Card.Body className="px-0 pr-2 px-md-3 pr-md-4">
+                {/* proposal header */}
+                <Row>
 
-                    <Col>
-                      <h5 style={{'display': 'inline-block'}}>
-                        <span className="mr-3">Proposal #{proposal.id}</span>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="my-1 text-nowrap"
-                          onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
-                        >
-                          Details
-                        </Button>
-                      </h5>
-                    </Col>
+                  <Col>
+                    <h5 style={{'display': 'inline-block'}}>
+                      <span className="mr-3">Proposal #{proposal.id}</span>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="my-1 text-nowrap"
+                        onClick={ ()=>{ setSelectedProposalIdDetails(proposal.id); setCallDetailsModalShow(true); }}
+                      >
+                        Details
+                      </Button>
+                    </h5>
+                  </Col>
 
-                    {/* proposal action buttons */}
-                    <Col className="text-right">
-                      {/* cancel button */}
-                      { ( (proposal.state !== "Executed") && (proposal.state !== "Canceled") && (hasRole) ) &&
-                        <Button
-                          size="sm"
-                          onClick={ () => handleProposalAction("cancel", proposal.id) }
-                          disabled={(daoTokenBalance <= 0)}
-                          className="text-nowrap ml-1 my-1"
-                          variant="danger"
-                        >
-                          Cancel
-                        </Button>
-                      }
-                      {/* queue button */}
-                      { ( (proposal.state === "Succeeded") && (hasRole) ) &&
-                        <Button
-                          size="sm"
-                          onClick={ () => handleProposalAction("queue", proposal.id) }
-                          disabled={(daoTokenBalance <= 0)}
-                          className="text-nowrap ml-2 my-1"
-                          variant="warning"
-                        >
-                          Queue
-                        </Button>
-                      }
-                      {/* execute button */}
-                      { ( (proposal.state === "Queued") && (hasRole) ) &&
-                        <Button
-                          size="sm"
-                          onClick={ () => handleProposalAction("execute", proposal.id) }
-                          disabled={(daoTokenBalance <= 0)}
-                          className="text-nowrap ml-2 my-1"
-                          variant="success"
-                        >
-                          Execute
-                        </Button>
-                      }
-                    </Col>
+                  {/* proposal action buttons */}
+                  <Col className="text-right">
+                    {/* cancel button */}
+                    { ( (proposal.state !== "Executed") && (proposal.state !== "Canceled") && (hasRole) ) &&
+                      <Button
+                        size="sm"
+                        onClick={ () => handleProposalAction("cancel", proposal.id) }
+                        disabled={(daoTokenBalance <= 0)}
+                        className="text-nowrap ml-1 my-1"
+                        variant="danger"
+                      >
+                        Cancel
+                      </Button>
+                    }
+                    {/* queue button */}
+                    { ( (proposal.state === "Succeeded") && (hasRole) ) &&
+                      <Button
+                        size="sm"
+                        onClick={ () => handleProposalAction("queue", proposal.id) }
+                        disabled={(daoTokenBalance <= 0)}
+                        className="text-nowrap ml-2 my-1"
+                        variant="warning"
+                      >
+                        Queue
+                      </Button>
+                    }
+                    {/* execute button */}
+                    { ( (proposal.state === "Queued") && (hasRole) ) &&
+                      <Button
+                        size="sm"
+                        onClick={ () => handleProposalAction("execute", proposal.id) }
+                        disabled={(daoTokenBalance <= 0)}
+                        className="text-nowrap ml-2 my-1"
+                        variant="success"
+                      >
+                        Execute
+                      </Button>
+                    }
+                  </Col>
 
-                  </Row>
+                </Row>
 
-                {/* proposal state */}
+                {/* proposal state and voting period */}
                 <Card.Text className="text-primary">
                   <b>{proposal.state}</b> <i className="text-secondary ml-3">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i>
                 </Card.Text>
@@ -559,169 +614,32 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                         <Row className="justify-content-between align-items-center">
 
                           {/* child proposal state */}
-                          <p className="p-1 m-0">{cp.description}</p>
+                          <p className="p-1 m-0 mx-2">{cp.description}</p>
 
                           {/* voting buttons if eligible */}
-                          { cp.isEligibleToVote &&
-                            <>
-                              <div className="my-auto col-lg-7 col-lg">
-                                <Row className="justify-content-between mr-1 ml-1">
-                                  <div className="text-success">For: {addCommas(cp.details.forVotes)} votes ({addCommas(cp.details.rawForVotes)} dCLM8)</div>
-                                  <div className="text-danger">Against: {addCommas(cp.details.againstVotes)} votes ({addCommas(cp.details.rawAgainstVotes)} dCLM8)</div>
-                                </Row>
-                                { (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
-                                <InputGroup className="mt-1">
-                                  <FormControl
-                                    placeholder="dCLM8 to vote.."
-                                    onChange={onVotesAmountChange}
-                                  />
-                                  { (!cp.receipt.hasVoted || cp.receipt.support) &&
-                                  <InputGroup.Append>
-                                    <Button
-                                      variant="success"
-                                      onClick={() => vote(cp.id, true)}
-                                    >Vote for</Button>
-                                  </InputGroup.Append>
-                                  }
-                                  { (!cp.receipt.hasVoted || !cp.receipt.support) &&
-                                  <InputGroup.Append>
-                                    <Button
-                                      variant="danger"
-                                      onClick={() => vote(cp.id, false)}
-                                    >Vote against</Button>
-                                  </InputGroup.Append>
-                                  }
-                                </InputGroup>
-                                }
-                              </div>
-                            </>
-                          }
+                          { renderVoteButtons(cp, /* show quadratic votes */ true, /* show as total */ false) }
 
-                          {/* voting results if ineligible */}
-                          { ( (cp.state !== "Pending") && !cp.isEligibleToVote ) &&
-                            <>
-                              <Col className="text-success my-auto">
-                                For: {addCommas(cp.details.forVotes)} votes ({addCommas(cp.details.rawForVotes)} dCLM8)<br/>
-                              </Col>
-                              <Col className="text-danger my-auto">
-                                Against: {addCommas(cp.details.againstVotes)} votes ({addCommas(cp.details.rawAgainstVotes)} dCLM8)<br/>
-                              </Col>
-                            </>
-                          }
-
-                          {/* if the form does not show so we can show those here in the Row */}
-                          { (!cp.isEligibleToVote && cp.receipt.hasVoted === true) && renderYouVoted(cp) }
-
-                          { (cp.state !== "Active" && cp.receipt.hasVoted !== true) &&
-                            <p className="p-1 m-0 text-secondary text-center">
-                              <small>Must be an active proposal to vote.</small>
-                            </p>
-                          }
-
-                          { !cp.isEligibleToVote && renderCancelOrRefund(cp) }
                         </Row>
 
-                        {/* if the form is showing, display the votes below */}
-                        { (cp.isEligibleToVote && cp.receipt.hasVoted === true) && 
-                          <Row className="align-items-center justify-content-end mr-1">
-                            { renderYouVoted(cp) }
-                            { renderCancelOrRefund(cp) }
-                          </Row>
-                        }
+                        { renderMustBeActiveIfNeeded(cp) }
+                        { renderYourVote(cp) }
                       </Card.Body>
                     </Card>
                   )
                 : null }
 
-                <Row className="text-center mb-3">
+                {/* main proposal, use an invisible card here so we can reuse the same code to render and have correct alignment */}
+                <Card className="m-2 col-12 pt-2 border-white">
+                  <Card.Body className="p-1 pb-2">
+                    <Row className="text-center justify-content-end">
+                      {/* voting buttons if eligible */}
+                      { renderVoteButtons(proposal, /* show quadratic votes */ false, /* show as total */ true) }
+                    </Row>
 
-                  {/* voting buttons if eligible */}
-                  { proposal.isEligibleToVote &&
-                    <>
-                      <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8 locked)<br/>
-                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
-                        <InputGroup className="mt-1">
-                          <FormControl
-                            placeholder="dCLM8 to vote for.."
-                            onChange={onVotesAmountChange}
-                          />
-                          <InputGroup.Append>
-                            <Button
-                              variant="success"
-                              onClick={() => vote(proposal.id, true)}
-                            >Vote for</Button>
-                          </InputGroup.Append>
-                        </InputGroup>
-                        }
-                      </Col>
-                      <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8 locked)<br/>
-                        { (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
-                        <InputGroup className="mt-1">
-                          <FormControl
-                            placeholder="dCLM8 to vote against..."
-                            onChange={onVotesAmountChange}
-                          />
-                          <InputGroup.Append>
-                            <Button
-                              variant="danger"
-                              onClick={() => vote(proposal.id, false)}
-                            >Vote against</Button>
-                          </InputGroup.Append>
-                        </InputGroup>
-                        }
-                      </Col>
-                    </>
-                  }
-
-                  {/* voting results if ineligible */}
-                  { ( (proposal.state !== "Pending") && !proposal.isEligibleToVote ) &&
-                    <>
-                      <Col className="text-success my-auto">
-                        Total For: {addCommas(proposal.details.forVotes)} votes ({addCommas(proposal.details.rawForVotes)} dCLM8)<br/>
-                      </Col>
-                      <Col className="text-danger my-auto">
-                        Total Against: {addCommas(proposal.details.againstVotes)} votes ({addCommas(proposal.details.rawAgainstVotes)} dCLM8)<br/>
-                      </Col>
-                    </>
-                  }
-
-                </Row>
-
-                { (proposal.receipt.hasVoted === true) &&
-                  <p className="text-center py-2">
-                    You voted {(proposal.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(proposal.receipt.votes)} votes.
-                  </p>
-                }
-
-                { (proposal.state !== "Active" && proposal.receipt.hasVoted !== true) &&
-                  <Col className="text-danger my-auto">
-                    <p className="text-secondary text-center"><small>Must be an active proposal to vote.</small></p>
-                  </Col>
-                }
-
-                { (
-                    (
-                      (proposal.receipt.hasVoted && (proposal.details.proposer.toLowerCase() !== signedInAddress.toLowerCase())) || (proposal.details.proposer.toLowerCase() === signedInAddress.toLowerCase() && (proposal.state === "Canceled" || proposal.state === "Succeeded" || proposal.state === "Quorum Failed"))
-                    ) &&
-                    (!proposal.receipt.hasVotesRefunded) &&
-                     proposal.receipt.rawRefund > 0
-                  ) &&
-                  <p className="text-center py-2">
-                    <Button
-                      size="sm"
-                      onClick={ () => refundDclm8(proposal.id) }
-                      className="text-nowrap mt-2"
-                      variant="danger"
-                    >
-                      { (proposal.state === "Active")
-                        ? <span>Cancel My Vote</span>
-                        : <span>Refund {addCommas(proposal.receipt.rawRefund)} dCLM8</span>
-                      }
-                    </Button>
-                  </p>
-                }
+                    { renderMustBeActiveIfNeeded(proposal) }
+                    { renderYourVote(proposal) }
+                  </Card.Body>
+                </Card>
               </Card.Body>
             </Card>
           ))
