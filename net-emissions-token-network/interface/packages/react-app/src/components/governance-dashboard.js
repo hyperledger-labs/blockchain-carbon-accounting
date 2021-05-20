@@ -541,7 +541,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
                 {/* proposal state */}
                 <Card.Text className="text-primary">
-                  <b>{proposal.state}</b>
+                  <b>{proposal.state}</b> <i className="text-secondary ml-3">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i>
                 </Card.Text>
                 <Card.Text>
                     <small>Proposer: {proposal.details.proposer}</small>
@@ -633,7 +633,6 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
                   )
                 : null }
 
-                <Card.Text className="text-secondary mb-4"><i>Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i></Card.Text>
                 <Row className="text-center mb-3">
 
                   {/* voting buttons if eligible */}
