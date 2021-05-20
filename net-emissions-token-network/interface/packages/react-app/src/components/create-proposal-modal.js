@@ -70,25 +70,6 @@ export default function CreateProposalModal(props) {
     proposalAttributeRefs.current = newAttrs.map((_, i) => proposalAttributeRefs.current[i] ? proposalAttributeRefs.current[i] : createRef());
   };
 
-  const addProposalAttribute = () => {
-    createProposalAttributes(['']);
-    setTimeout(() => {
-      proposalAttributeRefs.current[proposalAttributeRefs.current.length-1].current.focus();
-    }, 0);
-  };
-
-  const updateProposalAtIndex = (e, i) => {
-    const newAttrs = [...proposalAttributes];
-    newAttrs[i].description = e.target.value;
-    setProposalAttributes(newAttrs);
-  };
-
-  const removeProposalAttribute = (i) => {
-    if (i > proposalAttributes.length) return;
-    setProposalAttributes(attrs => attrs.slice(0, i).concat(attrs.slice(i + 1, attrs.length)));
-    proposalAttributeRefs.current = proposalAttributes.map((_, x) => proposalAttributeRefs.current[x] ? proposalAttributeRefs.current[x] : createRef());
-  };
-
   useEffect(() => {
     setDescription(props.description);
   }, [props.description]);
@@ -132,7 +113,6 @@ export default function CreateProposalModal(props) {
             <Form.Control as="textarea" rows={2} placeholder="Describe the purpose of this proposal..." value={description} onChange={onDescriptionChange} />
           </Form.Group>
 
-          <Button className="mb-3 float-right" variant="success" size="sm" onClick={() => addProposalAttribute()}>Add Attribute</Button>
           <Form.Group>
             <Form.Label>Calldata</Form.Label>
             <Form.Control as="textarea" disabled rows={3} value={props.calldata} />
