@@ -386,7 +386,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }
 
   const renderYourVote = (cp) => (hasCancelOrRefund(cp) || cp.receipt.hasVoted === true) && 
-    <Row className="align-items-center justify-content-end">
+    <Row className="align-items-center justify-content-end mt-2">
       { renderYouVoted(cp) }
       { renderCancelOrRefund(cp) }
     </Row>
