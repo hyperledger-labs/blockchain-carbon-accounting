@@ -557,7 +557,10 @@ contract Governor {
         }
 
         uint amount;
+        // on active proposal this is the amount of votes to change
+        uint votesAmount = 0;
         bool isProposer = (msg.sender == proposal.proposer);
+        bool isActive = pState == ProposalState.Active;
 
         // if msg.sender is proposer and the vote is defeated because there were many votes against, the proposer does not get any tokens back.
         require (!(isProposer && pState == ProposalState.Defeated), "Governor::refund: not eligible for refund");
@@ -595,9 +598,10 @@ contract Governor {
         } else {
             // If someone tries to cancel their vote (i.e. proposal state is active) they lose 5% of their tokens.
             // the proposer cannot vote less
-            if (pState == ProposalState.Active) {
+            if (isActive) {
                 require(!isProposer, "Governor::refund: proposer may not change his vote amount");
                 uint256 tokensToRefund = receipt.rawVotes;
+                votesAmount = receipt.rawVotes;
                 uint256 tokensToLose = div256(tokensToRefund, 20);
                 amount = uint96(sub256(tokensToRefund, tokensToLose));
                 // lost tokens are burned
@@ -608,7 +612,6 @@ contract Governor {
         }
         require(amount > 0, "Governor::refund: nothing to refund");
 
-        bool isActive = pState == ProposalState.Active;
         bool isQuorumFailed = pState == ProposalState.QuorumFailed;
         require(isActive || isQuorumFailed || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
 
@@ -620,10 +623,10 @@ contract Governor {
         if (isActive) {
             if (receipt.support) {
                 proposal.forVotes = sub256(proposal.forVotes, receipt.votes);
-                proposal.rawForVotes = sub256(proposal.rawForVotes, amount);
+                proposal.rawForVotes = sub256(proposal.rawForVotes, votesAmount);
             } else {
                 proposal.againstVotes = sub256(proposal.againstVotes, receipt.votes);
-                proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, amount);
+                proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, votesAmount);
             }
         }
 
