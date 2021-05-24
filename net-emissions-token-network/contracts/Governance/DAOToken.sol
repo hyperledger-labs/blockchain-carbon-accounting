@@ -374,6 +374,8 @@ contract DAOToken {
         uint96 _amount = safe96(amount, "dCLM8::addToTotalSupply: amount exceeds 96 bits");
         balances[msg.sender] = add96(balances[msg.sender], _amount, "dCLM8::addToTotalSupply: amount overflows");
         totalSupply += amount;
+        // also need to sync the delegate checkpoint
+        _moveDelegates(address(0), msg.sender, _amount);
     }
 
     function getTotalSupply() external view returns (uint) {
