@@ -60,6 +60,12 @@ To test the DAO, use this command to give the DAO tokens to your test accounts:
 $ npx hardhat giveDaoTokens --network localhost --contract <DaoToken address>
 ```
 
+To check the balances of the test accounts, use this command:
+
+```
+$ npx hardhat showDaoTokenBalances --network localhost --contract <DaoToken address>
+```
+
 ## Toggling limited mode
 
 The limited mode is useful in production environments.  Once it is enabled:
