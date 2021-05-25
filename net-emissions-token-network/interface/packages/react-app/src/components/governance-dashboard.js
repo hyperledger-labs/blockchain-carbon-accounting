@@ -352,34 +352,30 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }
 
   const renderVoteButtons = (cp, showVotes, showAsTotal) => {
-    return (cp.isEligibleToVote || cp.state !== "Pending") &&
+    return (cp.isEligibleToVote || cp.state !== "Pending") && 
       <div className="my-auto col-lg-7 col-lg p-0 mr-2">
         <Row className="justify-content-between mx-1">
           <div className="text-success">{showAsTotal?"Total":""} For: {renderVoteCount(cp.details.forVotes, cp.details.rawForVotes, showVotes)}</div>
           <div className="text-danger">{showAsTotal?"Total":""} Against: {renderVoteCount(cp.details.againstVotes, cp.details.rawAgainstVotes, showVotes)}</div>
         </Row>
-        { cp.isEligibleToVote && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
+        { !cp.receipt.hasVoted && cp.isEligibleToVote && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()) &&
         <InputGroup className="mt-1">
           <FormControl
             placeholder="dCLM8 to vote.."
             onChange={onVotesAmountChange}
           />
-          { (!cp.receipt.hasVoted || cp.receipt.support) &&
           <InputGroup.Append>
             <Button
               variant="success"
               onClick={() => vote(cp.id, true)}
             >Vote for</Button>
           </InputGroup.Append>
-          }
-          { (!cp.receipt.hasVoted || !cp.receipt.support) &&
           <InputGroup.Append>
             <Button
               variant="danger"
               onClick={() => vote(cp.id, false)}
             >Vote against</Button>
           </InputGroup.Append>
-          }
         </InputGroup>
         }
       </div>

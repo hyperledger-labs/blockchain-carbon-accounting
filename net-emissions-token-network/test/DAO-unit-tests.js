@@ -279,7 +279,7 @@ describe("Climate DAO - Unit tests", function() {
 
   });
 
-  it("should allow users to top off a vote", async function () {
+  it("should NOT allow users to top off a vote", async function () {
 
     const { deployer, dealer1 } = await getNamedAccounts();
     const daoToken = await ethers.getContract('DAOToken');
@@ -328,31 +328,33 @@ describe("Climate DAO - Unit tests", function() {
     });
 
     // top off vote
-    await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "100000000000000000000000");
-    await governor.getReceipt(proposal, dealer1).then((response) => {
-      expect(response.hasVoted).to.equal(true);
-      expect(response.support).to.equal(true);
-      expect(response.rawVotes).to.equal("200000000000000000000000");
-      expect(response.votes).to.equal("447213595499"); // ~sqrt(threshold)
-    });
+    let error = null;
+    try {
+      await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, true, "100000000000000000000000");
+    } catch (err) {
+      error = err.toString();
+    }
+    expect(error).to.equal(
+      "Error: VM Exception while processing transaction: revert Governor::_castVote: cannot top off same vote without refunding"
+    );
 
     // try to vote with different support
-    let error = null;
+    error = null;
     try {
       await governor.connect(await ethers.getSigner(dealer1)).castVote(proposal, false, 100);
     } catch (err) {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::_castVote: can only top off same vote without refunding"
+      "Error: VM Exception while processing transaction: revert Governor::_castVote: cannot top off same vote without refunding"
     );
 
     // check receipt, should be unchanged from previously
     await governor.getReceipt(proposal, dealer1).then((response) => {
       expect(response.hasVoted).to.equal(true);
       expect(response.support).to.equal(true);
-      expect(response.rawVotes).to.equal("200000000000000000000000");
-      expect(response.votes).to.equal("447213595499"); // ~sqrt(threshold)
+      expect(response.rawVotes).to.equal("100000000000000000000000");
+      expect(response.votes).to.equal("316227766016");
     });
 
   });
