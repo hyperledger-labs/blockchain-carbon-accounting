@@ -1,3 +1,12 @@
+# Background
+
+The React application is used to manage different participants in the [Emissions Tokens Network](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network+Project) and the
+[DAO](https://wiki.hyperledger.org/display/CASIG/DAO+Project).  It could be used to issue, transfer, or retire CLM8 tokens for addition or reduction of Greenhouse Gas (GHG) emissions;
+create, vote, and execute proposals such as issuing emissions offsets; and manage members of the network and their roles.
+
+While the CLM8 token is denominated in 1 kg per token, in the React application the displayed unit is in metric tons.  Therefore, quantities of the CLM8 tokens are
+multiplied or divided by 1000.
+
 # Using the React Application
 
 We use a React application for interacting with the NetEmissionsTokenNetwork.sol and DAO contracts. The interface was created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app). The MetaMask browser extension is required for testing.

@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
-
-import { issue, encodeParameters, TOKEN_TYPES, getAdmin } from "../services/contract-functions";
-
-import SubmissionModal from "./submission-modal";
-import CreateProposalModal from "./create-proposal-modal";
-
+import React, { useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
+import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Datetime from "react-datetime";
-
 import "react-datetime/css/react-datetime.css";
+import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/contract-functions";
+import CreateProposalModal from "./create-proposal-modal";
+import SubmissionModal from "./submission-modal";
 
 export default function IssueForm({ provider, roles, signedInAddress, limitedMode }) {
 
@@ -41,75 +37,80 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  function onAddressChange(event) { setAddress(event.target.value); };
-  function onTokenTypeIdChange(event) { setTokenTypeId(event.target.value); };
-  function onQuantityChange(event) { setQuantity(event.target.value); };
-  function onFromDateChange(event) { setFromDate(event._d); };
-  function onThruDateChange(event) { setThruDate(event._d); };
-  function onAutomaticRetireDateChange(event) { setAutomaticRetireDate(event._d); };
-  function onMetadataChange(event) { setMetadata(event.target.value); };
-  function onManifestChange(event) { setManifest(event.target.value); };
-  function onDescriptionChange(event) { setDescription(event.target.value); };
+  const onAddressChange = useCallback((event) => { setAddress(event.target.value); }, []);
+  const onTokenTypeIdChange = useCallback((event) => { setTokenTypeId(event.target.value); }, []);
+  const onQuantityChange = useCallback((event) => { setQuantity(event.target.value); }, []);
+  const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
+  const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
+  const onAutomaticRetireDateChange = useCallback((event) => { setAutomaticRetireDate(event._d); }, []);
+  const onMetadataChange = useCallback((event) => { setMetadata(event.target.value); }, []);
+  const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
+  const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
 
   function handleSubmit() {
     submit();
     setSubmissionModalShow(true);
   }
 
-  // update calldata in background in case user wants to copy it with button
-  function updateCalldata() {
-    let encodedCalldata;
-    try {
-      encodedCalldata = encodeParameters(
-        // types of params
-        [
-          'address',
-          'address',
-          'uint8',
-          'uint256',
-          'uint256',
-          'uint256',
-          'uint256',
-          'string',
-          'string',
-          'string'
-        ],
-        // value of params
-        [
-          (limitedMode === true ? adminAddress : address),
-          signedInAddress,
-          tokenTypeId,
-          Number(quantity),
-          Number(fromDate)/1000,
-          Number(thruDate)/1000,
-          Number(automaticRetireDate)/1000,
-          metadata,
-          manifest,
-          ("Issued by DAO. " + description)
-        ]
-      );
-    } catch (error) {
-      encodedCalldata = "";
-    }
-    setCalldata(encodedCalldata);
+  function disableIssueButton(calldata, quantity, address) {
+    let qty = Number(quantity);
+    return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
   }
 
   // update calldata on input change
   useEffect(() => {
     if (signedInAddress) {
-      updateCalldata();
+      let encodedCalldata;
+      let qty = Number(quantity);
+      qty = Math.round(quantity * 1000);
+
+      try {
+        encodedCalldata = encodeParameters(
+          // types of params
+          [
+            'address',
+            'address',
+            'uint8',
+            'uint256',
+            'uint256',
+            'uint256',
+            'uint256',
+            'string',
+            'string',
+            'string'
+          ],
+          // value of params
+          [
+            (limitedMode === true ? adminAddress : address),
+            signedInAddress,
+            tokenTypeId,
+            qty,
+            Number(fromDate)/1000,
+            Number(thruDate)/1000,
+            Number(automaticRetireDate)/1000,
+            metadata,
+            manifest,
+            ("Issued by DAO. " + description)
+          ]
+        );
+      } catch (error) {
+        encodedCalldata = "";
+      }
+      setCalldata(encodedCalldata);
     }
   }, [
     signedInAddress,
-    onAddressChange,
-    onTokenTypeIdChange,
-    onQuantityChange,
-    onFromDateChange,
-    onThruDateChange,
-    onAutomaticRetireDateChange,
-    onMetadataChange,
-    onManifestChange,
-    onDescriptionChange,
+    limitedMode,
+    adminAddress,
+    address,
+    tokenTypeId,
+    quantity,
+    fromDate,
+    thruDate,
+    automaticRetireDate,
+    metadata,
+    manifest,
+    description,
   ]);
 
   useEffect(() => {
@@ -121,14 +122,20 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     }
   }, [limitedMode, provider]);
 
-  async function submit() {
-    // If quantity has 3 decimals, multiply by 1000 before passing to the contract
-    let quantity_formatted;
-    if (tokenTypeId === "3") {
-      quantity_formatted = Math.round(quantity * 1000);
-    } else {
-      quantity_formatted = quantity;
+  useEffect(() => {
+    if (roles[0] || roles[1]) {
+      setTokenTypeId("1");
+    } else if (roles[0] || roles[2]) {
+      setTokenTypeId("2");
+    } else if (roles[0] || roles[3]) {
+      setTokenTypeId("3");
     }
+  }, [roles]);
+
+  async function submit() {
+    // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
+    let quantity_formatted;
+    quantity_formatted = Math.round(quantity * 1000);
 
     let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
     setResult(result.toString());
@@ -139,7 +146,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     borderColor: '#dc3545'
   };
 
-  return (
+  return (roles[0] || roles[1] || roles[2] || roles[3]) ? (
     <>
 
       <CreateProposalModal
@@ -148,6 +155,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         onHide={() => {
           setCreateModalShow(false);
         }}
+        token={tokenTypeId}
         provider={provider}
         calldata={calldata}
         description={description}
@@ -198,16 +206,16 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
-          <option value={1}>{TOKEN_TYPES[0]}</option>
-          <option value={2}>{TOKEN_TYPES[1]}</option>
-          <option value={3}>{TOKEN_TYPES[2]}</option>
+          {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
+          {(roles[0] || roles[2]) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
+          {(roles[0] || roles[3]) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
         </Form.Control>
       </Form.Group>
       <Form.Group>
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
-          placeholder={(tokenTypeId === "3") ? "100.000" : "100"}
+          placeholder="0.000"
           value={quantity}
           onChange={onQuantityChange}
           onBlur={() => setInitializedQuantityInput(true)}
@@ -215,10 +223,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         />
         {/* Display whether decimal is needed or not */}
         <Form.Text className="text-muted">
-          {(tokenTypeId === "3")
-            ? "Must not contain more than three decimal values." 
-            : "Must be an integer value."
-          }
+          Must not contain more than three decimal values.
         </Form.Text>
       </Form.Group>
       <Form.Row>
@@ -270,11 +275,11 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
               onClick={() => setCreateModalShow(true)}
               disabled={
                 (calldata.length === 0) ||
-                String(quantity).length === 0 ||
+                Number(quantity) === 0 ||
                 tokenTypeId === "3"
               }
             >
-              Create a DAO proposal
+              Create a DAO proposal token
             </Button>
           }
 
@@ -290,7 +295,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                   size="lg"
                   block
                   onClick={handleSubmit}
-              disabled={(calldata.length === 0) || String(quantity).length === 0 || String(address).length === 0}
+              disabled={disableIssueButton(calldata, quantity, address)}
                 >
                   Issue
                 </Button>
@@ -301,7 +306,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         }
 
       </Row>
-      
+
     </>
+  ) : (
+    <p>You must be a registered dealer to issue tokens.</p>
   );
 }

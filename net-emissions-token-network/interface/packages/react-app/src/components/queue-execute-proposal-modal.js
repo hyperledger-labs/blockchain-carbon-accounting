@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useState } from "react";
 
-import { addresses } from "@project/contracts";
-
 import { queue, execute, cancel } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';

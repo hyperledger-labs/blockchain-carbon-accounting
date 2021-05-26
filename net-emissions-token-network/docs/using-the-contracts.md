@@ -1,8 +1,16 @@
+# Background
+
+This document describes the tokens of the [Emissions Tokens Network](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network+Project) and the
+[DAO](https://wiki.hyperledger.org/display/CASIG/DAO+Project).  Both types of tokens are in the `contracts/` sub-directory.
+
+The emissions tokens network in `contracts/NetEmissionsTokenNetwork.sol` is an ERC-1155 multi-token standard smart contract
+compatible on any EVM-compatible blockchain and produces CLM8 tokens from issuers to consumers.  Each CLM8 token is a record of addition or reduction of 
+greenhouse gas (GHG) emissions.  The unit of the CLM8 token is 1 kg, so 1000 CLM8 tokens is a metric ton of emissions.
+
+The DAO in `contracts/Governance` is customized from the 
+[Compound Defi Protocol](https://github.com/compound-finance/compound-protocol) DAO to create an ERC-20 dCLM8 token that is used for voting on proposals.
+
 # Using the Contracts
-
-NetEmissionsTokenNetwork.sol (the CLM8 contract) is implemented as a ERC-1155 multi-token smart contract compatible on any EVM-compatible blockchain and produces CLM8 tokens from issuers to consumers. [Hardhat](https://hardhat.org) is the Ethereum development environment used to compile, deploy, test, and debug contracts. The DAO contracts (located in the `contracts/governance/` folder) are forked from Compound and interact with the CLM8 contract to issue tokens using dCLM8 ERC-20 tokens as a voting mechanism to determine influence.
-
-This document describes compiling and deploying the contract with Hardhat.
 
 ## Installation and use
 
@@ -50,6 +58,12 @@ To test the DAO, use this command to give the DAO tokens to your test accounts:
 
 ```
 $ npx hardhat giveDaoTokens --network localhost --contract <DaoToken address>
+```
+
+To check the balances of the test accounts, use this command:
+
+```
+$ npx hardhat showDaoTokenBalances --network localhost --contract <DaoToken address>
 ```
 
 ## Toggling limited mode
@@ -104,6 +118,24 @@ Similarily, you can easily see the value by running the similar task:
 ```bash
 npx hardhat getProposalThreshold --network localhost --contract <Governor deployed address>
 ```
+
+## Increasing the supply of DAO Tokens
+
+The DAO token has an initial supply of 10 million.  It can be increased with
+
+```bash
+npx hardhat addToSupply --network localhost --contract <DAO Token deployed address> --amount 10000000000000000000000000
+```
+
+Note there must be 18 zeroes after the amount, so this is 10 million more tokens above.  The new DAO tokens will go to the same initial holder who can 
+then transfer them to other holders.
+
+To check the total supply, use
+
+```bash
+npx hardhat getTotalSupply --network localhost --contract <DAO Token deployed address>
+```
+
 
 ## Upgrading CLM8 contract implementation
 

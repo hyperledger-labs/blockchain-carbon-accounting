@@ -5,8 +5,6 @@ import { useQuery } from "@apollo/react-hooks";
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
@@ -59,7 +57,10 @@ function App() {
         }
 
         <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
-        <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+        {isOwnerOrDealer ? 
+          <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+          : null
+        }
 
         {((limitedMode && isOwner) || !limitedMode) &&
           <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>

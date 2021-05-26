@@ -33,7 +33,8 @@ export default function TransferForm({ provider, roles }) {
   }
 
   async function fetchTransfer() {
-    let result = await transfer(provider, address, tokenId, amount);
+    let qty = Math.round(amount * 1000);
+    let result = await transfer(provider, address, tokenId, qty);
     setResult(result.toString());
   }
 
@@ -98,7 +99,7 @@ export default function TransferForm({ provider, roles }) {
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
-          placeholder="100"
+          placeholder="0.000"
           value={amount}
           onChange={onAmountChange}
           onBlur={() => setInitializedAmountInput(true)}

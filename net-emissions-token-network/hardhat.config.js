@@ -204,7 +204,7 @@ task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
     let i = tokens.mul(decimals);
 
     await contract.connect(admin).transfer(dealer1, i);
-    console.log ("Gave " + tokens + " DAO Tokens to " + dealer1);
+    console.log (`Gave ${tokens} DAO Tokens to ${dealer1}`);
     await contract.connect(admin).transfer(dealer2, i);
     console.log (`Gave ${tokens} DAO Tokens to ${dealer2}`);
     await contract.connect(admin).transfer(dealer3, i);
@@ -214,6 +214,51 @@ task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
     await contract.connect(admin).transfer(consumer2, i);
     console.log (`Gave ${tokens} DAO Tokens to ${consumer2}`);
 })
+task("showDaoTokenBalances", "Show the DAO tokens balances of the test users")
+  .addParam("contract", "The dCLM8 token")
+  .setAction(async taskArgs => {
+    const {deployer, dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+
+    const [admin] = await ethers.getSigners();
+    const daoToken = await hre.ethers.getContractFactory("DAOToken");
+    const contract = await daoToken.attach(taskArgs.contract);
+
+    console.log("DAO dCLM8 balances:");
+    console.log(` deployer  ${await contract.connect(admin).balanceOf(deployer)}`);
+    console.log(` dealer1   ${await contract.connect(admin).balanceOf(dealer1)}`);
+    console.log(` dealer2   ${await contract.connect(admin).balanceOf(dealer2)}`);
+    console.log(` dealer3   ${await contract.connect(admin).balanceOf(dealer3)}`);
+    console.log(` consumer1 ${await contract.connect(admin).balanceOf(consumer1)}`);
+    console.log(` consumer2 ${await contract.connect(admin).balanceOf(consumer2)}`);
+})
+task("getTotalSupply", "Get the total supply of DAO tokens")
+  .addParam("contract", "The dCLM8 token")
+  .setAction(async (taskArgs) => {
+    const [admin] = await ethers.getSigners();
+    const daoToken = await hre.ethers.getContractFactory("DAOToken");
+    const contract = await daoToken.attach(taskArgs.contract);
+
+    let supply = await contract.connect(admin).getTotalSupply();
+    console.log("Total supply is (dCLM8): " + supply);
+  });
+task("addToSupply", "Add a given amount to the total supply of DAO tokens")
+  .addParam("contract", "The dCLM8 token")
+  .addParam("amount", "The number of dCLM8 token to add")
+  .setAction(async (taskArgs) => {
+    if (!taskArgs.amount || taskArgs.amount == "0") {
+      console.log("Please specify the amount to add.");
+      return;
+    }
+
+    const [admin] = await ethers.getSigners();
+    const daoToken = await hre.ethers.getContractFactory("DAOToken");
+    const contract = await daoToken.attach(taskArgs.contract);
+    console.log(`Adding ${taskArgs.amount} to the Total supply`);
+    await contract.connect(admin).addToTotalSupply(taskArgs.amount.toString());
+
+    let supply = await contract.connect(admin).getTotalSupply();
+    console.log("Total supply is (dCLM8): " + supply);
+  });
 
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")

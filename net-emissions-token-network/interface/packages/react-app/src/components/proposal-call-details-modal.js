@@ -19,11 +19,13 @@ export default function ProposalCallDetailsModal(props) {
       if (sigs.length) {
         let types = (regExp.exec(sigs))[1].split(",");
         let decodedCall = await decodeParameters(types, props.actions.calldatas[actionNumber]);
+        let qty = decodedCall[3].toNumber();
+        qty = (qty / 1000).toFixed(3);
         setDecoded({
           address: decodedCall[0],
           proposer: decodedCall[1],
           tokenType: TOKEN_TYPES[decodedCall[2]-1],
-          quantity: decodedCall[3].toNumber(),
+          quantity: qty,
           fromDate: formatDate(decodedCall[4].toNumber()),
           thruDate: formatDate(decodedCall[5].toNumber()),
           automaticRetireDate: formatDate(decodedCall[6].toNumber()),

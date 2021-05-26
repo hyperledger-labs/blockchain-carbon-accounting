@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 // Original work from Compound: https://github.com/compound-finance/compound-protocol/blob/master/contracts/Governance/GovernorAlpha.sol
 // Modified to work in the NetEmissionsTokenNetwork system
+  import "hardhat/console.sol";
 
 contract Governor {
     /// @notice The name of this contract
@@ -148,9 +149,6 @@ contract Governor {
 
         // @notice Whether or not a user has refunded their votes tokens if eligible
         bool hasVotesRefunded;
-
-        // @notice Whether or not a user has refunded their stake tokens if eligible
-        bool hasStakeRefunded;
 
         // @notice The block at which votes cancel period ends
         uint endVotesCancelPeriodBlock;
@@ -391,8 +389,8 @@ contract Governor {
         // for parent proposals, add up all the votes for and against of all child proposals for quorum
         // all sub-proposals must pass for parent to pass; if any fails, parent fails
         // TODO: optimize more for gas savings by returning early when possible and test edge cases
-        uint forVotes;
-        uint againstVotes;
+        uint forVotes = proposal.forVotes;
+        uint againstVotes = proposal.againstVotes;
         if (isParentProposal) {
             for (uint i = 0; i < proposal.childProposalIds.length; i++) {
                 Proposal storage child = proposals[proposal.childProposalIds[i]];
@@ -401,14 +399,7 @@ contract Governor {
                 if (block.number > proposal.endBlock && child.forVotes <= child.againstVotes) {
                     return ProposalState.Defeated;
                 }
-
-                // add up votes for each child proposal
-                forVotes = uint96(add256(child.forVotes, forVotes));
-                againstVotes = uint96(add256(child.againstVotes, againstVotes));
             }
-        } else {
-            forVotes = proposal.forVotes;
-            againstVotes = proposal.againstVotes;
         }
 
         if (proposal.canceled) {
@@ -450,11 +441,9 @@ contract Governor {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
 
-        // allow topping off vote, except for the proposer
-        if (receipt.hasVoted == true) {
-            require(receipt.support == support, "Governor::_castVote: can only top off same vote without refunding");
-            require(msg.sender != proposal.proposer, "Governor::_castVote: proposer cannot top off vote");
-        }
+        // do not allow topping off vote
+        require(msg.sender != proposal.proposer, "Governor::_castVote: proposer cannot top off vote");
+        require(receipt.hasVoted == false, "Governor::_castVote: cannot top off same vote without refunding");
 
         uint96 eligibleVotes = dclm8.getPriorVotes(voter, proposal.startBlock) - receipt.votes;
         require(votes <= eligibleVotes, "Governor::_castVote: votes exceeds eligible amount");
@@ -462,20 +451,9 @@ contract Governor {
         _castVoteInternal(voter, proposalId, support, votes);
     }
 
-    function _castVoteInternal(address voter, uint proposalId, bool support, uint96 votes) internal {
+    function _accountVotes(address voter, uint proposalId, bool support, uint96 votes, bool lockTokens) internal {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[voter];
-
-        // if parent proposal, split vote equally between child proposals and return early
-        uint numChildProposals = proposal.childProposalIds.length;
-        if (numChildProposals > 0) {
-            uint96 splitVotes = uint96(div256(votes, numChildProposals)); // TODO: check math
-            for (uint i = 0; i < numChildProposals; i++) {
-                _castVoteInternal(msg.sender, proposal.childProposalIds[i], support, splitVotes);
-            }
-            return;
-        }
-
         // because topping off vote is allowed we need to account for prior vote amount
         uint96 quadraticVoteDiff = uint96(sqrt(votes+receipt.rawVotes)-sqrt(receipt.rawVotes));
 
@@ -487,32 +465,79 @@ contract Governor {
             proposal.rawAgainstVotes = add256(proposal.rawAgainstVotes, votes);
         }
 
-        // lock dCLM8 tokens
-        dclm8._lockTokens(voter, votes);
+        if (lockTokens) {
+            // lock dCLM8 tokens
+            dclm8._lockTokens(voter, votes);
+        }
 
         receipt.hasVoted = true;
         receipt.support = support;
         receipt.rawVotes = uint96(add256(receipt.rawVotes, votes));
         receipt.votes = uint96(sqrt(receipt.rawVotes));
         receipt.hasVotesRefunded = false;
-        receipt.hasStakeRefunded = false;
         receipt.endVotesCancelPeriodBlock = add256(block.number, votesCancelPeriod());
 
-        emit VoteCast(voter, proposalId, support, quadraticVoteDiff);
+        if (lockTokens) {
+            emit VoteCast(voter, proposal.id, support, quadraticVoteDiff);
+        }
+    }
+
+    function _castVoteInternal(address voter, uint proposalId, bool support, uint96 votes) internal {
+        Proposal storage proposal = proposals[proposalId];
+
+        // if parent proposal, split vote equally between child proposals and return early
+        uint numChildProposals = proposal.childProposalIds.length;
+        if (numChildProposals > 0) {
+            uint96 splitVotes = uint96(div256(votes, numChildProposals)); // TODO: check math
+            for (uint i = 0; i < numChildProposals; i++) {
+                _castVoteInternal(msg.sender, proposal.childProposalIds[i], support, splitVotes);
+            }
+            return;
+        }
+
+        // if voting for a child proposal also account the votes on the parent for Quorum purposes
+        if (proposal.parentProposalId > 0) {
+            _accountVotes(voter, proposal.parentProposalId, support, votes, false);
+        }
+
+        _accountVotes(voter, proposalId, support, votes, true);
     }
 
     function refund(uint proposalId) external {
         Proposal storage proposal = proposals[proposalId];
         Receipt storage receipt = proposal.receipts[msg.sender];
 
-        require(receipt.hasVotesRefunded == false || receipt.hasStakeRefunded == false, "Governor::refund: already refunded this proposal");
+        require(receipt.hasVotesRefunded == false, "Governor::refund: already refunded this proposal");
+
+        // check if parent proposal
+        if (proposal.childProposalIds.length > 0) {
+            uint numChildProposals = proposal.childProposalIds.length;
+            if (numChildProposals > 0) {
+                for (uint i = 0; i < numChildProposals; i++) {
+                    _refund(proposal.childProposalIds[i], true);
+                }
+                return;
+            }
+        }
+        // else
+        _refund(proposalId, false);
+    }
+
+    function _refund(uint proposalId, bool skipAlreadyRefunded) internal {
+        Proposal storage proposal = proposals[proposalId];
+        Receipt storage receipt = proposal.receipts[msg.sender];
+
+        if (skipAlreadyRefunded && receipt.hasVotesRefunded == true) {
+            return;
+        }
+
+        require(receipt.hasVotesRefunded == false, "Governor::refund: already refunded this proposal");
 
         ProposalState pState = state(proposalId);
 
-        // check if parent/child proposal
+        // check if child proposal
         // if it is a child proposal, consider the state of the parent proposal
         bool isChildProposal = false;
-        bool isParentProposal = false;
         ProposalState parentState = pState;
         if (proposal.parentProposalId > 0) {
             isChildProposal = true;
@@ -522,10 +547,7 @@ contract Governor {
             if (parentState == ProposalState.QuorumFailed || parentState == ProposalState.Defeated) {
                 pState = parentState;
             }
-        } else if (proposal.childProposalIds.length > 0) {
-            isParentProposal = true;
         }
-        // same for Succeeded / Defeated
 
         // should not allow cancel user votes after proposal cancel period ended
         if (pState == ProposalState.Active) {
@@ -533,10 +555,10 @@ contract Governor {
         }
 
         uint amount;
-        uint voteAmount = receipt.votes;
-        uint rawVoteAmount = receipt.rawVotes;
-        bool hasStakeRefunded = receipt.hasStakeRefunded;
+        // on active proposal this is the amount of votes to change
+        uint votesAmount = 0;
         bool isProposer = (msg.sender == proposal.proposer);
+        bool isActive = pState == ProposalState.Active;
 
         // if msg.sender is proposer and the vote is defeated because there were many votes against, the proposer does not get any tokens back.
         require (!(isProposer && pState == ProposalState.Defeated), "Governor::refund: not eligible for refund");
@@ -571,13 +593,13 @@ contract Governor {
                     dclm8._burn(address(this), uint96(tokensToLose));
                 }
             }
-            hasStakeRefunded = true;
         } else {
             // If someone tries to cancel their vote (i.e. proposal state is active) they lose 5% of their tokens.
             // the proposer cannot vote less
-            if (pState == ProposalState.Active) {
+            if (isActive) {
                 require(!isProposer, "Governor::refund: proposer may not change his vote amount");
                 uint256 tokensToRefund = receipt.rawVotes;
+                votesAmount = receipt.rawVotes;
                 uint256 tokensToLose = div256(tokensToRefund, 20);
                 amount = uint96(sub256(tokensToRefund, tokensToLose));
                 // lost tokens are burned
@@ -588,32 +610,49 @@ contract Governor {
         }
         require(amount > 0, "Governor::refund: nothing to refund");
 
-        bool isActive = pState == ProposalState.Active;
         bool isQuorumFailed = pState == ProposalState.QuorumFailed;
         require(isActive || isQuorumFailed || proposalPassedAndIsProposer, "Governor::refund: not eligible for refund");
 
         // refund dCLM8 from this contract
+        console.log("Governor::_refund amount", proposalId, amount);
         dclm8.transfer(msg.sender, amount);
 
         // if an active proposal, subtract amount from votes and locked dCLM8 amounts
         if (isActive) {
             if (receipt.support) {
-                proposal.forVotes = sub256(proposal.forVotes, voteAmount);
-                proposal.rawForVotes = sub256(proposal.rawForVotes, amount);
+                proposal.forVotes = sub256(proposal.forVotes, receipt.votes);
+                proposal.rawForVotes = sub256(proposal.rawForVotes, votesAmount);
             } else {
-                proposal.againstVotes = sub256(proposal.againstVotes, voteAmount);
-                proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, amount);
+                proposal.againstVotes = sub256(proposal.againstVotes, receipt.votes);
+                proposal.rawAgainstVotes = sub256(proposal.rawAgainstVotes, votesAmount);
             }
         }
 
         // update receipt
-        receipt.votes = uint96(sub256(receipt.votes, voteAmount));
-        receipt.rawVotes = uint96(sub256(receipt.rawVotes, rawVoteAmount));
-        receipt.hasVoted = receipt.votes > 0;
+        uint96 rawVoteAmount = receipt.rawVotes;
+        receipt.votes = 0;
+        receipt.rawVotes = 0;
+        receipt.hasVoted = false;
         receipt.hasVotesRefunded = true;
-        receipt.hasStakeRefunded = hasStakeRefunded;
 
+        // if refunding a child proposal also account the parent receipt
+        if (proposal.parentProposalId > 0) {
+            _accountRefundOnParent(msg.sender, proposal.parentProposalId, rawVoteAmount);
+        }
     }
+
+    function _accountRefundOnParent(address voter, uint proposalId, uint96 rawVoteAmount) internal {
+        Proposal storage proposal = proposals[proposalId];
+        Receipt storage receipt = proposal.receipts[voter];
+        receipt.rawVotes = uint96(sub256(receipt.rawVotes, rawVoteAmount));
+        receipt.votes = uint96(sqrt(receipt.rawVotes));
+        receipt.hasVoted = receipt.votes > 0;
+        receipt.hasVotesRefunded = receipt.votes == 0;
+        console.log("Governor::_accountRefundOnParent", proposalId, rawVoteAmount);
+        console.log("Governor::_accountRefundOnParent receipt votes:", receipt.votes, receipt.rawVotes);
+        console.log("Governor::_accountRefundOnParent fully refunded?:", receipt.hasVotesRefunded);
+    }
+
 
     function __acceptAdmin() public {
         require(msg.sender == guardian, "Governor::__acceptAdmin: sender must be gov guardian");

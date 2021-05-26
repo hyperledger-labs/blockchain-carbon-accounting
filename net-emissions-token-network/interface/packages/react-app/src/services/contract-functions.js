@@ -306,6 +306,19 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
  *
  */
 
+export async function daoTokenTotalSupply(w3provider) {
+  let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
+  let balance;
+  try {
+    let fetchedBalance = await contract.getTotalSupply();
+    let decimals = BigNumber.from("1000000000000000000");
+    balance = fetchedBalance.div(decimals).toNumber();
+  } catch (error) {
+    balance = error.message;
+  }
+  return balance;
+}
+
 export async function daoTokenBalanceOf(w3provider, account) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let balance;
@@ -325,7 +338,7 @@ export async function delegate(w3provider, delegatee) {
   let signed = await contract.connect(signer);
   let delegate;
   try {
-    let delegateCall = await signed.delegate(delegatee);
+    await signed.delegate(delegatee);
     delegate = SUCCESS_MSG;
   } catch (error) {
     delegate = catchError(error);
@@ -389,11 +402,37 @@ export async function propose(w3provider, targets, values, signatures, calldatas
   let signed = await contract.connect(signer);
   let proposal;
   try {
-    let proposalCall = await signed.propose(targets, values, signatures, calldatas, description);
+    if (targets && targets.length > 1) {
+      console.log(
+        "propose calling proposeMultiAttribute with",
+        {targets,
+        values,
+        signatures,
+        calldatas,
+        description}
+      );
+      await signed.proposeMultiAttribute(
+        targets,
+        values,
+        signatures,
+        calldatas,
+        description
+      );
+    } else {
+      console.log(
+        "propose calling propose with",
+        {targets,
+        values,
+        signatures,
+        calldatas,
+        description}
+      );
+      await signed.propose(targets, values, signatures, calldatas, description);
+    }
     proposal = SUCCESS_MSG;
   } catch (error) {
+    console.error(error);
     let err = catchError(error);
-    console.log(err);
     proposal = err + " Is your delegatee set?";
   }
   return proposal;
@@ -438,7 +477,7 @@ export async function castVote(w3provider, proposalId, support, votes) {
   let signed = await contract.connect(signer);
   let castVote;
   try {
-    let castVoteCall = await signed.castVote(proposalId, support, votes);
+    await signed.castVote(proposalId, support, votes);
     castVote = SUCCESS_MSG;
   } catch (error) {
     castVote = catchError(error);
@@ -452,7 +491,7 @@ export async function queue(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let queue;
   try {
-    let queueCall = await signed.queue(proposalId);
+    await signed.queue(proposalId);
     queue = SUCCESS_MSG;
   } catch (error) {
     queue = catchError(error);
@@ -466,7 +505,7 @@ export async function execute(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let execute;
   try {
-    let executeCall = await signed.execute(proposalId);
+    await signed.execute(proposalId);
     execute = SUCCESS_MSG;
   } catch (error) {
     execute = catchError(error);
@@ -480,7 +519,7 @@ export async function cancel(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let cancel;
   try {
-    let cancelCall = await signed.cancel(proposalId);
+    await signed.cancel(proposalId);
     cancel = SUCCESS_MSG;
   } catch (error) {
     cancel = catchError(error);
@@ -494,7 +533,7 @@ export async function refund(w3provider, proposalId) {
   let signed = await contract.connect(signer);
   let refund;
   try {
-    let refundCall = await signed.refund(proposalId);
+    await signed.refund(proposalId);
     refund = SUCCESS_MSG;
   } catch (error) {
     refund = catchError(error);

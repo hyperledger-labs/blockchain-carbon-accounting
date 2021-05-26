@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useState
@@ -55,7 +56,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
     fetchBalances();
   }
 
-  async function fetchBalances() {
+  const fetchBalances = useCallback(async () => {
 
     let newMyBalances = [];
     let newMyIssuedTokens = [];
@@ -93,10 +94,26 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         let availableBalance = balances[0].toNumber();
         let retiredBalance = balances[1].toNumber();
 
-        // Format decimal points for audited emissions tokens
-        if (tokenDetails.tokenTypeId === 3) {
-          availableBalance = (availableBalance / 1000).toFixed(3);
-          retiredBalance = (retiredBalance / 1000).toFixed(3);
+        // Format decimal points for all tokens
+        availableBalance = (availableBalance / 1000).toFixed(3);
+        retiredBalance = (retiredBalance / 1000).toFixed(3);
+
+        let totalIssued = "";
+        try {
+          totalIssued = tokenDetails.totalIssued.toNumber();
+          totalIssued = (totalIssued / 1000).toFixed(3);
+        } catch (error) {
+          console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
+          totalIssued = "";
+        }
+
+        let totalRetired = "";
+        try {
+          totalRetired = tokenDetails.totalRetired.toNumber();
+          totalRetired = (totalRetired / 1000).toFixed(3);
+        } catch (error) {
+          console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
+          totalRetired = "";
         }
 
         let token = {
@@ -112,8 +129,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
-          totalIssued: tokenDetails.totalIssued.toNumber(),
-          totalRetired: tokenDetails.totalRetired.toNumber(),
+          totalIssued: totalIssued,
+          totalRetired: totalRetired,
         };
 
         // Push token to myBalances or myIssuedTokens in state
@@ -136,7 +153,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
     setMyIssuedTokens(newMyIssuedTokens);
     setFetchingTokens(false);
     setError("");
-  }
+  }, [provider, signedInAddress]);
 
   // If address and provider detected then fetch balances
   useEffect(() => {
@@ -146,7 +163,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         fetchBalances();
       }
     }
-  }, [signedInAddress]);
+  }, [provider, signedInAddress]);
 
   function pointerHover(e) {
     e.target.style.cursor = "pointer";

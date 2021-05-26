@@ -150,7 +150,7 @@ contract DAOToken {
         if ((msg.sender != initialHolder) && (msg.sender != governor)) {
             revert("dCLM8::transfer: sender must be initial holder or DAO governor");
         }
-                
+
         uint96 amount = safe96(rawAmount, "dCLM8::transfer: amount exceeds 96 bits");
         _transferTokens(msg.sender, dst, amount);
         return true;
@@ -167,7 +167,7 @@ contract DAOToken {
         if ((src != initialHolder) && (src != governor)) {
             revert("dCLM8::transfer: sender must be initial holder or DAO governor");
         }
-        
+
         address spender = msg.sender;
         uint96 spenderAllowance = allowances[src][spender];
         uint96 amount = safe96(rawAmount, "dCLM8::approve: amount exceeds 96 bits");
@@ -365,6 +365,17 @@ contract DAOToken {
         uint256 chainId;
         assembly { chainId := chainid() }
         return chainId;
+    }
+
+    function addToTotalSupply(uint amount) public {
+        if ((msg.sender != initialHolder) && (msg.sender != governor)) {
+            revert("dCLM8::addToTotalSupply: must be initial holder or DAO governor");
+        }
+        uint96 _amount = safe96(amount, "dCLM8::addToTotalSupply: amount exceeds 96 bits");
+        balances[msg.sender] = add96(balances[msg.sender], _amount, "dCLM8::addToTotalSupply: amount overflows");
+        totalSupply += amount;
+        // also need to sync the delegate checkpoint
+        _moveDelegates(address(0), msg.sender, _amount);
     }
 
     function getTotalSupply() external view returns (uint) {
