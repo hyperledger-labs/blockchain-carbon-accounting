@@ -140,15 +140,21 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider]);
 
   const fetchQuorum = useCallback(async () => {
-    let q = addCommas( (await getQuorum(provider)).div("1000000000") );
-    setQuorum(q);
-    setFetchingQuorum(false);
+    let q = await getQuorum(provider);
+    if (q != null) {
+      q = addCommas(q.div("1000000000"));
+      setQuorum(q);
+      setFetchingQuorum(false);
+    }
   }, [provider]);
 
   const fetchProposalThreshold = useCallback(async () => {
-    let p = addCommas( (await getProposalThreshold(provider)).div("1000000000000000000") );
-    setProposalThreshold(p);
-    setFetchingProposalThreshold(false);
+    let p = await getProposalThreshold(provider);
+    if (p != null) {
+      p = addCommas(p.div("1000000000000000000"));
+      setProposalThreshold(p);
+      setFetchingProposalThreshold(false);
+    }
   }, [provider]);
 
   const fetchProposals = useCallback(async () => {
@@ -320,9 +326,9 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     ) &&
     (!cp.receipt.hasVotesRefunded) &&
     cp.receipt.rawRefund > 0
-  ) 
+  )
 
-  const renderCancelOrRefund = (cp) => 
+  const renderCancelOrRefund = (cp) =>
   { return hasCancelOrRefund(cp) &&
     <div className="text-center mx-1">
       <Button
@@ -346,13 +352,13 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }
 
   const renderVoteCount = (votes, rawVotes, showVotes) => {
-    return showVotes ? 
+    return showVotes ?
         <>{addCommas(votes)} votes ({addCommas(rawVotes)} dCLM8)</>
       : <>{addCommas(rawVotes)} dCLM8</>
   }
 
   const renderVoteButtons = (cp, showVotes, showAsTotal) => {
-    return (cp.isEligibleToVote || cp.state !== "Pending") && 
+    return (cp.isEligibleToVote || cp.state !== "Pending") &&
       <div className="my-auto col-lg-7 col-lg p-0 mr-2">
         <Row className="justify-content-between mx-1">
           <div className="text-success">{showAsTotal?"Total":""} For: {renderVoteCount(cp.details.forVotes, cp.details.rawForVotes, showVotes)}</div>
@@ -381,7 +387,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       </div>
   }
 
-  const renderYourVote = (cp) => (hasCancelOrRefund(cp) || cp.receipt.hasVoted === true) && 
+  const renderYourVote = (cp) => (hasCancelOrRefund(cp) || cp.receipt.hasVoted === true) &&
     <Row className="align-items-center justify-content-end mt-2">
       { renderYouVoted(cp) }
       { renderCancelOrRefund(cp) }
