@@ -253,29 +253,23 @@ router.get(
   }
 );
 
+// required params:
+// userId
+// orgName
+// addressToIssue
+// emissionsRecordsToAudit
 export const RECORD_AUDITED_EMISSIONS_TOKEN =
   "/api/" +
   APP_VERSION +
-  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/:userId/:orgName/:addressToIssue/:emissionsRecordsToAudit/:automaticRetireDate";
+  "/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken";
 router.post(
   RECORD_AUDITED_EMISSIONS_TOKEN,
   [
-    param("userId").isString(),
-    param("orgName").isString(),
-    param("addressToIssue").isString(),
-    // param("automaticRetireDate").custom((value, { req }) => {
-    //   if (value) {
-    //     let matches = value.match(
-    //       /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-    //     );
-    //     if (!matches) {
-    //       throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
-    //     }
-    //   }
-    //   // Indicates the success of this synchronous custom validator
-    //   return true;
-    // }),
-    param("emissionsRecordsToAudit").isString(),
+      body("userId").isString(),
+      body("orgName").isString(),
+      body("partyId").isString(),
+      body("addressToIssue").isString(),
+      body("emissionsRecordsToAudit").isString(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -283,10 +277,11 @@ router.post(
       return res.status(412).json({ errors: errors.array() });
     }
     try {
-      const userId = req.params.userId;
-      const orgName = req.params.orgName;
-      const addressToIssue = req.params.addressToIssue;
-      const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.toString().split(",");
+      const userId = req.body.userId;
+      const orgName = req.body.orgName;
+      const partyId = req.body.partyId;
+      const addressToIssue = req.body.addressToIssue;
+      const emissionsRecordsToAudit = req.body.emissionsRecordsToAudit.toString().split(",");
       // @TODO: use automaticRetireDate parameter
       const automaticRetireDate = new Date().toISOString();
       const description = "Audited Utility Emissions";
@@ -398,7 +393,7 @@ router.post(
           orgName,
           emissionsRecord.uuid,
           emissionsRecord.utilityId,
-          emissionsRecord.partyId,
+          partyId,
           emissionsRecord.fromDate,
           emissionsRecord.thruDate,
           emissionsRecord.emissionsAmount,
@@ -423,7 +418,7 @@ router.post(
       result["manifest"] = manifest;
       result["description"] = description;
 
-      res.status(200).send(result);
+      res.status(201).send(result);
       log("info", "DONE.");
     } catch (e) {
       res.status(400).send(e);
