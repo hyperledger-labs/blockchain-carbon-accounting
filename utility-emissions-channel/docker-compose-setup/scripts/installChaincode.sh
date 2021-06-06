@@ -1,3 +1,4 @@
+#!/bin/bash
 CHANNEL_NAME="utilityemissionchannel"
 # CC_NAME="emissionscontract"
 LOG_FILE_NAME=chaincode${2}_log.txt
