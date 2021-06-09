@@ -12,7 +12,7 @@ services:
     container_name: chaincode-utilityemissions1.carbonAccounting.com
     image: krybalko/utilityemissions-chaincode:0.0.2
     environment:
-      - CHAINCODE_CCID=utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
+      - CHAINCODE_CCID=utilityemissions:7ad0a4c247d0f386d38e5af6287ea724fa1bf5228bf7494cb17de94487ec264f
       - CHAINCODE_ADDRESS=0.0.0.0:9998
     ports:
       - "9998:9998"
