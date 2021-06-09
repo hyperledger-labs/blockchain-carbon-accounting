@@ -6,25 +6,32 @@ import {
   CONTRACT_ADDRESS,
   INFURA_PROJECT_ID,
   INFURA_PROJECT_SECRET,
-  JSON_RPC_URL
+  JSON_RPC_URL,
+  NETWORK
 } from "../../config/networkConfig";
 const tokenTypeId = 3;
 
 const walletPrivateKey = WALLET_PRIVATE_KEY || process.env.WALLET_PRIVATE_KEY;
 const contractAddress = CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS;
 const jsonRpcUrl = JSON_RPC_URL || process.env.JSON_RPC_URL || "https://rpc.xdaichain.com/";
-// const infuraProjectId = INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID;
-// const infuraProjectSecret = INFURA_PROJECT_SECRET || process.env.INFURA_PROJECT_SECRET;
+const useNetworks = NETWORK || process.env.NETWORK || "xdai";
+
+const infuraProjectId = INFURA_PROJECT_ID || process.env.INFURA_PROJECT_ID;
+const infuraProjectSecret = INFURA_PROJECT_SECRET || process.env.INFURA_PROJECT_SECRET;
 
 function getProvider() {
-  // Goerli
-  // let provider = new ethers.providers.InfuraProvider("goerli", {
-  //   projectId: infuraProjectId,
-  //   projectSecret: infuraProjectSecret
-  // });
+  let provider = null;
+  if (useNetworks.toLowerCase() === 'goerli') {
+    // Goerli
+    provider = new ethers.providers.InfuraProvider("goerli", {
+      projectId: infuraProjectId,
+      projectSecret: infuraProjectSecret
+    });
+  } else {
+    // xDai
+    provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
+  }
 
-  // xDai
-  let provider = new ethers.providers.JsonRpcProvider(jsonRpcUrl);
   return provider;
 }
 
@@ -79,7 +86,7 @@ export async function issue(
     let issueEventRaw = JSON.stringify(receipt.events.pop().data);
     let issueEvent = issueEventRaw.substring(3, issueEventRaw.length-1);
     console.log(`Got issueEvent: ${issueEvent}`);
-    let tokenIdRaw = issueEvent.slice((64*3), (64*4));
+    let tokenIdRaw = issueEvent.slice((64*2), (64*3));
     console.log(`Got tokenIdRaw: ${tokenIdRaw}`);
     tokenId = parseInt(tokenIdRaw,16)
     console.log(`Got tokenId: ${tokenId}`);

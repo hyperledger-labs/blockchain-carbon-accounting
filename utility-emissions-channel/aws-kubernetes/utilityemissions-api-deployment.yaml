@@ -65,6 +65,10 @@ spec:
               value: "secret-id"
             - name: AWS_SECRET_ACCESS_KEY
               value: "secret-key"
+            - name: JSON_RPC_URL
+              value: ""
+            - name: NETWORK
+              value: ""
           ports:
             - containerPort: 9000
           volumeMounts:
