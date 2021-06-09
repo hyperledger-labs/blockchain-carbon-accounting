@@ -177,6 +177,7 @@ This is normally done for you in the `start.sh` script, but you can also start i
 $ cd typescript_app
 $ npm i
 $ cd ..
+$ cd docker-compose-setup
 $ ./scripts/startApi.sh
 ```
 
