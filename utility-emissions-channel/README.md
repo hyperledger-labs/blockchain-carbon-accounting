@@ -4,7 +4,7 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 
 ## Running the Fabric network and Express API
 
-1. Make sure you have Git, curl, Docker, and Docker Compose installed, or follow instructions from [Hyperledger Fabric Install Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
+1. Make sure you have Git, cURL, Docker, and Docker Compose installed, or follow instructions from [Hyperledger Fabric Install Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
 2. From `utility-emissions-channel/`, copy over the Amazon Web Services (AWS) configuration template file with:
 
 ```bash
@@ -37,6 +37,14 @@ $ cp ./typescript_app/src/config/networkConfig.ts.example ./typescript_app/src/c
     export const INFURA_PROJECT_SECRET = "infura_secret";
 ```
 
+For the above you may need to start a new [Infura](https://infura.io/) project and use the credentials there for the project id and secret. 
+Regarding the Ethereum dealer wallet you will need for the private key, one option is [MetaMask](https://metamask.io/) which offers a handy Chrome extension.
+Moreover, you may also need to create a Goerli TestNet wallet. Detailed instructions regarding how to set this up can be found for example at [the Mudit blog](https://mudit.blog/getting-started-goerli-testnet/).
+We already have smart contracts under [net-emissions-token](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/4a8c8c916127bdabed7734074fb9ae78e44e27cc/net-emissions-token-network/README.md) network.
+The Express API that connects to ethereum will call that to create emissions tokens. Please check the instructions for the `net-emissions-token-network` [here](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/4a8c8c916127bdabed7734074fb9ae78e44e27cc/net-emissions-token-network/docs/using-the-react-application.md).
+Note for the `CONTRACT_ADDRESS` you can use the address of Ethereum contract required to connect to on the Goerli testnet, this can be found in the Settings section of your Infura project. 
+In particular, checkout the section "With Goerli testnet" below after following the instructions for installing the React application above therein. 
+
 6.  Install the right binaries.  You will need the linux binaries to run inside of docker, as well as the binaries for your operating system.
 
 ```bash
@@ -66,8 +74,14 @@ $ npm install
 
 8.  From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
 
-Start network, create channel, and deployCC:
+### Start network, create channel, and deployCC
 
+If you are doing it for the first time, run:
+```bash
+sh start.sh
+```
+
+Otherwise, run:
 ```bash
 sh ./scripts/reset.sh && sh start.sh
 ```
