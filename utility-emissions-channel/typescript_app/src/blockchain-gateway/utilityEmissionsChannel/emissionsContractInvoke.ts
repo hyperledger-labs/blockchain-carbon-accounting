@@ -47,7 +47,7 @@ export class EmissionsContractInvoke {
         await gateway.connect(ccp, {
           identity: userId,
           wallet: wallet,
-          //discovery: { enabled: true, asLocalhost: false },
+          discovery: { enabled: true, asLocalhost: false },
         });
       } catch (err) {
         response = `ERROR: ${err}`;
