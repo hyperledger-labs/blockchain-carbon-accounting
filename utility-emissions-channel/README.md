@@ -5,13 +5,14 @@ This project implements the [Utility Emissions Channel](https://wiki.hyperledger
 ## Running the Fabric network and Express API
 
 1. Make sure you have Git, cURL, Docker, and Docker Compose installed, or follow instructions from [Hyperledger Fabric Install Prerequisites](https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html)
-2. From `utility-emissions-channel/`, copy over the Amazon Web Services (AWS) configuration template file with:
+
+2. From `utility-emissions-channel`, copy over the Fabric network configuration settings template file with:
 
 ```bash
 $ cp ./typescript_app/src/config/config.ts.example ./typescript_app/src/config/config.ts
 ```
 
-From utility-emissions-channel/, copy over the Amazon Web Services (AWS) configuration template file with:
+3. From `utility-emissions-channel`, copy over the Amazon Web Services (AWS) configuration template file with:
 ```bash
 $ cp ./typescript_app/src/config/aws-config.js.template ./typescript_app/src/config/aws-config.js
 ```
