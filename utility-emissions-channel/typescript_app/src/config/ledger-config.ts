@@ -22,7 +22,8 @@ interface INetEmissionTokenContractConfigs{
     }
 }
 
-interface ILedgerIntegrationConfig{
+export interface ILedgerIntegrationConfig{
+    isDev?:boolean
     logLevel?:LogLevelDesc,
     keychainID?:string
     ethNode?:IEthNode
@@ -33,7 +34,9 @@ export function getLedgerConfigs():ILedgerIntegrationConfig{
     const config:ILedgerIntegrationConfig = {}
     const env = process.env.LEDGER_ENV || "prod"
     config.logLevel = "DEBUG"
+    config.isDev = true
     if (env == "prod"){
+        config.isDev = false
         config.logLevel = "INFO"
     }
 
