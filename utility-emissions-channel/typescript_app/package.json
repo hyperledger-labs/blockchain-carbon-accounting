@@ -15,6 +15,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hyperledger/cactus-common": "^0.5.0",
+    "@hyperledger/cactus-core": "^0.5.0",
+    "@hyperledger/cactus-plugin-keychain-memory": "^0.5.0",
+    "@hyperledger/cactus-plugin-ledger-connector-xdai": "^0.5.0",
     "@types/express": "^4.17.8",
     "@types/multer": "^1.4.4",
     "aws-sdk": "^2.793.0",
@@ -33,7 +37,8 @@
     "python3": "0.0.1",
     "swagger-ui-express": "^4.1.4",
     "ts-md5": "^1.2.7",
-    "uuid": "^8.3.1"
+    "uuid": "^8.3.2",
+    "web3": "^1.2.7"
   },
   "devDependencies": {
     "serverless-s3-local": "^0.6.7"
