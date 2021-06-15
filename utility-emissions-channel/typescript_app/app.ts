@@ -1,5 +1,5 @@
 import {config} from 'dotenv'
-import express,{Express,json,urlencoded} from 'express'
+import express,{Express,json,urlencoded,RequestHandler} from 'express'
 import LedgerIntegration from './src/blockchain-gateway/ledger-integration'
 config()
 
@@ -7,8 +7,8 @@ config()
 const app:Express = express()
 const PORT = process.env.PORT || 9000
 
-app.use(json())
-app.use(urlencoded({extended: true}))
+app.use(json() as RequestHandler)
+app.use(urlencoded({extended: true}) as RequestHandler)
 
 const ledgerIntegration = new LedgerIntegration(app)
 

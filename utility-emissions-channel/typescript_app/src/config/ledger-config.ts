@@ -1,6 +1,17 @@
 // ledger-config.ts : defines and read configuration for ledger integration
 import {LogLevelDesc,Checks} from '@hyperledger/cactus-common'
 import netEmissionTokenContractJSON from '../contracts/NetEmissionsTokenNetwork.json'
+import {ConnectionProfile} from '@hyperledger/cactus-plugin-ledger-connector-fabric'
+import {readFileSync} from 'fs'
+
+export interface ILedgerIntegrationConfig{
+    isDev?:boolean
+    logLevel?:LogLevelDesc,
+    keychainID?:string
+    ethNode?:IEthNode
+    netEmissionTokenContract?:INetEmissionTokenContractConfigs
+    utilityEmissionsChaincode?:IFabricChaincodeConfig
+}
 
 interface IEthNode{
     url:string
@@ -22,12 +33,18 @@ interface INetEmissionTokenContractConfigs{
     }
 }
 
-export interface ILedgerIntegrationConfig{
-    isDev?:boolean
-    logLevel?:LogLevelDesc,
-    keychainID?:string
-    ethNode?:IEthNode
-    netEmissionTokenContract?:INetEmissionTokenContractConfigs
+
+interface IFabricOrgConfig{
+    // path of connection profile
+    ccpFile:string
+    msp:string
+    caName:string
+}
+
+interface IFabricChaincodeConfig{
+    network:ConnectionProfile
+    channelName:string
+    chaincodeName:string
 }
 
 export function getLedgerConfigs():ILedgerIntegrationConfig{
@@ -40,6 +57,10 @@ export function getLedgerConfigs():ILedgerIntegrationConfig{
         config.logLevel = "INFO"
     }
 
+    // 
+    //================================================================
+    // Ethereum network config read  ::::: start
+    //
     const ethNodeURL = process.env.LEDGER_ETH_JSON_RPC_URL
     const ethNetwork = process.env.LEDGER_ETH_NETWORK
     Checks.nonBlankString(ethNodeURL,'LEDGER_ETH_JSON_RPC_URL')
@@ -85,6 +106,72 @@ export function getLedgerConfigs():ILedgerIntegrationConfig{
             }
         }
     }
-
+    // 
+    //================================================================
+    // fabric network config read  ::::: start
+    //
+    const utilityEmissionsChaincodeCfg = process.env.LEDGER_EMISSION_NETWORK_CFG
+    Checks.nonBlankString(utilityEmissionsChaincodeCfg,'LEDGER_EMISSION_NETWORK_CFG')
+    const utilityEmissionsChaincode = readUtilityEmissionChaincodeCfg(utilityEmissionsChaincodeCfg)
+    config.utilityEmissionsChaincode = utilityEmissionsChaincode
     return config
+}
+
+// function readtUtilityEmissionChaincodeCfg(cfgPath:string):/*IFabricChaincodeConfig*/{
+export function readUtilityEmissionChaincodeCfg(cfgPath:string):IFabricChaincodeConfig{
+    // containing :
+    // channelName : 
+    // chaincodeName :
+    // orgCfgs : Map(orgName => IFabricOrgConfig)
+    const configJSON = JSON.parse(readFileSync(cfgPath).toString()) as {
+        channelName:string,
+        chaincodeName:string,
+        orgCfgs:{[key:string]:IFabricOrgConfig}
+    }
+    const certificateAuthorities:{[key:string]:object} = {}
+    const peers:{[key:string]:object} = {}
+    const orderers:{[key:string]:object} = {}
+    const organizations:{[key:string]:object} = {}
+
+    for(const key of Object.keys(configJSON.orgCfgs)){
+        const orgCfg = configJSON.orgCfgs[key]
+        const orgMSP = orgCfg.msp
+        const ccp = JSON.parse(readFileSync(orgCfg.ccpFile).toString())
+        const orgPeers = ccp["peers"]
+        const orgOrderers = ccp["orderers"]
+        const org:{mspid:string,peers:string[],certificateAuthorities:string[]} = {
+            mspid:orgMSP,
+            peers: [],
+            certificateAuthorities: []
+        }
+
+        for (const key of Object.keys(orgPeers)){
+            peers[`${orgMSP}_${key}`] = orgPeers[key]
+            org.peers.push(`${orgMSP}_${key}`)
+        }
+
+        for (const key of Object.keys(orgOrderers)){
+            orderers[`${orgMSP}_${key}`] = orgOrderers[key]
+        }
+
+        const ca = ccp["certificateAuthorities"]
+        certificateAuthorities[`${orgMSP}_${orgCfg.caName}`] = ca[orgCfg.caName]
+        org.certificateAuthorities.push(`${orgMSP}_${orgCfg.caName}`)
+
+        organizations[key] = org
+    }
+    const ccp:ConnectionProfile = {
+        name: "carbonAccounting_fabric_network",
+        version: "1.0.0",
+        description: "fabric network configuration for carbon accounting application",
+        organizations: organizations,
+        orderers: orderers,
+        peers: peers,
+        certificateAuthorities: certificateAuthorities
+    }
+    return {
+        chaincodeName: configJSON.chaincodeName,
+        channelName: configJSON.channelName,
+        network: ccp
+    }
 }
