@@ -10,14 +10,18 @@ import {PluginKeychainMemory} from '@hyperledger/cactus-plugin-keychain-memory'
 import {PluginRegistry} from '@hyperledger/cactus-core'
 import {v4 as uuid4} from 'uuid'
 import { PluginLedgerConnectorXdai } from '@hyperledger/cactus-plugin-ledger-connector-xdai'
-
+import {PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric'
+import {FabricRegistryRouter} from '../routers/fabricRegistry'
+import { FabricRegistry } from './fabricRegistry'
 interface IContractJSON{
     abi : Array<any>
     networks:Map<number,{address:string}>
 }
 
 export default class LedgerIntegration{
-    private readonly carbonAccounting:CarbonAccountingRouter
+    private readonly carbonAccountingRouter:CarbonAccountingRouter
+    private readonly fabricRegistryRouter:FabricRegistryRouter
+
     private readonly ledgerConfig: ILedgerIntegrationConfig
     private readonly log:Logger
     private readonly keychainPlugin:PluginKeychainMemory
@@ -44,6 +48,19 @@ export default class LedgerIntegration{
             pluginRegistry: pluginRegistry
         })
 
+        const fabricClient = new PluginLedgerConnectorFabric({
+            pluginRegistry: pluginRegistry,
+            connectionProfile: this.ledgerConfig.utilityEmissionsChaincode.network,
+            cliContainerEnv: {},
+            instanceId: uuid4(),
+            peerBinary: "anything",
+            sshConfig: {},
+            discoveryOptions: {
+                enabled: true,
+                asLocalhost: true
+            }
+        })
+        
         // create ledger's contract classes
         const netEmissionTokenContract = new NetEmissionsTokenNetworkContract({
             logLevel: this.ledgerConfig.logLevel,
@@ -58,9 +75,29 @@ export default class LedgerIntegration{
             contractAddress: this.ledgerConfig.netEmissionTokenContract.contractInfo.address
         })
         // create Router class
-        this.carbonAccounting = new CarbonAccountingRouter({
+        this.carbonAccountingRouter = new CarbonAccountingRouter({
             logLevel: this.ledgerConfig.logLevel,
             netEmissionsTokenContract: netEmissionTokenContract
+        })
+
+        const orgCAs:{[key:string]:{mspId:string,ca:string}} = {}
+        const orgs = this.ledgerConfig.utilityEmissionsChaincode.network.organizations
+        for (const orgName of Object.keys(orgs)){
+            orgCAs[orgName] = {
+                ca :orgs[orgName]["certificateAuthorities"][0],
+                mspId: orgs[orgName]["mspid"]
+            }
+        }
+        const fabricRegistry = new FabricRegistry({
+            logLevel: this.ledgerConfig.logLevel,
+            fabricClient: fabricClient,
+            orgCAs: orgCAs,
+            keychain: this.keychainPlugin
+        })
+
+        this.fabricRegistryRouter = new FabricRegistryRouter({
+            logLevel : this.ledgerConfig.logLevel,
+            fabricRegistry: fabricRegistry
         })
     }
 
@@ -71,7 +108,8 @@ export default class LedgerIntegration{
     }
 
     private registerRouters(){
-        this.app.use('/api/v1',this.carbonAccounting.router)
+        this.app.use('/api/v1',this.carbonAccountingRouter.router)
+        this.app.use('/api/v1/fabricRegistry',this.fabricRegistryRouter.router)
     }
 
     private async storeContracts(){
