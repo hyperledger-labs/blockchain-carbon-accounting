@@ -139,7 +139,7 @@ $ node egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv 
 
 ### Viewing the seed data
 
-Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `utilityemissionchannel_emissionscontract` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
+Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `utilityemissionchannel__utilityemissions` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
 
 More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find`](http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find).  See [tutorial on running Mango queries](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query).
 
