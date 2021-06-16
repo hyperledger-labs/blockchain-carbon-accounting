@@ -174,9 +174,20 @@ From the `utility-emissions-channel/docker-compose-setup` directory, you can run
 ```shell
 # Record emission to utilityemissionchannel
 $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
+```
 
+You will get a result that looks like this:
+
+```shell
+2021-06-16 09:09:25.305 PDT [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 001 Chaincode invoke successful. result: status:200 payload:"{\"uuid\":\"7fe9ccb94fb1b0ee302b471cdfafbd4c\",\"utilityId\":\"USA_EIA_11208\",\"partyId\":\"5568748226281c705e79f668100c0c4ec6c727b7c1b91314e0530a841d11c569\",\"fromDate\":\"2018-06-01T10:10:09Z\",\"thruDate\":\"2018-06-30T10:10:09Z\",\"emissionsAmount\":0.0316521654748084,\"renewableEnergyUseAmount\":65.26895319095316,\"nonrenewableEnergyUseAmount\":84.73104680904684,\"energyUseUom\":\"KWH\",\"factorSource\":\"eGrid 2018 STATE CA\",\"url\":\"url\",\"md5\":\"md5\",\"tokenId\":null,\"class\":\"org.hyperledger.blockchain-carbon-accounting.emissionsrecord\",\"key\":\"\\\"USA_EIA_11208\\\":\\\"5568748226281c705e79f668100c0c4ec6c727b7c1b91314e0530a841d11c569\\\":\\\"2018-06-01T10:10:09Z\\\":\\\"2018-06-30T10:10:09Z\\\"\"}" 
+===================== Invoke transaction successful on peer1.auditor1 peer1.auditor2 on channel 'utilityemissionchannel' ===================== 
+```
+
+Take the `uuid` of the result, which in this case is `7fe9ccb94fb1b0ee302b471cdfafbd4c` to get the emissions record data:
+
+```shell
 # Query emission data
-$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["1"]}' 1
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'getEmissionsData'","Args":["7fe9ccb94fb1b0ee302b471cdfafbd4c"]}' 1   // use your uuid!
 ```
 
 You should also be able to see your emissions records in Couchdb with a Mango query:
