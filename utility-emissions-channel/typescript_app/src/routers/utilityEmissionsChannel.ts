@@ -1,0 +1,161 @@
+// utilityEmissionsChannel.ts : exposes endpoint for interacting with utilityEmissionsChannel chaincode only
+import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common'
+import {UtilityEmissionsChannel} from '../blockchain-gateway/utilityEmissionsChannel'
+import {Router,Request,Response} from 'express'
+import {validationResult,body,param} from 'express-validator'
+import {IEmissionRecord} from '../blockchain-gateway/I-utilityEmissionsChannel'
+import {checkDateConflict} from '../blockchain-gateway/utils/dateUtils'
+
+interface IUtilityEmissionsChannelRouterOptions{
+    logLevel:LogLevelDesc
+    utilityEmissionsChannel:UtilityEmissionsChannel
+}
+
+export class UtilityEmissionsChannelRouter{
+    public static CLASS_NAME = "UtilityEmissionsChannelRouter"
+    private readonly log:Logger
+
+    public readonly router:Router
+    get clasName():string{
+        return UtilityEmissionsChannelRouter.CLASS_NAME
+    }
+
+    constructor(private readonly opts:IUtilityEmissionsChannelRouterOptions){
+        this.log = LoggerProvider.getOrCreate({label:this.clasName,level:opts.logLevel})
+        this.router = Router()
+        this.registerHandlers()
+    }
+
+    private registerHandlers(){
+        this.router.post(
+            '/emissions',
+            [
+                body("userId").isString(),
+                body("orgName").isString(),
+                body("utilityId").isString(),
+                body("partyId").isString(),
+                body("fromDate").custom((value, { req }) => {
+                  let matches = value.match(
+                    /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+                  );
+                  if (!matches) {
+                    throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+                  }
+            
+                  // Indicates the success of this synchronous custom validator
+                  return true;
+                }),
+                body("thruDate").custom((value, { req }) => {
+                  let matches = value.match(
+                    /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+                  );
+                  if (!matches) {
+                    throw new Error("Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)");
+                  }
+            
+                  // Indicates the success of this synchronous custom validator
+                  return true;
+                }),
+                body("energyUseAmount").isNumeric(),
+                body("energyUseUom").isString(),
+            ],
+            this.recordEmissions.bind(this)
+        )
+        this.router.get(
+            '/emissions/:userId/:orgName/:uuid',
+            [
+                param("userId").isString(),
+                param("orgName").isString(),
+                param("uuid").isString()
+            ],
+            this.getEmissionsData.bind(this)
+        )
+    }
+
+    private async recordEmissions(req:Request,res:Response){
+        const fnTag = `${req.method.toUpperCase()} ${req.url}`
+        this.log.debug(fnTag)
+        const errors = validationResult(req)
+        if (!errors.isEmpty()){
+            this.log.debug(`${fnTag} BadJSON Request : %o`,errors.array())
+            return res.status(412).json({
+                errors : errors.array()
+            })
+        }
+        const userId:string = req.body.userId
+        const orgName:string = req.body.orgName
+        const utilityId:string = req.body.utilityId
+        const partyId:string = req.body.partyId
+        const fromDate:string = req.body.fromDate
+        const thruDate:string = req.body.thruDate
+        const energyUseAmount:number = req.body.energyUseAmount as number
+        const energyUseUom:string = req.body.energyUseUom
+
+        let emissionRecords:IEmissionRecord[]
+        this.log.debug(`${fnTag} fetching allEmissionRecords with utilityId=${utilityId} , partyId=${partyId}`)
+        try {
+            emissionRecords =  await this.opts.utilityEmissionsChannel.getAllEmissionRecords(userId,orgName,{utilityId,partyId})
+        } catch (error) {
+            this.log.info(`${fnTag} failed to fetch allEmissionRecords : %o`,error)
+            res.status(500).json({
+                error: error
+            })
+        }
+
+        this.log.debug(`${fnTag} overlap check of data between ${fromDate} to ${thruDate}`)
+        for (let emission of emissionRecords){
+            const overlap:boolean = checkDateConflict(fromDate,thruDate,emission.fromDate,emission.thruDate)
+            if (overlap){
+                this.log.info(`${fnTag} Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${emission.fromDate} to ${emission.thruDate}`)
+                return res.status(401).json({
+                    msg : `Supplied dates ${fromDate} to ${thruDate} overlap with an existing dates ${emission.fromDate} to ${emission.thruDate}.`
+                })
+            }
+        }
+        let url = ""
+        let md5 = ""
+        // TODO S3 dependence to store file
+
+        // record emission on ledger
+        const ledgerRes = await this.opts.utilityEmissionsChannel.recordEmissions(userId,orgName,{
+            utilityId: utilityId,
+            partyId: partyId,
+            fromDate: fromDate,
+            thruDate: thruDate,
+            energyUseAmount: energyUseAmount,
+            energyUseUom: energyUseUom,
+            url: url,
+            md5: md5
+        })
+        if (ledgerRes.info === "EMISSION RECORDED ON LEDGER"){
+            res.status(201).json(ledgerRes)
+        }else{
+            res.status(409).json(ledgerRes)
+        }
+    }
+
+    private async getEmissionsData(req:Request,res:Response){
+        const fnTag = `${req.method.toUpperCase()} ${req.url}`
+        this.log.debug(fnTag)
+        const errors = validationResult(req)
+        if (!errors.isEmpty()){
+            this.log.debug(`${fnTag} BadJSON Request : %o`,errors.array())
+            return res.status(412).json({
+                errors : errors.array()
+            }) 
+        }
+        const userId = req.params.userId
+        const orgName = req.params.orgName
+        const uuid = req.params.uuid
+        this.log.debug(`${fnTag} fetching emission record from the ledger`)
+        try {
+            const emissionRecord = await this.opts.utilityEmissionsChannel.getEmissionsData(userId,orgName,{uuid:uuid})
+            res.status(200).json(emissionRecord)
+        } catch (error) {
+            res.status(409).json({
+                error :error
+            })
+        }
+    }
+
+}
