@@ -13,6 +13,8 @@ import { PluginLedgerConnectorXdai } from '@hyperledger/cactus-plugin-ledger-con
 import {PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric'
 import {FabricRegistryRouter} from '../routers/fabricRegistry'
 import { FabricRegistry } from './fabricRegistry'
+import { UtilityEmissionsChannel } from './utilityEmissionsChannel'
+import {UtilityEmissionsChannelRouter} from '../routers/utilityEmissionsChannel'
 interface IContractJSON{
     abi : Array<any>
     networks:Map<number,{address:string}>
@@ -21,6 +23,7 @@ interface IContractJSON{
 export default class LedgerIntegration{
     private readonly carbonAccountingRouter:CarbonAccountingRouter
     private readonly fabricRegistryRouter:FabricRegistryRouter
+    private readonly utilityEmissionsChannelRouter:UtilityEmissionsChannelRouter
 
     private readonly ledgerConfig: ILedgerIntegrationConfig
     private readonly log:Logger
@@ -75,11 +78,24 @@ export default class LedgerIntegration{
             contractAddress: this.ledgerConfig.netEmissionTokenContract.contractInfo.address
         })
         // create Router class
+        // utility emission channel : fabric network
+        const utilityEmissionChannel = new UtilityEmissionsChannel({
+            logLevel: this.ledgerConfig.logLevel,
+            fabricClient: fabricClient,
+            keychainId: this.keychainPlugin.getKeychainId()
+        })
         this.carbonAccountingRouter = new CarbonAccountingRouter({
             logLevel: this.ledgerConfig.logLevel,
-            netEmissionsTokenContract: netEmissionTokenContract
+            netEmissionsTokenContract: netEmissionTokenContract,
+            utilityEmissionChannel: utilityEmissionChannel
         })
 
+        this.utilityEmissionsChannelRouter =  new UtilityEmissionsChannelRouter({
+            logLevel: this.ledgerConfig.logLevel,
+            utilityEmissionsChannel: utilityEmissionChannel
+        })
+
+        // fabric registry
         const orgCAs:{[key:string]:{mspId:string,ca:string}} = {}
         const orgs = this.ledgerConfig.utilityEmissionsChaincode.network.organizations
         for (const orgName of Object.keys(orgs)){
@@ -110,6 +126,7 @@ export default class LedgerIntegration{
     private registerRouters(){
         this.app.use('/api/v1',this.carbonAccountingRouter.router)
         this.app.use('/api/v1/fabricRegistry',this.fabricRegistryRouter.router)
+        this.app.use('/api/v1/utilityemissionchannel',this.utilityEmissionsChannelRouter.router)
     }
 
     private async storeContracts(){
