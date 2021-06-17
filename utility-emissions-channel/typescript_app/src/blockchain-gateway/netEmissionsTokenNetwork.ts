@@ -113,7 +113,6 @@ export class NetEmissionsTokenNetworkContract{
             const output:IIssueResponse = {
                 tokenId : `${this.opts.contractAddress}:${tokenCreatedDecoded["tokenId"]}`
             }
-            this.log.debug(`token created : ${output}`)
             return output
         } catch (error) {
             throw error

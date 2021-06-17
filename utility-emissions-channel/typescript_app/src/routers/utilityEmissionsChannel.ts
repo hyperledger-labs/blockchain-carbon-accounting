@@ -97,11 +97,11 @@ export class UtilityEmissionsChannelRouter{
             emissionRecords =  await this.opts.utilityEmissionsChannel.getAllEmissionRecords(userId,orgName,{utilityId,partyId})
         } catch (error) {
             this.log.info(`${fnTag} failed to fetch allEmissionRecords : %o`,error)
-            res.status(500).json({
+            return res.status(500).json({
                 error: error
             })
         }
-
+        
         this.log.debug(`${fnTag} overlap check of data between ${fromDate} to ${thruDate}`)
         for (let emission of emissionRecords){
             const overlap:boolean = checkDateConflict(fromDate,thruDate,emission.fromDate,emission.thruDate)

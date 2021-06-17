@@ -51,9 +51,8 @@ export class UtilityEmissionsChannel{
                 ],
             })
             jsonResult = JSON.parse(result.functionOutput)
-            // TODO support event in cactus, then use here
         } catch (error) {
-            this.log.error(`${fnTag} failed to record emission : %o`,error)
+            this.log.debug(`${fnTag} failed to record emission : %o`,error)
             return {
                 info: `failed to submit transction : ${error}`,
                 utilityId: input.utilityId,
@@ -139,15 +138,93 @@ export class UtilityEmissionsChannel{
                     input.partyId
                 ]
             })
-            const jsonResult:Object[] = JSON.parse(result.functionOutput)
+            const jsonResult:any[] = JSON.parse(result.functionOutput)
+            const current_year: number = new Date().getFullYear()
             this.log.debug(`${fnTag} fabric result : %o`,jsonResult)
             const emissions:IEmissionRecord[] = []
             for (let emission of jsonResult){
-                // TODO fill this
+                const record = emission.Record
+                if (record.url.length > 0){
+                    // TODO fetch document from S3
+                }
+                
+                if (parseInt(record.fromDate.slice(0, 4)) < current_year - 1) {
+                    continue;
+                }
+                emissions.push({
+                    uuid : record.uuid,
+                    utilityId : record.utilityId,
+                    partyId : record.partyId,
+                    fromDate : record.fromDate,
+                    thruDate : record.thruDate,
+                    emissionsAmount : record.emissionsAmount,
+                    renewableEnergyUseAmount : record.renewableEnergyUseAmount,
+                    nonrenewableEnergyUseAmount : record.nonrenewableEnergyUseAmount,
+                    energyUseUom : record.energyUseUom,
+                    factorSource : record.factorSource,
+                    url : record.url,
+                    md5 : record.md5,
+                    tokenId : record.tokenId,
+                })
             }
             return emissions
         } catch (error) {
             throw error
         }
+    }
+
+    async updateEmissionsRecord(userId:string,orgName:string,input:IEmissionRecord):Promise<IEmissionRecord>{
+        const fnTag = "#updateEmissionsRecord"
+        const caller = this.getUserKey(userId,orgName)
+        this.log.debug(`${fnTag} caller: ${caller}, input : %o`,input)
+        let jsonResult:Object
+        try {
+            const result = await this.opts.fabricClient.transact({
+                signingCredential: {
+                    keychainId : this.opts.keychainId,
+                    keychainRef: caller
+                },
+                channelName: this.channelName,
+                contractName: this.chanincodeName,
+                invocationType: FabricContractInvocationType.SEND,
+                methodName: "updateEmissionsRecord",
+                params: [
+                    input.uuid,
+                    input.utilityId,
+                    input.partyId,
+                    input.fromDate,
+                    input.thruDate,
+                    `${input.emissionsAmount}`,
+                    `${input.renewableEnergyUseAmount}`,
+                    `${input.nonrenewableEnergyUseAmount}`,
+                    input.energyUseUom,
+                    input.factorSource,
+                    input.url,
+                    input.md5,
+                    input.tokenId
+                ]
+            })
+            jsonResult = JSON.parse(result.functionOutput)
+        } catch (error) {
+            throw error
+        }
+        return {
+            uuid:jsonResult["uuid"],
+            utilityId:jsonResult["utilityId"],
+            partyId:jsonResult["partyId"],
+            fromDate:jsonResult["fromDate"],
+            thruDate:jsonResult["thruDate"],
+            emissionsAmount:jsonResult["emissionsAmount"],
+            renewableEnergyUseAmount:jsonResult["renewableEnergyUseAmount"],
+            nonrenewableEnergyUseAmount:jsonResult["nonrenewableEnergyUseAmount"],
+            energyUseUom:jsonResult["energyUseUom"],
+            factorSource:jsonResult["factorSource"],
+            url:jsonResult["url"],
+            md5:jsonResult["md5"],
+            tokenId:jsonResult["tokenId"],
+        }
+    }
+    private getUserKey(userId:string,orgName:string):string{
+        return `${orgName}_${userId}`
     }
 }
