@@ -9,8 +9,8 @@
     "start": "node ./dist/app.js",
     "test": "mocha -exit -require ts-node/register -colors tests/**/*.ts",
     "prod": "yarn build && yarn start",
-    "format": "prettier-standard '**/*.ts'",
-    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
+    "lint": "tslint -c tslint.json 'src/**/*.ts' 'app.ts' 'test/**/*.test.ts'",
+    "fix_lint": "tslint --fix -c tslint.json 'src/**/*.ts' 'app.ts' 'test/**/*.test.ts' || true"
   },
   "keywords": [],
   "author": "",
@@ -47,6 +47,7 @@
     "@types/mocha": "^8.2.2",
     "mocha": "^9.0.0",
     "serverless-s3-local": "^0.6.7",
-    "ts-node": "^10.0.0"
+    "ts-node": "^10.0.0",
+    "tslint": "^6.1.3"
   }
 }
