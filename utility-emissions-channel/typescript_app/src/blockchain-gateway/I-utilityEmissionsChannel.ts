@@ -7,9 +7,9 @@ export interface IEmissionRecord{
     partyId:string //
     fromDate:string  //
     thruDate:string //
-    emissionsAmount:string //
-    renewableEnergyUseAmount:string //
-    nonrenewableEnergyUseAmount:string //
+    emissionsAmount:number //
+    renewableEnergyUseAmount:number //
+    nonrenewableEnergyUseAmount:number //
     energyUseUom:string //
     factorSource:string // 
     url:string // 

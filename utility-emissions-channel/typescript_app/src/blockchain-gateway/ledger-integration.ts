@@ -15,10 +15,7 @@ import {FabricRegistryRouter} from '../routers/fabricRegistry'
 import { FabricRegistry } from './fabricRegistry'
 import { UtilityEmissionsChannel } from './utilityEmissionsChannel'
 import {UtilityEmissionsChannelRouter} from '../routers/utilityEmissionsChannel'
-interface IContractJSON{
-    abi : Array<any>
-    networks:Map<number,{address:string}>
-}
+
 
 export default class LedgerIntegration{
     private readonly carbonAccountingRouter:CarbonAccountingRouter
@@ -124,8 +121,16 @@ export default class LedgerIntegration{
     }
 
     private registerRouters(){
-        this.app.use('/api/v1',this.carbonAccountingRouter.router)
+        // /api/v1/carbonAccounting : endpoints for interacting multiple ledgers
+        // fabric for utilityEmissionChannel chaincode 
+        // ethereum for netEmissionsToken contract
+        this.app.use('/api/v1/carbonAccounting',this.carbonAccountingRouter.router)
+
+        // /api/v1/fabricRegistry : endpoints for interacting fabric-ca
         this.app.use('/api/v1/fabricRegistry',this.fabricRegistryRouter.router)
+
+        // /api/v1/utilityemissionchannel : endpoints for interacting only utilityEmissionsChannel 
+        // chaincode installed on fabric network
         this.app.use('/api/v1/utilityemissionchannel',this.utilityEmissionsChannelRouter.router)
     }
 
