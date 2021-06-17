@@ -97,8 +97,8 @@ export default class LedgerIntegration{
         const orgs = this.ledgerConfig.utilityEmissionsChaincode.network.organizations;
         for (const orgName of Object.keys(orgs)){
             orgCAs[orgName] = {
-                ca :orgs[orgName].certificateAuthorities[0],
-                mspId: orgs[orgName].mspid
+                ca :orgs[orgName]["certificateAuthorities"][0],
+                mspId: orgs[orgName]["mspid"]
             };
         }
         const fabricRegistry = new FabricRegistry({
