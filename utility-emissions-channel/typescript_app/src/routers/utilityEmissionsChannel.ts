@@ -70,6 +70,18 @@ export class UtilityEmissionsChannelRouter{
             ],
             this.getEmissionsData.bind(this)
         )
+
+        this.router.get(
+            '/allEmissions/:userId/:orgName/:utilityId/:partyId',
+            [
+                param("userId").isString(), 
+                param("orgName").isString(),
+                param("utilityId").isString(),
+                param("partyId").isString()
+            ],
+            this.getAllEmissionData.bind(this)
+        )
+
     }
 
     private async recordEmissions(req:Request,res:Response){
@@ -158,4 +170,21 @@ export class UtilityEmissionsChannelRouter{
         }
     }
 
+    private async getAllEmissionData(req:Request,res:Response){
+        const fnTag = `${req.method.toUpperCase()} ${req.baseUrl}${req.url}`
+        this.log.debug(fnTag)
+        const userId = req.params.userId;
+        const orgName = req.params.orgName;
+        const utilityId = req.params.utilityId;
+        const partyId = req.params.partyId;
+
+        try {
+            const result = await this.opts.utilityEmissionsChannel.getAllEmissionRecords(userId,orgName,{utilityId:utilityId,partyId:partyId})
+            return res.status(200).json(result)
+        } catch (error) {
+            return res.status(409).json({
+                error : error
+            })
+        }
+    }
 }
