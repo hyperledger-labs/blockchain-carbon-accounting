@@ -1,3 +1,4 @@
+#!/bin/bash
 CHANNEL_NAME="utilityemissionchannel"
 #CC_NAME="emissionscontract"
 CC_NAME="utilityemissions"

@@ -1,46 +1,26 @@
-// SPDX-License-Identifier: Apache-2.0
-import express from "express";
-import bodyParser from "body-parser";
-import chalk from "chalk";
-import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "./swagger.json";
-import { router as emissions_router } from "./src/routers/utilityEmissionsChannel/ivokeEmissionscontract.v0";
-import { router as register_enroll_router } from "./src/routers/utilityEmissionsChannel/registerEnroll.v0.js";
-import multer from "multer";
+import {config} from 'dotenv';
+import express,{Express,json,urlencoded,RequestHandler} from 'express';
+import LedgerIntegration from './src/blockchain-gateway/ledger-integration';
+config();
 
-// require('dotenv').config();
 
-const app = express();
-const upload = multer();
+const app:Express = express();
 const PORT = process.env.PORT || 9000;
 
-// parse application/json, allow forms and uploads
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(upload.single("emissionsDoc"));
-app.use(express.static("public"));
+app.use(json() as RequestHandler);
+app.use(urlencoded({extended: true}) as RequestHandler);
 
-// Swagger Document
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+const ledgerIntegration = new LedgerIntegration(app);
 
-/**
- * HTTP CONNECTION
- */
-app.listen(PORT, function() {
-  // console.clear();
-  console.log(`++++++++++++++++ Hyperledger CA2 SIG /// Carbon Accouncting API ++++++++++++++++`);
-  console.log(`++ REST API PORT : ${chalk.cyanBright(PORT)}`);
-  console.log(`++ ACCESS SWAGGER : ${chalk.cyanBright("http://localhost:9000/api-docs/")}`);
-  console.log(`++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++`);
+ledgerIntegration.build()
+.then(()=>{
+    app.listen(PORT,()=>{
+        console.log(`++++++++++++++++ Hyperledger CA2 SIG /// Carbon Accouncting API ++++++++++++++++`);
+        console.log(`++ REST API PORT : ${PORT}`);
+        console.log(`++ ACCESS SWAGGER : http://localhost:${PORT}/api-docs/`);
+        console.log(`++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++`);
+    });
+})
+.catch((error)=>{
+    console.error('failed to build ledger Integration : %o',error);
 });
-
-// Something to test connection?? e.g. Query current block number?
-
-/**
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * R E S T  A P I - V 1.0 ---> ROUTERS
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- */
-
-app.use(register_enroll_router);
-app.use(emissions_router);
