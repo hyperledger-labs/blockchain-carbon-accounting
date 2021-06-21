@@ -31,13 +31,24 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 127.0.0.1       peer1.auditor2.carbonAccounting.com
 127.0.0.1       peer1.auditor1.carbonAccounting.com
 ```
+### Defining environment variables for a ethereum test network
+- Create a file `.env.<name_of_network>` eg : `.env.ropsten`
+- Copy content from `.env` and change values specific to that network
+- Supported network networks
+    - LEDGER_ETH_NETWORK=xdai
+    - LEDGER_ETH_NETWORK=goerli
+    - LEDGER_ETH_NETWORK=ropsten
 
 ### Starting the application
 
 - Start local test ethereum node : `cd ../../net-emissions-token-network/ && npx hardhat node --show-accounts`
-- Start the application : `npm run dev`
+- Start application with local ethereum network: `npm run dev`
+- Start application with `X` ethereum test network : `NODE_ENV=X npm run dev` , eg `NODE_ENV=ropsten npm run dev`
 
 ## Endpoints
+Postman Collection : https://www.getpostman.com/collections/dd2a27fc0ad03ce68eac
+
+In order to use endpoint after starting the server, firstly Enroll Registrar then only use other endpoints. 
 - [X] POST /api/v1/carbonAccounting/recordAuditedEmissionsToken : record audited emission tokens
 - [X] POST /api/v1/fabricRegistry/registrar : enroll registrar of a given organization
 - [ ] POST /api/v1/fabricRegistry/user : register and enroll a user from a organization
