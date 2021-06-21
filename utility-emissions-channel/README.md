@@ -115,6 +115,10 @@ $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zi
 $ unzip egrid2018_all_files.zip
 ```
 
+```bash
+$ wget https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
+```
+
 3. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
 
 ```bash
@@ -129,6 +133,7 @@ $ unzip f8612019.zip
 ```bash
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx US19
 $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ```
 
