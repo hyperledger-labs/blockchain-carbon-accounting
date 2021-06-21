@@ -133,7 +133,8 @@ $ unzip f8612019.zip
 ```bash
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx US19
+$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx NRL19
+$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx ST19
 $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ```
 
