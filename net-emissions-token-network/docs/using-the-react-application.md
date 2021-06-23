@@ -15,7 +15,7 @@ The application connects to the contract of the address specified in `net-emissi
 
 ## Installation
 
-From the `net-emissions.token-network/interface` directory, run
+From the `net-emissions-token-network/interface` directory, run
 
 ```bash
 yarn install
