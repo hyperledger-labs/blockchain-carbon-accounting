@@ -67,7 +67,7 @@ describe("Test fabric", function() {
         fromDate: "2020-04-06T10:10:09Z",
         thruDate: "2020-04-06T10:10:09Z",
         energyUseAmount: 100,
-        energyUseUom: "TONS",
+        energyUseUom: "kWh",
       })
       .end((error, response) => {
         
@@ -118,7 +118,7 @@ describe("Test fabric", function() {
           assert(entry.fromDate == "2020-04-06T10:10:09Z", "GET request returned incorrect fromDate");
           assert(entry.thruDate == "2020-04-06T10:10:09Z", "GET request returned incorrect thruDate");
           assert(entry.emissionsAmount == 0.038749439720799216, "GET request returned incorrect emissionsAmount");
-          assert(entry.emissionsUom == "MtCO2e", "GET request returned incorrect emissionsUom");
+          assert(entry.emissionsUom == "tCO2e", "GET request returned incorrect emissionsUom");
           assert(
             entry.renewableEnergyUseAmount == 40.38034651533783,
             "GET request returned incorrect renewableEnergyUseAmount"
@@ -128,7 +128,7 @@ describe("Test fabric", function() {
             "GET request returned incorrect nonrenewableEnergyUseAmount"
           );
           assert(entry.energyUseUom == "TONS", "GET request returned incorrect energyUseUom");
-          assert(entry.factorSource == "eGrid 2018 NERC_REGION WECC", "GET request returned incorrect factorSource");
+          assert(entry.factorSource == "eGrid 2018 USA STATE CA", "GET request returned incorrect factorSource");
           done();
         }
 
