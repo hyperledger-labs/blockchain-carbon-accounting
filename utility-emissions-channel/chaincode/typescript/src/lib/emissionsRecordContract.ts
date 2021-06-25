@@ -62,12 +62,20 @@ export class EmissionsRecordContract {
   }
 
   async updateEmissionsRecord(recordI:EmissionsRecordInterface):Promise<Uint8Array>{
-    if (recordI['partyId']) {
-        recordI['partyId'] = SHA256(recordI['partyId']).toString();
+    if (recordI.partyId) {
+        recordI.partyId = SHA256(recordI.partyId).toString();
     }
     const record = new EmissionsRecord(recordI);
     await this.emissionsState.updateEmissionsRecord(record,recordI.uuid);
     return record.toBuffer();
+  }
+  async updateEmissionsMintedToken(tokenId:string,uuids:string[]):Promise<Uint8Array>{
+    for (const uuid of uuids){
+      const record = await this.emissionsState.getEmissionsRecord(uuid);
+      record.record.tokenId = tokenId;
+      await this.emissionsState.updateEmissionsRecord(record,uuid);
+    }
+    return Buffer.from('SUCCESS');
   }
   async getEmissionsData(uuid:string):Promise<Uint8Array>{
     const record = await this.emissionsState.getEmissionsRecord(uuid);

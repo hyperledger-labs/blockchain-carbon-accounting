@@ -184,18 +184,15 @@ export class CarbonAccountingRouter{
         }
         // connect to fabric , request type : send
         // update all emissionRecords with minted tokenId
-        for (const emissionRecords of fetchedEmissionsRecords){
-            try {
-                emissionRecords.partyId = partyId;
-                emissionRecords.tokenId = tokenId;
-                await this.opt.utilityEmissionChannel.updateEmissionsRecord(userId,orgName,emissionRecords);
-            } catch (error) {
-                this.log.debug(`${fnTag} failed to update emission record %o`,error);
-                return res.status(500).json({
-                    error
-                });
-            }
+        try {
+            await this.opt.utilityEmissionChannel.updateEmissionsMintedToken(userId,orgName,{tokenId,uuids:manifestIds});
+        } catch (error) {
+            this.log.debug(`${fnTag} failed to update emission record %o`,error);
+            return res.status(500).json({
+                error
+            });
         }
+
         return res.status(201).json({
             info: 'AUDITED EMISSIONS TOKEN RECORDED',
             tokenId,

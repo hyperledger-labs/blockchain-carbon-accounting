@@ -71,7 +71,7 @@ export function getLedgerConfigs():ILedgerIntegrationConfig{
     }else if (ethNetwork === 'goerli'){
         ethNetworkID = 5;
     } else if (ethNetwork === 'ropsten'){
-        ethNetworkID = 3
+        ethNetworkID = 3;
     }else{
         throw new Error('LEDGER_ETH_NETWORK : xdai || goerli || ropsten ethereum network are supported');
     }

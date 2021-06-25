@@ -44,3 +44,8 @@ export interface IRecordEmissionsOutput{
     url?:string;
     md5?:string;
 }
+
+export interface IUpdateEmissionsMintedTokenRequest{
+    tokenId:string;
+    uuids:string[];
+}

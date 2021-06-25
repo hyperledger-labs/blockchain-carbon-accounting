@@ -2,16 +2,16 @@ import {config} from 'dotenv';
 import express,{Express,json,urlencoded,RequestHandler} from 'express';
 import LedgerIntegration from './src/blockchain-gateway/ledger-integration';
 
-const env = process.env.NODE_ENV
+const env = process.env.NODE_ENV;
 if (env){
-    const cfgOut = config({path:`.env.${env}`})
+    const cfgOut = config({path:`.env.${env}`});
     if (cfgOut.error){
-        console.error(cfgOut.error)
-        process.exit(1)
+        console.error(cfgOut.error);
+        process.exit(1);
     }
-    console.log(`using ${env} ethereum network`)
+    console.log(`using ${env} ethereum network`);
 }else{
-    config()
+    config();
 }
 
 
