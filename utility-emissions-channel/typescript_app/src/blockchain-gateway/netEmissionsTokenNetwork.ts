@@ -98,7 +98,7 @@ export class NetEmissionsTokenNetworkContract{
             }
             this.log.debug(`waiting for conformation from the network`);
             // TODO : fix this in cactus
-            const txHash = result["out"].transactionReceipt.transactionHash;
+            const txHash = result['out'].transactionReceipt.transactionHash;
             const txReceipt = await this.opts.ethClient.pollForTxReceipt(txHash,{
                 receiptType: this.receiptType,
                 timeoutMs: this.timeout,
