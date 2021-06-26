@@ -1,7 +1,7 @@
 // utilityEmissionsChannel.ts : interact with fabric to invoke `utilityEmissionsChannel` chaincode
 import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common';
 import {FabricContractInvocationType, PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric';
-import {IEmissionRecord, IRecordEmissionsInput,IRecordEmissionsOutput} from './I-utilityEmissionsChannel';
+import {IEmissionRecord, IRecordEmissionsInput,IRecordEmissionsOutput, IUpdateEmissionsMintedTokenRequest} from './I-utilityEmissionsChannel';
 
 export interface IUtilityEmissionsChannelOptions{
     logLevel:LogLevelDesc;
@@ -223,6 +223,30 @@ export class UtilityEmissionsChannel{
             md5:jsonResult.md5,
             tokenId:jsonResult.tokenId,
         };
+    }
+    async updateEmissionsMintedToken(userId:string,orgName:string,input:IUpdateEmissionsMintedTokenRequest):Promise<void>{
+        const fnTag = '#updateEmissionsMintedToken';
+        const caller = this.getUserKey(userId,orgName);
+        this.log.debug(`${fnTag} caller : ${caller} input : %o`,input);
+        try {
+            await this.opts.fabricClient.transact({
+                signingCredential: {
+                    keychainId : this.opts.keychainId,
+                    keychainRef: caller,
+                },
+                channelName: this.channelName,
+                contractName: this.chanincodeName,
+                invocationType: FabricContractInvocationType.SEND,
+                methodName: 'updateEmissionsMintedToken',
+                params: [
+                    input.tokenId,
+                    input.partyId,
+                    ...input.uuids
+                ]
+            });
+        } catch (error) {
+            throw error;
+        }
     }
     private getUserKey(userId:string,orgName:string):string{
         return `${orgName}_${userId}`;

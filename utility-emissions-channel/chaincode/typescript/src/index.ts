@@ -29,6 +29,7 @@ class EmissionsChaincode {
   } = {
     importUtilityIdentifier: this.importUtilityIdentifier,
     updateUtilityIdentifier: this.updateUtilityIdentifier,
+    updateEmissionsMintedToken:this.updateEmissionsMintedToken,
     getUtilityIdentifier: this.getUtilityIdentifier,
     getAllUtilityIdentifiers: this.getAllUtilityIdentifiers,
     importUtilityFactor : this.importUtilityFactor,
@@ -96,7 +97,7 @@ class EmissionsChaincode {
 
   async updateEmissionsRecord(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
     const fields = ['uuid', 'utilityId', 'partyId', 'fromDate','thruDate','emissionsAmount','renewableEnergyUseAmount','nonrenewableEnergyUseAmount','energyUseUom','factorSource','url','md5','tokenId'];
-    const numberFields = ['emissionsAmount','renewableEnergyUseAmount','nonrenewableEnergyUseAmount']
+    const numberFields = ['emissionsAmount','renewableEnergyUseAmount','nonrenewableEnergyUseAmount'];
     const recordI:EmissionsRecordInterface = {};
     const fieldsLen = Math.min(args.length, fields.length);
     for (let i=0; i<fieldsLen; i++) {
@@ -115,6 +116,29 @@ class EmissionsChaincode {
     }
     return Shim.success(byte);
   }
+  /**
+   * @description will update emissions record(s) with minted token
+   * @param args client input
+   *      - args[0] : tokenId:string
+   *      - args[1...] : uuids:Array<string>
+   */
+   async updateEmissionsMintedToken(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
+    logger.info(`updateEmissionsMintedToken method will args : ${args}`);
+    if (args.length <3){
+      logger.error(`${ErrInvalidArgument} : updateEmissionsMintedToken requires 3 or more args, but provided ${args.length}`);
+      return Shim.error(stringToBytes(`${ErrInvalidArgument} : updateEmissionsMintedToken requires 3 or more args, but provided ${args.length}`));
+    }
+    const tokenId = args[0];
+    const partyId = args[1];
+    const uuids = args.slice(2);
+    try {
+        await (new EmissionsRecordContract(stub)).updateEmissionsMintedToken(tokenId,partyId,uuids);
+    } catch (error) {
+        logger.error(error);
+        return Shim.error(stringToBytes((error as Error).message));
+    }
+    return Shim.success(null);
+}
   async getEmissionsData(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
     logger.info(`getEmissionsData method called with args : ${args}`);
     if (args.length !== 1) {
