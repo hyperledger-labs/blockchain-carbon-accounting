@@ -80,7 +80,7 @@ describe("Test fabric", function() {
         
         else if(response.body.info == "EMISSION RECORDED TO LEDGER")
         {
-        assert(response.body.info == "EMISSION RECORDED TO LEDGER", "Failed to record emission.");
+        assert(response.body.info == "EMISSION RECORDED TO LEDGER", "Emission is successfully recorded.");
         done();
         }
         
@@ -96,7 +96,37 @@ describe("Test fabric", function() {
         
       });
   });
+ 
+ 
+  it("should display emission records for the correct year", function(done) {
+    chai
+       .request(host)
+       .get(getAllEmissionsPath)
+       .set("content-type", "application/json")
+       .end((error, response) => {
+           
+        if(response.body == [])
+        {
+          assert(response.body == [], "No emissions to display");
+          done();
+        }
+        
+        else if(response.body[0])
+        {
+          let entry = response.body[0];
+          let year = entry.factorSource.includes("2018");
+          assert(year == true, "Emissions are recorded for correct year");
+          done();
+       }
 
+        else(error) 
+        {
+          done(error);
+        } 
+      });
+  });
+
+  
   it("should get all emissions and verify that they are correctly upserted to the ledger", function(done) {
     chai
       .request(host)
