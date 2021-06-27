@@ -1,0 +1,85 @@
+@startuml
+
+skinparam BoxPadding 20
+
+entity "Client\nApplication" as client
+box "Fabric\nChannel"
+    entity "Utility\nEmission\nChaincode" as utilityCC
+    entity "Request\nManager\nChaincode" as requestCC
+end box
+
+box "Ethereum\nNetwork" #LightBlue
+    entity "Net Emission\nToken Contract" as tokenCC
+end box
+
+group Stage [VALID_EMISSIONS_RECORDS]
+   client->utilityCC: getValidEmissions(uuids)
+   activate client #Green
+   activate utilityCC
+   loop for each Records
+        utilityCC->utilityCC: if(tokenId == null\n&& notLocked)
+   end
+   utilityCC->requestCC: StartStage
+   activate requestCC
+   requestCC->utilityCC: OK
+   deactivate requestCC
+   utilityCC->requestCC: FinishStage
+   activate requestCC
+   requestCC->utilityCC:OK
+   deactivate requestCC
+   utilityCC->client: uuid[]
+   deactivate utilityCC
+   deactivate client #Green
+end
+
+group Stage [MINT_EMISSIONS_TOKE]
+
+    client->requestCC: GetRequest
+    activate client #Green
+    activate requestCC
+    requestCC->client: Request
+    deactivate requestCC
+    client->requestCC: StartStage()
+    activate requestCC
+    requestCC->client: OK
+    deactivate requestCC
+    client->utilityCC: getEmissionsRecords(validUUIDs)
+    activate utilityCC
+    utilityCC->client: EmissionsRecords[]
+    deactivate utilityCC
+    client->client: prepare token\nmetadata
+    client->tokenCC: issue
+    activate tokenCC
+    tokenCC->client: TokenCreated event\nwith NodeAck
+    deactivate tokenCC
+    client->requestCC: FinishStage
+    activate requestCC
+    requestCC->client: OK
+    deactivate requestCC
+    deactivate client
+end
+
+
+group Stage [UPDATE_EMISSIONS_RECORDS]
+
+    client->requestCC: GetRequest
+    activate client #Green
+    activate requestCC
+    requestCC->client: Request
+    deactivate requestCC
+    client->requestCC: StartStage()
+    activate requestCC
+    requestCC->client: OK
+    deactivate requestCC
+    client->utilityCC: updateEmissionsMintedToken
+    activate utilityCC
+    utilityCC->client:OK
+    deactivate utilityCC
+    utilityCC->requestCC: FinishStage?isLast=true
+    activate requestCC
+    requestCC->client: OK
+    deactivate requestCC
+    deactivate client
+end
+
+@enduml 

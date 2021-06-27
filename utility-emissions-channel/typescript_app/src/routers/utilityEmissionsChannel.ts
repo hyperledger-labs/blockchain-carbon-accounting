@@ -37,7 +37,7 @@ export class UtilityEmissionsChannelRouter{
                 body('orgName').isString(),
                 body('utilityId').isString(),
                 body('partyId').isString(),
-                body('fromDate').custom((value, { req }) => {
+                body('fromDate').custom((value, {  }) => {
                   const matches = value.match(
                     /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
                   );
@@ -48,7 +48,7 @@ export class UtilityEmissionsChannelRouter{
                   // Indicates the success of this synchronous custom validator
                   return true;
                 }),
-                body('thruDate').custom((value, { req }) => {
+                body('thruDate').custom((value, {  }) => {
                   const matches = value.match(
                     /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
                   );
@@ -90,7 +90,7 @@ export class UtilityEmissionsChannelRouter{
             [
                 param('userId').isString(),
                 param('orgName').isString(),
-                param('fromDate').custom((value, { req }) => {
+                param('fromDate').custom((value, {  }) => {
                   const matches = value.match(
                     /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
                   );
@@ -101,7 +101,7 @@ export class UtilityEmissionsChannelRouter{
                   // Indicates the success of this synchronous custom validator
                   return true;
                 }),
-                param('thruDate').custom((value, { req }) => {
+                param('thruDate').custom((value, {  }) => {
                   const matches = value.match(
                     /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
                   );

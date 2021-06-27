@@ -8,6 +8,7 @@ import {
   UtilityLookupItemState,
   UtilityLookupItem,
 } from './utilityLookupItem';
+import { IRequestManagerOutput } from './requestManager';
 
 // EmissionsRecordContract : core bushiness logic of emissions record chaincode
 export class EmissionsRecordContract {
@@ -76,11 +77,36 @@ export class EmissionsRecordContract {
       record.record.partyId = SHA256(partyId).toString();
       await this.emissionsState.updateEmissionsRecord(record,uuid);
     }
-    return Buffer.from('SUCCESS');
+    const ccOutput:IRequestManagerOutput = {
+      keys: uuids
+    };
+    return Buffer.from(JSON.stringify(ccOutput));
   }
   async getEmissionsData(uuid:string):Promise<Uint8Array>{
     const record = await this.emissionsState.getEmissionsRecord(uuid);
     return record.toBuffer();
+  }
+  async getValidEmissions(uuids:string[]):Promise<Uint8Array>{
+    const validEmissions:EmissionsRecordInterface[] = [];
+    for (const uuid of uuids){
+      const state = await this.emissionsState.getEmissionsRecord(uuid);
+      if (state.record.tokenId != null){
+        continue;
+      }
+      validEmissions.push(state.record);
+    }
+    const validUUIDs:string[] = validEmissions.map((e)=>{
+      return e.uuid;
+    });
+    console.log(`valid emissions uuids= %o`,validUUIDs);
+    const ccOutput:IRequestManagerOutput = {
+      keys: validUUIDs,
+      outputToClient : Buffer.from(JSON.stringify(validEmissions)).toString('base64'),
+      outputToStore: {
+        validUUIDs :Buffer.from(JSON.stringify(validUUIDs)).toString('base64'),
+      },
+    };
+    return Buffer.from(JSON.stringify(ccOutput));
   }
   async getAllEmissionsData(utilityId:string, partyId:string):Promise<Uint8Array>{
     const partyIdsha256 = SHA256(partyId).toString();

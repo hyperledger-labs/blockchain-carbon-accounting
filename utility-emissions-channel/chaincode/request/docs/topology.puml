@@ -1,0 +1,17 @@
+@startuml
+
+
+node "Fabric Node" {
+    component "Fabric\nChannel"{
+        artifact "Request\nManager\nChaincode" as requestCC
+        artifact "Fabric Data\nChaincode-1" as cc1
+        artifact "Fabric Data\nChaincode-2" as cc2
+        artifact "Fabric Data\nChaincode-3" as cc3
+        requestCC -->> cc1: wait()/signal() \nto lock/unlock\n fabric data
+        requestCC -->> cc2: wait()/signal() \nto lock/unlock\n fabric data
+        requestCC -->> cc3: wait()/signal() \nto lock/unlock\n fabric data
+    }
+}
+
+
+@enduml

@@ -7,6 +7,7 @@ import {
 import {  EmissionsRecordInterface } from './lib/emissions';
 
 import { EmissionsRecordContract } from './lib/emissionsRecordContract';
+import { IRequestManagerInput } from './lib/requestManager';
 import { UtilityEmissionsFactorInterface } from './lib/utilityEmissionsFactor';
 import {
   DivisionsInterface,
@@ -38,6 +39,7 @@ class EmissionsChaincode {
     recordEmissions: this.recordEmissions,
     updateEmissionsRecord: this.updateEmissionsRecord,
     getEmissionsData : this.getEmissionsData,
+    getValidEmissions : this.getValidEmissions,
     getAllEmissionsData:this.getAllEmissionsData,
     getAllEmissionsDataByDateRange: this.getAllEmissionsDataByDateRange,
     getAllEmissionsDataByDateRangeAndParty:this.getAllEmissionsDataByDateRangeAndParty
@@ -124,20 +126,42 @@ class EmissionsChaincode {
    */
    async updateEmissionsMintedToken(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
     logger.info(`updateEmissionsMintedToken method will args : ${args}`);
-    if (args.length <3){
-      logger.error(`${ErrInvalidArgument} : updateEmissionsMintedToken requires 3 or more args, but provided ${args.length}`);
-      return Shim.error(stringToBytes(`${ErrInvalidArgument} : updateEmissionsMintedToken requires 3 or more args, but provided ${args.length}`));
+    if (args.length !=1){
+      logger.error(`${ErrInvalidArgument} : updateEmissionsMintedToken requires one args, but provided ${args.length}`);
+      return Shim.error(stringToBytes(`${ErrInvalidArgument} : updateEmissionsMintedToken requires one args, but provided ${args.length}`));
     }
-    const tokenId = args[0];
-    const partyId = args[1];
-    const uuids = args.slice(2);
+    let input:IRequestManagerInput;
     try {
-        await (new EmissionsRecordContract(stub)).updateEmissionsMintedToken(tokenId,partyId,uuids);
+        input = JSON.parse(args[0]);
+    } catch (error) {
+        logger.info(`failed to parse json input : %o`,(error as Error).message);
+        return Shim.error(stringToBytes('failed to parse json input'));
+    }
+    let params:any;
+    try {
+      params = JSON.parse(Buffer.from(input.params,'base64').toString('utf-8'));
+    } catch (error) {
+        logger.info(`failed to parse base64 input : %o`,(error as Error).message);
+        return Shim.error(stringToBytes('failed to parse base64 input'));
+    }
+    if (!params.tokenId){
+        logger.info(`provided empty tokenId`,);
+        return Shim.error(stringToBytes('require non empty tokenId'));
+    }
+    if (!params.partyId){
+        logger.info(`provided empty partyId`,);
+        return Shim.error(stringToBytes('require non empty partyId'));
+    }
+    const tokenId = params.tokenId;
+    const partyId = params.partyId;
+    const uuids = input.keys;
+    try {
+        const byte = await (new EmissionsRecordContract(stub)).updateEmissionsMintedToken(tokenId,partyId,uuids);
+        return Shim.success(byte);
     } catch (error) {
         logger.error(error);
         return Shim.error(stringToBytes((error as Error).message));
     }
-    return Shim.success(null);
 }
   async getEmissionsData(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
     logger.info(`getEmissionsData method called with args : ${args}`);
@@ -154,6 +178,29 @@ class EmissionsChaincode {
     let byte:Uint8Array;
     try {
       byte = await (new EmissionsRecordContract(stub)).getEmissionsData(args[0]);
+    } catch (error) {
+      logger.error(error);
+      return Shim.error(stringToBytes((error as Error).message));
+    }
+    return Shim.success(byte);
+  }
+
+  async getValidEmissions(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
+    logger.info(`getValidEmissions method called with args = ${args}`);
+    if (args.length != 1){
+      logger.info(`${ErrInvalidNumberOfArgument} getValidEmissions require 1 argument, but provided ${args.length}`);
+      return Shim.error(stringToBytes(`${ErrInvalidNumberOfArgument} getValidEmissions require 1 argument, but provided ${args.length}`));
+    }
+    let input:IRequestManagerInput;
+    try {
+      input = JSON.parse(args[0]);
+    } catch (error) {
+        logger.info(`failed to parse json input : %o`,(error as Error).message);
+        return Shim.error(stringToBytes('failed to parse json input'));
+    }
+    let byte:Uint8Array;
+    try {
+        byte = await (new EmissionsRecordContract(stub)).getValidEmissions(input.keys);
     } catch (error) {
       logger.error(error);
       return Shim.error(stringToBytes((error as Error).message));

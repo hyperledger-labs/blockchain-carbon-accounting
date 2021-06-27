@@ -10,9 +10,15 @@ networks:
 services:
   chaincode-utilityemissions2:
     container_name: chaincode-utilityemissions2.carbonAccounting.com
-    image: krybalko/utilityemissions-chaincode:0.0.4
+    image: zzocker20/utilityemissions-chaincode:0.0.5
     environment:
-      - CHAINCODE_CCID=utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
+      - CHAINCODE_CCID=utilityemissions:8390dc8d820dae57a94b3ca010ce6da463020fdee4607971fcc758f2ddcd934b
       - CHAINCODE_ADDRESS=0.0.0.0:9999
     ports:
       - "9999:9999"
+  chaincode-requestmanager2:
+    container_name: chaincode-requestmanager2.carbonAccounting.com
+    image: zzocker20/requestmanager-chaincode:0.0.1
+    environment:
+      - CHAINCODE_ID=requestmanager:57fb9369e4112a96b775ebf859e59865b690317a99c8ca87bd48963df99c3527
+      - CHAINCODE_ADDRESS=0.0.0.0:9989

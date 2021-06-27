@@ -1,0 +1,12 @@
+issues:
+  exclude-rules:
+    - linters:
+        - staticcheck
+      # ignore deprecated message of shimtest package
+      text: "SA1019:"
+linters:
+  disable-all: true
+  enable:
+    - megacheck
+    - govet
+    - gofmt

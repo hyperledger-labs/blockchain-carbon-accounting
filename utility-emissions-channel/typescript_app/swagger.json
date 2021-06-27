@@ -17,6 +17,10 @@
     {
       "name": "registerEnroll",
       "description": "Functions to register an org admin as well as multiple users"
+    },
+    {
+      "name": "Carbon Accounting V2",
+      "description": "Functions related to the business logic which require interacting with multiple blockchain"
     }
   ],
   "schemes": ["http"],
@@ -314,6 +318,171 @@
           }
         }
       }
+    },
+    "/requestmanager/recordAuditedEmissionsToken": {
+      "post": {
+        "servers": [
+          {
+            "url": "http://localhost:9000/api/v2/utilityemissionchannel"
+          }
+        ],
+        "tags": ["Carbon Accounting V2"],
+        "summary": "asynchronous endpoint for issuing an audited emission token to the net-emissions-token-network from emissions records on the ledger",
+        "description": "asynchronous endpoint for issuing an audited emission token to the net-emissions-token-network from emissions records on the ledger",
+        "operationId": "recordAuditedEmissionsTokenV2",
+        "consumes": ["application/json"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/recordAuditedEmissionsTokenV2"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/requestmanager/request/{userId}/{orgName}/{requestId}": {
+      "get": {
+        "servers": [
+          {
+            "url": "http://localhost:9000/api/v2/utilityemissionchannel"
+          }
+        ],
+        "tags": ["Carbon Accounting V2"],
+        "summary": "Get Request data",
+        "description": "Get Request with given requestId",
+        "operationId": "getRequest",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "ID of User",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "orgName",
+            "in": "path",
+            "description": "Org that registered user",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "description": "requestId of request",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "$ref": "#/definitions/Request"
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/requestmanager/request/state/{requestId}": {
+      "get": {
+        "servers": [
+          {
+            "url": "http://localhost:9000/api/v2/utilityemissionchannel"
+          }
+        ],
+        "tags": ["Carbon Accounting V2"],
+        "summary": "Get State of a Request",
+        "description": "Get state of a Request with given requestId",
+        "operationId": "getRequestState",
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "description": "requestId of request",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "type": "string",
+                  "required": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/requestmanager/request/newId": {
+      "get": {
+        "servers": [
+          {
+            "url": "http://localhost:9000/api/v2/utilityemissionchannel"
+          }
+        ],
+        "tags": ["Carbon Accounting V2"],
+        "summary": "Returns a random requestId for executing a new request",
+        "description": "Returns a random requestId for executing a new request",
+        "operationId": "getRequestId",
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "state": {
+                  "requestId": "string",
+                  "required": true
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -491,6 +660,72 @@
         },
         "affiliation": {
           "type": "string",
+          "required": true
+        }
+      }
+    },
+    "recordAuditedEmissionsTokenV2": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "required": true
+        },
+        "orgName": {
+          "type": "string",
+          "required": true
+        },
+        "partyId": {
+          "type": "string",
+          "required": true
+        },
+        "addressToIssue": {
+          "type": "string",
+          "required": true
+        },
+        "emissionsRecordsToAudit": {
+          "type": "string",
+          "required": true
+        },
+        "requestId": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    "Request": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "state": {
+          "type": "string",
+          "required": true
+        },
+        "currentStageName": {
+          "type": "string",
+          "required": true
+        },
+        "currentStageState": {
+          "type": "string",
+          "required": true
+        },
+        "callerType": {
+          "type": "string",
+          "required": true
+        },
+        "callerId": {
+          "type": "string",
+          "required": true
+        },
+        "createdAt": {
+          "type": "number",
+          "required": true
+        },
+        "stageData": {
+          "type": "object",
           "required": true
         }
       }

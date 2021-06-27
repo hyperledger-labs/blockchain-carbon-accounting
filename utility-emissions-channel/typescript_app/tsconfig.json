@@ -8,6 +8,8 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "noUnusedLocals": true,      
+    "noUnusedParameters": true,   
     "outDir": "./dist"
   },
   "include": ["app.ts", "./src/**/*.ts"],
