@@ -1,0 +1,22 @@
+name: Github CI/CD
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ main ]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+      - uses: actions/checkout@v2
+      - name: Set up node 
+        uses: actions/setup-node@v1
+        
+      - name: Test for utility-emissions-channel
+        run: cd ./utility-emissions-channel/typescript_app
+      - name: Run manualTests.sh file to start server
+        run: sh ./manualTests.sh
+      - name: Run tests
+        run: mocha ./tests --timeout 10000
