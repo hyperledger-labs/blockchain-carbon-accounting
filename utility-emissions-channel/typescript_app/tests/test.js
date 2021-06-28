@@ -71,14 +71,8 @@ describe("Test fabric", function() {
       })
       .end((error, response) => {
         
-        let res = JSON.stringify(response.body.info.includes("Failed to submit transaction"));
-        if(res)
-        {
-        assert(response.status == 409, "Could not reach the gateway network");
-        done();
-        }
-        
-        else if(response.body.info == "EMISSION RECORDED TO LEDGER")
+     
+        if(response.body.info == "UTILITY EMISSIONS DATA")
         {
         assert(response.body.info == "EMISSION RECORDED TO LEDGER", "Emission is successfully recorded.");
         done();
