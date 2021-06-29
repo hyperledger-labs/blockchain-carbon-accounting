@@ -26,11 +26,9 @@ export class FabricRegistryRouter{
 
     private registerHandlers(){
         this.router.post(
-            '/registrar',
+            '/registerEnroll/admin',
             [
                 body('orgName').isString(),
-                body('secret').isString(),
-                body('username').isString()
             ],
             this.enrollRegistrar.bind(this)
         );
@@ -58,11 +56,9 @@ export class FabricRegistryRouter{
         }
         try {
             const result = await this.opts.fabricRegistry.enrollRegistrar({
-                orgName: req.body.orgName,
-                username: req.body.username,
-                secret: req.body.secret
+                orgName: req.body.orgName
             });
-            res.status(200).json(result);
+            res.status(201).json(result);
         } catch (error) {
             this.log.debug(`${fnTag} failed to enroll Registrar : %o`,error);
             res.status(500).json({

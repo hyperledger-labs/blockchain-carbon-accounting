@@ -6,7 +6,7 @@ import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common';
 import {Router,Request,Response} from 'express';
 import {NetEmissionsTokenNetworkContract} from '../blockchain-gateway/netEmissionsTokenNetwork';
 import {UtilityEmissionsChannel} from '../blockchain-gateway/utilityEmissionsChannel';
-import {body, validationResult} from 'express-validator';
+import { param, validationResult} from 'express-validator';
 import { IEmissionRecord } from '../blockchain-gateway/I-utilityEmissionsChannel';
 import { toTimestamp } from '../blockchain-gateway/utils/dateUtils';
 
@@ -34,14 +34,14 @@ export class CarbonAccountingRouter{
 
     private registerHandlers(){
         this.router.post(
-            '/recordAuditedEmissionsToken',
+            '/recordAuditedEmissionsToken/:userId/:orgName/:partyId/:addressToIssue/:emissionsRecordsToAudit/:automaticRetireDate',
             [
-                body('userId').isString(),
-                body('orgName').isString(),
-                body('partyId').isString(),
-                body('addressToIssue').isString(),
-                body('emissionsRecordsToAudit').isString(),
-                body('automaticRetireDate').custom((value, { req }) => {
+                param('userId').isString(),
+                param('orgName').isString(),
+                param('partyId').isString(),
+                param('addressToIssue').isString(),
+                param('emissionsRecordsToAudit').isString(),
+                param('automaticRetireDate').custom((value, { req }) => {
                     const matches = value.match(
                       /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
                     );
@@ -67,11 +67,11 @@ export class CarbonAccountingRouter{
                 errors : errors.array()
             });
         }
-        const userId = req.body.userId;
-        const orgName = req.body.orgName;
-        const partyId = req.body.partyId;
-        const automaticRetireDate = req.body.automaticRetireDate;
-        const emissionsRecordsToAudit = req.body.emissionsRecordsToAudit.toString().split(',');
+        const userId = req.params.userId;
+        const orgName = req.params.orgName;
+        const partyId = req.params.partyId;
+        const automaticRetireDate = req.params.automaticRetireDate;
+        const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.toString().split(',');
         // TODO : use fabric cactus connector to call utility emission chaincode
         this.log.debug(`${fnTag} fetching emissionRecord uuids=%o`,emissionsRecordsToAudit);
         const metadata:any = {};
@@ -157,7 +157,7 @@ export class CarbonAccountingRouter{
         // const URL =
         const manifest = 'URL: https://utilityemissions.opentaps.net/api/v1/utilityemissionchannel, UUID: '+manifestIds.join(', ');
         this.log.debug(`${fnTag} quantity ${quantity}`);
-        const addressToIssue = req.body.addressToIssue;
+        const addressToIssue = req.params.addressToIssue;
         this.log.debug(`${fnTag} minting emission token`);
         // connect to ethereum , request type : send
         // mint emission token on ethereum

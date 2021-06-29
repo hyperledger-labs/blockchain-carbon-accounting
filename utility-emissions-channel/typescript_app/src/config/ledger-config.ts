@@ -45,6 +45,10 @@ interface IFabricChaincodeConfig{
     network:ConnectionProfile;
     channelName:string;
     chaincodeName:string;
+
+    // admin user and password
+    adminUsername:string;
+    adminPassword:string;
 }
 
 export function getLedgerConfigs():ILedgerIntegrationConfig{
@@ -174,6 +178,8 @@ export function readUtilityEmissionChaincodeCfg(cfgPath:string):IFabricChaincode
     return {
         chaincodeName: configJSON.chaincodeName,
         channelName: configJSON.channelName,
-        network: ccp
+        network: ccp,
+        adminUsername: process.env.ADMIN_USER_ID || 'admin',
+        adminPassword: process.env.ADMIN_USER_PASSWD || 'adminpw'
     };
 }
