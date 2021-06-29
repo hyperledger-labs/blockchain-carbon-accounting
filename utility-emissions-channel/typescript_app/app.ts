@@ -1,6 +1,9 @@
 import {config} from 'dotenv';
 import express,{Express,json,urlencoded,RequestHandler} from 'express';
 import LedgerIntegration from './src/blockchain-gateway/ledger-integration';
+import {serve,setup} from 'swagger-ui-express';
+import swaggerDocs from './swagger.json';
+import multer from 'multer';
 
 const env = process.env.NODE_ENV;
 if (env){
@@ -15,14 +18,18 @@ if (env){
 }
 
 
+
 const app:Express = express();
+const upload = multer();
 const PORT = process.env.PORT || 9000;
 
 app.use(json() as RequestHandler);
-app.use(urlencoded({extended: true}) as RequestHandler);
+app.use(urlencoded({extended: true}));
+app.use(upload.single('emissionsDoc'));
 
 const ledgerIntegration = new LedgerIntegration(app);
-
+// swagger Document
+app.use('/api-docs',serve,setup(swaggerDocs));
 ledgerIntegration.build()
 .then(()=>{
     app.listen(PORT,()=>{

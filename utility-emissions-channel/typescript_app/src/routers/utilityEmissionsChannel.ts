@@ -28,7 +28,7 @@ export class UtilityEmissionsChannelRouter{
 
     private registerHandlers(){
         this.router.post(
-            '/emissions',
+            '/recordEmissions',
             [
                 body('userId').isString(),
                 body('orgName').isString(),
@@ -62,7 +62,7 @@ export class UtilityEmissionsChannelRouter{
             this.recordEmissions.bind(this)
         );
         this.router.get(
-            '/emissions/:userId/:orgName/:uuid',
+            '/getEmissionsData/:userId/:orgName/:uuid',
             [
                 param('userId').isString(),
                 param('orgName').isString(),
@@ -72,7 +72,7 @@ export class UtilityEmissionsChannelRouter{
         );
 
         this.router.get(
-            '/allEmissions/:userId/:orgName/:utilityId/:partyId',
+            '/getAllEmissionsData/:userId/:orgName/:utilityId/:partyId',
             [
                 param('userId').isString(),
                 param('orgName').isString(),

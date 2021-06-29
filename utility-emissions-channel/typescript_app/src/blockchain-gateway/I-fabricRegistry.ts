@@ -3,8 +3,6 @@
 
 export interface IEnrollRegistrarRequest{
     orgName:string;
-    username:string;
-    secret:string;
 }
 
 export interface IEnrollRegistrarResponse{

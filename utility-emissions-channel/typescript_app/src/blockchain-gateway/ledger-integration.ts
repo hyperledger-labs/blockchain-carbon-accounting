@@ -57,7 +57,7 @@ export default class LedgerIntegration{
             sshConfig: {},
             discoveryOptions: {
                 enabled: true,
-                asLocalhost: true
+                asLocalhost: false
             }
         });
 
@@ -105,7 +105,9 @@ export default class LedgerIntegration{
             logLevel: this.ledgerConfig.logLevel,
             fabricClient,
             orgCAs,
-            keychain: this.keychainPlugin
+            keychain: this.keychainPlugin,
+            adminUsername: this.ledgerConfig.utilityEmissionsChaincode.adminUsername,
+            adminPassword: this.ledgerConfig.utilityEmissionsChaincode.adminPassword
         });
 
         this.fabricRegistryRouter = new FabricRegistryRouter({
@@ -124,14 +126,14 @@ export default class LedgerIntegration{
         // /api/v1/carbonAccounting : endpoints for interacting multiple ledgers
         // fabric for utilityEmissionChannel chaincode
         // ethereum for netEmissionsToken contract
-        this.app.use('/api/v1/carbonAccounting',this.carbonAccountingRouter.router);
+        this.app.use('/api/v1/utilityemissionchannel/emissionscontract',this.carbonAccountingRouter.router);
 
         // /api/v1/fabricRegistry : endpoints for interacting fabric-ca
-        this.app.use('/api/v1/fabricRegistry',this.fabricRegistryRouter.router);
+        this.app.use('/api/v1/utilityemissionchannel',this.fabricRegistryRouter.router);
 
         // /api/v1/utilityemissionchannel : endpoints for interacting only utilityEmissionsChannel
         // chaincode installed on fabric network
-        this.app.use('/api/v1/utilityemissionchannel',this.utilityEmissionsChannelRouter.router);
+        this.app.use('/api/v1/utilityemissionchannel/emissionscontract',this.utilityEmissionsChannelRouter.router);
     }
 
     private async storeContracts(){

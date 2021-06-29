@@ -13,6 +13,8 @@ export interface IFabricRegistryOptions{
         ca:string
     }};
     keychain:PluginKeychainMemory;
+    adminUsername:string;
+    adminPassword:string;
 }
 
 interface IX509Cert{
@@ -45,8 +47,8 @@ export class FabricRegistry{
             this.log.debug(`${fnTag} enroll ${req.orgName}'s registrar with ${refCA.ca}`);
             const ca = await this.opts.fabricClient.createCaClient(refCA.ca);
             const result = await ca.enroll({
-                enrollmentID: req.username,
-                enrollmentSecret: req.secret
+                enrollmentID: this.opts.adminUsername,
+                enrollmentSecret: this.opts.adminPassword
             });
             const cert:IX509Cert = {
                 type: FabricRegistry.X509Type,
@@ -55,7 +57,7 @@ export class FabricRegistry{
                 privateKey: result.key.toBytes()
             };
             this.log.debug(`${fnTag} storing certificate inside keychain`);
-            const key = `${req.orgName}_${req.username}`;
+            const key = `${req.orgName}_${this.opts.adminUsername}`;
             await this.opts.keychain.set(key,JSON.stringify(cert));
             return {
                 orgName: req.orgName,
