@@ -73,7 +73,7 @@ describe("Test fabric", function() {
         fromDate: "2018-05-07T10:10:09Z",
         thruDate: "2018-05-07T10:10:09Z",
         energyUseAmount: 100,
-        energyUseUom: "TONS",
+        energyUseUom: "kWh",
       })
       .end((error, response) => {
         
@@ -177,6 +177,7 @@ describe("Test fabric", function() {
         else if(response.body[0])
         {
           let entry = response.body[0];
+
           expect(entry.status).to.equal(200);
           expect(entry.utilityId).to.not.equal("USA_EIA_11208");
           expect(entry.partyId).to.not.equal("1234567890");

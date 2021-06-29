@@ -124,10 +124,10 @@ export class EmissionsContractInvoke {
     fromDate,
     thruDate,
     emissionsAmount,
-    renewable_energy_use_amount,
-    nonrenewable_energy_use_amount,
+    renewableEnergyUseAmount,
+    nonrenewableEnergyUseAmount,
     energyUseUom,
-    factor_source,
+    factorSources,
     url,
     md5,
     tokenId
@@ -165,10 +165,10 @@ export class EmissionsContractInvoke {
         fromDate,
         thruDate,
         emissionsAmount,
-        renewable_energy_use_amount,
-        nonrenewable_energy_use_amount,
+        renewableEnergyUseAmount,
+        nonrenewableEnergyUseAmount,
         energyUseUom,
-        factor_source,
+        factorSources,
         url,
         md5,
         tokenId
@@ -191,10 +191,10 @@ export class EmissionsContractInvoke {
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
       result["emissionsAmount"] = jsonResult.emissionsAmount;
-      result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
-      result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
+      result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount || jsonResult.renewable_energy_use_amount;
+      result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount || jsonResult.nonrenewable_energy_use_amount;
       result["energyUseUom"] = jsonResult.energyUseUom;
-      result["factorSource"] = jsonResult.factorSource;
+      result["factorSource"] = jsonResult.factorSource || jsonResult.factor_source;
       result["url"] = jsonResult.url;
       result["md5"] = jsonResult.md5;
       result["tokenId"] = jsonResult.tokenId;
@@ -273,10 +273,10 @@ export class EmissionsContractInvoke {
       result["fromDate"] = jsonResult.fromDate;
       result["thruDate"] = jsonResult.thruDate;
       result["emissionsAmount"] = jsonResult.emissionsAmount;
-      result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount;
-      result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount;
+      result["renewableEnergyUseAmount"] = jsonResult.renewableEnergyUseAmount || jsonResult.renewable_energy_use_amount;
+      result["nonrenewableEnergyUseAmount"] = jsonResult.nonrenewableEnergyUseAmount || jsonResult.nonrenewable_energy_use_amount;
       result["energyUseUom"] = jsonResult.energyUseUom;
-      result["factorSource"] = jsonResult.factorSource;
+      result["factorSource"] = jsonResult.factorSource || jsonResult.factor_source;
       result["url"] = jsonResult.url;
       result["md5"] = jsonResult.md5;
       result["tokenId"] = jsonResult.tokenId;
@@ -365,10 +365,10 @@ export class EmissionsContractInvoke {
         result["fromDate"] = record.fromDate;
         result["thruDate"] = record.thruDate;
         result["emissionsAmount"] = record.emissionsAmount;
-        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
-        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
+        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount || record.renewable_energy_use_amount;
+        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount || record.nonrenewable_energy_use_amount;
         result["energyUseUom"] = record.energyUseUom;
-        result["factorSource"] = record.factorSource;
+        result["factorSource"] = record.factorSource || record.factor_source;
         result["url"] = record.url;
         result["md5"] = record.md5;
         result["tokenId"] = record.tokenId;
@@ -456,10 +456,10 @@ export class EmissionsContractInvoke {
         result["fromDate"] = record.fromDate;
         result["thruDate"] = record.thruDate;
         result["emissionsAmount"] = record.emissionsAmount;
-        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
-        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
+        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount || record.renewable_energy_use_amount;
+        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount || record.nonrenewable_energy_use_amount;
         result["energyUseUom"] = record.energyUseUom;
-        result["factorSource"] = record.factorSource;
+        result["factorSource"] = record.factorSource || record.factor_source;
         result["url"] = record.url;
         result["md5"] = record.md5;
         result["tokenId"] = record.tokenId;
@@ -548,10 +548,10 @@ export class EmissionsContractInvoke {
         result["fromDate"] = record.fromDate;
         result["thruDate"] = record.thruDate;
         result["emissionsAmount"] = record.emissionsAmount;
-        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount;
-        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount;
+        result["renewableEnergyUseAmount"] = record.renewableEnergyUseAmount || record.renewable_energy_use_amount;
+        result["nonrenewableEnergyUseAmount"] = record.nonrenewableEnergyUseAmount || record.nonrenewable_energy_use_amount;
         result["energyUseUom"] = record.energyUseUom;
-        result["factorSource"] = record.factorSource;
+        result["factorSource"] = record.factorSource || record.factor_source;
         result["url"] = record.url;
         result["md5"] = record.md5;
         result["tokenId"] = record.tokenId;
