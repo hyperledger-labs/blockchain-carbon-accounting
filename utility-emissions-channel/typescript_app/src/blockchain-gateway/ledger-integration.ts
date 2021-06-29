@@ -57,7 +57,7 @@ export default class LedgerIntegration{
             sshConfig: {},
             discoveryOptions: {
                 enabled: true,
-                asLocalhost: false
+                asLocalhost: true
             }
         });
 
