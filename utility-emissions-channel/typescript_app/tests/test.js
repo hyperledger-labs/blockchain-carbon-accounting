@@ -178,7 +178,6 @@ describe("Test fabric", function() {
         {
           let entry = response.body[0];
 
-          expect(entry.status).to.equal(200);
           expect(entry.utilityId).to.not.equal("USA_EIA_11208");
           expect(entry.partyId).to.not.equal("1234567890");
           expect(entry.fromDate).to.not.equal("2020-04-06T10:10:09Z");
