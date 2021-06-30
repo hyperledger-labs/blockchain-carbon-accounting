@@ -3,7 +3,7 @@ module.exports = {
   USER: "",
   PASSWORD: "",
   PORT: 5432,
-  DB: "voluntary-carbon-offsets",
+  DB: "open-offsets-directory",
   dialect: "postgres",
   pool: {
     max: 5,

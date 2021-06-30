@@ -6,22 +6,22 @@ This is an initial implementaiton of the [Voluntary Carbon Offsets Directory](ht
 
 ### Init the Postgresql Database
 
-Create a Postgres database as configured in `node-server/app/config/db.config.js` by default this should be `voluntary-carbon-offsets`
+Create a Postgres database as configured in `node-server/app/config/db.config.js` by default this should be `open-offsets-directory`
 
 ```
-createdb voluntary-carbon-offsets
+createdb open-offsets-directory
 ```
 
 Then initialize the schema using `node-server/init-schema.sql`
 
 ```
-psql voluntary-carbon-offsets < node-server/init-schema.sql
+psql open-offsets-directory < node-server/init-schema.sql
 ```
 
 Finally import the projects data from the CSV sample file `node-server/projects.csv` (this data is from https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database)
 
 ```
-cat node-server/projects.csv | psql voluntary-carbon-offsets -c "$(cat node-server/import-csv.sql)"
+cat node-server/projects.csv | psql open-offsets-directory -c "$(cat node-server/import-csv.sql)"
 ```
 
 ## Running the App
