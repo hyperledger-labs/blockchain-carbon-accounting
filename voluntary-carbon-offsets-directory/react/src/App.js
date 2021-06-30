@@ -41,6 +41,18 @@ class App extends Component {
             </Switch>
           </div>
         </div>
+        <footer className="bg-light">
+          <div className="py-5 container text-center">
+            The Voluntary Carbon Offsets Directory -&nbsp;
+            <a
+              href="https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Link
+            </a>
+          </div>
+        </footer>
       </Router>
     );
   }
