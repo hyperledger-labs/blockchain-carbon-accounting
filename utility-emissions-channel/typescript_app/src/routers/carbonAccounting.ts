@@ -41,17 +41,7 @@ export class CarbonAccountingRouter{
                 param('partyId').isString(),
                 param('addressToIssue').isString(),
                 param('emissionsRecordsToAudit').isString(),
-                param('automaticRetireDate').custom((value, { req }) => {
-                    const matches = value.match(
-                      /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
-                    );
-                    if (!matches) {
-                      throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
-                    }
-
-                    // Indicates the success of this synchronous custom validator
-                    return true;
-                  })
+                param('automaticRetireDate')
             ],
             this.recordAuditedEmissionToken.bind(this)
         );
@@ -70,7 +60,11 @@ export class CarbonAccountingRouter{
         const userId = req.params.userId;
         const orgName = req.params.orgName;
         const partyId = req.params.partyId;
-        const automaticRetireDate = req.params.automaticRetireDate;
+        let automaticRetireDate = req.params.automaticRetireDate;
+        const re = new RegExp(/^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/);
+        if (!re.test(automaticRetireDate)){
+            automaticRetireDate = new Date().toISOString();
+        }
         const emissionsRecordsToAudit = req.params.emissionsRecordsToAudit.toString().split(',');
         // TODO : use fabric cactus connector to call utility emission chaincode
         this.log.debug(`${fnTag} fetching emissionRecord uuids=%o`,emissionsRecordsToAudit);
