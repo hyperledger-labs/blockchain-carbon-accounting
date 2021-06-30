@@ -4,6 +4,7 @@ import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common';
 import {PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import {IEnrollRegistrarRequest, IEnrollRegistrarResponse} from './I-fabricRegistry';
 import {PluginKeychainMemory} from '@hyperledger/cactus-plugin-keychain-memory';
+import Client from 'fabric-client';
 
 export interface IFabricRegistryOptions{
     logLevel:LogLevelDesc;
@@ -64,6 +65,63 @@ export class FabricRegistry{
                 msp : cert.mspId,
                 caName : ca.getCaName()
             };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async enrollUser(userId:string,orgName:string,affiliation:string){
+        const fnTag = '#enrollUser';
+        try {
+            const refCa = this.opts.orgCAs[orgName];
+            if (!refCa){
+                throw new Error(`organizations ${orgName} doesn't exists`);
+            }
+            // check if admin is enrolled or not
+            const rawAdminCerts:string = await this.opts.keychain.get(`${orgName}_${this.opts.adminUsername}`);
+            if (!rawAdminCerts){
+                throw new Error(`${orgName}'s admin is not enrolled, please enroll admin first`);
+            }
+            const adminCerts = JSON.parse(rawAdminCerts);
+            // register user
+            // build admin user
+            this.log.debug(`${fnTag} building admin user`);
+            const builder = new Client();
+            const admin = await builder.createUser(
+                {
+                    username:this.opts.adminUsername,
+                    mspid : refCa.mspId,
+                    skipPersistence: true,
+                    cryptoContent : {
+                        privateKeyPEM : adminCerts.privateKey,
+                        signedCertPEM : adminCerts.certificate
+                    }
+                }
+            );
+
+            const ca = await this.opts.fabricClient.createCaClient(refCa.ca);
+            this.log.debug(`${fnTag} registering ${userId}`);
+            const secret = await ca.register({
+                enrollmentID: userId,
+                affiliation,
+                role: 'client'
+            },admin);
+
+            this.log.debug(`${fnTag} enrolling ${userId}`);
+            const result = await ca.enroll({
+                enrollmentID: userId,
+                enrollmentSecret: secret
+            });
+            const cert:IX509Cert = {
+                type: FabricRegistry.X509Type,
+                mspId: refCa.mspId,
+                certificate: result.certificate,
+                privateKey: result.key.toBytes()
+            };
+            this.log.debug(`${fnTag} storing certificate inside keychain`);
+            const key = `${orgName}_${userId}`;
+            await this.opts.keychain.set(key,JSON.stringify(cert));
+            this.log.debug(`${fnTag} ${userId} successfully enrolled`);
         } catch (error) {
             throw error;
         }

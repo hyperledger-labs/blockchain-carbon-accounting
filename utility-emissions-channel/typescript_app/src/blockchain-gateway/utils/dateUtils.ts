@@ -7,6 +7,6 @@ export function checkDateConflict(a_start: string, a_end: string, b_start: strin
 }
 
 export function toTimestamp(strDate) {
-  let datum = Date.parse(strDate);
+  const datum = Date.parse(strDate);
   return datum / 1000;
 }

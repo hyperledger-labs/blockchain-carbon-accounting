@@ -129,7 +129,7 @@ export default class LedgerIntegration{
         this.app.use('/api/v1/utilityemissionchannel/emissionscontract',this.carbonAccountingRouter.router);
 
         // /api/v1/fabricRegistry : endpoints for interacting fabric-ca
-        this.app.use('/api/v1/utilityemissionchannel',this.fabricRegistryRouter.router);
+        this.app.use('/api/v1/utilityemissionchannel/registerEnroll',this.fabricRegistryRouter.router);
 
         // /api/v1/utilityemissionchannel : endpoints for interacting only utilityEmissionsChannel
         // chaincode installed on fabric network

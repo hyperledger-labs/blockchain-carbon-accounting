@@ -26,17 +26,16 @@ export class FabricRegistryRouter{
 
     private registerHandlers(){
         this.router.post(
-            '/registerEnroll/admin',
+            '/admin',
             [
                 body('orgName').isString(),
             ],
             this.enrollRegistrar.bind(this)
         );
-        this.router.get(
+        this.router.post(
             '/user',
             [
                 body('userId').isString(),
-                body('secret').isString(),
                 body('orgName').isString(),
                 body('affiliation').isString(),
             ],
@@ -68,9 +67,26 @@ export class FabricRegistryRouter{
     }
 
     private async enrollUser(req:Request,res:Response){
-        // TODO implement me!!!
         const fnTag = `${req.method.toUpperCase()} ${req.baseUrl}${req.url}`;
         this.log.debug(fnTag);
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            this.log.debug(`${fnTag} BadJSON Request : %o`,errors.array());
+            return res.status(412).json({
+                errors: errors.array()
+            });
+        }
+        const userId = req.body.userId;
+        const orgName = req.body.orgName;
+        const affiliation = req.body.affiliation;
+        try {
+            await this.opts.fabricRegistry.enrollUser(userId,orgName,affiliation);
+        } catch (error) {
+            this.log.debug(`${fnTag} failed to register user : %o`,(error as Error).message);
+            res.status(409).json({error : (error as Error).message});
+        }
+
+        res.status(201).send();
     }
 
 }

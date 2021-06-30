@@ -33,6 +33,7 @@
     "express": "^4.17.1",
     "express-validator": "^6.6.1",
     "fabric-ca-client": "^2.2.5",
+    "fabric-client": "^1.4.17",
     "fabric-network": "^2.2.5",
     "mongoose": "^5.11.2",
     "multer": "^1.4.2",
