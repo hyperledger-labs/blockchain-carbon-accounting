@@ -35,6 +35,8 @@ module.exports = (sequelize, Sequelize) => {
       arb_id: Sequelize.STRING,
       active_ccb_status: Sequelize.STRING,
       project_type: Sequelize.STRING,
+      registry_documents: Sequelize.STRING,
+      project_website: Sequelize.STRING,
       notes: Sequelize.STRING,
       date_added: Sequelize.INTEGER,
       source: Sequelize.STRING,

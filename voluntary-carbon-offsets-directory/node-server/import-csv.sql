@@ -156,6 +156,8 @@ insert into project (
     arb_id,
     active_ccb_status,
     project_type,
+    registry_documents,
+    project_website,
     notes,
     date_added,
     source,
@@ -190,11 +192,10 @@ insert into project (
     arb_id,
     active_ccb_status,
     project_sector,
+    registry_documents,
+    project_website,
     notes,
     date_project_added_to_database,
     'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, April). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database',
     'csv import'
 from csv_project;
-
-
-select * from project;

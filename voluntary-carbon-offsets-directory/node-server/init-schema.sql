@@ -68,6 +68,8 @@ CREATE TABLE project (
     arb_id text,
     active_ccb_status text,
     project_type text,
+    registry_documents text,
+    project_website text,
     notes text,
     date_added integer,
     source text,

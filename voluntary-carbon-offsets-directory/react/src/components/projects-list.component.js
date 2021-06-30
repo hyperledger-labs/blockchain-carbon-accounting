@@ -1,5 +1,6 @@
 import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
+import { withRouter } from "react-router-dom";
 import ProjectDataService from "../services/project.service";
 
 const FIELD_OPS = [
@@ -12,12 +13,15 @@ const FIELD_OPS = [
   { label: "contains", value: "contains" },
 ];
 
-export default class ProjectsList extends Component {
+const DEFAULT_PAGE_SIZE = 25;
+
+class ProjectsList extends Component {
   constructor(props) {
     super(props);
     this.onChangeSearchValue = this.onChangeSearchValue.bind(this);
     this.retrieveProjects = this.retrieveProjects.bind(this);
     this.refreshList = this.refreshList.bind(this);
+    this.refreshListFirstPage = this.refreshListFirstPage.bind(this);
     this.setActiveProject = this.setActiveProject.bind(this);
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePageSizeChange = this.handlePageSizeChange.bind(this);
@@ -26,11 +30,10 @@ export default class ProjectsList extends Component {
     this.handleSearchOpChange = this.handleSearchOpChange.bind(this);
     this.addSearchField = this.addSearchField.bind(this);
     this.removeSearchField = this.removeSearchField.bind(this);
+    this.syncCurrentUrl = this.syncCurrentUrl.bind(this);
 
     this.state = {
       projects: [],
-      currentProject: null,
-      currentIndex: -1,
       // default to the project name search only
       searchFields: [
         { ...ProjectDataService.fields()[1], value: "", op: "contains" },
@@ -38,19 +41,83 @@ export default class ProjectsList extends Component {
 
       page: 1,
       count: 0,
-      pageSize: 25,
+      pageSize: DEFAULT_PAGE_SIZE,
     };
 
     this.pageSizes = [10, 25, 50, 100];
   }
 
+  filterStringsToSearchFieldsArray(filters) {
+    // format in URL <field>__<op>__<value>
+    let searchFields = [];
+    filters.forEach(f=>{
+      let arr = f.split("__");
+      if (arr.length !== 3) return;
+      // find the field
+      let nf = ProjectDataService.fields().find(
+        (el) => el.name === arr[0]
+      );
+      if (!nf) return;
+      searchFields.push({...nf, op: arr[1], value: arr[2]});
+    });
+    return searchFields;
+  }
+
   componentDidMount() {
-    this.retrieveProjects();
+    if (this.props.match.params.pageSize || this.props.match.params.page) {
+      let update = {};
+      if (this.props.match.params.pageSize) {
+        update.pageSize = parseInt(this.props.match.params.pageSize);
+      }
+      if (this.props.match.params.page) {
+        update.page = parseInt(this.props.match.params.page);
+      }
+      if (this.props.match.params.filters) {
+        // format in URL <field>__<op>__<value>
+        let filters = this.props.match.params.filters.split("/");
+        let searchFields = this.filterStringsToSearchFieldsArray(filters);
+        if (searchFields.length) update.searchFields = searchFields;
+      }
+      console.log('componentDidMount:: Setting page params', update);
+      this.setState(update,
+        () => {
+          this.retrieveProjects();
+        });
+    } else {
+      this.retrieveProjects();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    console.log('componentDidUpdate:: prevProps / newProps', prevProps, this.props);
+    let update = {};
+    let changed = false;
+    if (prevProps.match.params.pageSize !== this.props.match.params.pageSize) {
+      let ps = parseInt(this.props.match.params.pageSize) || DEFAULT_PAGE_SIZE;
+      if (ps !== this.state.pageSize) {
+        update.pageSize = ps;
+        changed = true;
+      }
+    }
+    if (prevProps.match.params.page !== this.props.match.params.page) {
+      let ps = parseInt(this.props.match.params.page) || 1;
+      if (ps !== this.state.page) {
+        update.page = ps;
+        changed = true;
+      }
+    }
+    if (changed) {
+      console.log('componentDidUpdate:: update state', update);
+      this.setState(update,
+        () => {
+          this.retrieveProjects();
+        });
+    }
   }
 
   searchOnKeyUp(event) {
     if (event.charCode === 13) {
-      this.retrieveProjects();
+      this.refreshListFirstPage();
     }
   }
 
@@ -71,10 +138,12 @@ export default class ProjectsList extends Component {
       params["size"] = pageSize;
     }
 
+    console.log('getRequestParams:: params', params);
     return params;
   }
 
   retrieveProjects() {
+    console.log('retrieveProjects:: state', this.state);
     const { searchFields, page, pageSize } = this.state;
     const params = this.getRequestParams(searchFields, page, pageSize);
 
@@ -93,20 +162,21 @@ export default class ProjectsList extends Component {
       });
   }
 
-  refreshList() {
-    this.retrieveProjects();
-    this.setState({
-      currentProject: null,
-      currentIndex: -1,
+  refreshListFirstPage() {
+    this.setState({ page: 1 }, () => {
+      this.syncCurrentUrl();
+      this.retrieveProjects();
     });
+  }
+
+  refreshList() {
+    this.syncCurrentUrl();
+    this.retrieveProjects();
   }
 
   setActiveProject(project, index) {
     console.log("Changed active project: ", project);
-    this.setState({
-      currentProject: project,
-      currentIndex: index,
-    });
+    this.props.history.push(`/projects/${project.id}`);
   }
 
   onChangeSearchValue(event, index) {
@@ -159,40 +229,43 @@ export default class ProjectsList extends Component {
     if (this.state.searchFields.length <= 1) return;
     this.setState((prevState) => ({
       searchFields: prevState.searchFields.filter((el, j) => index !== j),
-    }));
+    }),
+    () => {
+      this.refreshListFirstPage();
+    });
+  }
+
+  syncCurrentUrl() {
+    let fs = [];
+    this.state.searchFields.forEach(f=>{
+      fs.push(`${f.name}__${f.op}__${f.value}`);
+    });
+    console.log('syncCurrentUrl:: with filters ', fs)
+    this.props.history.push(`/projects-list/${this.state.pageSize}/${this.state.page}/${fs.join("/")}`);
   }
 
   handlePageChange(event, value) {
+    console.log('handlePageChange:: ', event, value);
     this.setState(
       {
         page: value,
       },
       () => {
-        this.retrieveProjects();
+        this.refreshList();
       }
     );
   }
 
   handlePageSizeChange(event) {
+    console.log('handlePageSizeChange:: ', event);
     this.setState(
       {
         pageSize: event.target.value,
         page: 1,
       },
       () => {
-        this.retrieveProjects();
+        this.refreshList();
       }
-    );
-  }
-
-  renderProjectField(lbl, val) {
-    return (
-      <div key={lbl}>
-        <label>
-          <strong>{lbl}:</strong>
-        </label>{" "}
-        {val}
-      </div>
     );
   }
 
@@ -200,8 +273,6 @@ export default class ProjectsList extends Component {
     const {
       searchFields,
       projects,
-      currentProject,
-      currentIndex,
       page,
       count,
       pageSize,
@@ -209,7 +280,7 @@ export default class ProjectsList extends Component {
 
     return (
       <div className="list row">
-        <div className="col-md-8">
+        <div className="col-12">
           <div className="input-group mb-3">
             {searchFields.map((sf, i) => (
               <div className="input-group mb-3" key={i}>
@@ -263,15 +334,27 @@ export default class ProjectsList extends Component {
               <button
                 className="btn btn-outline-secondary"
                 type="button"
-                onClick={this.retrieveProjects}
+                onClick={this.refreshListFirstPage}
               >
                 Search
               </button>
             </div>
           </div>
         </div>
-        <div className="col-md-6">
+        <div className="col-12">
           <h4>Projects List</h4>
+          <ul className="list-group projects-list">
+            {projects &&
+              projects.map((project, index) => (
+                <li
+                  className="list-group-item"
+                  onClick={() => this.setActiveProject(project, index)}
+                  key={index}
+                >
+                  {project.project_name}
+                </li>
+              ))}
+          </ul>
           <div className="row">
             <div className="col-auto">
               <Pagination
@@ -306,38 +389,10 @@ export default class ProjectsList extends Component {
             </div>
           </div>
 
-          <ul className="list-group">
-            {projects &&
-              projects.map((project, index) => (
-                <li
-                  className={
-                    "list-group-item " +
-                    (index === currentIndex ? "active" : "")
-                  }
-                  onClick={() => this.setActiveProject(project, index)}
-                  key={index}
-                >
-                  {project.project_name}
-                </li>
-              ))}
-          </ul>
-        </div>
-        <div className="col-md-6">
-          {currentProject ? (
-            <div>
-              <h4>Project</h4>
-              {ProjectDataService.fields().map((f) =>
-                this.renderProjectField(f.label, currentProject[f.name])
-              )}
-            </div>
-          ) : (
-            <div>
-              <br />
-              <p>Please click on a Project...</p>
-            </div>
-          )}
         </div>
       </div>
     );
   }
 }
+
+export default withRouter(ProjectsList);
