@@ -220,6 +220,14 @@ $ cd docker-compose-setup
 $ ./scripts/startApi.sh
 ```
 
+To run the API server outside of docker container:
+
+```bash
+$ cd typescript_app
+$ npm i
+$ sh ./runManual.sh
+```
+
 4. Go to `http://localhost:9000/api-docs/` to use the API.  
 
 ## Working with the Express Server API
@@ -304,8 +312,15 @@ $ ./network.sh stopBlockchainExplorer`
 
 When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and executing the tests into the docker container:
 
+
 ```bash
 $ sh runTests.sh
+```
+
+If you are running the server outside of docker container, then you can run the tests as :
+
+```bash
+$ mocha ./tests --timeout 10000
 ```
 
 The automated tests are currently not working.  An [issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/80) has been created for this.
