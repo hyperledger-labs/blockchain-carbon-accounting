@@ -38,7 +38,7 @@ services:
       - ../../../system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ../../../organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/msp:/var/hyperledger/orderer/msp
       - ../../../organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls:/var/hyperledger/orderer/tls
-      - orderer1.auditor1.carbonAccounting.com/var/hyperledger/production/orderer
+      - orderer1.auditor1.carbonAccounting.com:/var/hyperledger/production/orderer
     ports:
       - 7050:7050
     networks:
