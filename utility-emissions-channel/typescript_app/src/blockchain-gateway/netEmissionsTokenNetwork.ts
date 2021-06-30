@@ -73,6 +73,7 @@ export class NetEmissionsTokenNetworkContract{
         // wait for conformation
         const fnTag = 'issue';
         try {
+            const automaticRetireDate = +token.automaticRetireDate.toFixed();
             const invokeReq:InvokeContractV1Request = {
                 contractName: this.opts.contractName,
                 signingCredential: this.signer,
@@ -84,7 +85,7 @@ export class NetEmissionsTokenNetworkContract{
                     token.quantity,
                     token.fromDate,
                     token.thruDate,
-                    token.automaticRetireDate,
+                    automaticRetireDate,
                     token.metadata,
                     token.manifest,
                     token.description
