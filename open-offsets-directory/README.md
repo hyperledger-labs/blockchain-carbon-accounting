@@ -1,6 +1,6 @@
 # Voluntary Carbon Offsets Directory
 
-See https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation
+This is an initial implementaiton of the [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research+Project) using a database.  See https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation for more details.
 
 ## Setup
 
