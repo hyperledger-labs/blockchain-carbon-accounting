@@ -26,8 +26,7 @@ describe("Test fabric", function() {
       .send({ orgName: "auditor1" })
       .end((error, response) => {
       
-       try
-       {
+       try{
         expect(response.body.info).to.equal("ORG ADMIN REGISTERED");
         done();
        }
@@ -201,8 +200,8 @@ describe("Test fabric", function() {
          
          done();
         }
+      
         catch(error) 
-
         {
           done(error);
         } 

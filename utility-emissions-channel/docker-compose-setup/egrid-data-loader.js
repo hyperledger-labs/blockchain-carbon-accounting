@@ -263,6 +263,7 @@ function import_utility_emissions(file_name, opts) {
     });
     if (opts.file !== "all") return;
   }
+  
   if (opts.file == "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
     let data = parse_worksheet(supportedFiles[1].file, supportedFiles[1], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
@@ -337,7 +338,7 @@ function import_utility_emissions(file_name, opts) {
   }
   
   
-  // eGRID Data 2019 ..
+  // eGRID Data for year 2019 ..
   
   if (opts.file == "all" || (opts.file == "egrid2019_data.xlsx" && opts.sheet == "US19")) {
     let data = parse_worksheet(supportedFiles[5].file, supportedFiles[5], function(data) {
@@ -346,8 +347,10 @@ function import_utility_emissions(file_name, opts) {
         if (!row || !row["Data Year"]) return callback();
         // skip header rows
         if (row["Data Year"] == "YEAR") return callback();
+        
         //opts.verbose && console.log('-- Prepare to insert from ', row);
         // generate a unique for the row
+        
         let document_id = "COUNTRY_USA_" + row["Data Year"];
         let d = {
           uuid: document_id,
@@ -375,6 +378,7 @@ function import_utility_emissions(file_name, opts) {
     });
     if (opts.file !== "all") return;
   }
+  
   
    if (opts.file == "all" || (opts.file == "egrid2019_data.xlsx" && opts.sheet == "ST19")) {
     let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
@@ -416,17 +420,7 @@ function import_utility_emissions(file_name, opts) {
   
   if (opts.file == "all" || (opts.file == "egrid2019_data.xlsx" && opts.sheet == "NRL19")) {
     let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
-      // import data for each valid row, eg:
-      // Year = 2018 from 'Data Year'
-      // Country = USA
-      // Division_type = NERC_REGION
-      // Division_id = value from 'NERC region acronym'
-      // Division_name = value from 'NERC region name'
-      // Net_Generation = value from 'NERC region annual net generation (MWh)'
-      // Net_Generation_UOM = MWH
-      // CO2_Equivalent_Emissions = value from 'NERC region annual CO2 equivalent emissions (tons)'
-      // CO2_Equivalent_Emissions_UOM = tons
-      // Source = https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
+         
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Data Year"]) return callback();
@@ -435,10 +429,10 @@ function import_utility_emissions(file_name, opts) {
         //opts.verbose && console.log('-- Prepare to insert from ', row);
 
         // generate a unique for the row
-        let document_id = "USA_" + row["Year"] + "_NERC_REGION_" + row["NERC region acronym"];
+        let document_id = "USA_" + row["Data Year"] + "_NERC_REGION_" + row["NERC region acronym"];
         let d = {
           uuid: document_id,
-          year: "" + row["Year"],
+          year: "" + row["Data Year"],
           country: "USA",
           division_type: "NERC_REGION",
           division_id: row["NERC region acronym"],
@@ -464,7 +458,7 @@ function import_utility_emissions(file_name, opts) {
     if (opts.file !== "all") return;
   }
   
- // ---------------------------------------------------------------------------------------------- 
+
   if (opts.file == "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
     let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
