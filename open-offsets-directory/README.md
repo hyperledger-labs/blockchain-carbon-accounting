@@ -24,6 +24,11 @@ Finally import the projects data from the CSV sample file `node-server/projects.
 cat node-server/projects.csv | psql open-offsets-directory -c "$(cat node-server/import-csv.sql)"
 ```
 
+### Optional: setup Google ReCaptcha
+
+Setup your site at https://www.google.com/recaptcha/ (use V3 and add your domains which can include `localhost` for testing) then add the Site Key and Secret into `node-server/.env` and `react/.env` in order to require
+the reCaptcha verification for some requests like the projects search.
+
 ## Running the App
 
 Install dependencies and start the API server:

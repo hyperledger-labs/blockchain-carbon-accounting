@@ -1,5 +1,6 @@
 import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
+import { withGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { withRouter } from "react-router-dom";
 import ProjectDataService from "../services/project.service";
 
@@ -33,6 +34,8 @@ class ProjectsList extends Component {
     this.syncCurrentUrl = this.syncCurrentUrl.bind(this);
 
     this.state = {
+      reCaptchaToken: null,
+      errorMessage: null,
       projects: [],
       // default to the project name search only
       searchFields: [
@@ -50,18 +53,30 @@ class ProjectsList extends Component {
   filterStringsToSearchFieldsArray(filters) {
     // format in URL <field>__<op>__<value>
     let searchFields = [];
-    filters.forEach(f=>{
+    filters.forEach((f) => {
       let arr = f.split("__");
       if (arr.length !== 3) return;
       // find the field
-      let nf = ProjectDataService.fields().find(
-        (el) => el.name === arr[0]
-      );
+      let nf = ProjectDataService.fields().find((el) => el.name === arr[0]);
       if (!nf) return;
-      searchFields.push({...nf, op: arr[1], value: arr[2]});
+      searchFields.push({ ...nf, op: arr[1], value: arr[2] });
     });
     return searchFields;
   }
+
+  handleVerifyRecaptcha = async () => {
+    const { executeRecaptcha } = this.props.googleReCaptchaProps;
+
+    if (!executeRecaptcha) {
+      console.log("Recaptcha has not been loaded");
+      return;
+    }
+
+    const reCaptchaToken = await executeRecaptcha("searchProjects");
+
+    this.setState({ reCaptchaToken });
+    return reCaptchaToken;
+  };
 
   componentDidMount() {
     if (this.props.match.params.pageSize || this.props.match.params.page) {
@@ -78,18 +93,21 @@ class ProjectsList extends Component {
         let searchFields = this.filterStringsToSearchFieldsArray(filters);
         if (searchFields.length) update.searchFields = searchFields;
       }
-      console.log('componentDidMount:: Setting page params', update);
-      this.setState(update,
-        () => {
-          this.retrieveProjects();
-        });
+      console.log("componentDidMount:: Setting page params", update);
+      this.setState(update, () => {
+        this.retrieveProjects();
+      });
     } else {
       this.retrieveProjects();
     }
   }
 
   componentDidUpdate(prevProps) {
-    console.log('componentDidUpdate:: prevProps / newProps', prevProps, this.props);
+    console.log(
+      "componentDidUpdate:: prevProps / newProps",
+      prevProps,
+      this.props
+    );
     let update = {};
     let changed = false;
     if (prevProps.match.params.pageSize !== this.props.match.params.pageSize) {
@@ -107,11 +125,10 @@ class ProjectsList extends Component {
       }
     }
     if (changed) {
-      console.log('componentDidUpdate:: update state', update);
-      this.setState(update,
-        () => {
-          this.retrieveProjects();
-        });
+      console.log("componentDidUpdate:: update state", update);
+      this.setState(update, () => {
+        this.retrieveProjects();
+      });
     }
   }
 
@@ -138,14 +155,41 @@ class ProjectsList extends Component {
       params["size"] = pageSize;
     }
 
-    console.log('getRequestParams:: params', params);
+    console.log("getRequestParams:: params", params);
     return params;
   }
 
   retrieveProjects() {
-    console.log('retrieveProjects:: state', this.state);
-    const { searchFields, page, pageSize } = this.state;
+    console.log("retrieveProjects:: state", this.state);
+    const { searchFields, page, pageSize, reCaptchaToken } = this.state;
+
+    // reset error
+    this.setState({ errorMessage: null });
+
+    if (!reCaptchaToken && process.env.REACT_APP_RECAPTCHA_SITE_KEY) {
+      // get a token first !
+      this.handleVerifyRecaptcha()
+        .then((token) => {
+          if (token) this.retrieveProjects();
+          else {
+            console.log("Could not get a token ?");
+            setTimeout(() => this.retrieveProjects(), 1000);
+          }
+        })
+        .catch((e) => {
+          let err = "Cannot submit without a Recaptcha token !";
+          this.setState({ errorMessage: err });
+          console.log(err, e);
+        });
+      return;
+    } else if (!process.env.REACT_APP_RECAPTCHA_SITE_KEY) {
+      console.log("Site not configured to use Recaptcha.");
+    }
+
     const params = this.getRequestParams(searchFields, page, pageSize);
+    if (reCaptchaToken) {
+      params['g-recaptcha-response'] = reCaptchaToken;
+    }
 
     ProjectDataService.getAll(params)
       .then((response) => {
@@ -158,7 +202,14 @@ class ProjectsList extends Component {
         console.log(response.data);
       })
       .catch((e) => {
-        console.log(e);
+        console.log('Error from ProjectDataService.getAll:', e, e.response);
+        let err = e;
+        if (err.response && err.response.data && err.response.data.error) {
+          err = err.response.data.error;
+        } else if (err.message) {
+          err = err.message;
+        }
+        this.setState({ errorMessage: err });
       });
   }
 
@@ -227,25 +278,29 @@ class ProjectsList extends Component {
     console.log("removeSearchField", index, event, event.target.value);
     // don't remove all the fields.
     if (this.state.searchFields.length <= 1) return;
-    this.setState((prevState) => ({
-      searchFields: prevState.searchFields.filter((el, j) => index !== j),
-    }),
-    () => {
-      this.refreshListFirstPage();
-    });
+    this.setState(
+      (prevState) => ({
+        searchFields: prevState.searchFields.filter((el, j) => index !== j),
+      }),
+      () => {
+        this.refreshListFirstPage();
+      }
+    );
   }
 
   syncCurrentUrl() {
     let fs = [];
-    this.state.searchFields.forEach(f=>{
+    this.state.searchFields.forEach((f) => {
       fs.push(`${f.name}__${f.op}__${f.value}`);
     });
-    console.log('syncCurrentUrl:: with filters ', fs)
-    this.props.history.push(`/projects-list/${this.state.pageSize}/${this.state.page}/${fs.join("/")}`);
+    console.log("syncCurrentUrl:: with filters ", fs);
+    this.props.history.push(
+      `/projects-list/${this.state.pageSize}/${this.state.page}/${fs.join("/")}`
+    );
   }
 
   handlePageChange(event, value) {
-    console.log('handlePageChange:: ', event, value);
+    console.log("handlePageChange:: ", event, value);
     this.setState(
       {
         page: value,
@@ -257,7 +312,7 @@ class ProjectsList extends Component {
   }
 
   handlePageSizeChange(event) {
-    console.log('handlePageSizeChange:: ', event);
+    console.log("handlePageSizeChange:: ", event);
     this.setState(
       {
         pageSize: event.target.value,
@@ -270,13 +325,8 @@ class ProjectsList extends Component {
   }
 
   render() {
-    const {
-      searchFields,
-      projects,
-      page,
-      count,
-      pageSize,
-    } = this.state;
+    const { searchFields, projects, page, count, pageSize, errorMessage } =
+      this.state;
 
     return (
       <div className="list row">
@@ -343,6 +393,11 @@ class ProjectsList extends Component {
         </div>
         <div className="col-12">
           <h4>Projects List</h4>
+          {errorMessage ?
+            <div className="alert alert-danger d-flex align-items-center" role="alert">
+              <div>{errorMessage}</div>
+            </div>
+          : ""}
           <ul className="list-group projects-list">
             {projects &&
               projects.map((project, index) => (
@@ -388,11 +443,10 @@ class ProjectsList extends Component {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     );
   }
 }
 
-export default withRouter(ProjectsList);
+export default withRouter(withGoogleReCaptcha(ProjectsList));
