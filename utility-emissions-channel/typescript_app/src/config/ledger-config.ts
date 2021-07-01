@@ -70,7 +70,7 @@ export function getLedgerConfigs():ILedgerIntegrationConfig{
     Checks.nonBlankString(ethNodeURL,'LEDGER_ETH_JSON_RPC_URL');
     Checks.nonBlankString(ethNetwork,'LEDGER_ETH_NETWORK');
     let ethNetworkID:number;
-    if (ethNetwork === 'xdai'){
+    if (ethNetwork === 'hardhat'){
         ethNetworkID = 1337;
     }else if (ethNetwork === 'goerli'){
         ethNetworkID = 5;
