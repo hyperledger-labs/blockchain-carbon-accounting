@@ -45,7 +45,7 @@ class ProjectsList extends Component {
       page: 1,
       count: 0,
       pageSize: DEFAULT_PAGE_SIZE,
-      indicator: false,
+      indicator: true,
     };
 
     this.pageSizes = [10, 25, 50, 100];
