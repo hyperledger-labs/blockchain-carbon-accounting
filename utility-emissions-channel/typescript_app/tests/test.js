@@ -6,6 +6,9 @@ var assert = chai.assert;
 const { expect } = require("chai");
 chai.use(chaiHttp);
 
+// Random UserId generation
+let testUser = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
+
 describe("Test fabric", function() {
   var host = "http://localhost:9000";
   const registerAdminPath = "/api/v1/utilityemissionchannel/registerEnroll/admin";
@@ -23,18 +26,20 @@ describe("Test fabric", function() {
       .send({ orgName: "auditor1" })
       .end((error, response) => {
       
-       try{
+       try
+       {
         expect(response.body.info).to.equal("ORG ADMIN REGISTERED");
         done();
        }
       
-        catch(error){
+       catch(error)
+       {
          done(error);
-        }
-    
-    
+       }
+       
       });
   });
+
 
   it("should register user TestUser under department1/auditor1.", function(done) {
     chai
@@ -42,7 +47,7 @@ describe("Test fabric", function() {
       .post(enrollUserPath)
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
-      .send({ userId: "TestUser", orgName: "auditor1", affiliation: "auditor1.department1" })
+      .send({ userId: testUser, orgName: "auditor1", affiliation: "auditor1.department1" })
       .end((error, response) => {
       
        try{
@@ -59,6 +64,7 @@ describe("Test fabric", function() {
       });
   });
 
+
   it("should record an emission as TestUser", function(done) {
     chai
       .request(host)
@@ -66,7 +72,7 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
@@ -84,14 +90,14 @@ describe("Test fabric", function() {
        }
         
        catch (error)
-        {
-          done(error);
-        } 
+       {
+        done(error);
+       }
        
       });
   });
  
- 
+
   it("should display emission records for the correct year (2019)", function(done) {
     chai
        .request(host)
@@ -99,12 +105,12 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2019-04-06T10:10:09Z",
-        thruDate: "2019-04-06T10:10:09Z",
+        fromDate: "2019-01-06T10:10:09Z",
+        thruDate: "2019-01-06T10:10:09Z",
         energyUseAmount: 100,
         energyUseUom: "TONS",
       })
@@ -133,12 +139,12 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2018-10-06T10:10:09Z",
-        thruDate: "2018-10-06T10:10:09Z",
+        fromDate: "2019-03-06T10:10:09Z",
+        thruDate: "2019-03-06T10:10:09Z",
         energyUseAmount: 100,
         energyUseUom: "TONS",
       })
@@ -157,6 +163,7 @@ describe("Test fabric", function() {
         {
           done(error);
         } 
+
       });
   });
 
@@ -172,12 +179,13 @@ describe("Test fabric", function() {
         if(response.body == [])
         { 
           assert(response.body == [], "No emissions to display");
+
         }
         
         else if(response.body[0])
         {
           let entry = response.body[0];
-          expect(entry.status).to.equal(200);
+
           expect(entry.utilityId).to.not.equal("USA_EIA_11208");
           expect(entry.partyId).to.not.equal("1234567890");
           expect(entry.fromDate).to.not.equal("2020-04-06T10:10:09Z");
@@ -194,6 +202,7 @@ describe("Test fabric", function() {
          done();
         }
         catch(error) 
+
         {
           done(error);
         } 
