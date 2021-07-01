@@ -34,7 +34,6 @@ class ProjectsList extends Component {
     this.syncCurrentUrl = this.syncCurrentUrl.bind(this);
 
     this.state = {
-      reCaptchaToken: null,
       errorMessage: null,
       projects: [],
       // default to the project name search only
@@ -72,10 +71,7 @@ class ProjectsList extends Component {
       return;
     }
 
-    const reCaptchaToken = await executeRecaptcha("searchProjects");
-
-    this.setState({ reCaptchaToken });
-    return reCaptchaToken;
+    return executeRecaptcha("searchProjects");
   };
 
   componentDidMount() {
@@ -159,9 +155,9 @@ class ProjectsList extends Component {
     return params;
   }
 
-  retrieveProjects() {
+  retrieveProjects(reCaptchaToken) {
     console.log("retrieveProjects:: state", this.state);
-    const { searchFields, page, pageSize, reCaptchaToken } = this.state;
+    const { searchFields, page, pageSize } = this.state;
 
     // reset error
     this.setState({ errorMessage: null });
@@ -170,7 +166,7 @@ class ProjectsList extends Component {
       // get a token first !
       this.handleVerifyRecaptcha()
         .then((token) => {
-          if (token) this.retrieveProjects();
+          if (token) this.retrieveProjects(token);
           else {
             console.log("Could not get a token ?");
             setTimeout(() => this.retrieveProjects(), 1000);
@@ -188,7 +184,7 @@ class ProjectsList extends Component {
 
     const params = this.getRequestParams(searchFields, page, pageSize);
     if (reCaptchaToken) {
-      params['g-recaptcha-response'] = reCaptchaToken;
+      params["g-recaptcha-response"] = reCaptchaToken;
     }
 
     ProjectDataService.getAll(params)
@@ -202,7 +198,7 @@ class ProjectsList extends Component {
         console.log(response.data);
       })
       .catch((e) => {
-        console.log('Error from ProjectDataService.getAll:', e, e.response);
+        console.log("Error from ProjectDataService.getAll:", e, e.response);
         let err = e;
         if (err.response && err.response.data && err.response.data.error) {
           err = err.response.data.error;
@@ -393,11 +389,16 @@ class ProjectsList extends Component {
         </div>
         <div className="col-12">
           <h4>Projects List</h4>
-          {errorMessage ?
-            <div className="alert alert-danger d-flex align-items-center" role="alert">
+          {errorMessage ? (
+            <div
+              className="alert alert-danger d-flex align-items-center"
+              role="alert"
+            >
               <div>{errorMessage}</div>
             </div>
-          : ""}
+          ) : (
+            ""
+          )}
           <ul className="list-group projects-list">
             {projects &&
               projects.map((project, index) => (
