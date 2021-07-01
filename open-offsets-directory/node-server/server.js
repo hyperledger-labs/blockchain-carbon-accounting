@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 
@@ -22,7 +23,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //db.sequelize.sync();
 
 // simple route
-app.get("/", (req, res) => {
+app.get("/api/", (req, res) => {
   res.json({ message: "Voluntary Carbon Offsets Directory." });
 });
 
