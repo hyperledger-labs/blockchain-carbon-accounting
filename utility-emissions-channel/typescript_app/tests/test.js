@@ -5,6 +5,9 @@ var chaiHttp = require("chai-http");
 var assert = chai.assert;
 const { expect } = require("chai");
 chai.use(chaiHttp);
+var bcrypt = require('bcrypt');
+let filename= "../topk.pdf";
+let testUser = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 
 describe("Test fabric", function() {
   var host = "http://localhost:9000";
@@ -42,7 +45,7 @@ describe("Test fabric", function() {
       .post(enrollUserPath)
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
-      .send({ userId: "TestUser", orgName: "auditor1", affiliation: "auditor1.department1" })
+      .send({ userId: testUser, orgName: "auditor1", affiliation: "auditor1.department1" })
       .end((error, response) => {
       
        try{
@@ -66,13 +69,13 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
-        utilityId: "USA_EIA_11208",
+        utilityId: "USA_EIA_2394",
         partyId: "1234567890",
-        fromDate: "2018-05-07T10:10:09Z",
-        thruDate: "2018-05-07T10:10:09Z",
-        energyUseAmount: 100,
+        fromDate: "2018-04-09T10:10:09Z",
+        thruDate: "2018-04-09T10:10:09Z",
+        energyUseAmount: 50,
         energyUseUom: "kWh",
       })
       .end((error, response) => {
@@ -99,7 +102,7 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
@@ -133,14 +136,14 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
-        utilityId: "USA_EIA_11208",
+        utilityId: "USA_EIA_2394",
         partyId: "1234567890",
-        fromDate: "2018-10-06T10:10:09Z",
-        thruDate: "2018-10-06T10:10:09Z",
+        fromDate: "2018-04-04T10:10:09Z",
+        thruDate: "2018-04-04T10:10:09Z",
         energyUseAmount: 100,
-        energyUseUom: "TONS",
+        energyUseUom: "kWh",
       })
       .end((error, response) => {
        
