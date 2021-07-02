@@ -1,7 +1,7 @@
 import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
-import { ActivityIndicator } from 'react-native';
 import { withGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { ActivityIndicator } from "react-native";
 import { withRouter } from "react-router-dom";
 import ProjectDataService from "../services/project.service";
 
@@ -45,7 +45,7 @@ class ProjectsList extends Component {
       page: 1,
       count: 0,
       pageSize: DEFAULT_PAGE_SIZE,
-      indicator: true,
+      loadingIndicator: true,
     };
 
     this.pageSizes = [10, 25, 50, 100];
@@ -189,7 +189,7 @@ class ProjectsList extends Component {
       params["g-recaptcha-response"] = reCaptchaToken;
     }
 
-    this.setState({ indicator: true });
+    this.setState({ loadingIndicator: true });
 
     ProjectDataService.getAll(params)
       .then((response) => {
@@ -200,7 +200,7 @@ class ProjectsList extends Component {
           count: totalPages,
         });
         console.log(response.data);
-        this.setState({ indicator: false });
+        this.setState({ loadingIndicator: false });
       })
       .catch((e) => {
         console.log("Error from ProjectDataService.getAll:", e, e.response);
@@ -210,8 +210,7 @@ class ProjectsList extends Component {
         } else if (err.message) {
           err = err.message;
         }
-        this.setState({ errorMessage: err });
-        this.setState({ indicator: false });
+        this.setState({ errorMessage: err, loadingIndicator: false });
       });
   }
 
@@ -386,7 +385,7 @@ class ProjectsList extends Component {
               <button
                 className="btn btn-outline-secondary"
                 type="button"
-                disabled={this.state.indicator}
+                disabled={this.state.loadingIndicator}
                 onClick={this.refreshListFirstPage}
               >
                 Search
@@ -396,9 +395,25 @@ class ProjectsList extends Component {
         </div>
         <div className="col-12">
           <h4>Projects List</h4>
-          {this.state.indicator ? (
-            <div class="spinner-placeholder"><ActivityIndicator size="large" color="blue" animating={this.state.indicator} /></div>
-          ) : ("")}
+          {this.state.loadingIndicator ? (
+            <div class="spinner-placeholder">
+              
+              <ActivityIndicator
+             
+                  size="large"
+           
+                    color="blue"
+         
+                      animating={this.state.loadingIndicator}
+
+                           />
+            
+            </div>
+          ) : (
+            
+            ""
+          
+          )}
           {errorMessage ? (
             <div
               className="alert alert-danger d-flex align-items-center"
