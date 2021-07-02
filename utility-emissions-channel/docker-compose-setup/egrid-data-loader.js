@@ -460,7 +460,7 @@ function import_utility_emissions(file_name, opts) {
   
 
   if (opts.file == "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
-    let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
+    let data = parse_worksheet(supportedFiles[6].file, supportedFiles[6], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || row["CountryShort"].slice(0, 2) == "EU") return callback();
@@ -498,7 +498,7 @@ function import_utility_emissions(file_name, opts) {
   }
   if (opts.file == "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
     console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
-    let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
+    let data = parse_worksheet(supportedFiles[7].file, supportedFiles[7], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Date:year"]) return callback();
