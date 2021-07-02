@@ -5,8 +5,6 @@ var chaiHttp = require("chai-http");
 var assert = chai.assert;
 const { expect } = require("chai");
 chai.use(chaiHttp);
-var bcrypt = require('bcrypt');
-let filename= "../topk.pdf";
 let testUser = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 
 describe("Test fabric", function() {
@@ -104,12 +102,12 @@ describe("Test fabric", function() {
       .send({
         userId: testUser,
         orgName: "auditor1",
-        utilityId: "USA_EIA_11208",
+        utilityId: "USA_2019_STATE_AK",
         partyId: "1234567890",
-        fromDate: "2019-04-06T10:10:09Z",
-        thruDate: "2019-04-06T10:10:09Z",
+        fromDate: "2019-04-05T10:10:09Z",
+        thruDate: "2019-04-05T10:10:09Z",
         energyUseAmount: 100,
-        energyUseUom: "TONS",
+        energyUseUom: "MWH",
       })
       .end((error, response) => {
        
@@ -181,7 +179,7 @@ describe("Test fabric", function() {
         {
           let entry = response.body[0];
 
-          expect(entry.utilityId).to.not.equal("USA_EIA_11208");
+          expect(entry.utilityId).to.not.equal("USA_EIA_2394");
           expect(entry.partyId).to.not.equal("1234567890");
           expect(entry.fromDate).to.not.equal("2020-04-06T10:10:09Z");
           expect(entry.thruDate).to.not.equal("2020-04-06T10:10:09Z");
