@@ -69,10 +69,10 @@ describe("Test fabric", function() {
       .send({
         userId: testUser,
         orgName: "auditor1",
-        utilityId: "USA_EIA_2394",
+        utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2018-04-09T10:10:09Z",
-        thruDate: "2018-04-09T10:10:09Z",
+        fromDate: "2018-04-11T10:10:09Z",
+        thruDate: "2018-04-11T10:10:09Z",
         energyUseAmount: 50,
         energyUseUom: "kWh",
       })
@@ -100,14 +100,14 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: testUser,
+        userId: "TestUser",
         orgName: "auditor1",
-        utilityId: "USA_2019_STATE_AK",
+        utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2019-04-05T10:10:09Z",
-        thruDate: "2019-04-05T10:10:09Z",
+        fromDate: "2019-04-07T10:10:09Z",
+        thruDate: "2019-04-07T10:10:09Z",
         energyUseAmount: 100,
-        energyUseUom: "MWH",
+        energyUseUom: "TONS",
       })
       .end((error, response) => {
        
@@ -136,11 +136,11 @@ describe("Test fabric", function() {
       .send({
         userId: testUser,
         orgName: "auditor1",
-        utilityId: "USA_EIA_2394",
+        utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2018-04-04T10:10:09Z",
-        thruDate: "2018-04-04T10:10:09Z",
-        energyUseAmount: 100,
+        fromDate: "2018-04-09T10:10:09Z",
+        thruDate: "2018-04-09T10:10:09Z",
+        energyUseAmount: 50,
         energyUseUom: "kWh",
       })
       .end((error, response) => {
@@ -179,7 +179,7 @@ describe("Test fabric", function() {
         {
           let entry = response.body[0];
 
-          expect(entry.utilityId).to.not.equal("USA_EIA_2394");
+          expect(entry.utilityId).to.not.equal("USA_EIA_11208");
           expect(entry.partyId).to.not.equal("1234567890");
           expect(entry.fromDate).to.not.equal("2020-04-06T10:10:09Z");
           expect(entry.thruDate).to.not.equal("2020-04-06T10:10:09Z");
