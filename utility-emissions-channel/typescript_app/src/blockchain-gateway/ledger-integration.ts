@@ -15,6 +15,7 @@ import {FabricRegistryRouter} from '../routers/fabricRegistry';
 import { FabricRegistry } from './fabricRegistry';
 import { UtilityEmissionsChannel } from './utilityEmissionsChannel';
 import {UtilityEmissionsChannelRouter} from '../routers/utilityEmissionsChannel';
+import AWSS3 from './utils/aws';
 
 
 export default class LedgerIntegration{
@@ -74,12 +75,15 @@ export default class LedgerIntegration{
             },
             contractAddress: this.ledgerConfig.netEmissionTokenContract.contractInfo.address
         });
+        // configure and setup data storage
+        const dataStorage = new AWSS3();
         // create Router class
         // utility emission channel : fabric network
         const utilityEmissionChannel = new UtilityEmissionsChannel({
             logLevel: this.ledgerConfig.logLevel,
             fabricClient,
-            keychainId: this.keychainPlugin.getKeychainId()
+            keychainId: this.keychainPlugin.getKeychainId(),
+            dataStorage
         });
         this.carbonAccountingRouter = new CarbonAccountingRouter({
             logLevel: this.ledgerConfig.logLevel,
@@ -89,7 +93,8 @@ export default class LedgerIntegration{
 
         this.utilityEmissionsChannelRouter =  new UtilityEmissionsChannelRouter({
             logLevel: this.ledgerConfig.logLevel,
-            utilityEmissionsChannel: utilityEmissionChannel
+            utilityEmissionsChannel: utilityEmissionChannel,
+            dataStorage
         });
 
         // fabric registry

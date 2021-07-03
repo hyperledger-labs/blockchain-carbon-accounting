@@ -2,11 +2,14 @@
 import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common';
 import {FabricContractInvocationType, PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import {IEmissionRecord, IRecordEmissionsInput,IRecordEmissionsOutput, IUpdateEmissionsMintedTokenRequest} from './I-utilityEmissionsChannel';
+import AWSS3 from './utils/aws';
+import {createHash} from 'crypto';
 
 export interface IUtilityEmissionsChannelOptions{
     logLevel:LogLevelDesc;
     fabricClient:PluginLedgerConnectorFabric;
     keychainId:string;
+    dataStorage:AWSS3;
 }
 
 export class UtilityEmissionsChannel{
@@ -102,6 +105,13 @@ export class UtilityEmissionsChannel{
             this.log.error(`${fnTag} failed fetch emission record : %o`,error);
             throw error;
         }
+
+        try {
+            await this.emissionsRecordChecksum(jsonResult);
+        } catch (error) {
+            this.log.debug(`${fnTag} %o`,error);
+            throw error;
+        }
         return {
             uuid:jsonResult.uuid,
             utilityId:jsonResult.utilityId,
@@ -144,13 +154,72 @@ export class UtilityEmissionsChannel{
             const emissions:IEmissionRecord[] = [];
             for (const emission of jsonResult){
                 const record = emission.Record;
-                if (record.url.length > 0){
-                    // TODO fetch document from S3
+
+                try {
+                    await this.emissionsRecordChecksum(record);
+                } catch (error) {
+                    this.log.debug(`${fnTag} %o`,error);
+                    throw error;
                 }
 
                 if (parseInt(record.fromDate.slice(0, 4),10) < currentYear - 1) {
                     continue;
                 }
+                emissions.push({
+                    uuid : record.uuid,
+                    utilityId : record.utilityId,
+                    partyId : record.partyId,
+                    fromDate : record.fromDate,
+                    thruDate : record.thruDate,
+                    emissionsAmount : record.emissionsAmount,
+                    renewableEnergyUseAmount : record.renewableEnergyUseAmount,
+                    nonrenewableEnergyUseAmount : record.nonrenewableEnergyUseAmount,
+                    energyUseUom : record.energyUseUom,
+                    factorSource : record.factorSource,
+                    url : record.url,
+                    md5 : record.md5,
+                    tokenId : record.tokenId,
+                });
+            }
+            return emissions;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async getAllEmissionsDataByDateRange(userId:string,orgName:string,input:{fromDate:string,thruDate:string}):Promise<IEmissionRecord[]>{
+        const fnTag = '#getAllEmissionsDataByDateRange';
+        const caller = `${orgName}_${userId}`;
+        this.log.debug(`${fnTag} caller : ${caller} input : %o`,input);
+        try {
+            const result = await this.opts.fabricClient.transact({
+                signingCredential: {
+                    keychainId : this.opts.keychainId,
+                    keychainRef: caller,
+                },
+                channelName: this.channelName,
+                contractName: this.chanincodeName,
+                invocationType: FabricContractInvocationType.CALL,
+                methodName: 'getAllEmissionsDataByDateRange',
+                params: [
+                    input.fromDate,
+                    input.thruDate
+                ]
+            });
+            const jsonResult:any[] = JSON.parse(result.functionOutput);
+
+            this.log.debug(`${fnTag} fabric result : %o`,jsonResult);
+            const emissions:IEmissionRecord[] = [];
+            for (const emission of jsonResult){
+                const record = emission.Record;
+
+                try {
+                    await this.emissionsRecordChecksum(record);
+                } catch (error) {
+                    this.log.debug(`${fnTag} %o`,error);
+                    throw error;
+                }
+
                 emissions.push({
                     uuid : record.uuid,
                     utilityId : record.utilityId,
@@ -250,5 +319,34 @@ export class UtilityEmissionsChannel{
     }
     private getUserKey(userId:string,orgName:string):string{
         return `${orgName}_${userId}`;
+    }
+
+    /**
+     * @description checks hash stored on blockchain is same as hash of data fetched from dataUrl
+     * @param dataUrl : url of data
+     */
+    private async emissionsRecordChecksum(record:any){
+        const fnTag = '#EmissionsRecordChecksum';
+        if (record.url && record.url.length > 0){
+            const url = record.url;
+            this.log.debug(`${fnTag} data at url = ${url}`);
+            const filename = decodeURIComponent(url).split('/').slice(-1)[0];
+            let data:Buffer;
+            try {
+                data = await this.opts.dataStorage.download(filename);
+            } catch (error) {
+                this.log.debug(`${fnTag} failed to fetch ${filename} from S3 : %o`,error);
+                return;
+            }
+
+            this.log.debug(`${fnTag} data hash from blockchain = ${record.md5}`);
+            const md5Sum = createHash('md5');
+            md5Sum.update(data);
+            if (md5Sum.digest('hex') !== record.md5){
+                throw new Error(`The retrieved document ${record.url} has a different MD5 hash than recorded on the ledger. This file may have been tampered with.`);
+            }
+
+            this.log.debug(`${fnTag} Md5 CheckSum successful !!`);
+        }
     }
 }
