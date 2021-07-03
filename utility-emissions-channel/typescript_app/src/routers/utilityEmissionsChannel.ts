@@ -5,10 +5,13 @@ import {Router,Request,Response} from 'express';
 import {validationResult,body,param} from 'express-validator';
 import {IEmissionRecord} from '../blockchain-gateway/I-utilityEmissionsChannel';
 import {checkDateConflict} from '../blockchain-gateway/utils/dateUtils';
+import {createHash} from 'crypto';
+import AWSS3 from '../blockchain-gateway/utils/aws';
 
 interface IUtilityEmissionsChannelRouterOptions{
     logLevel:LogLevelDesc;
     utilityEmissionsChannel:UtilityEmissionsChannel;
+    dataStorage:AWSS3;
 }
 
 export class UtilityEmissionsChannelRouter{
@@ -82,6 +85,37 @@ export class UtilityEmissionsChannelRouter{
             this.getAllEmissionData.bind(this)
         );
 
+        this.router.get(
+            'getAllEmissionsDataByDateRange/:userId/:orgName/:fromDate/:thruDate',
+            [
+                param('userId').isString(),
+                param('orgName').isString(),
+                param('fromDate').custom((value, { req }) => {
+                  const matches = value.match(
+                    /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+                  );
+                  if (!matches) {
+                    throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
+                  }
+
+                  // Indicates the success of this synchronous custom validator
+                  return true;
+                }),
+                param('thruDate').custom((value, { req }) => {
+                  const matches = value.match(
+                    /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z)?$/
+                  );
+                  if (!matches) {
+                    throw new Error('Date is required to be in ISO 6801 format (i.e 2016-04-06T10:10:09Z)');
+                  }
+
+                  // Indicates the success of this synchronous custom validator
+                  return true;
+                }),
+            ],
+            this.getAllEmissionsDataByDateRange.bind(this)
+        );
+
     }
 
     private async recordEmissions(req:Request,res:Response){
@@ -124,10 +158,25 @@ export class UtilityEmissionsChannelRouter{
                 });
             }
         }
-        const url = '';
-        const md5 = '';
-        // TODO S3 dependence to store file
-
+        let url = '';
+        let md5 = '';
+        if (req.file){
+            const fileBin = req.file.buffer;
+            const filename = `${userId}-${orgName}-${utilityId}-${partyId}-${fromDate}-${thruDate}.pdf`;
+            this.log.debug(`${fnTag} upload ${filename} to S3`);
+            try {
+                const uploadResp = await this.opts.dataStorage.upload(fileBin,filename);
+                url = uploadResp.Location;
+                const md5sum = createHash('md5');
+                md5sum.update(fileBin);
+                md5 = md5sum.digest('hex');
+            } catch (error) {
+                this.log.debug(`${fnTag} failed to upload : %o`,error);
+                return res.status(409).json({
+                    msg : `failed to upload : ${(error as Error).message}`
+                });
+            }
+        }
         // record emission on ledger
         const ledgerRes = await this.opts.utilityEmissionsChannel.recordEmissions(userId,orgName,{
             utilityId,
@@ -180,6 +229,23 @@ export class UtilityEmissionsChannelRouter{
 
         try {
             const result = await this.opts.utilityEmissionsChannel.getAllEmissionRecords(userId,orgName,{utilityId,partyId});
+            return res.status(200).json(result);
+        } catch (error) {
+            return res.status(409).json({
+                error
+            });
+        }
+    }
+    private async getAllEmissionsDataByDateRange(req:Request,res:Response){
+        const fnTag = `${req.method.toUpperCase()} ${req.baseUrl}${req.url}`;
+        this.log.debug(fnTag);
+        const userId = req.params.userId;
+        const orgName = req.params.orgName;
+        const fromDate = req.params.fromDate;
+        const thruDate = req.params.thruDate;
+
+        try {
+            const result = await this.opts.utilityEmissionsChannel.getAllEmissionsDataByDateRange(userId,orgName,{fromDate,thruDate});
             return res.status(200).json(result);
         } catch (error) {
             return res.status(409).json({
