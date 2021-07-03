@@ -7,6 +7,8 @@ const { expect } = require("chai");
 chai.use(chaiHttp);
 let testUser = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 const { SHA256 } = require('crypto-js');
+let emissions_2019;
+let emissions_2018;
 
 // calculating the hash for partyId
 const hash = SHA256("1234567890").toString();
@@ -118,6 +120,8 @@ describe("Test fabric", function() {
           expect(entry.info).to.equal("EMISSION RECORDED TO LEDGER");
           let year = entry.factorSource.includes("2019");
           expect(year).to.equal(true);
+          // storing emissions calulated for 2019
+          emissions_2019 = entry.emissionsAmount;
           done();
        }
 
@@ -150,6 +154,8 @@ describe("Test fabric", function() {
           expect(entry.info).to.equal("EMISSION RECORDED TO LEDGER");
           let year = entry.factorSource.includes("2018");
           expect(year).to.equal(true);
+          // storing emissions calulated for 2018
+          emissions_2018 = entry.emissionsAmount;
           done();
        }
 
@@ -160,8 +166,21 @@ describe("Test fabric", function() {
       });
   });
 
-
- it("should check if partyId is Encrypted", function(done) {
+ it("should check if emissions calculated for 2019 and 2018 for same energy amount is different", function(done) {
+ 
+   try
+   {
+     expect(emissions_2019).to.not.equal(emissions_2018);
+     done();
+   }
+   
+   catch(error)
+   {
+     done(error);
+   }
+ });
+ 
+it("should check if partyId is Encrypted", function(done) {
     chai
        .request(host)
       .post(recordEmissionPath)
