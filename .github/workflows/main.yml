@@ -16,8 +16,8 @@ jobs:
         
       - name: Test for utility-emissions-channel
         run: cd ./utility-emissions-channel/typescript_app
-      - name: Run manualTests.sh file to start server
-        run: sh ./manualTests.sh
+      - name: Run runManual.sh file to start api server outside docker
+        run: sh ./runManual.sh
       - name: Change Directory
         run: cd ..
       - name: Install packages for static-code-analysis
