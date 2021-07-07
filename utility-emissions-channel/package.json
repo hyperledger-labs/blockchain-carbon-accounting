@@ -1,0 +1,21 @@
+{
+  "name": "grunt-file",
+  "version": "0.1.0",
+  "dependencies": {
+    "@types/node": "^16.0.0",
+    "grunt-blanket": "0.0.10",
+    "grunt-cli": "^1.4.3",
+    "jshint": "^2.13.0",
+    "mocha": "^9.0.2",
+    "tslint": "^6.1.3",
+    "typescript": "^4.3.5"
+  },
+  "devDependencies": {
+    "grunt": "^1.4.1",
+    "grunt-contrib-jshint": "^3.0.0",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-mocha-istanbul": "^5.0.2",
+    "grunt-mocha-test": "^0.13.3",
+    "grunt-newer": "^1.3.0"
+  }
+}
