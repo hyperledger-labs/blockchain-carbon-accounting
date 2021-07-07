@@ -18,5 +18,11 @@ jobs:
         run: cd ./utility-emissions-channel/typescript_app
       - name: Run manualTests.sh file to start server
         run: sh ./manualTests.sh
-      - name: Run tests
-        run: mocha ./tests --timeout 10000
+      - name: Change Directory
+        run: cd ..
+      - name: Install packages for static-code-analysis
+        run: npm install
+      - name: Run static-code-analyzer
+        run: grunt 
+        
+        
