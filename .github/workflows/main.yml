@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-node@v1
         
       - name: Test for utility-emissions-channel
-        run: cd ./utility-emissions-channel/typescript_app
+        run: cd ../../utility-emissions-channel/typescript_app
       - name: Run runManual.sh file to start api server outside docker
         run: sh ./runManual.sh
       - name: Change Directory
