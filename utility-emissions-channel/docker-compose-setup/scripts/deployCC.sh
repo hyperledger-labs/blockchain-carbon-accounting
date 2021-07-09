@@ -144,20 +144,26 @@ fi
 #fi
 
 # import utils
-. scripts/envVar.sh
+. scripts/envVar.sh true
 
 
 packageChaincode() {
+#cd ./trustid
+#tar cfz trustidcc.tar.gz *
+#cd ../
+
+#if [ flase ]; then
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode package ${CC_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CC_NAME}_${CC_VERSION} >&log.txt
+	./bin_mac/peer lifecycle chaincode package ${CC_NAME}.tar.gz --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} --label ${CC_NAME}_${CC_VERSION} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
 	verifyResult $res "Chaincode packaging on peer1.auditor${ORG} has failed"
 	echo "===================== Chaincode is packaged on peer1.auditor${ORG} ===================== "
 	echo
+#fi
 }
 
 # installChaincode PEER ORG
@@ -165,7 +171,7 @@ installChaincode() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode install ${CC_NAME}.tar.gz -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
+	./bin_mac/peer lifecycle chaincode install ${CC_NAME}.tar.gz -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -179,7 +185,7 @@ queryInstalled() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode queryinstalled >&log.txt
+	./bin_mac/peer lifecycle chaincode queryinstalled >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -194,7 +200,7 @@ approveForMyOrg() {
 	ORG=$1
 	setGlobals $ORG
 	set -x
-	peer lifecycle chaincode approveformyorg -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	./bin_mac/peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --package-id ${PACKAGE_ID} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	set +x
 	cat log.txt
 	verifyResult $res "Chaincode definition approved on peer.auditor${ORG} on channel '$CHANNEL_NAME' failed"
@@ -216,7 +222,7 @@ checkCommitReadiness() {
 		sleep $DELAY
 		echo "Attempting to check the commit readiness of the chaincode definition on peer.auditor${ORG}, Retry after $DELAY seconds."
 		set -x
-		peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} --output json >&log.txt
+		./bin_mac/peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} --output json >&log.txt
 		res=$?
 		set +x
 		let rc=0
@@ -246,7 +252,7 @@ commitChaincodeDefinition() {
 	# peer (if join was successful), let's supply it directly as we know
 	# it using the "-o" option
 	set -x
-	peer lifecycle chaincode commit -o orderer1.auditor1.carbonAccounting.com:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
+	./bin_mac/peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer1.auditor1.carbonAccounting.com --tls --cafile $ORDERER_AUDITOR1_CA --channelID $CHANNEL_NAME --name ${CC_NAME} $PEER_CONN_PARMS --version ${CC_VERSION} --sequence ${CC_SEQUENCE} ${INIT_REQUIRED} ${CC_END_POLICY} ${CC_COLL_CONFIG} >&log.txt
 	res=$?
 	set +x
 	cat log.txt
@@ -269,7 +275,7 @@ queryCommitted() {
 		sleep $DELAY
 		echo "Attempting to Query committed status on peer.auditor${ORG}, Retry after $DELAY seconds."
 		set -x
-		peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name ${CC_NAME} >&log.txt
+		./bin_mac/peer lifecycle chaincode querycommitted --channelID $CHANNEL_NAME --name ${CC_NAME} >&log.txt
 		res=$?
 		set +x
 		test $res -eq 0 && VALUE=$(cat log.txt | grep -o '^Version: '$CC_VERSION', Sequence: [0-9], Endorsement Plugin: escc, Validation Plugin: vscc')

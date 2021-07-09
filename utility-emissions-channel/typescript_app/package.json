@@ -36,6 +36,6 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "serverless-s3-local": "^0.6.7"
+    "serverless-s3-local": "^0.6.18"
   }
 }
