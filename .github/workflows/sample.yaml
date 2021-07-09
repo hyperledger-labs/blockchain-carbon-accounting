@@ -17,7 +17,7 @@ jobs:
       - name: Sample test check
         run: |
           npm config set user root
-          id un
+          id -un
           npm config set unsafe-perm true 
           sudo npm install -g mocha chai 
           sudo mocha ./test 
