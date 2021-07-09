@@ -1,9 +1,9 @@
 name: Github CI/CD
 on:
   push:
-    branches: [ master ]
+    branches: [ mentorship-automated-testing ]
   pull_request:
-    branches: [ main ]
+    branches: [ mentorship-automated-testing ]
     
 jobs:
   build:
