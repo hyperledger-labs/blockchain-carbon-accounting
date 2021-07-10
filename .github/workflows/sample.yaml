@@ -19,5 +19,6 @@ jobs:
           npm config set user root
           id -un
           npm config set unsafe-perm true 
-          sudo npm install -g mocha chai --save-dev
+          sudo npm install -g mocha
+          sudo npm install --save-dev chai
           sudo mocha ./test 
