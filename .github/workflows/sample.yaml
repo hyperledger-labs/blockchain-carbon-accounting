@@ -16,9 +16,9 @@ jobs:
       - uses: actions/setup-node@v2
       - name: Sample test check
         run: |
+          npm config set unsafe-perm true
           npm config set user root
-          id -un
-          npm config set unsafe-perm true 
+          id -un 
           sudo npm install -g mocha
           sudo npm install --save-dev chai
           sudo mocha ./test 
