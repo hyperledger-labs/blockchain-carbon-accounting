@@ -183,7 +183,7 @@ describe("Test fabric", function() {
            expect(entry.info).to.equal("EMISSION RECORDED TO LEDGER");
            expect(entry.partyId).to.not.equal("1234567890");
            
-           // checking if partyId is encrypted
+           // checking if partyId is hashed in API response
            expect(entry.partyId).to.equal(hash);  
            done();
            }
