@@ -1,0 +1,30 @@
+name: Github CI/CD
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Test for utility-emissions-channel
+        run: |
+          cd ./typescript_app
+          ls -la
+          npm config set unsafe-perm true
+          sudo sh ./runManual.sh
+      
+      - name: Run tests
+        run: |
+          cd ./typescript_app
+          sudo npm install
+          sudo mocha ./tests --timeout 10000    
+     
+ 
