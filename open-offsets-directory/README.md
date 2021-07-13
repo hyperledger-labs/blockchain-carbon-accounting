@@ -1,6 +1,6 @@
 # Voluntary Carbon Offsets Directory
 
-This is an initial implementaiton of the [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research+Project) using a database.  See https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation for more details.
+This is an initial implementation of the [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research+Project) using a database.  See https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation for more details.
 
 ## Setup
 
@@ -35,6 +35,13 @@ cat data/ACR_CAR_retirements.csv | psql open-offsets-directory -c "$(cat node-se
 cat data/VCS_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_vcs_retirements.sql)"
 cat data/GOLD_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_gold_retirements.sql)"
 ```
+
+Then
+```
+psql open-offsets-directory < node-server/import-issuances.sql
+psql open-offsets-directory < node-server/import-retirements.sql
+```
+
 
 ### Optional: setup Google ReCaptcha
 
