@@ -325,6 +325,54 @@ class ProjectsList extends Component {
     );
   }
 
+  renderSpinner(loading) {
+    return loading ? (
+      <div className="spinner-placeholder">
+        <ActivityIndicator size="large" color="blue" animating={loading} />
+      </div>
+    ) : (
+      ""
+    );
+  }
+
+  renderPaginator(count, page, pageSize, pageChangeHandler, pageSizeHandler) {
+    return (
+      <div className="row">
+        <div className="col-auto">
+          <Pagination
+            className="my-3"
+            count={count}
+            page={page}
+            siblingCount={1}
+            boundaryCount={1}
+            variant="outlined"
+            shape="rounded"
+            onChange={pageChangeHandler}
+          />
+        </div>
+        <div className="col-auto my-3 row">
+          <label className="col-auto col-form-label" htmlFor="pageSize">
+            Items per Page:
+          </label>
+          <div className="col-auto">
+            <select
+              id="pageSize"
+              className="form-select"
+              onChange={pageSizeHandler}
+              value={pageSize}
+            >
+              {this.pageSizes.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   render() {
     const { searchFields, projects, page, count, pageSize, errorMessage } =
       this.state;
@@ -395,25 +443,7 @@ class ProjectsList extends Component {
         </div>
         <div className="col-12">
           <h4>Projects List</h4>
-          {this.state.loadingIndicator ? (
-            <div class="spinner-placeholder">
-              
-              <ActivityIndicator
-             
-                  size="large"
-           
-                    color="blue"
-         
-                      animating={this.state.loadingIndicator}
-
-                           />
-            
-            </div>
-          ) : (
-            
-            ""
-          
-          )}
+          {this.renderSpinner(this.state.loadingIndicator)}
           {errorMessage ? (
             <div
               className="alert alert-danger d-flex align-items-center"
@@ -436,39 +466,13 @@ class ProjectsList extends Component {
                 </li>
               ))}
           </ul>
-          <div className="row">
-            <div className="col-auto">
-              <Pagination
-                className="my-3"
-                count={count}
-                page={page}
-                siblingCount={1}
-                boundaryCount={1}
-                variant="outlined"
-                shape="rounded"
-                onChange={this.handlePageChange}
-              />
-            </div>
-            <div className="col-auto my-3 row">
-              <label className="col-auto col-form-label" htmlFor="pageSize">
-                Items per Page:
-              </label>
-              <div className="col-auto">
-                <select
-                  id="pageSize"
-                  className="form-select"
-                  onChange={this.handlePageSizeChange}
-                  value={pageSize}
-                >
-                  {this.pageSizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+          {this.renderPaginator(
+            count,
+            page,
+            pageSize,
+            this.handlePageChange,
+            this.handlePageSizeChange
+          )}
         </div>
       </div>
     );
