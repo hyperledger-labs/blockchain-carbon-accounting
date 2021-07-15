@@ -1,3 +1,5 @@
+import Tab from "@material-ui/core/Tab";
+import Tabs from "@material-ui/core/Tabs";
 import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
 import Linkify from "react-linkify";
@@ -11,12 +13,14 @@ const componentDecorator = (href, text, key) => (
 );
 
 const DEFAULT_PAGE_SIZE = 25;
+const DEFAULT_TAB = 0;
 
 export default class Project extends Component {
   constructor(props) {
     super(props);
     this.getProject = this.getProject.bind(this);
     this.goBack = this.goBack.bind(this);
+    this.handleTabChange = this.handleTabChange.bind(this);
     this.handleIssuancesPageChange = this.handleIssuancesPageChange.bind(this);
     this.handleIssuancesPageSizeChange =
       this.handleIssuancesPageSizeChange.bind(this);
@@ -27,6 +31,7 @@ export default class Project extends Component {
 
     this.pageSizes = [10, 25, 50, 100];
     this.state = {
+      current_tab: DEFAULT_TAB,
       current: {
         id: null,
         project_name: "",
@@ -34,10 +39,12 @@ export default class Project extends Component {
       issuances: [],
       issuances_page: 1,
       issuances_count: 0,
+      issuances_total: 0,
       issuances_pageSize: DEFAULT_PAGE_SIZE,
       issuances_loadingIndicator: true,
       retirements_page: 1,
       retirements_count: 0,
+      retirements_total: 0,
       retirements_pageSize: DEFAULT_PAGE_SIZE,
       retirements_loadingIndicator: false,
       message: "",
@@ -52,10 +59,17 @@ export default class Project extends Component {
     this.props.history.goBack();
   }
 
+  handleTabChange(event, newValue) {
+    this.setState({
+      current_tab: newValue,
+    });
+  }
+
   getProject(id) {
     ProjectDataService.get(id)
       .then((response) => {
         this.setState({
+          current_tab: DEFAULT_TAB,
           current: response.data,
           issuances_page: 1,
           issuances_count: 0,
@@ -65,6 +79,7 @@ export default class Project extends Component {
           retirements_loadingIndicator: false,
         });
         console.log(response.data);
+        window.scrollTo(0, 0);
         this.setState({ issuances_loadingIndicator: true });
         this.retrieveIssuances();
         this.retrieveRetirements();
@@ -103,10 +118,12 @@ export default class Project extends Component {
       this.getRequestParams(current, retirements_page, retirements_pageSize)
     )
       .then((retirements_response) => {
-        const { retirements, totalPages } = retirements_response.data;
+        const { retirements, totalPages, totalItems } =
+          retirements_response.data;
         this.setState({
           retirements,
           retirements_count: totalPages,
+          retirements_total: totalItems,
         });
         this.setState({ retirements_loadingIndicator: false });
       })
@@ -126,10 +143,11 @@ export default class Project extends Component {
       this.getRequestParams(current, issuances_page, issuances_pageSize)
     )
       .then((issuances_response) => {
-        const { issuances, totalPages } = issuances_response.data;
+        const { issuances, totalPages, totalItems } = issuances_response.data;
         this.setState({
           issuances,
           issuances_count: totalPages,
+          issuances_total: totalItems,
         });
         this.setState({ issuances_loadingIndicator: false });
       })
@@ -267,14 +285,17 @@ export default class Project extends Component {
       current,
       issuances,
       issuances_count,
+      issuances_total,
       issuances_page,
       issuances_pageSize,
       issuances_loadingIndicator,
       retirements,
       retirements_count,
+      retirements_total,
       retirements_page,
       retirements_pageSize,
       retirements_loadingIndicator,
+      current_tab,
     } = this.state;
 
     return (
@@ -290,16 +311,30 @@ export default class Project extends Component {
                 Back
               </button>
             </h4>
-            <div className="mt-4">
-              {ProjectDataService.fields().map((f) =>
-                this.renderProjectField(f, current)
-              )}
-            </div>
+
+            <Tabs
+              value={current_tab}
+              indicatorColor="primary"
+              textColor="primary"
+              onChange={this.handleTabChange}
+            >
+              <Tab label="Details" />
+              <Tab label={`Issuances (${issuances_total})`} />
+              <Tab label={`Retirements (${retirements_total})`} />
+            </Tabs>
+
             <p>{this.state.message}</p>
-            <div className="issuances">
+            <div role="tabpanel" hidden={current_tab !== 0}>
+              <div className="mt-4">
+                {ProjectDataService.fields().map((f) =>
+                  this.renderProjectField(f, current)
+                )}
+              </div>
+            </div>
+            <div role="tabpanel" hidden={current_tab !== 1}>
               <h4>Issuances</h4>
               {this.renderSpinner(issuances_loadingIndicator)}
-              <table class="table">
+              <table className="table">
                 <thead>
                   <tr>
                     <th scope="col">Vintage Year</th>
@@ -329,10 +364,10 @@ export default class Project extends Component {
               )}
             </div>
 
-            <div className="retirements">
+            <div role="tabpanel" hidden={current_tab !== 2}>
               <h4>Retirements</h4>
               {this.renderSpinner(retirements_loadingIndicator)}
-              <table class="table">
+              <table className="table">
                 <thead>
                   <tr>
                     <th scope="col">Vintage Year</th>
