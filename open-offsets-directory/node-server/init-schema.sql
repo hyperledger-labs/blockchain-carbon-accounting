@@ -75,3 +75,26 @@ CREATE TABLE project (
     source text,
     by_user text
 );
+
+DROP TABLE IF EXISTS issuance;
+CREATE TABLE issuance (
+    id uuid primary key,
+    project_id uuid,
+    vintage_year integer,
+    issuance_date date,
+    quantity_issued bigint,
+    serial_number text
+);
+
+DROP TABLE IF EXISTS retirement;
+CREATE TABLE retirement (
+    id uuid primary key,
+    project_id uuid,
+    vintage_year integer,
+    retirement_date date,
+    quantity_retired bigint,
+    retirement_beneficiary text,
+    retirement_reason text,
+    retirement_detail text,
+    serial_number text
+);
