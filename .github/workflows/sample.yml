@@ -1,0 +1,24 @@
+name: Github CI/CD
+on:
+  push:
+    branches: [ mentorship-automated-testing ]
+  pull_request:
+    branches: [ mentorship-automated-testing ]
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel/typescript_app
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+      - name: Sample test check
+        run: |
+          npm config set unsafe-perm true
+          npm config set user root
+          id -un 
+          sudo npm install -g mocha
+          sudo npm install --save-dev chai
+          sudo mocha ./test 
