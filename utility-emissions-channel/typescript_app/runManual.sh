@@ -6,8 +6,14 @@ rm -rf ./node_modules
 echo "Updating npm..."
 npm update
 
+echo "Setting user to root..."
+npm config set user root
+
+echo "Check current user..."
+id -un
+
 echo "Installing node modules..."
-npm install
+npm install -g
 
 echo "Installing nodemon..."
 npm install -g nodemon
