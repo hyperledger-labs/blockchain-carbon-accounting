@@ -5,6 +5,7 @@ var chaiHttp = require("chai-http");
 var assert = chai.assert;
 const { expect } = require("chai");
 chai.use(chaiHttp);
+let testUser = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
 
 describe("Test fabric", function() {
   var host = "http://localhost:9000";
@@ -12,7 +13,7 @@ describe("Test fabric", function() {
   const enrollUserPath = "/api/v1/utilityemissionchannel/registerEnroll/user";
   const recordEmissionPath = "/api/v1/utilityemissionchannel/emissionscontract/recordEmissions";
   const getAllEmissionsPath =
-    "/api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsData/TestUser/auditor1/USA_EIA_11208/1234567890";
+    `/api/v1/utilityemissionchannel/emissionscontract/getAllEmissionsData/${testUser}/auditor1/USA_EIA_11208/1234567890`;
 
   it("should register auditor1", function(done) {
     chai
@@ -42,7 +43,7 @@ describe("Test fabric", function() {
       .post(enrollUserPath)
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
-      .send({ userId: "TestUser", orgName: "auditor1", affiliation: "auditor1.department1" })
+      .send({ userId: testUser, orgName: "auditor1", affiliation: "auditor1.department1" })
       .end((error, response) => {
       
        try{
@@ -66,12 +67,12 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2018-05-07T10:10:09Z",
-        thruDate: "2018-05-07T10:10:09Z",
+        fromDate: "2018-04-07T10:10:08Z",
+        thruDate: "2018-04-07T10:10:08Z",
         energyUseAmount: 100,
         energyUseUom: "kWh",
       })
@@ -99,12 +100,12 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2019-04-06T10:10:09Z",
-        thruDate: "2019-04-06T10:10:09Z",
+        fromDate: "2019-04-07T10:10:09Z",
+        thruDate: "2019-04-07T10:10:09Z",
         energyUseAmount: 100,
         energyUseUom: "TONS",
       })
@@ -133,14 +134,14 @@ describe("Test fabric", function() {
       // .field('myparam' , 'test')
       .set("content-type", "application/x-www-form-urlencoded")
       .send({
-        userId: "TestUser",
+        userId: testUser,
         orgName: "auditor1",
         utilityId: "USA_EIA_11208",
         partyId: "1234567890",
-        fromDate: "2018-10-06T10:10:09Z",
-        thruDate: "2018-10-06T10:10:09Z",
-        energyUseAmount: 100,
-        energyUseUom: "TONS",
+        fromDate: "2018-04-09T10:10:09Z",
+        thruDate: "2018-04-09T10:10:09Z",
+        energyUseAmount: 50,
+        energyUseUom: "kWh",
       })
       .end((error, response) => {
        
