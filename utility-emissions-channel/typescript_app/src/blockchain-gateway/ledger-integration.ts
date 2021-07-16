@@ -7,6 +7,7 @@ import {getLedgerConfigs,ILedgerIntegrationConfig} from '../config/ledger-config
 import {NetEmissionsTokenNetworkContract} from './netEmissionsTokenNetwork';
 import { Logger, LoggerProvider } from '@hyperledger/cactus-common';
 import {PluginKeychainMemory} from '@hyperledger/cactus-plugin-keychain-memory';
+import {PluginKeychainVault} from '@hyperledger/cactus-plugin-keychain-vault';
 import {PluginRegistry} from '@hyperledger/cactus-core';
 import {v4 as uuid4} from 'uuid';
 import { PluginLedgerConnectorXdai } from '@hyperledger/cactus-plugin-ledger-connector-xdai';
@@ -39,14 +40,25 @@ export default class LedgerIntegration{
             logLevel: this.ledgerConfig.logLevel
         });
 
-        const pluginRegistry = new PluginRegistry({plugins : [this.keychainPlugin]});
+        // vault keychain for storing private key and certificates of fabric client
+        const certKeychain = new PluginKeychainVault({
+            keychainId : 'certKeychain',
+            apiVersion: this.ledgerConfig.vaultKeychain.apiVersion,
+            endpoint: this.ledgerConfig.vaultKeychain.endpoint,
+            token: this.ledgerConfig.vaultKeychain.token,
+            kvSecretsMountPath: `${this.ledgerConfig.vaultKeychain.kvMountPath}/data/`,
+            instanceId: uuid4(),
+            logLevel: this.ledgerConfig.logLevel
+        });
+
+        const pluginRegistry = new PluginRegistry({plugins : [this.keychainPlugin,certKeychain]});
 
         // TODO : support infura provider
         const ethClient = new PluginLedgerConnectorXdai({
             rpcApiHttpHost: this.ledgerConfig.ethNode.url,
             logLevel: this.ledgerConfig.logLevel,
             instanceId : uuid4(),
-            pluginRegistry
+            pluginRegistry,
         });
 
         const fabricClient = new PluginLedgerConnectorFabric({
@@ -82,7 +94,7 @@ export default class LedgerIntegration{
         const utilityEmissionChannel = new UtilityEmissionsChannel({
             logLevel: this.ledgerConfig.logLevel,
             fabricClient,
-            keychainId: this.keychainPlugin.getKeychainId(),
+            keychainId: certKeychain.getKeychainId(),
             dataStorage
         });
         this.carbonAccountingRouter = new CarbonAccountingRouter({
@@ -110,7 +122,7 @@ export default class LedgerIntegration{
             logLevel: this.ledgerConfig.logLevel,
             fabricClient,
             orgCAs,
-            keychain: this.keychainPlugin,
+            keychain: certKeychain,
             adminUsername: this.ledgerConfig.utilityEmissionsChaincode.adminUsername,
             adminPassword: this.ledgerConfig.utilityEmissionsChaincode.adminPassword
         });

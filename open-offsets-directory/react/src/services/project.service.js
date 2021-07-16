@@ -5,6 +5,14 @@ class ProjectDataService {
     return http.get("/projects", { params });
   }
 
+  getIssuances(params) {
+    return http.get("/issuances", { params });
+  }
+
+  getRetirements(params) {
+    return http.get("/retirements", { params });
+  }
+
   get(id) {
     return http.get(`/projects/${id}`);
   }

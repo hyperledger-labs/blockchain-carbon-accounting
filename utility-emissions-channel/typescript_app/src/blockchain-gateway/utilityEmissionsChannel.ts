@@ -40,7 +40,7 @@ export class UtilityEmissionsChannel{
                 },
                 channelName: this.channelName,
                 contractName: this.chanincodeName,
-                invocationType: FabricContractInvocationType.SEND,
+                invocationType: FabricContractInvocationType.Send,
                 methodName: 'recordEmissions',
                 params: [
                     input.utilityId,
@@ -96,7 +96,7 @@ export class UtilityEmissionsChannel{
                 },
                 channelName: this.channelName,
                 contractName: this.chanincodeName,
-                invocationType: FabricContractInvocationType.CALL,
+                invocationType: FabricContractInvocationType.Call,
                 methodName: 'getEmissionsData',
                 params: [input.uuid]
             });
@@ -141,7 +141,7 @@ export class UtilityEmissionsChannel{
                 },
                 channelName: this.channelName,
                 contractName: this.chanincodeName,
-                invocationType: FabricContractInvocationType.CALL,
+                invocationType: FabricContractInvocationType.Call,
                 methodName: 'getAllEmissionsData',
                 params: [
                     input.utilityId,
@@ -199,7 +199,7 @@ export class UtilityEmissionsChannel{
                 },
                 channelName: this.channelName,
                 contractName: this.chanincodeName,
-                invocationType: FabricContractInvocationType.CALL,
+                invocationType: FabricContractInvocationType.Call,
                 methodName: 'getAllEmissionsDataByDateRange',
                 params: [
                     input.fromDate,
@@ -255,7 +255,7 @@ export class UtilityEmissionsChannel{
                 },
                 channelName: this.channelName,
                 contractName: this.chanincodeName,
-                invocationType: FabricContractInvocationType.SEND,
+                invocationType: FabricContractInvocationType.Send,
                 methodName: 'updateEmissionsRecord',
                 params: [
                     input.uuid,
@@ -305,7 +305,7 @@ export class UtilityEmissionsChannel{
                 },
                 channelName: this.channelName,
                 contractName: this.chanincodeName,
-                invocationType: FabricContractInvocationType.SEND,
+                invocationType: FabricContractInvocationType.Send,
                 methodName: 'updateEmissionsMintedToken',
                 params: [
                     input.tokenId,

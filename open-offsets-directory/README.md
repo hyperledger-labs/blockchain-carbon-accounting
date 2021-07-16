@@ -1,6 +1,6 @@
 # Voluntary Carbon Offsets Directory
 
-This is an initial implementaiton of the [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research+Project) using a database.  See https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation for more details.
+This is an initial implementation of the [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research+Project) using a database.  See https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+-+Implementation for more details.
 
 ## Setup
 
@@ -18,11 +18,30 @@ Then initialize the schema using `node-server/init-schema.sql`
 psql open-offsets-directory < node-server/init-schema.sql
 ```
 
-Finally import the projects data from the CSV sample file `node-server/projects.csv` (this data is from https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database)
+Import the projects data from the CSV sample file `data/projects.csv` (this data is from https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database)
 
 ```
-cat node-server/projects.csv | psql open-offsets-directory -c "$(cat node-server/import-csv.sql)"
+cat data/projects.csv | psql open-offsets-directory -c "$(cat node-server/import-csv.sql)"
 ```
+
+Import the details of Issuances and Retirements:
+
+```
+cat data/ACR_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_acr_issuances.sql)"
+cat data/CAR_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_car_issuances.sql)"
+cat data/VCS_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_vcs_issuances.sql)"
+cat data/GOLD_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_gold_issuances.sql)"
+cat data/ACR_CAR_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_acr-car_retirements.sql)"
+cat data/VCS_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_vcs_retirements.sql)"
+cat data/GOLD_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_gold_retirements.sql)"
+```
+
+Then
+```
+psql open-offsets-directory < node-server/import-issuances.sql
+psql open-offsets-directory < node-server/import-retirements.sql
+```
+
 
 ### Optional: setup Google ReCaptcha
 
