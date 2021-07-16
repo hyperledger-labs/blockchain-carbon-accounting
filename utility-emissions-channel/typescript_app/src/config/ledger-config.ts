@@ -11,6 +11,7 @@ export interface ILedgerIntegrationConfig{
     ethNode?:IEthNode;
     netEmissionTokenContract?:INetEmissionTokenContractConfigs;
     utilityEmissionsChaincode?:IFabricChaincodeConfig;
+    vaultKeychain?:IVaultKeychain;
 }
 
 interface IEthNode{
@@ -49,6 +50,14 @@ interface IFabricChaincodeConfig{
     // admin user and password
     adminUsername:string;
     adminPassword:string;
+}
+
+interface IVaultKeychain{
+    // v1 default
+    apiVersion:string;
+    endpoint:string;
+    token:string;
+    kvMountPath:string;
 }
 
 export function getLedgerConfigs():ILedgerIntegrationConfig{
@@ -120,6 +129,17 @@ export function getLedgerConfigs():ILedgerIntegrationConfig{
     Checks.nonBlankString(utilityEmissionsChaincodeCfg,'LEDGER_EMISSION_NETWORK_CFG');
     const utilityEmissionsChaincode = readUtilityEmissionChaincodeCfg(utilityEmissionsChaincodeCfg);
     config.utilityEmissionsChaincode = utilityEmissionsChaincode;
+    //
+    // ================================================================
+    // vault keychain configs  ::::: start
+    //
+    const vaultConfig:IVaultKeychain = {
+        apiVersion: process.env.VAULT_API_VERSION || 'v1',
+        endpoint: process.env.VAULT_ENDPOINT || 'http://127.0.0.1:8200' ,
+        token: process.env.VAULT_TOKEN,
+        kvMountPath: process.env.VAULT_KV_MOUNT_PATH,
+    };
+    config.vaultKeychain = vaultConfig;
     return config;
 }
 

@@ -3,7 +3,7 @@
 import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common';
 import {PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import {IEnrollRegistrarRequest, IEnrollRegistrarResponse} from './I-fabricRegistry';
-import {PluginKeychainMemory} from '@hyperledger/cactus-plugin-keychain-memory';
+import {PluginKeychainVault} from '@hyperledger/cactus-plugin-keychain-vault';
 import Client from 'fabric-client';
 
 export interface IFabricRegistryOptions{
@@ -13,7 +13,7 @@ export interface IFabricRegistryOptions{
         mspId:string,
         ca:string
     }};
-    keychain:PluginKeychainMemory;
+    keychain:PluginKeychainVault;
     adminUsername:string;
     adminPassword:string;
 }
@@ -44,6 +44,9 @@ export class FabricRegistry{
     async enrollRegistrar(req:IEnrollRegistrarRequest):Promise<IEnrollRegistrarResponse>{
         const fnTag = '#enrollRegistrar';
         try {
+            if (await this.opts.keychain.has(`${req.orgName}_${this.opts.adminUsername}`)){
+                throw new Error(`${this.opts.adminUsername} of organizations ${req.orgName} is already enrolled`);
+            }
             const refCA = this.opts.orgCAs[req.orgName];
             this.log.debug(`${fnTag} enroll ${req.orgName}'s registrar with ${refCA.ca}`);
             const ca = await this.opts.fabricClient.createCaClient(refCA.ca);
@@ -73,6 +76,9 @@ export class FabricRegistry{
     async enrollUser(userId:string,orgName:string,affiliation:string){
         const fnTag = '#enrollUser';
         try {
+            if (await this.opts.keychain.has(`${orgName}_${userId}`)){
+                throw new Error(`${userId} of organizations ${orgName} is already enrolled`);
+            }
             const refCa = this.opts.orgCAs[orgName];
             if (!refCa){
                 throw new Error(`organizations ${orgName} doesn't exists`);

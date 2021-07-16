@@ -33,7 +33,7 @@ export class NetEmissionsTokenNetworkContract{
 
     // ethereum contract request options
     private  blockConfirmations = 3;
-    private receiptType:ReceiptType = ReceiptType.LEDGERBLOCKACK;
+    private receiptType:ReceiptType = ReceiptType.LedgerBlockAck;
     private timeout = 3000; // ms
 
     // events input definitions
@@ -49,12 +49,12 @@ export class NetEmissionsTokenNetworkContract{
         const fnTag = `${this.className}#constructor`;
         this.log = LoggerProvider.getOrCreate({label:this.className,level:opts.logLevel});
         this.signer = {
-            type : Web3SigningCredentialType.PRIVATEKEYHEX,
+            type : Web3SigningCredentialType.PrivateKeyHex,
             ethAccount: opts.keys.public,
             secret: opts.keys.private
         };
         if (opts.isDev){
-            this.receiptType = ReceiptType.NODETXPOOLACK;
+            this.receiptType = ReceiptType.NodeTxPoolAck;
             this.timeout = 1;
             this.blockConfirmations  = 0;
         }
@@ -77,7 +77,7 @@ export class NetEmissionsTokenNetworkContract{
             const invokeReq:InvokeContractV1Request = {
                 contractName: this.opts.contractName,
                 signingCredential: this.signer,
-                invocationType: EthContractInvocationType.SEND,
+                invocationType: EthContractInvocationType.Send,
                 methodName: 'issue',
                 params: [
                     token.addressToIssue,
