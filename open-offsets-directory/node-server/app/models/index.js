@@ -20,5 +20,7 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.projects = require("./project.model.js")(sequelize, Sequelize);
+db.issuances = require("./issuance.model.js")(sequelize, Sequelize);
+db.retirements = require("./retirement.model.js")(sequelize, Sequelize);
 
 module.exports = db;
