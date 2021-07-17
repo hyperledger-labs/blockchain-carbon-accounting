@@ -23,21 +23,25 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 ## Local Development
 
 ### Configure DNS for Development
+
 - Paste following inside ``/etc/hosts`` file
-```
+
+```text
 127.0.0.1       auditor1.carbonAccounting.com
 127.0.0.1       auditor2.carbonAccounting.com
 127.0.0.1       peer1.auditor1.carbonAccounting.com
 127.0.0.1       peer1.auditor2.carbonAccounting.com
 127.0.0.1       peer1.auditor1.carbonAccounting.com
 ```
+
 ### Defining environment variables for a ethereum test network
+
 - Create a file `.env.<name_of_network>` eg : `.env.ropsten`
 - Copy content from `.env` and change values specific to that network
 - Supported network networks
-    - LEDGER_ETH_NETWORK=xdai
-    - LEDGER_ETH_NETWORK=goerli
-    - LEDGER_ETH_NETWORK=ropsten
+  - LEDGER_ETH_NETWORK=xdai
+  - LEDGER_ETH_NETWORK=goerli
+  - LEDGER_ETH_NETWORK=ropsten
 
 ### Starting the application
 
@@ -45,14 +49,11 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 - Start application with local ethereum network: `npm run dev`
 - Start application with `X` ethereum test network : `NODE_ENV=X npm run dev` , eg `NODE_ENV=ropsten npm run dev`
 
-## Endpoints
-Postman Collection : https://www.getpostman.com/collections/dd2a27fc0ad03ce68eac
+In order to use endpoint after starting the server, firstly Enroll Registrar then only use other endpoints.
 
-In order to use endpoint after starting the server, firstly Enroll Registrar then only use other endpoints. 
 - [X] POST /api/v1/carbonAccounting/recordAuditedEmissionsToken : record audited emission tokens
 - [X] POST /api/v1/fabricRegistry/registrar : enroll registrar of a given organization
-- [ ] POST /api/v1/fabricRegistry/user : register and enroll a user from a organization
+- [X] POST /api/v1/fabricRegistry/user : register and enroll a user from a organization
 - [X] POST /api/v1/utilityemissionchannel/emissions : record emission on fabric
 - [X] GET  /api/v1/utilityemissionchannel/emissions/:userId/:orgName/:uuid : get emission record with id = uuid
 - [X] GET  /api/v1/utilityemissionchannel/allEmissions/:userId/:orgName/:utilityId/:partyId : get emission records with given utilityId and partyId
-- [ ] GET /api/v1/utilityemissionchannel/allEmissionsByDateRange/:userId/:orgName/:fromDate/:thruDate : get emissions records from fabric

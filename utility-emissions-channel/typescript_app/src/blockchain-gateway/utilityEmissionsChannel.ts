@@ -67,7 +67,7 @@ export class UtilityEmissionsChannel{
             };
         }
         return {
-            info : 'EMISSION RECORDED ON LEDGER',
+            info : 'EMISSION RECORDED TO LEDGER',
             uuid :  jsonResult.uuid,
             utilityId :  jsonResult.utilityId,
             partyId :  jsonResult.partyId,

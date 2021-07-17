@@ -188,7 +188,7 @@ export class UtilityEmissionsChannelRouter{
             url,
             md5
         });
-        if (ledgerRes.info === 'EMISSION RECORDED ON LEDGER'){
+        if (ledgerRes.info === 'EMISSION RECORDED TO LEDGER'){
             res.status(201).json(ledgerRes);
         }else{
             res.status(409).json(ledgerRes);

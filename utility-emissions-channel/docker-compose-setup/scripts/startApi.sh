@@ -5,7 +5,9 @@
 
 # docker network connect $NETWORK_NAME api
 # start vault server
-docker run --name devVault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault
+# vault development mode, to use a producation ready vault server
+# https://learn.hashicorp.com/tutorials/vault/getting-started-deploy?in=vault/getting-started
+docker run --rm --name devVault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault
 cd ../../utility-emissions-channel/typescript_app
 
 if [ ! -d "node_modules" ];then

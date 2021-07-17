@@ -83,10 +83,12 @@ export class FabricRegistryRouter{
             await this.opts.fabricRegistry.enrollUser(userId,orgName,affiliation);
         } catch (error) {
             this.log.debug(`${fnTag} failed to register user : %o`,(error as Error).message);
-            res.status(409).json({error : (error as Error).message});
+            return res.status(409).json({error : (error as Error).message});
         }
 
-        res.status(201).send();
+        res.status(201).json({
+            info:  'USER REGISTERED AND ENROLLED'
+        });
     }
 
 }

@@ -6,6 +6,7 @@ export interface IEnrollRegistrarRequest{
 }
 
 export interface IEnrollRegistrarResponse{
+    info:string;
     orgName:string;
     msp:string;
     caName:string;
