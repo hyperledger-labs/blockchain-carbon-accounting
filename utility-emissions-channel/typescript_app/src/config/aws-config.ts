@@ -5,6 +5,7 @@ import {Checks} from '@hyperledger/cactus-common';
 export interface IAWSConfigs{
     accessKeyId?:string;
     accessKey?:string;
+    devS3Address?:string;
     isS3Local:boolean;
     bucketName:string;
 }
@@ -26,6 +27,7 @@ export function getAWSConfig():IAWSConfigs{
         accessKey: process.env.AWS_SECRET_ACCESS_KEY,
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         isS3Local,
-        bucketName: process.env.BUCKET_NAME
+        bucketName: process.env.BUCKET_NAME,
+        devS3Address: process.env.DEV_S3_ADDRESS ||'http://127.0.0.1:4569'
     };
 }

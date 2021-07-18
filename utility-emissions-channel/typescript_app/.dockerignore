@@ -1,0 +1,6 @@
+dist
+node_modules
+playground
+test
+.env*
+package-lock.json

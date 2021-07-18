@@ -1,0 +1,24 @@
+FROM node:10-alpine
+RUN apk update && apk add python make g++
+
+ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
+ENV PATH="/home/node/.npm-global/bin:${PATH}"
+
+RUN mkdir -p /server/node_modules
+RUN chown -R node:node /server
+
+# docker image for running serverless s3 inside a docker container
+# https://github.com/awslabs/serverless-s3
+
+WORKDIR /server
+
+USER node
+
+RUN npm install -g serverless
+RUN npm install serverless-s3-local --save-dev
+
+
+COPY handler.js .
+COPY serverless.yaml .
+
+CMD [ "serverless", "s3" ,"start" ]

@@ -11,7 +11,7 @@ export default class AWSS3{
                 s3ForcePathStyle: true,
                 accessKeyId: 'S3RVER',
                 secretAccessKey: 'S3RVER',
-                endpoint: new Endpoint('http://127.0.0.1:4569'),
+                endpoint: new Endpoint(config.devS3Address),
                 s3BucketEndpoint: true,
             });
         }else{
