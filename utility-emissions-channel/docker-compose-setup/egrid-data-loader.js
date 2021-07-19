@@ -171,6 +171,8 @@ function parse_worksheet(file_name, opts, cb) {
       if (!data[row]) data[row] = {};
       data[row][headers[col]] = value;
     }
+    
+    data = data.filter(function () { return true });
     // console.log(`data: ${JSON.stringify(data)}`);
     return cb(data);
   });

@@ -38,7 +38,7 @@ services:
       - ../../../system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
       - ../../../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/msp:/var/hyperledger/orderer/msp
       - ../../../organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls:/var/hyperledger/orderer/tls
-      - orderer1.auditor2.carbonAccounting.com/var/hyperledger/production/orderer
+      - /orderer1.auditor2.carbonAccounting.com/var/hyperledger/production/orderer
     ports:
       - 8050:8050
 

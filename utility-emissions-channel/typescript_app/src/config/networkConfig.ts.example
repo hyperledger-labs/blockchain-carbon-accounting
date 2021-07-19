@@ -11,3 +11,7 @@ export const INFURA_PROJECT_ID = "";
 export const INFURA_PROJECT_SECRET = "";
 
 export const JSON_RPC_URL = "";
+
+// it could be 'goerli' or 'xdai' for now
+// by default it is 'xdai'
+export const NETWORK = "";

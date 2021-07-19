@@ -95,11 +95,16 @@ class EmissionsChaincode {
   }
 
   async updateEmissionsRecord(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
-    const fields = ['uuid', 'utilityId', 'partyId', 'fromDate','thruDate','emissionsAmount','renewable_energy_use_amount','nonrenewable_energy_use_amount','energyUseUom','factor_source','url','md5','tokenId'];
+    const fields = ['uuid', 'utilityId', 'partyId', 'fromDate','thruDate','emissionsAmount','renewableEnergyUseAmount','nonrenewableEnergyUseAmount','energyUseUom','factorSource','url','md5','tokenId'];
+    const numberFields = ['emissionsAmount','renewableEnergyUseAmount','nonrenewableEnergyUseAmount']
     const recordI:EmissionsRecordInterface = {};
     const fieldsLen = Math.min(args.length, fields.length);
     for (let i=0; i<fieldsLen; i++) {
-        recordI[fields[i]] = args[i];
+        if (numberFields.indexOf(fields[i]) > -1) {
+            recordI[fields[i]] = Number(args[i]);
+        } else {
+            recordI[fields[i]] = args[i];
+        }
     }
     let byte:Uint8Array;
     try {

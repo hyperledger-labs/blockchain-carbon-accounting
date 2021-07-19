@@ -547,7 +547,8 @@ export async function getQuorum(w3provider) {
   try {
     quorum = await contract.quorumVotes();
   } catch (error) {
-    quorum = catchError(error);
+    console.error(error.message);
+    quorum = null;
   }
   return quorum;
 }
@@ -558,7 +559,8 @@ export async function getProposalThreshold(w3provider) {
   try {
     proposalThreshold = await contract.proposalThreshold();
   } catch (error) {
-    proposalThreshold = catchError(error);
+    console.error(error.message);
+    proposalThreshold = null;
   }
   return proposalThreshold;
 }

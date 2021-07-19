@@ -120,11 +120,11 @@ export default function TokenInfoModal(props) {
             </tr>
             <tr>
               <td>Manifest</td>
-              <td>{props.token.manifest}</td>
+              <td style={{ wordWrap: "anywhere" }}>{props.token.manifest}</td>
             </tr>
             <tr>
               <td>Description</td>
-              <td>{props.token.description}</td>
+              <td style={{ wordWrap: "anywhere" }}>{props.token.description}</td>
             </tr>
           </tbody>
         </table>

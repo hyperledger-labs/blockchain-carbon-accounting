@@ -40,8 +40,14 @@ curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll
 
 curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordEmissions" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "userId=testuser1" -F "orgName=auditor1" -F "utilityId=USA_EIA_11208" -F "partyId=1234567890" -F "fromDate=2018-01-06T10:10:09Z" -F "thruDate=2018-12-06T10:10:09Z" -F "energyUseAmount=200" -F "energyUseUom=KWH"
 
-# Replace {emissionsRecordsToAudit} with returned IDs of emissions record(s) separated by commas
-curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken/testuser1/auditor1/0xd32e793008b0fbd13c889e291bc049483da316ba/{emissionsRecordsToAudit}" -H  "accept: */*"
+# Call `recordAuditedEmissionsToken` to issue audited tokens to the contract
+curl -H 'Content-Type: application/json'  -X POST 'localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken' -d '{
+    "userId": "userid",
+    "orgName": "auditor1",
+    "partyId": "xxxxxxxxx",
+    "addressToIssue": "0x00000000000000000000000000000002F7E93CF0",
+    "emissionsRecordsToAudit": "59000000000000000000000000000016"
+}'
 ```
 
 ## Upgrading the chaincode

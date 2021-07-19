@@ -453,10 +453,10 @@ Package ID: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198
 
 2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/typescript`.
 ``` shell
-docker build -t krybalko/utilityemissions-chaincode:0.0.2 .
+docker build -t krybalko/utilityemissions-chaincode:0.0.3 .
 ```
 
-Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `krybalko/utilityemissions-chaincode:0.0.2` (Docker Hub, public)
+Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `krybalko/utilityemissions-chaincode:0.0.3` (Docker Hub, public)
 
 
 2.4. Now we can start the chaincode. The next command will create one pod (1 container) with one service. Change the value of yournamespace
