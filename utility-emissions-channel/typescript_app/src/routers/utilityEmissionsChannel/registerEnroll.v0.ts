@@ -30,7 +30,7 @@ router.post(
       console.log(`# REGISTERING AND ENROLLING USER `);
 
       // Record Emission to utilityEmissions Channel
-      const blockchainResponse = await EmissionsContractInvoke.registerUser(
+      const blockchainResponse = await EmissionsContractInvoke.registerAndEnrollUser(
         userId,
         orgName,
         affiliation

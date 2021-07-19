@@ -216,6 +216,28 @@ $ ./scripts/startApi.sh
 
 4. Go to `http://localhost:9000/api-docs/` to use the API.  
 
+
+## Using softHSM for identity storage
+
+### Initialize a token to store keys in SoftHSM
+
+The API has been updated to use the farbric-network HsmX509Provider to store identity in a local filesystem wallet
+
+If you have not initialized a token previously (or it has been deleted) then you will need to perform this one time operation using the softhsm2 utility. 
+
+```bash
+softhsm2-util --init-token --slot 0 --label "ForFabric" --pin 98765432 --so-pin 1234
+```
+This step is executed in `start.sh` when starting the API
+
+In the future this should be configured for the desired HSM. **SoftHSM should not be used in production**.
+
+If you have a previously built api docker image you will need to remove it and rebuild.
+
+```bash
+docker image rm api
+sh ./scripts/StartApi.sh
+```
 ## Working with the Express Server API
 
 First register an organization using `/registerEnroll/admin`:
