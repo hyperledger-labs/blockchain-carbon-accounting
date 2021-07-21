@@ -33,4 +33,4 @@ sleep 20
 docker exec -it cli /bin/bash ./scripts/commitCCExt.sh 1 1
 
 echo "Starting the api..."
-./scripts/startApi.sh
+./scripts/startApi.sh $1
