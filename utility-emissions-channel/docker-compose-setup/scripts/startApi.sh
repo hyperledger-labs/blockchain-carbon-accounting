@@ -12,7 +12,7 @@ MODE=${1:-local}
 case $MODE in
   local)
         docker run --rm --name devvault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault
-        docker run --rm --name locals3 -p 4569:4569 zzocker20/local-s3
+        docker run -d --rm --name locals3 -p 4569:4569 zzocker20/local-s3
         cd ../../utility-emissions-channel/typescript_app
 
         if [ ! -d "node_modules" ];then

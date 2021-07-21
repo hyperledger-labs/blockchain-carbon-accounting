@@ -7,11 +7,11 @@
     "build": "tsc",
     "dev": "ts-node app.ts",
     "start": "node ./dist/app.js",
-    "test": "mocha -exit -require ts-node/register -colors tests/**/*",
+    "test": "mocha -exit -require ts-node/register -colors tests/**/*.test.ts --timeout 30000",
     "localS3": "serverless s3 start --address 0.0.0.0",
     "prod": "yarn build && yarn start",
     "lint": "tslint -c tslint.json 'src/**/*.ts' 'app.ts' 'test/**/*.test.ts'",
-    "fix_lint": "tslint --fix -c tslint.json 'src/**/*.ts' 'app.ts' 'test/**/*.test.ts' || true"
+    "fix_lint": "tslint --fix -c tslint.json 'src/**/*.ts' 'app.ts' 'test/**/*.test.ts'"
   },
   "keywords": [],
   "author": "",

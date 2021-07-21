@@ -34,6 +34,14 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 127.0.0.1       peer1.auditor1.carbonAccounting.com
 ```
 
+### End-to-End Test
+
+```
+  ./utility-emissions-channel/docker-compose-setup/start.sh {local(default)|docker}
+  cd net-emissions-token-network && npx hardhat node
+  cd utility-emissions-channel/typescript_app && npm run test
+```
+
 ### Defining environment variables for a ethereum test network
 
 - Create a file `.env.<name_of_network>` eg : `.env.ropsten`
