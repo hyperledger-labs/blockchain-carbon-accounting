@@ -17,7 +17,7 @@
     "dependencies": {
         "async": "^3.2.0",
         "fabric-shim": "^2.0.0",
-        "xlsx": "^0.16.7",
+        "xlsx": "^0.17.0",
         "yargs": "^16.0.3"
     },
     "devDependencies": {
