@@ -4,11 +4,11 @@
 
 "use strict";
 
-import { ADMIN_USER_ID, ADMIN_USER_PASSWD, AUDITORS } from "../../config/config";
+import * as FabricCAServices from 'fabric-ca-client';
+import { Wallet } from 'fabric-network';
+import { AUDITORS } from "../../config/config";
 import { buildCCPAuditor } from "./gatewayUtils";
 
-const adminUserId = ADMIN_USER_ID || process.env.ADMIN_USER_ID;
-const adminUserPasswd = ADMIN_USER_PASSWD || process.env.ADMIN_USER_PASSWD;
 /**
  *
  * @param {*} FabricCAServices
@@ -28,6 +28,114 @@ export function buildCAClient(FabricCAServices, ccp, caHostName) {
   console.log(`Built a CA Client named ${caInfo.caName}`);
   return caClient;
 }
+
+export interface UserToEnroll {
+  caClient: FabricCAServices;
+  wallet: Wallet;
+  orgMspId: string;
+  userId: string;
+  userIdSecret: string;
+}
+
+/**
+ * enroll a registered CA user and store the credentials in the wallet
+ * @param userToEnroll details about the user and the wallet to use
+ */
+export const enrollUserToWallet = async (userToEnroll: UserToEnroll): Promise<object> => {
+  // Return result
+  let result = new Object();
+  result["userId"] = userToEnroll.userId;
+  result["msp"] = userToEnroll.orgMspId;
+  try {
+    // check that the identity isn't already in the wallet
+    const identity = await userToEnroll.wallet.get(userToEnroll.userId);
+    if (identity) {
+      console.log(`Identity ${userToEnroll.userId} already exists in the wallet`);
+      return;
+    }
+    // Enroll the user
+    const enrollment = await userToEnroll.caClient.enroll({ enrollmentID: userToEnroll.userId, enrollmentSecret: userToEnroll.userIdSecret });
+    // store the user
+    const hsmIdentity = {
+      credentials: {
+          certificate: enrollment.certificate,
+      },
+      mspId: userToEnroll.orgMspId,
+      type: 'HSM-X.509',
+    };
+    await userToEnroll.wallet.put(userToEnroll.userId, hsmIdentity);
+    result["reponse"] = `Successfully enrolled user ${userToEnroll.userId} and imported it into the wallet`;
+  } catch (error) {
+    result["reponse"] = `Failed to enroll user ${userToEnroll.userId}: ${error}`;
+    throw new Error(result["reponse"]);
+  }
+  return result;
+  //console.error(result["reponse"]);
+};
+
+export interface UserToRegister {
+    caClient: FabricCAServices;
+    wallet: Wallet;
+    orgMspId: string;
+    adminId: string;
+    userId: string;
+    userIdSecret: string;
+    affiliation: string;
+}
+
+export const registerUser = async (userToRegister: UserToRegister): Promise<string> => {
+  try {
+    // Must use a CA admin (registrar) to register a new user
+    console.log("Get the admin's identity")
+    const adminIdentity = await userToRegister.wallet.get(userToRegister.adminId);
+    if (!adminIdentity) {
+      console.log('An identity for the admin user does not exist in the wallet');
+      console.log('Enroll the admin user before retrying');
+      return;
+    }
+    // build a user object for authenticating with the CA
+    const provider = userToRegister.wallet.getProviderRegistry().getProvider(adminIdentity.type);
+    const adminUser = await provider.getUserContext(adminIdentity, userToRegister.adminId);
+    // Register the user
+    // if affiliation is specified by client, the affiliation value must be configured in CA
+    const secret = await userToRegister.caClient.register({
+      affiliation: userToRegister.affiliation,
+      enrollmentID: userToRegister.userId,
+      enrollmentSecret: userToRegister.userIdSecret,
+      role: 'client'
+    }, adminUser);
+
+    console.log(`Successfully registered ${userToRegister.userId}.`);
+    return secret;
+  } catch (error) {
+    // check to see if it's an already registered error, if it is, then we can ignore it
+    // otherwise we rethrow the error
+    if (error.errors[0].code !== 74) {
+      console.log(`Failed to register user : ${error}`)  
+      throw error;
+    }
+  }
+};
+
+
+export function setOrgDataCA(orgName) {
+  let ccp;
+  let msp;
+  let caName;
+  console.log("OrgName: " + orgName);
+
+  if (!AUDITORS.hasOwnProperty(orgName)) {
+      throw new Error(`AUDITORS contains no ${orgName}`);
+  }
+
+  ccp = buildCCPAuditor(orgName);
+  msp = AUDITORS[orgName]["msp"]
+  caName = AUDITORS[orgName]["caName"]
+
+  return { ccp, msp, caName };
+}
+
+/*
 
 export async function enrollAdmin(caClient, wallet, orgMspId) {
   try {
@@ -126,20 +234,5 @@ export async function registerAndEnrollUser(
     return response;
   }
 }
+*/
 
-export function setOrgDataCA(orgName) {
-  let ccp;
-  let msp;
-  let caName;
-  console.log("OrgName: " + orgName);
-
-  if (!AUDITORS.hasOwnProperty(orgName)) {
-      throw new Error(`AUDITORS contains no ${orgName}`);
-  }
-
-  ccp = buildCCPAuditor(orgName);
-  msp = AUDITORS[orgName]["msp"]
-  caName = AUDITORS[orgName]["caName"]
-
-  return { ccp, msp, caName };
-}

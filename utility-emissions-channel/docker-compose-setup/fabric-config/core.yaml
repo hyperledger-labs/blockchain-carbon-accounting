@@ -296,6 +296,7 @@ peer:
     # library to use
     BCCSP:
         Default: SW
+        #Default: ${CORE_PEER_BCCSP_DEFAULT:SW}
         # Settings for the SW crypto provider (i.e. when DEFAULT: SW)
         SW:
             # TODO: The default Hash and Security level needs refactoring to be
@@ -310,11 +311,11 @@ peer:
         # Settings for the PKCS#11 crypto provider (i.e. when DEFAULT: PKCS11)
         PKCS11:
             # Location of the PKCS11 module library
-            Library:
+            #Library: ${CORE_PEER_BCCSP_PKCS11_LIBRARY}
             # Token Label
-            Label:
+            #Label: ${CORE_PEER_BCCSP_PKCS11_LABEL}
             # User PIN
-            Pin:
+            #Pin: ${CORE_PEER_BCCSP_PKCS11_PIN}
             Hash:
             Security:
 

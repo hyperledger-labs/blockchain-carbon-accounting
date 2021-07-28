@@ -26,8 +26,8 @@
     "ethers": "^5.0.24",
     "express": "^4.17.1",
     "express-validator": "^6.6.1",
-    "fabric-ca-client": "^2.2.5",
-    "fabric-network": "^2.2.5",
+    "fabric-ca-client": "^2.2.8",
+    "fabric-network": "^2.2.8",
     "mongoose": "^5.11.2",
     "multer": "^1.4.2",
     "python3": "0.0.1",
@@ -36,6 +36,6 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "serverless-s3-local": "^0.6.7"
+    "serverless-s3-local": "^0.6.18"
   }
 }
