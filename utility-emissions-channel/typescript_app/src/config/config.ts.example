@@ -24,6 +24,9 @@ export const AUDITORS = {"auditor1":
 export const ADMIN_USER_ID = "admin";
 export const ADMIN_USER_PASSWD = "adminpw";
 
+export const PKCS11_PIN="98765432"
+export const PKCS11_LABEL="ForFabric"
+
 // ext chaincode "utilityemissions"
 // old chaincode "emissionscontract"
 export const CHAINCODE_NAME = "utilityemissions"

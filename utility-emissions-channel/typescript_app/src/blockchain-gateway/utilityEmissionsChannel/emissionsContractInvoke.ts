@@ -40,6 +40,7 @@ export class EmissionsContractInvoke {
       const walletPath: string = setWalletPathByOrg(orgName);
       console.log("+++++++++++++++++ Walletpath: " + walletPath);
       const wallet: Wallet = await buildWallet(Wallets, walletPath);
+      console.log(wallet.getProviderRegistry())
 
       const gateway: Gateway = new Gateway();
 

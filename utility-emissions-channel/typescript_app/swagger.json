@@ -313,8 +313,8 @@
       "post": {
         "tags": ["registerEnroll"],
         "summary": "Registers a user.",
-        "description": "Registers a user by orgName, userId and affiliation",
-        "operationId": "registerUser",
+        "description": "Registers and enrolls a user by orgName, userId and affiliation",
+        "operationId": "registerAndEnrollUser",
         "consumes": ["application/json"],
         "produces": ["application/json"],
         "requestBody": {
