@@ -207,6 +207,9 @@ function import_utility_emissions(file_name, opts) {
     { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
     { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
     { file: "eGRID2018_Data_v2.xlsx", sheet: "US18" },
+    { file: "egrid2019_data.xlsx", sheet: "NRL19" },
+    { file: "egrid2019_data.xlsx", sheet: "ST19" },
+    { file: "egrid2019_data.xlsx", sheet: "US19" },
     { file: "2019-RES_proxies_EEA.csv", sheet: "Sheet1" },
     { file: "co2-emission-intensity-6.csv", sheet: "Sheet1" },
   ]
@@ -253,13 +256,14 @@ function import_utility_emissions(file_name, opts) {
         // format chaincode call
         let division_name_formatted = JSON.stringify(d.division_name).replace(/ /g, '_'); // replace space with _
         let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${division_name_formatted},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
-
+3
         // insert into chaincode
         invokeChaincode("importUtilityFactor", args, callback);
       });
     });
     if (opts.file !== "all") return;
   }
+  
   if (opts.file == "all" || (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")) {
     let data = parse_worksheet(supportedFiles[1].file, supportedFiles[1], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
@@ -332,8 +336,131 @@ function import_utility_emissions(file_name, opts) {
     });
     if (opts.file !== "all") return;
   }
-  if (opts.file == "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
+  
+  
+  // eGRID Data for year 2019 ..
+  
+  if (opts.file == "all" || (opts.file == "egrid2019_data.xlsx" && opts.sheet == "US19")) {
+    let data = parse_worksheet(supportedFiles[5].file, supportedFiles[5], function(data) {
+      async.eachSeries(data, function iterator(row, callback) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) return callback();
+        // skip header rows
+        if (row["Data Year"] == "YEAR") return callback();
+        
+        //opts.verbose && console.log('-- Prepare to insert from ', row);
+        // generate a unique for the row
+        
+        let document_id = "COUNTRY_USA_" + row["Data Year"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "COUNTRY",
+          division_id: "USA",
+          division_name: "United States of America",
+          net_generation: "" + row["U.S. annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions: "" + row["U.S. annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions_uom: "tons",
+          source: "https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx",
+          non_renewables: row["U.S. annual total nonrenewables net generation (MWh)"].toString(),
+          renewables: row["U.S. annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: ""
+        };
+        
+        // format chaincode call
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args, callback);
+      });
+    });
+    if (opts.file !== "all") return;
+  }
+  
+  
+   if (opts.file == "all" || (opts.file == "egrid2019_data.xlsx" && opts.sheet == "ST19")) {
+    let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
+      async.eachSeries(data, function iterator(row, callback) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) return callback();
+        // skip header rows
+        if (row["Data Year"] == "YEAR") return callback();
+        //opts.verbose && console.log('-- Prepare to insert from ', row);
+        // generate a unique for the row
+        let document_id = "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "STATE",
+          division_id: row["State abbreviation"],
+          division_name: NAME_MAPPINGS.STATE_NAME_MAPPING[row["State abbreviation"]],
+          net_generation: "" + row["State annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions: "" + row["State annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions_uom: "tons",
+          source: "https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx",
+          non_renewables: row["State annual total nonrenewables net generation (MWh)"].toString(),
+          renewables: row["State annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: ""
+        };
+        
+        // format chaincode call
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${JSON.stringify(d.division_name)},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
+
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args, callback);
+      });
+    });
+    if (opts.file !== "all") return;
+  }
+  
+  
+  if (opts.file == "all" || (opts.file == "egrid2019_data.xlsx" && opts.sheet == "NRL19")) {
     let data = parse_worksheet(supportedFiles[3].file, supportedFiles[3], function(data) {
+         
+      async.eachSeries(data, function iterator(row, callback) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) return callback();
+        // skip header rows
+        if (row["Data Year"] == "YEAR") return callback();
+        //opts.verbose && console.log('-- Prepare to insert from ', row);
+
+        // generate a unique for the row
+        let document_id = "USA_" + row["Data Year"] + "_NERC_REGION_" + row["NERC region acronym"];
+        let d = {
+          uuid: document_id,
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "NERC_REGION",
+          division_id: row["NERC region acronym"],
+          division_name: row["NERC region name "] || "",
+          net_generation: "" + row["NERC region annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions: "" + row["NERC region annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions_uom: "tons",
+          source: "https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx",
+          non_renewables: row["NERC region annual total nonrenewables net generation (MWh)"].toString(),
+          renewables: row["NERC region annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: ""
+        };
+
+        // format chaincode call
+        let division_name_formatted = JSON.stringify(d.division_name).replace(/ /g, '_'); // replace space with _
+        let args = `[${JSON.stringify(d.uuid)},${JSON.stringify(d.year)},${JSON.stringify(d.country)},"${d.division_type}",${JSON.stringify(d.division_id)},${division_name_formatted},"${d.net_generation}","${d.net_generation_uom}","${d.co2_equivalent_emissions}","${d.co2_equivalent_emissions_uom}","${d.source}","${d.non_renewables}","${d.renewables}","${d.percent_of_renewables}"]`;
+3
+        // insert into chaincode
+        invokeChaincode("importUtilityFactor", args, callback);
+      });
+    });
+    if (opts.file !== "all") return;
+  }
+  
+
+  if (opts.file == "all" || (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")) {
+    let data = parse_worksheet(supportedFiles[6].file, supportedFiles[6], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || row["CountryShort"].slice(0, 2) == "EU") return callback();
@@ -371,7 +498,7 @@ function import_utility_emissions(file_name, opts) {
   }
   if (opts.file == "all" || (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")) {
     console.log("Assuming 2019-RES_proxies_EEA.csv has already been imported...");
-    let data = parse_worksheet(supportedFiles[4].file, supportedFiles[4], function(data) {
+    let data = parse_worksheet(supportedFiles[7].file, supportedFiles[7], function(data) {
       async.eachSeries(data, function iterator(row, callback) {
         // skip empty rows
         if (!row || !row["Date:year"]) return callback();

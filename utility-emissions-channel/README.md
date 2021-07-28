@@ -115,6 +115,10 @@ $ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zi
 $ unzip egrid2018_all_files.zip
 ```
 
+```bash
+$ wget https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
+```
+
 3. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
 
 ```bash
@@ -129,6 +133,8 @@ $ unzip f8612019.zip
 ```bash
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
 $ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx NRL19
+$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx ST19
 $ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ```
 
@@ -139,7 +145,7 @@ $ node egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv 
 
 ### Viewing the seed data
 
-Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `utilityemissionchannel_emissionscontract` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
+Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `utilityemissionchannel__utilityemissions` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
 
 More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find`](http://localhost:5984/_utils/#database/utilityemissionchannel_emissionscontract/_find).  See [tutorial on running Mango queries](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query).
 
@@ -212,6 +218,14 @@ $ npm i
 $ cd ..
 $ cd docker-compose-setup
 $ ./scripts/startApi.sh
+```
+
+To run the API server outside of docker container:
+
+```bash
+$ cd typescript_app
+$ npm i
+$ sh ./runManual.sh
 ```
 
 4. Go to `http://localhost:9000/api-docs/` to use the API.  
@@ -320,8 +334,15 @@ $ ./network.sh stopBlockchainExplorer`
 
 When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and executing the tests into the docker container:
 
+
 ```bash
 $ sh runTests.sh
+```
+
+If you are running the server outside of docker container, then you can run the tests as :
+
+```bash
+$ mocha ./tests --timeout 10000
 ```
 
 The automated tests are currently not working.  An [issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/80) has been created for this.
