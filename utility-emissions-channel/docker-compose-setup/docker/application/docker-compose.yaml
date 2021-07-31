@@ -4,11 +4,7 @@ volumes:
   local-s3-volume:
 
 services:
-    locals3:
-        image: zzocker20/local-s3
-        container_name: locals3
-        volumes: 
-          - local-s3-volume:/server/local-bucket
+    # TODO : run a locals3 sevrer inside docker
     vault:
         image: vault:latest
         container_name: vault
