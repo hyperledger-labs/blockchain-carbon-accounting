@@ -22,6 +22,7 @@
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "chalk": "^4.1.0",
+    "crypto-js": "^4.1.1",
     "dotenv": "^8.2.0",
     "ethers": "^5.0.24",
     "express": "^4.17.1",
@@ -36,6 +37,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.0.2",
     "serverless-s3-local": "^0.6.7"
   }
 }

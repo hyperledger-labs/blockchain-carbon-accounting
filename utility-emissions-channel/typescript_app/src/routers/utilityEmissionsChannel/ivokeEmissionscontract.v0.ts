@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+import { AES } from "crypto-js";
 import express from "express";
 import { log } from "../../utils/log";
 import { body, param, validationResult } from "express-validator";
@@ -13,6 +14,7 @@ import {
 import { API_URL } from "../../config/config";
 
 const APP_VERSION = "v1";
+const PASSPHRASE = "secret passphrase";
 export const router = express.Router();
 
 // http://localhost:9000/api/v1//utilityemissionchannel/emissionscontract/recordEmissions
@@ -58,7 +60,7 @@ router.post(
       const userId = req.body.userId;
       const orgName = req.body.orgName;
       const utilityId = req.body.utilityId;
-      const partyId = req.body.partyId;
+      const partyId = AES.encrypt(req.body.partyId, PASSPHRASE).toString();
       const fromDate = req.body.fromDate;
       const thruDate = req.body.thruDate;
       const energyUseAmount = req.body.energyUseAmount;
@@ -168,7 +170,7 @@ router.get(GET_ALL_EMISSIONS_DATA, [param("userId").isString(), param("orgName")
     const userId = req.params.userId;
     const orgName = req.params.orgName;
     const utilityId = req.params.utilityId;
-    const partyId = req.params.partyId;
+    const partyId = AES.encrypt(req.params.partyId, PASSPHRASE).toString();
 
     console.log(`# GETTING EMISSIONS DATA FROM UTILITYEMISSIONS CHANNEL`);
 
@@ -265,11 +267,11 @@ export const RECORD_AUDITED_EMISSIONS_TOKEN =
 router.post(
   RECORD_AUDITED_EMISSIONS_TOKEN,
   [
-      body("userId").isString(),
-      body("orgName").isString(),
-      body("partyId").isString(),
-      body("addressToIssue").isString(),
-      body("emissionsRecordsToAudit").isString(),
+    body("userId").isString(),
+    body("orgName").isString(),
+    body("partyId").isString(),
+    body("addressToIssue").isString(),
+    body("emissionsRecordsToAudit").isString(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -279,7 +281,7 @@ router.post(
     try {
       const userId = req.body.userId;
       const orgName = req.body.orgName;
-      const partyId = req.body.partyId;
+      const partyId = AES.encrypt(req.body.partyId, PASSPHRASE).toString();
       const addressToIssue = req.body.addressToIssue;
       const emissionsRecordsToAudit = req.body.emissionsRecordsToAudit.toString().split(",");
       // @TODO: use automaticRetireDate parameter
