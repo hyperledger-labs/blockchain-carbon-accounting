@@ -1,0 +1,16 @@
+{
+  "channelName": "utilityemissionchannel",
+  "chaincodeName": "utilityemissions",
+  "orgCfgs": {
+    "auditor1": {
+      "ccpFile": "/config/connection-auditor1.json",
+      "msp": "auditor1",
+      "caName": "ca.auditor1.carbonAccounting.com"
+    },
+    "auditor2" : {
+        "ccpFile" : "/config/connection-auditor2.json",
+        "msp" : "auditor2",
+        "caName" : "ca.auditor2.carbonAccounting.com"
+    }
+  }
+}

@@ -1,0 +1,50 @@
+version: '2.1'
+
+volumes:
+  local-s3-volume:
+
+services:
+    # TODO : run a locals3 sevrer inside docker
+    vault:
+        image: vault:latest
+        container_name: vault
+        ports:
+          - "8200:8200"
+        environment:
+          - VAULT_LOG_LEVEL=debug
+        cap_add:
+          - IPC_LOCK
+        command: server -dev -dev-root-token-id tokenId
+    api:
+        container_name: api
+        image: zzocker20/utilityemissions-api:0.0.2
+        environment:
+            - LEDGER_ENV=dev
+            - LEDGER_EMISSION_NETWORK_CFG=/config/config.json
+            - LEDGER_KEYCHAINID=dev-keychain-1
+            # ethereum configs
+            - LEDGER_ETH_JSON_RPC_URL=http://localhost:8545
+            # LEDGER_ETH_NETWORK=ropsten || goerli
+            - LEDGER_ETH_NETWORK=ropsten
+            - LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS=0x610178dA211FEF7D417bC0e6FeD39F05609AD788
+            - LEDGER_EMISSION_TOKEN_PUBLIC_KEY=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
+            - LEDGER_EMISSION_TOKEN_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+            
+            # aws s3 configs
+            - AWS_ACCESS_KEY_ID='secret-id'
+            - AWS_SECRET_ACCESS_KEY='secret-key'
+            - BUCKET_NAME=local-bucket
+            - DEV_S3_ADDRESS=http://locals3:4569
+            - S3_LOCAL=true
+ 
+            # vault configs
+            - VAULT_API_VERSION=v1
+            - VAULT_ENDPOINT=http://vault:8200
+            - VAULT_TOKEN=tokenId
+            - VAULT_KV_MOUNT_PATH=secret
+        ports: 
+            - 9000:9000
+        volumes: 
+            - ./config.json:/config/config.json
+            - ../../organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json:/config/connection-auditor1.json
+            - ../../organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.json:/config/connection-auditor2.json

@@ -1,35 +1,23 @@
-FROM node:10-alpine
-RUN apk update && apk add python make g++
+FROM node:12.13.0-alpine as build
+RUN apk add --update python3 py3-pip
 
-ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
-ENV PATH="/home/node/.npm-global/bin:${PATH}"
+WORKDIR /app
 
-RUN mkdir -p /typescript_app/node_modules
-RUN chown -R node:node /typescript_app
-
-# Create Directory for the Container
-WORKDIR /typescript_app
-
-# Only copy the package.json file to work directory
-COPY --chown=node:node ./package.json .
-COPY --chown=node:node ./tsconfig.json .
-COPY --chown=node:node ./*.ts ./
-COPY --chown=node:node ./*.js ./
-COPY --chown=node:node ./*.sh ./
-COPY --chown=node:node ./swagger.json .
-
-USER node
-# Install all Packages
+COPY package.json /app/package.json
 RUN npm install
 
-RUN npm install -g nodemon
-RUN npm install -g serverless
-RUN npm install -g typescript
-RUN npm install -g mocha
+COPY tsconfig.json /app/tsconfig.json
+COPY src /app/src
+COPY app.ts /app/app.ts
+COPY swagger.json /app/swagger.json
 
-# Copy all other source code to work directory
-ADD --chown=node:node ./src /typescript_app/src
+RUN npm run build
 
-EXPOSE 9000
+FROM node:12.13.0-alpine
+WORKDIR /app
 
-CMD [ "sh", "start.sh"]
+COPY --from=build /app/dist /app
+COPY --from=build /app/node_modules /app/node_modules
+RUN ls
+
+CMD [ "node","./app.js" ]

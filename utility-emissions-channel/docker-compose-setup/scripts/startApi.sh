@@ -1,19 +1,38 @@
 #!/bin/bash
-NETWORK_NAME="carbonAccounting"
-COMPOSE_VOLUME=$(pwd)
-API_VOLUME=${COMPOSE_VOLUME//docker-compose-setup/typescript_app}
-CHAINCODE_VOLUME=${COMPOSE_VOLUME//docker-compose-setup/chaincode}
 
-IMAGE=$(docker images api --format "{{.Repository}}")
-if [ "$IMAGE" ]; then
-    echo "Found api image. No need to build.";
-else
-    echo "Building api image"
-    docker build -t api ../typescript_app
-fi
-echo "Using volumes for API container: "
-echo
-echo $COMPOSE_VOLUME
-echo $API_VOLUME
+# start vault server
+# vault development mode, to use a producation ready vault server
+# https://learn.hashicorp.com/tutorials/vault/getting-started-deploy?in=vault/getting-started
+# start the api in two different mode
+# 1. local mode, for local development and testing
+# 2. docker mode, for running the api in a docker container
 
-docker run -it --rm --publish 9000:9000 --publish 4569:4569 --network=$NETWORK_NAME --name api -e CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=$NETWORK_NAME -v $CHAINCODE_VOLUME:/chaincode -v $COMPOSE_VOLUME:/docker-compose-setup -v $API_VOLUME:/typescript_app -w /typescript_app api /bin/sh -c 'npm install && sh start.sh'
+MODE=${1:-local}
+
+case $MODE in
+  local)
+        docker run --rm --name vault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault
+        docker run -d --rm --name locals3 --net host -p 4569:4569 zzocker20/local-s3
+        cd ../../utility-emissions-channel/typescript_app
+
+        if [ ! -d "node_modules" ];then
+            npm i
+        fi
+
+        if [ ! -d "dist" ];then
+            npm run build
+        fi
+        npm run start
+  ;;
+
+  docker)
+        NETWORK_NAME="carbonAccounting"
+
+        docker-compose -f ./docker/application/docker-compose.yaml up -d
+
+        docker network connect $NETWORK_NAME api
+  ;;
+  *)
+        echo "Usage: $0 {local|docker}"
+  ;;
+esac
