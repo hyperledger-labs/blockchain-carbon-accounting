@@ -507,7 +507,11 @@ export default class Project extends Component {
                         <td>{registry.project_listed}</td>
                         <td>{registry.project_registered}</td>
                         <td>{registry.active_ccb_status}</td>
-                        <td>{registry.registry_documents}</td>
+                        <td>
+                          <Linkify componentDecorator={componentDecorator}>
+                            {registry.registry_documents}
+                          </Linkify>
+                        </td>
                       </tr>
                     ))}
                 </tbody>
@@ -537,7 +541,11 @@ export default class Project extends Component {
                     ratings.map((rating, index) => (
                       <tr key={index}>
                         <td>{rating.rated_by}</td>
-                        <td>{rating.rating_documents}</td>
+                        <td>
+                          <Linkify componentDecorator={componentDecorator}>
+                            {rating.rating_documents}
+                          </Linkify>
+                        </td>
                         <td>{rating.rating_type}</td>
                       </tr>
                     ))}
