@@ -39,7 +39,6 @@ class ProjectDataService {
 
   fields() {
     return [
-      { label: "ID", name: "project_id" },
       { label: "Name", name: "project_name" },
       { label: "Scope", name: "scope" },
       { label: "Type", name: "type" },
