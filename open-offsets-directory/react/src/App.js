@@ -6,14 +6,21 @@ import ProjectView from "./components/project-view.component";
 import ProjectsList from "./components/projects-list.component";
 
 class App extends Component {
+  getBaseUrl() {
+    let baseEl = document.head.querySelector("base");
+    if (!baseEl) return "";
+    return baseEl.getAttribute("href");
+  }
+
   render() {
+    const basename = this.getBaseUrl();
     return (
-      <Router>
+      <Router basename={basename}>
         <div>
           <nav className="navbar navbar-expand navbar-dark bg-dark">
-            <a href="/projects" className="navbar-brand">
+            <Link to={"/projects"} className="navbar-brand">
               The Open Offsets Directory
-            </a>
+            </Link>
             <div className="navbar-nav mr-auto">
               <li className="nav-item">
                 <Link to={"/projects"} className="nav-link">
@@ -189,7 +196,7 @@ class App extends Component {
               </a>
             </p>
             <p>
-                  See our <Link to={"/terms"}>Terms of Use</Link>
+              See our <Link to={"/terms"}>Terms of Use</Link>
             </p>
           </div>
         </footer>
