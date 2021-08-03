@@ -5,6 +5,14 @@ class ProjectDataService {
     return http.get("/projects", { params });
   }
 
+  getRegistries(params) {
+    return http.get("/registries", { params });
+  }
+
+  getRatings(params) {
+    return http.get("/ratings", { params });
+  }
+
   getIssuances(params) {
     return http.get("/issuances", { params });
   }
@@ -33,11 +41,8 @@ class ProjectDataService {
     return [
       { label: "ID", name: "project_id" },
       { label: "Name", name: "project_name" },
-      { label: "ARB Project", name: "arb_project" },
-      { label: "Registry + ARB", name: "registry_and_arb" },
       { label: "Scope", name: "scope" },
       { label: "Type", name: "type" },
-      { label: "Methodology / Proposal", name: "methodology_protocol" },
       { label: "Region", name: "project_site_region" },
       { label: "Country", name: "project_site_country" },
       { label: "State", name: "project_site_state" },
@@ -69,12 +74,6 @@ class ProjectDataService {
       },
       { label: "Verifier", name: "verifier" },
       { label: "Voluntary Status", name: "voluntary_status" },
-      { label: "Project Listed", name: "project_listed" },
-      { label: "Project Registered", name: "project_registered" },
-      { label: "ARB ID", name: "arb_id" },
-      { label: "Active CCB Status", name: "active_ccb_status" },
-      { label: "Project Type", name: "project_type" },
-      { label: "Registry Documents", name: "registry_documents" },
       { label: "Project Website", name: "project_website" },
       { label: "Notes", name: "notes" },
       { label: "Date Added", name: "date_added" },

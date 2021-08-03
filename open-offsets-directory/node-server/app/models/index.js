@@ -20,6 +20,8 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 db.projects = require("./project.model.js")(sequelize, Sequelize);
+db.project_registries = require("./project_registry.model.js")(sequelize, Sequelize);
+db.project_ratings = require("./project_rating.model.js")(sequelize, Sequelize);
 db.issuances = require("./issuance.model.js")(sequelize, Sequelize);
 db.retirements = require("./retirement.model.js")(sequelize, Sequelize);
 

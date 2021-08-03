@@ -22,7 +22,7 @@ insert into retirement (
     retirement_detail
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.status_effective,
     i.quantity_of_offset_credits,
@@ -31,7 +31,7 @@ insert into retirement (
     i.retirement_reason,
     i.retirement_reason_details
 from csv_acr_car_retirements i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_vcs_retirements
 insert into retirement (
@@ -46,7 +46,7 @@ insert into retirement (
     retirement_detail
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage_year,
     i.retirement_cancellation_date,
     i.credits_retired,
@@ -55,7 +55,7 @@ insert into retirement (
     i.retirement_reason,
     i.retirement_details
 from csv_vcs_retirements i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_gold_retirements
 insert into retirement (
@@ -70,7 +70,7 @@ insert into retirement (
     retirement_detail
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage,
     i.retirement_date,
     i.quantity,
@@ -79,5 +79,5 @@ insert into retirement (
     '',
     i.notes
 from csv_gold_retirements i
-join project p on i.gsid = p.project_id
+join project_registry p on i.gsid = p.registry_project_id
 where i.credit_status = 'Retired';

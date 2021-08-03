@@ -1,5 +1,4 @@
 DROP TABLE IF EXISTS csv_project;
-
 CREATE TABLE csv_project (
     project_id text,
     project_name text,
@@ -121,20 +120,21 @@ COPY csv_project FROM STDIN WITH (FORMAT CSV, HEADER);
 update csv_project set project_developer = null where project_developer = 'NA';
 -- remove the VCS prefix from project IDs
 update csv_project set project_id = regexp_replace(project_id, E'^VCS', '');
+-- add UUIDs for tracking our project Ids
+alter table csv_project add id uuid;
+update csv_project set id = uuid_generate_v4();
 
 -- cleanup previous data ?
+delete from project_rating;
+delete from project_registry;
 delete from project;
 
 -- now populate the actual DB data
 insert into project (
     id,
-    project_id,
     project_name,
-    arb_project,
-    registry_and_arb,
     scope,
     type,
-    methodology_protocol,
     project_site_region,
     project_site_country,
     project_site_state,
@@ -151,26 +151,16 @@ insert into project (
     authorized_project_designee,
     verifier,
     voluntary_status,
-    project_listed,
-    project_registered,
-    arb_id,
-    active_ccb_status,
-    project_type,
-    registry_documents,
     project_website,
     notes,
     date_added,
     source,
     by_user
 ) select
-    uuid_generate_v4(),
-    project_id,
+    id,
     project_name,
-    arb_project,
-    registry_and_arb,
     scope,
     project_type,
-    methodology_protocol,
     project_site_region,
     project_site_country,
     project_site_state,
@@ -187,15 +177,54 @@ insert into project (
     authorized_project_designee,
     verifier,
     voluntary_status,
-    project_listed,
-    project_registered,
-    arb_id,
-    active_ccb_status,
-    project_sector,
-    registry_documents,
     project_website,
     notes,
     date_project_added_to_database,
     'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, April). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database',
     'csv import'
+from csv_project;
+
+-- now populate the actual DB data
+insert into project_registry (
+    id,
+    project_id,
+    registry_project_id,
+    arb_project,
+    arb_id,
+    registry_and_arb,
+    project_type,
+    methodology_protocol,
+    project_listed,
+    project_registered,
+    active_ccb_status,
+    registry_documents
+) select
+    uuid_generate_v4(),
+    id,
+    project_id,
+    arb_project,
+    arb_id,
+    registry_and_arb,
+    project_type,
+    methodology_protocol,
+    project_listed,
+    project_registered,
+    active_ccb_status,
+    registry_documents
+from csv_project;
+
+
+-- now populate the actual DB data
+insert into project_rating (
+    id,
+    project_id,
+    rated_by,
+    rating_documents,
+    rating_type
+) select
+    uuid_generate_v4(),
+    id,
+    registry_and_arb,
+    registry_documents,
+    'Standards Organization'
 from csv_project;

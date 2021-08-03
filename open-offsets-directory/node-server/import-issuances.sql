@@ -20,13 +20,13 @@ insert into issuance (
     serial_number
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
     i.total_credits_issued,
     ''
 from csv_acr_issuances i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_car_issuances
 insert into issuance (
@@ -38,13 +38,13 @@ insert into issuance (
     serial_number
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
     i.total_offset_credits_issued,
     ''
 from csv_car_issuances i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_vcs_issuances
 insert into issuance (
@@ -56,13 +56,13 @@ insert into issuance (
     serial_number
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage_year,
     i.issuance_date,
     i.credits_issued,
     ''
 from csv_vcs_issuances i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_gold_issuances
 insert into issuance (
@@ -74,11 +74,11 @@ insert into issuance (
     serial_number
 ) select
     uuid_generate_v4(),
-    p.id,
+    p.project_id,
     i.vintage,
     i.issuance_date,
     i.quantity,
     i.serial_number
 from csv_gold_issuances i
-join project p on i.project_id = p.project_id
+join project_registry p on i.project_id = p.registry_project_id
 where i.credit_status = 'Issued';

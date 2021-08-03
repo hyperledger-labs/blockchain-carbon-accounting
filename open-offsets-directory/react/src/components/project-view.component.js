@@ -21,13 +21,14 @@ export default class Project extends Component {
     this.getProject = this.getProject.bind(this);
     this.goBack = this.goBack.bind(this);
     this.handleTabChange = this.handleTabChange.bind(this);
+    this.handleRegistriesPageChange = this.handleRegistriesPageChange.bind(this);
+    this.handleRegistriesPageSizeChange = this.handleRegistriesPageSizeChange.bind(this);
+    this.handleRatingsPageChange = this.handleRatingsPageChange.bind(this);
+    this.handleRatingsPageSizeChange = this.handleRatingsPageSizeChange.bind(this);
     this.handleIssuancesPageChange = this.handleIssuancesPageChange.bind(this);
-    this.handleIssuancesPageSizeChange =
-      this.handleIssuancesPageSizeChange.bind(this);
-    this.handleRetirementsPageChange =
-      this.handleRetirementsPageChange.bind(this);
-    this.handleRetirementsPageSizeChange =
-      this.handleRetirementsPageSizeChange.bind(this);
+    this.handleIssuancesPageSizeChange = this.handleIssuancesPageSizeChange.bind(this);
+    this.handleRetirementsPageChange = this.handleRetirementsPageChange.bind(this);
+    this.handleRetirementsPageSizeChange = this.handleRetirementsPageSizeChange.bind(this);
 
     this.pageSizes = [10, 25, 50, 100];
     this.state = {
@@ -42,12 +43,25 @@ export default class Project extends Component {
       issuances_total: 0,
       issuances_pageSize: DEFAULT_PAGE_SIZE,
       issuances_loadingIndicator: true,
+      retirements: [],
       retirements_page: 1,
       retirements_count: 0,
       retirements_total: 0,
       retirements_pageSize: DEFAULT_PAGE_SIZE,
       retirements_loadingIndicator: false,
       message: "",
+      registries: [],
+      registries_page: 1,
+      registries_count: 0,
+      registries_total: 0,
+      registries_pageSize: DEFAULT_PAGE_SIZE,
+      registries_loadingIndicator: false,
+      ratings: [],
+      ratings_page: 1,
+      ratings_count: 0,
+      ratings_total: 0,
+      ratings_pageSize: DEFAULT_PAGE_SIZE,
+      ratings_loadingIndicator: false,
     };
   }
 
@@ -77,10 +91,18 @@ export default class Project extends Component {
           retirements_page: 1,
           retirements_count: 0,
           retirements_loadingIndicator: false,
+          registries_page: 1,
+          registries_count: 0,
+          registries_loadingIndicator: false,
+          ratings_page: 1,
+          ratings_count: 0,
+          ratings_loadingIndicator: false,
         });
         console.log(response.data);
         window.scrollTo(0, 0);
         this.setState({ issuances_loadingIndicator: true });
+        this.retrieveRegistries();
+        this.retrieveRatings();
         this.retrieveIssuances();
         this.retrieveRetirements();
       })
@@ -106,6 +128,56 @@ export default class Project extends Component {
 
     console.log("getRequestParams:: params", params);
     return params;
+  }
+
+  retrieveRegistries() {
+    const { current, registries_page, registries_pageSize } = this.state;
+    if (!current || !current.id) {
+      console.log("No current project to fetch registries for !");
+      return;
+    }
+    ProjectDataService.getRegistries(
+      this.getRequestParams(current, registries_page, registries_pageSize)
+    )
+      .then((registries_response) => {
+        const { project_registries, totalPages, totalItems } =
+          registries_response.data;
+        this.setState({
+          registries: project_registries,
+          registries_count: totalPages,
+          registries_total: totalItems,
+        });
+        this.setState({ registries_loadingIndicator: false });
+      })
+      .catch((e) => {
+        this.setState({ registries_loadingIndicator: false });
+        console.log(e);
+      });
+  }
+
+  retrieveRatings() {
+    const { current, ratings_page, ratings_pageSize } = this.state;
+    if (!current || !current.id) {
+      console.log("No current project to fetch ratings for !");
+      return;
+    }
+    ProjectDataService.getRatings(
+      this.getRequestParams(current, ratings_page, ratings_pageSize)
+    )
+      .then((ratings_response) => {
+        const { project_ratings, totalPages, totalItems } =
+          ratings_response.data;
+        this.setState({
+          ratings: project_ratings,
+          ratings_count: totalPages,
+          ratings_total: totalItems,
+        });
+        this.setState({ ratings_loadingIndicator: false });
+      })
+      .catch((e) => {
+        this.setState({ ratings_loadingIndicator: false });
+        console.log(e);
+      });
   }
 
   retrieveRetirements() {
@@ -157,12 +229,70 @@ export default class Project extends Component {
       });
   }
 
+  refreshRegistriesList() {
+    this.retrieveRegistries();
+  }
+
+  refreshRatingsList() {
+    this.retrieveRatings();
+  }
+
   refreshIssuancesList() {
     this.retrieveIssuances();
   }
 
   refreshRetirementsList() {
     this.retrieveRetirements();
+  }
+
+  handleRegistriesPageChange(event, value) {
+    console.log("handleRegistriesPageChange:: ", event, value);
+    this.setState(
+      {
+        registries_page: value,
+      },
+      () => {
+        this.refreshRegistriesList();
+      }
+    );
+  }
+
+  handleRegistriesPageSizeChange(event) {
+    console.log("handleRegistriesPageSizeChange:: ", event);
+    this.setState(
+      {
+        registries_pageSize: event.target.value,
+        registries_page: 1,
+      },
+      () => {
+        this.refreshRegistriesList();
+      }
+    );
+  }
+
+  handleRatingsPageChange(event, value) {
+    console.log("handleRatingsPageChange:: ", event, value);
+    this.setState(
+      {
+        ratings_page: value,
+      },
+      () => {
+        this.refreshRatingsList();
+      }
+    );
+  }
+
+  handleRatingsPageSizeChange(event) {
+    console.log("handleRatingsPageSizeChange:: ", event);
+    this.setState(
+      {
+        ratings_pageSize: event.target.value,
+        ratings_page: 1,
+      },
+      () => {
+        this.refreshRatingsList();
+      }
+    );
   }
 
   handleIssuancesPageChange(event, value) {
@@ -295,6 +425,18 @@ export default class Project extends Component {
       retirements_page,
       retirements_pageSize,
       retirements_loadingIndicator,
+      registries,
+      registries_count,
+      registries_total,
+      registries_page,
+      registries_pageSize,
+      registries_loadingIndicator,
+      ratings,
+      ratings_count,
+      ratings_total,
+      ratings_page,
+      ratings_pageSize,
+      ratings_loadingIndicator,
       current_tab,
     } = this.state;
 
@@ -319,6 +461,8 @@ export default class Project extends Component {
               onChange={this.handleTabChange}
             >
               <Tab label="Details" />
+              <Tab label={`Registries (${registries_total})`} />
+              <Tab label={`Ratings (${ratings_total})`} />
               <Tab label={`Issuances (${issuances_total})`} />
               <Tab label={`Retirements (${retirements_total})`} />
             </Tabs>
@@ -331,7 +475,84 @@ export default class Project extends Component {
                 )}
               </div>
             </div>
+
             <div role="tabpanel" hidden={current_tab !== 1}>
+              <h4>Registries</h4>
+              {this.renderSpinner(registries_loadingIndicator)}
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Project ID</th>
+                    <th scope="col">ARB Project</th>
+                    <th scope="col">ARB id</th>
+                    <th scope="col">Registry and ARB</th>
+                    <th scope="col">Project type</th>
+                    <th scope="col">Methodology protocol</th>
+                    <th scope="col">Project listed</th>
+                    <th scope="col">Project registered </th>
+                    <th scope="col">Active CCB status</th>
+                    <th scope="col">Registry documents</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registries &&
+                    registries.map((registry, index) => (
+                      <tr key={index}>
+                        <td>{registry.registry_project_id}</td>
+                        <td>{registry.arb_project}</td>
+                        <td>{registry.arb_id}</td>
+                        <td>{registry.registry_and_arb}</td>
+                        <td>{registry.project_type}</td>
+                        <td>{registry.methodology_protocol}</td>
+                        <td>{registry.project_listed}</td>
+                        <td>{registry.project_registered}</td>
+                        <td>{registry.active_ccb_status}</td>
+                        <td>{registry.registry_documents}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {this.renderPaginator(
+                registries_count,
+                registries_page,
+                registries_pageSize,
+                this.handleRegistriesPageChange,
+                this.handleRegistriesPageSizeChange
+              )}
+            </div>
+
+            <div role="tabpanel" hidden={current_tab !== 2}>
+              <h4>Ratings</h4>
+              {this.renderSpinner(ratings_loadingIndicator)}
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th scope="col">Rated By</th>
+                    <th scope="col">Documents</th>
+                    <th scope="col">Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ratings &&
+                    ratings.map((rating, index) => (
+                      <tr key={index}>
+                        <td>{rating.rated_by}</td>
+                        <td>{rating.rating_documents}</td>
+                        <td>{rating.rating_type}</td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              {this.renderPaginator(
+                ratings_count,
+                ratings_page,
+                ratings_pageSize,
+                this.handleRatingsPageChange,
+                this.handleRatingsPageSizeChange
+              )}
+            </div>
+
+            <div role="tabpanel" hidden={current_tab !== 3}>
               <h4>Issuances</h4>
               {this.renderSpinner(issuances_loadingIndicator)}
               <table className="table">
@@ -364,7 +585,7 @@ export default class Project extends Component {
               )}
             </div>
 
-            <div role="tabpanel" hidden={current_tab !== 2}>
+            <div role="tabpanel" hidden={current_tab !== 4}>
               <h4>Retirements</h4>
               {this.renderSpinner(retirements_loadingIndicator)}
               <table className="table">
