@@ -8,6 +8,7 @@ module.exports = (sequelize, Sequelize) => {
         primaryKey: true,
       },
       project_id: Sequelize.UUID,
+      project_registry_id: Sequelize.UUID,
       vintage_year: Sequelize.INTEGER,
       retirement_date: Sequelize.DATE,
       quantity_retired: Sequelize.BIGINT,

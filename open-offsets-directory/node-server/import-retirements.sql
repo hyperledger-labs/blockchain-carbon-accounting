@@ -13,6 +13,7 @@ update csv_gold_retirements set gsid = regexp_replace(gsid, E'^VCS', '');
 insert into retirement (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     retirement_date,
     quantity_retired,
@@ -23,6 +24,7 @@ insert into retirement (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.status_effective,
     i.quantity_of_offset_credits,
@@ -37,6 +39,7 @@ join project_registry p on i.project_id = p.registry_project_id;
 insert into retirement (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     retirement_date,
     quantity_retired,
@@ -47,6 +50,7 @@ insert into retirement (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage_year,
     i.retirement_cancellation_date,
     i.credits_retired,
@@ -61,6 +65,7 @@ join project_registry p on i.project_id = p.registry_project_id;
 insert into retirement (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     retirement_date,
     quantity_retired,
@@ -71,6 +76,7 @@ insert into retirement (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage,
     i.retirement_date,
     i.quantity,

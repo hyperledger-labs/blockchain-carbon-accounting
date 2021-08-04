@@ -14,6 +14,7 @@ update csv_gold_issuances set project_id = regexp_replace(project_id, E'^VCS', '
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
@@ -21,6 +22,7 @@ insert into issuance (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
     i.total_credits_issued,
@@ -32,6 +34,7 @@ join project_registry p on i.project_id = p.registry_project_id;
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
@@ -39,6 +42,7 @@ insert into issuance (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
     i.total_offset_credits_issued,
@@ -50,6 +54,7 @@ join project_registry p on i.project_id = p.registry_project_id;
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
@@ -57,6 +62,7 @@ insert into issuance (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage_year,
     i.issuance_date,
     i.credits_issued,
@@ -68,6 +74,7 @@ join project_registry p on i.project_id = p.registry_project_id;
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
@@ -75,6 +82,7 @@ insert into issuance (
 ) select
     uuid_generate_v4(),
     p.project_id,
+    p.id,
     i.vintage,
     i.issuance_date,
     i.quantity,
