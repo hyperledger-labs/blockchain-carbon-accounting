@@ -77,6 +77,15 @@ class ProjectDataService {
       { label: "Date Added", name: "date_added" },
       { label: "Source", name: "source" },
       { label: "By User", name: "by_user" },
+      // Fields from related entities
+      { label: "Verifier", name: "project_rating.verifier" },
+      {
+        label: "Standards Organization",
+        name: "project_rating.standards_organization",
+      },
+      { label: "Registry and ARB", name: "project_registry.registry_and_arb" },
+      { label: "Registry ID", name: "project_registry.registry_project_id" },
+      { label: "Project Type", name: "project_registry.project_type" },
     ];
   }
 }
