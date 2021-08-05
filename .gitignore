@@ -1,8 +1,93 @@
 *.DS_Store
 minifab/
+slitherlog.json
+
+
+# 1. multi-cloud-deployment
+#   a. chaincode
+multi-cloud-deployment/chaincode/packaging/code.tar.gz
+multi-cloud-deployment/chaincode/packaging/marbles-chaincode.tgz
+#   b. deploy-aws
+multi-cloud-deployment/deploy-aws/packaging/code.tar.gz
+multi-cloud-deployment/deploy-aws/packaging/marbles-chaincode.tgz
+
+
+# 2. new-emission-token-network
+net-emissions-token-network/node_modules
+#Hardhat files
+net-emissions-token-network/cache
+net-emissions-token-network/artifacts
+net-emissions-token-network/coverage
+net-emissions-token-network/coverage.json
+net-emissions-token-network/.ethereum-config.js
+net-emissions-token-network/deployments/localhost
+net-emissions-token-network/deployments/SlitherResults
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# dependencies
+net-emissions-token-network/interface/node_modules
+net-emissions-token-network/interface/.pnp
+net-emissions-token-network/interface/.pnp.js
+# testing
+net-emissions-token-network/interface/coverage
+# production
+net-emissions-token-network/interface/build
+# misc
+net-emissions-token-network/interface/.DS_Store
+net-emissions-token-network/interface/.env*
+# debug
+net-emissions-token-network/interface/npm-debug.log*
+net-emissions-token-network/interface/yarn-debug.log*
+net-emissions-token-network/interface/yarn-error.log*
+# subgraph
+net-emissions-token-network/interface/packages/subgraph/build/
+net-emissions-token-network/interface/packages/subgraph/src/types/
+
+
+# 3. open-offsets-directory
+open-offsets-directory/node_modules/
+
+
+# 4. utility-emissions-channel
+#  a. typescript_app
+utility-emissions-channel/typescript_app/dist
+utility-emissions-channel/typescript_app/node_modules
+utility-emissions-channel/typescript_app/local-bucket
+utility-emissions-channel/typescript_app/playground
+utility-emissions-channel/typescript_app/.env.*
+#  b. chaincode
+utility-emissions-channel/chaincode/packaging/code.tar.gz
+utility-emissions-channel/chaincode/packaging/marbles-chaincode.tgz
+utility-emissions-channel/chaincode/typescript/node_modules
+utility-emissions-channel/chaincode/typescript/package-lock.json
+utility-emissions-channel/chaincode/typescript/dist
+#  c. docker-compose-setup
+utility-emissions-channel/docker-compose-setup/channel-artifacts/*.tx
+utility-emissions-channel/docker-compose-setup/channel-artifacts/*.block
+utility-emissions-channel/docker-compose-setup/ledgers
+utility-emissions-channel/docker-compose-setup/ledgers-backup
+utility-emissions-channel/docker-compose-setup/channel-artifacts/*.json
+utility-emissions-channel/docker-compose-setup/org3-artifacts/crypto-config/*
+utility-emissions-channel/docker-compose-setup/application
+utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1/*
+utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor2/*
+utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor3/*
+utility-emissions-channel/docker-compose-setup/organizations/ordererOrganizations/*
+utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/*
+utility-emissions-channel/docker-compose-setup/system-genesis-block/*
+utility-emissions-channel/docker-compose-setup/*.tar.gz
+utility-emissions-channel/docker-compose-setup/log.txt
+utility-emissions-channel/docker-compose-setup/node_modules
+utility-emissions-channel/docker-compose-setup/*.zip
+utility-emissions-channel/docker-compose-setup/*.xlsx
+utility-emissions-channel/docker-compose-setup/*.csv
+utility-emissions-channel/docker-compose-setup/*.txt
+utility-emissions-channel/docker-compose-setup/*.pdf
+utility-emissions-channel/docker-compose-setup/chaincode/code.tar.gz
+utility-emissions-channel/docker-compose-setup/chaincode/*-chaincode.tgz
+utility-emissions-channel/docker-compose-setup/blockchain-explorer/**/crypto
+utility-emissions-channel/docker-compose-setup/blockchain-explorer/**/crypto-config
 utility-emissions-channel/.project
 utility-emissions-channel/docker-compose-setup/bin
 utility-emissions-channel/docker-compose-setup/bin_mac
 utility-emissions-channel/docker-compose-setup/config
 utility-emissions-channel/chaincode/node/node_modules
-slitherlog.json
