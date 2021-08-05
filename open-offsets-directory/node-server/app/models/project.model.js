@@ -24,7 +24,6 @@ module.exports = (sequelize, Sequelize) => {
       project_owner: Sequelize.STRING,
       offset_project_operator: Sequelize.STRING,
       authorized_project_designee: Sequelize.STRING,
-      verifier: Sequelize.STRING,
       voluntary_status: Sequelize.STRING,
       project_website: Sequelize.STRING,
       notes: Sequelize.STRING,

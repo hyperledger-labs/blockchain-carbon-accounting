@@ -71,7 +71,6 @@ class ProjectDataService {
         label: "Authorized Project Designee",
         name: "authorized_project_designee",
       },
-      { label: "Verifier", name: "verifier" },
       { label: "Voluntary Status", name: "voluntary_status" },
       { label: "Project Website", name: "project_website" },
       { label: "Notes", name: "notes" },

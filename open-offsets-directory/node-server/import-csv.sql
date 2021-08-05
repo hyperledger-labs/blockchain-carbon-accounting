@@ -228,3 +228,17 @@ insert into project_rating (
     registry_documents,
     'Standards Organization'
 from csv_project;
+
+-- Also impor tthe Verifiers
+insert into project_rating (
+    id,
+    project_id,
+    rated_by,
+    rating_type
+) select
+    uuid_generate_v4(),
+    id,
+    verifier,
+    'Verifier'
+from csv_project
+where verifier is not null;

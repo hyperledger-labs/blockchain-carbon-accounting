@@ -56,7 +56,6 @@ CREATE TABLE project (
     project_owner text,
     offset_project_operator text,
     authorized_project_designee text,
-    verifier text,
     voluntary_status text,
     project_website text,
     notes text,
