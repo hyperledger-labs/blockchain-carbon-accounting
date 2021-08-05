@@ -149,7 +149,6 @@ insert into project (
     project_owner,
     offset_project_operator,
     authorized_project_designee,
-    verifier,
     voluntary_status,
     project_website,
     notes,
@@ -175,11 +174,10 @@ insert into project (
     project_owner,
     offset_project_operator,
     authorized_project_designee,
-    verifier,
     voluntary_status,
     project_website,
     notes,
-    date_project_added_to_database,
+    TO_DATE('19000101','YYYYMMDD') + interval '1 day' * date_project_added_to_database,
     'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, April). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database',
     'csv import'
 from csv_project;

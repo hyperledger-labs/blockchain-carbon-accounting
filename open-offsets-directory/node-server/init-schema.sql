@@ -59,7 +59,7 @@ CREATE TABLE project (
     voluntary_status text,
     project_website text,
     notes text,
-    date_added integer,
+    date_added date,
     source text,
     by_user text
 );
