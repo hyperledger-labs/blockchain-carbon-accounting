@@ -21,14 +21,20 @@ export default class Project extends Component {
     this.getProject = this.getProject.bind(this);
     this.goBack = this.goBack.bind(this);
     this.handleTabChange = this.handleTabChange.bind(this);
-    this.handleRegistriesPageChange = this.handleRegistriesPageChange.bind(this);
-    this.handleRegistriesPageSizeChange = this.handleRegistriesPageSizeChange.bind(this);
+    this.handleRegistriesPageChange =
+      this.handleRegistriesPageChange.bind(this);
+    this.handleRegistriesPageSizeChange =
+      this.handleRegistriesPageSizeChange.bind(this);
     this.handleRatingsPageChange = this.handleRatingsPageChange.bind(this);
-    this.handleRatingsPageSizeChange = this.handleRatingsPageSizeChange.bind(this);
+    this.handleRatingsPageSizeChange =
+      this.handleRatingsPageSizeChange.bind(this);
     this.handleIssuancesPageChange = this.handleIssuancesPageChange.bind(this);
-    this.handleIssuancesPageSizeChange = this.handleIssuancesPageSizeChange.bind(this);
-    this.handleRetirementsPageChange = this.handleRetirementsPageChange.bind(this);
-    this.handleRetirementsPageSizeChange = this.handleRetirementsPageSizeChange.bind(this);
+    this.handleIssuancesPageSizeChange =
+      this.handleIssuancesPageSizeChange.bind(this);
+    this.handleRetirementsPageChange =
+      this.handleRetirementsPageChange.bind(this);
+    this.handleRetirementsPageSizeChange =
+      this.handleRetirementsPageSizeChange.bind(this);
 
     this.pageSizes = [10, 25, 50, 100];
     this.state = {
@@ -345,6 +351,12 @@ export default class Project extends Component {
     );
   }
 
+  renderFormattedField(field, item) {
+    return item[field.name] && field.fmtNumber
+      ? parseInt(item[field.name]).toLocaleString()
+      : item[field.name]
+  }
+
   renderProjectField(field, current) {
     return (
       <div key={field.label}>
@@ -352,12 +364,59 @@ export default class Project extends Component {
           <strong>{field.label}:</strong>
         </label>{" "}
         <Linkify componentDecorator={componentDecorator}>
-          {current[field.name] && field.fmtNumber
-            ? parseInt(current[field.name]).toLocaleString()
-            : current[field.name]}
+          {this.renderFormattedField(field, current)}
         </Linkify>
       </div>
     );
+  }
+
+  renderFieldsTableHeaders(fields) {
+    return (
+      <thead>
+        <tr>
+          {fields.map((f) => (
+            <th scope="col">{f.label}</th>
+          ))}
+        </tr>
+      </thead>
+    );
+  }
+
+  renderFieldsTableRow(fields, item, index) {
+    return (
+      <tr key={index}>
+        {fields.map((f) =>
+          f.linkify ? (
+            <Linkify componentDecorator={componentDecorator}>
+              <td>{this.renderFormattedField(f, item)}</td>
+            </Linkify>
+          ) : (
+            <td>{this.renderFormattedField(f, item)}</td>
+          )
+        )}
+      </tr>
+    );
+  }
+
+  renderFieldsTableBody(fields, items) {
+    return (
+      <tbody>
+        {items &&
+          items.map(
+            (item, index) => this.renderFieldsTableRow(fields, item, index)
+          )
+        }
+      </tbody>
+    )
+  }
+
+  renderFieldsTable(fields, items) {
+    return (
+      <table className="table">
+        {this.renderFieldsTableHeaders(fields)}
+        {this.renderFieldsTableBody(fields, items)}
+      </table>
+    )
   }
 
   renderSpinner(loading) {
@@ -470,52 +529,18 @@ export default class Project extends Component {
             <p>{this.state.message}</p>
             <div role="tabpanel" hidden={current_tab !== 0}>
               <div className="mt-4">
-                {ProjectDataService.fields().map((f) =>
-                  this.renderProjectField(f, current)
-                )}
+                {ProjectDataService.fields()
+                  .filter((f) => !f.searchOnly)
+                  .map((f) => this.renderProjectField(f, current))}
               </div>
             </div>
 
             <div role="tabpanel" hidden={current_tab !== 1}>
-              <h4>Registries</h4>
               {this.renderSpinner(registries_loadingIndicator)}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Project ID</th>
-                    <th scope="col">ARB Project</th>
-                    <th scope="col">ARB id</th>
-                    <th scope="col">Registry and ARB</th>
-                    <th scope="col">Project type</th>
-                    <th scope="col">Methodology protocol</th>
-                    <th scope="col">Project listed</th>
-                    <th scope="col">Project registered </th>
-                    <th scope="col">Active CCB status</th>
-                    <th scope="col">Registry documents</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {registries &&
-                    registries.map((registry, index) => (
-                      <tr key={index}>
-                        <td>{registry.registry_project_id}</td>
-                        <td>{registry.arb_project}</td>
-                        <td>{registry.arb_id}</td>
-                        <td>{registry.registry_and_arb}</td>
-                        <td>{registry.project_type}</td>
-                        <td>{registry.methodology_protocol}</td>
-                        <td>{registry.project_listed}</td>
-                        <td>{registry.project_registered}</td>
-                        <td>{registry.active_ccb_status}</td>
-                        <td>
-                          <Linkify componentDecorator={componentDecorator}>
-                            {registry.registry_documents}
-                          </Linkify>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              {this.renderFieldsTable(
+                ProjectDataService.registry_fields(),
+                registries
+              )}
               {this.renderPaginator(
                 registries_count,
                 registries_page,
@@ -526,31 +551,11 @@ export default class Project extends Component {
             </div>
 
             <div role="tabpanel" hidden={current_tab !== 2}>
-              <h4>Ratings</h4>
               {this.renderSpinner(ratings_loadingIndicator)}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Rated By</th>
-                    <th scope="col">Documents</th>
-                    <th scope="col">Type</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ratings &&
-                    ratings.map((rating, index) => (
-                      <tr key={index}>
-                        <td>{rating.rated_by}</td>
-                        <td>
-                          <Linkify componentDecorator={componentDecorator}>
-                            {rating.rating_documents}
-                          </Linkify>
-                        </td>
-                        <td>{rating.rating_type}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              {this.renderFieldsTable(
+                ProjectDataService.rating_fields(),
+                ratings
+              )}
               {this.renderPaginator(
                 ratings_count,
                 ratings_page,
@@ -561,29 +566,11 @@ export default class Project extends Component {
             </div>
 
             <div role="tabpanel" hidden={current_tab !== 3}>
-              <h4>Issuances</h4>
               {this.renderSpinner(issuances_loadingIndicator)}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Vintage Year</th>
-                    <th scope="col">Issuance Date</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Serial Number</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {issuances &&
-                    issuances.map((issuance, index) => (
-                      <tr key={index}>
-                        <td>{issuance.vintage_year}</td>
-                        <td>{issuance.issuance_date}</td>
-                        <td>{issuance.quantity_issued}</td>
-                        <td>{issuance.serial_number}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              {this.renderFieldsTable(
+                ProjectDataService.issuance_fields(),
+                issuances
+              )}
               {this.renderPaginator(
                 issuances_count,
                 issuances_page,
@@ -594,35 +581,11 @@ export default class Project extends Component {
             </div>
 
             <div role="tabpanel" hidden={current_tab !== 4}>
-              <h4>Retirements</h4>
               {this.renderSpinner(retirements_loadingIndicator)}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Vintage Year</th>
-                    <th scope="col">Retirement Date</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Serial Number</th>
-                    <th scope="col">Beneficiary</th>
-                    <th scope="col">Reason</th>
-                    <th scope="col">Detail</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {retirements &&
-                    retirements.map((retirement, index) => (
-                      <tr key={index}>
-                        <td>{retirement.vintage_year}</td>
-                        <td>{retirement.retirement_date}</td>
-                        <td>{retirement.quantity_retired}</td>
-                        <td>{retirement.serial_number}</td>
-                        <td>{retirement.retirement_beneficiary}</td>
-                        <td>{retirement.retirement_reason}</td>
-                        <td>{retirement.retirement_detail}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              {this.renderFieldsTable(
+                ProjectDataService.retirement_fields(),
+                retirements
+              )}
               {this.renderPaginator(
                 retirements_count,
                 retirements_page,
