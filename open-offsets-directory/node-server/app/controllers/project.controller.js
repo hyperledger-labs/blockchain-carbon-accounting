@@ -1,5 +1,7 @@
 const db = require("../models");
 const Project = db.projects;
+const ProjectRating = db.project_ratings;
+const ProjectRegistry = db.project_registries;
 const Sequelize = db.Sequelize;
 const Op = db.Sequelize.Op;
 
@@ -50,16 +52,20 @@ exports.create = (req, res) => {
     });
 };
 
-const _makeCaseInsensitiveCond = (fieldType, field, op, value) => {
+const _makeCol = (field, alias) => {
+  return alias ? Sequelize.col(`${alias}.${field}`) : Sequelize.col(field);
+};
+
+const _makeCaseInsensitiveCond = (fieldType, field, op, value, assocAlias) => {
   if ("STRING" === fieldType) {
-    return Sequelize.where(Sequelize.fn("lower", Sequelize.col(field)), {
+    return Sequelize.where(Sequelize.fn("lower", _makeCol(field, assocAlias)), {
       [op]: `${value.toLowerCase()}`,
     });
   }
-  return Sequelize.where(Sequelize.col(field), { [op]: `${value}` });
+  return Sequelize.where(_makeCol(field, assocAlias), { [op]: `${value}` });
 };
 
-const _makeCondition = (field, op, value) => {
+const _makeCondition = (field, op, value, alias) => {
   if (!field || !value) {
     console.log("_makeCondition missing field or value: ", field, value);
     return null;
@@ -76,32 +82,125 @@ const _makeCondition = (field, op, value) => {
     return _makeCondition(field, "contains", value);
   }
 
-  // field must be in the model
-  let modelField = Project.rawAttributes[field];
+  // some fields are aliases:
+  // - project_rating.verifier queries project_rating.rated_by where project_rating.rating_type = 'Verifier'
+  // - project_rating.standards_organization (similar)
+  // some fields are on related entities, eg:
+  // - project_registry.registry_project_id
+  // - project_registry.registry_and_arb
+  // - project_registry.project_type
+  let fieldType;
+  let actualField = field;
+  let modelField = null;
+  let assocModel = null;
+  let extraCond = null;
+  if (field.startsWith("project_registry")) {
+    actualField = field.substring("project_registry".length + 1);
+    assocModel = ProjectRegistry;
+    modelField = assocModel.rawAttributes[actualField];
+  } else if (field.startsWith("project_rating")) {
+    actualField = field.substring("project_rating".length + 1);
+    assocModel = ProjectRating;
+    // Note: special handling for "fields" verifier / standards_organization
+    // which translate to the condition on rated_by AND where rating_type = 'Standards Organization' (for example).
+    if (actualField === "verifier") {
+      alias = actualField;
+      actualField = "rated_by";
+      extraCond = _makeCondition(
+        "project_rating.rating_type",
+        "eq",
+        "Verifier",
+        alias
+      );
+    } else if (actualField === "standards_organization") {
+      alias = actualField;
+      actualField = "rated_by";
+      extraCond = _makeCondition(
+        "project_rating.rating_type",
+        "eq",
+        "Standards Organization",
+        alias
+      );
+    }
+    modelField = assocModel.rawAttributes[actualField];
+  } else {
+    // field must be in the model
+    modelField = Project.rawAttributes[field];
+  }
   if (!modelField) {
     console.log("_makeCondition ignoring unknown field: ", field);
     return null;
   }
-  let fieldType = modelField.type.key;
+  fieldType = modelField.type.key;
 
-  console.log("_makeCondition found field type", field, fieldType);
+  return _makeConditionInternal(
+    actualField,
+    fieldType,
+    op,
+    value,
+    assocModel,
+    alias,
+    extraCond
+  );
+};
 
+const _makeConditionInternal = (
+  field,
+  fieldType,
+  op,
+  value,
+  assocModel,
+  assocAlias,
+  extraCond
+) => {
+  // for assocModel we need to wrap the where condition in an include for that model
+  let cond = _makeConditionInternal2(field, fieldType, op, value, assocAlias);
+  if (extraCond) {
+    if (extraCond.model) {
+      cond = [cond, extraCond.cond];
+    } else {
+      cond = [cond, extraCond];
+    }
+  }
+  if (assocModel) {
+    return {
+      model: assocModel,
+      alias: assocAlias,
+      cond,
+    };
+  }
+  return cond;
+};
+
+const _makeConditionInternal2 = (field, fieldType, op, value, assocAlias) => {
   if (op === "contains") {
-    return Sequelize.where(Sequelize.fn("lower", Sequelize.col(field)), {
+    return Sequelize.where(Sequelize.fn("lower", _makeCol(field, assocAlias)), {
       [Op.like]: `%${value.toLowerCase()}%`,
     });
   } else if (op == "eq") {
-    return _makeCaseInsensitiveCond(fieldType, field, Op.eq, value);
+    return _makeCaseInsensitiveCond(fieldType, field, Op.eq, value, assocAlias);
   } else if (op == "neq") {
-    return _makeCaseInsensitiveCond(fieldType, field, Op.ne, value);
+    return _makeCaseInsensitiveCond(fieldType, field, Op.ne, value, assocAlias);
   } else if (op == "gte") {
-    return _makeCaseInsensitiveCond(fieldType, field, Op.gte, value);
+    return _makeCaseInsensitiveCond(
+      fieldType,
+      field,
+      Op.gte,
+      value,
+      assocAlias
+    );
   } else if (op == "gt") {
-    return _makeCaseInsensitiveCond(fieldType, field, Op.gt, value);
+    return _makeCaseInsensitiveCond(fieldType, field, Op.gt, value, assocAlias);
   } else if (op == "lte") {
-    return _makeCaseInsensitiveCond(fieldType, field, Op.lte, value);
+    return _makeCaseInsensitiveCond(
+      fieldType,
+      field,
+      Op.lte,
+      value,
+      assocAlias
+    );
   } else if (op == "lt") {
-    return _makeCaseInsensitiveCond(fieldType, field, Op.lt, value);
+    return _makeCaseInsensitiveCond(fieldType, field, Op.lt, value, assocAlias);
   } else {
     console.log("_makeCondition ignoring unknown operator: ", op);
     return null;
@@ -114,20 +213,61 @@ exports.findAll = (req, res) => {
   const { page, size } = req.query;
 
   let conditions = [];
+  // Note: use an modelsMap to map from the model name to the model instance
+  // since we can only use model Name as a Key
+  // but we need the instance later in the query
+  let modelsMap = {};
+  let assocConditionsMap = {};
   for (let k in req.query) {
     let cond = _makeCondition(k, null, req.query[k]);
     if (cond) {
-      conditions.push(cond);
+      if (cond.model) {
+        let key = cond.alias ? cond.alias : cond.model.name;
+        let assocConditions = assocConditionsMap[key];
+        if (!assocConditions) {
+          assocConditions = [];
+          modelsMap[key] = cond.model;
+        }
+        console.log("findAll -> adding assocConditions", cond.model, cond.cond);
+        assocConditionsMap[key] = assocConditions.concat(cond.cond);
+      } else {
+        console.log("findAll -> adding conditions", cond);
+        conditions = conditions.concat(cond);
+      }
     }
   }
 
   const { limit, offset } = getPagination(page, size);
 
-  Project.findAndCountAll({
-    where: conditions ? conditions : null,
+  let query = {
     limit,
     offset,
-  })
+  };
+  if (conditions) {
+    query.where = conditions;
+  }
+  let includes = [];
+  for (let model in assocConditionsMap) {
+    let assocConditions = assocConditionsMap[model];
+    console.log("findAll -> add include query for ", model, assocConditions);
+    let includeCondition = {
+      model: modelsMap[model],
+      attributes: [],
+      where: assocConditions,
+      required: true,
+    };
+    if (modelsMap[model].name !== model) {
+      includeCondition.as = model;
+    }
+    includes.push(includeCondition);
+  }
+  if (includes.length) {
+    query.include = includes;
+    query.subQuery = false;
+  }
+  console.log("findAll -> query", query);
+
+  Project.findAndCountAll(query)
     .then((data) => {
       console.log(`findAll -> findAndCountAll = ${data}`);
       const response = getPagingData(data, page, limit);

@@ -5,6 +5,14 @@ class ProjectDataService {
     return http.get("/projects", { params });
   }
 
+  getRegistries(params) {
+    return http.get("/registries", { params });
+  }
+
+  getRatings(params) {
+    return http.get("/ratings", { params });
+  }
+
   getIssuances(params) {
     return http.get("/issuances", { params });
   }
@@ -31,13 +39,9 @@ class ProjectDataService {
 
   fields() {
     return [
-      { label: "ID", name: "project_id" },
       { label: "Name", name: "project_name" },
-      { label: "ARB Project", name: "arb_project" },
-      { label: "Registry + ARB", name: "registry_and_arb" },
       { label: "Scope", name: "scope" },
       { label: "Type", name: "type" },
-      { label: "Methodology / Proposal", name: "methodology_protocol" },
       { label: "Region", name: "project_site_region" },
       { label: "Country", name: "project_site_country" },
       { label: "State", name: "project_site_state" },
@@ -67,19 +71,82 @@ class ProjectDataService {
         label: "Authorized Project Designee",
         name: "authorized_project_designee",
       },
-      { label: "Verifier", name: "verifier" },
       { label: "Voluntary Status", name: "voluntary_status" },
-      { label: "Project Listed", name: "project_listed" },
-      { label: "Project Registered", name: "project_registered" },
-      { label: "ARB ID", name: "arb_id" },
-      { label: "Active CCB Status", name: "active_ccb_status" },
-      { label: "Project Type", name: "project_type" },
-      { label: "Registry Documents", name: "registry_documents" },
       { label: "Project Website", name: "project_website" },
       { label: "Notes", name: "notes" },
       { label: "Date Added", name: "date_added" },
       { label: "Source", name: "source" },
       { label: "By User", name: "by_user" },
+      // Fields from related entities
+      { label: "Verifier", name: "project_rating.verifier", searchOnly: true },
+      {
+        label: "Standards Organization",
+        name: "project_rating.standards_organization",
+        searchOnly: true,
+      },
+      {
+        label: "Registry and ARB",
+        name: "project_registry.registry_and_arb",
+        searchOnly: true,
+      },
+      {
+        label: "Registry ID",
+        name: "project_registry.registry_project_id",
+        searchOnly: true,
+      },
+      {
+        label: "Project Type",
+        name: "project_registry.project_type",
+        searchOnly: true,
+      },
+    ];
+  }
+
+  registry_fields() {
+    return [
+      { label: "Project ID", name: "registry_project_id" },
+      { label: "ARB Project", name: "arb_project" },
+      { label: "ARB ID", name: "arb_id" },
+      { label: "Registry and ARB", name: "registry_and_arb" },
+      { label: "Project type", name: "project_type" },
+      { label: "Methodology protocol", name: "methodology_protocol" },
+      { label: "Project listed", name: "project_listed" },
+      { label: "Project registered", name: "project_registered" },
+      { label: "Active CCB status", name: "active_ccb_status" },
+      {
+        label: "Registry documents",
+        name: "registry_documents",
+        linkify: true,
+      },
+    ];
+  }
+
+  rating_fields() {
+    return [
+      { label: "Rated By", name: "rated_by" },
+      { label: "Documents", name: "rating_documents", linkify: true },
+      { label: "Type", name: "rating_type" },
+    ];
+  }
+
+  issuance_fields() {
+    return [
+      { label: "Vintage Year", name: "vintage_year" },
+      { label: "Issuance Date", name: "issuance_date" },
+      { label: "Quantity", name: "quantity_issued", fmtNumber: true },
+      { label: "Serial Number", name: "serial_number" },
+    ];
+  }
+
+  retirement_fields() {
+    return [
+      { label: "Vintage Year", name: "vintage_year" },
+      { label: "Retirement Date", name: "retirement_date" },
+      { label: "Quantity", name: "quantity_retired", fmtNumber: true },
+      { label: "Serial Number", name: "serial_number" },
+      { label: "Beneficiary", name: "retirement_beneficiary" },
+      { label: "Reason", name: "retirement_reason" },
+      { label: "Detail", name: "retirement_detail" },
     ];
   }
 }

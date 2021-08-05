@@ -13,6 +13,7 @@ update csv_gold_retirements set gsid = regexp_replace(gsid, E'^VCS', '');
 insert into retirement (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     retirement_date,
     quantity_retired,
@@ -22,6 +23,7 @@ insert into retirement (
     retirement_detail
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.status_effective,
@@ -31,12 +33,13 @@ insert into retirement (
     i.retirement_reason,
     i.retirement_reason_details
 from csv_acr_car_retirements i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_vcs_retirements
 insert into retirement (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     retirement_date,
     quantity_retired,
@@ -46,6 +49,7 @@ insert into retirement (
     retirement_detail
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage_year,
     i.retirement_cancellation_date,
@@ -55,12 +59,13 @@ insert into retirement (
     i.retirement_reason,
     i.retirement_details
 from csv_vcs_retirements i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_gold_retirements
 insert into retirement (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     retirement_date,
     quantity_retired,
@@ -70,6 +75,7 @@ insert into retirement (
     retirement_detail
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage,
     i.retirement_date,
@@ -79,5 +85,5 @@ insert into retirement (
     '',
     i.notes
 from csv_gold_retirements i
-join project p on i.gsid = p.project_id
+join project_registry p on i.gsid = p.registry_project_id
 where i.credit_status = 'Retired';

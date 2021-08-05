@@ -28,6 +28,8 @@ app.get("/api/", (req, res) => {
 });
 
 require("./app/routes/project.routes")(app);
+require("./app/routes/project_registry.routes")(app);
+require("./app/routes/project_rating.routes")(app);
 require("./app/routes/issuance.routes")(app);
 require("./app/routes/retirement.routes")(app);
 

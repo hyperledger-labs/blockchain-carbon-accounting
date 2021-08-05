@@ -21,6 +21,13 @@ export default class Project extends Component {
     this.getProject = this.getProject.bind(this);
     this.goBack = this.goBack.bind(this);
     this.handleTabChange = this.handleTabChange.bind(this);
+    this.handleRegistriesPageChange =
+      this.handleRegistriesPageChange.bind(this);
+    this.handleRegistriesPageSizeChange =
+      this.handleRegistriesPageSizeChange.bind(this);
+    this.handleRatingsPageChange = this.handleRatingsPageChange.bind(this);
+    this.handleRatingsPageSizeChange =
+      this.handleRatingsPageSizeChange.bind(this);
     this.handleIssuancesPageChange = this.handleIssuancesPageChange.bind(this);
     this.handleIssuancesPageSizeChange =
       this.handleIssuancesPageSizeChange.bind(this);
@@ -42,12 +49,25 @@ export default class Project extends Component {
       issuances_total: 0,
       issuances_pageSize: DEFAULT_PAGE_SIZE,
       issuances_loadingIndicator: true,
+      retirements: [],
       retirements_page: 1,
       retirements_count: 0,
       retirements_total: 0,
       retirements_pageSize: DEFAULT_PAGE_SIZE,
       retirements_loadingIndicator: false,
       message: "",
+      registries: [],
+      registries_page: 1,
+      registries_count: 0,
+      registries_total: 0,
+      registries_pageSize: DEFAULT_PAGE_SIZE,
+      registries_loadingIndicator: false,
+      ratings: [],
+      ratings_page: 1,
+      ratings_count: 0,
+      ratings_total: 0,
+      ratings_pageSize: DEFAULT_PAGE_SIZE,
+      ratings_loadingIndicator: false,
     };
   }
 
@@ -77,10 +97,18 @@ export default class Project extends Component {
           retirements_page: 1,
           retirements_count: 0,
           retirements_loadingIndicator: false,
+          registries_page: 1,
+          registries_count: 0,
+          registries_loadingIndicator: false,
+          ratings_page: 1,
+          ratings_count: 0,
+          ratings_loadingIndicator: false,
         });
         console.log(response.data);
         window.scrollTo(0, 0);
         this.setState({ issuances_loadingIndicator: true });
+        this.retrieveRegistries();
+        this.retrieveRatings();
         this.retrieveIssuances();
         this.retrieveRetirements();
       })
@@ -106,6 +134,56 @@ export default class Project extends Component {
 
     console.log("getRequestParams:: params", params);
     return params;
+  }
+
+  retrieveRegistries() {
+    const { current, registries_page, registries_pageSize } = this.state;
+    if (!current || !current.id) {
+      console.log("No current project to fetch registries for !");
+      return;
+    }
+    ProjectDataService.getRegistries(
+      this.getRequestParams(current, registries_page, registries_pageSize)
+    )
+      .then((registries_response) => {
+        const { project_registries, totalPages, totalItems } =
+          registries_response.data;
+        this.setState({
+          registries: project_registries,
+          registries_count: totalPages,
+          registries_total: totalItems,
+        });
+        this.setState({ registries_loadingIndicator: false });
+      })
+      .catch((e) => {
+        this.setState({ registries_loadingIndicator: false });
+        console.log(e);
+      });
+  }
+
+  retrieveRatings() {
+    const { current, ratings_page, ratings_pageSize } = this.state;
+    if (!current || !current.id) {
+      console.log("No current project to fetch ratings for !");
+      return;
+    }
+    ProjectDataService.getRatings(
+      this.getRequestParams(current, ratings_page, ratings_pageSize)
+    )
+      .then((ratings_response) => {
+        const { project_ratings, totalPages, totalItems } =
+          ratings_response.data;
+        this.setState({
+          ratings: project_ratings,
+          ratings_count: totalPages,
+          ratings_total: totalItems,
+        });
+        this.setState({ ratings_loadingIndicator: false });
+      })
+      .catch((e) => {
+        this.setState({ ratings_loadingIndicator: false });
+        console.log(e);
+      });
   }
 
   retrieveRetirements() {
@@ -157,12 +235,70 @@ export default class Project extends Component {
       });
   }
 
+  refreshRegistriesList() {
+    this.retrieveRegistries();
+  }
+
+  refreshRatingsList() {
+    this.retrieveRatings();
+  }
+
   refreshIssuancesList() {
     this.retrieveIssuances();
   }
 
   refreshRetirementsList() {
     this.retrieveRetirements();
+  }
+
+  handleRegistriesPageChange(event, value) {
+    console.log("handleRegistriesPageChange:: ", event, value);
+    this.setState(
+      {
+        registries_page: value,
+      },
+      () => {
+        this.refreshRegistriesList();
+      }
+    );
+  }
+
+  handleRegistriesPageSizeChange(event) {
+    console.log("handleRegistriesPageSizeChange:: ", event);
+    this.setState(
+      {
+        registries_pageSize: event.target.value,
+        registries_page: 1,
+      },
+      () => {
+        this.refreshRegistriesList();
+      }
+    );
+  }
+
+  handleRatingsPageChange(event, value) {
+    console.log("handleRatingsPageChange:: ", event, value);
+    this.setState(
+      {
+        ratings_page: value,
+      },
+      () => {
+        this.refreshRatingsList();
+      }
+    );
+  }
+
+  handleRatingsPageSizeChange(event) {
+    console.log("handleRatingsPageSizeChange:: ", event);
+    this.setState(
+      {
+        ratings_pageSize: event.target.value,
+        ratings_page: 1,
+      },
+      () => {
+        this.refreshRatingsList();
+      }
+    );
   }
 
   handleIssuancesPageChange(event, value) {
@@ -215,6 +351,12 @@ export default class Project extends Component {
     );
   }
 
+  renderFormattedField(field, item) {
+    return item[field.name] && field.fmtNumber
+      ? parseInt(item[field.name]).toLocaleString()
+      : item[field.name]
+  }
+
   renderProjectField(field, current) {
     return (
       <div key={field.label}>
@@ -222,12 +364,59 @@ export default class Project extends Component {
           <strong>{field.label}:</strong>
         </label>{" "}
         <Linkify componentDecorator={componentDecorator}>
-          {current[field.name] && field.fmtNumber
-            ? parseInt(current[field.name]).toLocaleString()
-            : current[field.name]}
+          {this.renderFormattedField(field, current)}
         </Linkify>
       </div>
     );
+  }
+
+  renderFieldsTableHeaders(fields) {
+    return (
+      <thead>
+        <tr>
+          {fields.map((f) => (
+            <th scope="col">{f.label}</th>
+          ))}
+        </tr>
+      </thead>
+    );
+  }
+
+  renderFieldsTableRow(fields, item, index) {
+    return (
+      <tr key={index}>
+        {fields.map((f) =>
+          f.linkify ? (
+            <Linkify componentDecorator={componentDecorator}>
+              <td>{this.renderFormattedField(f, item)}</td>
+            </Linkify>
+          ) : (
+            <td>{this.renderFormattedField(f, item)}</td>
+          )
+        )}
+      </tr>
+    );
+  }
+
+  renderFieldsTableBody(fields, items) {
+    return (
+      <tbody>
+        {items &&
+          items.map(
+            (item, index) => this.renderFieldsTableRow(fields, item, index)
+          )
+        }
+      </tbody>
+    )
+  }
+
+  renderFieldsTable(fields, items) {
+    return (
+      <table className="table">
+        {this.renderFieldsTableHeaders(fields)}
+        {this.renderFieldsTableBody(fields, items)}
+      </table>
+    )
   }
 
   renderSpinner(loading) {
@@ -295,6 +484,18 @@ export default class Project extends Component {
       retirements_page,
       retirements_pageSize,
       retirements_loadingIndicator,
+      registries,
+      registries_count,
+      registries_total,
+      registries_page,
+      registries_pageSize,
+      registries_loadingIndicator,
+      ratings,
+      ratings_count,
+      ratings_total,
+      ratings_page,
+      ratings_pageSize,
+      ratings_loadingIndicator,
       current_tab,
     } = this.state;
 
@@ -319,6 +520,8 @@ export default class Project extends Component {
               onChange={this.handleTabChange}
             >
               <Tab label="Details" />
+              <Tab label={`Registries (${registries_total})`} />
+              <Tab label={`Ratings (${ratings_total})`} />
               <Tab label={`Issuances (${issuances_total})`} />
               <Tab label={`Retirements (${retirements_total})`} />
             </Tabs>
@@ -326,35 +529,48 @@ export default class Project extends Component {
             <p>{this.state.message}</p>
             <div role="tabpanel" hidden={current_tab !== 0}>
               <div className="mt-4">
-                {ProjectDataService.fields().map((f) =>
-                  this.renderProjectField(f, current)
-                )}
+                {ProjectDataService.fields()
+                  .filter((f) => !f.searchOnly)
+                  .map((f) => this.renderProjectField(f, current))}
               </div>
             </div>
+
             <div role="tabpanel" hidden={current_tab !== 1}>
-              <h4>Issuances</h4>
+              {this.renderSpinner(registries_loadingIndicator)}
+              {this.renderFieldsTable(
+                ProjectDataService.registry_fields(),
+                registries
+              )}
+              {this.renderPaginator(
+                registries_count,
+                registries_page,
+                registries_pageSize,
+                this.handleRegistriesPageChange,
+                this.handleRegistriesPageSizeChange
+              )}
+            </div>
+
+            <div role="tabpanel" hidden={current_tab !== 2}>
+              {this.renderSpinner(ratings_loadingIndicator)}
+              {this.renderFieldsTable(
+                ProjectDataService.rating_fields(),
+                ratings
+              )}
+              {this.renderPaginator(
+                ratings_count,
+                ratings_page,
+                ratings_pageSize,
+                this.handleRatingsPageChange,
+                this.handleRatingsPageSizeChange
+              )}
+            </div>
+
+            <div role="tabpanel" hidden={current_tab !== 3}>
               {this.renderSpinner(issuances_loadingIndicator)}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Vintage Year</th>
-                    <th scope="col">Issuance Date</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Serial Number</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {issuances &&
-                    issuances.map((issuance, index) => (
-                      <tr key={index}>
-                        <td>{issuance.vintage_year}</td>
-                        <td>{issuance.issuance_date}</td>
-                        <td>{issuance.quantity_issued}</td>
-                        <td>{issuance.serial_number}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              {this.renderFieldsTable(
+                ProjectDataService.issuance_fields(),
+                issuances
+              )}
               {this.renderPaginator(
                 issuances_count,
                 issuances_page,
@@ -364,36 +580,12 @@ export default class Project extends Component {
               )}
             </div>
 
-            <div role="tabpanel" hidden={current_tab !== 2}>
-              <h4>Retirements</h4>
+            <div role="tabpanel" hidden={current_tab !== 4}>
               {this.renderSpinner(retirements_loadingIndicator)}
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th scope="col">Vintage Year</th>
-                    <th scope="col">Retirement Date</th>
-                    <th scope="col">Quantity</th>
-                    <th scope="col">Serial Number</th>
-                    <th scope="col">Beneficiary</th>
-                    <th scope="col">Reason</th>
-                    <th scope="col">Detail</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {retirements &&
-                    retirements.map((retirement, index) => (
-                      <tr key={index}>
-                        <td>{retirement.vintage_year}</td>
-                        <td>{retirement.retirement_date}</td>
-                        <td>{retirement.quantity_retired}</td>
-                        <td>{retirement.serial_number}</td>
-                        <td>{retirement.retirement_beneficiary}</td>
-                        <td>{retirement.retirement_reason}</td>
-                        <td>{retirement.retirement_detail}</td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              {this.renderFieldsTable(
+                ProjectDataService.retirement_fields(),
+                retirements
+              )}
               {this.renderPaginator(
                 retirements_count,
                 retirements_page,
