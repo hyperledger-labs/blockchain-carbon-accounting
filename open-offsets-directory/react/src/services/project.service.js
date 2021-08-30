@@ -100,6 +100,11 @@ class ProjectDataService {
         searchOnly: true,
       },
       {
+        label: "Project ID",
+        name: "project_registry.registry_project_id",
+        searchOnly: true,
+      },
+      {
         label: "Project Type",
         name: "project_registry.project_type",
         searchOnly: true,
