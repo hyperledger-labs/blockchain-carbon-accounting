@@ -211,6 +211,10 @@ insert into project_registry (
     registry_documents
 from csv_project;
 
+-- cleanup
+update project_registry set methodology_protocol = null where methodology_protocol = 'NULL';
+update project_registry set methodology_protocol = null where trim(methodology_protocol) = '';
+
 
 -- now populate the actual DB data
 insert into project_rating (
