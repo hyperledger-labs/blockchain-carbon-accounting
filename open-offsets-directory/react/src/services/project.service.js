@@ -95,11 +95,6 @@ class ProjectDataService {
         searchOnly: true,
       },
       {
-        label: "Registry ID",
-        name: "project_registry.registry_project_id",
-        searchOnly: true,
-      },
-      {
         label: "Project ID",
         name: "project_registry.registry_project_id",
         searchOnly: true,
