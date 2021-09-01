@@ -25,6 +25,7 @@ class ProjectsList extends Component {
     this.refreshList = this.refreshList.bind(this);
     this.refreshListFirstPage = this.refreshListFirstPage.bind(this);
     this.setActiveProject = this.setActiveProject.bind(this);
+    this.handleOnlyWithIssuedInputChange = this.handleOnlyWithIssuedInputChange.bind(this);
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePageSizeChange = this.handlePageSizeChange.bind(this);
     this.searchOnKeyUp = this.searchOnKeyUp.bind(this);
@@ -46,6 +47,7 @@ class ProjectsList extends Component {
       count: 0,
       pageSize: DEFAULT_PAGE_SIZE,
       loadingIndicator: true,
+      onlyWithIssued: false,
     };
 
     this.pageSizes = [10, 25, 50, 100];
@@ -136,13 +138,17 @@ class ProjectsList extends Component {
     }
   }
 
-  getRequestParams(searchFields, page, pageSize) {
+  getRequestParams(searchFields, page, pageSize, onlyWithIssued) {
     let params = {};
 
     if (searchFields && searchFields.length) {
       searchFields.forEach((e) => {
         params[`${e.name}__${e.op}`] = e.value;
       });
+    }
+
+    if (onlyWithIssued) {
+      params['total_issued__gt'] = '0';
     }
 
     if (page) {
@@ -159,7 +165,7 @@ class ProjectsList extends Component {
 
   retrieveProjects(reCaptchaToken) {
     console.log("retrieveProjects:: state", this.state);
-    const { searchFields, page, pageSize } = this.state;
+    const { searchFields, page, pageSize, onlyWithIssued } = this.state;
 
     // reset error
     this.setState({ errorMessage: null });
@@ -184,7 +190,7 @@ class ProjectsList extends Component {
       console.log("Site not configured to use Recaptcha.");
     }
 
-    const params = this.getRequestParams(searchFields, page, pageSize);
+    const params = this.getRequestParams(searchFields, page, pageSize, onlyWithIssued);
     if (reCaptchaToken) {
       params["g-recaptcha-response"] = reCaptchaToken;
     }
@@ -300,6 +306,19 @@ class ProjectsList extends Component {
     );
   }
 
+  handleOnlyWithIssuedInputChange(event) {
+    const value = event.target.checked;
+    console.log("handleOnlyWithIssuedInputChange:: ", event, value);
+    this.setState(
+      {
+        onlyWithIssued: value,
+      },
+      () => {
+        this.refreshList();
+      }
+    );
+  }
+
   handlePageChange(event, value) {
     console.log("handlePageChange:: ", event, value);
     this.setState(
@@ -374,8 +393,7 @@ class ProjectsList extends Component {
   }
 
   render() {
-    const { searchFields, projects, page, count, pageSize, errorMessage } =
-      this.state;
+    const { searchFields, projects, page, count, pageSize, errorMessage, onlyWithIssued } = this.state;
 
     return (
       <div className="list row">
@@ -429,6 +447,10 @@ class ProjectsList extends Component {
                 </button>
               </div>
             ))}
+            <div className="input-group mb-3 form-check">
+              <input class="form-check-input me-2" type="checkbox" id="onlyWithIssued" checked={onlyWithIssued} onChange={this.handleOnlyWithIssuedInputChange}/>
+              <label class="form-check-label" for="onlyWithIssued">Show only projects with issued credits</label>
+            </div>
             <div className="input-group-append">
               <button
                 className="btn btn-outline-secondary"
