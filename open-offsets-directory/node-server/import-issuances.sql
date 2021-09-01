@@ -14,71 +14,79 @@ update csv_gold_issuances set project_id = regexp_replace(project_id, E'^VCS', '
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
     serial_number
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
     i.total_credits_issued,
     ''
 from csv_acr_issuances i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_car_issuances
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
     serial_number
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage,
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
     i.total_offset_credits_issued,
     ''
 from csv_car_issuances i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_vcs_issuances
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
     serial_number
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage_year,
     i.issuance_date,
     i.credits_issued,
     ''
 from csv_vcs_issuances i
-join project p on i.project_id = p.project_id;
+join project_registry p on i.project_id = p.registry_project_id;
 
 -- csv_gold_issuances
 insert into issuance (
     id,
     project_id,
+    project_registry_id,
     vintage_year,
     issuance_date,
     quantity_issued,
     serial_number
 ) select
     uuid_generate_v4(),
+    p.project_id,
     p.id,
     i.vintage,
     i.issuance_date,
     i.quantity,
     i.serial_number
 from csv_gold_issuances i
-join project p on i.project_id = p.project_id
+join project_registry p on i.project_id = p.registry_project_id
 where i.credit_status = 'Issued';

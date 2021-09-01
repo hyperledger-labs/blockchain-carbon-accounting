@@ -66,7 +66,8 @@ export class FabricRegistry{
             return {
                 orgName: req.orgName,
                 msp : cert.mspId,
-                caName : ca.getCaName()
+                caName : ca.getCaName(),
+                info: 'ORG ADMIN REGISTERED'
             };
         } catch (error) {
             throw error;
