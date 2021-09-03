@@ -55,16 +55,20 @@ class ProjectsList extends Component {
 
   filterStringsToSearchFieldsArray(filters) {
     // format in URL <field>__<op>__<value>
-    let searchFields = [];
+    let res = {searchFields: []};
     filters.forEach((f) => {
+      if (f === 'only_with_issued_credits') {
+        res.onlyWithIssued = true;
+        return;
+      }
       let arr = f.split("__");
       if (arr.length !== 3) return;
       // find the field
       let nf = ProjectDataService.fields().find((el) => el.name === arr[0]);
       if (!nf) return;
-      searchFields.push({ ...nf, op: arr[1], value: arr[2] });
+      res.searchFields.push({ ...nf, op: arr[1], value: arr[2] });
     });
-    return searchFields;
+    return res;
   }
 
   handleVerifyRecaptcha = async () => {
@@ -90,8 +94,9 @@ class ProjectsList extends Component {
       if (this.props.match.params.filters) {
         // format in URL <field>__<op>__<value>
         let filters = this.props.match.params.filters.split("/");
-        let searchFields = this.filterStringsToSearchFieldsArray(filters);
-        if (searchFields.length) update.searchFields = searchFields;
+        let res = this.filterStringsToSearchFieldsArray(filters);
+        if (res.searchFields.length) update.searchFields = res.searchFields;
+        if (res.onlyWithIssued) update.onlyWithIssued = res.onlyWithIssued;
       }
       console.log("componentDidMount:: Setting page params", update);
       this.setState(update, () => {
@@ -300,6 +305,9 @@ class ProjectsList extends Component {
     this.state.searchFields.forEach((f) => {
       fs.push(`${f.name}__${f.op}__${f.value}`);
     });
+    if (this.state.onlyWithIssued) {
+      fs.push('only_with_issued_credits');
+    }
     console.log("syncCurrentUrl:: with filters ", fs);
     this.props.history.push(
       `/projects-list/${this.state.pageSize}/${this.state.page}/${fs.join("/")}`
