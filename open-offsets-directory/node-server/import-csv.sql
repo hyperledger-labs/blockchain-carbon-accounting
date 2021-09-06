@@ -42,6 +42,7 @@ CREATE TABLE csv_project (
     issued_by_reporting_2018 bigint,
     issued_by_reporting_2019 bigint,
     issued_by_reporting_2020 bigint,
+    issued_by_reporting_2021 bigint,
     issued_by_reporting_future bigint,
     retired_1996 bigint,
     retired_1997 bigint,
@@ -79,6 +80,7 @@ CREATE TABLE csv_project (
     project_listed integer,
     project_registered integer ,
     arb_id text,
+    arb_project_detail text,
     active_ccb_status text,
     project_sector text,
     registry_documents text,
@@ -108,6 +110,8 @@ CREATE TABLE csv_project (
     issued_2018 bigint,
     issued_2019 bigint,
     issued_2020 bigint,
+    issued_2021 bigint,
+    notes_from_registry text,
     notes text,
     date_project_added_to_database integer,
     year_of_first_issuance integer
@@ -125,6 +129,8 @@ alter table csv_project add id uuid;
 update csv_project set id = uuid_generate_v4();
 
 -- cleanup previous data ?
+delete from retirement;
+delete from issuance;
 delete from project_rating;
 delete from project_registry;
 delete from project;
@@ -176,9 +182,9 @@ insert into project (
     authorized_project_designee,
     voluntary_status,
     project_website,
-    notes,
+    trim(coalesce(notes_from_registry, '') || ' ' || coalesce(notes, '')),
     TO_DATE('19000101','YYYYMMDD') + interval '1 day' * date_project_added_to_database,
-    'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, April). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database',
+    'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, September). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database',
     'csv import'
 from csv_project;
 
