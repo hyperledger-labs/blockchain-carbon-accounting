@@ -27,3 +27,15 @@
 .spinner-placeholder {
   min-height: 1026px;
 }
+
+.list-placeholder {
+  min-height: 380px;
+}
+
+.inner-list-placeholder {
+  min-height: 520px;
+}
+
+.empty-placeholder {
+  min-height: 480px;
+}
