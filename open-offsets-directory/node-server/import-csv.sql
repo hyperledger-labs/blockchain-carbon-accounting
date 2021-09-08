@@ -222,14 +222,9 @@ update project_registry set methodology_protocol = null where methodology_protoc
 update project_registry set methodology_protocol = null where trim(methodology_protocol) = '';
 
 -- update Verra registry links
-update project p
-set source = 'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, September). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://registry.verra.org/app/projectDetail/VCS/' || tmp.registry_project_id
-from (
-select p.id, pr.registry_project_id, pr.registry_and_arb from project p
-join project_registry pr on p.id = pr.project_id
-where pr.registry_and_arb = 'VCS'
-) tmp
-where p.id = tmp.id;
+update project_registry
+set registry_documents = 'https://registry.verra.org/app/projectDetail/VCS/' || registry_project_id
+where registry_and_arb = 'VCS';
 
 -- now populate the actual DB data
 insert into project_rating (
@@ -259,3 +254,13 @@ insert into project_rating (
     'Verifier'
 from csv_project
 where verifier is not null;
+
+-- update Verra registry links
+update project_rating p
+set rating_documents = 'https://registry.verra.org/app/projectDetail/VCS/' || tmp.registry_project_id
+from (
+select p.id, pr.registry_project_id, pr.registry_and_arb from project_rating p
+join project_registry pr on p.project_id = pr.project_id
+where pr.registry_and_arb = 'VCS'
+) tmp
+where p.id = tmp.id;
