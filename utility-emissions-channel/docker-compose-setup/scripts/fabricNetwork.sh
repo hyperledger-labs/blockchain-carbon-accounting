@@ -17,7 +17,7 @@ case $CMD in
         DOCKERE_CMD="down --volumes --remove-orphans"
 
         # remove channel artifacts
-        rm -r channel-artifacts/*
+        rm -r channel-artifacts
         # remove txt files
         rm -r chaincode1_log.txt chaincode2_log.txt log.txt
         # remove crypto files
