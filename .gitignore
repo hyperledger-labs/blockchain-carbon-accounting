@@ -86,6 +86,8 @@ utility-emissions-channel/docker-compose-setup/chaincode/code.tar.gz
 utility-emissions-channel/docker-compose-setup/chaincode/*-chaincode.tgz
 utility-emissions-channel/docker-compose-setup/blockchain-explorer/**/crypto
 utility-emissions-channel/docker-compose-setup/blockchain-explorer/**/crypto-config
+utility-emissions-channel/docker-compose-setup/chaincode/**/*.tar.gz
+utility-emissions-channel/docker-compose-setup/chaincode/**/*.tgz
 utility-emissions-channel/.project
 utility-emissions-channel/docker-compose-setup/bin
 utility-emissions-channel/docker-compose-setup/bin_mac
