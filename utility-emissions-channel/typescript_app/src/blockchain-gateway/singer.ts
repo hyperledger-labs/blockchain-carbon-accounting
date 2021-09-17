@@ -19,7 +19,7 @@ export default class Signer {
     const fnTag = `${this.className}.constructor()`;
     if (!(hlfSupport === "vault")) {
       throw new Error(
-        `${fnTag} support fabric tx signing using "vault"|"ws", but provided : ${hlfSupport}`
+        `${fnTag} support fabric tx signing using "vault", but provided : ${hlfSupport}`
       );
     }
     if (!(ethSupport === "plain")) {
@@ -58,7 +58,7 @@ export default class Signer {
       case "plain":
         if (!caller.address || !caller.private) {
           throw new ClientError(
-            `${fnTag} require eth address and private key signing ethereum tx`
+            `${fnTag} require eth address and private key for signing ethereum tx`
           );
         }
         singer = {
