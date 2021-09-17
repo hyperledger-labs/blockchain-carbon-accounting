@@ -1,4 +1,4 @@
-import { IFabricTxCaller, IEthTxCaller } from "./gateway";
+import { IFabricTxCaller, IEthTxCaller } from "./I-gateway";
 import {
   FabricSigningCredential,
   FabricSigningCredentialType,
