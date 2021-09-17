@@ -1,5 +1,3 @@
-import { String } from "aws-sdk/clients/codebuild";
-
 export interface IFabricTxCaller {
   // label for certificate stored in cert store
   userId: string;
