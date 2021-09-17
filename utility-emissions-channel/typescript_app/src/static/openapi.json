@@ -1,0 +1,556 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": "REST-API for connecting to Carbon Accounting network of Hyperledger CA2 SIG.",
+    "version": "1.0.0",
+    "title": "Carbon Accounting",
+    "contact": {
+      "email": "r.klemens@yahoo.de"
+    }
+  },
+  "servers": [{ "url": "http://localhost:9000/api/v1/utilityemissionchannel" }],
+  "tags": [
+    {
+      "name": "emissionscontract",
+      "description": "Functions related to the emissionscontract chaincode"
+    },
+    {
+      "name": "registerEnroll",
+      "description": "Functions to register an org admin as well as multiple users"
+    }
+  ],
+  "paths": {
+    "/emissionscontract/recordEmissions": {
+      "post": {
+        "tags": ["emissionscontract"],
+        "summary": "Record emissions of utility to utilityEmissionsChannel",
+        "description": "",
+        "operationId": "recordEmissions",
+        "parameters": [
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordEmissionsReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success. Emissions recorded",
+            "content": {
+              "application/json" : {
+                "schema" : {
+                  "$ref": "#/components/schemas/EmissionsData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    },
+    "/emissionscontract/recordAuditedEmissionsToken": {
+      "post": {
+        "tags": ["emissionscontract"],
+        "summary": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
+        "description": "Issue an audited emission token to the net-emissions-token-network from emissions records on the ledger",
+        "operationId": "recordAuditedEmissionsToken",
+        "parameters": [
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "name": "ethAddress",
+            "in": "header",
+            "required": false,
+            "description": "ethereum client's address for signing ethereum tx",
+            "schema" : {
+              "type": "string",
+              "example" : "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+            }
+          },
+          {
+            "name": "ethPrivate",
+            "in": "header",
+            "required": false,
+            "description": "ethereum client's private key for signing ethereum tx",
+            "schema" : {
+              "type": "string",
+              "example" : "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/recordAuditedEmissionsToken"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/allEmissionsData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/emissionscontract/getEmissionsData/{uuid}": {
+      "get": {
+        "tags": ["emissionscontract"],
+        "summary": "Get emissions data of utility",
+        "description": "Get emissions data of utility by ID of party, from and thru data",
+        "operationId": "getEmissionsData",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "description": "UUID of emission record",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmissionsData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/emissionscontract/getAllEmissionsData/{utilityId}/{partyId}": {
+      "get": {
+        "tags": ["emissionscontract"],
+        "summary": "Get all emissions data from the past year of utility",
+        "description": "Get all emissions data of utility by ID of utility and party",
+        "operationId": "getAllEmissionsData",
+        "parameters": [
+          {
+            "name": "utilityId",
+            "in": "path",
+            "description": "ID of Utiltiy",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example" : "USA_EIA_252522444142552441242521"
+            }
+          },
+          {
+            "name": "partyId",
+            "in": "path",
+            "description": "ID of party",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example" : "party1"
+            }
+          },
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/allEmissionsData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/emissionscontract/getAllEmissionsDataByDateRange/{fromDate}/{thruDate}": {
+      "get": {
+        "tags": ["emissionscontract"],
+        "summary": "Get all emissions data by a range of dates",
+        "description": "Get all emissions data by a range of dates",
+        "operationId": "getAllEmissionsDataByDateRange",
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "path",
+            "description": "Starting date of the query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example" : "2020-05-07T10:10:09Z"
+            }
+          },
+          {
+            "name": "thruDate",
+            "in": "path",
+            "description": "End date of the query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example" : "2021-05-07T10:10:09Z"
+            }
+          },
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/allEmissionsData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input data"
+          }
+        }
+      }
+    },
+    "/registerEnroll/enroll": {
+      "post": {
+        "tags": ["registerEnroll"],
+        "summary": "Enroll a client",
+        "description": "Enroll a client",
+        "operationId": "enroll",
+        "parameters": [
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          }
+        ],
+        "requestBody" : {
+          "content": {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/EnrollReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success. Admin registered"
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    },
+    "/registerEnroll/register": {
+      "post": {
+        "tags": ["registerEnroll"],
+        "summary": "Registers a user.",
+        "description": "Registers a user by userId and affiliation",
+        "operationId": "registerUser",
+        "parameters": [
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/vaultToken"
+          }
+        ],
+        "requestBody" : {
+          "content": {
+           "application/json" : {
+             "schema" : {
+               "$ref" : "#/components/schemas/RegisterClientReq"
+             }
+           } 
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success. User registered",
+            "content": {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RegisterClientRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RecordEmissionsReq": {
+        "type": "object",
+        "required": [
+          "utilityId",
+          "partyId",
+          "fromDate",
+          "thruDate",
+          "energyUseAmount",
+          "energyUseUom"
+        ],
+        "properties": {
+          "utilityId": {
+            "type": "string",
+            "example" : "USA_EIA_252522444142552441242521"
+          },
+          "partyId": {
+            "type": "string",
+            "example": "party1"
+          },
+          "fromDate": {
+            "type": "string",
+            "example" : "2020-05-07T10:10:09Z"
+          },
+          "thruDate": {
+            "type": "string",
+            "example" : "2021-05-07T10:10:09Z"
+          },
+          "energyUseAmount": {
+            "type": "integer",
+            "format": "int32",
+            "example" : 100
+          },
+          "energyUseUom": {
+            "type": "string",
+            "example" : "kWh"
+          },
+          "emissionsDoc": {
+            "type": "string",
+            "format": "binary"
+          }
+        }
+      },
+      "recordAuditedEmissionsToken": {
+        "type": "object",
+        "required": [
+          "partyId",
+          "addressToIssue",
+          "emissionsRecordsToAudit"
+        ],
+        "properties": {
+          "partyId": {
+            "type": "string"
+          },
+          "addressToIssue": {
+            "type": "string"
+          },
+          "emissionsRecordsToAudit": {
+            "type": "string"
+          }
+        }
+      },
+      "EmissionsData": {
+        "type": "object",
+        "properties": {
+          "utilityId": {
+            "type": "string"
+          },
+          "partyId": {
+            "type": "string"
+          },
+          "fromDate": {
+            "type": "string"
+          },
+          "thruDate": {
+            "type": "string"
+          },
+          "emissionsAmount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "emissionsUom": {
+            "type": "string"
+          },
+          "renewableEnergyUseAmount": {
+            "type": "number"
+          },
+          "nonrenewableEnergyUseAmount": {
+            "type": "number"
+          },
+          "energyUseUom": {
+            "type": "number"
+          },
+          "factorSource": {
+            "type": "string"
+          },
+          "url" : {
+            "type": "string"
+          },
+          "md5" : {
+            "type": "string"
+          },
+          "tokenId" : {
+            "type": "string"
+          }
+        }
+      },
+      "allEmissionsData": {
+        "type": "array",
+        "items" : {
+          "$ref" : "#/components/schemas/EmissionsData"
+        }
+      },
+      "EnrollReq": {
+        "type": "object",
+        "required": ["enrollmentID","enrollmentSecret"],
+        "properties": {
+          "enrollmentID" : {
+            "type": "string",
+            "example": "admin"
+          },
+          "enrollmentSecret": {
+            "type": "string",
+            "example" : "adminpw"
+          }
+        }
+      },
+      "RegisterClientReq": {
+        "type": "object",
+        "required": ["userId", "affiliation"],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example" : "client1"
+          },
+          "affiliation": {
+            "type": "string",
+            "example" : "auditor1.department1"
+           }
+        }
+      },
+      "RegisterClientRes" : {
+        "type": "object",
+        "properties": {
+          "enrollmentID" : {
+            "type": "string",
+            "example" : "client1"
+          },
+          "enrollmentSecret" : {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "parameters": {
+      "vaultToken" : {
+        "name": "vaultToken",
+        "description": "vault token required if server is using a vault transit key to sign blockchain transactions",
+        "in": "header",
+        "required": false,
+        "schema" : {
+          "type": "string",
+          "example" : ""
+        }
+      },
+      "userId" : {
+        "name": "userId",
+        "in": "query",
+        "required": true,
+        "description": "userId of the calling client",
+        "schema" : {
+          "type": "string",
+          "example": "admin"
+        }
+      }
+    }
+  }
+}
