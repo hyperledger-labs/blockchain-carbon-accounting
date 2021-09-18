@@ -7,6 +7,7 @@ import {
 } from "./I-gateway";
 import Singer from "./singer";
 import { ledgerLogger } from "../utils/logger";
+import ClientError from "../errors/clientError";
 
 interface IFabricRegistryGatewayOptions {
   fabricConnector: PluginLedgerConnectorFabric;
@@ -24,12 +25,23 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
     ledgerLogger.debug(`${fnTag} getting singer for the caller`);
     const singer = this.opts.singer.fabric(caller);
     ledgerLogger.debug(`${fnTag} enroll with fabric ca`);
-    await this.opts.fabricConnector.enroll(singer, {
-      enrollmentID: caller.userId,
-      enrollmentSecret: secret,
-      mspId: this.opts.orgMSP,
-      caId: this.opts.caId,
-    });
+    try {
+      await this.opts.fabricConnector.enroll(singer, {
+        enrollmentID: caller.userId,
+        enrollmentSecret: secret,
+        mspId: this.opts.orgMSP,
+        caId: this.opts.caId,
+      });
+      ledgerLogger.debug(`${fnTag} client enrolled with fabric-ca`);
+    } catch (error) {
+      if (error?.errors && error.errors[0] && error.errors[0].code === 20) {
+        throw new ClientError(`${fnTag} invalid enrollmentSecret`, 403);
+      }
+      throw new ClientError(
+        `${fnTag} failed to enroll : ${error.message}`,
+        409
+      );
+    }
   }
   async register(
     caller: IFabricTxCaller,
@@ -39,18 +51,26 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
     ledgerLogger.debug(`${fnTag} getting singer for the client`);
     const singer = this.opts.singer.fabric(caller);
     ledgerLogger.debug(`${fnTag} register with fabric ca`);
-    const secret = await this.opts.fabricConnector.register(
-      singer,
-      {
+    try {
+      const secret = await this.opts.fabricConnector.register(
+        singer,
+        {
+          enrollmentID: input.enrollmentID,
+          affiliation: input.affiliation,
+          role: "client",
+        },
+        this.opts.caId
+      );
+      ledgerLogger.debug(`${fnTag} client registered`)
+      return {
         enrollmentID: input.enrollmentID,
-        affiliation: input.affiliation,
-        role: "client",
-      },
-      this.opts.caId
-    );
-    return {
-      enrollmentID: input.enrollmentID,
-      enrollmentSecret: secret,
-    };
+        enrollmentSecret: secret,
+      };
+    } catch (error) {
+      throw new ClientError(
+        `${fnTag} failed to register : ${error.message}`,
+        409
+      );
+    }
   }
 }
