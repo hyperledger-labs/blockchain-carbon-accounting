@@ -29,6 +29,10 @@ export interface IUtilityemissionchannelGateway {
     caller: IFabricTxCaller,
     input: IUtilityemissionchannelGetAllEmissionsDataByDateRangeInput
   ): Promise<IUtilityemissionchannelEmissionData[]>;
+  updateEmissionsMintedToken(
+    caller: IFabricTxCaller,
+    input: IUtilityemissionchannelUpdateEmissionsMintedTokenInput
+  ): Promise<void>;
 }
 
 export interface IUtilityemissionchannelRecordEmissionsInput {
@@ -59,13 +63,19 @@ export interface IUtilityemissionchannelEmissionData {
 }
 
 export interface IUtilityemissionchannelGetEMissionsRecordsInput {
-  utilityId: String;
-  partyId: String;
+  utilityId: string;
+  partyId: string;
 }
 
 export interface IUtilityemissionchannelGetAllEmissionsDataByDateRangeInput {
   fromDate: string;
   thruDate: string;
+}
+
+export interface IUtilityemissionchannelUpdateEmissionsMintedTokenInput {
+  tokenId: string;
+  partyId: string;
+  uuids: string[];
 }
 
 // ##############################################################
