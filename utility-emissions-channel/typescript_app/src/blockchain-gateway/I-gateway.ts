@@ -127,4 +127,16 @@ export interface IEthNetEmissionsTokenIssueInput {
 
 export interface IEthNetEmissionsTokenIssueOutput {
   tokenId: string;
+  tokenTypeId: string;
+  issuer: string;
+  issuee: string;
+  fromDate: string;
+  thruDate: string;
+  dateCreated: string;
+  automaticRetireDate: string;
+  metadata: string;
+  manifest: string;
+  description: string;
+  availableBalance: string;
+  retiredBalance: string;
 }
