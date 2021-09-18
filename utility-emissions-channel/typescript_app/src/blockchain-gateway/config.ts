@@ -39,6 +39,7 @@ export default class BCGatewayConfig {
         enabled: true,
         asLocalhost: process.env.LEDGER_FABRIC_AS_LOCALHOST === "true",
       },
+      supportedIdentity: [FabricSigningCredentialType.X509], // for testing
     };
 
     {
@@ -66,7 +67,7 @@ export default class BCGatewayConfig {
           endpoint: endpoint,
           transitEngineMountPath: "/" + mount,
         };
-        opts.supportedIdentity = [FabricSigningCredentialType.VaultX509];
+        opts.supportedIdentity.push(FabricSigningCredentialType.VaultX509);
       }
     }
 
