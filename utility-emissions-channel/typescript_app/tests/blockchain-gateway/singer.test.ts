@@ -1,7 +1,6 @@
 import Singer from "../../src/blockchain-gateway/singer";
 import chai from "chai";
 import { FabricSigningCredentialType } from "@hyperledger/cactus-plugin-ledger-connector-fabric";
-import { Signer } from "aws-sdk/clients/cloudfront";
 import ClientError from "../../src/errors/clientError";
 import {
   Web3SigningCredentialPrivateKeyHex,
