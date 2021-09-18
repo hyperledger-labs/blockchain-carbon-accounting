@@ -13,6 +13,7 @@ import {
 import { v4 as uuid4 } from "uuid";
 import { readFileSync } from "fs";
 import abi from "../static/contract-NetEmissionsTokenNetwork.json";
+import { PluginKeychainVault } from "@hyperledger/cactus-plugin-keychain-vault";
 
 interface IFabricOrgConnector {
   orgMSP: string;
@@ -28,11 +29,22 @@ interface IEthConnector {
 export default class BCGatewayConfig {
   private readonly className = "BCGatewayConfig";
   readonly inMemoryKeychainID = "inMemoryKeychain";
+  readonly certStoreID = "certStoreKeychain";
   readonly pluginRegistry: PluginRegistry = new PluginRegistry({ plugins: [] });
   constructor() {
     this.pluginRegistry.add(
       new PluginKeychainMemory({
         keychainId: this.inMemoryKeychainID,
+        instanceId: uuid4(),
+      })
+    );
+    this.pluginRegistry.add(
+      new PluginKeychainVault({
+        endpoint: process.env.VAULT_ENDPOINT,
+        token: process.env.VAULT_TOKEN,
+        kvSecretsMountPath: process.env.VAULT_KV_MOUNT_PATH + "/data/",
+        apiVersion: "v1",
+        keychainId: this.certStoreID,
         instanceId: uuid4(),
       })
     );

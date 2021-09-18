@@ -505,9 +505,9 @@
       },
       "RegisterClientReq": {
         "type": "object",
-        "required": ["userId", "affiliation"],
+        "required": ["enrollmentID", "affiliation"],
         "properties": {
-          "userId": {
+          "enrollmentID": {
             "type": "string",
             "example" : "client1"
           },
@@ -532,7 +532,7 @@
     },
     "parameters": {
       "vaultToken" : {
-        "name": "vaultToken",
+        "name": "vault_token",
         "description": "vault token required if server is using a vault transit key to sign blockchain transactions",
         "in": "header",
         "required": false,

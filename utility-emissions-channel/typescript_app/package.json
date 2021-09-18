@@ -31,6 +31,7 @@
     "express": "^4.17.1",
     "express-validator": "^6.6.1",
     "fabric-client": "^1.4.17",
+    "joi": "^17.4.2",
     "multer": "^1.4.2",
     "socket.io": "^4.0.1",
     "swagger-ui-express": "^4.1.4",
