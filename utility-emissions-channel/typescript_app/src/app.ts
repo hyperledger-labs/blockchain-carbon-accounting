@@ -3,19 +3,21 @@ import { appLogger } from "./utils/logger";
 import v1 from "./routers/v1/index";
 import openapiSpec from "./static/openapi.json";
 import { serve, setup } from "swagger-ui-express";
-import {setup as serviceSetup} from "./service/service";
+import { setup as serviceSetup } from "./service/service";
+import multer from "multer";
 
 export default class App {
   private readonly app: Express = express();
   private readonly PORT: number;
   constructor() {
     this.PORT = +process.env.APP_PORT || 9000;
+    this.app.use(json());
+    this.app.use(urlencoded({ extended: true }));
+    const upload = multer()
+    this.app.use(upload.single("emissionsDoc"));
   }
 
   start() {
-    this.app.use(json());
-    this.app.use(urlencoded({ extended: true }));
-
     this.__applyMiddleware();
 
     // setup all the service

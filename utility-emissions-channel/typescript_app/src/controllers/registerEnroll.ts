@@ -10,7 +10,6 @@ export async function enroll(req: Request, res: Response) {
     });
     res.status(201).send();
   } catch (error) {
-    console.log(error);
     res.status(error.status).json({
       msg: error.message,
     });

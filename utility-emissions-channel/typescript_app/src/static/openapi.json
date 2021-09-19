@@ -80,7 +80,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "name": "ethAddress",
+            "name": "eth_address",
             "in": "header",
             "required": false,
             "description": "ethereum client's address for signing ethereum tx",
@@ -90,7 +90,7 @@
             }
           },
           {
-            "name": "ethPrivate",
+            "name": "eth_private",
             "in": "header",
             "required": false,
             "description": "ethereum client's private key for signing ethereum tx",

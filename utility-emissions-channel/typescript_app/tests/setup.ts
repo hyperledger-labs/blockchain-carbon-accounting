@@ -5,6 +5,7 @@ import {
   FabricSigningCredential,
 } from "@hyperledger/cactus-plugin-ledger-connector-fabric";
 import { config } from "dotenv";
+import axios from "axios";
 config();
 
 const bcConfig = new BCGatewayConfig();
@@ -77,9 +78,39 @@ async function mockEmissionsRecord() {
   await Promise.all([p1, p2]);
 }
 
+async function setupVault() {
+  const endpoint = process.env.VAULT_ENDPOINT;
+  const adminToken = "tokenId";
+  const transitPath = "/transit";
+  await axios.post(
+    endpoint + "/v1/sys/mounts" + transitPath,
+    {
+      type: "transit",
+    },
+    {
+      headers: {
+        "X-Vault-Token": adminToken,
+      },
+    }
+  );
+  await axios.post(
+    endpoint + "/v1" + transitPath + "/keys/admin",
+    {
+      type: "ecdsa-p256",
+    },
+    {
+      headers: {
+        "X-Vault-Token": adminToken,
+      },
+    }
+  );
+}
+
 (async () => {
   try {
+    // TODO use promise.all
     await mockEmissionsRecord();
+    await setupVault();
     process.exit(0);
   } catch (error) {
     console.error(error);

@@ -78,7 +78,7 @@ export default class FabricRegistryService {
     const querySchema = Joi.object({
       userId: Joi.string()
         .required()
-        .error(new Error("require userId, bu provided empty")),
+        .error(new Error("require userId, but provided empty")),
     });
 
     const bodyResult = bodySchema.validate(input.body);
