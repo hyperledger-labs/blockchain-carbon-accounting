@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node app.ts",
+    "dev": "ts-node src/index.ts",
     "start": "node ./dist/index.js",
     "test": "mocha -exit -require ts-node/register --reporter list -colors tests/**/*.test.ts --timeout 30000",
+    "test:setup" : "ts-node tests/setup.ts",
     "coverage": "nyc --reporter=html --reporter=text npm run test",
     "localS3": "serverless s3 start --address 0.0.0.0",
     "prod": "yarn build && yarn start",
