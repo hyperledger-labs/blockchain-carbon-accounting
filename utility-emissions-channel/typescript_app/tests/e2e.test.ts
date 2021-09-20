@@ -68,14 +68,17 @@ describe('E2E', () => {
       .set('content-type', 'application/x-www-form-urlencoded')
       .send({ orgName: 'auditor1' })
       .end(async (error, response) => {
-        assert.isNull(error);
-        assert.equal(response.status, 201);
-        assert.equal(response.body.orgName, 'auditor1');
-        assert.equal(response.body.msp, 'auditor1');
-        assert.equal(response.body.caName, 'auditor1.carbonAccounting.com');
-        await insertMockData(registry);
-
-        done();
+        try {
+          assert.isNull(error);
+          assert.equal(response.status, 201);
+          assert.equal(response.body.orgName, 'auditor1');
+          assert.equal(response.body.msp, 'auditor1');
+          assert.equal(response.body.caName, 'auditor1.carbonAccounting.com');
+          await insertMockData(registry);
+          done();
+        } catch (error) {
+          done(error);
+        }
       });
   });
 
@@ -267,7 +270,7 @@ async function insertMockData(registry: PluginRegistry) {
     });
     console.log(`UtilityIdentifier ${testUtilityId} already exists`);
     return;
-  } catch (error) {}
+  } catch (error) { }
   // import UtilityIdentifier
   const p1 = fabricClient.transact({
     signingCredential: caller,

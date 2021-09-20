@@ -302,19 +302,9 @@ $ ./network.sh stopBlockchainExplorer`
 
 ### Automated Tests
 
-When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and executing the tests into the docker container:
+When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and running the tests as:
 
 
 ```bash
-$ sh runTests.sh
+$ npm run test
 ```
-
-If you are running the server outside of docker container, then you can run the tests as :
-
-```bash
-$ mocha ./tests --timeout 10000
-```
-
-The automated tests are currently not working.  An [issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/80) has been created for this.
-
-
