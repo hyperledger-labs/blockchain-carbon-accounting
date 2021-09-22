@@ -221,6 +221,10 @@ from csv_project;
 update project_registry set methodology_protocol = null where methodology_protocol = 'NULL';
 update project_registry set methodology_protocol = null where trim(methodology_protocol) = '';
 
+-- update Verra registry links
+update project_registry
+set registry_documents = 'https://registry.verra.org/app/projectDetail/VCS/' || registry_project_id
+where registry_and_arb = 'VCS';
 
 -- now populate the actual DB data
 insert into project_rating (
@@ -250,3 +254,13 @@ insert into project_rating (
     'Verifier'
 from csv_project
 where verifier is not null;
+
+-- update Verra registry links
+update project_rating p
+set rating_documents = 'https://registry.verra.org/app/projectDetail/VCS/' || tmp.registry_project_id
+from (
+select p.id, pr.registry_project_id, pr.registry_and_arb from project_rating p
+join project_registry pr on p.project_id = pr.project_id
+where pr.registry_and_arb = 'VCS'
+) tmp
+where p.id = tmp.id;

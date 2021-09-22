@@ -471,7 +471,7 @@ class ProjectsList extends Component {
             </div>
           </div>
         </div>
-        <div className="col-12">
+        <div className="col-12 list-placeholder">
           <h4>Projects List</h4>
           {this.renderSpinner(this.state.loadingIndicator)}
           {errorMessage ? (

@@ -502,7 +502,7 @@ export default class Project extends Component {
     return (
       <div>
         {current ? (
-          <div>
+          <div class="inner-list-placeholder">
             <h4>
               Project {current.project_name}{" "}
               <button
@@ -596,7 +596,7 @@ export default class Project extends Component {
             </div>
           </div>
         ) : (
-          <div>
+          <div class="empty-placeholder">
             <br />
             <p>Please select on a Project...</p>
           </div>
