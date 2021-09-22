@@ -297,12 +297,18 @@ You can access it at http://localhost:8080 with username `exploreradmin` and pas
 To stop it:
 
 ```bash
-$ ./network.sh stopBlockchainExplorer`
+$ ./network.sh stopBlockchainExplorer
 ```
 
 ### Automated Tests
 
-When the network/API has fully started, you can run the automated tests by navigating to the `typescript_app` directory and running the tests as:
+In order to run the automated tests, the local Hardhat network needs to be started as:
+```bash
+$ cd ../net-emissions-token-network/
+$ npm install
+$ npx hardhat node --show-accounts
+```
+When the network/API and the local Hardhat network have fully started, you can run the automated tests by navigating to the `typescript_app` directory and running the tests as:
 
 
 ```bash
