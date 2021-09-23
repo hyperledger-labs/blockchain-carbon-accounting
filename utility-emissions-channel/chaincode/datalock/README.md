@@ -2,13 +2,8 @@
 
 Fabric chaincode for locking fabric data, while transactions related to the locked data are executed on different ledger/dataSource. Use of MVCC (Multiversion concurrency control) makes fabric a perfect blockchain for locking data. In fabric, MVCC is used for the solving double spending problem. DataLock uses the same facts, such that a single process with a unique id can only acquire lock.
 
-DataLock also allow application to support reentrancy with transaction which require connecting with multiple ledgers/dataSource, by keeping track of all the state change happing on different ledgers/dataSource during the execution the the transaction.
+To minimize number of call to fabric, business logic of data chaincode can be called from DataLock chaincode before locking or unlocking.
 
-DataLock chaincode can be used in following ways
-
-1. To keep track of state changes happing on different ledgers/dataSource while a business logic is being performed.
-2. To Lock/Unlock data maintained by a fabric chaincode deployed in the channel as DataLock chaincode.
-3. Or, combination of both
 
 ![cc-lock](docs/img/cc-lock.png)
 
