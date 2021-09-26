@@ -40,7 +40,10 @@ class EmissionsChaincode {
     getEmissionsData : this.getEmissionsData,
     getAllEmissionsData:this.getAllEmissionsData,
     getAllEmissionsDataByDateRange: this.getAllEmissionsDataByDateRange,
-    getAllEmissionsDataByDateRangeAndParty:this.getAllEmissionsDataByDateRangeAndParty
+    getAllEmissionsDataByDateRangeAndParty:this.getAllEmissionsDataByDateRangeAndParty,
+
+    // for lockdata
+    getValidEmissions: this.getValidEmissions
   };
   async Init(stub: ChaincodeStub): Promise<ChaincodeResponse> {
     return Shim.success(null);
@@ -132,12 +135,12 @@ class EmissionsChaincode {
     const partyId = args[1];
     const uuids = args.slice(2);
     try {
-        await (new EmissionsRecordContract(stub)).updateEmissionsMintedToken(tokenId,partyId,uuids);
-    } catch (error) {
+        const out = await (new EmissionsRecordContract(stub)).updateEmissionsMintedToken(tokenId,partyId,uuids);
+        return Shim.success(out)
+      } catch (error) {
         logger.error(error);
         return Shim.error(stringToBytes((error as Error).message));
     }
-    return Shim.success(null);
 }
   async getEmissionsData(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
     logger.info(`getEmissionsData method called with args : ${args}`);
@@ -159,6 +162,18 @@ class EmissionsChaincode {
       return Shim.error(stringToBytes((error as Error).message));
     }
     return Shim.success(byte);
+  }
+
+  async getValidEmissions(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
+    logger.info(`getValidEmissions method called with args : ${args}`);
+    let byte:Uint8Array;
+    try {
+      byte = await (new EmissionsRecordContract(stub)).getValidEmissions(args);
+      return Shim.success(byte);
+    } catch (error) {
+      logger.error(error);
+      return Shim.error(stringToBytes((error as Error).message));
+    }
   }
   async getAllEmissionsData(stub:ChaincodeStub,args:string[]):Promise<ChaincodeResponse>{
     logger.info(`getAllEmissionsData method called with args : ${args}`);

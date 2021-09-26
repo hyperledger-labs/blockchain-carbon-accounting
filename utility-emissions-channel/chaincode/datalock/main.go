@@ -17,8 +17,8 @@ func main() {
 	cc := new(internal.DataLockChaincode)
 
 	server := shim.ChaincodeServer{
-		CCID:    os.Getenv("DATALOCK_CC_ID"),
-		Address: os.Getenv("DATALOCK_CC_ADDRESS"),
+		CCID:    os.Getenv("CHAINCODE_ID"),
+		Address: os.Getenv("CHAINCODE_ADDRESS"),
 		CC:      cc,
 		TLSProps: shim.TLSProperties{
 			Disabled: true,

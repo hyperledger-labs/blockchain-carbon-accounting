@@ -1,6 +1,7 @@
 CHANNEL_NAME="utilityemissionchannel"
 CC_NN=${2}
 LOG_FILE_NAME=chaincode${2}_log.txt
+LOCKDATA_LOG_FILE_NAME=datalock_chaincode${2}_log.txt
 
 export CHAINCODE_NAME=utilityemissions
 export FABRIC_CFG_PATH=$PWD/fabric-config/
@@ -53,6 +54,24 @@ echo
 echo "+++++Check commitreadiness of chaincode+++++"
 ./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
 
+echo "===================== Query Request Manager chaincode on $PEERS on channel '$CHANNEL_NAME' ===================== "
+echo
+
+echo $ORDERER_ADDRESS
+
+echo $REQ_LOG_FILE_NAME
+export CC_PACKAGE_ID=`cat ${LOCKDATA_LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier: "); print a[2]}'`
+echo $CC_PACKAGE_ID
+
+CHAINCODE_NAME=datalock
+echo $CHAINCODE_NAME
+echo
+echo "+++++Approve chaincode for my org+++++"
+./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
+
+echo
+echo "+++++Check commitreadiness of chaincode+++++"
+./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
 ### Examples
 # sudo bash ./scripts/deployCCExt.sh 1 1
 # sudo bash ./scripts/deployCCExt.sh 1 2

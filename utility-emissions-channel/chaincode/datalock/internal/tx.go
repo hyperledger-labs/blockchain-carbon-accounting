@@ -52,6 +52,8 @@ func txState(stub shim.ChaincodeStubInterface, txID string, processing bool) ([]
 				errors.SeverityDebug,
 				id,
 			)
+		} else if !processing && tx.State == model.TxStateFINISHED {
+			return nil, nil
 		} else if !processing && tx.State != model.TxStatePROCESSING {
 			return nil, errors.E(
 				op,
