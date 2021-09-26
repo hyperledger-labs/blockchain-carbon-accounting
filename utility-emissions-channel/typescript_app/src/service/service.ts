@@ -6,6 +6,7 @@ import FabricRegistryService from './fabricRegistry';
 import UtilityEmissionsChannelServiceOptions from './utilityEmissionsChannel';
 import UtilityemissionchannelGateway from '../blockchain-gateway/utilityEmissionsChannel';
 import AWSS3 from '../datasource/awsS3';
+import { DataLockGateway } from '../blockchain-gateway/datalock';
 
 export let fabricRegistryService: FabricRegistryService;
 export let utilityEmissionsChannelService: UtilityEmissionsChannelServiceOptions;
@@ -43,9 +44,14 @@ export async function setup(): Promise<void> {
         signer: signer,
     });
     const s3 = new AWSS3();
+    const datalockGateway = new DataLockGateway({
+        fabricConnector: orgFabric.connector,
+        signer: signer,
+    });
     utilityEmissionsChannelService = new UtilityEmissionsChannelServiceOptions({
         utilityEmissionsGateway: utilityEmissionsGateway,
         netEmissionsContractGateway: netEmissionsContractGateway,
+        datalockGateway: datalockGateway,
         ethContractAddress: process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS,
         s3: s3,
         orgName: process.env.LEDGER_FABRIC_ORG_MSP,
