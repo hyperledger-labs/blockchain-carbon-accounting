@@ -1,0 +1,39 @@
+name: End-to-end tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.15.0'
+      - name: Download Fabric binaries and Docker compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          cd docker-compose-setup/
+          ./bootstrap.sh  2.2.1 1.4.9 -d -s
+      - name: Start local Hardhat network
+        run: |
+          cd ../net-emissions-token-network/
+          npm i -g npm@7.24.1
+          npm ci
+          npx hardhat node --show-accounts &
+      - name: Build utility-emissions-channel project
+        run: |
+          cd docker-compose-setup/
+          ./start.sh
+      - name: Run tests
+        run: |
+          cd typescript_app/
+          npm ci
+          npm run test
