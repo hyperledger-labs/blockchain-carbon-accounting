@@ -109,6 +109,9 @@ export interface IEthNetEmissionsTokenGateway {
 export interface IEthTxCaller {
     address?: string;
     private?: string;
+
+    // kv with vault
+    keyName?: string;
 }
 
 export interface IEthNetEmissionsTokenIssueInput {

@@ -123,6 +123,7 @@ export default class UtilityEmissionsChannelService {
         const ethCaller: IEthTxCaller = {
             address: input.header.eth_address,
             private: input.header.eth_private,
+            keyName: input.query.userId,
         };
         const partyId = input.body.partyId;
         const addressToIssue = input.body.addressToIssue;

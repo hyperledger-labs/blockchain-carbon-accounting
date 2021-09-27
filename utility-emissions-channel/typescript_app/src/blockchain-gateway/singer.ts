@@ -15,6 +15,7 @@ export default class Signer {
         private readonly hlfSupport: string,
         private readonly hlfCertStoreID: string,
         private readonly ethSupport: string,
+        private readonly ethSecretKeychainID?: string,
     ) {
         const fnTag = `${this.className}.constructor()`;
         if (!(hlfSupport === 'vault')) {
@@ -22,7 +23,7 @@ export default class Signer {
                 `${fnTag} support fabric tx signing using "vault", but provided : ${hlfSupport}`,
             );
         }
-        if (!(ethSupport === 'plain')) {
+        if (!(ethSupport === 'plain' || ethSupport === 'kv')) {
             throw new Error(
                 `${fnTag} support ethereum tx signing using "plain", but provided : ${ethSupport}`,
             );
@@ -65,6 +66,19 @@ export default class Signer {
                     type: Web3SigningCredentialType.PrivateKeyHex,
                     ethAccount: caller.address,
                     secret: caller.private,
+                };
+                break;
+            case 'kv':
+                if (!caller.keyName || !caller.address) {
+                    throw new ClientError(
+                        `${fnTag} require eth address and key name stored on key-value keychain, for signing ethereum tx`,
+                    );
+                }
+                singer = {
+                    type: Web3SigningCredentialType.CactusKeychainRef,
+                    ethAccount: caller.address,
+                    keychainEntryKey: 'eth-' + caller.keyName,
+                    keychainId: this.ethSecretKeychainID,
                 };
                 break;
         }

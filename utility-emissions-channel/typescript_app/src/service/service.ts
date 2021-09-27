@@ -16,7 +16,8 @@ export async function setup(): Promise<void> {
     const signer = new Signer(
         process.env.LEDGER_FABRIC_TX_SIGNER_TYPE,
         bcConfig.certStoreID,
-        'plain',
+        process.env.LEDGER_ETH_TX_SIGNER || 'plain',
+        bcConfig.certStoreID,
     );
 
     const orgFabric = bcConfig.fabricConnector();
