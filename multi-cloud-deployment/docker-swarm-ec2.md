@@ -6,7 +6,7 @@ To reset the process at any time during the deployment, run the following on bot
 
 ```bash
 cd ~/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
-./scripts/reset.sh
+./scripts/fabricNetwork.sh
 ```
 
 # Preparing your EC2 nodes
