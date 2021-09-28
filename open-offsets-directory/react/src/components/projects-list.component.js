@@ -456,8 +456,8 @@ class ProjectsList extends Component {
               </div>
             ))}
             <div className="input-group mb-3 form-check">
-              <input class="form-check-input me-2" type="checkbox" id="onlyWithIssued" checked={onlyWithIssued} onChange={this.handleOnlyWithIssuedInputChange}/>
-              <label class="form-check-label" for="onlyWithIssued">Show only projects with issued credits</label>
+              <input className="form-check-input me-2" type="checkbox" id="onlyWithIssued" checked={onlyWithIssued} onChange={this.handleOnlyWithIssuedInputChange}/>
+              <label className="form-check-label" htmlFor="onlyWithIssued">Show only projects with issued credits</label>
             </div>
             <div className="input-group-append">
               <button

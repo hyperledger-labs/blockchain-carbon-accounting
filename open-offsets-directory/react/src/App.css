@@ -3,6 +3,13 @@
   margin: auto;
 }
 
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .submit-form {
   max-width: 300px;
   margin: auto;
