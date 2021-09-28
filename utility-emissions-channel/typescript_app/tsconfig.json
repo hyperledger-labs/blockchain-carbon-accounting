@@ -10,6 +10,6 @@
     "esModuleInterop": true,
     "outDir": "./dist"
   },
-  "include": ["app.ts", "./src/**/*.ts"],
+  "include": ["./src/**/*.ts"],
   "exclude": ["node_modules","test"]
 }

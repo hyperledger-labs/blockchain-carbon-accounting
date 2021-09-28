@@ -1,122 +1,99 @@
-// netEmissionsTokenNetwork.ts : will call ethereum network to invoke
-// NetEmissionsTokenNetwork contract
-import {Logger, LoggerProvider, LogLevelDesc,Checks} from '@hyperledger/cactus-common';
 import {
     EthContractInvocationType,
     PluginLedgerConnectorXdai,
-    Web3SigningCredentialPrivateKeyHex,
-    Web3SigningCredentialType,
-    InvokeContractV1Request,
-    ReceiptType
 } from '@hyperledger/cactus-plugin-ledger-connector-xdai';
+import ClientError from '../errors/clientError';
+import { ledgerLogger } from '../utils/logger';
+import {
+    IEthNetEmissionsTokenGateway,
+    IEthTxCaller,
+    IEthNetEmissionsTokenIssueInput,
+    IEthNetEmissionsTokenIssueOutput,
+} from './I-gateway';
+import Signer from './singer';
 import Web3 from 'web3';
-import {IIssueRequest,IIssueResponse} from './I-netEmissionsTokenNetwork';
-import contractABI from '../contracts/NetEmissionsTokenNetwork.json';
+import contractABI from '../static/contract-NetEmissionsTokenNetwork.json';
+import { Checks } from '@hyperledger/cactus-common';
 
-export interface INetEmissionsTokenNetworkContractOptions{
-    logLevel:LogLevelDesc;
-    ethClient:PluginLedgerConnectorXdai;
-    keychainId:string;
-    contractName:string;
-    isDev:boolean;
-    keys:{
-        private:string,
-        public:string
-    };
-    contractAddress:string;
+interface IEthNetEmissionsTokenGatewayOptions {
+    ethClient: PluginLedgerConnectorXdai;
+    singer: Signer;
+    contractStoreKeychain: string;
 }
 
-export class NetEmissionsTokenNetworkContract{
-    static readonly CLASS_NAME = 'NetEmissionsTokenNetworkContract';
+export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsTokenGateway {
+    private readonly contractName = 'NetEmissionsTokenNetwork';
+    private readonly className = 'EthNetEmissionsTokenGateway';
     private readonly tokenTypeId = 3;
-    private readonly signer:Web3SigningCredentialPrivateKeyHex;
-
-    // ethereum contract request options
-    private  blockConfirmations = 3;
-    private receiptType:ReceiptType = ReceiptType.LedgerBlockAck;
-    private timeout = 3000; // ms
-
-    // events input definitions
-    private readonly EventTokenCreatedInput:any[];
-
-    private readonly web3:Web3;
-    private readonly log:Logger;
-    get className():string{
-        return NetEmissionsTokenNetworkContract.CLASS_NAME;
-    }
-
-    constructor(private readonly opts:INetEmissionsTokenNetworkContractOptions){
-        const fnTag = `${this.className}#constructor`;
-        this.log = LoggerProvider.getOrCreate({label:this.className,level:opts.logLevel});
-        this.signer = {
-            type : Web3SigningCredentialType.PrivateKeyHex,
-            ethAccount: opts.keys.public,
-            secret: opts.keys.private
-        };
-        if (opts.isDev){
-            this.receiptType = ReceiptType.NodeTxPoolAck;
-            this.timeout = 1;
-            this.blockConfirmations  = 0;
-        }
-        this.log.debug(`${fnTag} ${this.receiptType}`);
-        const tokenCreatedABI = contractABI.abi.find((value)=>{
+    private readonly web3 = new Web3();
+    private readonly EventTokenCreatedInput: any[];
+    constructor(private readonly opts: IEthNetEmissionsTokenGatewayOptions) {
+        const tokenCreatedABI = contractABI.find((value) => {
             return value.type === 'event' && value.name === 'TokenCreated';
         });
-        Checks.truthy(tokenCreatedABI,`${fnTag} tokenCreated event abi`);
+        Checks.truthy(tokenCreatedABI, `EthNetEmissionsTokenGateway tokenCreated event abi`);
         this.EventTokenCreatedInput = tokenCreatedABI.inputs;
-        // web3 for decoding log messages
-        this.web3 = new Web3();
     }
 
-    async issue(token:IIssueRequest):Promise<IIssueResponse>{
-        // send call to contract
-        // wait for conformation
-        const fnTag = 'issue';
+    async issue(
+        caller: IEthTxCaller,
+        input: IEthNetEmissionsTokenIssueInput,
+    ): Promise<IEthNetEmissionsTokenIssueOutput> {
+        const fnTag = `${this.className}.issue()`;
+        ledgerLogger.debug(`${fnTag} getting signer for client`);
+        const signer = this.opts.singer.ethereum(caller);
+        ledgerLogger.debug(`${fnTag} calling issue method`);
+        let result: any;
         try {
-            const automaticRetireDate = +token.automaticRetireDate.toFixed();
-            const invokeReq:InvokeContractV1Request = {
-                contractName: this.opts.contractName,
-                signingCredential: this.signer,
+            const automaticRetireDate = +input.automaticRetireDate.toFixed();
+            result = await this.opts.ethClient.invokeContract({
+                contractName: this.contractName,
+                signingCredential: signer,
                 invocationType: EthContractInvocationType.Send,
                 methodName: 'issue',
                 params: [
-                    token.addressToIssue,
+                    input.addressToIssue,
                     this.tokenTypeId,
-                    token.quantity,
-                    token.fromDate,
-                    token.thruDate,
+                    input.quantity,
+                    input.fromDate,
+                    input.thruDate,
                     automaticRetireDate,
-                    token.metadata,
-                    token.manifest,
-                    token.description
+                    input.metadata,
+                    input.manifest,
+                    input.description,
                 ],
-                keychainId: this.opts.keychainId
-            };
-            this.log.debug(`${fnTag} invoking contract params = ${invokeReq.params}`);
-            const result = await this.opts.ethClient.invokeContract(invokeReq);
-            if (!result.success){
-                throw new Error(`failed to invoke ${this.opts.contractName}`);
-            }
-            this.log.debug(`waiting for conformation from the network`);
-            // TODO : fix this in cactus
-            const txHash = result['out'].transactionReceipt.transactionHash;
-            const txReceipt = await this.opts.ethClient.pollForTxReceipt(txHash,{
-                receiptType: this.receiptType,
-                timeoutMs: this.timeout,
-                blockConfirmations: this.blockConfirmations
+                keychainId: this.opts.contractStoreKeychain,
             });
-            this.log.debug(`received transaction receipt with ${this.blockConfirmations} blocks confirmation`);
-            // decode logs to get readable format
-            const logData = txReceipt.logs[2];
-            const hexString = logData.data;
-            const topics = logData.topics;
-            const tokenCreatedDecoded = this.web3.eth.abi.decodeLog(this.EventTokenCreatedInput,hexString,topics);
-            const output:IIssueResponse = {
-                tokenId : `${this.opts.contractAddress}:${tokenCreatedDecoded.tokenId}`
-            };
-            return output;
         } catch (error) {
-            throw error;
+            throw new ClientError(`${fnTag} failed to invoke issue method : ${error.message}`, 409);
         }
+
+        const txReceipt = result.out.transactionReceipt;
+        // TODO move decode logic to cactus xdai connector
+        ledgerLogger.debug(`${fnTag} decoding ethereum response`);
+        const logData = txReceipt.logs[2];
+        const hexString = logData.data;
+        const topics = logData.topics;
+        const tokenCreatedDecoded = this.web3.eth.abi.decodeLog(
+            this.EventTokenCreatedInput,
+            hexString,
+            topics,
+        );
+
+        return {
+            availableBalance: tokenCreatedDecoded.availableBalance,
+            retiredBalance: tokenCreatedDecoded.retiredBalance,
+            tokenId: tokenCreatedDecoded.tokenId,
+            tokenTypeId: tokenCreatedDecoded.tokenTypeId,
+            issuer: tokenCreatedDecoded.issuer,
+            issuee: tokenCreatedDecoded.issuee,
+            fromDate: tokenCreatedDecoded.fromDate,
+            thruDate: tokenCreatedDecoded.thruDate,
+            dateCreated: tokenCreatedDecoded.dateCreated,
+            automaticRetireDate: tokenCreatedDecoded.automaticRetireDate,
+            metadata: tokenCreatedDecoded.metadata,
+            manifest: tokenCreatedDecoded.manifest,
+            description: tokenCreatedDecoded.description,
+        };
     }
 }

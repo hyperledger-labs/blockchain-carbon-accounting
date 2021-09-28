@@ -1,136 +1,70 @@
-// fabricRegistry.ts : interact with fabric-ca to enroll
-// and register user
-import {Logger, LoggerProvider, LogLevelDesc} from '@hyperledger/cactus-common';
-import {PluginLedgerConnectorFabric} from '@hyperledger/cactus-plugin-ledger-connector-fabric';
-import {IEnrollRegistrarRequest, IEnrollRegistrarResponse} from './I-fabricRegistry';
-import {PluginKeychainVault} from '@hyperledger/cactus-plugin-keychain-vault';
-import Client from 'fabric-client';
+import { PluginLedgerConnectorFabric } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
+import {
+    IFabricRegistryGateway,
+    IFabricTxCaller,
+    IFabricRegisterInput,
+    IFabricRegisterOutput,
+} from './I-gateway';
+import Singer from './singer';
+import { ledgerLogger } from '../utils/logger';
+import ClientError from '../errors/clientError';
 
-export interface IFabricRegistryOptions{
-    logLevel:LogLevelDesc;
-    fabricClient:PluginLedgerConnectorFabric;
-    orgCAs:{[key:string]:{
-        mspId:string,
-        ca:string
-    }};
-    keychain:PluginKeychainVault;
-    adminUsername:string;
-    adminPassword:string;
+interface IFabricRegistryGatewayOptions {
+    fabricConnector: PluginLedgerConnectorFabric;
+    singer: Singer;
+    caId: string;
+    orgMSP: string;
 }
 
-interface IX509Cert{
-    type:string; // X509
-    mspId:string;
-    certificate:string;
-    privateKey:string;
-}
+export default class FabricRegistryGateway implements IFabricRegistryGateway {
+    private readonly className = 'FabricRegistryGateway';
+    constructor(private readonly opts: IFabricRegistryGatewayOptions) {}
 
-export class FabricRegistry{
-    static readonly CLASS_NAME = 'FabricRegistry';
-
-    static readonly X509Type = 'X509';
-
-    private readonly log:Logger;
-    get className():string{
-        return FabricRegistry.CLASS_NAME;
-    }
-
-    constructor(private readonly opts:IFabricRegistryOptions){
-        this.log = LoggerProvider.getOrCreate({level: opts.logLevel , label: this.className});
-        const fnTag = `#constructor`;
-        this.log.debug(`${fnTag} orgCAs : %o`,opts.orgCAs);
-    }
-
-    async enrollRegistrar(req:IEnrollRegistrarRequest):Promise<IEnrollRegistrarResponse>{
-        const fnTag = '#enrollRegistrar';
+    async enroll(caller: IFabricTxCaller, secret: string): Promise<void> {
+        const fnTag = `${this.className}.enroll()`;
+        ledgerLogger.debug(`${fnTag} getting singer for the caller`);
+        const singer = this.opts.singer.fabric(caller);
+        ledgerLogger.debug(`${fnTag} enroll with fabric ca`);
         try {
-            if (await this.opts.keychain.has(`${req.orgName}_${this.opts.adminUsername}`)){
-                throw new Error(`${this.opts.adminUsername} of organizations ${req.orgName} is already enrolled`);
-            }
-            const refCA = this.opts.orgCAs[req.orgName];
-            this.log.debug(`${fnTag} enroll ${req.orgName}'s registrar with ${refCA.ca}`);
-            const ca = await this.opts.fabricClient.createCaClient(refCA.ca);
-            const result = await ca.enroll({
-                enrollmentID: this.opts.adminUsername,
-                enrollmentSecret: this.opts.adminPassword
+            await this.opts.fabricConnector.enroll(singer, {
+                enrollmentID: caller.userId,
+                enrollmentSecret: secret,
+                mspId: this.opts.orgMSP,
+                caId: this.opts.caId,
             });
-            const cert:IX509Cert = {
-                type: FabricRegistry.X509Type,
-                mspId: refCA.mspId,
-                certificate: result.certificate,
-                privateKey: result.key.toBytes()
-            };
-            this.log.debug(`${fnTag} storing certificate inside keychain`);
-            const key = `${req.orgName}_${this.opts.adminUsername}`;
-            await this.opts.keychain.set(key,JSON.stringify(cert));
-            return {
-                orgName: req.orgName,
-                msp : cert.mspId,
-                caName : ca.getCaName(),
-                info: 'ORG ADMIN REGISTERED'
-            };
+            ledgerLogger.debug(`${fnTag} client enrolled with fabric-ca`);
         } catch (error) {
-            throw error;
+            if (error?.errors && error.errors[0] && error.errors[0].code === 20) {
+                throw new ClientError(`${fnTag} invalid enrollmentSecret`, 403);
+            }
+            throw new ClientError(`${fnTag} failed to enroll : ${error.message}`, 409);
         }
     }
-
-    async enrollUser(userId:string,orgName:string,affiliation:string){
-        const fnTag = '#enrollUser';
+    async register(
+        caller: IFabricTxCaller,
+        input: IFabricRegisterInput,
+    ): Promise<IFabricRegisterOutput> {
+        const fnTag = `${this.className}.register()`;
+        ledgerLogger.debug(`${fnTag} getting singer for the client`);
+        const singer = this.opts.singer.fabric(caller);
+        ledgerLogger.debug(`${fnTag} register with fabric ca`);
         try {
-            if (await this.opts.keychain.has(`${orgName}_${userId}`)){
-                throw new Error(`${userId} of organizations ${orgName} is already enrolled`);
-            }
-            const refCa = this.opts.orgCAs[orgName];
-            if (!refCa){
-                throw new Error(`organizations ${orgName} doesn't exists`);
-            }
-            // check if admin is enrolled or not
-            const rawAdminCerts:string = await this.opts.keychain.get(`${orgName}_${this.opts.adminUsername}`);
-            if (!rawAdminCerts){
-                throw new Error(`${orgName}'s admin is not enrolled, please enroll admin first`);
-            }
-            const adminCerts = JSON.parse(rawAdminCerts);
-            // register user
-            // build admin user
-            this.log.debug(`${fnTag} building admin user`);
-            const builder = new Client();
-            const admin = await builder.createUser(
+            const secret = await this.opts.fabricConnector.register(
+                singer,
                 {
-                    username:this.opts.adminUsername,
-                    mspid : refCa.mspId,
-                    skipPersistence: true,
-                    cryptoContent : {
-                        privateKeyPEM : adminCerts.privateKey,
-                        signedCertPEM : adminCerts.certificate
-                    }
-                }
+                    enrollmentID: input.enrollmentID,
+                    affiliation: input.affiliation,
+                    role: 'client',
+                },
+                this.opts.caId,
             );
-
-            const ca = await this.opts.fabricClient.createCaClient(refCa.ca);
-            this.log.debug(`${fnTag} registering ${userId}`);
-            const secret = await ca.register({
-                enrollmentID: userId,
-                affiliation,
-                role: 'client'
-            },admin);
-
-            this.log.debug(`${fnTag} enrolling ${userId}`);
-            const result = await ca.enroll({
-                enrollmentID: userId,
-                enrollmentSecret: secret
-            });
-            const cert:IX509Cert = {
-                type: FabricRegistry.X509Type,
-                mspId: refCa.mspId,
-                certificate: result.certificate,
-                privateKey: result.key.toBytes()
+            ledgerLogger.debug(`${fnTag} client registered`);
+            return {
+                enrollmentID: input.enrollmentID,
+                enrollmentSecret: secret,
             };
-            this.log.debug(`${fnTag} storing certificate inside keychain`);
-            const key = `${orgName}_${userId}`;
-            await this.opts.keychain.set(key,JSON.stringify(cert));
-            this.log.debug(`${fnTag} ${userId} successfully enrolled`);
         } catch (error) {
-            throw error;
+            throw new ClientError(`${fnTag} failed to register : ${error.message}`, 409);
         }
     }
 }

@@ -6,7 +6,7 @@ Copy and paste these commands in the directory `utility-emissions-channel/docker
 
 ```bash
 # It's often a good idea to reset everything before starting
-sudo sh ./scripts/reset.sh
+sudo sh ./scripts/fabricNetwork.sh
 
 # Starts all services, including Express API
 sudo sh start.sh
