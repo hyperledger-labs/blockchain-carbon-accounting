@@ -375,7 +375,7 @@ export default class Project extends Component {
       <thead>
         <tr>
           {fields.map((f) => (
-            <th scope="col">{f.label}</th>
+            <th key={f.label} scope="col">{f.label}</th>
           ))}
         </tr>
       </thead>
@@ -387,11 +387,11 @@ export default class Project extends Component {
       <tr key={index}>
         {fields.map((f) =>
           f.linkify ? (
-            <Linkify componentDecorator={componentDecorator}>
+            <Linkify componentDecorator={componentDecorator} key={`${index}_${f.label}`}>
               <td>{this.renderFormattedField(f, item)}</td>
             </Linkify>
           ) : (
-            <td>{this.renderFormattedField(f, item)}</td>
+            <td key={`${index}_${f.label}`}>{this.renderFormattedField(f, item)}</td>
           )
         )}
       </tr>
@@ -502,7 +502,7 @@ export default class Project extends Component {
     return (
       <div>
         {current ? (
-          <div class="inner-list-placeholder">
+          <div className="inner-list-placeholder">
             <h4>
               Project {current.project_name}{" "}
               <button
@@ -596,7 +596,7 @@ export default class Project extends Component {
             </div>
           </div>
         ) : (
-          <div class="empty-placeholder">
+          <div className="empty-placeholder">
             <br />
             <p>Please select on a Project...</p>
           </div>
