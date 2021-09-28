@@ -3,6 +3,6 @@
   become: yes
   tasks:
     - name: Reset docker setup
-      command: sh ./scripts/reset.sh
+      command: sh ./scripts/fabricNetwork.sh
       args:
         chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
