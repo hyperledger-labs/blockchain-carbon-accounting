@@ -25,6 +25,7 @@ class ProjectsList extends Component {
     this.refreshList = this.refreshList.bind(this);
     this.refreshListFirstPage = this.refreshListFirstPage.bind(this);
     this.setActiveProject = this.setActiveProject.bind(this);
+    this.handleOnlyWithIssuedInputChange = this.handleOnlyWithIssuedInputChange.bind(this);
     this.handlePageChange = this.handlePageChange.bind(this);
     this.handlePageSizeChange = this.handlePageSizeChange.bind(this);
     this.searchOnKeyUp = this.searchOnKeyUp.bind(this);
@@ -46,6 +47,7 @@ class ProjectsList extends Component {
       count: 0,
       pageSize: DEFAULT_PAGE_SIZE,
       loadingIndicator: true,
+      onlyWithIssued: false,
     };
 
     this.pageSizes = [10, 25, 50, 100];
@@ -53,16 +55,20 @@ class ProjectsList extends Component {
 
   filterStringsToSearchFieldsArray(filters) {
     // format in URL <field>__<op>__<value>
-    let searchFields = [];
+    let res = {searchFields: []};
     filters.forEach((f) => {
+      if (f === 'only_with_issued_credits') {
+        res.onlyWithIssued = true;
+        return;
+      }
       let arr = f.split("__");
       if (arr.length !== 3) return;
       // find the field
       let nf = ProjectDataService.fields().find((el) => el.name === arr[0]);
       if (!nf) return;
-      searchFields.push({ ...nf, op: arr[1], value: arr[2] });
+      res.searchFields.push({ ...nf, op: arr[1], value: arr[2] });
     });
-    return searchFields;
+    return res;
   }
 
   handleVerifyRecaptcha = async () => {
@@ -88,8 +94,9 @@ class ProjectsList extends Component {
       if (this.props.match.params.filters) {
         // format in URL <field>__<op>__<value>
         let filters = this.props.match.params.filters.split("/");
-        let searchFields = this.filterStringsToSearchFieldsArray(filters);
-        if (searchFields.length) update.searchFields = searchFields;
+        let res = this.filterStringsToSearchFieldsArray(filters);
+        if (res.searchFields.length) update.searchFields = res.searchFields;
+        if (res.onlyWithIssued) update.onlyWithIssued = res.onlyWithIssued;
       }
       console.log("componentDidMount:: Setting page params", update);
       this.setState(update, () => {
@@ -136,13 +143,17 @@ class ProjectsList extends Component {
     }
   }
 
-  getRequestParams(searchFields, page, pageSize) {
+  getRequestParams(searchFields, page, pageSize, onlyWithIssued) {
     let params = {};
 
     if (searchFields && searchFields.length) {
       searchFields.forEach((e) => {
         params[`${e.name}__${e.op}`] = e.value;
       });
+    }
+
+    if (onlyWithIssued) {
+      params['total_issued__gt'] = '0';
     }
 
     if (page) {
@@ -159,7 +170,7 @@ class ProjectsList extends Component {
 
   retrieveProjects(reCaptchaToken) {
     console.log("retrieveProjects:: state", this.state);
-    const { searchFields, page, pageSize } = this.state;
+    const { searchFields, page, pageSize, onlyWithIssued } = this.state;
 
     // reset error
     this.setState({ errorMessage: null });
@@ -184,7 +195,7 @@ class ProjectsList extends Component {
       console.log("Site not configured to use Recaptcha.");
     }
 
-    const params = this.getRequestParams(searchFields, page, pageSize);
+    const params = this.getRequestParams(searchFields, page, pageSize, onlyWithIssued);
     if (reCaptchaToken) {
       params["g-recaptcha-response"] = reCaptchaToken;
     }
@@ -294,9 +305,25 @@ class ProjectsList extends Component {
     this.state.searchFields.forEach((f) => {
       fs.push(`${f.name}__${f.op}__${f.value}`);
     });
+    if (this.state.onlyWithIssued) {
+      fs.push('only_with_issued_credits');
+    }
     console.log("syncCurrentUrl:: with filters ", fs);
     this.props.history.push(
       `/projects-list/${this.state.pageSize}/${this.state.page}/${fs.join("/")}`
+    );
+  }
+
+  handleOnlyWithIssuedInputChange(event) {
+    const value = event.target.checked;
+    console.log("handleOnlyWithIssuedInputChange:: ", event, value);
+    this.setState(
+      {
+        onlyWithIssued: value,
+      },
+      () => {
+        this.refreshList();
+      }
     );
   }
 
@@ -374,8 +401,7 @@ class ProjectsList extends Component {
   }
 
   render() {
-    const { searchFields, projects, page, count, pageSize, errorMessage } =
-      this.state;
+    const { searchFields, projects, page, count, pageSize, errorMessage, onlyWithIssued } = this.state;
 
     return (
       <div className="list row">
@@ -429,6 +455,10 @@ class ProjectsList extends Component {
                 </button>
               </div>
             ))}
+            <div className="input-group mb-3 form-check">
+              <input className="form-check-input me-2" type="checkbox" id="onlyWithIssued" checked={onlyWithIssued} onChange={this.handleOnlyWithIssuedInputChange}/>
+              <label className="form-check-label" htmlFor="onlyWithIssued">Show only projects with issued credits</label>
+            </div>
             <div className="input-group-append">
               <button
                 className="btn btn-outline-secondary"
@@ -441,7 +471,7 @@ class ProjectsList extends Component {
             </div>
           </div>
         </div>
-        <div className="col-12">
+        <div className="col-12 list-placeholder">
           <h4>Projects List</h4>
           {this.renderSpinner(this.state.loadingIndicator)}
           {errorMessage ? (

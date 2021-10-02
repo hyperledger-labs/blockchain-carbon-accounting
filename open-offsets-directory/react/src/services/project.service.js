@@ -85,12 +85,17 @@ class ProjectDataService {
         searchOnly: true,
       },
       {
+        label: "Methodology",
+        name: "project_registry.methodology_protocol",
+        searchOnly: true,
+      },
+      {
         label: "Registry and ARB",
         name: "project_registry.registry_and_arb",
         searchOnly: true,
       },
       {
-        label: "Registry ID",
+        label: "Project ID",
         name: "project_registry.registry_project_id",
         searchOnly: true,
       },

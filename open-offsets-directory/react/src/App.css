@@ -3,6 +3,13 @@
   margin: auto;
 }
 
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .submit-form {
   max-width: 300px;
   margin: auto;
@@ -26,4 +33,16 @@
 
 .spinner-placeholder {
   min-height: 1026px;
+}
+
+.list-placeholder {
+  min-height: 380px;
+}
+
+.inner-list-placeholder {
+  min-height: 520px;
+}
+
+.empty-placeholder {
+  min-height: 480px;
 }

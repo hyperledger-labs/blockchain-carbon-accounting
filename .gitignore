@@ -54,6 +54,9 @@ utility-emissions-channel/typescript_app/node_modules
 utility-emissions-channel/typescript_app/local-bucket
 utility-emissions-channel/typescript_app/playground
 utility-emissions-channel/typescript_app/.env.*
+utility-emissions-channel/typescript_app/.nyc_output
+utility-emissions-channel/typescript_app/coverage
+
 #  b. chaincode
 utility-emissions-channel/chaincode/packaging/code.tar.gz
 utility-emissions-channel/chaincode/packaging/marbles-chaincode.tgz
@@ -86,6 +89,8 @@ utility-emissions-channel/docker-compose-setup/chaincode/code.tar.gz
 utility-emissions-channel/docker-compose-setup/chaincode/*-chaincode.tgz
 utility-emissions-channel/docker-compose-setup/blockchain-explorer/**/crypto
 utility-emissions-channel/docker-compose-setup/blockchain-explorer/**/crypto-config
+utility-emissions-channel/docker-compose-setup/chaincode/**/*.tar.gz
+utility-emissions-channel/docker-compose-setup/chaincode/**/*.tgz
 utility-emissions-channel/.project
 utility-emissions-channel/docker-compose-setup/bin
 utility-emissions-channel/docker-compose-setup/bin_mac
