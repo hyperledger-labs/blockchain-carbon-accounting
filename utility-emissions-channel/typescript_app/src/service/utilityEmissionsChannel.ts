@@ -220,7 +220,7 @@ export default class UtilityEmissionsChannelService {
                 tx.current_stage === 'StoreMintedToken'
             ) {
                 appLogger.debug(`${fnTag} executing third stage::UPDATE_TOKEN_ID`);
-                if (tokenId === null) {
+                if (tokenId === '') {
                     validUUIDs = JSON.parse(
                         Buffer.from(
                             tx.stage_data['GetValidEmissions'].output[emissionCCName]['validUUIDs'],

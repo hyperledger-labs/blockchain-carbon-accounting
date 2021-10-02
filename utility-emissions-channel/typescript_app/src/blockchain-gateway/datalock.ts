@@ -12,11 +12,6 @@ import {
 } from './I-gateway';
 import Singer from './singer';
 import ClientError from '../errors/clientError';
-import { setup } from '../../src/utils/logger';
-import { config } from 'dotenv';
-
-setup('DEBUG', 'DEBUG');
-config();
 
 interface IDataLockGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;

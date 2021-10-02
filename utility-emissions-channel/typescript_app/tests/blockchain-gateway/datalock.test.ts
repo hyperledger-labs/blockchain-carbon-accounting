@@ -7,6 +7,12 @@ import { DataLockGateway } from '../../src/blockchain-gateway/datalock';
 import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway/I-gateway';
 import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
 import { v4 as uuid4 } from 'uuid';
+import { setup } from '../../src/utils/logger';
+import { config } from 'dotenv';
+
+setup('DEBUG', 'DEBUG');
+
+config();
 
 describe('DataLockGateway', () => {
     const bcConfig = new BCGatewayConfig();
