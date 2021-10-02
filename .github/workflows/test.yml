@@ -39,6 +39,6 @@ jobs:
       - name: Run tests
         run: |
           sleep 240
-          docker ps -a
           cd typescript_app/
+          npm run test:setup
           npm run test
