@@ -18,18 +18,6 @@
       "certificateAuthorities": ["ca.auditor${ORG}.carbonAccounting.com"]
     }
   },
-  "orderers": {
-    "orderer1.auditor${ORG}.carbonAccounting.com": {
-      "url": "grpcs://orderer1.auditor${ORG}.carbonAccounting.com:${ORDPORT}",
-      "grpcOptions": {
-        "ssl-target-name-override": "orderer1.auditor${ORG}.carbonAccounting.com",
-        "hostnameOverride": "orderer1.auditor${ORG}.carbonAccounting.com"
-      },
-      "tlsCACerts": {
-        "pem": "${ORDERERPEM}"
-      }
-    }
-  },
   "peers": {
     "peer1.auditor${ORG}.carbonAccounting.com": {
       "url": "grpcs://peer1.auditor${ORG}.carbonAccounting.com:${P0PORT}",
