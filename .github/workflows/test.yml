@@ -1,0 +1,44 @@
+name: End-to-end tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.15.0'
+      - name: Download Fabric binaries
+        run: |
+          sudo chmod +x /usr/local/bin/docker-compose
+          cd docker-compose-setup/
+          ./bootstrap.sh  2.2.1 1.4.9 -d -s
+      - name: Start local Hardhat network
+        run: |
+          cd ../net-emissions-token-network/
+          npm i -g npm@7.24.1
+          npm ci
+          echo "n" | npx hardhat node --show-accounts &
+      - name: Build utility-emissions-channel project
+        run: |
+          cd docker-compose-setup/
+          echo "127.0.0.1       auditor1.carbonAccounting.com
+          127.0.0.1       auditor2.carbonAccounting.com
+          127.0.0.1       peer1.auditor1.carbonAccounting.com
+          127.0.0.1       peer1.auditor2.carbonAccounting.com
+          127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
+          ./start.sh &
+      - name: Run tests
+        run: |
+          sleep 240
+          cd typescript_app/
+          npm run test:setup
+          npm run test
