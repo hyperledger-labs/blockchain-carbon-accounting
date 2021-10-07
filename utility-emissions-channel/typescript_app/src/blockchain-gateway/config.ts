@@ -72,8 +72,8 @@ export default class BCGatewayConfig {
             opts.connectionProfile = JSON.parse(readFileSync(ccpPath).toString('utf-8'));
         }
 
-        const signingType = process.env.LEDGER_FABRIC_TX_SIGNER_TYPE || 'vault';
-        {
+        const signingTypes = process.env.LEDGER_FABRIC_TX_SIGNER_TYPES.split(' ') || ['vault'];
+        for (const signingType of signingTypes) {
             if (signingType === 'vault') {
                 // configure vault signing
                 const endpoint = process.env.VAULT_ENDPOINT;
@@ -86,6 +86,17 @@ export default class BCGatewayConfig {
                     transitEngineMountPath: '/' + mount,
                 };
                 opts.supportedIdentity.push(FabricSigningCredentialType.VaultX509);
+            } else if (signingType === 'web-socket') {
+                // configure ws signing
+                const endpoint = process.env.WS_IDENTITY_ENDPOINT;
+                Checks.nonBlankString(endpoint, `${fnTag} WS_IDENTITY_ENDPOINT`);
+                const pathPrefix = process.env.WS_IDENTITY_PATH_PREFIX;
+                Checks.nonBlankString(pathPrefix, `${fnTag} LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT`);
+                opts.webSocketConfig = {
+                    endpoint,
+                    pathPrefix,
+                };
+                opts.supportedIdentity.push(FabricSigningCredentialType.WsX509);
             }
         }
 

@@ -50,6 +50,8 @@ export default class UtilityEmissionsChannelService {
         const fabricCaller: IFabricTxCaller = {
             userId: userId,
             vaultToken: input.header.vault_token,
+            wsSessionId: input.header.session_id,
+            wsSidSig: input.header.signature,
         };
 
         try {
@@ -119,6 +121,8 @@ export default class UtilityEmissionsChannelService {
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
             vaultToken: input.header.vault_token,
+            wsSessionId: input.header.session_id,
+            wsSidSig: input.header.signature,
         };
         const ethCaller: IEthTxCaller = {
             address: input.header.eth_address,
@@ -261,6 +265,8 @@ export default class UtilityEmissionsChannelService {
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
             vaultToken: input.header.vault_token,
+            wsSessionId: input.header.session_id,
+            wsSidSig: input.header.signature,
         };
         const uuid = input.params.uuid;
         try {
@@ -280,6 +286,8 @@ export default class UtilityEmissionsChannelService {
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
             vaultToken: input.header.vault_token,
+            wsSessionId: input.header.session_id,
+            wsSidSig: input.header.signature,
         };
         const utilityId = input.params.utilityId;
         const partyId = input.params.partyId;
@@ -310,6 +318,8 @@ export default class UtilityEmissionsChannelService {
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
             vaultToken: input.header.vault_token,
+            wsSessionId: input.header.session_id,
+            wsSidSig: input.header.signature,
         };
         const fromDate = input.params.fromDate;
         const thruDate = input.params.thruDate;

@@ -1,7 +1,7 @@
 import BCGatewayConfig from '../blockchain-gateway/config';
 import FabricRegistryGateway from '../blockchain-gateway/fabricRegistry';
 import EthNetEmissionsTokenGateway from '../blockchain-gateway/netEmissionsTokenNetwork';
-import Signer from '../blockchain-gateway/singer';
+import Signer from '../blockchain-gateway/signer';
 import FabricRegistryService from './fabricRegistry';
 import UtilityEmissionsChannelServiceOptions from './utilityEmissionsChannel';
 import UtilityemissionchannelGateway from '../blockchain-gateway/utilityEmissionsChannel';
@@ -14,7 +14,7 @@ export async function setup(): Promise<void> {
     const bcConfig = new BCGatewayConfig();
 
     const signer = new Signer(
-        process.env.LEDGER_FABRIC_TX_SIGNER_TYPE,
+        process.env.LEDGER_FABRIC_TX_SIGNER_TYPES,
         bcConfig.certStoreID,
         process.env.LEDGER_ETH_TX_SIGNER || 'plain',
         bcConfig.certStoreID,
@@ -25,7 +25,7 @@ export async function setup(): Promise<void> {
 
     const fabricRegistryGateway = new FabricRegistryGateway({
         fabricConnector: orgFabric.connector,
-        singer: signer,
+        signer: signer,
         caId: orgFabric.caID,
         orgMSP: orgFabric.orgMSP,
     });
@@ -34,7 +34,7 @@ export async function setup(): Promise<void> {
 
     const netEmissionsContractGateway = new EthNetEmissionsTokenGateway({
         ethClient: ethConnector.connector,
-        singer: signer,
+        signer: signer,
         contractStoreKeychain: ethConnector.contractStoreKeychain,
     });
 

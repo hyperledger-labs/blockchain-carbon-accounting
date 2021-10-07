@@ -13,7 +13,7 @@ const bcConfig = new BCGatewayConfig();
 // insert mock utility identifier and factors
 const mockUtilityID = 'USA_EIA_252522444142552441242521';
 async function mockEmissionsRecord() {
-    const singer: FabricSigningCredential = {
+    const signer: FabricSigningCredential = {
         keychainId: 'inMemoryKeychain',
         keychainRef: 'admin',
     };
@@ -21,7 +21,7 @@ async function mockEmissionsRecord() {
     const hlfConnector = org.connector;
 
     // enroll admin
-    await hlfConnector.enroll(singer, {
+    await hlfConnector.enroll(signer, {
         enrollmentID: 'admin',
         enrollmentSecret: 'adminpw',
         caId: org.caID,
@@ -31,7 +31,7 @@ async function mockEmissionsRecord() {
     const ccName = 'utilityemissions';
     // import utility identifier
     const p1 = hlfConnector.transact({
-        signingCredential: singer,
+        signingCredential: signer,
         channelName: channelName,
         contractName: ccName,
         invocationType: FabricContractInvocationType.Send,
@@ -52,7 +52,7 @@ async function mockEmissionsRecord() {
 
     // import mock utility factor
     const p2 = hlfConnector.transact({
-        signingCredential: singer,
+        signingCredential: signer,
         channelName: channelName,
         contractName: ccName,
         invocationType: FabricContractInvocationType.Send,

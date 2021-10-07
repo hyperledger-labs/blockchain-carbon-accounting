@@ -5,6 +5,10 @@ export interface IFabricTxCaller {
     // require if server is using vault transit
     // key to signing ledger tx
     vaultToken?: string;
+    // require if server is using web-socket
+    // key session id its siganture to access ws-wallet signer
+    wsSessionId?: string;
+    wsSidSig?: string;
 }
 
 // ##############################################################

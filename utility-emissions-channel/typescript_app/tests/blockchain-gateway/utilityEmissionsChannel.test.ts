@@ -1,7 +1,7 @@
 import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
 import { config } from 'dotenv';
-import Singer from '../../src/blockchain-gateway/singer';
+import Signer from '../../src/blockchain-gateway/signer';
 import { IFabricTxCaller } from '../../src/blockchain-gateway/I-gateway';
 import { v4 as uuid4 } from 'uuid';
 import { setup } from '../../src/utils/logger';
@@ -19,7 +19,7 @@ const mockUtilityID = 'USA_EIA_252522444142552441242521';
 describe('UtilityemissionchannelGateway', () => {
     const bcConfig = new BCGatewayConfig();
     describe('vault', () => {
-        const signer = new Singer('vault', 'inMemoryKeychain', 'plain');
+        const signer = new Signer('vault', 'inMemoryKeychain', 'plain');
         const adminVaultToken = 'tokenId';
         const org = bcConfig.fabricConnector();
         const utilityEmissionsGateway = new UtilityemissionchannelGateway({

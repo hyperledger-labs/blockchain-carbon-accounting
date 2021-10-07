@@ -5,13 +5,13 @@ import {
     IFabricRegisterInput,
     IFabricRegisterOutput,
 } from './I-gateway';
-import Singer from './singer';
+import Signer from './signer';
 import { ledgerLogger } from '../utils/logger';
 import ClientError from '../errors/clientError';
 
 interface IFabricRegistryGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;
-    singer: Singer;
+    signer: Signer;
     caId: string;
     orgMSP: string;
 }
@@ -22,11 +22,11 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
 
     async enroll(caller: IFabricTxCaller, secret: string): Promise<void> {
         const fnTag = `${this.className}.enroll()`;
-        ledgerLogger.debug(`${fnTag} getting singer for the caller`);
-        const singer = this.opts.singer.fabric(caller);
+        ledgerLogger.debug(`${fnTag} getting signer for the caller`);
+        const signer = this.opts.signer.fabric(caller);
         ledgerLogger.debug(`${fnTag} enroll with fabric ca`);
         try {
-            await this.opts.fabricConnector.enroll(singer, {
+            await this.opts.fabricConnector.enroll(signer, {
                 enrollmentID: caller.userId,
                 enrollmentSecret: secret,
                 mspId: this.opts.orgMSP,
@@ -40,17 +40,18 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
             throw new ClientError(`${fnTag} failed to enroll : ${error.message}`, 409);
         }
     }
+
     async register(
         caller: IFabricTxCaller,
         input: IFabricRegisterInput,
     ): Promise<IFabricRegisterOutput> {
         const fnTag = `${this.className}.register()`;
-        ledgerLogger.debug(`${fnTag} getting singer for the client`);
-        const singer = this.opts.singer.fabric(caller);
+        ledgerLogger.debug(`${fnTag} getting signer for the client`);
+        const signer = this.opts.signer.fabric(caller);
         ledgerLogger.debug(`${fnTag} register with fabric ca`);
         try {
             const secret = await this.opts.fabricConnector.register(
-                singer,
+                signer,
                 {
                     enrollmentID: input.enrollmentID,
                     affiliation: input.affiliation,

@@ -32,6 +32,12 @@
           },
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           }
         ],
         "requestBody": {
@@ -78,6 +84,12 @@
           },
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           },
           {
             "name": "eth_address",
@@ -152,6 +164,12 @@
           },
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           }
         ],
         "responses": {
@@ -209,6 +227,12 @@
           },
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           }
         ],
         "responses": {
@@ -266,6 +290,12 @@
           },
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           }
         ],
         "responses": {
@@ -300,6 +330,12 @@
         "parameters": [
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           }
         ],
         "requestBody" : {
@@ -339,6 +375,12 @@
           },
           {
             "$ref" : "#/components/parameters/vaultToken"
+          },
+          {
+            "$ref" : "#/components/parameters/sessionId"
+          },
+          {
+            "$ref" : "#/components/parameters/signature"
           }
         ],
         "requestBody" : {
@@ -549,7 +591,27 @@
           "type": "string",
           "example": "admin"
         }
-      }
+      },
+      "sessionId" : {
+        "name": "session_id",
+        "description": "session id required to access client keys in exteral ws-wallet using ws-identity server",
+        "in": "header",
+        "required": false,
+        "schema" : {
+          "type": "string",
+          "example" : ""
+        }
+      },
+      "signature" : {
+        "name": "signature",
+        "description": "signature of session id required to access client keys in exteral ws-wallet using ws-identity server",
+        "in": "header",
+        "required": false,
+        "schema" : {
+          "type": "string",
+          "example" : ""
+        }
+      },
     }
   }
 }

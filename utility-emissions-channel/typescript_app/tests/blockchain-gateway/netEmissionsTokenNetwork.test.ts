@@ -1,6 +1,6 @@
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
 import EthNetEmissionsTokenGateway from '../../src/blockchain-gateway/netEmissionsTokenNetwork';
-import Signer from '../../src/blockchain-gateway/singer';
+import Signer from '../../src/blockchain-gateway/signer';
 import {
     IEthTxCaller,
     IEthNetEmissionsTokenIssueInput,
@@ -22,11 +22,11 @@ describe('EthNetEmissionsTokenGateway', () => {
         let gateway: EthNetEmissionsTokenGateway;
         before(async () => {
             const ethConnector = await bcConfig.ethConnector();
-            const singer = new Signer('vault', bcConfig.inMemoryKeychainID, 'plain');
+            const signer = new Signer('vault', bcConfig.inMemoryKeychainID, 'plain');
             gateway = new EthNetEmissionsTokenGateway({
                 contractStoreKeychain: ethConnector.contractStoreKeychain,
                 ethClient: ethConnector.connector,
-                singer: singer,
+                signer: signer,
             });
         });
         const caller: IEthTxCaller = {
@@ -75,7 +75,7 @@ describe('EthNetEmissionsTokenGateway', () => {
         let gateway: EthNetEmissionsTokenGateway;
         before(async () => {
             const ethConnector = await bcConfig.ethConnector();
-            const singer = new Signer(
+            const signer = new Signer(
                 'vault',
                 bcConfig.inMemoryKeychainID,
                 'kv',
@@ -84,7 +84,7 @@ describe('EthNetEmissionsTokenGateway', () => {
             gateway = new EthNetEmissionsTokenGateway({
                 contractStoreKeychain: ethConnector.contractStoreKeychain,
                 ethClient: ethConnector.connector,
-                singer: singer,
+                signer: signer,
             });
         });
         const caller: IEthTxCaller = {
