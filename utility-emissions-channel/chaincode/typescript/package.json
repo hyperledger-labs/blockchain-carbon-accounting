@@ -30,6 +30,6 @@
   },
   "dependencies": {
     "crypto-js": "^4.0.0",
-    "fabric-shim": "^2.2.1"
+    "fabric-shim": "2.2.1"
   }
 }

@@ -42,7 +42,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         const fnTag = `${this.className}.issue()`;
         ledgerLogger.debug(`${fnTag} getting signer for client`);
         const signer = this.opts.singer.ethereum(caller);
-        ledgerLogger.debug(`${fnTag} calling issue method`);
+        ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
         let result: any;
         try {
             const automaticRetireDate = +input.automaticRetireDate.toFixed();

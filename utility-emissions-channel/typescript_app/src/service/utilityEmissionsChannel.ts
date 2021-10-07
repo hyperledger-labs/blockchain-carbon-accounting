@@ -3,6 +3,10 @@ import {
     IEthNetEmissionsTokenGateway,
     IFabricTxCaller,
     IEthTxCaller,
+    IDataLockGateway,
+    ITxDetails,
+    IDataChaincodeInput,
+    IUtilityemissionchannelEmissionData,
 } from '../blockchain-gateway/I-gateway';
 import AWSS3 from '../datasource/awsS3';
 import Joi from 'joi';
@@ -12,14 +16,14 @@ import { checkDateConflict, toTimestamp } from '../utils/dateUtils';
 interface UtilityEmissionsChannelServiceOptions {
     utilityEmissionsGateway: IUtilityemissionchannelGateway;
     netEmissionsContractGateway: IEthNetEmissionsTokenGateway;
+    datalockGateway: IDataLockGateway;
     s3: AWSS3;
     ethContractAddress: string;
     orgName: string;
 }
 import { Input } from './input';
-import { IUtilityemissionchannelEmissionData } from '../blockchain-gateway/I-gateway';
 import ClientError from '../errors/clientError';
-import { appLogger, ledgerLogger } from '../utils/logger';
+import { appLogger } from '../utils/logger';
 
 interface IRecordAuditedEmissionsTokenResponse {
     tokenId: string;
@@ -128,130 +132,132 @@ export default class UtilityEmissionsChannelService {
         const partyId = input.body.partyId;
         const addressToIssue = input.body.addressToIssue;
         const toAuditString = input.body.emissionsRecordsToAudit as string;
+        const txID = input.body.txID;
+        const emissionsRecordsToAudit = toAuditString.toString().split(',');
+        const automaticRetireDate = new Date().toISOString();
+        appLogger.debug(`${fnTag} start processing for txID = ${txID}`);
+        let tx: ITxDetails;
         try {
-            const automaticRetireDate = new Date().toISOString();
-            const emissionsRecordsToAudit = toAuditString.toString().split(',');
-            // checking validity of each emissions records
-            ledgerLogger.debug(
-                `${fnTag} fetching valid emissions record from = ${emissionsRecordsToAudit}`,
-            );
-            const metadata: any = {
-                org: this.opts.orgName,
-                type: 'Utility Emissions',
-                partyId: [],
-                renewableEnergyUseAmount: 0,
-                nonrenewableEnergyUseAmount: 0,
-                utilityIds: [],
-                factorSources: [],
-                urls: [],
-                md5s: [],
-                fromDates: [],
-                thruDates: [],
-            };
-
-            let quantity = 0;
-            const manifestIds = []; // stores uuids
-
-            let fromDate = Number.MAX_SAFE_INTEGER;
-            let thruDate = 0;
-            for (const uuid of emissionsRecordsToAudit) {
-                const record = await this.opts.utilityEmissionsGateway.getEmissionData(
-                    fabricCaller,
-                    uuid,
-                );
-                // check md5 checksum
-                await this.emissionsRecordChecksum(record);
-
-                if (record.tokenId !== null) {
-                    const [contractAdd, tokenId] = record.tokenId.split(':');
-                    ledgerLogger.debug(
-                        `${fnTag} skipping emission record with uuid = ${uuid}, already audited to token ${tokenId} on contract ${contractAdd}`,
-                    );
-                    continue;
-                }
-
-                // check timestamp to find overall range of dates
-                const fetchedFromDate = toTimestamp(record.fromDate);
-                if (fetchedFromDate < fromDate) {
-                    fromDate = fetchedFromDate;
-                }
-                const fetchedThruDate = toTimestamp(record.thruDate);
-                if (fetchedThruDate > thruDate) {
-                    thruDate = fetchedThruDate;
-                }
-
-                if (record.fromDate !== '' && record.thruDate !== '') {
-                    metadata.fromDates.push(record.fromDate);
-                    metadata.thruDates.push(record.thruDate);
-                }
-                if (!metadata.utilityIds.includes(record.utilityId)) {
-                    metadata.utilityIds.push(record.utilityId);
-                }
-                if (!metadata.partyId.includes(record.partyId)) {
-                    metadata.partyId.push(record.partyId);
-                }
-                if (!metadata.factorSources.includes(record.factorSource)) {
-                    metadata.factorSources.push(record.factorSource);
-                }
-                if (record.md5 !== '') {
-                    metadata.md5s.push(record.md5);
-                }
-                if (record.url !== '') {
-                    metadata.urls.push(record.url);
-                }
-                metadata.renewableEnergyUseAmount += record.renewableEnergyUseAmount;
-                metadata.nonrenewableEnergyUseAmount += record.nonrenewableEnergyUseAmount;
-
-                const qnt: number = +record.emissionsAmount.toFixed(3);
-                quantity += qnt * 1000;
-                manifestIds.push(record.uuid);
-            }
-
-            if (metadata.utilityIds.length === 0) {
-                throw new ClientError(`${fnTag} no emissions records found; nothing to audit`, 409);
-            }
-            appLogger.debug(`${fnTag} metadata = %o`, metadata);
-
-            const manifest =
-                'URL: https://utilityemissions.opentaps.net/api/v1/utilityemissionchannel, UUID: ' +
-                manifestIds.join(', ');
-
-            appLogger.debug(`${fnTag} minting emissions token onm ethereum`);
-            const description = 'Audited Utility Emissions';
-            const token = await this.opts.netEmissionsContractGateway.issue(ethCaller, {
-                addressToIssue,
-                quantity,
-                fromDate,
-                thruDate,
-                automaticRetireDate: toTimestamp(automaticRetireDate),
-                metadata: JSON.stringify(metadata),
-                manifest,
-                description,
-            });
-
-            // update minted token id
-            const tokenId = `${this.opts.ethContractAddress}:${token.tokenId}`;
-            appLogger.debug(`${fnTag} updating emissions records with minted token`);
-            await this.opts.utilityEmissionsGateway.updateEmissionsMintedToken(fabricCaller, {
-                tokenId: tokenId,
-                partyId: partyId,
-                uuids: manifestIds,
-            });
-
-            return {
-                tokenId: tokenId,
-                quantity: quantity,
-                fromDate: fromDate,
-                thruDate: thruDate,
-                automaticRetireDate: automaticRetireDate,
-                metadata: metadata,
-                manifest: manifest,
-                description: description,
-            };
+            tx = await this.opts.datalockGateway.startTransitionProcess(fabricCaller, txID);
         } catch (error) {
-            appLogger.debug(`${fnTag} failed to record Audited Emissions Token : %o`, error);
+            appLogger.debug(`${fnTag} failed to start processing for txID = ${txID} : %o`, error);
             throw error;
         }
+        let err: ClientError = null;
+        const emissionCCName = 'utilityemissions';
+
+        try {
+            appLogger.debug(`${fnTag} current stage name = ${tx.current_stage}`);
+            let records: IUtilityemissionchannelEmissionData[];
+            let validUUIDs: string[];
+            if (tx.current_stage === '') {
+                appLogger.debug(`${fnTag} executing first stage::LOCK_UUIDS`);
+                // first stage
+                const dataLock: { [key: string]: IDataChaincodeInput } = {};
+                dataLock[emissionCCName] = {
+                    keys: emissionsRecordsToAudit,
+                    params: ['getValidEmissions', ...emissionsRecordsToAudit],
+                };
+                const resp = await this.opts.datalockGateway.stageUpdate(fabricCaller, {
+                    tx_id: txID,
+                    name: 'GetValidEmissions',
+                    data_locks: dataLock,
+                });
+                records = JSON.parse(
+                    Buffer.from(resp.data_locks[emissionCCName], 'base64').toString(),
+                );
+                validUUIDs = [];
+                for (const record of records) {
+                    validUUIDs.push(record.uuid);
+                }
+            }
+
+            let tokenId: string;
+            if (tx.current_stage === '' || tx.current_stage === 'GetValidEmissions') {
+                appLogger.debug(`${fnTag} executing second stage::MINT_TOKEN`);
+                if (records === null) {
+                    const records: IUtilityemissionchannelEmissionData[] = [];
+                    validUUIDs = JSON.parse(
+                        Buffer.from(
+                            tx.stage_data['GetValidEmissions'].output[emissionCCName]['validUUIDs'],
+                            'base64',
+                        ).toString(),
+                    );
+                    for (const uuid of validUUIDs) {
+                        records.push(
+                            await this.opts.utilityEmissionsGateway.getEmissionData(
+                                fabricCaller,
+                                uuid,
+                            ),
+                        );
+                    }
+                }
+                const metadata = await this.tokenMetadata(records);
+                const description = 'Audited Utility Emissions';
+
+                const token = await this.opts.netEmissionsContractGateway.issue(ethCaller, {
+                    addressToIssue: addressToIssue,
+                    quantity: metadata.quantity,
+                    fromDate: metadata.fromDate,
+                    thruDate: metadata.thruDate,
+                    automaticRetireDate: toTimestamp(automaticRetireDate),
+                    metadata: JSON.stringify(metadata.metadata),
+                    manifest: metadata.manifest,
+                    description: description,
+                });
+                tokenId = `${this.opts.ethContractAddress}:${token.tokenId}`;
+                await this.opts.datalockGateway.stageUpdate(fabricCaller, {
+                    tx_id: txID,
+                    name: 'StoreMintedToken',
+                    storage: {
+                        tokenId: tokenId,
+                    },
+                });
+            }
+            if (
+                tx.current_stage === '' ||
+                tx.current_stage === 'GetValidEmissions' ||
+                tx.current_stage === 'StoreMintedToken'
+            ) {
+                appLogger.debug(`${fnTag} executing third stage::UPDATE_TOKEN_ID`);
+                if (tokenId === '') {
+                    validUUIDs = JSON.parse(
+                        Buffer.from(
+                            tx.stage_data['GetValidEmissions'].output[emissionCCName]['validUUIDs'],
+                            'base64',
+                        ).toString(),
+                    );
+                    tokenId = tx.stage_data['StoreMintedToken'].storage['tokenId'];
+                }
+                const dataFree: { [key: string]: IDataChaincodeInput } = {};
+                dataFree[emissionCCName] = {
+                    keys: validUUIDs,
+                    params: ['updateEmissionsMintedToken', tokenId, partyId, ...validUUIDs],
+                };
+                await this.opts.datalockGateway.stageUpdate(fabricCaller, {
+                    tx_id: txID,
+                    name: 'MintedTokenUpdate',
+                    data_free: dataFree,
+                    is_last: true,
+                });
+            }
+        } catch (error) {
+            err = error;
+        }
+
+        appLogger.debug(`${fnTag} end processing for txID = ${txID}`);
+        try {
+            await this.opts.datalockGateway.endTransitionProcess(fabricCaller, txID);
+        } catch (error) {
+            appLogger.debug(`${fnTag} failed to end processing for txID = ${txID} : %o`, error);
+            throw error;
+        }
+
+        if (err !== null) {
+            appLogger.debug(`${fnTag} failed with error : %o`, err);
+            throw err;
+        }
+        return null;
     }
 
     async getEmissionsData(input: Input): Promise<IUtilityemissionchannelEmissionData> {
@@ -358,6 +364,74 @@ export default class UtilityEmissionsChannelService {
         }
     }
 
+    private async tokenMetadata(records: IUtilityemissionchannelEmissionData[]): Promise<any> {
+        const metadata: any = {
+            org: this.opts.orgName,
+            type: 'Utility Emissions',
+            partyId: [],
+            renewableEnergyUseAmount: 0,
+            nonrenewableEnergyUseAmount: 0,
+            utilityIds: [],
+            factorSources: [],
+            urls: [],
+            md5s: [],
+            fromDates: [],
+            thruDates: [],
+        };
+        let quantity = 0;
+        const manifestIds = []; // stores uuids
+        let fromDate = Number.MAX_SAFE_INTEGER;
+        let thruDate = 0;
+        for (const record of records) {
+            // check md5 checksum
+            await this.emissionsRecordChecksum(record);
+
+            // check timestamp to find overall range of dates
+            const fetchedFromDate = toTimestamp(record.fromDate);
+            if (fetchedFromDate < fromDate) {
+                fromDate = fetchedFromDate;
+            }
+            const fetchedThruDate = toTimestamp(record.thruDate);
+            if (fetchedThruDate > thruDate) {
+                thruDate = fetchedThruDate;
+            }
+
+            if (record.fromDate !== '' && record.thruDate !== '') {
+                metadata.fromDates.push(record.fromDate);
+                metadata.thruDates.push(record.thruDate);
+            }
+            if (!metadata.utilityIds.includes(record.utilityId)) {
+                metadata.utilityIds.push(record.utilityId);
+            }
+            if (!metadata.partyId.includes(record.partyId)) {
+                metadata.partyId.push(record.partyId);
+            }
+            if (!metadata.factorSources.includes(record.factorSource)) {
+                metadata.factorSources.push(record.factorSource);
+            }
+            if (record.md5 !== '') {
+                metadata.md5s.push(record.md5);
+            }
+            if (record.url !== '') {
+                metadata.urls.push(record.url);
+            }
+            metadata.renewableEnergyUseAmount += record.renewableEnergyUseAmount;
+            metadata.nonrenewableEnergyUseAmount += record.nonrenewableEnergyUseAmount;
+
+            const qnt: number = +record.emissionsAmount.toFixed(3);
+            quantity += qnt * 1000;
+            manifestIds.push(record.uuid);
+        }
+        return {
+            metadata,
+            manifest:
+                'URL: https://utilityemissions.opentaps.net/api/v1/utilityemissionchannel, UUID: ' +
+                manifestIds.join(', '),
+            quantity,
+            fromDate,
+            thruDate,
+        };
+    }
     private __validateGetEmissionsDataInput(input: Input) {
         const schema = Joi.object({
             uuid: Joi.string().required().error(new Error('require uuid, but provided empty')),
@@ -432,6 +506,7 @@ export default class UtilityEmissionsChannelService {
             partyId: Joi.string().required(),
             addressToIssue: Joi.string().required(),
             emissionsRecordsToAudit: Joi.string().required(),
+            txID: Joi.string().required(),
         });
         const result = schema.validate(input.body);
         if (result.error) {

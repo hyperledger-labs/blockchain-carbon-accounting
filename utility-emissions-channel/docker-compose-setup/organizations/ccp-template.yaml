@@ -14,15 +14,6 @@ organizations:
       - peer1.auditor${ORG}.carbonAccounting.com
     certificateAuthorities:
       - ca.auditor${ORG}.carbonAccounting.com
-orderers:
-  orderer1.auditor${ORG}.carbonAccounting.com:
-    url: grpcs://orderer1.auditor${ORG}.carbonAccounting.com:${ORDPORT}
-    tlsCACerts:
-      pem: |
-        ${ORDERERPEM}
-    grpcOptions:
-      ssl-target-name-override: "orderer1.auditor${ORG}.carbonAccounting.com"
-      hostnameOverride: "orderer1.auditor${ORG}.carbonAccounting.com"
 peers:
   peer1.auditor${ORG}.carbonAccounting.com:
     url: grpcs://peer1.auditor${ORG}.carbonAccounting.com:${P0PORT}
