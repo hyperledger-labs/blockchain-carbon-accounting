@@ -465,7 +465,8 @@
         "required": [
           "partyId",
           "addressToIssue",
-          "emissionsRecordsToAudit"
+          "emissionsRecordsToAudit",
+          "txID"
         ],
         "properties": {
           "partyId": {
@@ -475,6 +476,9 @@
             "type": "string"
           },
           "emissionsRecordsToAudit": {
+            "type": "string"
+          },
+          "txID" : {
             "type": "string"
           }
         }

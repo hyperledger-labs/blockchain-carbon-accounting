@@ -10,14 +10,14 @@ import {
     IEthNetEmissionsTokenIssueInput,
     IEthNetEmissionsTokenIssueOutput,
 } from './I-gateway';
-import Signer from './signer';
+import Signer from './singer';
 import Web3 from 'web3';
 import contractABI from '../static/contract-NetEmissionsTokenNetwork.json';
 import { Checks } from '@hyperledger/cactus-common';
 
 interface IEthNetEmissionsTokenGatewayOptions {
     ethClient: PluginLedgerConnectorXdai;
-    signer: Signer;
+    singer: Signer;
     contractStoreKeychain: string;
 }
 
@@ -41,8 +41,8 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
     ): Promise<IEthNetEmissionsTokenIssueOutput> {
         const fnTag = `${this.className}.issue()`;
         ledgerLogger.debug(`${fnTag} getting signer for client`);
-        const signer = this.opts.signer.ethereum(caller);
-        ledgerLogger.debug(`${fnTag} calling issue method`);
+        const signer = this.opts.singer.ethereum(caller);
+        ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
         let result: any;
         try {
             const automaticRetireDate = +input.automaticRetireDate.toFixed();

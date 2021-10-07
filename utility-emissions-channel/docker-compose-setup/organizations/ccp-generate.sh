@@ -7,28 +7,24 @@ function one_line_pem {
 function json_ccp {
     local PP=$(one_line_pem $5)
     local CP=$(one_line_pem $6)
-    local OP=$(one_line_pem $7)
     sed -e "s/\${ORG}/$1/" \
         -e "s/\${P0PORT}/$2/" \
         -e "s/\${CAPORT}/$3/" \
         -e "s/\${ORDPORT}/$4/" \
         -e "s#\${PEERPEM}#$PP#" \
         -e "s#\${CAPEM}#$CP#" \
-        -e "s#\${ORDERERPEM}#$OP#" \
         organizations/ccp-template.json
 }
 
 function yaml_ccp {
     local PP=$(one_line_pem $5)
     local CP=$(one_line_pem $6)
-    local OP=$(one_line_pem $7)
     sed -e "s/\${ORG}/$1/" \
         -e "s/\${P0PORT}/$2/" \
         -e "s/\${CAPORT}/$3/" \
         -e "s/\${ORDPORT}/$4/" \
         -e "s#\${PEERPEM}#$PP#" \
         -e "s#\${CAPEM}#$CP#" \
-        -e "s#\${ORDERERPEM}#$OP#" \
         organizations/ccp-template.yaml | sed -e $'s/\\\\n/\\\n          /g'
 }
 
@@ -38,7 +34,6 @@ CAPORT=7054
 ORDPORT=7050
 PEERPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/tlsca/tlsca.auditor1.carbonAccounting.com-cert.pem
 CAPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/ca/ca.auditor1.carbonAccounting.com-cert.pem
-ORDERERPEM=organizations/peerOrganizations/auditor1.carbonAccounting.com/orderers/orderer1.auditor1.carbonAccounting.com/tls/tlscacerts/tls-auditor1-carbonAccounting-com-7054-auditor1-carbonAccounting-com.pem
 
 echo "+++++++++++++++++++++++++++++++"
 echo "+++++++++++++++++++++++++++++++"
@@ -48,8 +43,8 @@ echo "+++++++++++++++++++++++++++++++"
 echo "+++++++++++++++++++++++++++++++"
 echo "+++++++++++++++++++++++++++++++"
 
-echo "$(json_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM $ORDERERPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json
-echo "$(yaml_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM $ORDERERPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.yaml
+echo "$(json_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json
+echo "$(yaml_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.yaml
 
 ORG=2
 P0PORT=8051
@@ -57,10 +52,9 @@ CAPORT=8054
 ORDPORT=8050
 PEERPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/tlsca/tlsca.auditor2.carbonAccounting.com-cert.pem
 CAPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/ca/ca.auditor2.carbonAccounting.com-cert.pem
-ORDERERPEM=organizations/peerOrganizations/auditor2.carbonAccounting.com/orderers/orderer1.auditor2.carbonAccounting.com/tls/tlscacerts/tls-auditor2-carbonAccounting-com-8054-auditor2-carbonAccounting-com.pem
 
-echo "$(json_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM $ORDERERPEM)" > organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.json
-echo "$(yaml_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM $ORDERERPEM)" > organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.yaml
+echo "$(json_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.json
+echo "$(yaml_ccp $ORG $P0PORT $CAPORT $ORDPORT $PEERPEM $CAPEM)" > organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.yaml
 
 
 # ORG=3

@@ -81,6 +81,54 @@ export interface IUtilityemissionchannelUpdateEmissionsMintedTokenInput {
     partyId: string;
     uuids: string[];
 }
+// ##############################################################
+// gateway to datalock chaincode
+// ##############################################################
+
+export interface IDataLockGateway {
+    getTxDetails(caller: IFabricTxCaller, txID: string): Promise<ITxDetails>;
+    startTransitionProcess(caller: IFabricTxCaller, txID: string): Promise<ITxDetails>;
+    endTransitionProcess(caller: IFabricTxCaller, txID: string): Promise<void>;
+    stageUpdate(caller: IFabricTxCaller, input: ITxStageUpdateInput): Promise<ITxStageUpdateOutput>;
+}
+
+export interface ITxStageUpdateInput {
+    tx_id: string;
+    name: string;
+    is_last?: boolean;
+    data_locks?: { [key: string]: IDataChaincodeInput };
+    data_free?: { [key: string]: IDataChaincodeInput };
+    storage?: { [key: string]: string };
+}
+
+export interface ITxStageUpdateOutput {
+    data_locks: { [key: string]: string };
+    data_free: { [key: string]: string };
+}
+
+export interface IDataChaincodeInput {
+    keys: string[];
+    params: string[];
+}
+export interface ITxDetails {
+    tx_id: string;
+    state: TxState;
+    current_stage: string;
+    stage_data: { [key: string]: ITxStageData };
+}
+
+export interface ITxStageData {
+    // key , value (base64) storage
+    storage: { [key: string]: string };
+    // chaincode => key value(base64)
+    output: { [key: string]: { [key: string]: string } };
+}
+
+export enum TxState {
+    FINISHED = 'FINISHED',
+    PROCESSING = 'PROCESSING',
+    NOT_PROCESSING = 'NOT-PROCESSING',
+}
 
 // ##############################################################
 // gateway to fabric registry

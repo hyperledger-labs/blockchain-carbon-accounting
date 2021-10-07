@@ -76,11 +76,34 @@ export class EmissionsRecordContract {
       record.record.partyId = SHA256(partyId).toString();
       await this.emissionsState.updateEmissionsRecord(record,uuid);
     }
-    return Buffer.from('SUCCESS');
+    const out = {
+      keys : uuids
+    };
+    return Buffer.from(JSON.stringify(out));
   }
   async getEmissionsData(uuid:string):Promise<Uint8Array>{
     const record = await this.emissionsState.getEmissionsRecord(uuid);
     return record.toBuffer();
+  }
+  async getValidEmissions(uuids:string[]):Promise<Uint8Array>{
+    const validEmissions:EmissionsRecordInterface[] = [];
+    const validUUIDS:string[]=[];
+    for (const uuid of uuids){
+      const emission = await this.emissionsState.getEmissionsRecord(uuid);
+      if (emission.record.tokenId !== null){
+        continue;
+      }
+      validEmissions.push(emission.record);
+      validUUIDS.push(emission.record.uuid);
+    }
+    const output = {
+      keys : validUUIDS,
+      output_to_client : Buffer.from(JSON.stringify(validEmissions)).toString('base64'),
+      output_to_store : {
+        validUUIDs : Buffer.from(JSON.stringify(validUUIDS)).toString('base64')
+      }
+    };
+    return Buffer.from(JSON.stringify(output));
   }
   async getAllEmissionsData(utilityId:string, partyId:string):Promise<Uint8Array>{
     const partyIdsha256 = SHA256(partyId).toString();

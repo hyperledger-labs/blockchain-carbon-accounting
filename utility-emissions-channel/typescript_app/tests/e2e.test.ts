@@ -109,6 +109,7 @@ describe('E2E-vault', () => {
                 partyId: partyId,
                 addressToIssue: '0x976ea74026e726554db657fa54763abd0c3a0aa9',
                 emissionsRecordsToAudit: uuid,
+                txID: uuid4(),
             })
             .end(async (error, response) => {
                 try {

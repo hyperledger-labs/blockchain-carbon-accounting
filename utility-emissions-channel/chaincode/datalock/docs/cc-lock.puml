@@ -1,0 +1,21 @@
+@startuml
+
+title "Lock/Unlock data Maintained by Chaincode"
+
+node "Fabric Node" {
+    component "Fabric\nChannel"{
+        artifact "DataLock\nChaincode" as dataLockCC
+        artifact "Fabric Data\nChaincode-1" as cc1
+        artifact "Fabric Data\nChaincode-2" as cc2
+        artifact "Fabric Data\nChaincode-3" as cc3
+        dataLockCC --> cc1: wait()/signal()
+        dataLockCC --> cc2: wait()/signal()
+        dataLockCC --> cc3: wait()/signal()
+    }
+
+}
+
+entity application
+application -> dataLockCC
+
+@enduml
