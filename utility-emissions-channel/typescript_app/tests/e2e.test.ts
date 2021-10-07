@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiHTTP from 'chai-http';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
+import { WsWallet } from 'ws-wallet';
 chai.use(chaiHTTP);
 
 import { v4 as uuid4 } from 'uuid';
@@ -43,7 +44,7 @@ describe('E2E-vault', () => {
     });
     const clientID = uuid4();
 
-    it('shoudl register a client', (done) => {
+    it('should register a client', (done) => {
         chai.request(v1Base)
             .post(apiEndpoints.registerClient)
             .set('content-type', 'application/x-www-form-urlencoded')
@@ -113,6 +114,50 @@ describe('E2E-vault', () => {
             .end(async (error, response) => {
                 try {
                     response.status.should.be.eq(200);
+                    done();
+                } catch (error) {
+                    done();
+                }
+            });
+    });
+});
+describe('E2E-ws', async() => {
+    const wsWalletAdmin = new WsWallet({
+      endpoint: process.env.WS_IDENTITY_ENDPOINT,
+      keyName: "admin"
+    });
+    const key = await wsWalletAdmin.open();
+    it('should enroll a client', (done) => {
+        chai.request(v1Base)
+            .post(apiEndpoints.enrollClient)
+            .set('content-type', 'application/x-www-form-urlencoded')
+            .set('session_id', key.sessionId)
+            .set('signature ', key.signature)
+            .send({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' })
+            .end(async (error, response) => {
+                try {
+                    response.status.should.be.eq(201);
+                    done();
+                } catch (error) {
+                    done();
+                }
+            });
+    });
+    const clientID = uuid4();
+
+    it('should register a client', (done) => {
+        chai.request(v1Base)
+            .post(apiEndpoints.registerClient)
+            .set('content-type', 'application/x-www-form-urlencoded')
+            .set('session_id', key.sessionId)
+            .set('signature ', key.signature)
+            .query({
+                userId: userId,
+            })
+            .send({ enrollmentID: clientID, affiliation: 'auditor1.department1' })
+            .end(async (error, response) => {
+                try {
+                    response.status.should.be.eq(201);
                     done();
                 } catch (error) {
                     done();

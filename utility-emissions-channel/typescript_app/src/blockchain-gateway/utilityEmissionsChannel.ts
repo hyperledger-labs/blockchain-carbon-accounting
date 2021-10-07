@@ -11,13 +11,13 @@ import {
     FabricContractInvocationType,
     PluginLedgerConnectorFabric,
 } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
-import Singer from './singer';
+import Signer from './signer';
 import { ledgerLogger } from '../utils/logger';
 import ClientError from '../errors/clientError';
 
 interface IUtilityemissionchannelGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;
-    signer: Singer;
+    signer: Signer;
 }
 
 export default class UtilityemissionchannelGateway implements IUtilityemissionchannelGateway {

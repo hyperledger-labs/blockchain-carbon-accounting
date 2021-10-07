@@ -1,0 +1,56 @@
+{
+  "name": "ws-identity-client",
+  "author": "Betrand Rioux <bertrand.rioux@gmail.com>",
+  "version": "1.0.2",
+  "description": "A client for connecting to the web-socket identity server",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "test": "mocha -exit -require ts-node/register -colors tests/**/*.test.ts --timeout 10000",
+    "build": "tsc -p .",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "eslint 'src/**/*.{js,ts}' --quiet --fix \"src/**/*.{js,ts}\"",
+    "prepare": "npm run build",
+    "//prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "keywords": [],
+  "license": "ISC",
+  "dependencies": {
+    "@types/debug": "^4.1.7",
+    "debug": "3.1.0",
+    "dockerode": "^3.3.1",
+    "request-promise-native": "1.0.7",
+    "tv4": "^1.2.7"
+  },
+  "devDependencies": {
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.9.6",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "chai-http": "^4.3.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.2",
+    "jsrsasign": "10.4.0",
+    "mocha": "^9.1.1",
+    "prettier": "^2.4.1",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.4.3",
+    "ws-identity": "^1.0.11",
+    "ws-wallet": "^1.1.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brioux/blockchain-carbon-accounting.git"
+  }
+}

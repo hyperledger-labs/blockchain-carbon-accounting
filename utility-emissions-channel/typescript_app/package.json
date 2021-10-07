@@ -19,13 +19,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@hyperledger/cactus-common": "0.9.0",
-    "@hyperledger/cactus-core": "0.9.0",
-    "@hyperledger/cactus-core-api": "0.9.0",
-    "@hyperledger/cactus-plugin-keychain-memory": "0.9.0",
-    "@hyperledger/cactus-plugin-keychain-vault": "0.9.0",
-    "@hyperledger/cactus-plugin-ledger-connector-fabric": "0.9.0",
-    "@hyperledger/cactus-plugin-ledger-connector-xdai": "0.9.0",
+    "@hyperledger/cactus-common": "0.10.0",
+    "@hyperledger/cactus-core": "0.10.0",
+    "@hyperledger/cactus-core-api": "0.10.0",
+    "@hyperledger/cactus-plugin-keychain-memory": "0.10.0",
+    "@hyperledger/cactus-plugin-keychain-vault": "0.10.0",
+    "@hyperledger/cactus-plugin-ledger-connector-fabric": "0.8.1-pr-brioux-1333.92b26c3a.36+92b26c3a",
+    "@hyperledger/cactus-plugin-ledger-connector-xdai": "0.10.0",
+    "@supercharge/request-ip": "^1.1.2",
     "aws-sdk": "^2.793.0",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
@@ -34,7 +35,9 @@
     "fabric-client": "^1.4.17",
     "joi": "^17.4.2",
     "multer": "^1.4.2",
-    "socket.io": "^4.0.1",
+    "node-vault": "0.9.22",
+    "socket.io": "^4.2.0",
+    "ssh2-streams": "^0.4.10",
     "swagger-ui-express": "^4.1.4",
     "ts-md5": "^1.2.7",
     "uuid": "^8.3.2",
@@ -60,6 +63,7 @@
     "serverless": "^2.52.0",
     "serverless-s3-local": "^0.6.7",
     "ts-node": "^10.0.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "ws-wallet": "^1.1.1"
   }
 }

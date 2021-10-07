@@ -10,7 +10,7 @@ import {
 import ClientError from '../errors/clientError';
 
 export default class Signer {
-    private readonly className = 'Singer';
+    private readonly className = 'Signer';
     constructor(
         private readonly hlfSupport: string,
         private readonly hlfCertStoreID: string,
@@ -18,9 +18,9 @@ export default class Signer {
         private readonly ethSecretKeychainID?: string,
     ) {
         const fnTag = `${this.className}.constructor()`;
-        if (!(hlfSupport === 'vault')) {
+        if (!(hlfSupport.includes('vault') || hlfSupport.includes('web-socket'))) {
             throw new Error(
-                `${fnTag} support fabric tx signing using "vault", but provided : ${hlfSupport}`,
+                `${fnTag} support fabric tx signing using "vault" and "web-socket", but provided : ${hlfSupport}`,
             );
         }
         if (!(ethSupport === 'plain' || ethSupport === 'kv')) {
@@ -32,29 +32,47 @@ export default class Signer {
 
     fabric(caller: IFabricTxCaller): FabricSigningCredential {
         const fnTag = `${this.className}.fabric()`;
-        const singer: FabricSigningCredential = {
+        const signer: FabricSigningCredential = {
             keychainId: this.hlfCertStoreID,
             keychainRef: caller.userId,
         };
-        switch (this.hlfSupport) {
-            case 'vault':
-                if (!caller.vaultToken || caller.vaultToken.length === 0) {
-                    throw new ClientError(
-                        `${fnTag} require vault token for singing fabric transactions`,
-                    );
-                }
-                singer.type = FabricSigningCredentialType.VaultX509;
-                singer.vaultTransitKey = {
-                    token: caller.vaultToken,
-                    keyName: caller.userId,
-                };
-                break;
+        if(this.hlfSupport.includes('vault') && caller.vaultToken){
+            if (caller.vaultToken.length === 0) {
+                throw new ClientError(
+                    `${fnTag} require vault token for singing fabric transactions`,
+                );
+            }
+            signer.type = FabricSigningCredentialType.VaultX509;
+            signer.vaultTransitKey = {
+                token: caller.vaultToken,
+                keyName: caller.userId,
+            };
+        }else if(this.hlfSupport.includes('web-socket') && caller.wsSessionId){
+            if (caller.wsSessionId.length === 0) {
+                throw new ClientError(
+                    `${fnTag} require web-socket session ID to sign fabric transactions with ws-wallet`,
+                );
+            }
+            if (!caller.wsSidSig || caller.wsSidSig.length === 0) {
+                throw new ClientError(
+                    `${fnTag} require web-socket session ID signature to sign fabric transactions with ws-wallet`,
+                );
+            }
+            signer.type = FabricSigningCredentialType.WsX509;
+            signer.webSocketKey = {
+                sessionId: caller.wsSessionId,
+                signature: caller.wsSidSig,
+            };
+        }else{
+            throw new ClientError(
+                `${fnTag} missing ${this.hlfSupport.split(' ').join('or')} API keys to sign fabric transactions`,
+            );
         }
-        return singer;
+        return signer;
     }
     ethereum(caller: IEthTxCaller): Web3SigningCredential {
         const fnTag = `${this.className}.ethereum`;
-        let singer: Web3SigningCredential;
+        let signer: Web3SigningCredential;
         switch (this.ethSupport) {
             case 'plain':
                 if (!caller.address || !caller.private) {
@@ -62,7 +80,7 @@ export default class Signer {
                         `${fnTag} require eth address and private key for signing ethereum tx`,
                     );
                 }
-                singer = {
+                signer = {
                     type: Web3SigningCredentialType.PrivateKeyHex,
                     ethAccount: caller.address,
                     secret: caller.private,
@@ -74,7 +92,7 @@ export default class Signer {
                         `${fnTag} require eth address and key name stored on key-value keychain, for signing ethereum tx`,
                     );
                 }
-                singer = {
+                signer = {
                     type: Web3SigningCredentialType.CactusKeychainRef,
                     ethAccount: caller.address,
                     keychainEntryKey: 'eth-' + caller.keyName,
@@ -82,6 +100,6 @@ export default class Signer {
                 };
                 break;
         }
-        return singer;
+        return signer;
     }
 }

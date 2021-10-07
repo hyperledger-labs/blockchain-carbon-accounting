@@ -21,6 +21,8 @@ export default class FabricRegistryService {
                 {
                     userId: input.query.userId,
                     vaultToken: input.header.vault_token,
+                    wsSessionId: input.header.session_id,
+                    wsSidSig: input.header.signature,
                 },
                 {
                     enrollmentID: input.body.enrollmentID,
@@ -43,6 +45,8 @@ export default class FabricRegistryService {
                 {
                     userId: input.body.enrollmentID,
                     vaultToken: input.header.vault_token,
+                    wsSessionId: input.header.session_id,
+                    wsSidSig: input.header.signature,
                 },
                 input.body.enrollmentSecret,
             );

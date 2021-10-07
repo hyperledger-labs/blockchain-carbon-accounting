@@ -2,7 +2,7 @@ import chai from 'chai';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
-import Singer from '../../src/blockchain-gateway/singer';
+import Signer from '../../src/blockchain-gateway/signer';
 import { DataLockGateway } from '../../src/blockchain-gateway/datalock';
 import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway/I-gateway';
 import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
@@ -17,7 +17,7 @@ config();
 describe('DataLockGateway', () => {
     const bcConfig = new BCGatewayConfig();
     describe('vault', () => {
-        const signer = new Singer('vault', 'inMemoryKeychain', 'plain');
+        const signer = new Signer('vault', 'inMemoryKeychain', 'plain');
         const adminVaultToken = 'tokenId';
         const org = bcConfig.fabricConnector();
         const gateway = new DataLockGateway({
