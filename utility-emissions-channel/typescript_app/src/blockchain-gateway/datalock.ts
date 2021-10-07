@@ -10,12 +10,12 @@ import {
     ITxStageUpdateInput,
     ITxStageUpdateOutput,
 } from './I-gateway';
-import Singer from './singer';
+import Signer from './signer';
 import ClientError from '../errors/clientError';
 
 interface IDataLockGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;
-    signer: Singer;
+    signer: Signer;
 }
 export class DataLockGateway implements IDataLockGateway {
     private readonly className = 'DataLockGateway';
@@ -27,11 +27,11 @@ export class DataLockGateway implements IDataLockGateway {
     async getTxDetails(caller: IFabricTxCaller, txID: string): Promise<ITxDetails> {
         const fnTag = `${this.className}.getTxDetails()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
-        const singer = this.opts.signer.fabric(caller);
+        const signer = this.opts.signer.fabric(caller);
         ledgerLogger.debug(`${fnTag} txID = ${txID}`);
         try {
             const resp = await this.opts.fabricConnector.transact({
-                signingCredential: singer,
+                signingCredential: signer,
                 channelName: this.channelName,
                 contractName: this.ccName,
                 invocationType: FabricContractInvocationType.Call,
@@ -48,11 +48,11 @@ export class DataLockGateway implements IDataLockGateway {
     async startTransitionProcess(caller: IFabricTxCaller, txID: string): Promise<ITxDetails> {
         const fnTag = `${this.className}.startTransitionProcess()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
-        const singer = this.opts.signer.fabric(caller);
+        const signer = this.opts.signer.fabric(caller);
         ledgerLogger.debug(`${fnTag} txID = ${txID}`);
         try {
             const resp = await this.opts.fabricConnector.transact({
-                signingCredential: singer,
+                signingCredential: signer,
                 channelName: this.channelName,
                 contractName: this.ccName,
                 invocationType: FabricContractInvocationType.Send,
@@ -69,11 +69,11 @@ export class DataLockGateway implements IDataLockGateway {
     async endTransitionProcess(caller: IFabricTxCaller, txID: string): Promise<void> {
         const fnTag = `${this.className}.endTransitionProcess()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
-        const singer = this.opts.signer.fabric(caller);
+        const signer = this.opts.signer.fabric(caller);
         ledgerLogger.debug(`${fnTag} txID = ${txID}`);
         try {
             await this.opts.fabricConnector.transact({
-                signingCredential: singer,
+                signingCredential: signer,
                 channelName: this.channelName,
                 contractName: this.ccName,
                 invocationType: FabricContractInvocationType.Send,
@@ -91,11 +91,11 @@ export class DataLockGateway implements IDataLockGateway {
     ): Promise<ITxStageUpdateOutput> {
         const fnTag = `${this.className}.stageUpdate()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
-        const singer = this.opts.signer.fabric(caller);
+        const signer = this.opts.signer.fabric(caller);
         ledgerLogger.debug(`${fnTag} input : %o`, input);
         try {
             const resp = await this.opts.fabricConnector.transact({
-                signingCredential: singer,
+                signingCredential: signer,
                 channelName: this.channelName,
                 contractName: this.ccName,
                 invocationType: FabricContractInvocationType.Send,
