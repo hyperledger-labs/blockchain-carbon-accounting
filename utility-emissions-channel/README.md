@@ -114,7 +114,7 @@ $ wget https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
 3. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
 
 ```bash
-$ wget https://www.eia.gov/electricity/data/eia861/zip/f8612019.zip
+$ wget https://www.eia.gov/electricity/data/eia861/archive/zip/f8612019.zip 
 $ unzip f8612019.zip
 ```
 
@@ -159,7 +159,7 @@ To search for utility identifiers, run the Mango query:
 {
    "selector": {
       "class": {
-         "$eq": "org.hyperledger.blockchain-carbon-accounting.utilitylookupitem"
+         "$eq": "org.hyperledger.blockchain-carbon-accounting.utilitylookuplist"
       }
    }
 }
@@ -220,7 +220,7 @@ $ npm i
 $ sh ./runManual.sh
 ```
 
-4. Go to `http://localhost:9000/api-docs/` to use the API.  
+4. Go to `http://localhost:8080/api-docs/` to use the API.  
 
 ## Working with the Express Server API
 
