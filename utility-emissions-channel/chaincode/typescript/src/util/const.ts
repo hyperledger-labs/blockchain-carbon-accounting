@@ -23,8 +23,8 @@ export const MsgFailure = 'METHOD_EXECUTED_FAILED';
 export const WEIGHT_TONS = 'TONS';
 
 export const REGIONS = {
-  NERC: 'nerc_region',
+    NERC: 'nerc_region',
 
-  // Countries
-  USA: 'usa',
+    // Countries
+    USA: 'usa',
 };

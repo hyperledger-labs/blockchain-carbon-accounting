@@ -21,7 +21,7 @@ export default class AWSS3 {
         }
     }
 
-    upload(fileBin: Buffer, filename: string) {
+    upload(fileBin: Buffer, filename: string): Promise<S3.ManagedUpload.SendData> {
         return new Promise(
             (
                 resolve: (value: S3.ManagedUpload.SendData) => void,
@@ -43,7 +43,7 @@ export default class AWSS3 {
             },
         );
     }
-    download(filename: string) {
+    download(filename: string): Promise<Buffer> {
         return new Promise((resolve: (value: Buffer) => void, reject: (err: AWSError) => void) => {
             this.s3.getObject(
                 {
