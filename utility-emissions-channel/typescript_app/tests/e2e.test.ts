@@ -121,10 +121,10 @@ describe('E2E-vault', () => {
             });
     });
 });
-describe('E2E-ws', async() => {
+describe('E2E-ws', async () => {
     const wsWalletAdmin = new WsWallet({
-      endpoint: process.env.WS_IDENTITY_ENDPOINT,
-      keyName: "admin"
+        endpoint: process.env.WS_IDENTITY_ENDPOINT,
+        keyName: 'admin',
     });
     const key = await wsWalletAdmin.open();
     it('should enroll a client', (done) => {
