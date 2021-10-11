@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm i -g npm@latest
-          npm install
+          npm ci
       - name: Run lint script
         run: npm run lint
 
