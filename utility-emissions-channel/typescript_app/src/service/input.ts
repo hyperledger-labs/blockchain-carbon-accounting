@@ -1,7 +1,7 @@
 export interface Input {
-    body: any;
-    header: any;
-    query: any;
+    body: Record<string, string>;
+    header: Record<string, string>;
+    query: Record<string, string>;
     file?: Buffer;
-    params?: any;
+    params?: Record<string, string>;
 }

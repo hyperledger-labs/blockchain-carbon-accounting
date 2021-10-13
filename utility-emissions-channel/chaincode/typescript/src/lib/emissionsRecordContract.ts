@@ -42,7 +42,7 @@ export class EmissionsRecordContract {
         energyUseUom: string,
         url: string,
         md5: string,
-    ) {
+    ): Promise<Uint8Array> {
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
         const lookup = await this.utilityLookupState.getUtilityLookupItem(utilityId);
         const factor = await this.utilityEmissionsFactorState.getEmissionsFactorByLookupItem(
@@ -154,12 +154,12 @@ export class EmissionsRecordContract {
         );
         return Buffer.from(JSON.stringify(records));
     }
-    async importUtilityFactor(factorI: UtilityEmissionsFactorInterface) {
+    async importUtilityFactor(factorI: UtilityEmissionsFactorInterface): Promise<Uint8Array> {
         const factor = new UtilityEmissionsFactor(factorI);
         await this.utilityEmissionsFactorState.addUtilityEmissionsFactor(factor, factorI.uuid);
         return factor.toBuffer();
     }
-    async updateUtilityFactor(factorI: UtilityEmissionsFactorInterface) {
+    async updateUtilityFactor(factorI: UtilityEmissionsFactorInterface): Promise<Uint8Array> {
         const factor = new UtilityEmissionsFactor(factorI);
         await this.utilityEmissionsFactorState.updateUtilityEmissionsFactor(factor, factorI.uuid);
         return factor.toBuffer();

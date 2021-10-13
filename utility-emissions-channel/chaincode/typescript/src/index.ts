@@ -13,7 +13,9 @@ import {
 import { logger, stringToBytes } from './util/util';
 
 class EmissionsChaincode {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private methods: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         [key: string]: (stub: ChaincodeStub, args: string[]) => Promise<ChaincodeResponse>;
     } = {
         importUtilityIdentifier: this.importUtilityIdentifier,

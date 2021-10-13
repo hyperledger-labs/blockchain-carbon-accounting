@@ -26,7 +26,11 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
     private readonly className = 'EthNetEmissionsTokenGateway';
     private readonly tokenTypeId = 3;
     private readonly web3 = new Web3();
-    private readonly EventTokenCreatedInput: any[];
+    private readonly EventTokenCreatedInput: {
+        internalType: string;
+        name: string;
+        type: string;
+    }[];
     constructor(private readonly opts: IEthNetEmissionsTokenGatewayOptions) {
         const tokenCreatedABI = contractABI.find((value) => {
             return value.type === 'event' && value.name === 'TokenCreated';
@@ -43,7 +47,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         ledgerLogger.debug(`${fnTag} getting signer for client`);
         const signer = this.opts.signer.ethereum(caller);
         ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
-        let result: any;
+        let result;
         try {
             const automaticRetireDate = +input.automaticRetireDate.toFixed();
             result = await this.opts.ethClient.invokeContract({
