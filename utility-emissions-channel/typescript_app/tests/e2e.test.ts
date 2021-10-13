@@ -77,7 +77,7 @@ describe('E2E-vault', () => {
                 utilityId: mockUtilityID,
                 partyId: partyId,
                 fromDate: '2020-05-07T10:10:09Z',
-                thruDate: '2021-05-07T10:10:09Z',
+                thruDate: '2020-06-07T10:10:09Z',
                 energyUseAmount: 100,
                 energyUseUom: 'kWh',
             })
@@ -88,7 +88,7 @@ describe('E2E-vault', () => {
                     uuid = resp.uuid;
                     resp.utilityId.should.be.eq(mockUtilityID);
                     resp.fromDate.should.be.eq('2020-05-07T10:10:09Z');
-                    resp.thruDate.should.be.eq('2021-05-07T10:10:09Z');
+                    resp.thruDate.should.be.eq('2020-06-07T10:10:09Z');
                     done();
                 } catch (error) {
                     done();
