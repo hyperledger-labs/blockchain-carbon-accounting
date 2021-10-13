@@ -36,7 +36,7 @@ export default class Signer {
             keychainId: this.hlfCertStoreID,
             keychainRef: caller.userId,
         };
-        if(this.hlfSupport.includes('vault') && caller.vaultToken){
+        if (this.hlfSupport.includes('vault') && caller.vaultToken) {
             if (caller.vaultToken.length === 0) {
                 throw new ClientError(
                     `${fnTag} require vault token for singing fabric transactions`,
@@ -47,7 +47,7 @@ export default class Signer {
                 token: caller.vaultToken,
                 keyName: caller.userId,
             };
-        }else if(this.hlfSupport.includes('web-socket') && caller.wsSessionId){
+        } else if (this.hlfSupport.includes('web-socket') && caller.wsSessionId) {
             if (caller.wsSessionId.length === 0) {
                 throw new ClientError(
                     `${fnTag} require web-socket session ID to sign fabric transactions with ws-wallet`,
@@ -63,9 +63,11 @@ export default class Signer {
                 sessionId: caller.wsSessionId,
                 signature: caller.wsSidSig,
             };
-        }else{
+        } else {
             throw new ClientError(
-                `${fnTag} missing ${this.hlfSupport.split(' ').join('or')} API keys to sign fabric transactions`,
+                `${fnTag} missing ${this.hlfSupport
+                    .split(' ')
+                    .join('or')} API keys to sign fabric transactions`,
             );
         }
         return signer;

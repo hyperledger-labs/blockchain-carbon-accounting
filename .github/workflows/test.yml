@@ -1,4 +1,4 @@
-name: End-to-end tests
+name: Lint, build and tests
 on:
   push:
     branches: [ main ]
@@ -6,6 +6,40 @@ on:
     branches: [ main ]
 
 jobs:
+  lint-typescript-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel/typescript_app
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.15.0'
+      - name: Install dependencies
+        run: |
+          npm i -g npm@latest
+          npm ci
+      - name: Run lint script
+        run: npm run lint
+
+  lint-chaincode:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel/chaincode/typescript
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12.15.0'
+      - name: Install dependencies
+        run: |
+          npm i -g npm@latest
+          npm ci
+      - name: Run lint script
+        run: npm run lint
+
   test:
     runs-on: ubuntu-latest
     defaults:
@@ -24,7 +58,7 @@ jobs:
       - name: Start local Hardhat network
         run: |
           cd ../net-emissions-token-network/
-          npm i -g npm@7.24.1
+          npm i -g npm@latest
           npm ci
           echo "n" | npx hardhat node --show-accounts &
       - name: Build utility-emissions-channel project

@@ -104,10 +104,10 @@ describe('fabric-registry', () => {
     });
     // External client with private key
     const wsWalletAdmin = new WsWallet({
-      endpoint: process.env.WS_IDENTITY_ENDPOINT,
-      keyName: "admin"
+        endpoint: process.env.WS_IDENTITY_ENDPOINT,
+        keyName: 'admin',
     });
-    describe('web-socket', async() => {
+    describe('web-socket', async () => {
         const signer = new Signer('web-socket', certstore.getKeychainId(), 'plain');
         const fabricRegistry = new FabricRegistryGateway({
             fabricConnector: fabricConnector.connector,
@@ -116,7 +116,7 @@ describe('fabric-registry', () => {
             orgMSP: fabricConnector.orgMSP,
         });
 
-        let key = await wsWalletAdmin.open();
+        const key = await wsWalletAdmin.open();
         it('should enroll admin', async () => {
             await fabricRegistry.enroll(
                 {

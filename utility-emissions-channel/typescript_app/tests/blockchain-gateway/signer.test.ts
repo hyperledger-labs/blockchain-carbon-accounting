@@ -6,7 +6,7 @@ import {
     Web3SigningCredentialPrivateKeyHex,
     Web3SigningCredentialType,
 } from '@hyperledger/cactus-plugin-ledger-connector-xdai';
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'crypto';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
 
@@ -39,7 +39,7 @@ describe('Signer', () => {
     });
 
     it('throws if web-socket or vault API keys are not provided', () => {
-        const hlfSupport = process.env.LEDGER_FABRIC_TX_SIGNER_TYPES
+        const hlfSupport = process.env.LEDGER_FABRIC_TX_SIGNER_TYPES;
         const s = new Signer(hlfSupport, 'certstore', 'plain');
         try {
             s.fabric({
@@ -49,7 +49,9 @@ describe('Signer', () => {
             true.should.be.false;
         } catch (error) {
             (error as ClientError).message.should.be.eq(
-                `Signer.fabric() missing ${hlfSupport.split(' ').join('or')} API keys to sign fabric transactions`,
+                `Signer.fabric() missing ${hlfSupport
+                    .split(' ')
+                    .join('or')} API keys to sign fabric transactions`,
             );
             (error as ClientError).status.should.be.eq(400);
         }

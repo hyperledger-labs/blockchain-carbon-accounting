@@ -1,0 +1,96 @@
+@startuml
+
+entity "Vault\nWeb UI" as vaultWebUI
+actor "Client" as client
+
+left to right direction
+
+
+package "namespace=auditor1"{
+    component "vault"#Aqua{
+        circle "vault-ui" as vaultUi
+        circle "vault" as vaultSrvInternal
+        node "vault-server-0" as vaultServer0
+        node "vault-server-1" as vaultServer1
+        database "vault-data-volume" as vaultData
+
+        vaultSrvInternal --> vaultServer0
+        vaultSrvInternal --> vaultServer1
+
+        vaultUi --> vaultServer0
+        vaultUi --> vaultServer1
+
+        vaultServer0 --> vaultData
+        vaultServer1 --> vaultData
+
+    }
+
+    component "fabric"#Aqua{
+        component "ca"#Aquamarine{
+            circle "fabric-ca-service" as caSrv
+            node "fabric-ca-server" as caServer
+            database "ca-data" as caData
+            caServer -> caData
+        }
+
+        component "orderer1"#Aquamarine{
+            circle "orderer1-service" as o1Srv
+            node "orderer1-node" as o1Node
+            database "orderer1-data" as o1Data
+            o1Node -> o1Data
+        }
+
+        component "peer1"#Aquamarine{
+            circle "peer1-service" as p1Srv
+            node "peer1-node" as p1Node
+            component "utility-cc"#LightCyan{
+                circle "peer1-utility-cc-service" as p1uccSvc
+                node "peer1-utility-cc-server" as p1uccServer
+
+                p1uccSvc -> p1uccServer
+            }
+
+            component "dataLock-cc"#LightCyan{
+                circle "peer1-dataLock-cc-service" as p1dccSvc
+                node "peer1-dataLock-cc-server" as p1dccServer
+
+                p1dccSvc -> p1dccServer
+            }
+
+            database "peer1-data" as p1Data
+
+            p1Node ---> p1uccSvc
+            p1Node ---> p1dccSvc
+            p1Node -> p1Data
+        }
+
+
+
+        caSrv --> caServer
+        o1Srv --> o1Node
+        p1Srv --> p1Node
+    }
+
+    component "api"#Aqua{
+        node "api-server" as apiServer
+        circle "api-service"  as apiSrv
+
+        apiSrv->apiServer
+    }
+
+    apiServer --> vaultSrvInternal
+    apiServer --> caSrv
+    apiServer --> o1Srv
+    apiServer ---> p1Srv
+}
+
+cloud "AWS-S3" as awsS3
+cloud "Infura-eth-node" as ethNode
+
+apiServer --> awsS3
+apiServer -> ethNode
+
+vaultWebUI --> vaultUi
+client --> apiSrv
+
+@enduml
