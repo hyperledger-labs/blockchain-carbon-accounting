@@ -1,0 +1,109 @@
+# external service for accessing vault ui
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-ui
+  namespace: auditor2
+spec:
+  type: NodePort
+  selector:
+    component: vault
+  ports:
+  - port: 8200
+    targetPort: 8200
+    nodePort: 32001
+---
+# headless service for internal connection to vault server
+# api server will use this as VAULT_ENDPOINT
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: auditor2
+spec:
+  selector:
+    component: vault
+  ports:
+  - name: api
+    port: 8200
+    targetPort: 8200
+  - name: rpc
+    port: 8201
+    targetPort: 8201
+  clusterIP: None
+
+---
+# vault local config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vault-store-config
+  namespace: auditor2
+data:
+  hcl.config: |-
+    disable_mlock = true
+    ui = true
+    
+    listener "tcp" {
+      tls_disable = 1
+      address = "[::]:8200"
+      cluster_address = "[::]:8201"
+    }
+    storage "file" {
+      path = "/vault/data"
+    }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vault-data-claim
+  namespace: auditor2
+spec:
+  resources:
+    requests:
+      storage: 500Mi
+  accessModes:
+    - ReadWriteOnce
+---
+# vault stateFulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vault-server
+  namespace: auditor2
+spec:
+  selector:
+    matchLabels:
+      component: vault
+  serviceName: vault
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        component: vault
+    spec:
+      containers:
+      - name: vault-server
+        image: vault:1.8.1
+        args:
+          - "server"
+        securityContext:
+          capabilities:
+            add:
+              - "IPC_LOCK"
+        env:
+          - name: VAULT_LOCAL_CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: vault-store-config
+                key: hcl.config
+        ports:
+        - containerPort: 8200
+          name: ui
+        volumeMounts:
+          - name: vault-data
+            mountPath: /vault/data
+      volumes:
+        - name: vault-data
+          persistentVolumeClaim:
+            claimName: vault-data-claim
