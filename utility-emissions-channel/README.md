@@ -207,9 +207,8 @@ This is normally done for you in the `start.sh` script, but you can also start i
 ```bash
 $ cd typescript_app
 $ npm i
-$ cd ..
-$ cd docker-compose-setup
-$ ./scripts/startApi.sh
+$ npm run build
+$ npm run start
 ```
 
 To run the API server outside of docker container:
@@ -217,7 +216,15 @@ To run the API server outside of docker container:
 ```bash
 $ cd typescript_app
 $ npm i
-$ sh ./runManual.sh
+$ npm run test
+```
+
+To run the test coverage for the `typecript_app`
+
+```bash
+$ cd typescript_app
+$ npm i
+$ npm run coverage
 ```
 
 4. Go to `http://localhost:8080/api-docs/` to use the API.  
