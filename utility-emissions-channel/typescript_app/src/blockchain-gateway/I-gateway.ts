@@ -66,6 +66,20 @@ export interface IUtilityemissionchannelEmissionData {
     tokenId: string;
 }
 
+export interface IUtilityemissionchannelEmissionMetadata {
+    org: string;
+    type: string;
+    partyId: string[];
+    renewableEnergyUseAmount: number;
+    nonrenewableEnergyUseAmount: number;
+    utilityIds: string[];
+    factorSources: string[];
+    urls: string[];
+    md5s: string[];
+    fromDates: string[];
+    thruDates: string[];
+}
+
 export interface IUtilityemissionchannelGetEMissionsRecordsInput {
     utilityId: string;
     partyId: string;
