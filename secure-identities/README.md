@@ -52,9 +52,9 @@ A [WS-X.509 credential type for signing fabric transactions] (https://github.com
 
 Two packages are required for this connection:
 
-* [ws-identity](./ws-identity): server to setup and authenticate the web-socket connections
+* [ws-identity](./ws-identity/README.MD): server to setup and authenticate the web-socket connections
 
-* [ws-wallet](./ws-wallet): generate the user's offline private key and open connection to the Fabric peer
+* [ws-wallet](./ws-wallet/README.md): generate the user's offline private key and open connection to the Fabric peer
 
 The ws-identity server can either be hosted within the Fabric application or as a standalone endpoint linking a Fabric peer and ws-wallet instance.
 
@@ -62,7 +62,7 @@ The server does not store and never sees the user’s private key. It delivers r
 - a Certificate Signing Request (CSR) used to construct the WS-X.509 identity file when enrolling with the Fabric application. 
 - a query or commit transactions to the Fabric network.
 
-[ws-identity-client](https://github.com/brioux/ws-identity-client) is used to setup the backend connection between ws-identity or ws-wallet and the fabric network.
+[ws-identity-client](./ws-identity-client/README.md) is used to setup the backend connection between ws-identity or ws-wallet and the fabric network.
 
 ### Use cases for external private keys
 
