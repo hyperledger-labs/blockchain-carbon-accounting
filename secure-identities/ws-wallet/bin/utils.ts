@@ -6,7 +6,7 @@ usage +=
   '\tnew-key <keyname> [<curve>]\t' +
   "\tGenerate new key with curve: 'p256' | 'p384'\n";
 usage += '\tget-pkh <keyname>\t' + '\t\tGet publick key hex of keyname\n';
-usage += '\tconnect <host> <keyname> [<sslStrict>] \t' + 'Connect to ws-identity server\n'; 
+usage += '\tconnect <host> <sessionId> <keyname> [<sslStrict>] \t' + 'Connect to ws-identity server\n'; 
 usage += '...      \t \t \t use sslStric for testing with unverified ssl/tls certificates\n';
 
 function showHelp() {
@@ -23,9 +23,9 @@ function showHelp() {
   );
 }
 
-async function getClient(endpoint,args: IClientNewKey,strictSSL?:boolean) {
+async function getClient(endpoint:string,sessionId:string,args: IClientNewKey,strictSSL?:boolean) {
   const wsClient = new WsWallet({ endpoint, keyName: args.keyName, strictSSL});
-  const key = await wsClient.open();
+  const key = await wsClient.open(sessionId);
   console.log(key);
 }
 

@@ -3,12 +3,10 @@ import { Logger, LoggerProvider, LogLevelDesc } from '@hyperledger/cactus-common
 import { Router, Request, Response } from 'express'
 import { validationResult, body } from 'express-validator'
 import { KEYUTIL } from 'jsrsasign'
-import { WsIdentityServer } from '../server'
 import { WebSocketClient } from '../client'
 
 export interface WsClientRouterOpts {
     logLevel: LogLevelDesc;
-    wsIdentityServer: WsIdentityServer;
 }
 
 export class WsClientRouter {

@@ -91,7 +91,7 @@ export default class BCGatewayConfig {
                 const endpoint = process.env.WS_IDENTITY_ENDPOINT;
                 Checks.nonBlankString(endpoint, `${fnTag} WS_IDENTITY_ENDPOINT`);
                 const pathPrefix = process.env.WS_IDENTITY_PATH_PREFIX;
-                Checks.nonBlankString(pathPrefix, `${fnTag} LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT`);
+                Checks.nonBlankString(pathPrefix, `${fnTag} WS_IDENTITY_PATH_PREFIX`);
                 opts.webSocketConfig = {
                     endpoint,
                     pathPrefix,

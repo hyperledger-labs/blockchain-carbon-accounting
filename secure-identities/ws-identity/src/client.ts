@@ -13,13 +13,17 @@ export interface WSClientOpts {
   // Ecdsa object from jsrsasign package used in the getPub method
   // Built before creating a new client to verify the incoming webSocket connection
   pubKeyEcdsa: KJUR.crypto.ECDSA;
+  clientIp: string;
+  keyName?: string;
   logLevel?: LogLevelDesc;
 }
 
 export class WebSocketClient {
   public readonly className = 'WebSocketClient';
   public readonly pubKeyEcdsa: KJUR.crypto.ECDSA; // KJUR.crypto.ECDSA for csr requests;
+  public readonly ip: string;
   public readonly pubKeyHex: string;
+  // public readonly sessionId: string;
   public readonly keyName: string;
   private readonly log: Logger;
   private readonly webSocket: WebSocket;
@@ -31,9 +35,11 @@ export class WebSocketClient {
       level: opts.logLevel || 'INFO'
     })
     this.webSocket = opts.webSocket
+    this.ip = opts.clientIp
     this.pubKeyEcdsa = opts.pubKeyEcdsa
+    // this.sessionId = opts.sessionId
     this.pubKeyHex = this.pubKeyEcdsa.pubKeyHex
-    this.keyName = `${this.pubKeyHex.substring(0, 12)}...`
+    this.keyName = opts.keyName || `${this.pubKeyHex.substring(0, 12)}...`
   }
 
   /**

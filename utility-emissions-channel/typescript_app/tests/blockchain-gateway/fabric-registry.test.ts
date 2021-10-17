@@ -11,6 +11,7 @@ import asPromise from 'chai-as-promised';
 import ClientError from '../../src/errors/clientError';
 import { WsWallet } from 'ws-wallet';
 import { randomBytes } from 'crypto';
+import { WsIdentityClient } from 'ws-identity-client';
 chai.use(asPromise);
 
 setup('DEBUG', 'DEBUG');
@@ -104,10 +105,16 @@ describe('fabric-registry', () => {
     });
     // External client with private key
     const wsWalletAdmin = new WsWallet({
-      endpoint: process.env.WS_IDENTITY_ENDPOINT,
-      keyName: "admin"
+        keyName: 'admin',
     });
-    describe('web-socket', async() => {
+    const wsIdClient = new WsIdentityClient({
+        apiVersion: 'v1',
+        endpoint: process.env.WS_IDENTITY_ENDPOINT,
+        rpDefaults: {
+            strictSSL: false,
+        },
+    });
+    describe('web-socket', async () => {
         const signer = new Signer('web-socket', certstore.getKeychainId(), 'plain');
         const fabricRegistry = new FabricRegistryGateway({
             fabricConnector: fabricConnector.connector,
@@ -116,7 +123,19 @@ describe('fabric-registry', () => {
             orgMSP: fabricConnector.orgMSP,
         });
 
-        let key = await wsWalletAdmin.open();
+        const { sessionId, url } = JSON.parse(
+            await wsIdClient.write(
+                'session/new',
+                {
+                    pubKeyHex: wsWalletAdmin.getPubKeyHex(),
+                    keyName: wsWalletAdmin.keyName,
+                },
+                {},
+            ),
+        );
+        const key = await wsWalletAdmin.open(sessionId, url);
+        console.log(key);
+
         it('should enroll admin', async () => {
             await fabricRegistry.enroll(
                 {

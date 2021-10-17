@@ -9,8 +9,6 @@ import {
   LogLevelDesc,
   LoggerProvider
 } from '@hyperledger/cactus-common'
-import { WsIdentityClient } from 'ws-identity-client'
-import { URL } from 'url'
 
 type IEcdsaCurves = {
   [key: string]: elliptic.ec;
@@ -23,7 +21,7 @@ for (const value in ECCurveType) {
 
 export interface WsWalletOpts {
   // url of the server the wallet will connect to
-  endpoint: string;
+  endpoint?: string;
   keyName?: string;
   curve?: ECCurveType;
   logLevel?: LogLevelDesc;
@@ -50,9 +48,8 @@ export class WsWallet {
   private readonly log: Logger;
   private readonly endpoint: string;
   private ecdsaCurves: IEcdsaCurves;
-  private keyName: string;
+  public keyName: string;
   private keyData: KeyData;
-  private wsIdentityBackend: WsIdentityClient
   private ws?: WebSocket;
 
   constructor (private readonly opts: WsWalletOpts) {
@@ -62,16 +59,8 @@ export class WsWallet {
       label: 'WsWallet',
       level: opts.logLevel || 'TRACE'
     })
-    Checks.nonBlankString(opts.endpoint, `${this.className}:opts.endpoint`)
     opts.keyName = opts.keyName || 'default'
     this.keyData = this.initKey({ keyName: opts.keyName, curve: opts.curve })
-    this.wsIdentityBackend = new WsIdentityClient({
-      apiVersion: 'v1',
-      endpoint: opts.endpoint,
-      rpDefaults: {
-        strictSSL: opts.strictSSL !== false
-      }
-    })
   }
 
   /**
@@ -107,33 +96,22 @@ export class WsWallet {
    * @description asynchronous request to get a new key and open new ws connection
    * @param args @type IClientNewKey
    */
-  public async getKey (args: IClientNewKey): Promise<void> {
+  public getKey (args: IClientNewKey) {
     this.keyData = this.initKey(args)
-    await this.open()
   }
 
   /**
    * @description Closes existing and open new websocket connection for client
    */
-  public async open (): Promise<WsOpenResp> {
+  public async open (sessionId: string, endpoint?: string): Promise<WsOpenResp> {
     const fnTag = `${this.className}#open`
+    this.opts.endpoint = endpoint || this.opts.endpoint
+    Checks.nonBlankString(this.opts.endpoint, `${fnTag}:this.opts.endpoint`)
     this.log.debug(`${fnTag} web-socket connection to ${this.opts.endpoint} for ${this.keyName}`)
     this.close()
     try {
       // get session id and mount path for websocket connection
       this.log.debug(`${fnTag} request session ID for ${this.getPubKeyHex().substring(0, 12)}...`)
-
-      const { sessionId, wsMount } = JSON.parse(
-        await this.wsIdentityBackend.write('session/new', { pubKeyHex: this.getPubKeyHex() }, {})
-      )
-      const uri = new URL(this.opts.endpoint)
-
-      if (uri.protocol === 'http:') {
-        uri.protocol = 'ws:'
-      } else {
-        uri.protocol = 'wss:'
-      }
-      uri.pathname = wsMount
 
       const sessionSignature = sign(
         Buffer.from(sessionId, 'hex'),
@@ -142,7 +120,6 @@ export class WsWallet {
       ).toString('hex')
 
       const wsOpts = {
-        origin: this.opts.endpoint,
         rejectUnauthorized: this.opts.strictSSL !== false,
         headers: {
           'x-signature': sessionSignature,
@@ -150,8 +127,8 @@ export class WsWallet {
           'x-pub-key-pem': JSON.stringify(this.keyData.pubKey)
         }
       }
-      this.log.debug(`${fnTag} create web-socket client to ${uri.href}`)
-      this.ws = new WebSocket(uri.href, wsOpts)
+      this.log.debug(`${fnTag} create web-socket client to ${this.opts.endpoint}`)
+      this.ws = new WebSocket(this.opts.endpoint, wsOpts)
 
       const { opts, keyName, ws, log, keyData } = this
       this.ws.onopen = function () {

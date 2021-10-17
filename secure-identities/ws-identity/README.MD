@@ -13,7 +13,7 @@ ws-identity server configuration:
 ```typescipt
 export interface IWebSocketConfig {
   endpoint: string; // ws-identity server endpoint, e.g., http://[ip]:[port]
-  pathPrefix: string; // a particular path to call on the server path
+  pathPrefix: string; // a particular path for web-socket connections to the server
 }
 ```
 pathPrefix: 
