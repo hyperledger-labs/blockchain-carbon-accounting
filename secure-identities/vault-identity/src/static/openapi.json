@@ -1,0 +1,303 @@
+{
+    "openapi" : "3.0.0",
+    "info": {
+        "title": "Vault Identity Management",
+        "description": "Server connecting to vault server to allow client to manage their identity,keys,secrets",
+        "version": "1.0.0"
+    },
+
+    "servers": [
+        {
+            "url": "http://localhost:9090/v1/api"     
+        }
+    ],
+    "tags": [
+        {
+            "name" : "Identity",
+            "description": "Manage Client's Identity"
+        },
+        {
+            "name" : "Token",
+            "description": "Vault token operations"
+        },
+        {
+            "name": "Key",
+            "description": "Vault transit key management"
+        }
+    ],
+    "security": [
+        {
+            "tokenAuth" : []
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "tokenAuth" : {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "error" : {
+                "type": "object",
+                "properties": {
+                    "msg" : {
+                        "type": "string"
+                    },
+                    "code" : {
+                        "type": "number"
+                    }
+                }
+            },
+            "identityCredentials" :{
+                "type": "object",
+                "required": ["username","password"],
+                "properties": {
+                    "username" : {
+                        "type": "string"
+                    },
+                    "password" : {
+                        "type": "string"
+                    }
+                }
+            },
+            "tokenDetails" : {
+                "type": "object",
+                "required": ["username","issue_time","expire_time"],
+                "properties": {
+                    "username"  :{
+                      "type": "string",
+                      "example": "client1"
+                    },
+                    "issue_time" : {
+                        "type": "string",
+                        "example": "2021-09-11T08:58:20.320828453Z"
+                    },
+                    "expire_time" : {
+                        "type": "string",
+                        "example" : "2021-10-13T08:58:20.320806078Z"
+                    }
+                }
+            },
+            "keyDetails" : {
+                "type": "object",
+                "properties": {
+                    "version" : {
+                        "type": "number",
+                        "example": 1
+                    },
+                    "ktyp" :{
+                        "type": "string",
+                        "example": "P-256"
+                    },
+                    "pub_key" : {
+                        "type": "string",
+                        "example" : "-----BEGIN PUBLIC KEY-----////-----END PUBLIC KEY-----\n"
+                    },
+                    "creation_time" : {
+                        "type": "string",
+                        "example" : "2021-10-17T18:26:16.691331759Z"
+                    }
+                }
+            }
+        }
+    },
+
+    "paths": {
+        "/identity" : {
+            "post" : {
+                "tags": ["Identity"],
+                "description": "Creates a new client/manager Identity",
+                "summary": "Creates a new client/manager Identity",
+                "requestBody" : {
+                    "content": {
+                        "application/json" : {
+                            "schema" : {
+                                "type": "object",
+                                "required": ["username","identity_type"],
+                                "properties": {
+                                    "username" : {
+                                        "type": "string",
+                                        "example" : "client1"
+                                    },
+                                    "identity_type" : {
+                                        "type": "string",
+                                        "default": "CLIENT",
+                                        "enum": [
+                                            "MANAGER",
+                                            "CLIENT"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201" : {
+                        "description": "Identity Created",
+                        "content": {
+                            "application/json" : {
+                                "schema":{
+                                    "$ref" : "#/components/schemas/identityCredentials"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch" : {
+                "tags": ["Identity"],
+                "summary": "Update Identity Password",
+                "description": "Update Identity Password",
+                "parameters": [
+                    {
+                        "name": "new_password",
+                        "required": true,
+                        "in": "header",
+                        "schema":{
+                            "type": "string",
+                            "default": "pw"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204" : {
+                        "description": "Identity Password Updated"
+                    }
+                }
+            }
+        },
+        "/token" : {
+            "post" : {
+                "tags": ["Token"],
+                "description": "Generate new Token using vault credentials",
+                "summary": "Generate new Token using vault credentials",
+                "security": [],
+                "parameters": [
+                    {
+                        "name": "username",
+                        "required": true,
+                        "in": "header",
+                        "schema":{
+                            "type": "string",
+                            "example" : "client1"
+                        }
+                    },
+                    {
+                        "name": "password",
+                        "required": true,
+                        "in": "header",
+                        "schema" : {
+                            "type": "string",
+                            "example": "pw"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200" : {
+                        "description": "Vault Token",
+                        "content": {
+                            "application/json" : {
+                                "schema" : {
+                                    "type": "object",
+                                    "required": ["token"],
+                                    "properties": {
+                                        "token" : {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch" : {
+                "tags": ["Token"],
+                "description": "Extend TTL of Token",
+                "summary": "Extend TTL of Token",
+                "responses": {
+                    "200" : {
+                        "description": "Token Renewed"
+                    }
+                }
+            },
+            "get" : {
+                "tags": ["Token"],
+                "description": "Get Token Details",
+                "summary": "Get Token Details",
+                "responses": {
+                    "200" : {
+                        "description": "Token Details",
+                        "content": {
+                            "application/json" : {
+                                "schema":{
+                                "$ref" : "#/components/schemas/tokenDetails"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete" : {
+                "tags": ["Token"],
+                "description": "Revoke used token",
+                "summary": "Revoke used token",
+                "responses": {
+                    "204" : {
+                        "description": "Token Revoked"
+                    }
+                }
+            }
+        },
+        "/key":{
+            "post" : {
+                "description": "Create a Transit Key",
+                "summary" : "Create a Transit Key",
+                "tags": ["Key"],
+                "parameters": [
+                    {
+                        "name": "kty",
+                        "description": "Key Type",
+                        "in": "query",
+                        "required": true,
+                        "schema":{
+                            "type": "string",
+                            "enum": [
+                                "ecdsa-p256",
+                                "ecdsa-p384"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "201" : {
+                        "description": "EC Transit Key Created"
+                    }
+                }
+            },
+            "patch" : {
+                "description": "Rotate key to a new version",
+                "summary": "Rotate key to a new version",
+                "tags": ["Key"],
+                "responses": {
+                    "200" :{
+                        "description": "KEY ROTATED"
+                    }
+                }
+            },
+            "get" : {
+                "description": "Get Transit key details",
+                "summary": "Get Transit key details",
+                "tags": ["Key"],
+                "responses": {
+                    "200" :{
+                        "description": "key details"
+                    }
+                }
+            }
+        }
+    }
+
+}
