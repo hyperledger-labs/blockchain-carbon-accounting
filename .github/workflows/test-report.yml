@@ -1,0 +1,17 @@
+name: "Test Report"
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dorny/test-reporter@v1
+        with:
+          artifact: test-results
+          name: Test Report
+          working-directory: ./utility-emissions-channel/typescript_app
+          path: "test-results.json"
+          reporter: mocha-json
