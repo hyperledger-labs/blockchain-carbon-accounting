@@ -98,3 +98,4 @@ utility-emissions-channel/chaincode/node/node_modules
 
 secure-identities/vault-identity/node_modules
 secure-identities/vault-identity/package-lock.json
+secure-identities/vault-identity/dist

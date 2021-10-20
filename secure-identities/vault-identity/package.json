@@ -4,6 +4,8 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
+    "build" : "tsc",
+    "start" : "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "vault": "docker run --rm --name vault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault:1.8.1",
     "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
