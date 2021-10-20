@@ -7,6 +7,7 @@ import {
     ITxDetails,
     IDataChaincodeInput,
     IUtilityemissionchannelEmissionData,
+    IUtilityemissionchannelEmissionMetadata,
 } from '../blockchain-gateway/I-gateway';
 import AWSS3 from '../datasource/awsS3';
 import Joi from 'joi';
@@ -31,7 +32,7 @@ interface IRecordAuditedEmissionsTokenResponse {
     fromDate: number;
     thruDate: number;
     automaticRetireDate: string;
-    metadata: any;
+    metadata: string;
     manifest: string;
     description: string;
 }
@@ -48,7 +49,7 @@ export default class UtilityEmissionsChannelService {
         const partyId: string = input.body.partyId;
         const fromDate: string = input.body.fromDate;
         const thruDate: string = input.body.thruDate;
-        const energyUseAmount: number = input.body.energyUseAmount as number;
+        const energyUseAmount: number = parseInt(input.body.energyUseAmount);
         const energyUseUom: string = input.body.energyUseUom;
 
         const fabricCaller: IFabricTxCaller = {
@@ -346,7 +347,7 @@ export default class UtilityEmissionsChannelService {
             throw error;
         }
     }
-    private async emissionsRecordChecksum(record: any) {
+    private async emissionsRecordChecksum(record: IUtilityemissionchannelEmissionData) {
         const fnTag = `${this.className}.EmissionsRecordChecksum`;
         if (record.url && record.url.length > 0) {
             const url = record.url;
@@ -374,8 +375,14 @@ export default class UtilityEmissionsChannelService {
         }
     }
 
-    private async tokenMetadata(records: IUtilityemissionchannelEmissionData[]): Promise<any> {
-        const metadata: any = {
+    private async tokenMetadata(records: IUtilityemissionchannelEmissionData[]): Promise<{
+        metadata: IUtilityemissionchannelEmissionMetadata;
+        manifest: string;
+        quantity: number;
+        fromDate: number;
+        thruDate: number;
+    }> {
+        const metadata: IUtilityemissionchannelEmissionMetadata = {
             org: this.opts.orgName,
             type: 'Utility Emissions',
             partyId: [],

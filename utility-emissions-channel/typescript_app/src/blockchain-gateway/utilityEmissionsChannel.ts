@@ -137,7 +137,9 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
                 params: [input.utilityId, input.partyId],
             });
             ledgerLogger.debug(`${fnTag} returned emissions record data : ${resp.functionOutput}`);
-            const json: any[] = JSON.parse(resp.functionOutput);
+            const json: Record<string, IUtilityemissionchannelEmissionData>[] = JSON.parse(
+                resp.functionOutput,
+            );
             const out: IUtilityemissionchannelEmissionData[] = [];
             for (const emission of json) {
                 out.push(this.__toEmissionRecord(emission.Record));
@@ -169,7 +171,9 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
                 params: [input.fromDate, input.thruDate],
             });
             ledgerLogger.debug(`${fnTag} returned emissions record data : ${resp.functionOutput}`);
-            const json: any[] = JSON.parse(resp.functionOutput);
+            const json: Record<string, IUtilityemissionchannelEmissionData>[] = JSON.parse(
+                resp.functionOutput,
+            );
             const out: IUtilityemissionchannelEmissionData[] = [];
             for (const emission of json) {
                 out.push(this.__toEmissionRecord(emission.Record));
@@ -183,7 +187,9 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
         }
     }
 
-    private __toEmissionRecord(json: any): IUtilityemissionchannelEmissionData {
+    private __toEmissionRecord(
+        json: IUtilityemissionchannelEmissionData,
+    ): IUtilityemissionchannelEmissionData {
         return {
             uuid: json.uuid,
             utilityId: json.utilityId,

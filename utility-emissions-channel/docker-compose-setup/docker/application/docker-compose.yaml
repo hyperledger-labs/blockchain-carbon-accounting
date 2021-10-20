@@ -1,10 +1,23 @@
 version: '2.1'
 
 volumes:
-  local-s3-volume:
+  locals3:
 
 services:
-    # TODO : run a locals3 sevrer inside docker
+    locals3:
+      container_name: locals3
+      image: localstack/localstack:0.12.18
+      ports:
+        - 4566:4566
+        - 4571:4571
+      environment:
+        - SERVICES=s3
+        - DEBUG=DEBUG
+        - DATA_DIR=/tmp/localstack/data
+        - DOCKER_HOST=unix:///var/run/docker.sock
+      volumes:
+        - locals3:/tmp/localstack
+        - /var/run/docker.sock:/var/run/docker.sock
     vault:
         image: vault:latest
         container_name: vault
@@ -17,34 +30,40 @@ services:
         command: server -dev -dev-root-token-id tokenId
     api:
         container_name: api
-        image: zzocker20/utilityemissions-api:0.0.2
+        image: zzocker20/utilityemissions-api:0.0.3
         environment:
-            - LEDGER_ENV=dev
-            - LEDGER_EMISSION_NETWORK_CFG=/config/config.json
-            - LEDGER_KEYCHAINID=dev-keychain-1
-            # ethereum configs
+            # Ethereum configs
             - LEDGER_ETH_JSON_RPC_URL=http://localhost:8545
-            # LEDGER_ETH_NETWORK=ropsten || goerli
-            - LEDGER_ETH_NETWORK=ropsten
+            - LEDGER_ETH_NETWORK=hardhat # ropsten || goerli
             - LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS=0x610178dA211FEF7D417bC0e6FeD39F05609AD788
-            - LEDGER_EMISSION_TOKEN_PUBLIC_KEY=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266
-            - LEDGER_EMISSION_TOKEN_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+            - LEDGER_ETH_TX_SIGNER=kv
             
-            # aws s3 configs
-            - AWS_ACCESS_KEY_ID='secret-id'
-            - AWS_SECRET_ACCESS_KEY='secret-key'
-            - BUCKET_NAME=local-bucket
-            - DEV_S3_ADDRESS=http://locals3:4569
+            # S3 data storage
+            - DEV_S3_ADDRESS=http://locals3:4566
             - S3_LOCAL=true
- 
-            # vault configs
-            - VAULT_API_VERSION=v1
+            - BUCKET_NAME=local-bucket
+            # required if s3_local!=true
+            - AWS_ACCESS_KEY_ID=
+            - AWS_SECRET_ACCESS_KEY=
+            
+            # Vault config
             - VAULT_ENDPOINT=http://vault:8200
             - VAULT_TOKEN=tokenId
             - VAULT_KV_MOUNT_PATH=secret
+
+            # Application config
+            - APP_PORT=8080
+            - APP_LOG_LEVEL=DEBUG
+            - LEDGER_LOG_LEVEL=DEBUG
+
+            # HL Fabric configs
+            - LEDGER_FABRIC_AS_LOCALHOST=false
+            - LEDGER_FABRIC_CCP=/hlf-config/connection-profile.json
+            - LEDGER_FABRIC_ORG_CA=ca.auditor1.carbonAccounting.com
+            - LEDGER_FABRIC_ORG_MSP=auditor1
+            - LEDGER_FABRIC_TX_SIGNER_TYPE=vault
+            - LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT=transit
         ports: 
-            - 9000:9000
+            - 8080:8080
         volumes: 
-            - ./config.json:/config/config.json
-            - ../../organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json:/config/connection-auditor1.json
-            - ../../organizations/peerOrganizations/auditor2.carbonAccounting.com/connection-auditor2.json:/config/connection-auditor2.json
+            - ../../organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json:/hlf-config/connection-profile.json

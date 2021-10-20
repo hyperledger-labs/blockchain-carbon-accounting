@@ -131,7 +131,7 @@ export default class BCGatewayConfig {
         {
             Checks.nonBlankString(ccAddress, `${fnTag} LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS`);
         }
-        const networks: { [key: number]: any } = {};
+        const networks: { [key: number]: Record<string, string> } = {};
         networks[this.__getEthNetworkID(network)] = {
             address: ccAddress,
         };

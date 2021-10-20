@@ -61,7 +61,6 @@ utility-emissions-channel/typescript_app/coverage
 utility-emissions-channel/chaincode/packaging/code.tar.gz
 utility-emissions-channel/chaincode/packaging/marbles-chaincode.tgz
 utility-emissions-channel/chaincode/typescript/node_modules
-utility-emissions-channel/chaincode/typescript/package-lock.json
 utility-emissions-channel/chaincode/typescript/dist
 #  c. docker-compose-setup
 utility-emissions-channel/docker-compose-setup/channel-artifacts/*.tx
