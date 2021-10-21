@@ -95,3 +95,7 @@ utility-emissions-channel/docker-compose-setup/bin
 utility-emissions-channel/docker-compose-setup/bin_mac
 utility-emissions-channel/docker-compose-setup/config
 utility-emissions-channel/chaincode/node/node_modules
+
+secure-identities/vault-identity/node_modules
+secure-identities/vault-identity/package-lock.json
+secure-identities/vault-identity/dist

@@ -1,0 +1,38 @@
+{
+  "name": "vault-identity",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build" : "tsc",
+    "start" : "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "vault": "docker run --rm --name vault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault:1.8.1",
+    "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' 'test/**/*.ts' --fix",
+    "test:setup": "ts-node test/setup.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/express": "4.17.13",
+    "dotenv": "10.0.0",
+    "express": "4.17.1",
+    "node-vault": "0.9.22",
+    "swagger-ui-express": "4.1.4",
+    "winston": "3.3.3",
+    "express-validator": "6.6.1"
+  },
+  "devDependencies": {
+    "@types/node": "16.11.1",
+    "@types/swagger-ui-express": "4.1.2",
+    "@typescript-eslint/eslint-plugin": "4.31.1",
+    "eslint": "7.32.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "nodemon": "^2.0.13",
+    "ts-node": "10.3.0",
+    "typescript": "4.4.4"
+  }
+}
