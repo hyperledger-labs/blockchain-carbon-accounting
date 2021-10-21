@@ -10,6 +10,7 @@ import { v4 as uuid4 } from 'uuid';
 const v1Base = 'http://localhost:8080/api/v1/utilityemissionchannel';
 
 const apiEndpoints = {
+    newWsSessionId: '/identity/webSocket',
     registerClient: '/registerEnroll/register',
     enrollClient: '/registerEnroll/enroll',
     recordEmissions: '/emissionscontract/recordEmissions',
@@ -77,7 +78,7 @@ describe('E2E-vault', () => {
                 utilityId: mockUtilityID,
                 partyId: partyId,
                 fromDate: '2020-05-07T10:10:09Z',
-                thruDate: '2020-06-07T10:10:09Z',
+                thruDate: '2021-05-07T10:10:09Z',
                 energyUseAmount: 100,
                 energyUseUom: 'kWh',
             })
@@ -88,7 +89,7 @@ describe('E2E-vault', () => {
                     uuid = resp.uuid;
                     resp.utilityId.should.be.eq(mockUtilityID);
                     resp.fromDate.should.be.eq('2020-05-07T10:10:09Z');
-                    resp.thruDate.should.be.eq('2020-06-07T10:10:09Z');
+                    resp.thruDate.should.be.eq('2021-05-07T10:10:09Z');
                     done();
                 } catch (error) {
                     done();
@@ -121,18 +122,41 @@ describe('E2E-vault', () => {
             });
     });
 });
+
 describe('E2E-ws', async () => {
+    // External client with private key
     const wsWalletAdmin = new WsWallet({
-        endpoint: process.env.WS_IDENTITY_ENDPOINT,
         keyName: 'admin',
     });
-    const key = await wsWalletAdmin.open();
+    let key, url, sessionId;
+    it('should create a different web-socket session ID', (done) => {
+        chai.request(v1Base)
+            .post(apiEndpoints.newWsSessionId)
+            .set('content-type', 'application/x-www-form-urlencoded')
+            .set('pub_key_hex', wsWalletAdmin.getPubKeyHex())
+            .query({
+                userId: wsWalletAdmin.keyName,
+            })
+            .send({})
+            .end(async (error, response) => {
+                try {
+                    url = response.body.url;
+                    sessionId = response.body.sessionId;
+                    key = await wsWalletAdmin.open(sessionId, url);
+                    response.status.should.be.eq(201);
+                    done();
+                } catch (error) {
+                    done();
+                }
+            });
+    });
+
     it('should enroll a client', (done) => {
         chai.request(v1Base)
             .post(apiEndpoints.enrollClient)
             .set('content-type', 'application/x-www-form-urlencoded')
             .set('session_id', key.sessionId)
-            .set('signature ', key.signature)
+            .set('signature', key.signature)
             .send({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' })
             .end(async (error, response) => {
                 try {
@@ -150,7 +174,7 @@ describe('E2E-ws', async () => {
             .post(apiEndpoints.registerClient)
             .set('content-type', 'application/x-www-form-urlencoded')
             .set('session_id', key.sessionId)
-            .set('signature ', key.signature)
+            .set('signature', key.signature)
             .query({
                 userId: userId,
             })

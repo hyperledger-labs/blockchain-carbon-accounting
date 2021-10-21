@@ -20,8 +20,9 @@ if (yargs.argv.k) {
 } else if (yargs.argv._[0] === 'connect') {
   utils.getClient(
     yargs.argv._[1], 
-    {keyName: yargs.argv._[2]},
-    eval(yargs.argv._[3])
+    yargs.argv._[2], 
+    {keyName: yargs.argv._[3]},
+    eval(yargs.argv._[4])
   );
 } else {
   utils.showHelp();

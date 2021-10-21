@@ -9,6 +9,7 @@ RUN npm install
 COPY src /app/src
 COPY tsconfig.json /app/tsconfig.json
 COPY .eslintrc.json /app/.eslintrc.json
+COPY .env /app/.env
 COPY app.ts /app/app.ts
 
 RUN npm run build

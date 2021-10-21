@@ -1,6 +1,7 @@
 // fabricRegistry.ts : exposes endpoint for registering and enrolling fabric user
 import { Logger, LoggerProvider, LogLevelDesc } from '@hyperledger/cactus-common'
 import { Application, Router, Request, Response } from 'express'
+import { getClientIp } from '@supercharge/request-ip'
 import {
   WsIdentityServer,
   WsIdentityServerOpts
@@ -27,10 +28,19 @@ export class WsIdentityRouter {
       const auth = async (req: Request, res: Response, next) => {
         const sessionId = req.header('x-session-id')
         const signature = req.header('x-signature')
-        if (!signature && !sessionId) {
+
+        // if (!signature && !sessionId) {
+        if (!signature) {
           return res.sendStatus(403)
         }
-        (req as any).client = wsIdentityServer.getClient(sessionId, signature)
+        try {
+          const clientIp = getClientIp(req);
+          (req as any).client = wsIdentityServer.getClient(clientIp, sessionId, signature)
+        } catch (error) {
+          return res.status(409).json({
+            msg: error.message
+          })
+        }
         next()
       }
 
@@ -43,13 +53,12 @@ export class WsIdentityRouter {
 
       const wsSessionRouter =
         new WsSessionRouter({
-          logLevel: opts.logLevel,
-          wsIdentityServer: wsIdentityServer
+          wsIdentityServer,
+          logLevel: opts.logLevel
         })
 
       const wsClientRouter =
         new WsClientRouter({
-          wsIdentityServer: wsIdentityServer,
           logLevel: opts.logLevel
         })
 

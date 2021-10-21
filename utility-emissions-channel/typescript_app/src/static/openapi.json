@@ -17,6 +17,10 @@
     {
       "name": "registerEnroll",
       "description": "Functions to register an org admin as well as multiple users"
+    },
+    {
+      "name": "identity",
+      "description": "Functions to setup authentication for available identity types"
     }
   ],
   "paths": {
@@ -414,6 +418,43 @@
           }
         }
       }
+    },
+    "/identity/webSocket": {
+      "post": {
+        "tags": ["identity"],
+        "summary": "Setup WS-X.509 identity authentication",
+        "description": "Provide user with URL and session ID to open connection with ws-identity server. The respone shoul dbe passed to the client's device, open the ws connection and ouput the fial session ID and signature pair used to authorize the app to access the clients key.",
+        "operationId": "idWebSocket",
+        "parameters": [
+          {
+            "$ref" : "#/components/parameters/userId"
+          },
+          {
+            "$ref" : "#/components/parameters/pubKeyHex"
+          }
+        ], 
+        "responses": {
+          "201": {
+            "description": "Success. User session id generated",
+            "content": {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WsX509SessionRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error"
+          },
+          "409": {
+            "description": "Conflict with data content"
+          },
+          "412": {
+            "description": "Invalid input parameters"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -559,7 +600,7 @@
           "affiliation": {
             "type": "string",
             "example" : "auditor1.department1"
-           }
+          }
         }
       },
       "RegisterClientRes" : {
@@ -571,6 +612,19 @@
           },
           "enrollmentSecret" : {
             "type": "string"
+          }
+        }
+      },
+      "WsX509SessionRes" : {
+        "type": "object",
+        "properties": {
+          "sessionId" : {
+            "type": "string",
+            "example" : "random session ID hex"
+          },
+          "url" : {
+            "type": "string",
+            "example": "ws://localhost:8700/sessions"
           }
         }
       }
@@ -596,9 +650,19 @@
           "example": "admin"
         }
       },
+      "pubKeyHex" : {
+        "name": "pub_key_hex",
+        "in": "header",
+        "required": false,
+        "description": "public key of clients userId required when requesting a session ticket on the secure web-socket identity server",
+        "schema" : {
+          "type": "string",
+          "example" : "[hex address]"
+        }
+      },
       "sessionId" : {
         "name": "session_id",
-        "description": "session id required to access client keys in exteral ws-wallet using ws-identity server",
+        "description": "session id of web-socket ticket that can only be use by the app to communicate with the cilent's external key file",
         "in": "header",
         "required": false,
         "schema" : {
@@ -608,14 +672,14 @@
       },
       "signature" : {
         "name": "signature",
-        "description": "signature of session id required to access client keys in exteral ws-wallet using ws-identity server",
+        "description": "signature of session id required to access client keys over the ws-identity server",
         "in": "header",
         "required": false,
         "schema" : {
           "type": "string",
           "example" : ""
         }
-      },
+      }
     }
   }
 }

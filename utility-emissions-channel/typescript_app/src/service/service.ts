@@ -7,10 +7,10 @@ import UtilityEmissionsChannelServiceOptions from './utilityEmissionsChannel';
 import UtilityemissionchannelGateway from '../blockchain-gateway/utilityEmissionsChannel';
 import AWSS3 from '../datasource/awsS3';
 import { DataLockGateway } from '../blockchain-gateway/datalock';
-
+import { PluginLedgerConnectorFabric } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 export let fabricRegistryService: FabricRegistryService;
 export let utilityEmissionsChannelService: UtilityEmissionsChannelServiceOptions;
-
+export let fabricConnector: PluginLedgerConnectorFabric;
 export async function setup(): Promise<void> {
     const bcConfig = new BCGatewayConfig();
 
@@ -22,6 +22,7 @@ export async function setup(): Promise<void> {
     );
 
     const orgFabric = bcConfig.fabricConnector();
+    fabricConnector = orgFabric.connector;
     const ethConnector = await bcConfig.ethConnector();
 
     const fabricRegistryGateway = new FabricRegistryGateway({

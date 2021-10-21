@@ -7,7 +7,7 @@ import Docker, { Container } from "dockerode";
 import { randomBytes } from "crypto";
 import { WsIdentityClient } from '../src/index';
 import { WsWallet } from "ws-wallet";
-import { WsIdentityRouter } from "ws-identity";
+//import { WsIdentityRouter } from "ws-identity";
 import http from "http";
 //import express, { Application } from "express";
 
@@ -27,27 +27,29 @@ chai.use(asPromised);
     }); 
     return new Promise((resolve) => {
       server.listen(port, () => {
-        console.log(server.address())
         resolve(app);
       });
     });
 }*/
-
+const logLevel = 'DEBUG'
 describe('test', async () => {
     let app,wsWallet;
-    const port = '8300';
+    const port = '8700';
+    const endpoint = `http://localhost:${port}`
+    let pubKeyHex: string;
     before(async () => {
         //app = await startApp(port)
 
         // For this test to work first start WsIdentityServer
-        // a prebuilt docker image is available at brioux/ws-identity:0.0.4
+        // a prebuilt docker image is available at ghcr.io/brioux/ws-identity
         // TODO run the container within the test...
+        
         wsWallet = new WsWallet({
-            endpoint: `https://[::]:${port}`,
             keyName: "admin",
             strictSSL: false,
-            logLevel: "debug"
+            logLevel,
         })
+        pubKeyHex = wsWallet.getPubKeyHex();
     });
     after(async () => {
         //app.close();
@@ -55,22 +57,35 @@ describe('test', async () => {
     });
  
     let signature;
-    let sessionId: string;
-    let pubKeyHex: string;
+    let sessionId;
+
+    let wsIdClient;
     it('create new session id for pubKeyHex', async () => {
-        pubKeyHex = wsWallet.getPubKeyHex();
-        const resp = await wsWallet.open();
+        wsIdClient = new WsIdentityClient({
+            apiVersion: 'v1',
+            endpoint,
+            rpDefaults: {
+                strictSSL: false
+            },
+        }) 
+        const newSidResp = JSON.parse(
+            await wsIdClient.write('session/new', { 
+                pubKeyHex,
+                keyName: wsWallet.keyName,
+            }, {})
+        )
+        sessionId = newSidResp.sessionId;
+        const resp = await wsWallet.open(sessionId,newSidResp.url);
         signature = resp.signature;
         sessionId = resp.sessionId;
         resp.signature.should.be.string;
         resp.sessionId.should.be.string;
     })
-    let wsIdClient;
+
     let digest
     it('should sign digests', async () =>  {
-
         wsIdClient = new WsIdentityClient({
-            endpoint: 'https://localhost:8300',
+            endpoint,
             pathPrefix: '/identity',
             rpDefaults: {
                 strictSSL: false
