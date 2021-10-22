@@ -14,7 +14,7 @@ import { randomBytes } from 'crypto';
 import { WsIdentityClient } from 'ws-identity-client';
 chai.use(asPromise);
 
-setup('DEBUG', 'DEBUG');
+setup('ERROR', 'ERROR');
 
 config();
 
@@ -103,18 +103,19 @@ describe('fabric-registry', () => {
             }
         });
     });
-    // External client with private key
-    const wsWalletAdmin = new WsWallet({
-        keyName: 'admin',
-    });
-    const wsIdClient = new WsIdentityClient({
-        apiVersion: 'v1',
-        endpoint: process.env.WS_IDENTITY_ENDPOINT,
-        rpDefaults: {
-            strictSSL: false,
-        },
-    });
-    describe('web-socket', async () => {
+
+    describe('web-socket', () => {
+        // External client with private key
+        const wsWalletAdmin = new WsWallet({
+            keyName: 'admin',
+        });
+        const wsIdClient = new WsIdentityClient({
+            apiVersion: 'v1',
+            endpoint: process.env.WS_IDENTITY_ENDPOINT,
+            rpDefaults: {
+                strictSSL: false,
+            },
+        });
         const signer = new Signer('web-socket', certstore.getKeychainId(), 'plain');
         const fabricRegistry = new FabricRegistryGateway({
             fabricConnector: fabricConnector.connector,
@@ -122,19 +123,20 @@ describe('fabric-registry', () => {
             caId: fabricConnector.caID,
             orgMSP: fabricConnector.orgMSP,
         });
-
-        const { sessionId, url } = JSON.parse(
-            await wsIdClient.write(
-                'session/new',
-                {
-                    pubKeyHex: wsWalletAdmin.getPubKeyHex(),
-                    keyName: wsWalletAdmin.keyName,
-                },
-                {},
-            ),
-        );
-        const key = await wsWalletAdmin.open(sessionId, url);
-        console.log(key);
+        let key;
+        before(async () => {
+            const { sessionId, url } = JSON.parse(
+                await wsIdClient.write(
+                    'session/new',
+                    {
+                        pubKeyHex: wsWalletAdmin.getPubKeyHex(),
+                        keyName: wsWalletAdmin.keyName,
+                    },
+                    {},
+                ),
+            );
+            key = await wsWalletAdmin.open(sessionId, url);
+        });
 
         it('should enroll admin', async () => {
             await fabricRegistry.enroll(
