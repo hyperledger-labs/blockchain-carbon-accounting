@@ -13,7 +13,8 @@
     "localS3": "serverless s3 start --address 0.0.0.0",
     "prod": "yarn build && yarn start",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
-    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix"
+    "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix",
+    "prepare": "cd .. && cd .. && husky install"
   },
   "keywords": [],
   "author": "",
@@ -58,6 +59,7 @@
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.4",
     "mocha": "^9.0.0",
     "nyc": "^15.1.0",
     "ts-node": "^10.0.0",
