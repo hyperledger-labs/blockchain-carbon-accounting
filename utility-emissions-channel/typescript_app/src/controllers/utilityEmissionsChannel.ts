@@ -9,8 +9,8 @@ export async function recordEmission(req: Request, res: Response): Promise<void>
         }
         const record = await utilityEmissionsChannelService.recordEmission({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string>,
+            query: req.query as Record<string, string>,
             file: file,
         });
         res.status(201).json(record);
@@ -25,8 +25,8 @@ export async function getEmissionsData(req: Request, res: Response): Promise<voi
     try {
         const record = await utilityEmissionsChannelService.getEmissionsData({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string>,
+            query: req.query as Record<string, string>,
             params: req.params,
         });
         res.status(200).json(record);
@@ -41,8 +41,8 @@ export async function getAllEmissionsData(req: Request, res: Response): Promise<
     try {
         const record = await utilityEmissionsChannelService.getAllEmissionsData({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string>,
+            query: req.query as Record<string, string>,
             params: req.params,
         });
         res.status(200).json(record);
@@ -57,8 +57,8 @@ export async function getAllEmissionsDataByDateRange(req: Request, res: Response
     try {
         const record = await utilityEmissionsChannelService.getAllEmissionsDataByDateRange({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string>,
+            query: req.query as Record<string, string>,
             params: req.params,
         });
         res.status(200).json(record);
@@ -73,8 +73,8 @@ export async function recordAuditedEmissionsToken(req: Request, res: Response): 
     try {
         const record = await utilityEmissionsChannelService.recordAuditedEmissionsToken({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string>,
+            query: req.query as Record<string, string>,
             params: req.params,
         });
         res.status(200).json(record);
