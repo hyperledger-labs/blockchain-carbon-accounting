@@ -277,7 +277,10 @@ export default class UtilityEmissionsChannelService {
         };
         const uuid = input.params.uuid;
         try {
-            const record = this.opts.utilityEmissionsGateway.getEmissionData(fabricCaller, uuid);
+            const record = await this.opts.utilityEmissionsGateway.getEmissionData(
+                fabricCaller,
+                uuid,
+            );
             await this.emissionsRecordChecksum(record);
             return record;
         } catch (error) {
