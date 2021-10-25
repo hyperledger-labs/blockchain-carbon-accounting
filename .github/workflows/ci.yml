@@ -1,9 +1,9 @@
-name: Lint, build and tests
+name: "CI"
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   lint-typescript-app:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '12.15.0'
+          node-version: "12.15.0"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '12.15.0'
+          node-version: "12.15.0"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -49,7 +49,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '12.15.0'
+          node-version: "12.15.0"
       - name: Download Fabric binaries
         run: |
           sudo chmod +x /usr/local/bin/docker-compose
@@ -75,4 +75,9 @@ jobs:
           sleep 240
           cd typescript_app/
           npm run test:setup
-          npm run test
+          npm run test:ci
+      - uses: actions/upload-artifact@v2
+        if: success() || failure()
+        with:
+          name: test-results
+          path: utility-emissions-channel/typescript_app/test-results.json
