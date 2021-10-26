@@ -44,14 +44,13 @@ describe('Signer', () => {
         try {
             s.fabric({
                 userId: 'admin',
-                wsSidSig,
             });
             true.should.be.false;
         } catch (error) {
             (error as ClientError).message.should.be.eq(
                 `Signer.fabric() missing ${hlfSupport
                     .split(' ')
-                    .join('or')} API keys to sign fabric transactions`,
+                    .join(' or ')} API keys to sign fabric transactions`,
             );
             (error as ClientError).status.should.be.eq(400);
         }
@@ -73,22 +72,43 @@ describe('Signer', () => {
         signer.vaultTransitKey.token.should.eq(token);
     });
 
-    const wsSessionId = randomBytes(8).toString('hex');
-    const wsSidSig = randomBytes(256).toString('hex');
+    const sessionId = randomBytes(8).toString('hex');
+    const signature = randomBytes(256).toString('hex');
     it('should return fabric signer type = web-socket', () => {
         const userId = 'admin';
         const s = new Signer('web-socket', 'certstore', 'plain');
         const signer = s.fabric({
             userId: userId,
-            wsSessionId,
-            wsSidSig,
+            webSocketKey: {
+                sessionId,
+                signature,
+            },
         });
         signer.keychainId.should.eq('certstore');
         signer.keychainRef.should.eq(userId);
         signer.type.should.eq(FabricSigningCredentialType.WsX509);
         signer.webSocketKey.should.not.be.undefined;
-        signer.webSocketKey.sessionId.should.eq(wsSessionId);
-        signer.webSocketKey.signature.should.eq(wsSidSig);
+        signer.webSocketKey.sessionId.should.eq(sessionId);
+        signer.webSocketKey.signature.should.eq(signature);
+    });
+
+    it('throws if ws session id is not provided', () => {
+        const s = new Signer('web-socket', 'certstore', 'plain');
+        try {
+            s.fabric({
+                userId: 'admin',
+                webSocketKey: {
+                    sessionId: '',
+                    signature,
+                },
+            });
+            true.should.be.false;
+        } catch (error) {
+            (error as ClientError).message.should.be.eq(
+                'Signer.fabric() require web-socket session ID to sign fabric transactions with ws-wallet',
+            );
+            (error as ClientError).status.should.be.eq(400);
+        }
     });
 
     it('throws if ws session id signature is not provided', () => {
@@ -96,7 +116,10 @@ describe('Signer', () => {
         try {
             s.fabric({
                 userId: 'admin',
-                wsSessionId,
+                webSocketKey: {
+                    sessionId,
+                    signature: '',
+                },
             });
             true.should.be.false;
         } catch (error) {

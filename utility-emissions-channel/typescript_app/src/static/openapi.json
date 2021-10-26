@@ -38,10 +38,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           }
         ],
         "requestBody": {
@@ -90,10 +87,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           },
           {
             "name": "eth_address",
@@ -170,10 +164,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           }
         ],
         "responses": {
@@ -233,10 +224,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           }
         ],
         "responses": {
@@ -296,10 +284,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           }
         ],
         "responses": {
@@ -336,10 +321,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           }
         ],
         "requestBody" : {
@@ -381,10 +363,7 @@
             "$ref" : "#/components/parameters/vaultToken"
           },
           {
-            "$ref" : "#/components/parameters/sessionId"
-          },
-          {
-            "$ref" : "#/components/parameters/signature"
+            "$ref" : "#/components/parameters/webSocketKey"
           }
         ],
         "requestBody" : {
@@ -660,24 +639,26 @@
           "example" : "[hex address]"
         }
       },
-      "sessionId" : {
-        "name": "session_id",
+      "webSocketKey" : {
+        "name": "web_socket_key",
         "description": "session id of web-socket ticket that can only be use by the app to communicate with the cilent's external key file",
         "in": "header",
         "required": false,
-        "schema" : {
-          "type": "string",
-          "example" : ""
-        }
-      },
-      "signature" : {
-        "name": "signature",
-        "description": "signature of session id required to access client keys over the ws-identity server",
-        "in": "header",
-        "required": false,
-        "schema" : {
-          "type": "string",
-          "example" : ""
+        "type": "object",
+        "example": "{sessionId:[string],signature:[string]}",
+        "schema":{
+          "properties": {
+            "sessionId": {
+              "type": "string",
+              "example" : ""
+            },
+            "signature": {
+             "description": "signature of session id required to access client keys over the ws-identity server",
+              "type": "string",
+              "example" : ""
+            }
+          },
+          "required": [ "sessionId","signature" ]
         }
       }
     }

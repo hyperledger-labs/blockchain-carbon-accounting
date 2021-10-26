@@ -1,7 +1,7 @@
 import { Input } from './input';
 import Joi from 'joi';
 import ClientError from '../errors/clientError';
-import { IFabricRegistryGateway } from '../blockchain-gateway/I-gateway';
+import { IFabricRegistryGateway, IWebSocketKey } from '../blockchain-gateway/I-gateway';
 import { appLogger, ledgerLogger } from '../utils/logger';
 
 interface registerOutput {
@@ -15,14 +15,12 @@ export default class FabricRegistryService {
 
     async register(input: Input): Promise<registerOutput> {
         this.__validateRegister(input);
-        console.log(input.query.userId);
         try {
             const cred = await this.gateway.register(
                 {
                     userId: input.query.userId,
-                    vaultToken: input.header.vault_token,
-                    wsSessionId: input.header.session_id,
-                    wsSidSig: input.header.signature,
+                    vaultToken: input.header.vault_token as string,
+                    webSocketKey: input.header.web_socket_key as IWebSocketKey,
                 },
                 {
                     enrollmentID: input.body.enrollmentID,
@@ -44,9 +42,8 @@ export default class FabricRegistryService {
             await this.gateway.enroll(
                 {
                     userId: input.body.enrollmentID,
-                    vaultToken: input.header.vault_token,
-                    wsSessionId: input.header.session_id,
-                    wsSidSig: input.header.signature,
+                    vaultToken: input.header.vault_token as string,
+                    webSocketKey: input.header.web_socket_key as IWebSocketKey,
                 },
                 input.body.enrollmentSecret,
             );
