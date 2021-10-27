@@ -7,8 +7,12 @@ export interface IFabricTxCaller {
     vaultToken?: string;
     // require if server is using web-socket
     // key session id its siganture to access ws-wallet signer
-    wsSessionId?: string;
-    wsSidSig?: string;
+    webSocketKey?: IWebSocketKey;
+}
+
+export interface IWebSocketKey {
+    sessionId: string;
+    signature: string;
 }
 
 // ##############################################################

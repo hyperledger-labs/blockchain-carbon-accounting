@@ -6,6 +6,7 @@ import { WsWallet } from 'ws-wallet';
 chai.use(chaiHTTP);
 
 import { v4 as uuid4 } from 'uuid';
+import { setupWebSocket } from './setup-ws';
 
 const v1Base = 'http://localhost:8080/api/v1/utilityemissionchannel';
 
@@ -28,11 +29,56 @@ const userId = 'admin';
 const mockUtilityID = 'USA_EIA_252522444142552441242521';
 
 describe('E2E-vault', () => {
+    tests('vault_token', adminVaultToken);
+});
+
+describe('E2E-ws', async () => {
+    // External client with private key
+    const wsWalletAdmin = new WsWallet({
+        keyName: uuid4(),
+    });
+
+    tests('web_socket_key', null);
+
+    it('should create a web-socket session ID', (done) => {
+        chai.request(v1Base)
+            .post(apiEndpoints.newWsSessionId)
+            .set('content-type', 'application/x-www-form-urlencoded')
+            .set('pub_key_hex', wsWalletAdmin.getPubKeyHex())
+            .query({
+                userId: wsWalletAdmin.keyName,
+            })
+            .send({})
+            .end(async (error, response) => {
+                try {
+                    console.log(response);
+                    const url = response.body.url;
+                    const sessionId = response.body.sessionId;
+                    const webSocketKey = await wsWalletAdmin.open(sessionId, url);
+                    response.body?.sessionId?.should.be.eq(webSocketKey.sessionId);
+                    response.status.should.be.eq(201);
+                    done();
+                } catch (error) {
+                    done();
+                }
+            });
+    });
+});
+
+function tests(headerKey, headerValue) {
+    if (headerKey === 'web_socket_key') {
+        let webSocketKey;
+        before(async () => {
+            webSocketKey = await setupWebSocket('admin');
+            headerValue = JSON.stringify(webSocketKey);
+        });
+    }
+
     it('should enroll a client', (done) => {
         chai.request(v1Base)
             .post(apiEndpoints.enrollClient)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .set('vault_token', adminVaultToken)
+            .set(headerKey, headerValue)
             .send({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' })
             .end(async (error, response) => {
                 try {
@@ -49,7 +95,7 @@ describe('E2E-vault', () => {
         chai.request(v1Base)
             .post(apiEndpoints.registerClient)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .set('vault_token', adminVaultToken)
+            .set(headerKey, headerValue)
             .query({
                 userId: userId,
             })
@@ -63,14 +109,13 @@ describe('E2E-vault', () => {
                 }
             });
     });
-
     const partyId = uuid4();
     let uuid: string;
     it('should record a emissions', (done) => {
         chai.request(v1Base)
             .post(apiEndpoints.recordEmissions)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .set('vault_token', adminVaultToken)
+            .set(headerKey, headerValue)
             .query({
                 userId: userId,
             })
@@ -96,12 +141,11 @@ describe('E2E-vault', () => {
                 }
             });
     });
-
     it('should record audited emission token', (done) => {
         chai.request(v1Base)
             .post(apiEndpoints.recordAuditedEmissionToken)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .set('vault_token', adminVaultToken)
+            .set(headerKey, headerValue)
             .set('eth_address', '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266')
             .query({
                 userId: userId,
@@ -121,71 +165,4 @@ describe('E2E-vault', () => {
                 }
             });
     });
-});
-
-describe('E2E-ws', async () => {
-    // External client with private key
-    const wsWalletAdmin = new WsWallet({
-        keyName: 'admin',
-    });
-    let key, url, sessionId;
-    it('should create a different web-socket session ID', (done) => {
-        chai.request(v1Base)
-            .post(apiEndpoints.newWsSessionId)
-            .set('content-type', 'application/x-www-form-urlencoded')
-            .set('pub_key_hex', wsWalletAdmin.getPubKeyHex())
-            .query({
-                userId: wsWalletAdmin.keyName,
-            })
-            .send({})
-            .end(async (error, response) => {
-                try {
-                    url = response.body.url;
-                    sessionId = response.body.sessionId;
-                    key = await wsWalletAdmin.open(sessionId, url);
-                    response.status.should.be.eq(201);
-                    done();
-                } catch (error) {
-                    done();
-                }
-            });
-    });
-
-    it('should enroll a client', (done) => {
-        chai.request(v1Base)
-            .post(apiEndpoints.enrollClient)
-            .set('content-type', 'application/x-www-form-urlencoded')
-            .set('session_id', key.sessionId)
-            .set('signature', key.signature)
-            .send({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' })
-            .end(async (error, response) => {
-                try {
-                    response.status.should.be.eq(201);
-                    done();
-                } catch (error) {
-                    done();
-                }
-            });
-    });
-    const clientID = uuid4();
-
-    it('should register a client', (done) => {
-        chai.request(v1Base)
-            .post(apiEndpoints.registerClient)
-            .set('content-type', 'application/x-www-form-urlencoded')
-            .set('session_id', key.sessionId)
-            .set('signature', key.signature)
-            .query({
-                userId: userId,
-            })
-            .send({ enrollmentID: clientID, affiliation: 'auditor1.department1' })
-            .end(async (error, response) => {
-                try {
-                    response.status.should.be.eq(201);
-                    done();
-                } catch (error) {
-                    done();
-                }
-            });
-    });
-});
+}

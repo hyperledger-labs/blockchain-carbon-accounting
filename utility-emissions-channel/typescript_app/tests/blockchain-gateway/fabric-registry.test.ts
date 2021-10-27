@@ -9,9 +9,9 @@ import chai from 'chai';
 const should = chai.should();
 import asPromise from 'chai-as-promised';
 import ClientError from '../../src/errors/clientError';
-import { WsWallet } from 'ws-wallet';
 import { randomBytes } from 'crypto';
-import { WsIdentityClient } from 'ws-identity-client';
+import { setupWebSocket } from '../setup-ws';
+
 chai.use(asPromise);
 
 setup('ERROR', 'ERROR');
@@ -105,17 +105,6 @@ describe('fabric-registry', () => {
     });
 
     describe('web-socket', () => {
-        // External client with private key
-        const wsWalletAdmin = new WsWallet({
-            keyName: 'admin',
-        });
-        const wsIdClient = new WsIdentityClient({
-            apiVersion: 'v1',
-            endpoint: process.env.WS_IDENTITY_ENDPOINT,
-            rpDefaults: {
-                strictSSL: false,
-            },
-        });
         const signer = new Signer('web-socket', certstore.getKeychainId(), 'plain');
         const fabricRegistry = new FabricRegistryGateway({
             fabricConnector: fabricConnector.connector,
@@ -123,27 +112,13 @@ describe('fabric-registry', () => {
             caId: fabricConnector.caID,
             orgMSP: fabricConnector.orgMSP,
         });
-        let key;
-        before(async () => {
-            const { sessionId, url } = JSON.parse(
-                await wsIdClient.write(
-                    'session/new',
-                    {
-                        pubKeyHex: wsWalletAdmin.getPubKeyHex(),
-                        keyName: wsWalletAdmin.keyName,
-                    },
-                    {},
-                ),
-            );
-            key = await wsWalletAdmin.open(sessionId, url);
-        });
-
+        let webSocketKey;
         it('should enroll admin', async () => {
+            webSocketKey = await setupWebSocket('admin');
             await fabricRegistry.enroll(
                 {
                     userId: 'admin',
-                    wsSessionId: key.sessionId,
-                    wsSidSig: key.signature,
+                    webSocketKey,
                 },
                 'adminpw',
             );
@@ -156,8 +131,7 @@ describe('fabric-registry', () => {
                 .enroll(
                     {
                         userId: 'admin',
-                        wsSessionId: key.sessionId,
-                        wsSidSig: key.signature,
+                        webSocketKey,
                     },
                     'wrong-secret',
                 )
@@ -169,8 +143,10 @@ describe('fabric-registry', () => {
                 await fabricRegistry.enroll(
                     {
                         userId: 'admin',
-                        wsSessionId: key.sessionId,
-                        wsSidSig: randomBytes(256).toString('hex'),
+                        webSocketKey: {
+                            sessionId: webSocketKey.sessionId,
+                            signature: randomBytes(256).toString('hex'),
+                        },
                     },
                     'adminpw',
                 );
@@ -184,8 +160,10 @@ describe('fabric-registry', () => {
                 await fabricRegistry.enroll(
                     {
                         userId: 'admin',
-                        wsSessionId: randomBytes(8).toString('hex'),
-                        wsSidSig: key.signature,
+                        webSocketKey: {
+                            sessionId: randomBytes(8).toString('hex'),
+                            signature: webSocketKey.signature,
+                        },
                     },
                     'adminpw',
                 );
@@ -199,8 +177,7 @@ describe('fabric-registry', () => {
             const resp = await fabricRegistry.register(
                 {
                     userId: 'admin',
-                    wsSessionId: key.sessionId,
-                    wsSidSig: key.signature,
+                    webSocketKey,
                 },
                 {
                     enrollmentID: enrollmentID,
@@ -216,8 +193,10 @@ describe('fabric-registry', () => {
                 await fabricRegistry.register(
                     {
                         userId: 'admin',
-                        wsSessionId: randomBytes(8).toString('hex'),
-                        wsSidSig: key.signature,
+                        webSocketKey: {
+                            sessionId: randomBytes(8).toString('hex'),
+                            signature: webSocketKey.signature,
+                        },
                     },
                     {
                         enrollmentID: enrollmentID,
