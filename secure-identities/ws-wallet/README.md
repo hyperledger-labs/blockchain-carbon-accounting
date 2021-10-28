@@ -36,7 +36,7 @@ ws-wallet get-pkh [keyname]
 ws-wallet connect [url] [key-name] ([strict-ssl])
 ```
 requires:
-* [url] of the ws-identity host (e.g., 'http://localhost:8700')
+* [url] of the ws-identity host (e.g., 'ws://localhost:8700')
 * [key-name] of local keyfile with pub-key-hex addresss used to request new session ID
 * [strict-ssl] can be set to false when testing ssl/tls enabled ws-identity server
 
