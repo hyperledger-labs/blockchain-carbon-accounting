@@ -54,9 +54,9 @@ A third package, [ws-identity-client](./ws-identity-client/README.md), is used t
 
 The video from [2021-10-25 Peer Programming Call](https://wiki.hyperledger.org/display/CASIG/2021-10-25+Peer+Programming+Call) from 34:00 to 1:00:00 shows how to use the ws-wallet with Fabric.  The ws-identity server is bundled within the REST API of the utility emissions channel.  The process is:
 
-    # Use `ws-wallet new-key` to create a key for a user.  It will store a private key and return the public key.
-    # Request a session through the REST API ending in `/identity/webSocket/` using your public key and user name.  The server will open up a session for your wallet to connect and return a sessionId and a connection URL.
-    # Now connect to the server using `ws-wallet connect <url> <sessionId>`  If the public key of your user agrees with the public key used to open the connection, then the server will return a signature and session key.  You can then use the signature and session key to perform additional operations on the REST API server, such as registering and enrolling users and operations on Fabric.
+- Use `ws-wallet new-key` to create a key for a user.  It will store a private key and return the public key.
+- Request a session through the REST API ending in `/identity/webSocket/` using your public key and user name.  The server will open up a session for your wallet to connect and return a sessionId and a connection URL.
+- Now connect to the server using `ws-wallet connect <url> <sessionId>`  If the public key of your user agrees with the public key used to open the connection, then the server will return a signature and session key.  You can then use the signature and session key to perform additional operations on the REST API server, such as registering and enrolling users and operations on Fabric.
 
 ## Using the Vault Transit Server
 
