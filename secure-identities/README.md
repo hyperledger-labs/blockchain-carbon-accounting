@@ -59,3 +59,7 @@ The video from [2021-10-25 Peer Programming Call](https://wiki.hyperledger.org/d
     # Now connect to the server using `ws-wallet connect <url> <sessionId>`  If the public key of your user agrees with the public key used to open the connection, then the server will return a signature and session key.  You can then use the signature and session key to perform additional operations on the REST API server, such as registering and enrolling users and operations on Fabric.
 
 ## Using the Vault Transit Server
+
+The Vault Transit server is a centralized secure server to store secret keys for a number of users.  The admin can set up different security profiles and then create users.  All users can generate tokens and Transit public keys.  Then the user can access Fabric by providing its token, and the Fabric application will check Vault's Transit key against the user's provided token to validate it.
+
+See [vault-identity/README.md] for more details on how to use the Vault Transit engine with Fabric.

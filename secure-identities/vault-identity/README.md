@@ -23,24 +23,45 @@ Steps required before running the server.
 
 A quick setup for development purpose:
 
-- Start vault server : `npm run vault`
+- Install: `nom install`
+- Start vault server - This is usually already started by `startApi.sh` in `utility-emissions-channel/docker-compose-setup/scripts/`ss, but if you don't see a vault docker container running, then : `npm run vault`   
 - Setup : `npm run test:setup`
 
-## Server
+## Using Vault
 
-Start Server
+Vault is accessed through a REST API for Vault.  The process is to use Vault to generate a token and a Transit engine public key for a user, and then use that token in the Fabric application.  The Fabric application's typescript REST API will check Vault for the Transit engine public key to match against the token.  If successful, it will allow the user to access operations in Fabric.
+
+For example, from 1:14:00 in the video from the [2021-10-25 Peer Programming Session](https://wiki.hyperledger.org/display/CASIG/2021-10-25+Peer+Programming+Call), we see the following sequence:
+
+- Sign into the Vault REST API using the admin token (configured by default)
+- Create a new user
+- Using the username and password of the new user, create a Vault token
+- Create a Transit key for the admin
+- Logout as the admin
+- Login using the Vault token of the new user
+- Create a Transit key for the new user
+- From the Fabric REST API, use the register the new user using the Vault admin token.  Write down the enrollment id and enrollment secret
+- Now use the Vault new user's token to enroll that user, using the enrollment id and enrollment secret
+- Once the user is enrolled, you can perform operations using that user's Vault token
+
+## Using the Vault API 
+
+### Start Server
 
 - `npm run build`
 - `npm run start`
 
+### Accessing the Vault REST API
 
-Swagger UI : <http://localhost:9090/api-docs/>
+Go to <http://localhost:9090/api-docs/>
 
-## Working With Endpoints
+Click on the "Authorize" button
 
-1. Create a Manager Identity : use `POST api/v1/identity`
+Set the admin user's authorization token, which by default is set by `npm run test:setup` to `tokenId`, to get started the first time.  Then later, when you have a token for another user, you can use it to authorize Vault.
 
-Set Authorizations token as : `tokenId`
+### API Endpoints
+
+1. Create a Manager Identity: use `POST api/v1/identity`
 
 Input :
 
@@ -51,7 +72,7 @@ Input :
 }
 ```
 
-Output :
+Sample output :
 
 ```json
 {
@@ -60,7 +81,7 @@ Output :
 }
 ```
 
-2. Generate Token From user/pass : use `POST api/v1/token`
+2. Generate Token from the user/password above: use `POST api/v1/token`
 
 Input :
 
@@ -113,6 +134,8 @@ Input :
 - kty : key type, two options
   - ecdsa-p256
   - ecdsa-p384
+
+After you create a Transit key, it will be available for use.  You don't have to write down the key yourself to pass around to Fabric later.
 
 6. Get Transit Key Details : use `GET api/v1/key`
 
