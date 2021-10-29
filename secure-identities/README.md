@@ -61,6 +61,7 @@ The video from [2021-10-25 Peer Programming Call](https://wiki.hyperledger.org/d
 ## Using the Vault Transit Server
 
 The Vault Transit server is a centralized secure server to store secret keys for a number of users.  The admin can set up different security profiles and then create users.  All users can generate tokens and Transit public keys.  Then the user can access Fabric by providing its token, and the Fabric application will check Vault's Transit key against the user's provided token to validate it.
+
 For example, from 1:14:00 in the video from the [2021-10-25 Peer Programming Session](https://wiki.hyperledger.org/display/CASIG/2021-10-25+Peer+Programming+Call), we see the following sequence:
 
 - Sign into the Vault REST API using the admin token (configured by default)
