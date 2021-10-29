@@ -61,5 +61,17 @@ The video from [2021-10-25 Peer Programming Call](https://wiki.hyperledger.org/d
 ## Using the Vault Transit Server
 
 The Vault Transit server is a centralized secure server to store secret keys for a number of users.  The admin can set up different security profiles and then create users.  All users can generate tokens and Transit public keys.  Then the user can access Fabric by providing its token, and the Fabric application will check Vault's Transit key against the user's provided token to validate it.
+For example, from 1:14:00 in the video from the [2021-10-25 Peer Programming Session](https://wiki.hyperledger.org/display/CASIG/2021-10-25+Peer+Programming+Call), we see the following sequence:
 
-See [vault-identity/README.md] for more details on how to use the Vault Transit engine with Fabric.
+- Sign into the Vault REST API using the admin token (configured by default)
+- Create a new user
+- Using the username and password of the new user, create a Vault token
+- Create a Transit key for the admin
+- Logout as the admin
+- Login using the Vault token of the new user
+- Create a Transit key for the new user
+- From the Fabric REST API, use the register the new user using the Vault admin token.  Write down the enrollment id and enrollment secret
+- Now use the Vault new user's token to enroll that user, using the enrollment id and enrollment secret
+- Once the user is enrolled, you can perform operations using that user's Vault token
+
+See [Vault Identity README](vault-identity/README.md) for more details on how to use the Vault Transit engine with Fabric.

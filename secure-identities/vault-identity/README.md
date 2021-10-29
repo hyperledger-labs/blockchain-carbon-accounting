@@ -31,19 +31,6 @@ A quick setup for development purpose:
 
 Vault is accessed through a REST API for Vault.  The process is to use Vault to generate a token and a Transit engine public key for a user, and then use that token in the Fabric application.  The Fabric application's typescript REST API will check Vault for the Transit engine public key to match against the token.  If successful, it will allow the user to access operations in Fabric.
 
-For example, from 1:14:00 in the video from the [2021-10-25 Peer Programming Session](https://wiki.hyperledger.org/display/CASIG/2021-10-25+Peer+Programming+Call), we see the following sequence:
-
-- Sign into the Vault REST API using the admin token (configured by default)
-- Create a new user
-- Using the username and password of the new user, create a Vault token
-- Create a Transit key for the admin
-- Logout as the admin
-- Login using the Vault token of the new user
-- Create a Transit key for the new user
-- From the Fabric REST API, use the register the new user using the Vault admin token.  Write down the enrollment id and enrollment secret
-- Now use the Vault new user's token to enroll that user, using the enrollment id and enrollment secret
-- Once the user is enrolled, you can perform operations using that user's Vault token
-
 ## Using the Vault API 
 
 ### Start Server
