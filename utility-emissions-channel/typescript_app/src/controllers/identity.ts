@@ -5,7 +5,7 @@ import { fabricConnector } from '../service/service';
 export async function webSocket(req: Request, res: Response): Promise<void> {
     try {
         if (!fabricConnector.opts.webSocketConfig) {
-            throw new Error(`WS-X.509 identity provider type has not been coinfigure`);
+            throw new Error(`WS-X.509 identity provider type has not been configure`);
         }
         const wsIdentityBackend = new WsIdentityClient({
             apiVersion: 'v1',

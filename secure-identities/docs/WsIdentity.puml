@@ -1,0 +1,53 @@
+@startuml
+
+control  WsClient
+boundary WsWallet
+actor    User
+boundary FabricApp
+control  WsIdentityServer
+control  WsClientServer
+
+title WebSocket Identity Sessions
+
+User -> WsWallet : //new-key [user]//
+WsWallet --> User : Return [pubKeyHex]
+group New session ticket 
+    User -> FabricApp : for [user] [pubKeyHex]
+    FabricApp -> WsIdentityServer : from FabricApp IP
+    WsIdentityServer --> FabricApp : Return [sessionId] [url] 
+    FabricApp --> User : ... to User
+end
+
+group Open session ticket
+    User -> WsWallet : //connect [url] [sessionId] [user]//
+    WsWallet -> WsClient : open client
+    WsClient -> WsIdentityServer : send [signature] of [sessionId]
+    alt Signature verified
+        WsIdentityServer -> WsClientServer : open client
+        WsIdentityServer --> WsClient : good signature
+        WsClient --> WsWallet : ...
+        WsWallet --> User : **WsKey** {[signature],[sessionId]}
+    else failed connection
+        WsIdentityServer --> WsClient : bad signature 
+        WsClient -> WsClient : close client 
+        WsClient --> WsWallet : ...
+        WsWallet --> User : session failed
+    end
+end
+User -> FabricApp : Sign msg using **WsKey**
+group Authenticate
+    FabricApp -> WsIdentityServer : from FabricApp IP
+    alt **WsKey** is valid
+        WsIdentityServer -> WsClientServer : access client 
+        WsClientServer -> WsClient : send signature request 
+        WsClient -> WsWallet : sign msg
+        WsWallet --> WsClient : return signed msg 
+        WsClient --> WsClientServer : ... 
+        WsClientServer --> FabricApp : to FabricApp 
+    else **WsKey** is invalid
+        WsIdentityServer --> FabricApp: [sessionId]|[signature]
+    else Wrong IP
+        WsIdentityServer --> FabricApp: IP does not match
+    end
+end
+@enduml

@@ -16,7 +16,7 @@ Key files may also be stored separate from the identity credentials outside the 
 
 In the first approach, the organization manages its users and controls access to client keys on the secure server. Key owners can issue and authenticate API tokens for Fabric applications (e.g., utility-emissions) to use as the user's identity credentials.  A Vault-X.509 identity credential type is supported in the Fabric application.  The private keys always reside in the Vault server.  While the user can issue tokens from the private key based on the key policy, they do not have physical ownership of the private key.
 
-The major advantage of this approach is that clients are not responsible for communicating with the Fabric network. A single application is used to manage identities of multiple users.  This application could have enhanced security features and policies.  The major disadvantage of this approach is that all private keys are stored in a centralized location.  However secure, it is still a money pot for hackers to attempt to exploit/corrupt.
+The major advantage of this approach is that clients are not responsible for communicating with the Fabric network. A single application is used to manage identities of multiple users.  This application could have enhanced security features and policies.  The major disadvantage of this approach is that all private keys are stored in a centralized location.  However secure, it is still a honeypot for hackers to attempt to exploit/corrupt.
 
 The second option allows key files to be physically held by the user, not a third-party app, who then has full control over its use as well.  This is a true decentralized approach, and the major advantage is that each client's private key is never exposed or stored on the organization's application.  The major disadvantage is that clients are responsible for managing their own private keys, as well as communicating with the Fabric network.  
 
@@ -30,12 +30,11 @@ Choosing one over the other depends on whether the organization needs align with
     * Physical ownership may be required by law.
     * Certain security standards must be upheld for all keys
 
-- Key file physically locked within an external device, such as IoT or embedded devices.  Physical IoT devices may be enrolled with a network using private keys contained within a Hardware Security Module (HSM) that cannot be extracted and stored by a third party.  In this case, a WS-X.509 identity credential uses a secure web-socket based proxy to connection to the device.  Other proxy connections/credential types could be used. E.g., gRPC-X.509*
-
+- Key file physically locked within an external device, such as IoT or embedded devices.  Physical IoT devices may be enrolled with a network using private keys contained within a Hardware Security Module (HSM) that cannot be extracted and stored by a third party.  In this case, a WS-X.509 identity credential uses the secure web-socket identity proxy server to connect to the device.  Other proxy connections/credential types could be used. E.g., gRPC-X.509.
 
 ## Connecting external privates keys over web-socket
 
-In the context of the emissions application, the web-socket client security framework supports a wallet installed on a device used by an auditor to sign verified emissions data, like a notary stamp to verify documents.  It could also be installed on a physical device, such as a CO2 sensor or other measurement tool, that relays information about emissions directly to the Fabric network.  Such a device could be a power plant, a transpiration vehicle, or a mobile remote sensor such as an airplane or satellite.  The connection between Fabric and the wallet is made via a [WS-X.509 credential type for signing fabric transactions] (https://github.com/hyperledger/cactus/pull/1333), which has been setup within the cactus connector for Fabric. 
+In the context of the emissions application, the web-socket client security framework supports a wallet installed on a device used by an auditor to sign verified emissions data, like a notary stamp to verify documents.  It could also be installed on a physical device, such as a CO2 sensor or other measurement tool, that relays information about emissions directly to the Fabric network.  Such a device could be a power plant, a transpiration vehicle, or a mobile remote sensor such as an airplane or satellite.  The connection between Fabric and the wallet is made via a [WS-X.509 credential type for signing fabric transactions](https://github.com/hyperledger/cactus/pull/1333), which has been setup within the cactus connector for Fabric. 
 
 This security framework requires two packages:
 
@@ -48,7 +47,7 @@ The server does not store and never sees the user’s private key. It delivers r
 - a Certificate Signing Request (CSR) used to construct the WS-X.509 identity file when enrolling with the Fabric application. 
 - a transaction to the Fabric network to record or query data.
 
-A third package, [ws-identity-client](./ws-identity-client/README.md), is used to setup the backend connection between ws-identity or ws-wallet and the fabric network.
+A third package, [ws-identity-client](./ws-identity-client/README.md), is used to setup the backend connection between the fabric app and the ws-identity server. This includes requesting a new session ticket, or access to a web-socket-client connected to a ws-wallet instance.
 
 ### Example of a Web Socket Connection
 
@@ -56,7 +55,9 @@ The video from [2021-10-25 Peer Programming Call](https://wiki.hyperledger.org/d
 
 - Use `ws-wallet new-key` to create a key for a user.  It will store a private key and return the public key.
 - Request a session through the REST API ending in `/identity/webSocket/` using your public key and user name.  The server will open up a session for your wallet to connect and return a sessionId and a connection URL.
-- Now connect to the server using `ws-wallet connect <url> <sessionId>`  If the public key of your user agrees with the public key used to open the connection, then the server will return a signature and session key.  You can then use the signature and session key to perform additional operations on the REST API server, such as registering and enrolling users and operations on Fabric.
+- Now connect to the server using `ws-wallet connect <url> <sessionId>`  If the public key of your user agrees with the public key used to open the connection, then the server will return a signature and session key.  You can then use the signature and session key (webSocketKey) to perform additional operations on the REST API server, such as registering and enrolling users and operations on Fabric.
+
+See [docs/ws-session.md](./docs/ws-session.md) for a detailed ECB diagram for setting up a web-socket identity session.
 
 ## Using the Vault Transit Server
 
