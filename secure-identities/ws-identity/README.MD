@@ -1,13 +1,13 @@
 # Web Socket Identity Server
 
-An express.js app to access cryptophic signing capabilites over web-socket.
+An express.js app to access cryptographic signing capabilities over web-socket.
 
 ## WS-X.509 identity provider
-The ws-identity server supports X.509 certificates issued by a Certificate Authority (CA) where correspoinding private keys are stored offline in an external wallet. The server connects identities with a distributed network (e.g., hyperledger fabric). This could include:
+The ws-identity server supports X.509 certificates issued by a Certificate Authority (CA) where corresponding private keys are stored offline in an external wallet. The server connects identities with a distributed network (e.g., Hyperledger Fabric). This could include:
 * an IoT device
 * an auditor
 
- [ws-identity-client](https://github.com/brioux/ws-identity-client) setups the backend between ws-identity server and fabric network. A WS-X.509 identity provider is setup within the [cactus-plugin-ledger-connector-fabric](https://github.com/hyperledger/cactus/pull/1333).
+[ws-identity-client](../ws-identity-client/README.md) setups the backend between ws-identity server and Fabric network. A WS-X.509 identity provider is setup within the [cactus-plugin-ledger-connector-fabric](https://github.com/hyperledger/cactus/pull/1333).
 
 ws-identity server configuration:
 ```typescipt
@@ -29,7 +29,7 @@ export interface WebSocketKey {
 } 
 ```
 ## WS Crypto Wallet
-The prototype [ws-wallet](https://github.com/brioux/ws-wallet) setups and stores private keys on clients external device,and creates the client connection with the ws-identity server to enrol with a fabric CA and submit transactions to the blockchain.
+The prototype [ws-wallet](../ws-wallet/README.md) setups and stores private keys on clients external device and creates the client connection with the ws-identity server to interact with the Fabric network.
 
 ## build
 Install dependencies
