@@ -6,6 +6,9 @@ import identity from './identity';
 const router = Router();
 router.use((req: Request, res: Response, next: NextFunction) => {
     appLogger.info(`${req.method.toUpperCase()} ${req.url}`);
+    if (req.headers.web_socket_key) {
+        req.headers.web_socket_key = JSON.parse(`${req.headers.web_socket_key}`);
+    }
     next();
 });
 

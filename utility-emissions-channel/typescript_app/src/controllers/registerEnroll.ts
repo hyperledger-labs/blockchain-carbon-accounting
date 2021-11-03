@@ -5,9 +5,10 @@ export async function enroll(req: Request, res: Response): Promise<void> {
     try {
         await fabricRegistryService.enroll({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string | unknown>,
+            query: req.query as Record<string, string>,
         });
+
         res.status(201).send();
     } catch (error) {
         res.status(error.status).json({
@@ -20,8 +21,8 @@ export async function register(req: Request, res: Response): Promise<void> {
     try {
         const cred = await fabricRegistryService.register({
             body: req.body,
-            header: req.headers,
-            query: req.query,
+            header: req.headers as Record<string, string | unknown>,
+            query: req.query as Record<string, string>,
         });
         res.status(201).json(cred);
     } catch (error) {

@@ -13,6 +13,7 @@ import AWSS3 from '../datasource/awsS3';
 import Joi from 'joi';
 import { createHash } from 'crypto';
 import { checkDateConflict, toTimestamp } from '../utils/dateUtils';
+import { IWebSocketKey } from '../blockchain-gateway/I-gateway';
 
 interface UtilityEmissionsChannelServiceOptions {
     utilityEmissionsGateway: IUtilityemissionchannelGateway;
@@ -54,9 +55,8 @@ export default class UtilityEmissionsChannelService {
 
         const fabricCaller: IFabricTxCaller = {
             userId: userId,
-            vaultToken: input.header.vault_token,
-            wsSessionId: input.header.session_id,
-            wsSidSig: input.header.signature,
+            vaultToken: input.header.vault_token as string,
+            webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
 
         try {
@@ -125,13 +125,12 @@ export default class UtilityEmissionsChannelService {
         this.__validateRecordAuditedEmissionsToken(input);
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
-            vaultToken: input.header.vault_token,
-            wsSessionId: input.header.session_id,
-            wsSidSig: input.header.signature,
+            vaultToken: input.header.vault_token as string,
+            webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
         const ethCaller: IEthTxCaller = {
-            address: input.header.eth_address,
-            private: input.header.eth_private,
+            address: input.header.eth_address as string,
+            private: input.header.eth_private as string,
             keyName: input.query.userId,
         };
         const partyId = input.body.partyId;
@@ -271,13 +270,15 @@ export default class UtilityEmissionsChannelService {
         this.__validateGetEmissionsDataInput(input);
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
-            vaultToken: input.header.vault_token,
-            wsSessionId: input.header.session_id,
-            wsSidSig: input.header.signature,
+            vaultToken: input.header.vault_token as string,
+            webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
         const uuid = input.params.uuid;
         try {
-            const record = this.opts.utilityEmissionsGateway.getEmissionData(fabricCaller, uuid);
+            const record = await this.opts.utilityEmissionsGateway.getEmissionData(
+                fabricCaller,
+                uuid,
+            );
             await this.emissionsRecordChecksum(record);
             return record;
         } catch (error) {
@@ -292,9 +293,8 @@ export default class UtilityEmissionsChannelService {
         this.__validateGetAllEmissionsDataInput(input);
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
-            vaultToken: input.header.vault_token,
-            wsSessionId: input.header.session_id,
-            wsSidSig: input.header.signature,
+            vaultToken: input.header.vault_token as string,
+            webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
         const utilityId = input.params.utilityId;
         const partyId = input.params.partyId;
@@ -324,9 +324,8 @@ export default class UtilityEmissionsChannelService {
         this.__validateGetAllEmissionsDataByDateRangeInput(input);
         const fabricCaller: IFabricTxCaller = {
             userId: input.query.userId,
-            vaultToken: input.header.vault_token,
-            wsSessionId: input.header.session_id,
-            wsSidSig: input.header.signature,
+            vaultToken: input.header.vault_token as string,
+            webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
         const fromDate = input.params.fromDate;
         const thruDate = input.params.thruDate;

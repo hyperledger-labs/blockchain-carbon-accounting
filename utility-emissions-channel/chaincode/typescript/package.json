@@ -8,7 +8,8 @@
     "lint": "eslint 'src/**/*.ts' 'test/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' 'test/**/*.ts' --fix",
     "test": "mocha -r ts-node/register 'test/**/*.test.ts'",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "prepare": "cd ../../.. && husky install"
   },
   "author": "hyperledger",
   "license": "Apache-2.0",
@@ -19,11 +20,14 @@
     "@types/node": "^14.14.37",
     "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "chai": "^4.3.4",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^7.0.4",
     "mocha": "^8.3.2",
+    "prettier": "^2.4.1",
     "sinon": "^10.0.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"

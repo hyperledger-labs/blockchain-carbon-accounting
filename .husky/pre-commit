@@ -2,3 +2,6 @@
 . "$(dirname "$0")/_/husky.sh"
 cd utility-emissions-channel/typescript_app
 npm run lint
+cd ../..
+cd utility-emissions-channel/chaincode/typescript
+npm run lint

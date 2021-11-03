@@ -40,7 +40,7 @@ export interface WsWalletReq {
 
 interface WsOpenResp {
   signature:string;
-  sessionId:string
+  sessionId:string;
 }
 
 export class WsWallet {

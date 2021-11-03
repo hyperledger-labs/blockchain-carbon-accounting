@@ -47,27 +47,24 @@ export default class Signer {
                 token: caller.vaultToken,
                 keyName: caller.userId,
             };
-        } else if (this.hlfSupport.includes('web-socket') && caller.wsSessionId) {
-            if (caller.wsSessionId.length === 0) {
+        } else if (this.hlfSupport.includes('web-socket') && caller.webSocketKey) {
+            if (caller.webSocketKey['sessionId'].length === 0) {
                 throw new ClientError(
                     `${fnTag} require web-socket session ID to sign fabric transactions with ws-wallet`,
                 );
             }
-            if (!caller.wsSidSig || caller.wsSidSig.length === 0) {
+            if (caller.webSocketKey['signature'].length === 0) {
                 throw new ClientError(
                     `${fnTag} require web-socket session ID signature to sign fabric transactions with ws-wallet`,
                 );
             }
             signer.type = FabricSigningCredentialType.WsX509;
-            signer.webSocketKey = {
-                sessionId: caller.wsSessionId,
-                signature: caller.wsSidSig,
-            };
+            signer.webSocketKey = caller.webSocketKey;
         } else {
             throw new ClientError(
                 `${fnTag} missing ${this.hlfSupport
                     .split(' ')
-                    .join('or')} API keys to sign fabric transactions`,
+                    .join(' or ')} API keys to sign fabric transactions`,
             );
         }
         return signer;

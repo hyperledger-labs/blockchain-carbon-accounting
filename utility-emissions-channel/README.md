@@ -64,7 +64,7 @@ server.  This is a temporary fix as reported in [issue #71](https://github.com/h
 
 ### Start network, create channel, and deployCC
 
-If you are doing it for the first time, run:
+If you are doing it for the first time, run the start.sh either in local or docker mode.  Run in local mode if  you want to use hardhat ethereum node for testing locally or run in docker mode when you want to use the ethereum network via infura:
 ```bash
 sh start.sh {local|docker}
 - local : will start API server without docker container, it will read  envs from `typescript_app/.env`
@@ -211,23 +211,7 @@ $ npm run build
 $ npm run start
 ```
 
-To run the API server outside of docker container:
-
-```bash
-$ cd typescript_app
-$ npm i
-$ npm run test
-```
-
-To run the test coverage for the `typecript_app`
-
-```bash
-$ cd typescript_app
-$ npm i
-$ npm run coverage
-```
-
-4. Go to `http://localhost:8080/api-docs/` to use the API.  
+Go to `http://localhost:8080/api-docs/` to use the API.  
 
 ## Working with the Express Server API
 
@@ -264,7 +248,7 @@ $ ./network.sh down
 To shut down and then reset everything:
 
 ```bash
-$ sh ./scripts/fabricNetwork.sh
+$ sudo sh ./scripts/fabricNetwork.sh reset
 ```
 
 ## Integrating with the Net Emissions Token Network integration 
@@ -323,7 +307,8 @@ $ npm run test:setup
 
 When the network/API and the local Hardhat network have fully started, you can run the automated tests by navigating to the `typescript_app` directory and running the tests as:
 
-
 ```bash
 $ npm run test
+$ npm run coverage
 ```
+
