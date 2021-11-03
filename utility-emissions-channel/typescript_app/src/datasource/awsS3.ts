@@ -1,4 +1,5 @@
 import { S3, Endpoint, AWSError } from 'aws-sdk';
+import { DeleteObjectOutput } from 'aws-sdk/clients/s3';
 export default class AWSS3 {
     private readonly s3: S3;
     private readonly bucketName: string;
@@ -58,5 +59,23 @@ export default class AWSS3 {
                 },
             );
         });
+    }
+    delete(filename: string): Promise<DeleteObjectOutput> {
+        return new Promise(
+            (resolve: (value: DeleteObjectOutput) => void, reject: (err: AWSError) => void) => {
+                this.s3.deleteObject(
+                    {
+                        Bucket: this.bucketName,
+                        Key: filename,
+                    },
+                    (err: AWSError, data) => {
+                        if (err) {
+                            return reject(err);
+                        }
+                        resolve(data);
+                    },
+                );
+            },
+        );
     }
 }

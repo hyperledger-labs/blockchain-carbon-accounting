@@ -1,5 +1,6 @@
 import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
+import AWSS3 from '../../src/datasource/awsS3';
 import { config } from 'dotenv';
 import Signer from '../../src/blockchain-gateway/signer';
 import { IFabricTxCaller } from '../../src/blockchain-gateway/I-gateway';
@@ -146,6 +147,32 @@ describe('UtilityemissionchannelGateway', () => {
                 thruDate: '2021-05-07T10:10:09Z',
             });
         });
+
+        it('should fail the MD5 checksum on tampering with the document', async () => {
+            try {
+                const mockPartyID2 = uuid4();
+                const s3 = new AWSS3();
+                const data = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                    utilityId: mockUtilityID,
+                    partyId: mockPartyID2,
+                    fromDate: '2020-05-07T10:10:09Z',
+                    thruDate: '2021-05-07T10:10:09Z',
+                    energyUseAmount: 100,
+                    energyUseUom: 'kWh',
+                    url: '',
+                    md5: '',
+                });
+                const documentUrl = data.url;
+                const filename = decodeURIComponent(documentUrl).split('/').slice(-1)[0];
+                await s3.delete(filename);
+                const testFileBuffer = Buffer.from('Testing MD5 checksum');
+                await s3.upload(testFileBuffer, filename);
+                await utilityEmissionsGateway.getEmissionData(adminCaller, data.uuid);
+            } catch (error) {
+                (error as ClientError).status.should.be.eq(409);
+            }
+        });
+
         if (caller === 'vault') {
             it('getEmissionsRecords throws', async () => {
                 try {
