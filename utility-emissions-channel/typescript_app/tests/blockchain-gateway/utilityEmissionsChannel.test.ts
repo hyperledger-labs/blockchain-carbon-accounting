@@ -159,7 +159,7 @@ describe('UtilityemissionchannelGateway', () => {
                     thruDate: '2021-05-07T10:10:09Z',
                     energyUseAmount: 100,
                     energyUseUom: 'kWh',
-                    url: '',
+                    url: 'localost:///tmp/filename',
                     md5: '',
                 });
                 const documentUrl = data.url;
