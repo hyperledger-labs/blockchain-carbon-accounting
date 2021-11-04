@@ -641,7 +641,7 @@
       },
       "webSocketKey" : {
         "name": "web_socket_key",
-        "description": "session id of web-socket ticket that can only be use by the app to communicate with the cilent's external key file",
+        "description": "web-socket key required by the app to communicate with the cilent's external key file",
         "in": "header",
         "required": false,
         "type": "object",

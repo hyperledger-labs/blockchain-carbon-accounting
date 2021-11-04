@@ -8,74 +8,68 @@ export interface WsIdentityRouterOpts {
     logLevel: LogLevelDesc;
     wsIdentityServer: WsIdentityServer;
 }
-/* interface IWsIdentityServers {
-  // TODO this interface was setup to assign a unique web-socket server for every new sessionId
-  // does each client connection really require a unique ws-server with a unique pathname (e.g. the sessionId)?
-  [key: string]: WsIdentityServer;
-} */
 
 export class WsSessionRouter {
-    public readonly className = 'WsSessionRouter';
-    // private wsIdentityServers: IWsIdentityServers;
-    private readonly log: Logger;
-    public readonly router: Router;
+  public readonly className = 'WsSessionRouter';
+  private readonly log: Logger;
+  public readonly router: Router;
 
-    constructor (private readonly opts: WsIdentityRouterOpts) {
-      this.log = LoggerProvider.getOrCreate({ label: this.className, level: opts.logLevel })
-      this.router = Router()
-      this.__registerHandlers()
+  constructor (private readonly opts: WsIdentityRouterOpts) {
+    this.log = LoggerProvider.getOrCreate({ label: this.className, level: opts.logLevel })
+    this.router = Router()
+    this.__registerHandlers()
+  }
+
+  private __registerHandlers () {
+    this.router.post(
+      '/new',
+      [body('pubKeyHex').isString().notEmpty()],
+      this.newSession.bind(this)
+    )
+  }
+
+  private async newSession (req: Request, res: Response) {
+    const fnTag = `${req.method.toUpperCase()} ${req.originalUrl}`
+    this.log.debug(fnTag)
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      this.log.debug(`${fnTag} bad request : ${JSON.stringify(errors.array())}`)
+      return res.status(400).json({
+        msg: JSON.stringify(errors.array())
+      })
     }
+    try {
+      const clientIp = getClientIp(req)
 
-    private __registerHandlers () {
-      this.router.post(
-        '/new',
-        [body('pubKeyHex').isString().notEmpty()],
-        this.newSession.bind(this)
+      const { sessionId, wsMount } = this.opts.wsIdentityServer.newSessionId(
+        req.body.pubKeyHex,
+        req.body.keyName,
+        clientIp
       )
-    }
+      const uri = new URL(`${req.protocol}://${req.get('host')}`)
 
-    private async newSession (req: Request, res: Response) {
-      const fnTag = `${req.method.toUpperCase()} ${req.originalUrl}`
-      this.log.debug(fnTag)
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        this.log.debug(`${fnTag} bad request : ${JSON.stringify(errors.array())}`)
-        return res.status(400).json({
-          msg: JSON.stringify(errors.array())
-        })
+      switch (uri.protocol) {
+        case 'http:':
+          uri.protocol = 'ws:'
+          break
+        case 'https:':
+          uri.protocol = 'wss:'
+          break
+        default:
+          throw new Error(`unrecognized protocol ${uri.protocol}`)
       }
-      try {
-        const clientIp = getClientIp(req)
-
-        const { sessionId, wsMount } = this.opts.wsIdentityServer.newSessionId(
-          req.body.pubKeyHex,
-          req.body.keyName,
-          clientIp
-        )
-        const uri = new URL(`${req.protocol}://${req.get('host')}`)
-
-        switch (uri.protocol) {
-          case 'http:':
-            uri.protocol = 'ws:'
-            break
-          case 'https:':
-            uri.protocol = 'wss:'
-            break
-          default:
-            throw new Error(`unrecognized protocol ${uri.protocol}`)
-        }
-        uri.pathname = wsMount
-        return res.status(201).json(
-          JSON.stringify({
-            sessionId,
-            url: uri.href
-          })
-        )
-      } catch (error) {
-        this.log.error(`${fnTag} ${error}`)
-        return res.status(409).json({
-          msg: error.message
+      uri.pathname = wsMount
+      return res.status(201).json(
+        JSON.stringify({
+          sessionId,
+          url: uri.href
         })
-      }
+      )
+    } catch (error) {
+      this.log.error(`${fnTag} ${error}`)
+      return res.status(409).json({
+        msg: error.message
+      })
     }
+  }
 }

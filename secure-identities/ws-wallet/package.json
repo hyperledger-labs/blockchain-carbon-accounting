@@ -29,6 +29,7 @@
   "dependencies": {
     "@hyperledger/cactus-common": "0.9.0",
     "@types/yargs": "^17.0.2",
+    "axios": "^0.24.0",
     "elliptic": "^6.5.4",
     "jsrsasign": "^10.4.0",
     "winston": "^3.3.3",

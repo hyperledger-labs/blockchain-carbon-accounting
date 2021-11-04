@@ -41,7 +41,7 @@ export function keyGen (args: IClientNewKey) {
     const info = []
     const keyPath = getKeyPath(args.keyName)
     if (fs.existsSync(keyPath)) {
-      return `${args.keyName} key already exists.`
+      return `${args.keyName} key already exists`
     }
     if (!args.curve) {
       info.push('No curve specified. Set to p256 as default')
@@ -63,14 +63,15 @@ export function keyGen (args: IClientNewKey) {
   }
 }
 
-export function getPubKeyHex (keyName) {
-  const keyPath = getKeyPath(keyName)
-  if (fs.existsSync(keyPath)) {
+export function getPubKeyHex (args: IClientNewKey) {
+  const keyPath = getKeyPath(args.keyName)
+  console.log(keyGen(args));
+  try {
     const keyData = JSON.parse(fs.readFileSync(keyPath, 'utf8'))
     const { pubKeyHex } = KEYUTIL.getKey(keyData.pubKey)
-    return `pubKeyHex: ${pubKeyHex}`
-  } else {
-    return 'No key file found'
+    return pubKeyHex
+  }catch(error) {
+    throw new Error(`Error retrieving pub-key-hex: ${error}`)
   }
 }
 export function listKeys () {

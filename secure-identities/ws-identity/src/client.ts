@@ -23,7 +23,6 @@ export class WebSocketClient {
   public readonly pubKeyEcdsa: KJUR.crypto.ECDSA; // KJUR.crypto.ECDSA for csr requests;
   public readonly ip: string;
   public readonly pubKeyHex: string;
-  // public readonly sessionId: string;
   public readonly keyName: string;
   private readonly log: Logger;
   private readonly webSocket: WebSocket;
@@ -37,7 +36,6 @@ export class WebSocketClient {
     this.webSocket = opts.webSocket
     this.ip = opts.clientIp
     this.pubKeyEcdsa = opts.pubKeyEcdsa
-    // this.sessionId = opts.sessionId
     this.pubKeyHex = this.pubKeyEcdsa.pubKeyHex
     this.keyName = opts.keyName || `${this.pubKeyHex.substring(0, 12)}...`
   }

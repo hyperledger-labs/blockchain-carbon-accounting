@@ -38,7 +38,7 @@ export interface WsWalletReq {
   index: number;
 }
 
-interface WsOpenResp {
+export interface IWebSocketKey {
   signature:string;
   sessionId:string;
 }
@@ -93,17 +93,9 @@ export class WsWallet {
   }
 
   /**
-   * @description asynchronous request to get a new key and open new ws connection
-   * @param args @type IClientNewKey
-   */
-  public getKey (args: IClientNewKey) {
-    this.keyData = this.initKey(args)
-  }
-
-  /**
    * @description Closes existing and open new websocket connection for client
    */
-  public async open (sessionId: string, endpoint?: string): Promise<WsOpenResp> {
+  public async open (sessionId: string, endpoint?: string): Promise<IWebSocketKey> {
     const fnTag = `${this.className}#open`
     this.opts.endpoint = endpoint || this.opts.endpoint
     Checks.nonBlankString(this.opts.endpoint, `${fnTag}:this.opts.endpoint`)
@@ -127,7 +119,7 @@ export class WsWallet {
           'x-pub-key-pem': JSON.stringify(this.keyData.pubKey)
         }
       }
-      this.log.debug(`${fnTag} create web-socket client to ${this.opts.endpoint}`)
+      this.log.debug(`${fnTag} create web-socket client for ${this.opts.endpoint}`)
       this.ws = new WebSocket(this.opts.endpoint, wsOpts)
 
       const { opts, keyName, ws, log, keyData } = this
@@ -143,7 +135,7 @@ export class WsWallet {
       this.ws.onclose = function incoming () {
         log.info(`${fnTag} connection to ${opts.endpoint} closed for key ${keyName}`)
       }
-      return await new Promise<WsOpenResp>(function (resolve, reject) {
+      return await new Promise<IWebSocketKey>(function (resolve, reject) {
         ws.addEventListener(
           'open',
           function incoming () {
@@ -155,7 +147,7 @@ export class WsWallet {
             })
           },
           { once: true }
-        ) as WsOpenResp
+        ) as IWebSocketKey
         ws.onerror = function (error) {
           // TODO extract error message from failed connection
           ws.close()
