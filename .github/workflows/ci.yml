@@ -23,7 +23,7 @@ jobs:
       - name: Run lint script
         run: npm run lint
 
-  lint-chaincode:
+  lint-utility-emissions-chaincode:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,7 +40,29 @@ jobs:
       - name: Run lint script
         run: npm run lint
 
-  test:
+  lint-datalock-chaincode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run lint script
+        uses: golangci/golangci-lint-action@v2
+        with:
+          working-directory: ./utility-emissions-channel/chaincode/datalock
+
+  test-datalock-chaincode:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./utility-emissions-channel/chaincode/datalock
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "1.16"
+      - name: Run chaincode tests
+        run: go test -v internal/*.go -count=1
+
+  test-typescript-app:
     runs-on: ubuntu-latest
     defaults:
       run:
