@@ -16,6 +16,11 @@ import {
   WSClientOpts
 } from './client'
 
+export interface IWebSocketKey {
+  sessionId: string;
+  signature: string;
+}
+
 export interface WsIdentityServerOpts {
   // existing server where all incoming web socket connections are directed.
   server: Server | ServerS;
@@ -143,8 +148,7 @@ export class WsIdentityServer {
     })
     webSocketServer.on('connection', function connection (
       webSocket: WebSocket,
-      sessionId: string
-      // signature: string,
+      sessionId: string,
     ) {
       const client = clients[sessionId] as null | WebSocketClient
       log.info(`session ${sessionId} in progress for ${client.keyName}`)
@@ -223,7 +227,7 @@ export class WsIdentityServer {
   }
 
   /* Public function previously used for testing
-      Not to be used in production!!!
+      Not to be used in production
   */
   public async waitForSocketClient (
     sessionId: string,

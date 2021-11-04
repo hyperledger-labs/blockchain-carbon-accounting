@@ -1,8 +1,9 @@
 export {
-  WsIdentityServer,
-  WsIdentityServerOpts
+    IWebSocketKey,
+    WsIdentityServer,
+    WsIdentityServerOpts
 } from './server'
 export {
-  WsIdentityRouter,
-  WsIdentityRouterOpts
+    WsIdentityRouter,
+    WsIdentityRouterOpts
 } from './router'
