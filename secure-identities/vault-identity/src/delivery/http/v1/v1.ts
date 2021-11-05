@@ -4,6 +4,7 @@ import { log } from '../../../utils/logger';
 import IdentityRouter from './identity';
 import KeyRouter from './key';
 import TokenRouter from './token';
+import SecretsRouter from './secrets';
 export default class RouterV1 {
     readonly router: Router;
     constructor(private readonly backend: VaultIdentityBackend) {
@@ -24,6 +25,7 @@ export default class RouterV1 {
         this.router.use('/identity', new IdentityRouter(this.backend).router);
         this.router.use('/key', new KeyRouter(this.backend).router);
         this.router.use('/token', new TokenRouter(this.backend).router);
+        this.router.use('/secrets', new SecretsRouter(this.backend).router);
     }
 
     private __tokenMiddleware() {

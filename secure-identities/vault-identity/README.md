@@ -8,8 +8,11 @@ Server exposing endpoint for clients to manage their vault identity. Each client
 - [Vault Identity Management](#vault-identity-management)
   - [Setup](#setup)
     - [For Development](#for-development)
-  - [Server](#server)
-  - [Working With Endpoints](#working-with-endpoints)
+  - [Using Vault](#using-vault)
+  - [Using the Vault API](#using-the-vault-api)
+    - [Start Server](#start-server)
+    - [Accessing the Vault REST API](#accessing-the-vault-rest-api)
+    - [API Endpoints](#api-endpoints)
 
 ## Setup
 
@@ -140,3 +143,20 @@ Output :
 7. Rotate transit key : use `PATCH api/v1/key`
 
 This endpoint will rotate private key and will use generated private key
+
+8. Put Ethereum Key as secret kv : use `POST /api/v1/secrets/eth`
+
+Curl :
+
+```bash
+curl -X 'POST' \
+  'http://localhost:9090/api/v1/secrets/eth' \
+  -H 'accept: */*' \
+  -H 'address: 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266' \
+  -H 'private: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' \
+  -H 'Authorization: Bearer s.dmbytRRkVpAuHYJopa5dl0bw' \
+  -d ''
+```
+
+9. Get Ethereum Key : use `GET /api/v1/secrets/eth`
+10. Delete Ethereum Key : use `DELETE /api/v1/secrets/eth`

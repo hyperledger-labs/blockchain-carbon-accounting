@@ -79,7 +79,7 @@ describe('EthNetEmissionsTokenGateway', () => {
                 'vault',
                 bcConfig.inMemoryKeychainID,
                 'kv',
-                bcConfig.certStoreID,
+                bcConfig.pluginRegistry.findOneByKeychainId(bcConfig.certStoreID),
             );
             gateway = new EthNetEmissionsTokenGateway({
                 contractStoreKeychain: ethConnector.contractStoreKeychain,

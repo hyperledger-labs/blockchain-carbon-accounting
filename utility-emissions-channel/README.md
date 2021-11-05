@@ -265,6 +265,23 @@ After some emissions are recorded via calls to `recordEmissions`, call `recordAu
 
 Then you can see them on [goerli.etherscan.io](https://goerli.etherscan.io/) by searching for the contract address, or on [emissionstokens.opentaps.org/](https://emissionstokens.opentaps.org/) by logging in with your Goerli wallet.
 
+### Using recordAuditedEmissionsToken Endpoint
+
+`recordAuditedEmissionsToken` endpoint require communication with both HL Fabric and Ethereum. For signing the ethereum transaction server has to know the client's address and private kye. There is two way of provide ethereum keys to the server
+
+1. Send address and private key along with the `recordAuditedEmissionsToken` request,
+
+Endpoint : `/api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken`
+
+Input :
+- header
+  - eth_address : client's ethereum address
+  - eth_private : client's private key
+
+2. Store address and private key inside vault key-value storage, use `vault-identity` server @`../secure-identity/README.md#api-endpoints`
+
+In this scenario client's ethereum key will automatically be fetched from vault server.
+
 ## Other Useful Things
 
 ### Updating the Chaincode

@@ -32,6 +32,11 @@ path "identity/entity-alias"{
     capabilities = [ "update","list" ]   
 }
 
+# For ethereum keys
+path "secret/data/eth-{{identity.entity.name}}"{
+    capabilities = [ "create", "update", "read", "delete", "list" ]
+}
+
 # for UI
 path "*" {
     capabilities = [ "list","read" ] 

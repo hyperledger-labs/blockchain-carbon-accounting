@@ -17,6 +17,11 @@ path "auth/userpass/users/{{identity.entity.name}}/password"{
     capabilities = [ "update" ]   
 }
 
+# For ethereum keys
+path "secret/data/eth-{{identity.entity.name}}"{
+    capabilities = [ "create", "update", "read", "delete", "list" ]
+}
+
 # For UI
 path "transit/keys/*"{
         capabilities = [ "list" ]
