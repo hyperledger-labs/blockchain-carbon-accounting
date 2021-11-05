@@ -18,7 +18,7 @@ export async function setup(): Promise<void> {
         process.env.LEDGER_FABRIC_TX_SIGNER_TYPES,
         bcConfig.certStoreID,
         process.env.LEDGER_ETH_TX_SIGNER || 'plain',
-        bcConfig.certStoreID,
+        bcConfig.pluginRegistry.findOneByKeychainId(bcConfig.certStoreID),
     );
 
     const orgFabric = bcConfig.fabricConnector();

@@ -109,7 +109,10 @@ async function setupVault() {
         endpoint + '/v1' + kvPath + '/data/eth-admin',
         {
             data: {
-                value: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+                value: {
+                    address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+                    private: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+                },
             },
         },
         {
@@ -123,9 +126,7 @@ async function setupVault() {
 (async () => {
     try {
         // TODO use promise.all
-        await mockEmissionsRecord();
-        await setupVault();
-        process.exit(0);
+        await Promise.all([mockEmissionsRecord(), setupVault()]);
     } catch (error) {
         console.error(error);
         process.exit(1);

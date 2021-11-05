@@ -23,6 +23,9 @@
         {
             "name": "Key",
             "description": "Vault transit key management"
+        },
+        {
+            "name": "Secrets"
         }
     ],
     "security": [
@@ -294,6 +297,73 @@
                 "responses": {
                     "200" :{
                         "description": "key details"
+                    }
+                }
+            }
+        },
+        "/secrets/eth" : {
+            "post" : {
+                "description": "Set Ethereum related secrets for client",
+                "summary": "Set Ethereum related secrets for client",
+                "tags": ["Secrets"],
+                "parameters": [
+                    {
+                        "name": "address",
+                        "in": "header",
+                        "required": false,
+                        "description": "hex encoded ethereum address",
+                        "schema" : {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "private",
+                        "in": "header",
+                        "required": false,
+                        "description": "hex encoded ethereum private key",
+                        "schema" : {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200" : {
+                        "description": "Ethereum Secrets Updated"
+                    }
+                }
+            },
+            "get" : {
+                "description": "get ethereum ket details",
+                "summary": "get ethereum ket details",
+                "tags": ["Secrets"],
+                "responses": {
+                    "200" : {
+                        "description": "ethereum key",
+                        "content": {
+                           "application/json" : {
+                               "schema" :{
+                                   "type": "object",
+                                   "properties": {
+                                       "public_key" : { 
+                                           "type": "string"
+                                       },
+                                       "private_key" : {
+                                           "type": "string"
+                                       }
+                                   }
+                               }
+                           }
+                        }
+                    }
+                }
+            },
+            "delete" : {
+                "description": "delete ethereum key",
+                "summary": "delete ethereum key",
+                "tags": ["Secrets"],
+                "responses": {
+                    "204" : {
+                        "description": "Success"
                     }
                 }
             }

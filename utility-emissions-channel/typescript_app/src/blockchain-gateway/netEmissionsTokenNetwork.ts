@@ -45,7 +45,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
     ): Promise<IEthNetEmissionsTokenIssueOutput> {
         const fnTag = `${this.className}.issue()`;
         ledgerLogger.debug(`${fnTag} getting signer for client`);
-        const signer = this.opts.signer.ethereum(caller);
+        const signer = await this.opts.signer.ethereum(caller);
         ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
         let result;
         try {

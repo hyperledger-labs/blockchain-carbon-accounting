@@ -8,6 +8,7 @@ import {
     Web3SigningCredentialType,
 } from '@hyperledger/cactus-plugin-ledger-connector-xdai';
 import ClientError from '../errors/clientError';
+import { IPluginKeychain } from '@hyperledger/cactus-core-api';
 
 export default class Signer {
     private readonly className = 'Signer';
@@ -15,7 +16,7 @@ export default class Signer {
         private readonly hlfSupport: string,
         private readonly hlfCertStoreID: string,
         private readonly ethSupport: string,
-        private readonly ethSecretKeychainID?: string,
+        private readonly ethSecretKeychain?: IPluginKeychain,
     ) {
         const fnTag = `${this.className}.constructor()`;
         if (!(hlfSupport.includes('vault') || hlfSupport.includes('web-socket'))) {
@@ -23,9 +24,9 @@ export default class Signer {
                 `${fnTag} support fabric tx signing using "vault" and "web-socket", but provided : ${hlfSupport}`,
             );
         }
-        if (!(ethSupport === 'plain' || ethSupport === 'kv')) {
+        if (!(ethSupport.includes('plain') || ethSupport.includes('kv'))) {
             throw new Error(
-                `${fnTag} support ethereum tx signing using "plain", but provided : ${ethSupport}`,
+                `${fnTag} support ethereum tx signing using "plain" or "kv", but provided : ${ethSupport}`,
             );
         }
     }
@@ -69,35 +70,30 @@ export default class Signer {
         }
         return signer;
     }
-    ethereum(caller: IEthTxCaller): Web3SigningCredential {
+    async ethereum(caller: IEthTxCaller): Promise<Web3SigningCredential> {
         const fnTag = `${this.className}.ethereum`;
         let signer: Web3SigningCredential;
-        switch (this.ethSupport) {
-            case 'plain':
-                if (!caller.address || !caller.private) {
-                    throw new ClientError(
-                        `${fnTag} require eth address and private key for signing ethereum tx`,
-                    );
-                }
+        if (this.ethSupport.includes('plain') && caller.address && caller.private) {
+            signer = {
+                type: Web3SigningCredentialType.PrivateKeyHex,
+                ethAccount: caller.address,
+                secret: caller.private,
+            };
+        } else if (this.ethSupport.includes('kv') && caller.keyName) {
+            try {
+                const key = (await this.ethSecretKeychain.get(`eth-` + caller.keyName)) as any;
                 signer = {
                     type: Web3SigningCredentialType.PrivateKeyHex,
-                    ethAccount: caller.address,
-                    secret: caller.private,
+                    ethAccount: key.address,
+                    secret: key.private,
                 };
-                break;
-            case 'kv':
-                if (!caller.keyName || !caller.address) {
-                    throw new ClientError(
-                        `${fnTag} require eth address and key name stored on key-value keychain, for signing ethereum tx`,
-                    );
-                }
-                signer = {
-                    type: Web3SigningCredentialType.CactusKeychainRef,
-                    ethAccount: caller.address,
-                    keychainEntryKey: 'eth-' + caller.keyName,
-                    keychainId: this.ethSecretKeychainID,
-                };
-                break;
+            } catch (error) {
+                throw new ClientError(`${fnTag} key not found in kv store: ${error}`);
+            }
+        } else {
+            throw new ClientError(
+                `${fnTag} missing parameter for ${this.ethSupport.split(' ').join(' or ')}`,
+            );
         }
         return signer;
     }

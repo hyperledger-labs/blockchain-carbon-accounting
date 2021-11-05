@@ -179,8 +179,8 @@ export default class UtilityEmissionsChannelService {
             let tokenId: string;
             if (tx.current_stage === '' || tx.current_stage === 'GetValidEmissions') {
                 appLogger.debug(`${fnTag} executing second stage::MINT_TOKEN`);
-                if (records === null) {
-                    const records: IUtilityemissionchannelEmissionData[] = [];
+                if (records == null) {
+                    records = [];
                     validUUIDs = JSON.parse(
                         Buffer.from(
                             tx.stage_data['GetValidEmissions'].output[emissionCCName]['validUUIDs'],

@@ -22,6 +22,7 @@ export class VaultIdentityBackend {
         clientPolicy: string;
         managerPolicy: string;
         userpassAccessor: string;
+        secretPath: string;
     };
     constructor() {
         this.__readEnvs();
@@ -114,6 +115,26 @@ export class VaultIdentityBackend {
         log.debug(`${fnTag} identity of manager successfully created with vault`);
     }
 
+    async putSecret(token: string, path: string, secrets: { [key: string]: any }): Promise<void> {
+        const backend = this.__client(token);
+        await backend.write(`${this.cfg.secretPath}/data/${path}`, {
+            data: {
+                value: secrets,
+            },
+        });
+    }
+
+    async getSecret(token: string, path: string): Promise<any> {
+        const backend = this.__client(token);
+        const resp = await backend.read(`${this.cfg.secretPath}/data/${path}`);
+        return resp.data.data.value;
+    }
+
+    async deleteSecret(token: string, path: string): Promise<void> {
+        const backend = this.__client(token);
+        await backend.delete(`${this.cfg.secretPath}/data/${path}`);
+    }
+
     private async __createIdentity(
         fnTag: string,
         token: string,
@@ -169,6 +190,7 @@ export class VaultIdentityBackend {
             clientPolicy: process.env.VAULT_POLICY_CLIENT,
             managerPolicy: process.env.VAULT_POLICY_MANAGER,
             userpassAccessor: process.env.VAULT_AUTH_USERPASS_ACCESSOR,
+            secretPath: process.env.VAULT_SECRET_PATH,
         };
         {
             nonBlankString(this.cfg.endpoint, 'VAULT_ENDPOINT');
@@ -177,6 +199,7 @@ export class VaultIdentityBackend {
             nonBlankString(this.cfg.userpassAccessor, 'VAULT_AUTH_USERPASS_ACCESSOR');
             nonBlankString(this.cfg.clientPolicy, 'VAULT_POLICY_CLIENT');
             nonBlankString(this.cfg.managerPolicy, 'VAULT_POLICY_MANAGER');
+            nonBlankString(this.cfg.secretPath, 'VAULT_SECRET_PATH');
         }
     }
 

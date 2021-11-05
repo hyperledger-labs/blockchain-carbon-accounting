@@ -33,7 +33,7 @@ describe('Signer', () => {
             true.should.be.false;
         } catch (error) {
             (error as Error).message.should.be.eq(
-                `Signer.constructor() support ethereum tx signing using "plain", but provided : unknown`,
+                `Signer.constructor() support ethereum tx signing using "plain" or "kv", but provided : unknown`,
             );
         }
     });
@@ -130,9 +130,9 @@ describe('Signer', () => {
         }
     });
 
-    it('should return eth signer for type=plain', () => {
+    it('should return eth signer for type=plain', async () => {
         const s = new Signer('vault', 'certstore', 'plain');
-        const signer = s.ethereum({
+        const signer = await s.ethereum({
             address: '0xaddress',
             private: '0xprivate',
         });
@@ -141,15 +141,12 @@ describe('Signer', () => {
         (signer as Web3SigningCredentialPrivateKeyHex).secret.should.be.eq('0xprivate');
     });
 
-    it('throws if eth address || private is not provided', () => {
+    it('throws if eth address || private is not provided', async () => {
         const s = new Signer('vault', 'certstore', 'plain');
         try {
-            s.ethereum({});
+            await s.ethereum({});
             true.should.be.false;
         } catch (error) {
-            (error as ClientError).message.should.be.eq(
-                'Signer.ethereum require eth address and private key for signing ethereum tx',
-            );
             (error as ClientError).status.should.be.eq(400);
         }
     });
