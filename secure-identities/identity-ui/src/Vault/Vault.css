@@ -1,0 +1,14 @@
+.Vault .lander {
+    padding: 80px 0;
+    text-align: center;
+  }
+  
+.Vault .lander h1 {
+    font-family: "Open Sans", sans-serif;
+    font-weight: 600;
+}
+  
+.Vault .lander p {
+    color: #999;
+}
+  

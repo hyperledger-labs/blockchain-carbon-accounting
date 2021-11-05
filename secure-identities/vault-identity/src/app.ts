@@ -4,6 +4,7 @@ import { serve, setup } from 'swagger-ui-express';
 import openAPI from './static/openapi.json';
 import RouterV1 from './delivery/http/v1/v1';
 import { VaultIdentityBackend } from './service/vault';
+import cors from 'cors';
 
 export default class App {
     private port: string;
@@ -12,6 +13,7 @@ export default class App {
         this.port = process.env.APP_PORT || '9090';
         this.app = express();
         this.app.use(json());
+        this.app.use(cors());
 
         this.__routers();
 
