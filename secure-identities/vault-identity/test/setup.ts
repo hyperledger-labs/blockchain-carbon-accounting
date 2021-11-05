@@ -10,7 +10,7 @@ const transitPath = process.env.VAULT_ENGINE_TRANSIT_PATH;
 const userpassPath = process.env.VAULT_AUTH_USERPASS_PATH;
 const clientPolicyName = process.env.VAULT_POLICY_CLIENT;
 const managerPolicyName = process.env.VAULT_POLICY_MANAGER;
-gconst secretPath = process.env.VAULT_SECRET_PATH;
+const secretPath = process.env.VAULT_SECRET_PATH;
 const devToken = 'tokenId';
 const devVaultEndpoint = process.env.VAULT_ENDPOINT;
 
