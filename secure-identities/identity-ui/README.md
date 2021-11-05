@@ -6,7 +6,7 @@ A web UI for authorizations of identity used in this project
 
 **Make Sure Vault Identity Server is running**
 
-- `npm run install`
+- `npm install`
 - `npm start`
 
 This will start a web-ui on `http://localhost:3000/`
