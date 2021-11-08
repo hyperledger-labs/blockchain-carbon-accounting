@@ -1,5 +1,5 @@
 name: "Test Report"
-on:
+on: # Run this workflow after the CI has completed
   workflow_run:
     workflows: ["CI"]
     types:
@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: dorny/test-reporter@v1
         with:
-          artifact: test-results
+          artifact: test-results # Read the test-results artifact and generate an HTML report
           name: Test Report
           path: "test-results.json"
           reporter: mocha-json
