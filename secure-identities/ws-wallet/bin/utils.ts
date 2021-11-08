@@ -4,25 +4,30 @@ import axios from 'axios';
 import { IWebSocketKey } from '../src/wallet'
 let usage = '\nUsage: ws-wallet\n';
 usage +=
-  '\tnew-key <keyname> [<curve>]\t' +
-  "\tGenerate new key with curve: 'p256' | 'p384'\n";
+  '\tnew-key <keyname> [<curve>]\t' + "\tGenerate new key with curve: 'p256' | 'p384'\n";
 usage += '\tget-pkh <keyname>\t' + '\t\tGet public key hex of keyname\n';
-usage += '\topen <keyname> <endpoint> [<sslStrict>] \t' + 'Open ws-identity session from host with keyname\n'; 
+usage += '\topen <endpoint> <keyname> \t\t' + 'Open ws-identity session from endpoint with keyname encrypted by password\n'; 
 
-usage += '\tconnect <host> <sessionId> <keyname> [<sslStrict>] \t' + 'Connect to ws-identity server\n'; 
-usage += '...      \t \t \t use sslStrict for testing with unverified ssl/tls certificates\n';
+usage += '\tconnect <host> <sessionId> <keyname> \t' + 'Connect to ws-identity server\n'; 
 
 function showHelp() {
   console.log(usage);
   console.log('\nOptions:\r');
-  console.log(
-    '   \t--version\t' + 'Show version number.' + '\t\t' + '[boolean]\r',
-  );
+
   console.log(
     '-k,\t--keys   \t' + 'List all keys.      ' + '\t\t' + '[boolean]\r',
   );
   console.log(
-    '   \t--help   \t' + 'Show help.          ' + '\t\t' + '[boolean]\n',
+    '   \t--help   \t' + 'Show help.          ' + '\t\t' + '[boolean]\r',
+  );
+  console.log(
+    '   \t--version\t' + 'Show version number.' + '\t\t' + '[boolean]\n',
+  );
+  console.log(
+    '-p,\t--pass   \t' + 'Provide passphrase for key encryption.' + '\t\t' + '[string]\r',
+  );
+  console.log(
+    '-ssl,\t--sslStrict \t' + 'Set sslStrict to false for testing.' + '\t\t' + '[boolean]\n',
   );
 }
 
@@ -44,8 +49,9 @@ function showHelp() {
    * at the url provided in the REST response 
    */
 async function newSession(
-  userId:string,
   endpoint:string,
+  userId:string,
+  password?:string,
   strictSSL?:boolean):Promise<IWebSocketKey>{ 
   let wsKey
   await axios.post(endpoint,{userId},
@@ -57,7 +63,7 @@ async function newSession(
     },
   ).then(async function(response) {
     const {url,sessionId} = response.data;
-    wsKey = await openSession(url,sessionId,userId);
+    wsKey = await openSession(url,sessionId,userId,password);
   });
   return wsKey; 
 }
@@ -72,14 +78,19 @@ async function openSession(
   endpoint:string,
   sessionId:string,
   keyName: string,
+  password?:string,
   strictSSL?:boolean):Promise<IWebSocketKey> {
-  const wsClient = new WsWallet({ endpoint, keyName, strictSSL});
-  const key:IWebSocketKey = await wsClient.open(sessionId);
-  return key
+  const wsClient = new WsWallet({ endpoint, keyName, password, strictSSL});
+  try{
+    const key:IWebSocketKey = await wsClient.open(sessionId);
+    return key
+  }catch(err){
+    //process.exit(err)
+  }
 }
 
 async function generateKey(args: IClientNewKey) {
-  const res = keyGen(args);
+  const res = await keyGen(args);
   console.log(res);
 }
 

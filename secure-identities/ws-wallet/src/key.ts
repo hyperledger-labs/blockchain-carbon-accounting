@@ -1,6 +1,7 @@
-import { KEYUTIL } from 'jsrsasign'
-import fs from 'fs'
-import path from 'path'
+import { KEYUTIL } from 'jsrsasign';
+import fs from 'fs';
+import path from 'path';
+import readline from 'readline';
 
 export enum ECCurveType {
   p256 = 'p256',
@@ -13,6 +14,7 @@ enum ECCurveLong {
 
 export interface IClientNewKey {
   keyName: string;
+  password?: string;
   curve?: ECCurveType;
 }
 
@@ -36,23 +38,26 @@ export function getKeyPath (keyName) {
  * @param args; @type IClientNewKey
  * @return pubKeyHex;
  */
-export function keyGen (args: IClientNewKey) {
+export async function keyGen (args: IClientNewKey) {
   try {
     const info = []
     const keyPath = getKeyPath(args.keyName)
     if (fs.existsSync(keyPath)) {
-      return `${args.keyName} key already exists`
+      throw new Error(`${args.keyName} key already exists`)
     }
     if (!args.curve) {
       info.push('No curve specified. Set to p256 as default')
       args.curve = ECCurveType.p256
     }
+
     const ecdsaAlg = ECCurveLong[args.curve]
     info.push(`Create ${args.keyName} key with elliptical curve ${ecdsaAlg}`)
     const keyPair = KEYUTIL.generateKeypair('EC', ecdsaAlg)
-    const key = KEYUTIL.getPEM(keyPair.prvKeyObj, 'PKCS8PRV')
+    const pass = await getPass(args.password)
+    const key = KEYUTIL.getPEM(keyPair.prvKeyObj, 'PKCS8PRV',pass)
+    info.push(`key encrypted with password`)
     const pubKey = KEYUTIL.getPEM(keyPair.pubKeyObj)
-    const keyData = { key, pubKey, curve: args.curve }
+    const keyData:KeyData = { key, pubKey, curve: args.curve }
     info.push(`Store private key data in ${keyPath}`)
     fs.writeFileSync(keyPath, JSON.stringify(keyData))
     const { pubKeyHex } = KEYUTIL.getKey(pubKey)
@@ -65,7 +70,7 @@ export function keyGen (args: IClientNewKey) {
 
 export function getPubKeyHex (args: IClientNewKey) {
   const keyPath = getKeyPath(args.keyName)
-  console.log(keyGen(args));
+  //console.log(keyGen(args));
   try {
     const keyData = JSON.parse(fs.readFileSync(keyPath, 'utf8'))
     const { pubKeyHex } = KEYUTIL.getKey(keyData.pubKey)
@@ -74,6 +79,25 @@ export function getPubKeyHex (args: IClientNewKey) {
     throw new Error(`Error retrieving pub-key-hex: ${error}`)
   }
 }
+export async function getPass(password?):Promise<string>{
+  
+  return new Promise(function (resolve, reject) {
+    if(!password){
+      const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+      });
+      rl.question(`Input password for your key file: `, function(pass) {
+        rl.close();
+        resolve(pass)
+      });
+      rl.on("close", function() {
+        //process.exit(0);
+      });
+    }else(resolve(password))
+  })
+}
+
 export function listKeys () {
   const keys = []
   fs.readdirSync(walletPath).forEach((file) => {

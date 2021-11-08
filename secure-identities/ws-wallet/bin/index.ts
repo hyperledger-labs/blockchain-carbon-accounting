@@ -9,12 +9,22 @@ yargs.usage(utils.usage)
     type: 'boolean',
     demandOption: false,
   })
+  .option('p', {
+    alias: 'pass',
+    describe: 'password that encrypts PKCS#8 key file',
+    type: 'string',
+  })
+  .option('s', {
+    alias: 'sslStrict',
+    describe: 'set sslStrict to false for testing with unverified ssl/tls certificates',
+    type: 'boolean',
+  })
   .help(true).argv;
 
 if (yargs.argv.k) {
   console.log(utils.listKeys().join('\n'));
 } else if (yargs.argv._[0] === 'new-key') {
-  utils.generateKey({ keyName: yargs.argv._[1], curve: yargs.argv._[2] });
+  utils.generateKey({ keyName: yargs.argv._[1], password: yargs.argv.p, curve: yargs.argv._[2] });
 } else if (yargs.argv._[0] === 'get-pkh') {
   console.log(utils.getPubKeyHex({keyName: yargs.argv._[1]}));
 } else if (yargs.argv._[0] === 'open'){
@@ -22,7 +32,8 @@ if (yargs.argv.k) {
     const resp = await utils.newSession(
       yargs.argv._[1],
       yargs.argv._[2],
-      eval(yargs.argv._[3])
+      yargs.argv.p,
+      eval(yargs.argv.ssl)
     )
     console.log(JSON.stringify(resp))
   })()
@@ -32,7 +43,8 @@ if (yargs.argv.k) {
       yargs.argv._[1], 
       yargs.argv._[2], 
       yargs.argv._[3],
-      eval(yargs.argv._[4])
+      yargs.argv.p,
+      eval(yargs.argv.ssl)
     );
     console.log(resp)
   })()
