@@ -19,7 +19,7 @@ export async function webSocket(req: Request, res: Response): Promise<void> {
                 'session/new',
                 {
                     pubKeyHex: req.headers.pub_key_hex,
-                    keyName: req.query.userId,
+                    keyName: req.query.key_name,
                 },
                 {},
             ),
