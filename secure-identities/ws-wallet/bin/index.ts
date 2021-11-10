@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import utils from './utils';
+
 const yargs = require('yargs');
 
 yargs.usage(utils.usage)
@@ -24,7 +25,8 @@ yargs.usage(utils.usage)
 if (yargs.argv.k) {
   console.log(utils.listKeys().join('\n'));
 } else if (yargs.argv._[0] === 'new-key') {
-  utils.generateKey({ keyName: yargs.argv._[1], password: yargs.argv.p, curve: yargs.argv._[2] });
+  const res = utils.keyGen({ keyName: yargs.argv._[1], password: yargs.argv.p, curve: yargs.argv._[2] });
+  console.log(res);
 } else if (yargs.argv._[0] === 'get-pkh') {
   console.log(utils.getPubKeyHex({keyName: yargs.argv._[1]}));
 } else if (yargs.argv._[0] === 'open'){

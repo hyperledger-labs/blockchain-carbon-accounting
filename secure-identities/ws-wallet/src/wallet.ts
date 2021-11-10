@@ -1,7 +1,13 @@
 import WebSocket from 'ws'
 import fs from 'fs'
 import elliptic from 'elliptic'
-import { keyGen, getKeyPath, getPass, IClientNewKey, KeyData, ECCurveType } from './key'
+import { 
+  keyGen, 
+  getKeyPath, 
+  getPass, 
+  IClientNewKey, 
+  KeyData, 
+  ECCurveType } from './util'
 import { KEYUTIL } from 'jsrsasign'
 import {
   Logger,
@@ -9,6 +15,9 @@ import {
   LogLevelDesc,
   LoggerProvider
 } from '@hyperledger/cactus-common'
+import readline from 'readline';
+import axios from 'axios';
+
 
 type IEcdsaCurves = {
   [key: string]: elliptic.ec;
@@ -143,8 +152,6 @@ export class WsWallet {
         ws.addEventListener(
           'open',
           function incoming () {
-            log.info(`${fnTag} sessionId: ${sessionId}`)
-            log.info(`${fnTag} signature: ${sessionSignature}`)
             resolve({
               signature: sessionSignature,
               sessionId
@@ -160,7 +167,7 @@ export class WsWallet {
       })
     } catch (error) {
       this.log.error(
-        `${fnTag} failed to connect with ${this.opts.endpoint}: ${error}`
+        `${fnTag} failed to connect to ${this.opts.endpoint}: ${error}`
       )
       //throw new Error(error)
     }
@@ -184,6 +191,75 @@ export class WsWallet {
     return pubKeyHex
   }
 
+  /**
+   * @description request new session with ws-identity server (identity proxy 
+   * to communicate with Fabric application) and webSocketKey for the session
+   * @param userId : name of key file stored by ws-wallet locally 
+   * also sets the userID fof storing the WS-X.509 certificate enrolled with Fabric;
+   * @param endpoint: url to access of the Fabric application API
+   * to request a new ws-identity session ticket
+   * @return IWebSocketKey: the key needed to access the open web-socket conneciton
+   * @note the session ticket must be requested by the Fabric app
+   * The ws-identity server matches the IP used to request the ticket with
+   * the IP connecting to it later (other apps can't use the same sessionId)
+   */
+  public async newSession(
+    endpoint:string,
+    keyName:string,
+    curve?:ECCurveType):Promise<IWebSocketKey>{ 
+    const fnTag = '#newSession'
+    this.log.debug(`${fnTag} open new web-socket session`)
+    let wsKey:IWebSocketKey;
+
+    try{
+      await this.approveRequest(endpoint)
+      let resp;
+      if(!this.opts.password){
+        this.log.info(`${fnTag} request declined`)
+        return
+      }
+      await axios.post(endpoint,{key_name: keyName},
+        {
+          headers: {
+            'accept': 'application/json',
+            'pub_key_hex': this.getPubKeyHex()
+          },
+        },
+      ).then(async function(response) {
+        resp = response.data;
+      });
+      const {sessionId,url} = resp;
+      wsKey = await this.open(sessionId,url);
+      this.log.info(`${fnTag} web socket key issued`)
+      return wsKey; 
+    }catch(err){
+      this.log.error(`${fnTag} error opening session ${err}`)
+    }
+  }
+  private async approveRequest(endpoint){
+    const fnTag = '#approveRequest'
+    let { password } = this.opts
+    this.log.info(`${fnTag} issue web-socket key for 3rd party application using endpoint ${endpoint}?`) 
+    this.opts.password = await new Promise(async function (resolve, reject) {
+      const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+      });
+      if(password){
+        rl.question('Yes(y) | No(n) :', function(approval) {
+          rl.close();
+          if(!approval.toLowerCase().charAt(0).includes("y")){
+            reject(null)
+          }
+        })
+      }else{
+        rl.close();
+        password = await getPass()
+      }
+      resolve(password)
+    })
+  }
+
   /**s
   * @description generate
   * @param prehashed digest as Buffer
@@ -191,7 +267,7 @@ export class WsWallet {
   */
   private async sign(digest: Buffer, keyData:KeyData, password: string, log:any): Promise<Buffer> { 
     const fnTag = '#sign'
-    log?.debug(`${fnTag} digest-size = ${digest.length}`)
+    log.debug(`${fnTag} digest-size = ${digest.length}`)
     try {
       const { prvKeyHex } = KEYUTIL.getKey(keyData.key, password)
       const ecdsa = ecdsaCurves[keyData.curve]
