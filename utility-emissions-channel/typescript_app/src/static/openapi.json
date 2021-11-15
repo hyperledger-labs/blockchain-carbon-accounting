@@ -406,7 +406,7 @@
         "operationId": "idWebSocket",
         "parameters": [
           {
-            "$ref" : "#/components/parameters/userId"
+            "$ref" : "#/components/parameters/keyName"
           },
           {
             "$ref" : "#/components/parameters/pubKeyHex"
@@ -619,8 +619,8 @@
           "example" : ""
         }
       },
-      "userId" : {
-        "name": "userId",
+      "keyName" : {
+        "name": "key_name",
         "in": "query",
         "required": true,
         "description": "userId of the calling client",

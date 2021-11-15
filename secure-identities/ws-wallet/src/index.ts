@@ -6,4 +6,6 @@ export {
 } from './wallet'
 export {
   ECCurveType
-} from './key'
+} from './util'
+
+

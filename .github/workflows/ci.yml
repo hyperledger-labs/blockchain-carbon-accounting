@@ -1,12 +1,12 @@
 name: "CI"
-on:
+on: # Run the workflows on push/PR to the main branch
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  lint-typescript-app:
+  lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,7 +23,7 @@ jobs:
       - name: Run lint script
         run: npm run lint
 
-  lint-utility-emissions-chaincode:
+  lint-utility-emissions-chaincode: # Run lint script for the chaincode/typescript directory
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,7 +40,7 @@ jobs:
       - name: Run lint script
         run: npm run lint
 
-  lint-datalock-chaincode:
+  lint-datalock-chaincode: # Run linting for the chaincode/datalock directory using golangci-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -49,7 +49,7 @@ jobs:
         with:
           working-directory: ./utility-emissions-channel/chaincode/datalock
 
-  test-datalock-chaincode:
+  test-datalock-chaincode: # Run chaincode tests for the chaincode/datalock directory
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,6 +61,7 @@ jobs:
           go-version: "1.16"
       - name: Run chaincode tests
         run: go test -v internal/*.go -count=1
+
 
   test-net-emissions-token-network: # Run tests for the net-emissions-token-network directory
     runs-on: ubuntu-latest
@@ -79,7 +80,8 @@ jobs:
       - name: Run tests
         run: npx hardhat test
 
-  test-typescript-app:
+
+  test-typescript-app: # Build and test the typescript_app project
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -94,13 +96,13 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           cd docker-compose-setup/
           ./bootstrap.sh  2.2.1 1.4.9 -d -s
-      - name: Start local Hardhat network
+      - name: Start local Hardhat network # Start local Hardhat network needed for running net emissions token network
         run: |
           cd ../net-emissions-token-network/
           npm i -g npm@latest
           npm ci
           echo "n" | npx hardhat node --show-accounts &
-      - name: Build utility-emissions-channel project
+      - name: Build utility-emissions-channel project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd docker-compose-setup/
           echo "127.0.0.1       auditor1.carbonAccounting.com
@@ -109,13 +111,13 @@ jobs:
           127.0.0.1       peer1.auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
           ./start.sh &
-      - name: Run tests
+      - name: Run tests # Wait for the blockchain network to start up and then runs the tests
         run: |
           sleep 240
           cd typescript_app/
           npm run test:setup
           npm run test:ci
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2 # Regardless of whether the tests passed or failed, upload the test results as an artifact
         if: success() || failure()
         with:
           name: test-results

@@ -33,16 +33,20 @@ export class WsClientRouter {
       )
     }
 
+    private __validate (req: Request, res: Response, fnTag: string) {
+        const errors = validationResult(req)
+        if (!errors.isEmpty()) {
+            this.log.debug(`${fnTag} bad request : ${JSON.stringify(errors.array())}`)
+            return res.status(400).json({
+              msg: JSON.stringify(errors.array())
+            })
+        }
+    }
+
     private async sign (req: Request, res: Response) {
       const fnTag = `${req.method.toUpperCase()} ${req.originalUrl}`
       this.log.info(fnTag)
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        this.log.debug(`${fnTag} bad request : ${JSON.stringify(errors.array())}`)
-        return res.status(400).json({
-          msg: JSON.stringify(errors.array())
-        })
-      }
+      this.__validate(req,res,fnTag)
       try {
         const digest = Buffer.from(req.body.digest, 'base64')
         const resp = await (req as any).client.sign(digest)
@@ -58,13 +62,7 @@ export class WsClientRouter {
     private async getPub (req: Request, res: Response) {
       const fnTag = `${req.method.toUpperCase()} ${req.originalUrl}`
       this.log.info(fnTag)
-      const errors = validationResult(req)
-      if (!errors.isEmpty()) {
-        this.log.debug(`${fnTag} bad request : ${JSON.stringify(errors.array())}`)
-        return res.status(400).json({
-          msg: JSON.stringify(errors.array())
-        })
-      }
+      this.__validate(req,res,fnTag)
       try {
         const resp = KEYUTIL.getPEM((req as any).client.pubKeyEcdsa)
         return res.status(200).json(resp)
