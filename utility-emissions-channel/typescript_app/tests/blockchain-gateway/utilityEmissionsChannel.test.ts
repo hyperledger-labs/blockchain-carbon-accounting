@@ -1,12 +1,14 @@
+import chai from 'chai';
+import { SHA256 } from 'crypto-js';
+import { config } from 'dotenv';
+import { v4 as uuid4 } from 'uuid';
+
 import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
 import AWSS3 from '../../src/datasource/awsS3';
-import { config } from 'dotenv';
 import Signer from '../../src/blockchain-gateway/signer';
 import { IFabricTxCaller } from '../../src/blockchain-gateway/I-gateway';
-import { v4 as uuid4 } from 'uuid';
 import { setup } from '../../src/utils/logger';
-import chai from 'chai';
 import ClientError from '../../src/errors/clientError';
 import { setupWebSocket } from '../setup-ws';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -91,6 +93,7 @@ describe('UtilityemissionchannelGateway', () => {
                 (error as ClientError).status.should.be.eq(409);
             }
         });
+
         const mockTokenId = '0xMockToken';
         it('should update token if for minted records', async () => {
             await utilityEmissionsGateway.updateEmissionsMintedToken(adminCaller, {
@@ -121,6 +124,15 @@ describe('UtilityemissionchannelGateway', () => {
             record.fromDate.should.be.eq('2020-05-07T10:10:09Z');
             record.thruDate.should.be.eq('2021-05-07T10:10:09Z');
             record.tokenId.should.be.eq(mockTokenId);
+        });
+
+        it('should store the hashed partyId', async () => {
+            const record = await utilityEmissionsGateway.getEmissionData(
+                adminCaller,
+                emissionsUUID,
+            );
+            const hash = SHA256(mockPartyID).toString();
+            record.partyId.should.be.eq(hash);
         });
 
         it('getEmissionData throws', async () => {
