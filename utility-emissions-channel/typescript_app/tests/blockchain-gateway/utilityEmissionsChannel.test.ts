@@ -1,4 +1,5 @@
 import chai from 'chai';
+import chaiHttp from 'chai-http';
 import { SHA256 } from 'crypto-js';
 import { config } from 'dotenv';
 import { v4 as uuid4 } from 'uuid';
@@ -13,12 +14,13 @@ import ClientError from '../../src/errors/clientError';
 import { setupWebSocket } from '../setup-ws';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
+chai.use(chaiHttp);
 
 setup('DEBUG', 'DEBUG');
 // env
 config();
 
-const mockUtilityID = 'USA_EIA_252522444142552441242521';
+const mockUtilityID = 'USA_EIA_11208';
 
 describe('UtilityemissionchannelGateway', () => {
     const bcConfig = new BCGatewayConfig();
@@ -92,6 +94,102 @@ describe('UtilityemissionchannelGateway', () => {
             } catch (error) {
                 (error as ClientError).status.should.be.eq(409);
             }
+        });
+
+        it('should use emissions factors for the correct year', async () => {
+            const mockPartyID2 = uuid4();
+            const usage = 100;
+            const usage_uom_conversion = 1 / 1000;
+            const emissions_uom_conversion = 1;
+            const agent = chai.request.agent('http://127.0.0.1:5984');
+
+            const emission2018 = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                utilityId: mockUtilityID,
+                partyId: mockPartyID2,
+                fromDate: '2018-01-01T00:00:00Z',
+                thruDate: '2018-01-31T00:00:00Z',
+                energyUseAmount: usage,
+                energyUseUom: 'kWh',
+                url: '',
+                md5: '',
+            });
+
+            const emission2019 = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                utilityId: mockUtilityID,
+                partyId: mockPartyID2,
+                fromDate: '2019-01-01T00:00:00Z',
+                thruDate: '2019-01-31T00:00:00Z',
+                energyUseAmount: usage,
+                energyUseUom: 'kWh',
+                url: '',
+                md5: '',
+            });
+
+            emission2018.emissionsAmount.should.not.eq(emission2019.emissionsAmount);
+
+            await agent.post('/_session').set('content-type', 'application/json').send({
+                name: 'admin',
+                password: 'adminpw',
+            });
+
+            const emissionSelector = (year: string) => ({
+                selector: {
+                    class: {
+                        $eq: 'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem',
+                    },
+                    division_id: {
+                        $eq: 'WECC',
+                    },
+                    division_type: {
+                        $eq: 'NERC_REGION',
+                    },
+                    year: {
+                        $eq: year,
+                    },
+                },
+                execution_stats: false,
+            });
+
+            await agent
+                .post('/utilityemissionchannel_utilityemissions/_find')
+                .set('content-type', 'application/json')
+                .send(emissionSelector('2018'))
+                .then((response) => {
+                    response.status.should.be.eq(200);
+                    const data = response.body;
+
+                    const utilityFactor = data.docs[0];
+
+                    const emissions_value =
+                        (Number(utilityFactor.co2_equivalent_emissions) /
+                            Number(utilityFactor.net_generation)) *
+                        usage *
+                        usage_uom_conversion *
+                        emissions_uom_conversion;
+
+                    emission2018.emissionsAmount.should.be.eq(emissions_value);
+                });
+
+            await agent
+                .post('/utilityemissionchannel_utilityemissions/_find')
+                .set('content-type', 'application/json')
+                .send(emissionSelector('2019'))
+                .then((response) => {
+                    response.status.should.be.eq(200);
+                    const data = response.body;
+
+                    const utilityFactor = data.docs[0];
+
+                    const emissions_value =
+                        (Number(utilityFactor.co2_equivalent_emissions) /
+                            Number(utilityFactor.net_generation)) *
+                        usage *
+                        usage_uom_conversion *
+                        emissions_uom_conversion;
+
+                    emission2019.emissionsAmount.should.be.eq(emissions_value);
+                });
+            agent.close();
         });
 
         const mockTokenId = '0xMockToken';

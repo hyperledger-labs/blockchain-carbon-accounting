@@ -26,7 +26,7 @@ const apiEndpoints = {
 
 const adminVaultToken = 'tokenId';
 const userId = 'admin';
-const mockUtilityID = 'USA_EIA_252522444142552441242521';
+const mockUtilityID = 'USA_EIA_11208';
 
 describe('E2E-vault', () => {
     tests('vault_token', adminVaultToken);
@@ -111,7 +111,7 @@ function tests(headerKey, headerValue) {
     });
     const partyId = uuid4();
     let uuid: string;
-    it('should record a emissions', (done) => {
+    it('should record an emission', (done) => {
         chai.request(v1Base)
             .post(apiEndpoints.recordEmissions)
             .set('content-type', 'application/x-www-form-urlencoded')
