@@ -4,6 +4,7 @@ import {
     FabricContractInvocationType,
     FabricSigningCredential,
 } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
+// import { execSync } from 'child_process';
 import { config } from 'dotenv';
 import axios from 'axios';
 config();
@@ -11,7 +12,6 @@ config();
 const bcConfig = new BCGatewayConfig();
 
 // insert mock utility identifier and factors
-const mockUtilityID = 'USA_EIA_252522444142552441242521';
 async function mockEmissionsRecord() {
     const signer: FabricSigningCredential = {
         keychainId: 'inMemoryKeychain',
@@ -27,9 +27,12 @@ async function mockEmissionsRecord() {
         caId: org.caID,
         mspId: org.orgMSP,
     });
+
     const channelName = 'utilityemissionchannel';
     const ccName = 'utilityemissions';
     // import utility identifier
+    const mockUtilityID = 'USA_EIA_11208';
+
     const p1 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
@@ -39,13 +42,13 @@ async function mockEmissionsRecord() {
         params: [
             mockUtilityID,
             '2019',
-            '252522444142552441242521',
-            'test-utility-name',
+            '11208',
+            'Los Angeles Department of Water & Power',
             'USA',
             '',
             JSON.stringify({
                 division_type: 'NERC_REGION',
-                division_id: 'MRO',
+                division_id: 'WECC',
             }),
         ],
     });
@@ -58,24 +61,48 @@ async function mockEmissionsRecord() {
         invocationType: FabricContractInvocationType.Send,
         methodName: 'importUtilityFactor',
         params: [
-            'mock-utility-factor',
-            '2019',
+            'USA_2018_NERC_REGION_WECC',
+            '2018',
             'USA',
             'NERC_REGION',
-            'MRO',
-            'SERC_Reliability_Corporation',
-            '46112136.165',
+            'WECC',
+            'Western_Electricity_Coordinating_Council',
+            '743291275',
             'MWH',
-            '47582155.875',
+            '288021204',
             'tons',
             'https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip',
-            '41078452.268',
-            '5033683.71',
+            '443147683',
+            '300143593',
             '',
         ],
     });
 
-    await Promise.all([p1, p2]);
+    const p3 = hlfConnector.transact({
+        signingCredential: signer,
+        channelName: channelName,
+        contractName: ccName,
+        invocationType: FabricContractInvocationType.Send,
+        methodName: 'importUtilityFactor',
+        params: [
+            'USA_2019_NERC_REGION_WECC',
+            '2019',
+            'USA',
+            'NERC_REGION',
+            'WECC',
+            'Western_Electricity_Coordinating_Council',
+            '738835346',
+            'MWH',
+            '285747759',
+            'tons',
+            'https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx',
+            '447805417',
+            '291029929',
+            '',
+        ],
+    });
+
+    await Promise.all([p1, p2, p3]);
 }
 
 async function setupVault() {

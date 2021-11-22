@@ -41,7 +41,7 @@ describe('DataLockGateway', () => {
                 fabricConnector: org.connector,
                 signer: signer,
             }).recordEmissions(adminCaller, {
-                utilityId: 'USA_EIA_252522444142552441242521',
+                utilityId: 'USA_EIA_11208',
                 partyId: uuid4(),
                 fromDate: '2020-05-07T10:10:09Z',
                 thruDate: '2021-05-07T10:10:09Z',
