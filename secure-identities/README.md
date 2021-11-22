@@ -68,6 +68,10 @@ To enable this, go to `secure-identities/ws-wallet` and
  npm run start
 ```
 
+From your client app, call the web-socket server's endpoint at ```http://localhost:9090/session/new``` or the host and port where your ws-wallet REST server is running and provide the name of the user's key and the URL where Fabric's ```/identity/webSocket``` is located so that the REST server could get you the session signature and ID.
+
+Then use that session signature and ID with your requests to Fabric.
+
 ## Using the Vault Transit Server
 
 The Vault Transit server is a centralized secure server to store secret keys for a number of users.  The admin can set up different security profiles and then create users.  All users can generate tokens and Transit public keys.  Then the user can access Fabric by providing its token, and the Fabric application will check Vault's Transit key against the user's provided token to validate it.
