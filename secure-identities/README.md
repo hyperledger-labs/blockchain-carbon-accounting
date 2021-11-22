@@ -53,11 +53,24 @@ A third package, [ws-identity-client](./ws-identity-client/README.md), is used t
 
 The video from [2021-10-25 Peer Programming Call](https://wiki.hyperledger.org/display/CASIG/2021-10-25+Peer+Programming+Call) from 34:00 to 1:00:00 shows how to use the ws-wallet with Fabric.  The ws-identity server is bundled within the REST API of the utility emissions channel.  The process is:
 
-- Use `ws-wallet new-key` to create a key for a user.  It will store a private key and return the public key.
+- Use `ws-wallet new-key` to create a key for a user.  It will prompt you for a password, then store a private key encrypted with the password and return the public key.
 - Request a session through the REST API ending in `/identity/webSocket/` using your public key and user name.  The server will open up a session for your wallet to connect and return a sessionId and a connection URL.
 - Now connect to the server using `ws-wallet connect <url> <sessionId>`  If the public key of your user agrees with the public key used to open the connection, then the server will return a signature and session key.  You can then use the signature and session key (webSocketKey) to perform additional operations on the REST API server, such as registering and enrolling users and operations on Fabric.
 
 See [docs/ws-session.md](./docs/ws-session.md) for a detailed ECB diagram for setting up a web-socket identity session.
+
+### Using the Web Socket from a Client App
+
+Web socket comes with a REST endpoint to work with client applications such as mobile or web apps.  The client app requests the signature and session key through the REST endpoint.  The user will need to provide the password for the private key to authorize the access.  The REST endpoint will then give the client app the signature and session key, which could then be used to authenticate it on Fabric.
+
+To enable this, go to `secure-identities/ws-wallet` and
+```
+ npm run start
+```
+
+From your client app, call the web-socket server's endpoint at ```http://localhost:9090/session/new``` or the host and port where your ws-wallet REST server is running and provide the name of the user's key and the URL where Fabric's ```/identity/webSocket``` is located so that the REST server could get you the session signature and ID.
+
+Then use that session signature and ID with your requests to Fabric.
 
 ## Using the Vault Transit Server
 
