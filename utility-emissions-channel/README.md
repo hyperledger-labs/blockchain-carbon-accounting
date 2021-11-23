@@ -118,7 +118,7 @@ $ wget https://www.eia.gov/electricity/data/eia861/archive/zip/f8612019.zip
 $ unzip f8612019.zip
 ```
 
-4. Download the data from the [European Environment Agency](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract the zip file.
+4. Download the European Environment Agency data for [CO2 intensity of electricity generation](https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation) and [Share of Renewables](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract the zip file.
 
 5. Load utility emissions and identifiers data from the files.  NOTE: There is a [known issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/76) with loading the European `co2-emissions-intensity` file on Mac OS X, so if you are looking to use this for European data, it will only work on Ubuntu:
 
