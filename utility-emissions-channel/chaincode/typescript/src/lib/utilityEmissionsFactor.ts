@@ -128,7 +128,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
         lookup: UtilityLookupItemInterface,
         thruDate: string,
     ): Promise<UtilityEmissionsFactor> {
-        const hasStateData = lookup.state_province.length > 0;
+        const hasStateData = lookup.state_province !== undefined;
         const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
         const isNonUSCountry =
             lookup.divisions.division_type.toLowerCase() === 'country' &&
@@ -163,6 +163,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
             divisionType,
             year,
         );
+        console.log(utilityFactors);
         if (utilityFactors.length === 0) {
             throw new Error('No utility emissions factor found for given query');
         }

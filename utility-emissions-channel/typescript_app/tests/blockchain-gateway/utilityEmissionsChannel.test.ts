@@ -192,6 +192,120 @@ describe('UtilityemissionchannelGateway', () => {
             agent.close();
         });
 
+        it('should use emissions factors for the correct region', async () => {
+            const mockUtilityID_DE = 'RWE_AG';
+            const mockPartyID2 = uuid4();
+            const usage = 100;
+            const usage_uom_conversion = 1 / 1000;
+            const agent = chai.request.agent('http://127.0.0.1:5984');
+
+            const emissionUSA = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                utilityId: mockUtilityID,
+                partyId: mockPartyID2,
+                fromDate: '2019-01-01T00:00:00Z',
+                thruDate: '2019-01-31T00:00:00Z',
+                energyUseAmount: usage,
+                energyUseUom: 'kWh',
+                url: '',
+                md5: '',
+            });
+
+            const emissionDE = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                utilityId: mockUtilityID_DE,
+                partyId: mockPartyID2,
+                fromDate: '2019-01-01T00:00:00Z',
+                thruDate: '2019-01-31T00:00:00Z',
+                energyUseAmount: usage,
+                energyUseUom: 'kWh',
+                url: '',
+                md5: '',
+            });
+
+            emissionDE.emissionsAmount.should.not.eq(emissionUSA.emissionsAmount);
+
+            await agent.post('/_session').set('content-type', 'application/json').send({
+                name: 'admin',
+                password: 'adminpw',
+            });
+
+            await agent
+                .post('/utilityemissionchannel_utilityemissions/_find')
+                .set('content-type', 'application/json')
+                .send({
+                    selector: {
+                        class: {
+                            $eq: 'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem',
+                        },
+                        division_id: {
+                            $eq: 'WECC',
+                        },
+                        division_type: {
+                            $eq: 'NERC_REGION',
+                        },
+                        year: {
+                            $eq: '2019',
+                        },
+                    },
+                    execution_stats: false,
+                })
+                .then((response) => {
+                    response.status.should.be.eq(200);
+                    const data = response.body;
+                    const utilityFactor = data.docs[0];
+                    const emissions_uom_conversion = 1;
+
+                    const emissions_value =
+                        (Number(utilityFactor.co2_equivalent_emissions) /
+                            Number(utilityFactor.net_generation)) *
+                        usage *
+                        usage_uom_conversion *
+                        emissions_uom_conversion;
+
+                    emissionUSA.emissionsAmount.should.be.eq(emissions_value);
+                });
+
+            await agent
+                .post('/utilityemissionchannel_utilityemissions/_find')
+                .set('content-type', 'application/json')
+                .send({
+                    selector: {
+                        class: {
+                            $eq: 'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem',
+                        },
+                        division_id: {
+                            $eq: 'Germany',
+                        },
+                        division_type: {
+                            $eq: 'Country',
+                        },
+                        year: {
+                            $eq: '2019',
+                        },
+                    },
+                    execution_stats: false,
+                })
+                .then((response) => {
+                    response.status.should.be.eq(200);
+                    const data = response.body;
+                    const utilityFactor = data.docs[0];
+                    const emissions_uom_conversion = 1000;
+
+                    const emissions_value =
+                        Number(utilityFactor.co2_equivalent_emissions) *
+                        usage *
+                        (usage_uom_conversion / emissions_uom_conversion);
+
+                    const percent_of_renewables = Number(utilityFactor.percent_of_renewables) / 100;
+
+                    emissionDE.emissionsAmount.should.be.eq(emissions_value);
+                    emissionDE.renewableEnergyUseAmount.should.be.eq(usage * percent_of_renewables);
+                    emissionDE.nonrenewableEnergyUseAmount.should.be.eq(
+                        usage * (1 - percent_of_renewables),
+                    );
+                });
+            agent.close();
+        });
+
         const mockTokenId = '0xMockToken';
         it('should update token if for minted records', async () => {
             await utilityEmissionsGateway.updateEmissionsMintedToken(adminCaller, {
@@ -269,7 +383,7 @@ describe('UtilityemissionchannelGateway', () => {
                     thruDate: '2021-05-07T10:10:09Z',
                     energyUseAmount: 100,
                     energyUseUom: 'kWh',
-                    url: 'localost:///tmp/filename',
+                    url: 'localhost:///tmp/filename',
                     md5: '',
                 });
                 const documentUrl = data.url;
