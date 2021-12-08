@@ -53,8 +53,28 @@ async function mockEmissionsRecord() {
         ],
     });
 
-    // import mock utility factor
     const p2 = hlfConnector.transact({
+        signingCredential: signer,
+        channelName: channelName,
+        contractName: ccName,
+        invocationType: FabricContractInvocationType.Send,
+        methodName: 'importUtilityIdentifier',
+        params: [
+            'RWE_AG',
+            '2019',
+            '1',
+            'RWE AG',
+            'DE',
+            '',
+            JSON.stringify({
+                division_type: 'COUNTRY',
+                division_id: 'Germany',
+            }),
+        ],
+    });
+
+    // import mock utility factor
+    const p3 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
         contractName: ccName,
@@ -78,7 +98,7 @@ async function mockEmissionsRecord() {
         ],
     });
 
-    const p3 = hlfConnector.transact({
+    const p4 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
         contractName: ccName,
@@ -102,7 +122,31 @@ async function mockEmissionsRecord() {
         ],
     });
 
-    await Promise.all([p1, p2, p3]);
+    const p5 = hlfConnector.transact({
+        signingCredential: signer,
+        channelName: channelName,
+        contractName: ccName,
+        invocationType: FabricContractInvocationType.Send,
+        methodName: 'importUtilityFactor',
+        params: [
+            'COUNTRY_DE_2019',
+            '2019',
+            'Germany',
+            'Country',
+            'Germany',
+            'Germany',
+            '',
+            '',
+            '338',
+            'g/KWH',
+            'https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file;https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9',
+            '',
+            '',
+            '41.03',
+        ],
+    });
+
+    await Promise.all([p1, p2, p3, p4, p5]);
 }
 
 async function setupVault() {
