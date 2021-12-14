@@ -28,6 +28,6 @@
   "dependencies": {
     "@eth-optimism/plugins": "0.0.16",
     "@openzeppelin/contracts": "^3.3.0",
-    "@openzeppelin/contracts-upgradeable": "^3.4.1"
+    "@openzeppelin/contracts-upgradeable": "^4.4.1"
   }
 }
