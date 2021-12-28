@@ -58,10 +58,10 @@ utility-emissions-channel/typescript_app/.nyc_output
 utility-emissions-channel/typescript_app/coverage
 
 #  b. chaincode
-utility-emissions-channel/chaincode/packaging/code.tar.gz
-utility-emissions-channel/chaincode/packaging/marbles-chaincode.tgz
-utility-emissions-channel/chaincode/typescript/node_modules
-utility-emissions-channel/chaincode/typescript/dist
+utility-emissions-channel/chaincode/emissionscontract/packaging/*.tar.gz
+utility-emissions-channel/chaincode/emissionscontract/packaging/*.tgz
+utility-emissions-channel/chaincode/emissionscontract/typescript/node_modules
+utility-emissions-channel/chaincode/emissionscontract/typescript/dist
 #  c. docker-compose-setup
 utility-emissions-channel/docker-compose-setup/channel-artifacts/*.tx
 utility-emissions-channel/docker-compose-setup/channel-artifacts/*.block
@@ -94,7 +94,6 @@ utility-emissions-channel/.project
 utility-emissions-channel/docker-compose-setup/bin
 utility-emissions-channel/docker-compose-setup/bin_mac
 utility-emissions-channel/docker-compose-setup/config
-utility-emissions-channel/chaincode/node/node_modules
 
 secure-identities/vault-identity/node_modules
 secure-identities/vault-identity/package-lock.json
