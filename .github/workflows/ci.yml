@@ -23,11 +23,11 @@ jobs:
       - name: Run lint script
         run: npm run lint
 
-  lint-utility-emissions-chaincode: # Run lint script for the chaincode/typescript directory
+  lint-utility-emissions-chaincode: # Run lint script for the chaincode/emissionscontract/typescript directory
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./utility-emissions-channel/chaincode/typescript
+        working-directory: ./utility-emissions-channel/chaincode/emissionscontract/typescript
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -62,7 +62,6 @@ jobs:
       - name: Run chaincode tests
         run: go test -v internal/*.go -count=1
 
-
   test-net-emissions-token-network: # Run tests for the net-emissions-token-network directory
     runs-on: ubuntu-latest
     defaults:
@@ -79,7 +78,6 @@ jobs:
           npm ci
       - name: Run tests
         run: npx hardhat test
-
 
   test-typescript-app: # Build and test the typescript_app project
     runs-on: ubuntu-latest
