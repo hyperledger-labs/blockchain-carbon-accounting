@@ -4,7 +4,7 @@ CREATE TABLE csv_project (
     project_name text,
     registry text,
     arb_project text,
-    registry_and_arb text,
+    voluntary_status text,
     scope text,
     project_type text,
     methodology_protocol text,
@@ -43,7 +43,6 @@ CREATE TABLE csv_project (
     issued_by_reporting_2019 bigint,
     issued_by_reporting_2020 bigint,
     issued_by_reporting_2021 bigint,
-    issued_by_reporting_future bigint,
     retired_1996 bigint,
     retired_1997 bigint,
     retired_1998 bigint,
@@ -71,16 +70,43 @@ CREATE TABLE csv_project (
     retired_2020 bigint,
     retired_2021 bigint,
     retired_unknown bigint,
+    remaining_1996 bigint,
+    remaining_1997 bigint,
+    remaining_1998 bigint,
+    remaining_1999 bigint,
+    remaining_2000 bigint,
+    remaining_2001 bigint,
+    remaining_2002 bigint,
+    remaining_2003 bigint,
+    remaining_2004 bigint,
+    remaining_2005 bigint,
+    remaining_2006 bigint,
+    remaining_2007 bigint,
+    remaining_2008 bigint,
+    remaining_2009 bigint,
+    remaining_2010 bigint,
+    remaining_2011 bigint,
+    remaining_2012 bigint,
+    remaining_2013 bigint,
+    remaining_2014 bigint,
+    remaining_2015 bigint,
+    remaining_2016 bigint,
+    remaining_2017 bigint,
+    remaining_2018 bigint,
+    remaining_2019 bigint,
+    remaining_2020 bigint,
+    remaining_2021 bigint,
     project_owner text,
     offset_project_operator text,
     authorized_project_designee text,
     verifier text,
     estimated_annual_emission_reductions bigint,
-    voluntary_status text,
-    project_listed integer,
-    project_registered integer ,
-    arb_id text,
+    pers text,
+    registry_and_arb text,
     arb_project_detail text,
+    arb_id text,
+    project_listed text,
+    project_registered text,
     active_ccb_status text,
     project_sector text,
     registry_documents text,
@@ -113,7 +139,7 @@ CREATE TABLE csv_project (
     issued_2021 bigint,
     notes_from_registry text,
     notes text,
-    date_project_added_to_database integer,
+    date_project_added_to_database text,
     year_of_first_issuance integer
 );
 
@@ -127,6 +153,9 @@ update csv_project set project_id = regexp_replace(project_id, E'^VCS', '');
 -- add UUIDs for tracking our project Ids
 alter table csv_project add id uuid;
 update csv_project set id = uuid_generate_v4();
+-- cleanup broken dates...
+update csv_project set project_listed = null where project_listed ~ '^\d+$';
+update csv_project set project_registered = null where project_registered ~ '^\d+$';
 
 -- cleanup previous data ?
 delete from retirement;
@@ -175,7 +204,7 @@ insert into project (
     total_credits_retired,
     total_credits_remaining,
     first_year_of_project,
-    issued_by_reporting_future,
+    0,
     retired_unknown,
     project_owner,
     offset_project_operator,
@@ -183,7 +212,7 @@ insert into project (
     voluntary_status,
     project_website,
     trim(coalesce(notes_from_registry, '') || ' ' || coalesce(notes, '')),
-    TO_DATE('19000101','YYYYMMDD') + interval '1 day' * date_project_added_to_database,
+    TO_DATE(date_project_added_to_database,'YYYYMM'),
     'Berkeley Carbon Trading Project.  Barbara Haya, Micah Elias, Ivy So. (2021, September). Voluntary Registry Offsets Database, Berkeley Carbon Trading Project, Center for Environmental Public Policy, University of California, Berkeley. Retrieved from: https://gspp.berkeley.edu/faculty-and-impact/centers/cepp/projects/berkeley-carbon-trading-project/offsets-database',
     'csv import'
 from csv_project;
@@ -211,8 +240,8 @@ insert into project_registry (
     registry_and_arb,
     project_type,
     methodology_protocol,
-    project_listed,
-    project_registered,
+    TO_DATE(project_listed,'MM/DD/YY'),
+    TO_DATE(project_registered,'MM/DD/YY'),
     active_ccb_status,
     registry_documents
 from csv_project;

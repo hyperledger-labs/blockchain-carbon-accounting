@@ -31,9 +31,10 @@ cat data/ACR_issuances.csv | psql open-offsets-directory -c "$(cat node-server/i
 cat data/CAR_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_car_issuances.sql)"
 cat data/VCS_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_vcs_issuances.sql)"
 cat data/GOLD_issuances.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_gold_issuances.sql)"
-cat data/ACR_CAR_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_acr-car_retirements.sql)"
 cat data/VCS_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_vcs_retirements.sql)"
 cat data/GOLD_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_gold_retirements.sql)"
+cat data/ACR_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_acr_retirements.sql)"
+cat data/CAR_retirements.csv | psql open-offsets-directory -c "$(cat node-server/import_csv_car_retirements.sql)"
 ```
 
 Then

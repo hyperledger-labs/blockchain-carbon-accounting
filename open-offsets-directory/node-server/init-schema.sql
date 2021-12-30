@@ -74,8 +74,8 @@ CREATE TABLE project_registry (
     registry_and_arb text,
     project_type text,
     methodology_protocol text,
-    project_listed integer,
-    project_registered integer ,
+    project_listed date,
+    project_registered date,
     active_ccb_status text,
     registry_documents text,
     CONSTRAINT fk_project_to_registry

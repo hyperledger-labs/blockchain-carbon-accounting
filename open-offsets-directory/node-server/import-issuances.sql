@@ -7,9 +7,6 @@ update csv_car_issuances set project_id = regexp_replace(project_id, E'^VCS', ''
 update csv_vcs_issuances set project_id = regexp_replace(project_id, E'^VCS', '');
 update csv_gold_issuances set project_id = regexp_replace(project_id, E'^VCS', '');
 
--- Note most of the date issued are integers as number of days since Jan 1 1900
--- use: TO_DATE('19000101','YYYYMMDD') + interval '1 day' * date_issued
-
 -- csv_acr_issuances
 insert into issuance (
     id,
@@ -24,7 +21,7 @@ insert into issuance (
     p.project_id,
     p.id,
     i.vintage,
-    TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
+    TO_DATE(i.date_issued,'MM/DD/YY'),
     i.total_credits_issued,
     ''
 from csv_acr_issuances i
@@ -44,7 +41,7 @@ insert into issuance (
     p.project_id,
     p.id,
     i.vintage,
-    TO_DATE('19000101','YYYYMMDD') + interval '1 day' * i.date_issued,
+    TO_DATE(i.date_issued,'MM/DD/YY'),
     i.total_offset_credits_issued,
     ''
 from csv_car_issuances i
