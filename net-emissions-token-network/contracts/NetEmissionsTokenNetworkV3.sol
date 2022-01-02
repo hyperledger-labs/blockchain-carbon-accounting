@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/cryptography/ECDSAUpgradeable.sol";
-contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+contract NetEmissionsTokenNetwork3 is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
 
     using SafeMathUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -191,7 +191,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     function _consumerOrDealer(address entity) public view returns (bool) {
         // check for one role and return if true if true
         // before checking the next to minimze gas
-        if(hasRole(REGISTERED_DEALER, entity) ||
+        if(hasRole(REGISTERED_DEALER,entity) ||
            hasRole(REGISTERED_CONSUMER, entity) ||
            hasRole(REGISTERED_INDUSTRY, entity) 
         ) return true;

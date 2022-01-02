@@ -43,7 +43,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
         .connect(await ethers.getSigner(dealer1))
         .issue(
           consumer1,
-          "4",
+          "5",
           quantity,
           fromDate,
           thruDate,
@@ -116,50 +116,52 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   it("should return the correct roles after owner assigns them", async function() {
 
-    const { deployer, dealer1, dealer2, dealer3, consumer1, unregistered } = await getNamedAccounts();
+    const { deployer, dealer1, dealer2, dealer3, industry1, consumer1, unregistered } = await getNamedAccounts();
 
     // register roles
     let registerRecdealer = await contract.registerDealer(dealer1, allTokenTypeId[0]);
     let registerCeodealer = await contract.registerDealer(dealer2, allTokenTypeId[1]);
     let registerAedealer = await contract.registerDealer(dealer3, allTokenTypeId[2]);
+    let registerIndustry = await contract.registerDealer(industry1, allTokenTypeId[3]);
     let registerconsumer = await contract.registerConsumer(consumer1);
     expect(registerRecdealer);
     expect(registerCeodealer);
     expect(registerAedealer);
+    expect(registerIndustry);
     expect(registerconsumer);
 
     // @TODO: Remove owner role from dealers
     await contract
       .getRoles(deployer)
-      .then((response) => expect(response).to.deep.equal([true, true, true, true, false]));
+      .then((response) => expect(response).to.deep.equal([true, true, true, true, true, false]));
     await contract
       .getRoles(dealer1)
-      .then((response) => expect(response).to.deep.equal([false, true, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, false, false, false, false]));
     await contract
       .getRoles(dealer2)
-      .then((response) => expect(response).to.deep.equal([false, false, true, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, true, false, false, false]));
     await contract
       .getRoles(dealer3)
-      .then((response) => expect(response).to.deep.equal([false, false, false, true, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, true, false, false]));
     await contract
       .getRoles(consumer1)
-      .then((response) => expect(response).to.deep.equal([false, false, false, false, true]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, false, false, true]));
     await contract
       .getRoles(unregistered)
-      .then((response) => expect(response).to.deep.equal([false, false, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, false, false, false]));
 
     // check assigning another dealer role to recDealer
     let registerRecdealerTwo = await contract.registerDealer(dealer1, allTokenTypeId[1]);
     expect(registerRecdealerTwo);
     await contract
       .getRoles(dealer1)
-      .then((response) => expect(response).to.deep.equal([false, true, true, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, true, false, false, false]));
 
     // check unregistering that role from recDealer
     await contract.unregisterDealer(dealer1, allTokenTypeId[1]);
     await contract
       .getRoles(dealer1)
-      .then((response) => expect(response).to.deep.equal([false, true, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, false, false, false, false]));
 
     // check if recDealer is dealer
     await contract
@@ -543,7 +545,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
+      "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: sender not a consumer or a dealer"
     );
 
     // retire more than available balance
@@ -633,7 +635,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert CLM8::transfer: Recipient must be consumer or dealer"
+      "Error: VM Exception while processing transaction: revert CLM8::consumerOrDealer: recipient must be consumer, dealer or industry"
     );
 
     // try to transfer to self
@@ -644,7 +646,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert CLM8::transfer: sender and receiver cannot be the same"
+      "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer: sender and receiver cannot be the same"
     );
 
   });

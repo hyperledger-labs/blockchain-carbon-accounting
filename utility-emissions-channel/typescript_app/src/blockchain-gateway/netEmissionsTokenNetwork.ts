@@ -39,6 +39,29 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         this.EventTokenCreatedInput = tokenCreatedABI.inputs;
     }
 
+    async registerConsumer(
+        caller: IEthTxCaller,
+        input: { address: string },
+    ): Promise<{ address: string }> {
+        const fnTag = `${this.className}.issue()`;
+        ledgerLogger.debug(`${fnTag} getting signer for client`);
+        const signer = await this.opts.signer.ethereum(caller);
+        ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
+        try {
+            await this.opts.ethClient.invokeContract({
+                contractName: this.contractName,
+                signingCredential: signer,
+                invocationType: EthContractInvocationType.Send,
+                methodName: 'registerConsumer',
+                params: [input.address],
+                keychainId: this.opts.contractStoreKeychain,
+            });
+        } catch (error) {
+            throw new ClientError(`${fnTag} failed to invoke issue method : ${error.message}`, 409);
+        }
+        return { address: input.address };
+    }
+
     async issue(
         caller: IEthTxCaller,
         input: IEthNetEmissionsTokenIssueInput,
