@@ -354,10 +354,17 @@ module.exports = {
             runs: 200
           }
         }
+      },
+      {
+        version: "0.8.3",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
       }
     ]
-
-
   },
   gasReporter: {
     currency: 'USD',

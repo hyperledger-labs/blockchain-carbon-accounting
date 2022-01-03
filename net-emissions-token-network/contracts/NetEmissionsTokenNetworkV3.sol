@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/cryptography/ECDSAUpgradeable.sol";
-contract NetEmissionsTokenNetwork3 is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+contract NetEmissionsTokenNetworkV3 is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
 
     using SafeMathUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -191,7 +191,7 @@ contract NetEmissionsTokenNetwork3 is Initializable, ERC1155Upgradeable, AccessC
     function _consumerOrDealer(address entity) public view returns (bool) {
         // check for one role and return if true if true
         // before checking the next to minimze gas
-        if(hasRole(REGISTERED_DEALER,entity) ||
+        if(hasRole(REGISTERED_DEALER, entity) ||
            hasRole(REGISTERED_CONSUMER, entity) ||
            hasRole(REGISTERED_INDUSTRY, entity) 
         ) return true;
@@ -246,6 +246,11 @@ contract NetEmissionsTokenNetwork3 is Initializable, ERC1155Upgradeable, AccessC
      */
     function getNumOfUniqueTokens() public view returns (uint256) {
         return _numOfUniqueTokens.current();
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual 
+        override(ERC1155Upgradeable,AccessControlUpgradeable) returns (bool) {
+        return interfaceId == type(IAccessControlUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**

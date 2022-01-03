@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 import "../NetEmissionsTokenNetwork.sol";
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 
 contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
@@ -154,6 +154,11 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         require(arrayOne.length == arrrayTwo.length, 
             "CLM8::_equalLength: array lengths are not equal"); 
         _;
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual 
+        override(ERC721Upgradeable,AccessControlUpgradeable) returns (bool) {
+        return interfaceId == type(IAccessControlUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
     /**
      * @dev msg.sender is trackee or approved auditor of trackee
