@@ -6,10 +6,12 @@ This is an initial implementation of the [Voluntary Carbon Offsets Directory](ht
 
 ### Init the Postgresql Database
 
-Create a Postgres database as configured in `node-server/app/config/db.config.js` by default this should be `open-offsets-directory`
+Create a Postgres database as configured in `node-server/app/config/db.config.js` by default this should be `open-offsets-directory`.
+Note: make sure that the date format is set to 'ISO, MDY' as this is exoected during the data import.
 
 ```
 createdb open-offsets-directory
+psql open-offsets-directory -c 'ALTER DATABASE "open-offsets-directory" SET datestyle TO "ISO, MDY";'
 ```
 
 Then initialize the schema using `node-server/init-schema.sql`
