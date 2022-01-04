@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 // V2 example file for testing upgrades
 // This is NOT up to date or a real upgrade of NetEmissionsTokenNetwork.sol
@@ -70,6 +70,10 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
     // Token metadata and retired balances
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
+    mapping(uint256 => mapping(address => uint256)) private _transferredBalances;
+
+    // Nonce for tokeTypeId 4 transfer from => to account
+    mapping(address => mapping(address => uint32)) private carbonTransferNonce;
 
     address private newTestVariable;
 
@@ -129,7 +133,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
 
         require(
             isConsumer || isRecDealer || isCeoDealer || isAeDealer,
-            "CLM8::consumerOrDealer: msg.sender not a consumer or a dealer"
+            "CLM8::consumerOrDealer: sender not a consumer or a dealer"
         );
 
         _;
@@ -180,6 +184,10 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         return _numOfUniqueTokens.current();
     }
 
+    function supportsInterface(bytes4 interfaceId) public view virtual 
+        override(ERC1155Upgradeable,AccessControlUpgradeable) returns (bool) {
+        return interfaceId == type(IAccessControlUpgradeable).interfaceId || super.supportsInterface(interfaceId);
+    }
     /**
      * @dev hook to prevent transfers from non-admin account if limitedMode is on
      */

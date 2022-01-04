@@ -76,7 +76,7 @@ task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 req
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async taskArgs => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2} = await getNamedAccounts();
 
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
@@ -89,7 +89,13 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerDealer(dealer3, 2); // offsets dealer
     console.log("Account " + dealer3 + " is now an offsets  dealer");
 
-    await contract.connect(admin).registerConsumer(consumer1);
+    await contract.connect(admin).registerDealer(industry1,4);
+    console.log("Account " + industry1 + " is now an industry")
+    // self registered industry dealer
+    await contract.connect(await ethers.getSigner(industry1)).registerIndustry(industry2);
+    console.log("Account " + industry2 + " is now an industry")
+
+    await contract.connect(await ethers.getSigner(industry1)).registerConsumer(consumer1);
     console.log("Account " + consumer1 + " is now a consumer");
     await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
@@ -332,6 +338,8 @@ module.exports = {
     dealer4: { default: 4 },
     consumer1: { default: 19 },
     consumer2: { default: 18 },
+    industry1: { default: 15 },
+    industry2: { default: 16 },
     unregistered: { default: 7 }
   },
 
@@ -346,10 +354,17 @@ module.exports = {
             runs: 200
           }
         }
+      },
+      {
+        version: "0.8.3",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
       }
     ]
-
-
   },
   gasReporter: {
     currency: 'USD',

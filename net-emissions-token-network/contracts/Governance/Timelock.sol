@@ -1,4 +1,4 @@
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 // SPDX-License-Identifier: BSD-3-Clause
 
 /* Copyright 2021 Compound Labs, Inc.
@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 // Original work from Compound: https://github.com/compound-finance/compound-protocol/blob/master/contracts/Timelock.sol
 // Modified to work in the NetEmissionsTokenNetwork system
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Timelock {
     using SafeMath for uint;
