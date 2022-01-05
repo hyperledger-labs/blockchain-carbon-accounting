@@ -2,7 +2,8 @@
 delete from retirement;
 
 -- remove the VCS prefix from project IDs
-update csv_acr_car_retirements set project_id = regexp_replace(project_id, E'^VCS', '');
+update csv_acr_retirements set project_id = regexp_replace(project_id, E'^VCS', '');
+update csv_car_retirements set project_id = regexp_replace(project_id, E'^VCS', '');
 update csv_vcs_retirements set project_id = regexp_replace(project_id, E'^VCS', '');
 update csv_gold_retirements set gsid = regexp_replace(gsid, E'^VCS', '');
 
