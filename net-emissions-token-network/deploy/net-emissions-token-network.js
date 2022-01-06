@@ -31,6 +31,22 @@ module.exports = async ({
   );
   console.log("Timelock address set so that the DAO has permission to issue tokens with issueOnBehalf().");
 
+
+  console.log(`Deploying CarbonTracker with account: ${deployer}`);
+
+  let carbonTracker = await deploy('CarbonTracker', {
+    from: deployer,
+    proxy: {
+      owner: deployer,
+      proxyContract: "OptimizedTransparentProxy",
+      methodName: 'initialize'
+    },
+    args: [ netEmissionsTokenNetwork.address, deployer, ],
+  });
+
+  console.log("CarbonTracker deployed to:", carbonTracker.address);
+
+
 };
 
 module.exports.tags = ['CLM8'];
