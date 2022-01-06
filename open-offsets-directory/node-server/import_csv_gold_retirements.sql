@@ -16,8 +16,12 @@ CREATE TABLE csv_gold_retirements (
     monitoring_period_start date,
     monitoring_period_end date,
     serial_number text,
+    notes text,
     retirement_year integer,
-    notes text
+    notes2 text,
+    source_data text,
+    issuance text,
+    issuance_serial_number text
 );
 
 COPY csv_gold_retirements FROM STDIN WITH (FORMAT CSV, HEADER);

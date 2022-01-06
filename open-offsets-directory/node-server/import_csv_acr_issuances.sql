@@ -1,13 +1,12 @@
 DROP TABLE IF EXISTS csv_acr_issuances;
 
 CREATE TABLE csv_acr_issuances (
-    date_issued integer,
+    date_issued text,
     project_id text,
     project_name text,
     project_developer text,
     project_type text,
     project_version text,
-    additional_issuance_certifications text,
     arb_eligible text,
     corsia_qualified text,
     vintage integer,

@@ -17,10 +17,11 @@ CREATE TABLE csv_vcs_retirements (
     retirement_beneficiary text,
     retirement_reason text,
     retirement_details text,
+    vintage_year integer,
+    credits_issued bigint,
     retirement_year integer,
     credits_retired bigint,
-    date_format date,
-    vintage_year integer
+    date_format date
 );
 
 COPY csv_vcs_retirements FROM STDIN WITH (FORMAT CSV, HEADER);

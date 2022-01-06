@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS csv_car_issuances;
 
 CREATE TABLE csv_car_issuances (
-    date_issued integer,
+    date_issued text,
     project_id text,
     cooperative_aggregate_id text,
     project_name text,
