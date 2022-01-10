@@ -1,4 +1,4 @@
-import { ChaincodeResponse, ChaincodeServerOpts, ChaincodeStub, Shim } from 'fabric-shim';
+import { ChaincodeResponse, ChaincodeStub, Shim } from 'fabric-shim';
 import { EmissionsRecordInterface } from './lib/emissions';
 
 import { EmissionsRecordContract } from './lib/emissionsRecordContract';
@@ -18,24 +18,24 @@ class EmissionsChaincode {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         [key: string]: (stub: ChaincodeStub, args: string[]) => Promise<ChaincodeResponse>;
     } = {
-            importUtilityIdentifier: this.importUtilityIdentifier,
-            updateUtilityIdentifier: this.updateUtilityIdentifier,
-            updateEmissionsMintedToken: this.updateEmissionsMintedToken,
-            getUtilityIdentifier: this.getUtilityIdentifier,
-            getAllUtilityIdentifiers: this.getAllUtilityIdentifiers,
-            importUtilityFactor: this.importUtilityFactor,
-            updateUtilityFactor: this.updateUtilityFactor,
-            getUtilityFactor: this.getUtilityFactor,
-            recordEmissions: this.recordEmissions,
-            updateEmissionsRecord: this.updateEmissionsRecord,
-            getEmissionsData: this.getEmissionsData,
-            getAllEmissionsData: this.getAllEmissionsData,
-            getAllEmissionsDataByDateRange: this.getAllEmissionsDataByDateRange,
-            getAllEmissionsDataByDateRangeAndParty: this.getAllEmissionsDataByDateRangeAndParty,
+        importUtilityIdentifier: this.importUtilityIdentifier,
+        updateUtilityIdentifier: this.updateUtilityIdentifier,
+        updateEmissionsMintedToken: this.updateEmissionsMintedToken,
+        getUtilityIdentifier: this.getUtilityIdentifier,
+        getAllUtilityIdentifiers: this.getAllUtilityIdentifiers,
+        importUtilityFactor: this.importUtilityFactor,
+        updateUtilityFactor: this.updateUtilityFactor,
+        getUtilityFactor: this.getUtilityFactor,
+        recordEmissions: this.recordEmissions,
+        updateEmissionsRecord: this.updateEmissionsRecord,
+        getEmissionsData: this.getEmissionsData,
+        getAllEmissionsData: this.getAllEmissionsData,
+        getAllEmissionsDataByDateRange: this.getAllEmissionsDataByDateRange,
+        getAllEmissionsDataByDateRangeAndParty: this.getAllEmissionsDataByDateRangeAndParty,
 
-            // for lockdata
-            getValidEmissions: this.getValidEmissions,
-        };
+        // for lockdata
+        getValidEmissions: this.getValidEmissions,
+    };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async Init(stub: ChaincodeStub): Promise<ChaincodeResponse> {
         return Shim.success(null);
@@ -569,4 +569,4 @@ class EmissionsChaincode {
     }
 }
 
-Shim.start(new EmissionsChaincode())
+Shim.start(new EmissionsChaincode());
