@@ -62,6 +62,7 @@ utility-emissions-channel/chaincode/emissionscontract/packaging/*.tar.gz
 utility-emissions-channel/chaincode/emissionscontract/packaging/*.tgz
 utility-emissions-channel/chaincode/emissionscontract/typescript/node_modules
 utility-emissions-channel/chaincode/emissionscontract/typescript/dist
+utility-emissions-channel/chaincode/datalock/vendor
 #  c. docker-compose-setup
 utility-emissions-channel/docker-compose-setup/channel-artifacts/*.tx
 utility-emissions-channel/docker-compose-setup/channel-artifacts/*.block

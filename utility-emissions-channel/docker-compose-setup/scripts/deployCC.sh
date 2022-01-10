@@ -144,7 +144,19 @@ fi
 #fi
 
 # import utils
-. scripts/envVar.sh
+. scripts/envVar.sh false
+
+fcn_call=$1
+shift
+parsePeerConnectionParameters 1 2
+parsePeerConnectionParameters 1 1
+res=$?
+verifyResult $res "Invoke transaction failed on channel '$CHANNEL_NAME' due to uneven number of peer and org parameters "
+
+set -x
+
+set +x
+cat log.txt
 
 
 packageChaincode() {
@@ -169,6 +181,7 @@ installChaincode() {
 	res=$?
 	set +x
 	cat log.txt
+	export CHAINCODE_CCID=`cat log.txt | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier: "); print a[2]}'`
 	verifyResult $res "Chaincode installation on peer1.auditor${ORG} has failed"
 	echo "===================== Chaincode is installed on peer1.auditor${ORG} ===================== "
 	echo

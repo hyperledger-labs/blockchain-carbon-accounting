@@ -18,24 +18,24 @@ class EmissionsChaincode {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         [key: string]: (stub: ChaincodeStub, args: string[]) => Promise<ChaincodeResponse>;
     } = {
-        importUtilityIdentifier: this.importUtilityIdentifier,
-        updateUtilityIdentifier: this.updateUtilityIdentifier,
-        updateEmissionsMintedToken: this.updateEmissionsMintedToken,
-        getUtilityIdentifier: this.getUtilityIdentifier,
-        getAllUtilityIdentifiers: this.getAllUtilityIdentifiers,
-        importUtilityFactor: this.importUtilityFactor,
-        updateUtilityFactor: this.updateUtilityFactor,
-        getUtilityFactor: this.getUtilityFactor,
-        recordEmissions: this.recordEmissions,
-        updateEmissionsRecord: this.updateEmissionsRecord,
-        getEmissionsData: this.getEmissionsData,
-        getAllEmissionsData: this.getAllEmissionsData,
-        getAllEmissionsDataByDateRange: this.getAllEmissionsDataByDateRange,
-        getAllEmissionsDataByDateRangeAndParty: this.getAllEmissionsDataByDateRangeAndParty,
+            importUtilityIdentifier: this.importUtilityIdentifier,
+            updateUtilityIdentifier: this.updateUtilityIdentifier,
+            updateEmissionsMintedToken: this.updateEmissionsMintedToken,
+            getUtilityIdentifier: this.getUtilityIdentifier,
+            getAllUtilityIdentifiers: this.getAllUtilityIdentifiers,
+            importUtilityFactor: this.importUtilityFactor,
+            updateUtilityFactor: this.updateUtilityFactor,
+            getUtilityFactor: this.getUtilityFactor,
+            recordEmissions: this.recordEmissions,
+            updateEmissionsRecord: this.updateEmissionsRecord,
+            getEmissionsData: this.getEmissionsData,
+            getAllEmissionsData: this.getAllEmissionsData,
+            getAllEmissionsDataByDateRange: this.getAllEmissionsDataByDateRange,
+            getAllEmissionsDataByDateRangeAndParty: this.getAllEmissionsDataByDateRangeAndParty,
 
-        // for lockdata
-        getValidEmissions: this.getValidEmissions,
-    };
+            // for lockdata
+            getValidEmissions: this.getValidEmissions,
+        };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async Init(stub: ChaincodeStub): Promise<ChaincodeResponse> {
         return Shim.success(null);
@@ -569,14 +569,4 @@ class EmissionsChaincode {
     }
 }
 
-const ccServerOpt: ChaincodeServerOpts = {
-    ccid: process.env.CHAINCODE_CCID,
-    address: process.env.CHAINCODE_ADDRESS,
-    tlsProps: null,
-};
-
-const ccServer = Shim.server(new EmissionsChaincode(), ccServerOpt);
-
-ccServer.start().then(() => {
-    console.log(`CC_SERVER : CC_ID = ${ccServerOpt.ccid} Started on ${ccServerOpt.address}`);
-});
+Shim.start(new EmissionsChaincode())

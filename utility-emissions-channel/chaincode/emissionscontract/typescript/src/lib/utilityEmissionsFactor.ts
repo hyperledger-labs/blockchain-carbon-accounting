@@ -128,7 +128,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
         lookup: UtilityLookupItemInterface,
         thruDate: string,
     ): Promise<UtilityEmissionsFactor> {
-        const hasStateData = lookup.state_province !== undefined;
+        const hasStateData = lookup.state_province !== '';
         const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
         const isNonUSCountry =
             lookup.divisions.division_type.toLowerCase() === 'country' &&
