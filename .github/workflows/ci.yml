@@ -108,11 +108,11 @@ jobs:
           127.0.0.1       peer1.auditor1.carbonAccounting.com
           127.0.0.1       peer1.auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
-          ./start.sh &
-      - name: Run tests # Wait for the blockchain network to start up and then runs the tests
+          ./startDev.sh &
+      - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
-          sleep 240
           cd typescript_app/
+          while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
       - uses: actions/upload-artifact@v2 # Regardless of whether the tests passed or failed, upload the test results as an artifact
