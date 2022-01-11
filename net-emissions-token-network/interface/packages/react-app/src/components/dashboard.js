@@ -83,6 +83,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
           "Renewable Energy Certificate",
           "Carbon Emissions Offset",
           "Audited Emissions",
+          "Carbon Tracker"
         ];
 
         // Fetch available and retired balances

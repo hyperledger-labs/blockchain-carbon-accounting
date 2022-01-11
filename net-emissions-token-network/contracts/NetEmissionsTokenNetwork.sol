@@ -46,7 +46,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      *   1 => Renewable Energy Certificate
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
-     *   4 => Carbon tokens (traded fuel/feed stocks) 
+     *   4 => Carbon Tracker (traded fuel/feed stocks) 
      * issuer - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
      * fromDate - Unix timestamp
@@ -543,7 +543,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         } else if (token.tokenTypeId == 3) {
             return "Audited Emissions";
         } else if (token.tokenTypeId == 4) {
-            return "Carbon Tokens";
+            return "Carbon Tracker";
         } else {
             return "Token does not exist";
         }
@@ -664,7 +664,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             grantRole(REGISTERED_OFFSET_DEALER, account);
         } else if (tokenTypeId == 3){
             grantRole(REGISTERED_EMISSIONS_AUDITOR, account);
-        } else {
+        } else if (tokenTypeId == 4) {
             grantRole(REGISTERED_INDUSTRY, account);
             grantRole(REGISTERED_INDUSTRY_DEALER, account);
         }

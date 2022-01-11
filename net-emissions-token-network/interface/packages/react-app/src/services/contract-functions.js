@@ -23,7 +23,8 @@ const PROPOSAL_STATES = [
 export const TOKEN_TYPES = [
   "Renewable Energy Certificate",
   "Carbon Emissions Offset",
-  "Audited Emissions"
+  "Audited Emissions",
+  "Carbon Tracker"
 ]
 
 /*

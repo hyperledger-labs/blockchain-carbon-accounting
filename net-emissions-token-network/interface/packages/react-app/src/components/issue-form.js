@@ -168,7 +168,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
       <h2>Issue tokens</h2>
-      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, or Audited Emissions) to registered consumers.</p>
+      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered consumers.</p>
 
       { ((!limitedMode) || (tokenTypeId === "3"))
         ?
@@ -209,6 +209,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
           {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
           {(roles[0] || roles[2]) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
           {(roles[0] || roles[3]) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
+          {(roles[0] || roles[4]) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
         </Form.Control>
       </Form.Group>
       <Form.Group>
