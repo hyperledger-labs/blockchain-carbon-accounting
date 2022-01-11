@@ -671,7 +671,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // TODO: define a function to get all properties of a token for this test
     let definedTokenType = await contract.getTokenType(tokenId);
-    expect(definedTokenType).to.equal("Carbon Tokens");
+    expect(definedTokenType).to.equal("Carbon Tracker");
 
     // verify transfer to industry2 with approval signature.
     let msg = await contract.getTransferHash(industry1, industry2, [tokenId], [transferAmount]);
