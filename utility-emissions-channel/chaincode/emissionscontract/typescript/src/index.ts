@@ -1,4 +1,4 @@
-import { ChaincodeResponse, ChaincodeServerOpts, ChaincodeStub, Shim } from 'fabric-shim';
+import { ChaincodeResponse, ChaincodeStub, Shim } from 'fabric-shim';
 import { EmissionsRecordInterface } from './lib/emissions';
 
 import { EmissionsRecordContract } from './lib/emissionsRecordContract';
@@ -569,14 +569,4 @@ class EmissionsChaincode {
     }
 }
 
-const ccServerOpt: ChaincodeServerOpts = {
-    ccid: process.env.CHAINCODE_CCID,
-    address: process.env.CHAINCODE_ADDRESS,
-    tlsProps: null,
-};
-
-const ccServer = Shim.server(new EmissionsChaincode(), ccServerOpt);
-
-ccServer.start().then(() => {
-    console.log(`CC_SERVER : CC_ID = ${ccServerOpt.ccid} Started on ${ccServerOpt.address}`);
-});
+Shim.start(new EmissionsChaincode());
