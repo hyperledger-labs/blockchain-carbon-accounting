@@ -14,7 +14,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 
 function RolesListElements({ roles }) {
-  const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Consumer"];
+  const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Consumer", "Registered Industry", "Registered Industry Dealer"];
   return roles.map((role, id) => 
     <div key={id}>{role && <li>{roleNames[id]}&nbsp;&nbsp;</li>}</div>
   );
@@ -72,6 +72,12 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
       case "AE":
         fetchRegisterDealer(3);
         break;
+      case "REGISTERED_INDUSTRY":
+        fetchRegisterDealer(4);
+        break;
+      case "REGISTERED_INDUSTRY_DEALER":
+        fetchRegisterDealer(4);
+        break;
       default:
         console.error("Can't find role");
     }
@@ -91,6 +97,12 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         break;
       case "AE":
         fetchUnregisterDealer(3);
+        break;
+      case "REGISTERED_INDUSTRY":
+        fetchUnregisterDealer(4);
+        break;
+      case "REGISTERED_INDUSTRY_DEALER":
+        fetchUnregisterDealer(4);
         break;
       default:
         console.error("Can't find role");
@@ -181,6 +193,8 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
               <option value="REC">Renewable Energy Certificate (REC) Dealer</option>
               <option value="CEO">Offset Dealer</option>
               <option value="AE">Emissions Auditor</option>
+              <option value="REGISTERED_INDUSTRY">Registered Industry member (CarbonTracker)</option>
+              <option value="REGISTERED_INDUSTRY_DEALER">Registered Industry Dealer (CarbonTracker)</option>
             </Form.Control>
           </Form.Group>
           <Form.Group>
