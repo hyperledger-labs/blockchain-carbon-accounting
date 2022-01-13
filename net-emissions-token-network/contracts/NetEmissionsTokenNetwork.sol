@@ -46,7 +46,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      *   1 => Renewable Energy Certificate
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
-     *   4 => Carbon Tracker (traded fuel/feed stocks) 
+     *   4 => Carbon Tracker tokens (traded, burnt or stored fuel/feed stock)
+     *   TO-DO define carbon tracker storage transactions (i.e. catpured CO2 management) 
      * issuer - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
      * fromDate - Unix timestamp
