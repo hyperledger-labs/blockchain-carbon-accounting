@@ -1,0 +1,35 @@
+{
+    "name": "data-loader",
+    "version": "1.0.0",
+    "description": "Testing out OrbitDB for use in blockchain-carbon-accounting project",
+    "main": "src/dataLoader.ts",
+    "engines": {
+        "node": ">=16"
+    },
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint 'src/**/*.ts'",
+        "lint:fix": "eslint 'src/**/*.ts' --fix"
+    },
+    "license": "ISC",
+    "dependencies": {
+        "cli-progress": "^3.10.0",
+        "ipfs-http-client": "^55.0.0",
+        "orbit-db": "^0.28.0",
+        "xlsx": "^0.17.5",
+        "yargs": "^17.3.1"
+    },
+    "devDependencies": {
+        "@types/cli-progress": "^3.9.2",
+        "@types/node": "^17.0.10",
+        "@types/yargs": "^17.0.8",
+        "@typescript-eslint/eslint-plugin": "^5.10.1",
+        "@typescript-eslint/parser": "^5.10.1",
+        "eslint": "^8.7.0",
+        "eslint-config-prettier": "^8.3.0",
+        "eslint-plugin-prettier": "^4.0.0",
+        "prettier": "^2.5.1",
+        "ts-node": "^10.4.0",
+        "typescript": "^4.5.4"
+    }
+}
