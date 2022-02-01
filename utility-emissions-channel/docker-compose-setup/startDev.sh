@@ -6,6 +6,10 @@ echo "Checking for carbonAccounting network..."
 
 echo "Starting CAs..."
 ./scripts/startCA.sh
+
+echo "Building chaincode compilation environment"
+docker build --pull --rm -f "./docker/golang-node.dockerfile" -t golang-node:latest "./docker"
+
 echo "Starting client..."
 ./scripts/startCli.sh
 

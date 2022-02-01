@@ -79,7 +79,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).recordEmissions(
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).recordEmissions(
                 fieldsMap.utilityId,
                 fieldsMap.partyId,
                 fieldsMap.fromDate,
@@ -129,7 +131,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).updateEmissionsRecord(recordI);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).updateEmissionsRecord(recordI);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -161,11 +165,9 @@ class EmissionsChaincode {
         const partyId = args[1];
         const uuids = args.slice(2);
         try {
-            const out = await new EmissionsRecordContract(stub).updateEmissionsMintedToken(
-                tokenId,
-                partyId,
-                uuids,
-            );
+            const out = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).updateEmissionsMintedToken(tokenId, partyId, uuids);
             return Shim.success(out);
         } catch (error) {
             logger.error(error);
@@ -186,7 +188,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getEmissionsData(args[0]);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getEmissionsData(args[0]);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -198,7 +202,7 @@ class EmissionsChaincode {
         logger.info(`getValidEmissions method called with args : ${args}`);
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getValidEmissions(args);
+            byte = await (await EmissionsRecordContract.setupOrbitDB(stub)).getValidEmissions(args);
             return Shim.success(byte);
         } catch (error) {
             logger.error(error);
@@ -219,7 +223,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getAllEmissionsData(args[0], args[1]);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getAllEmissionsData(args[0], args[1]);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -243,10 +249,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getAllEmissionsDataByDateRange(
-                args[0],
-                args[1],
-            );
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getAllEmissionsDataByDateRange(args[0], args[1]);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -270,11 +275,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getAllEmissionsDataByDateRangeAndParty(
-                args[0],
-                args[1],
-                args[2],
-            );
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getAllEmissionsDataByDateRangeAndParty(args[0], args[1], args[2]);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -327,7 +330,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).importUtilityFactor(factorI);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).importUtilityFactor(factorI);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -381,7 +386,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).updateUtilityFactor(factorI);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).updateUtilityFactor(factorI);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -407,7 +414,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getUtilityFactor(args[0]);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getUtilityFactor(args[0]);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -458,7 +467,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).importUtilityIdentifier(identifier);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).importUtilityIdentifier(identifier);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -518,7 +529,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).updateUtilityIdentifier(identifier);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).updateUtilityIdentifier(identifier);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -544,7 +557,9 @@ class EmissionsChaincode {
         }
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getUtilityIdentifier(args[0]);
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getUtilityIdentifier(args[0]);
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));
@@ -560,7 +575,9 @@ class EmissionsChaincode {
     ): Promise<ChaincodeResponse> {
         let byte: Uint8Array;
         try {
-            byte = await new EmissionsRecordContract(stub).getAllUtilityIdentifiers();
+            byte = await (
+                await EmissionsRecordContract.setupOrbitDB(stub)
+            ).getAllUtilityIdentifiers();
         } catch (error) {
             logger.error(error);
             return Shim.error(stringToBytes((error as Error).message));

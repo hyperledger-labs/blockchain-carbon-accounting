@@ -82,6 +82,8 @@ utility-emissions-channel/docker-compose-setup/log.txt
 utility-emissions-channel/docker-compose-setup/node_modules
 utility-emissions-channel/docker-compose-setup/data/node_modules
 utility-emissions-channel/docker-compose-setup/data/orbitdb
+utility-emissions-channel/docker-compose-setup/data/src/orbitdb
+utility-emissions-channel/docker-compose-setup/data/dist
 utility-emissions-channel/docker-compose-setup/*.zip
 utility-emissions-channel/docker-compose-setup/*.xlsx
 utility-emissions-channel/docker-compose-setup/*.csv

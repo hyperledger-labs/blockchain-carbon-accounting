@@ -11,7 +11,7 @@
 import { ChaincodeStub } from 'fabric-shim';
 import { ErrStateNotFound } from '../util/const';
 import { State } from '../util/state';
-import { QueryResult, WorldState } from '../util/worldstate';
+import { WorldState } from '../util/worldstate';
 import { getYearFromDate } from './emissions-calc';
 import { UtilityLookupItemInterface } from './utilityLookupItem';
 
@@ -54,65 +54,50 @@ export class UtilityEmissionsFactor extends State {
 }
 
 export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFactorInterface> {
-    constructor(stub: ChaincodeStub) {
+    private db;
+
+    constructor(stub: ChaincodeStub, db) {
         super(stub);
+        this.db = db;
     }
     async addUtilityEmissionsFactor(factor: UtilityEmissionsFactor, uuid: string): Promise<void> {
         return await this.addState(uuid, factor.factor);
     }
     async getUtilityEmissionsFactor(uuid: string): Promise<UtilityEmissionsFactor> {
-        return new UtilityEmissionsFactor(await this.getState(uuid));
+        return new UtilityEmissionsFactor(await this.db.get(uuid));
     }
     async updateUtilityEmissionsFactor(
         factor: UtilityEmissionsFactor,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         uuid: string,
     ): Promise<void> {
-        return await this.updateState(uuid, factor.factor);
+        return this.db.put(factor.factor);
     }
     async getUtilityEmissionsFactorsByDivision(
         divisionID: string,
         divisionType: string,
         year?: number,
-    ): Promise<QueryResult<UtilityEmissionsFactorInterface>[]> {
+    ): Promise<UtilityEmissionsFactorInterface[]> {
         const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
         let retryCount = 0;
-        let queryString = '';
-        let results: QueryResult<UtilityEmissionsFactorInterface>[] = [];
+        let results: UtilityEmissionsFactorInterface[] = [];
         while (results.length === 0 && retryCount <= maxYearLookup) {
             if (year !== undefined) {
-                queryString = `{
-                "selector" : {
-                  "class": {
-                     "$eq": "${UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER}"
-                  },
-                  "division_id" : {
-                    "$eq": "${divisionID}"
-                  },
-                  "division_type": {
-                    "$eq": "${divisionType}"
-                  },
-                  "year": {
-                    "$eq": "${year + retryCount * -1}"
-                }
-                }
-              }`;
+                results = this.db.query((doc: UtilityEmissionsFactorInterface) => {
+                    const isEmissionsFactor = doc.class == UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+                    const hasDivisionId = doc.division_id == divisionID;
+                    const hasDivisionType = doc.division_type == divisionType;
+                    const isOfQueriedYear = doc.year == (year + retryCount * -1).toString();
+                    return isEmissionsFactor && hasDivisionId && hasDivisionType && isOfQueriedYear;
+                });
             } else {
-                queryString = `{
-            "selector" : {
-              "class": {
-                 "$eq": "${UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER}"
-              },
-              "division_id" : {
-                "$eq": "${divisionID}"
-              },
-              "division_type": {
-                "$eq": "${divisionType}"
-              }
+                results = this.db.query((doc: UtilityEmissionsFactorInterface) => {
+                    const isEmissionsFactor = doc.class == UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+                    const hasDivisionId = doc.division_id == divisionID;
+                    const hasDivisionType = doc.division_type == divisionType;
+                    return isEmissionsFactor && hasDivisionId && hasDivisionType;
+                });
             }
-          }`;
-            }
-            const iterator = await this.stub.getQueryResult(queryString);
-            results = await this.getAssetFromIterator(iterator);
             retryCount++;
         }
         if (results.length === 0) {
@@ -167,6 +152,6 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
         if (utilityFactors.length === 0) {
             throw new Error('No utility emissions factor found for given query');
         }
-        return new UtilityEmissionsFactor(utilityFactors[0].Record);
+        return new UtilityEmissionsFactor(utilityFactors[0]);
     }
 }

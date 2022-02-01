@@ -1,4 +1,6 @@
 import { ChaincodeStub } from 'fabric-shim';
+import { create } from 'ipfs-http-client';
+import * as OrbitDB from 'orbit-db';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
 import { getCO2EmissionFactor } from './emissions-calc';
 import {
@@ -13,16 +15,39 @@ import {
     UtilityLookupItem,
 } from './utilityLookupItem';
 
-// EmissionsRecordContract : core bushiness logic of emissions record chaincode
+const DB_NAME = 'org.hyperledger.blockchain-carbon-accounting';
+
+// EmissionsRecordContract : core business logic of emissions record chaincode
 export class EmissionsRecordContract {
     protected emissionsState: EmissionRecordState;
     protected utilityEmissionsFactorState: UtilityEmissionsFactorState;
     protected utilityLookupState: UtilityLookupItemState;
-    constructor(stub: ChaincodeStub) {
+
+    constructor(stub: ChaincodeStub, db) {
         this.emissionsState = new EmissionRecordState(stub);
-        this.utilityEmissionsFactorState = new UtilityEmissionsFactorState(stub);
-        this.utilityLookupState = new UtilityLookupItemState(stub);
+        this.utilityEmissionsFactorState = new UtilityEmissionsFactorState(stub, db);
+        this.utilityLookupState = new UtilityLookupItemState(stub, db);
     }
+
+    static setupOrbitDB(stub: ChaincodeStub): Promise<EmissionsRecordContract> {
+        return (async () => {
+            const ipfs = create();
+            const orbitdb = await OrbitDB.createInstance(ipfs);
+            const dbOptions = {
+                // Give write access to the creator of the database
+                accessController: {
+                    type: 'orbitdb',
+                    write: [orbitdb.identity.id],
+                },
+                indexBy: 'uuid',
+            };
+
+            const db = await orbitdb.docstore(DB_NAME, dbOptions);
+            await db.load();
+            return new EmissionsRecordContract(stub, db);
+        })();
+    }
+
     /**
      *
      * Store the emissions record
@@ -46,7 +71,7 @@ export class EmissionsRecordContract {
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
         const lookup = await this.utilityLookupState.getUtilityLookupItem(utilityId);
         const factor = await this.utilityEmissionsFactorState.getEmissionsFactorByLookupItem(
-            lookup.item,
+            lookup,
             thruDate,
         );
         const co2Emission = getCO2EmissionFactor(
@@ -178,11 +203,12 @@ export class EmissionsRecordContract {
         lookupInterface: UtilityLookupItemInterface,
     ): Promise<Uint8Array> {
         const lookup = new UtilityLookupItem(lookupInterface);
-        await this.utilityLookupState.updateUtilityLookupItem(lookup, lookupInterface.uuid);
+        await this.utilityLookupState.updateUtilityLookupItem(lookup);
         return lookup.toBuffer();
     }
     async getUtilityIdentifier(uuid: string): Promise<Uint8Array> {
-        return (await this.utilityLookupState.getUtilityLookupItem(uuid)).toBuffer();
+        const item = await this.utilityLookupState.getUtilityLookupItem(uuid);
+        return Buffer.from(JSON.stringify(item));
     }
     async getAllUtilityIdentifiers(): Promise<Uint8Array> {
         const result = await this.utilityLookupState.getAllUtilityLookupItems();

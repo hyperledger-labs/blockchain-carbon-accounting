@@ -5,6 +5,8 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'xlsx';
 import { STATE_NAME_MAPPING, COUNTRY_MAPPINGS } from './abbrevToName';
+import { UtilityEmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
+import { UtilityLookupItemInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
@@ -134,7 +136,7 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
             const document_id =
                 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
                 year: row['Data Year'].toString(),
@@ -173,7 +175,7 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'USA_' + row['Data Year'] + '_STATE_' + row['State abbreviation'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
                 year: row['Data Year'].toString(),
@@ -210,7 +212,7 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'COUNTRY_USA_' + row['Data Year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
 
                 uuid: document_id,
@@ -252,7 +254,7 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
 
             const document_id = 'COUNTRY_USA_' + row['Data Year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
 
                 uuid: document_id,
@@ -290,7 +292,7 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'USA_' + row['Data Year'] + '_STATE_' + row['State abbreviation'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
 
                 uuid: document_id,
@@ -330,9 +332,8 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
             const document_id =
                 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-
                 uuid: document_id,
                 year: '' + row['Data Year'],
                 country: 'USA',
@@ -373,7 +374,7 @@ const import_utility_emissions = async (opts) => {
 
             const countryName = COUNTRY_MAPPINGS[row['CountryShort']];
             const document_id = `COUNTRY_${row['CountryShort']}_` + row['Year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
                 year: '' + row['Year'],
@@ -388,7 +389,7 @@ const import_utility_emissions = async (opts) => {
                 source: 'https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file',
                 non_renewables: '',
                 renewables: '',
-                percent_of_renewables: Number(row[' ValueNumeric']) * 100,
+                percent_of_renewables: (Number(row[' ValueNumeric']) * 100).toString(),
             };
             await db.put(d);
             progressBar.increment();
@@ -421,7 +422,7 @@ const import_utility_emissions = async (opts) => {
             if (!countryShort) continue;
 
             const document_id = `COUNTRY_` + countryShort + `_` + row['Date:year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 uuid: document_id,
                 co2_equivalent_emissions: row['index:number'],
                 co2_equivalent_emissions_uom: 'g/KWH',
@@ -429,7 +430,9 @@ const import_utility_emissions = async (opts) => {
             };
 
             // find previous record to update
-            const utilityFactorCall: Array<any> = await db.get(document_id);
+            const utilityFactorCall: Array<UtilityEmissionsFactorInterface> = await db.get(
+                document_id,
+            );
             if (utilityFactorCall.length) {
                 const utilityFactor = utilityFactorCall[0];
 
@@ -466,7 +469,7 @@ const import_utility_identifiers = async (opts) => {
         for (const row of data) {
             if (!row || !row['Data Year']) continue;
             opts.verbose && console.log('-- Prepare to insert from ', row);
-            const d = {
+            const d: UtilityLookupItemInterface = {
                 class: UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER,
                 uuid: 'USA_EIA_' + row['Utility Number'],
                 year: row['Data Year'],

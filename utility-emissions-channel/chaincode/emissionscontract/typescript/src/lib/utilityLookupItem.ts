@@ -4,9 +4,7 @@
 
 import { ChaincodeStub } from 'fabric-shim';
 import { State } from '../util/state';
-import { QueryResult, WorldState } from '../util/worldstate';
-
-/* tslint:disable:max-classes-per-file */
+import { WorldState } from '../util/worldstate';
 
 const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
@@ -44,22 +42,27 @@ export class UtilityLookupItem extends State {
 }
 
 export class UtilityLookupItemState extends WorldState<UtilityLookupItemInterface> {
-    constructor(stub: ChaincodeStub) {
+    private db;
+    constructor(stub: ChaincodeStub, db) {
         super(stub);
+        this.db = db;
     }
+
     async addUtilityLookupItem(item: UtilityLookupItem, uuid: string): Promise<void> {
         return await this.addState(uuid, item.item);
     }
 
-    async getUtilityLookupItem(uuid: string): Promise<UtilityLookupItem> {
-        return new UtilityLookupItem(await this.getState(uuid));
+    async getUtilityLookupItem(uuid: string): Promise<UtilityLookupItemInterface> {
+        return this.db.get(uuid);
     }
 
-    async getAllUtilityLookupItems(): Promise<QueryResult<UtilityLookupItemInterface>[]> {
-        const queryString = `{"selector": {"class": "${UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER}"}}`;
-        return await this.query(queryString);
+    async getAllUtilityLookupItems(): Promise<UtilityLookupItemInterface[]> {
+        return this.db.query(
+            (doc: UtilityLookupItemInterface) => doc.class == UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER,
+        );
+
     }
-    async updateUtilityLookupItem(item: UtilityLookupItem, uuid: string): Promise<void> {
-        return await this.updateState(uuid, item.item);
+    async updateUtilityLookupItem(item: UtilityLookupItem): Promise<void> {
+        return this.db.put(item);
     }
 }
