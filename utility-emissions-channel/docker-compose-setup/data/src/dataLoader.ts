@@ -1,10 +1,12 @@
 import { SingleBar, Presets } from 'cli-progress';
 import { create } from 'ipfs-http-client';
-import * as OrbitDB from 'orbit-db';
+import OrbitDB from 'orbit-db';
+import type DocumentStore from 'orbit-db-docstore';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'xlsx';
 import { STATE_NAME_MAPPING, COUNTRY_MAPPINGS } from './abbrevToName';
+import { UtilityEmissionsFactorInterface, UtilityLookupItemInterface } from './orbitDbService';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
@@ -12,7 +14,7 @@ const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
 
 const DB_NAME = 'org.hyperledger.blockchain-carbon-accounting';
-let db;
+let db: DocumentStore<UtilityEmissionsFactorInterface | UtilityLookupItemInterface>;
 
 const progressBar = new SingleBar(
     {
@@ -158,6 +160,7 @@ const import_utility_emissions = async (opts) => {
             progressBar.increment();
         }
         progressBar.stop();
+        console.log((await db.get(''))[0]);
         if (opts.file !== 'all') process.exit(0);
     }
 
@@ -429,7 +432,7 @@ const import_utility_emissions = async (opts) => {
             };
 
             // find previous record to update
-            const utilityFactorCall: Array<any> = await db.get(document_id);
+            const utilityFactorCall = db.get(document_id) as UtilityEmissionsFactorInterface[];
             if (utilityFactorCall.length) {
                 const utilityFactor = utilityFactorCall[0];
 
@@ -492,25 +495,22 @@ const import_utility_identifiers = async (opts) => {
 
 (async () => {
     const ipfs = create();
-    const orbitdb = await OrbitDB.createInstance(ipfs);
+    const orbitdb = await OrbitDB.createInstance(ipfs as any);
     const dbOptions = {
         // Give write access to the creator of the database
         accessController: {
             type: 'orbitdb', //OrbitDBAccessController
-            write: [orbitdb.identity.id],
+            write: [orbitdb.id],
         },
         indexBy: 'uuid',
     };
 
-    db = await orbitdb.docstore(DB_NAME, dbOptions);
+    db = await orbitdb.docstore<UtilityEmissionsFactorInterface | UtilityLookupItemInterface>(
+        DB_NAME,
+        dbOptions,
+    );
     await db.load();
     console.log(`OrbitDB address: ${db.address.toString()}`);
-
-    // Listen for updates from peers
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    db.events.on('replicated', (_) => {
-        console.log(db.iterator({ limit: -1 }).collect());
-    });
 
     yargs(hideBin(process.argv))
         .command(
