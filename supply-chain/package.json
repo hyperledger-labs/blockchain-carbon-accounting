@@ -1,0 +1,15 @@
+{
+  "name": "supply-chain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ups.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "ups-nodejs-sdk": "^1.0.0"
+  }
+}
