@@ -104,7 +104,7 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
             origins: [address_o],
             destinations: [address_d],
             units: conf.imperial ? 'imperial' : 'metric',
-            key: process.env.GOOGLE_DISTANCE_KEY
+            key: process.env.GOOGLE_KEY
           }
         }).then((results)=>{
             const dist = results.data.rows[0].elements[0].distance;
@@ -130,14 +130,14 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
         client.geocode({
           params: {
             address: address_o,
-            key: process.env.GOOGLE_GEOCODE_KEY
+            key: process.env.GOOGLE_KEY
           }
         }).then((results)=>{
             const origin_r = results.data.results[0].geometry.location;
             client.geocode({
               params: {
                 address: address_d,
-                key: process.env.GOOGLE_GEOCODE_KEY
+                key: process.env.GOOGLE_KEY
               }
             }).then((results)=>{
                 const dest_r = results.data.results[0].geometry.location;
