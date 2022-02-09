@@ -84,6 +84,13 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
   if (err) console.error('An error occurred: ', err);
   else {
     const output = { ups: res };
+    if (res.Shipment && res.Shipment.ShipmentWeight) {
+      const w = res.Shipment.ShipmentWeight;
+      output.weight = {
+        value: w.Weight,
+        unit: w.UnitOfMeasurement.Code
+      }
+    }
     const addresses = get_addresses(res);
     const isGround = is_ground(res);
     if (addresses) {
@@ -111,7 +118,7 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
               destination: {
                 address: address_d,
               },
-              distance: (conf.imperial ? (dist_m * 0.621371) : dist_m),
+              value: (conf.imperial ? (dist_m * 0.621371) : dist_m),
               unit: (conf.imperial ? 'mi' : 'km')
             };
             console.log(JSON.stringify(output, null, 4));
@@ -143,7 +150,7 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
                     address: address_d,
                     coords: dest_r
                   },
-                  distance: calc_distance(origin_r, dest_r),
+                  value: calc_distance(origin_r, dest_r),
                   unit: (conf.imperial ? 'mi' : 'km')
                 };
                 console.log(JSON.stringify(output, null, 4));
