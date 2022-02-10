@@ -74,26 +74,30 @@ function calc_distance(o, d) {
   const c = 2 * Math.asin(Math.sqrt(a));
 
   // Radius of earth
-  const use_miles = conf.imperial;
-  const r = (use_miles ? 3958.8 : 6371) * c;
-  return r;
+  return 6371.0 * c;
 }
 
 ups.track(trackingNumber, {latest: false}, (err, res) => {
   if (err) console.error('An error occurred: ', err);
   else {
+    const isGround = is_ground(res);
     const output = { ups: res };
+    let weight = 0.0;
     if (res.Shipment && res.Shipment.ShipmentWeight) {
       const w = res.Shipment.ShipmentWeight;
-      output.weight = {
-        value: w.Weight,
-        unit: w.UnitOfMeasurement.Code
+      weight = w.Weight;
+      if (w.UnitOfMeasurement.Code === 'LBS') {
+        weight *= 0.453592;
       }
+      output.weight = {
+        value: weight,
+        unit: 'kg'
+      }
+      let emissions = weight * 0.001 * (isGround ? 0.52218 : 2.37968);
+      output.emissions = { value: emissions, unit: 'kgCO2e' }
     }
     const addresses = get_addresses(res);
-    const isGround = is_ground(res);
     if (addresses) {
-      console.log('Calculating distances : ', addresses);
       const client = new Client({});
       const address_o = addresses.origin.join(' ');
       const address_d = addresses.dest.join(' ');
@@ -117,8 +121,8 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
               destination: {
                 address: address_d,
               },
-              value: (conf.imperial ? (dist_m * 0.621371) : dist_m),
-              unit: (conf.imperial ? 'mi' : 'km')
+              value: dist_m,
+              unit: 'km'
             };
             console.log(JSON.stringify(output, null, 4));
         }).catch((err)=>{
@@ -150,7 +154,7 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
                     coords: dest_r
                   },
                   value: calc_distance(origin_r, dest_r),
-                  unit: (conf.imperial ? 'mi' : 'km')
+                  unit: 'km'
                 };
                 console.log(JSON.stringify(output, null, 4));
             }).catch((err)=>{
