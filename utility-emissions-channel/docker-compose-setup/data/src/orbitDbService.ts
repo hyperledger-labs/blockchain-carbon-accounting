@@ -1,5 +1,5 @@
 import { create } from 'ipfs-http-client';
-import OrbitDB from 'orbit-db';
+const OrbitDB = require('orbit-db');
 import type DocumentStore from 'orbit-db-docstore';
 
 const DB_NAME = 'org.hyperledger.blockchain-carbon-accounting';
@@ -68,9 +68,7 @@ export class OrbitDBService {
             indexBy: 'uuid',
         };
 
-        const db = await orbitdb.docstore<
-            UtilityLookupItemInterface | UtilityEmissionsFactorInterface
-        >(DB_NAME, dbOptions);
+        const db = await orbitdb.docstore(DB_NAME, dbOptions);
 
         await db.load();
 

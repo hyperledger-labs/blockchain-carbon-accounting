@@ -1,6 +1,6 @@
 import { SingleBar, Presets } from 'cli-progress';
 import { create } from 'ipfs-http-client';
-import OrbitDB from 'orbit-db';
+const OrbitDB = require('orbit-db');
 import type DocumentStore from 'orbit-db-docstore';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -505,7 +505,7 @@ const import_utility_identifiers = async (opts) => {
         indexBy: 'uuid',
     };
 
-    db = await orbitdb.docstore<UtilityEmissionsFactorInterface | UtilityLookupItemInterface>(
+    db = await orbitdb.docstore(
         DB_NAME,
         dbOptions,
     );
