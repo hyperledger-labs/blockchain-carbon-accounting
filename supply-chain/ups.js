@@ -14,7 +14,6 @@ const conf = {
   username: process.env.UPS_USER,
   password: process.env.UPS_PASSWORD,
   access_key: process.env.UPS_KEY,
-  imperial: 'true' === process.env.UPS_IMPERIAL
 }
 
 var ups = new upsAPI(conf);
@@ -48,8 +47,8 @@ function get_addresses(res) {
 
 function is_ground(res) {
   const shipment = res['Shipment'];
-  if (shipment && shipment.Service && shipment.Service.Description) {
-    return shipment.Service.Description.toLowerCase().indexOf('ground') > -1;
+  if (shipment && shipment.Service && shipment.Service.Code) {
+    return shipment.Service.Code.toLowerCase().indexOf('03') > -1;
   } else {
     return true;
   }
@@ -103,7 +102,7 @@ ups.track(trackingNumber, {latest: false}, (err, res) => {
           params: {
             origins: [address_o],
             destinations: [address_d],
-            units: conf.imperial ? 'imperial' : 'metric',
+            units: 'metric',
             key: process.env.GOOGLE_KEY
           }
         }).then((results)=>{
