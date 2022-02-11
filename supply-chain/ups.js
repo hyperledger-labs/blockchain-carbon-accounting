@@ -3,11 +3,16 @@ const {Client} = require("@googlemaps/google-maps-services-js");
 require('dotenv').config();
 
 const args = process.argv.slice(2);
-if (args.length != 1) {
-  console.error('The tracking number argument is required!');
+if (args.length < 1) {
+  console.error('At least one tracking number argument is required!');
   return 1;
 }
-const trackingNumber = args[0];
+const trackingNumbers = args;
+// check there are no duplicates
+if (new Set(trackingNumbers).size !== trackingNumbers.length) {
+  console.error('Cannot pass duplicate trackingNumbers!');
+  return 1;
+}
 
 const conf = {
   environment: process.env.UPS_ENV,
@@ -55,7 +60,6 @@ function is_ground(res) {
 }
 
 function calc_distance(o, d) {
-
   // The math module contains a function
   // named toRadians which converts from
   // degrees to radians.
@@ -77,97 +81,126 @@ function calc_distance(o, d) {
   return 6371.0 * c;
 }
 
-ups.track(trackingNumber, {latest: false}, (err, res) => {
-  if (err) console.error('An error occurred: ', err);
-  else {
-    const isGround = is_ground(res);
-    const output = { ups: res };
-    let weight = 0.0;
-    if (res.Shipment && res.Shipment.ShipmentWeight) {
-      const w = res.Shipment.ShipmentWeight;
-      weight = w.Weight;
-      if (w.UnitOfMeasurement.Code === 'LBS') {
-        weight *= 0.453592;
-      }
-      output.weight = {
-        value: weight,
-        unit: 'kg'
-      }
-      let emissions = weight * 0.001 * (isGround ? 0.52218 : 2.37968);
-      output.emissions = { value: emissions, unit: 'kgCO2e' }
-    }
-    const addresses = get_addresses(res);
-    if (addresses) {
-      const client = new Client({});
-      const address_o = addresses.origin.join(' ');
-      const address_d = addresses.dest.join(' ');
-      if (isGround) {
-        client.distancematrix({
-          params: {
-            origins: [address_o],
-            destinations: [address_d],
-            units: 'metric',
-            key: process.env.GOOGLE_KEY
-          }
-        }).then((results)=>{
-            const dist = results.data.rows[0].elements[0].distance;
-            // the value is always in meter, need to convert into either km or mi
-            const dist_m = dist.value / 1000;
+// wrap UPS api call into a promise
+const ups_track = trackingNumber => new Promise((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err, res) => {
+  if (err) reject(err);
+  else resolve(res);
+}));
 
-            output.distance = {
-              origin: {
-                address: address_o,
-              },
-              destination: {
-                address: address_d,
-              },
-              value: dist_m,
-              unit: 'km'
-            };
-            console.log(JSON.stringify(output, null, 4));
-        }).catch((err)=>{
-            output.distance = {error: err.response.data};
-            console.log(JSON.stringify(output, null, 4));
-        });
-      } else {
-        client.geocode({
-          params: {
-            address: address_o,
-            key: process.env.GOOGLE_KEY
-          }
-        }).then((results)=>{
-            const origin_r = results.data.results[0].geometry.location;
-            client.geocode({
-              params: {
-                address: address_d,
-                key: process.env.GOOGLE_KEY
-              }
-            }).then((results)=>{
-                const dest_r = results.data.results[0].geometry.location;
-                output.distance = {
-                  origin: {
-                    address: address_o,
-                    coords: origin_r
-                  },
-                  destination: {
-                    address: address_d,
-                    coords: dest_r
-                  },
-                  value: calc_distance(origin_r, dest_r),
-                  unit: 'km'
-                };
-                console.log(JSON.stringify(output, null, 4));
-            }).catch((err)=>{
-                output.distance = {error: err.response.data};
-                console.log(JSON.stringify(output, null, 4));
-            });
-        }).catch((err)=>{
-            output.geocode = {error: err.response.data};
-            console.log(JSON.stringify(output, null, 4));
-        });
+
+// return a promise with the output object for a shipment
+function get_shipment(trackingNumber) {
+  return new Promise((resolve, reject) => {
+  ups_track(trackingNumber)
+    .then(res => {
+      const isGround = is_ground(res);
+      const output = { ups: res };
+      const result = { trackingNumber, output };
+      let weight = 0.0;
+      if (res.Shipment && res.Shipment.ShipmentWeight) {
+        const w = res.Shipment.ShipmentWeight;
+        weight = w.Weight;
+        if (w.UnitOfMeasurement.Code === 'LBS') {
+          weight *= 0.453592;
+        }
+        output.weight = {
+          value: weight,
+          unit: 'kg'
+        }
+        let emissions = weight * 0.001 * (isGround ? 0.52218 : 2.37968);
+        output.emissions = { value: emissions, unit: 'kgCO2e' }
       }
-    } else {
-      console.log(JSON.stringify(output, null, 4));
-    }
-  }
-})
+      const addresses = get_addresses(res);
+      if (addresses) {
+        const client = new Client({});
+        const address_o = addresses.origin.join(' ');
+        const address_d = addresses.dest.join(' ');
+        if (isGround) {
+          client.distancematrix({
+            params: {
+              origins: [address_o],
+              destinations: [address_d],
+              units: 'metric',
+              key: process.env.GOOGLE_KEY
+            }
+          }).then((results)=>{
+              const dist = results.data.rows[0].elements[0].distance;
+              // the value is always in meter, need to convert into either km or mi
+              const dist_m = dist.value / 1000;
+
+              output.distance = {
+                origin: {
+                  address: address_o,
+                },
+                destination: {
+                  address: address_d,
+                },
+                value: dist_m,
+                unit: 'km'
+              };
+              resolve(result);
+          }).catch((err)=>{
+              output.distance = {error: err.response.data};
+              resolve(result);
+          });
+        } else {
+          client.geocode({
+            params: {
+              address: address_o,
+              key: process.env.GOOGLE_KEY
+            }
+          }).then((results)=>{
+              const origin_r = results.data.results[0].geometry.location;
+              client.geocode({
+                params: {
+                  address: address_d,
+                  key: process.env.GOOGLE_KEY
+                }
+              }).then((results)=>{
+                  const dest_r = results.data.results[0].geometry.location;
+                  output.distance = {
+                    origin: {
+                      address: address_o,
+                      coords: origin_r
+                    },
+                    destination: {
+                      address: address_d,
+                      coords: dest_r
+                    },
+                    value: calc_distance(origin_r, dest_r),
+                    unit: 'km'
+                  };
+                  resolve(result);
+              }).catch((err)=>{
+                  output.distance = {error: err.response.data};
+                  resolve(result);
+              });
+          }).catch((err)=>{
+              output.geocode = {error: err.response.data};
+              resolve(result);
+          });
+        }
+      } else {
+        resolve(result);
+      }
+    })
+    .catch(error => {
+      reject({trackingNumber, error});
+    })
+  });
+}
+
+
+
+// allow multiple tracking numbers to be used
+// so we return an object with "shipments": as an array of objects, each like { "trackingNumber": "xxxxxx", "output" | "error" : {} }
+// and "emissons": { sum of emissions }
+Promise.allSettled(trackingNumbers.map(get_shipment))
+  .then(promises => {
+    const shipments = promises.map(p=>p.value||p.reason);
+    const total_emissions = shipments.reduce((prev, current) => {
+      if (!current.output || !current.output.emissions) return prev;
+      return prev + current.output.emissions.value;
+    }, 0);
+    console.log(JSON.stringify({ shipments, emissions: { value: total_emissions, unit: 'kgCO2e'}}, null, 4));
+  });
