@@ -6,7 +6,7 @@ const DB_NAME = 'org.hyperledger.blockchain-carbon-accounting';
 const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
-    'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
+    '/orbitdb/zdpuAm6nPdDuL2wBZspcZgbdKPMCbN8pn3ez8Z3i5A9a1hXwb/org.hyperledger.blockchain-carbon-accounting';
 
 interface DivisionsInterface {
     division_type: string;
@@ -14,7 +14,7 @@ interface DivisionsInterface {
 }
 
 export interface UtilityLookupItemInterface {
-    class?: string;
+    class: string;
     key?: string;
     uuid: string;
     year?: string;
@@ -26,14 +26,21 @@ export interface UtilityLookupItemInterface {
 }
 
 export interface UtilityEmissionsFactorInterface {
-    class?: string;
+    class: string;
     key?: string;
     uuid: string;
+    type: string;
+    scope: string;
+    level_1: string;
+    level_2: string;
+    level_3: string;
+    text?: string;
     year?: string;
     country?: string;
     division_type?: string;
     division_id?: string;
     division_name?: string;
+    activity_uom?: string;
     net_generation?: string;
     net_generation_uom?: string;
     co2_equivalent_emissions?: string;
@@ -93,7 +100,11 @@ export class OrbitDBService {
     };
 
     public getUtilityEmissionsFactor = (uuid: string): UtilityEmissionsFactorInterface => {
-        return OrbitDBService._db.get(uuid)[0];
+        return OrbitDBService._db.get(uuid)[0] as UtilityEmissionsFactorInterface;
+    };
+
+    public getAllFactors = (): UtilityEmissionsFactorInterface[] => {
+        return OrbitDBService._db.get('') as UtilityEmissionsFactorInterface[];
     };
 
     public updateUtilityEmissionsFactor = (
@@ -118,14 +129,14 @@ export class OrbitDBService {
                     const hasDivisionType = doc.division_type == divisionType;
                     const isOfQueriedYear = doc.year == (year + retryCount * -1).toString();
                     return isEmissionsFactor && hasDivisionId && hasDivisionType && isOfQueriedYear;
-                });
+                }) as UtilityEmissionsFactorInterface[];
             } else {
                 results = OrbitDBService._db.query((doc: UtilityEmissionsFactorInterface) => {
                     const isEmissionsFactor = doc.class == UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
                     const hasDivisionId = doc.division_id == divisionID;
                     const hasDivisionType = doc.division_type == divisionType;
                     return isEmissionsFactor && hasDivisionId && hasDivisionType;
-                });
+                }) as UtilityEmissionsFactorInterface[];
             }
             retryCount++;
         }
