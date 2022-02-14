@@ -91,6 +91,7 @@ utility-emissions-channel/docker-compose-setup/*.txt
 utility-emissions-channel/docker-compose-setup/*.pdf
 utility-emissions-channel/docker-compose-setup/data/*.zip
 utility-emissions-channel/docker-compose-setup/data/*.xlsx
+utility-emissions-channel/docker-compose-setup/data/*.xls
 utility-emissions-channel/docker-compose-setup/data/*.csv
 utility-emissions-channel/docker-compose-setup/data/*.txt
 utility-emissions-channel/docker-compose-setup/data/*.pdf
