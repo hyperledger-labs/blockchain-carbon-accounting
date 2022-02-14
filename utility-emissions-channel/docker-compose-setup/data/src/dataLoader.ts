@@ -1,3 +1,7 @@
+// TODO: Change utility emissions to scope 2
+// TODO: Add activity UOM
+// Fix OrbitDB import issue
+
 import { SingleBar, Presets } from 'cli-progress';
 import { create } from 'ipfs-http-client';
 const OrbitDB = require('orbit-db');
@@ -110,6 +114,11 @@ const import_utility_emissions = async (opts) => {
         { file: 'egrid2019_data.xlsx', sheet: 'US19' },
         { file: '2019-RES_proxies_EEA.csv', sheet: 'Sheet1' },
         { file: 'co2-emission-intensity-6.csv', sheet: 'Sheet1' },
+        {
+            file: 'conversion-factors-2021-flat-file-automatic-processing.xls',
+            sheet: 'Factors by Category',
+            skip_rows: 4,
+        },
     ];
 
     if (opts.file == 'all' || (opts.file == 'eGRID2018_Data_v2.xlsx' && opts.sheet == 'NRL18')) {
@@ -136,8 +145,13 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
             const document_id =
                 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: 'USA',
+                level_3: `NERC_REGION: ${row['NERC region acronym']}`,
+                scope: 'SCOPE 2',
                 uuid: document_id,
                 year: row['Data Year'].toString(),
                 country: 'USA',
@@ -176,9 +190,14 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'USA_' + row['Data Year'] + '_STATE_' + row['State abbreviation'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: 'USA',
+                level_3: `STATE: ${row['State abbreviation']}`,
+                scope: 'SCOPE 2',
                 year: row['Data Year'].toString(),
                 country: 'USA',
                 division_type: 'STATE',
@@ -213,9 +232,13 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'COUNTRY_USA_' + row['Data Year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: 'USA',
+                level_3: 'COUNTRY: USA',
+                scope: 'SCOPE 2',
                 uuid: document_id,
                 year: '' + row['Data Year'],
                 country: 'USA',
@@ -255,9 +278,13 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
 
             const document_id = 'COUNTRY_USA_' + row['Data Year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: 'USA',
+                level_3: 'COUNTRY: USA',
+                scope: 'SCOPE 2',
                 uuid: document_id,
                 year: '' + row['Data Year'],
                 country: 'USA',
@@ -293,9 +320,13 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'USA_' + row['Data Year'] + '_STATE_' + row['State abbreviation'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: 'USA',
+                level_3: `STATE: ${row['State abbreviation']}`,
+                scope: 'SCOPE 2',
                 uuid: document_id,
                 year: '' + row['Data Year'],
                 country: 'USA',
@@ -333,9 +364,13 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
             const document_id =
                 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: 'USA',
+                level_3: `NERC_REGION: ${row['NERC region acronym']}`,
+                scope: 'SCOPE 2',
                 uuid: document_id,
                 year: '' + row['Data Year'],
                 country: 'USA',
@@ -376,9 +411,14 @@ const import_utility_emissions = async (opts) => {
 
             const countryName = COUNTRY_MAPPINGS[row['CountryShort']];
             const document_id = `COUNTRY_${row['CountryShort']}_` + row['Year'];
-            const d = {
+            const d: UtilityEmissionsFactorInterface = {
                 class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
+                level_1: 'Utility Emissions Factor',
+                level_2: countryName,
+                level_3: `COUNTRY: ${countryName}`,
+                scope: 'SCOPE 2',
                 year: '' + row['Year'],
                 country: countryName,
                 division_type: 'Country',
@@ -391,7 +431,7 @@ const import_utility_emissions = async (opts) => {
                 source: 'https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file',
                 non_renewables: '',
                 renewables: '',
-                percent_of_renewables: Number(row[' ValueNumeric']) * 100,
+                percent_of_renewables: (Number(row[' ValueNumeric']) * 100).toString(),
             };
             await db.put(d);
             progressBar.increment();
@@ -426,6 +466,7 @@ const import_utility_emissions = async (opts) => {
             const document_id = `COUNTRY_` + countryShort + `_` + row['Date:year'];
             const d = {
                 uuid: document_id,
+                type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 co2_equivalent_emissions: row['index:number'],
                 co2_equivalent_emissions_uom: 'g/KWH',
                 source: `https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6`,
@@ -445,6 +486,62 @@ const import_utility_emissions = async (opts) => {
             } else {
                 console.log('Could not find imported utility factor');
             }
+        }
+        progressBar.stop();
+        if (opts.file !== 'all') process.exit(0);
+    }
+
+    if (
+        opts.file == 'all' ||
+        opts.file == 'conversion-factors-2021-flat-file-automatic-processing.xls'
+    ) {
+        const data = parse_worksheet(supportedFiles[8].file, supportedFiles[8]);
+        progressBar.start(data.length, 0);
+
+        for (const row of data) {
+            // skip empty rows
+            if (!row) continue;
+
+            //skip non CO2e factors
+            if (row.GHG !== 'kg CO2e') continue;
+
+            //skip rows with missing factors
+            if (!row['GHG Conversion Factor 2021']) continue;
+
+            opts.verbose && console.log('-- Prepare to insert from ', row);
+
+            // generate a unique for the rows
+            const document_id = (
+                row.Scope +
+                '_' +
+                row['Level 1'] +
+                '_' +
+                row['Level 2'] +
+                '_' +
+                row['Level 3']
+            )
+                .toUpperCase()
+                .replace(/[-:._^&()<>]/g, '')
+                .replace(/[^A-Z0-9]/g, '_');
+            const d: UtilityEmissionsFactorInterface = {
+                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+                type: `${row.Scope.replace(/ /g, '_').toUpperCase()}_EMISSIONS`,
+                level_1: row['Level 1'].toUpperCase(),
+                level_2: row['Level 2'].toUpperCase(),
+                level_3: row['Level 3'].toUpperCase(),
+                text: row['Column Text'] ?? '',
+                scope: row.Scope,
+                uuid: document_id,
+                year: '2021',
+                activity_uom: row.UOM,
+                co2_equivalent_emissions: '' + row['GHG Conversion Factor 2021'],
+                co2_equivalent_emissions_uom: 'kg',
+                source: 'https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021',
+            };
+
+            await db.put(d);
+
+            progressBar.increment();
         }
         progressBar.stop();
         if (opts.file !== 'all') process.exit(0);
@@ -469,7 +566,7 @@ const import_utility_identifiers = async (opts) => {
         for (const row of data) {
             if (!row || !row['Data Year']) continue;
             opts.verbose && console.log('-- Prepare to insert from ', row);
-            const d = {
+            const d: UtilityLookupItemInterface = {
                 class: UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER,
                 uuid: 'USA_EIA_' + row['Utility Number'],
                 year: row['Data Year'],
@@ -505,10 +602,7 @@ const import_utility_identifiers = async (opts) => {
         indexBy: 'uuid',
     };
 
-    db = await orbitdb.docstore(
-        DB_NAME,
-        dbOptions,
-    );
+    db = await orbitdb.docstore(DB_NAME, dbOptions);
     await db.load();
     console.log(`OrbitDB address: ${db.address.toString()}`);
 
