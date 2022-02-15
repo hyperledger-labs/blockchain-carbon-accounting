@@ -1,17 +1,16 @@
-const upsAPI = require('ups-nodejs-sdk');
-const {Client} = require("@googlemaps/google-maps-services-js");
-require('dotenv').config();
+import upsAPI from 'ups-nodejs-sdk';
+import {Client, UnitSystem} from "@googlemaps/google-maps-services-js";
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const args = process.argv.slice(2);
 if (args.length < 1) {
-  console.error('At least one tracking number argument is required!');
-  return 1;
+  throw new Error('At least one tracking number argument is required!');
 }
 const trackingNumbers = args;
 // check there are no duplicates
 if (new Set(trackingNumbers).size !== trackingNumbers.length) {
-  console.error('Cannot pass duplicate trackingNumbers!');
-  return 1;
+  throw new Error('Cannot pass duplicate trackingNumbers!');
 }
 
 const conf = {
@@ -21,24 +20,24 @@ const conf = {
   access_key: process.env.UPS_KEY,
 }
 
-var ups = new upsAPI(conf);
+const ups = new upsAPI(conf);
 
-function get_addresses(res) {
+function get_addresses(res: any) {
   const shipment = res['Shipment'];
   if (shipment && shipment.ShipTo && shipment.ShipTo.Address) {
     const pack = shipment.Package;
     if (pack && pack.Activity) {
-      const a = pack.Activity.find(a=>a.Status&&a.Status.StatusCode&&a.Status.StatusCode.Code==='OR');
-      const b = pack.Activity.find(a=>a.Status&&a.Status.StatusType&&a.Status.StatusType.Code==='D');
+      const a = pack.Activity.find((a: any)=>a.Status&&a.Status.StatusCode&&a.Status.StatusCode.Code==='OR');
+      const b = pack.Activity.find((a: any)=>a.Status&&a.Status.StatusType&&a.Status.StatusType.Code==='D');
       const origin = [];
       const dest = [];
       if (a && a.ActivityLocation && a.ActivityLocation.Address && b && b.ActivityLocation && b.ActivityLocation.Address) {
         const o = a.ActivityLocation.Address;
         const d = b.ActivityLocation.Address;
-        for (let p in o) {
+        for (const p in o) {
           origin.push(o[p]);
         }
-        for (let p in d) {
+        for (const p in d) {
           dest.push(d[p]);
         }
         if (dest && origin) {
@@ -50,7 +49,7 @@ function get_addresses(res) {
   return null;
 }
 
-function is_ground(res) {
+function is_ground(res: any) {
   const shipment = res['Shipment'];
   if (shipment && shipment.Service && shipment.Service.Code) {
     return shipment.Service.Code.toLowerCase().indexOf('03') > -1;
@@ -59,7 +58,7 @@ function is_ground(res) {
   }
 }
 
-function calc_distance(o, d) {
+function calc_distance(o: any, d: any) {
   // The math module contains a function
   // named toRadians which converts from
   // degrees to radians.
@@ -82,19 +81,26 @@ function calc_distance(o, d) {
 }
 
 // wrap UPS api call into a promise
-const ups_track = trackingNumber => new Promise((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err, res) => {
+const ups_track = (trackingNumber: string) => new Promise((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err: any, res: any) => {
   if (err) reject(err);
   else resolve(res);
 }));
 
+type Output = {
+  ups?: any | undefined,
+  weight?: any | undefined,
+  distance?: any | undefined,
+  emissions?: any | undefined,
+  geocode?: any | undefined,
+}
 
 // return a promise with the output object for a shipment
-function get_shipment(trackingNumber) {
+function get_shipment(trackingNumber: string) {
   return new Promise((resolve, reject) => {
   ups_track(trackingNumber)
-    .then(res => {
+    .then((res: any) => {
       const isGround = is_ground(res);
-      const output = { ups: res };
+      const output: Output = { ups: res };
       const result = { trackingNumber, output };
       let weight = 0.0;
       if (res.Shipment && res.Shipment.ShipmentWeight) {
@@ -107,7 +113,7 @@ function get_shipment(trackingNumber) {
           value: weight,
           unit: 'kg'
         }
-        let emissions = weight * 0.001 * (isGround ? 0.52218 : 2.37968);
+        const emissions = weight * 0.001 * (isGround ? 0.52218 : 2.37968);
         output.emissions = { value: emissions, unit: 'kgCO2e' }
       }
       const addresses = get_addresses(res);
@@ -120,8 +126,8 @@ function get_shipment(trackingNumber) {
             params: {
               origins: [address_o],
               destinations: [address_d],
-              units: 'metric',
-              key: process.env.GOOGLE_KEY
+              units: UnitSystem.metric,
+              key: process.env.GOOGLE_KEY || ''
             }
           }).then((results)=>{
               const dist = results.data.rows[0].elements[0].distance;
@@ -147,14 +153,14 @@ function get_shipment(trackingNumber) {
           client.geocode({
             params: {
               address: address_o,
-              key: process.env.GOOGLE_KEY
+              key: process.env.GOOGLE_KEY || ''
             }
           }).then((results)=>{
               const origin_r = results.data.results[0].geometry.location;
               client.geocode({
                 params: {
                   address: address_d,
-                  key: process.env.GOOGLE_KEY
+                  key: process.env.GOOGLE_KEY || ''
                 }
               }).then((results)=>{
                   const dest_r = results.data.results[0].geometry.location;
@@ -197,7 +203,7 @@ function get_shipment(trackingNumber) {
 // and "emissons": { sum of emissions }
 Promise.allSettled(trackingNumbers.map(get_shipment))
   .then(promises => {
-    const shipments = promises.map(p=>p.value||p.reason);
+    const shipments = promises.map(p=>(p.status === 'fulfilled')?p.value:p.reason);
     const total_emissions = shipments.reduce((prev, current) => {
       if (!current.output || !current.output.emissions) return prev;
       return prev + current.output.emissions.value;
