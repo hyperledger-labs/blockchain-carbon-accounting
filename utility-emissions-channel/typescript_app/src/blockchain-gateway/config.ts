@@ -36,6 +36,7 @@ export default class BCGatewayConfig {
             new PluginKeychainMemory({
                 keychainId: this.inMemoryKeychainID,
                 instanceId: uuid4(),
+                logLevel: process.env.KEYCHAIN_NOLOG === 'Y' ? 'silent' : 'info',
             }),
         );
         if (process.env.VAULT_ENDPOINT) {
@@ -47,6 +48,7 @@ export default class BCGatewayConfig {
                     apiVersion: 'v1',
                     keychainId: this.certStoreID,
                     instanceId: uuid4(),
+                    logLevel: process.env.KEYCHAIN_NOLOG === 'Y' ? 'silent' : 'info',
                 }),
             );
         }
