@@ -4,7 +4,7 @@
   "description": "",
   "main": "ups.js",
   "scripts": {
-    "start": "tsc && node ups.js",
+    "build": "tsc",
     "lint": "eslint . --ext .ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
