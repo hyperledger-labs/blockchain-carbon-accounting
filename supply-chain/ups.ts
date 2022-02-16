@@ -1,7 +1,99 @@
 import upsAPI from 'ups-nodejs-sdk';
-import {Client, UnitSystem} from "@googlemaps/google-maps-services-js";
+import {Client, LatLngLiteral, UnitSystem} from "@googlemaps/google-maps-services-js";
 import * as dotenv from 'dotenv';
+import { setup } from '../utility-emissions-channel/typescript_app/src/utils/logger';
+import BCGatewayConfig from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/config';
+import Signer from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/signer';
+import EthNetEmissionsTokenGateway from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork';
+import {
+    IEthTxCaller,
+    IEthNetEmissionsTokenIssueInput,
+} from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/I-gateway';
+import { BigNumber } from 'bignumber.js';
 dotenv.config();
+setup('silent', 'silent');
+
+type UpsAddress = {
+  AddressLine1?: string,
+  AddressLine2?: string,
+  City?: string,
+  StateProvinceCode?: string,
+  CountryCode?: string,
+  PostalCode?: string,
+}
+type UpsActivity = {
+  ActivityLocation: {
+    Address: UpsAddress,
+    Code: string,
+    Description: string,
+  },
+  Status: {
+    StatusType: {
+      Code: string,
+      Description: string,
+    },
+    StatusCode: {
+      Code: string
+    }
+  },
+  Date: string,
+  Time: string
+}
+type UpsResponse = {
+  Response: {
+    ResponseStatusCode: string,
+    ResponseStatusCodeDescription: string,
+  },
+  Shipment: {
+    Shipper: {
+      Address: UpsAddress,
+      ShipperNumber: string,
+    },
+    ShipTo: {
+      Address: UpsAddress,
+    },
+    ShipmentWeight: {
+      UnitOfMeasurement: {
+        Code: string,
+      },
+      Weight: number
+    },
+    Service: {
+      Code: string,
+      Description: string,
+    },
+    Package: {
+      Activity: UpsActivity[],
+    }
+
+  }
+}
+
+type OutputValue = {
+  value: number,
+  unit: string
+}
+type OutputDistanceAddress = {
+  address: string,
+  coords?: LatLngLiteral
+}
+type OutputDistance = {
+  origin: OutputDistanceAddress,
+  destination: OutputDistanceAddress,
+  value: number,
+  unit: string
+}
+type OutputError = {
+  error: string
+}
+type Output = {
+  ups?: UpsResponse,
+  weight?: OutputValue,
+  distance?: OutputDistance | OutputError,
+  emissions?: OutputValue,
+  geocode?: OutputError,
+}
+
 
 const args = process.argv.slice(2);
 if (args.length < 1) {
@@ -22,13 +114,42 @@ const conf = {
 
 const ups = new upsAPI(conf);
 
-function get_addresses(res: any) {
-  const shipment = res['Shipment'];
+async function issue_tokens(emissions: BigNumber) {
+  const bcConfig = new BCGatewayConfig();
+  const ethConnector = await bcConfig.ethConnector();
+  const signer = new Signer('vault', bcConfig.inMemoryKeychainID, 'plain');
+  const nowTime = Math.floor(new Date().getTime() / 1000);
+
+  const gateway = new EthNetEmissionsTokenGateway({
+    contractStoreKeychain: ethConnector.contractStoreKeychain,
+    ethClient: ethConnector.connector,
+    signer: signer,
+  });
+  const caller: IEthTxCaller = {
+    address: process.env.ETH_CONTRACT_ADDRESS,
+    private: process.env.ETH_PRIKEY,
+  };
+  const input: IEthNetEmissionsTokenIssueInput = {
+    addressToIssue: process.env.ETH_PUBKEY || '',
+    quantity: emissions.toNumber(),
+    fromDate: nowTime,
+    thruDate: nowTime,
+    automaticRetireDate: 0,
+    metadata: 'test-token-metadata',
+    manifest: 'test-token-manifest',
+    description: 'Shipments emissions',
+  };
+  const token = await gateway.issue(caller, input);
+  console.log(token);
+}
+
+function get_addresses(res: UpsResponse) {
+  const shipment = res.Shipment;
   if (shipment && shipment.ShipTo && shipment.ShipTo.Address) {
     const pack = shipment.Package;
     if (pack && pack.Activity) {
-      const a = pack.Activity.find((a: any)=>a.Status&&a.Status.StatusCode&&a.Status.StatusCode.Code==='OR');
-      const b = pack.Activity.find((a: any)=>a.Status&&a.Status.StatusType&&a.Status.StatusType.Code==='D');
+      const a = pack.Activity.find((a)=>a.Status&&a.Status.StatusCode&&a.Status.StatusCode.Code==='OR');
+      const b = pack.Activity.find((a)=>a.Status&&a.Status.StatusType&&a.Status.StatusType.Code==='D');
       const origin = [];
       const dest = [];
       if (a && a.ActivityLocation && a.ActivityLocation.Address && b && b.ActivityLocation && b.ActivityLocation.Address) {
@@ -49,8 +170,8 @@ function get_addresses(res: any) {
   return null;
 }
 
-function is_ground(res: any) {
-  const shipment = res['Shipment'];
+function is_ground(res: UpsResponse) {
+  const shipment = res.Shipment;
   if (shipment && shipment.Service && shipment.Service.Code) {
     return shipment.Service.Code.toLowerCase().indexOf('03') > -1;
   } else {
@@ -58,7 +179,7 @@ function is_ground(res: any) {
   }
 }
 
-function calc_distance(o: any, d: any) {
+function calc_distance(o: LatLngLiteral, d: LatLngLiteral) {
   // The math module contains a function
   // named toRadians which converts from
   // degrees to radians.
@@ -81,24 +202,16 @@ function calc_distance(o: any, d: any) {
 }
 
 // wrap UPS api call into a promise
-const ups_track = (trackingNumber: string) => new Promise((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err: any, res: any) => {
+const ups_track = (trackingNumber: string) => new Promise((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err: any, res: UpsResponse) => {
   if (err) reject(err);
   else resolve(res);
 }));
-
-type Output = {
-  ups?: any | undefined,
-  weight?: any | undefined,
-  distance?: any | undefined,
-  emissions?: any | undefined,
-  geocode?: any | undefined,
-}
 
 // return a promise with the output object for a shipment
 function get_shipment(trackingNumber: string) {
   return new Promise((resolve, reject) => {
   ups_track(trackingNumber)
-    .then((res: any) => {
+    .then((res: UpsResponse) => {
       const isGround = is_ground(res);
       const output: Output = { ups: res };
       const result = { trackingNumber, output };
@@ -202,11 +315,19 @@ function get_shipment(trackingNumber: string) {
 // so we return an object with "shipments": as an array of objects, each like { "trackingNumber": "xxxxxx", "output" | "error" : {} }
 // and "emissons": { sum of emissions }
 Promise.allSettled(trackingNumbers.map(get_shipment))
-  .then(promises => {
+  .then((promises) => {
+    const failures = promises.filter(p=>p.status!=='fulfilled').map(p=>(p.status === 'fulfilled')?p.value:p.reason);
+    if (failures.length) {
+      console.log(JSON.stringify({error:'Some request failed!', failures}, null, 4));
+      return;
+    }
     const shipments = promises.map(p=>(p.status === 'fulfilled')?p.value:p.reason);
-    const total_emissions = shipments.reduce((prev, current) => {
+    const total_emissions: number = shipments.reduce((prev, current) => {
       if (!current.output || !current.output.emissions) return prev;
       return prev + current.output.emissions.value;
     }, 0);
     console.log(JSON.stringify({ shipments, emissions: { value: total_emissions, unit: 'kgCO2e'}}, null, 4));
+    // convert to token amount, 1 tCo2e = 1e18 token
+    const tokens = new BigNumber(total_emissions).shiftedBy(15);
+    issue_tokens(tokens);
   });

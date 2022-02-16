@@ -12,6 +12,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.3.9",
+    "bignumber.js": "^9.0.2",
     "dotenv": "^16.0.0",
     "ups-nodejs-sdk": "^1.0.0"
   },
