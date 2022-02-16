@@ -500,8 +500,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             tokenInfo.issuee,
             tokenInfo.fromDate,
             tokenInfo.thruDate,
-            tokenInfo.automaticRetireDate,
             tokenInfo.dateCreated,
+            tokenInfo.automaticRetireDate,
             tokenInfo.metadata,
             tokenInfo.manifest,
             tokenInfo.description
