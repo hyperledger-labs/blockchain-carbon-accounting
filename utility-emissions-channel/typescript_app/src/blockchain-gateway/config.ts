@@ -38,16 +38,18 @@ export default class BCGatewayConfig {
                 instanceId: uuid4(),
             }),
         );
-        this.pluginRegistry.add(
-            new PluginKeychainVault({
-                endpoint: process.env.VAULT_ENDPOINT,
-                token: process.env.VAULT_TOKEN,
-                kvSecretsMountPath: process.env.VAULT_KV_MOUNT_PATH + '/data/',
-                apiVersion: 'v1',
-                keychainId: this.certStoreID,
-                instanceId: uuid4(),
-            }),
-        );
+        if (process.env.VAULT_ENDPOINT) {
+            this.pluginRegistry.add(
+                new PluginKeychainVault({
+                    endpoint: process.env.VAULT_ENDPOINT,
+                    token: process.env.VAULT_TOKEN,
+                    kvSecretsMountPath: process.env.VAULT_KV_MOUNT_PATH + '/data/',
+                    apiVersion: 'v1',
+                    keychainId: this.certStoreID,
+                    instanceId: uuid4(),
+                }),
+            );
+        }
     }
     fabricConnector(): IFabricOrgConnector {
         const fnTag = `${this.className}.fabricConnector()`;
