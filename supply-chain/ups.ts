@@ -139,7 +139,7 @@ async function issue_tokens(emissions: BigNumber, hash: string, ipfs_path: strin
     automaticRetireDate: 0,
     metadata: `ipfs://${ipfs_path}`,
     manifest: hash,
-    description: 'Shipments emissions',
+    description: 'Emissions from shipments',
   };
   const token = await gateway.issue(caller, input);
   return token;
