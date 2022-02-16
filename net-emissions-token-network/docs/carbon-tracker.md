@@ -8,16 +8,16 @@ TO-DO: This should describe in detail how the CarbonTracker contract is implemen
 
 Each CarbonTracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
 - retied emission certificates, 
-- retired/transffered offset credits
-- retired (burnt)/transffered carbon tracker tokens
+- retired/transferred offset credits
+- retired (burnt)/transferred carbon tracker tokens
 
 NETs listed within an NFT can be map from a previous NFT trackerId. This connects emission profiles of different facilities for embedded emission tracking. 
 
 Note: companies with no incentive to provide their consumers with transparent embedded emissions may see no value in this, as it may reflect negatively on their emission performance. This service target industries, and their supply chain counterparts, with commercial advantage (and/or policy mandate) to provide embedded emission transparency. 
 
-One example is the final [Carbon Border Adjustement Mechanism drafted by the European Commission](https://ec.europa.eu/info/sites/default/files/carbon_border_adjustment_mechanism_0.pdf). It requires importers of targeted energy intensive commodities (e.g., steel, cement, alumininum, fertilizers) to disclose simple and complex (embedded) emissions. These will be subject to carbon import tariffs equivalent to the price of GHG allowances purchaed with the European Unions Emission Trading System (EU ETS).  
+One example is the final [Carbon Border Adjustemnt Mechanism drafted by the European Commission](https://ec.europa.eu/info/sites/default/files/carbon_border_adjustment_mechanism_0.pdf). It requires importers of targeted energy intensive commodities (e.g., steel, cement, alumininum, fertilizers) to disclose simple and complex (embedded) emissions. These will be subject to carbon import tariffs equivalent to the price of GHG allowances purchased with the European Unions Emission Trading System (EU ETS).  
 
-Another application is the creation of emission performance certificates issued to producers of oil and gas. This couldbe used to certify that a producer has low gas flaring and methane leakage on its production. [Flare Intel](https://flareintel.com/) provoides a service that could be used by the Carbon Tracker contract to verify flaring from facilities globally. The World Bank has also set up an [Imported Flared Gas (IFG) index](https://www.ggfrdata.org/#imported-flare-gas-index) as a measure of the embedded flared emission in international oil trade. The Carbon Tracker NFTs couldbe issued in conjunction with such an index to prove an importer has committed to lowering its IFG index.
+Another application is the creation of emission performance certificates issued to producers of oil and gas. This couldbe used to certify that a producer has low gas flaring and methane leakage on its production. [Flare Intel](https://flareintel.com/) provoides a service that could be used by the Carbon Tracker contract to verify flaring from facilities globally. The World Bank has also set up an [Imported Flared Gas (IFG) index](https://www.ggfrdata.org/#imported-flare-gas-index) as a measure of the embedded flared emission in international oil trade. The Carbon Tracker NFTs could be issued in conjunction with such an index to prove an importer has committed to lowering its IFG index.
 
 
 
@@ -34,7 +34,7 @@ Within each tracker previous `trackerIds` are mapped to `struct CarbonTokens`. t
 
 - Other attributes of the tracker NFTs are 
     - trackee: the address the tracker applies to
-    - audtior: a registered emission auditor assined to verify this NFT
+    - audtior: a registered emission auditor assigned to verify this NFT
     - totalEmission: total emissions tracked as inputs  
     - totalAudited: total number of audited emissions certificates issued. Required to be less than totalEmissions.
     - trackerIds: previous tracker NFTs referenced (mapped to CarbonTokens struct)
@@ -121,12 +121,12 @@ Carbon tokens can only be transferred with the approval of the receiving party u
 Additions/changes to the NetEmissionTokenNetwork contract:
 - Role `REGISTERED_INDUSTRY`: new industry actors, self assigned or admin elected
 - Role `REGISTERED_INDUSTRY_DEALER`: elected by admin as official Carbon Token industry dealers
-- Mapping `_transferredBalances` allows CarbonTracker contract to check that the  balances of a tokenId transffered by a given address do not exceed what was reported in NET. 
+- Mapping `_transferredBalances` allows CarbonTracker contract to check that the  balances of a tokenId transferred by a given address do not exceed what was reported in NET. 
 - mapping `carbonTransferNonce`: 
     - prevent processing of carbon token transfers (tokenTypeID=4) multiple times. 
     - Used in getTransferHash (see below)
     - Increment in `_beforeTokenTransfer()` hook. When `approveCarbon` is true require `verifySignature()` (see below).
-- Modifier `consumerOrDealer(address from,address to)`: modifer for from and to addresses.
+- Modifier `consumerOrDealer(address from,address to)`: modifier for from and to addresses.
     - `from!=address(0)`: if not minting require sender is consumerOrDealer
     - `to!=address(0)`: if not burning require receiver is consumerOrDealer  
 - function `_beforeTokenTransfer()` hook:
