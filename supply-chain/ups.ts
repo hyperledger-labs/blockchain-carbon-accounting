@@ -1,6 +1,8 @@
 import upsAPI from 'ups-nodejs-sdk';
 import {Client, LatLngLiteral, UnitSystem} from "@googlemaps/google-maps-services-js";
 import * as dotenv from 'dotenv';
+import * as crypto from "crypto";
+import { create } from 'ipfs-http-client';
 import { setup } from '../utility-emissions-channel/typescript_app/src/utils/logger';
 import BCGatewayConfig from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/config';
 import Signer from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/signer';
@@ -114,7 +116,7 @@ const conf = {
 
 const ups = new upsAPI(conf);
 
-async function issue_tokens(emissions: BigNumber) {
+async function issue_tokens(emissions: BigNumber, hash: string, ipfs_path: string) {
   const bcConfig = new BCGatewayConfig();
   const ethConnector = await bcConfig.ethConnector();
   const signer = new Signer('vault', bcConfig.inMemoryKeychainID, 'plain');
@@ -135,12 +137,12 @@ async function issue_tokens(emissions: BigNumber) {
     fromDate: nowTime,
     thruDate: nowTime,
     automaticRetireDate: 0,
-    metadata: 'test-token-metadata',
-    manifest: 'test-token-manifest',
+    metadata: `ipfs://${ipfs_path}`,
+    manifest: hash,
     description: 'Shipments emissions',
   };
   const token = await gateway.issue(caller, input);
-  console.log(token);
+  return token;
 }
 
 function get_addresses(res: UpsResponse) {
@@ -315,19 +317,33 @@ function get_shipment(trackingNumber: string) {
 // so we return an object with "shipments": as an array of objects, each like { "trackingNumber": "xxxxxx", "output" | "error" : {} }
 // and "emissons": { sum of emissions }
 Promise.allSettled(trackingNumbers.map(get_shipment))
-  .then((promises) => {
+  .then(async (promises) => {
     const failures = promises.filter(p=>p.status!=='fulfilled').map(p=>(p.status === 'fulfilled')?p.value:p.reason);
     if (failures.length) {
       console.log(JSON.stringify({error:'Some request failed!', failures}, null, 4));
       return;
     }
     const shipments = promises.map(p=>(p.status === 'fulfilled')?p.value:p.reason);
+    // create a hash
+    const algo = 'sha256';
+    const content = JSON.stringify(shipments);
+    const h = crypto.createHash(algo).update(content).digest('hex');
+    // calculate total_emissions
     const total_emissions: number = shipments.reduce((prev, current) => {
       if (!current.output || !current.output.emissions) return prev;
       return prev + current.output.emissions.value;
     }, 0);
-    console.log(JSON.stringify({ shipments, emissions: { value: total_emissions, unit: 'kgCO2e'}}, null, 4));
+    // save into IPFS
+    const ipfs_client = create({url: process.env.IPFS_URL});
+    const ipfs_res = await ipfs_client.add({content});
     // convert to token amount, 1 tCo2e = 1e18 token
     const tokens = new BigNumber(total_emissions).shiftedBy(15);
-    issue_tokens(tokens);
+    const token_res = await issue_tokens(tokens, `${algo}:${h}`, ipfs_res.path);
+    console.log(JSON.stringify({
+      shipments,
+      hash: { type: algo, value: h },
+      token: token_res,
+      ipfs: ipfs_res,
+      emissions: { value: total_emissions, unit: 'kgCO2e'}
+    }, null, 4));
   });
