@@ -397,8 +397,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
             tokenInfo.issuee,
             tokenInfo.fromDate,
             tokenInfo.thruDate,
-            tokenInfo.automaticRetireDate,
             tokenInfo.dateCreated,
+            tokenInfo.automaticRetireDate,
             tokenInfo.metadata,
             tokenInfo.manifest,
             tokenInfo.description

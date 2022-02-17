@@ -36,18 +36,22 @@ export default class BCGatewayConfig {
             new PluginKeychainMemory({
                 keychainId: this.inMemoryKeychainID,
                 instanceId: uuid4(),
+                logLevel: process.env.KEYCHAIN_NOLOG === 'Y' ? 'silent' : 'info',
             }),
         );
-        this.pluginRegistry.add(
-            new PluginKeychainVault({
-                endpoint: process.env.VAULT_ENDPOINT,
-                token: process.env.VAULT_TOKEN,
-                kvSecretsMountPath: process.env.VAULT_KV_MOUNT_PATH + '/data/',
-                apiVersion: 'v1',
-                keychainId: this.certStoreID,
-                instanceId: uuid4(),
-            }),
-        );
+        if (process.env.VAULT_ENDPOINT) {
+            this.pluginRegistry.add(
+                new PluginKeychainVault({
+                    endpoint: process.env.VAULT_ENDPOINT,
+                    token: process.env.VAULT_TOKEN,
+                    kvSecretsMountPath: process.env.VAULT_KV_MOUNT_PATH + '/data/',
+                    apiVersion: 'v1',
+                    keychainId: this.certStoreID,
+                    instanceId: uuid4(),
+                    logLevel: process.env.KEYCHAIN_NOLOG === 'Y' ? 'silent' : 'info',
+                }),
+            );
+        }
     }
     fabricConnector(): IFabricOrgConnector {
         const fnTag = `${this.className}.fabricConnector()`;

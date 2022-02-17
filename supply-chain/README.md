@@ -21,7 +21,7 @@ npm install
 Run
 
 ```
-node ups.js <tracking-number>
+node ups.js <tracking-number1> [tracking-number2] ...
 ```
 
-with a UPS tracking number.
+with one or more UPS tracking numbers.

@@ -47,7 +47,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
      *   4 => Carbon Tracker tokens (traded, burnt or stored fuel/feed stock)
-     *   TO-DO define carbon tracker storage transactions (i.e. catpured CO2 management) 
+     *   TO-DO define carbon tracker storage transactions (i.e. captured CO2 management) 
      * issuer - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
      * fromDate - Unix timestamp
@@ -180,7 +180,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             // the below will achieve the same as the above
             hasRole(REGISTERED_DEALER,msg.sender) || 
             // REGISTERED_INDSUTRY are considered dealers of carbon tokens
-            // but have not be assingned REGISTERED_DEALER role by admin
+            // but have not be assigned REGISTERED_DEALER role by admin
             hasRole(REGISTERED_INDUSTRY,msg.sender),
             "CLM8::onlyDealer: msg.sender not a dealer"
         );
@@ -191,7 +191,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      */
     function _consumerOrDealer(address entity) public view returns (bool) {
         // check for one role and return if true if true
-        // before checking the next to minimze gas
+        // before checking the next to minimize gas
         if(hasRole(REGISTERED_DEALER, entity) ||
            hasRole(REGISTERED_CONSUMER, entity) ||
            hasRole(REGISTERED_INDUSTRY, entity) 
@@ -500,8 +500,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             tokenInfo.issuee,
             tokenInfo.fromDate,
             tokenInfo.thruDate,
-            tokenInfo.automaticRetireDate,
             tokenInfo.dateCreated,
+            tokenInfo.automaticRetireDate,
             tokenInfo.metadata,
             tokenInfo.manifest,
             tokenInfo.description

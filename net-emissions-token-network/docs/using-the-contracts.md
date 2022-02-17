@@ -113,7 +113,7 @@ npx hardhat setProposalThreshold --network localhost --contract <Governor deploy
 
 This value represents a dCLM8 amount with no sqrt calculation, so 18 zeros must be padded to the end of the number. By default, it is set to 100,000 or 1% of the dCLM8 supply.
 
-Similarily, you can easily see the value by running the similar task:
+Similarly, you can easily see the value by running the similar task:
 
 ```bash
 npx hardhat getProposalThreshold --network localhost --contract <Governor deployed address>
