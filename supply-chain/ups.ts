@@ -128,11 +128,11 @@ async function issue_tokens(emissions: BigNumber, hash: string, ipfs_path: strin
     signer: signer,
   });
   const caller: IEthTxCaller = {
-    address: process.env.ETH_CONTRACT_ADDRESS,
-    private: process.env.ETH_PRIKEY,
+    address: process.env.ETH_ISSUER_ACCT,
+    private: process.env.ETH_ISSUER_PRIVATE_KEY,
   };
   const input: IEthNetEmissionsTokenIssueInput = {
-    addressToIssue: process.env.ETH_PUBKEY || '',
+    addressToIssue: process.env.ETH_ISSUEE_ACCT || '',
     quantity: emissions.toNumber(),
     fromDate: nowTime,
     thruDate: nowTime,
