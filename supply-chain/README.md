@@ -10,7 +10,7 @@ Sign up for the [Google DistanceMatrix API](https://developers.google.com/maps/d
 
 Fill in the Google API key in `.env`.
 
-Install dependencies with
+Install dependencies here and in `utility-emissions-channel/typescript_app` with
 
 ```
 npm install
