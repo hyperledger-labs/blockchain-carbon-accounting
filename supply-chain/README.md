@@ -18,9 +18,34 @@ npm install
 
 ## Trying it
 
-Run by giving a list of tracking numbers and/or using a file containing one tracking number per line with:
+First generate one or more key pairs for encrypting and decrypting files on IPFS.
+```
+node ups.ts -generatekeypair user1 -generatekeypair user2
+```
+
+Run by giving a list of tracking numbers and/or using a file containing one tracking number per line and one or more public key for encryption with:
 
 ```
-node ups.js [-f file.txt] <tracking-number1> [tracking-number2] ...
+node ups.js -pubk user1-public.pem [-pubk user2-public.pem] [-f file.txt] <tracking-number1> [tracking-number2] ...
 ```
 
+Note the IPFS content ID from the response, which is in the "ipfs.path" object and the "token.metadata" eg:
+```
+...
+"token": {
+    ...
+    "metadata": "ipfs://<content_id>",
+    ...
+},
+...
+"ipfs": {
+    "path": "<content_id>",
+    ...
+}
+...
+```
+
+Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
+```
+node ups.js -pk user1-private.pem -fetch <content_id>
+```
