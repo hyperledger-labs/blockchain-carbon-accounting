@@ -63,9 +63,11 @@ export class OrbitDBService {
     private static _db: DocumentStore<UtilityLookupItemInterface | UtilityEmissionsFactorInterface>;
 
     public static init = async (): Promise<void> => {
-        const ipfs = create();
-
+       
+        const ipfs = create({url:'http://127.0.0.1:5002'});
+        
         const orbitdb = await OrbitDB.createInstance(ipfs as any);
+        
         const dbOptions = {
             // Give write access to the creator of the database
             accessController: {
@@ -192,3 +194,6 @@ export class OrbitDBService {
         return utilityFactors[0];
     }
 }
+
+//Just test
+OrbitDBService.init();
