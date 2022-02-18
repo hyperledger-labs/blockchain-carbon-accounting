@@ -195,5 +195,3 @@ export class OrbitDBService {
     }
 }
 
-//Just test
-OrbitDBService.init();
