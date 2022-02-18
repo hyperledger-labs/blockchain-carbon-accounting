@@ -348,7 +348,7 @@ Promise.allSettled(trackingNumbers.map(get_shipment))
     const content = JSON.stringify(shipments);
     const h = crypto.createHash(algo).update(content).digest('hex');
     // calculate total_emissions
-    const total_emissions: number = shipments.reduce((prev, current) => {
+    let total_emissions: number = shipments.reduce((prev, current) => {
       if (!current.output || !current.output.emissions) return prev;
       return prev + current.output.emissions.value;
     }, 0);
@@ -356,10 +356,13 @@ Promise.allSettled(trackingNumbers.map(get_shipment))
     const ipfs_client = create({url: process.env.IPFS_URL});
     const ipfs_res = await ipfs_client.add({content});
     // convert to token amount in kCo2e
+    if (process.env.EMISSIONS_SHIFT) {
+      total_emissions = total_emissions *= 10**parseInt(process.env.EMISSIONS_SHIFT);
+    }
     if (total_emissions < 1) {
       throw new Error('Cannot issue tokens as the total emissions for the given shipments are less than 1 kCO2e ('+total_emissions+') try adding more shipments to the request.');
     }
-    const tokens = new BigNumber(total_emissions).shiftedBy(15);
+    const tokens = new BigNumber(Math.round(total_emissions));
     const token_res = await issue_tokens(tokens, `${algo}:${h}`, ipfs_res.path);
     console.log(JSON.stringify({
       shipments,
