@@ -428,7 +428,7 @@ setup('silent', 'silent');
 const publicKeys = [];
 let privateKey = null;
 let fetchObjectPath = null;
-let generatedKeypairs = [];
+const generatedKeypairs = [];
 
 const args = process.argv.slice(2);
 if (args.length < 1) {
