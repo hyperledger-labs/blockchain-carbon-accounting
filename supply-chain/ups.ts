@@ -2,6 +2,7 @@ import upsAPI from 'ups-nodejs-sdk';
 import {Client, LatLngLiteral, UnitSystem} from "@googlemaps/google-maps-services-js";
 import * as dotenv from 'dotenv';
 import * as crypto from "crypto";
+import { readFileSync } from 'fs'
 import { create } from 'ipfs-http-client';
 import { setup } from '../utility-emissions-channel/typescript_app/src/utils/logger';
 import BCGatewayConfig from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/config';
@@ -97,11 +98,29 @@ type Output = {
 }
 
 
-const args = process.argv.slice(2);
+let args = process.argv.slice(2);
 if (args.length < 1) {
   throw new Error('At least one tracking number argument is required!');
 }
-const trackingNumbers = args;
+let trackingNumbers = [];
+if (args[0] === '-f') {
+  if (args.length < 2) {
+    throw new Error('The -f flag must be followed by the path to the file to load!');
+  }
+  const file = args[1];
+  args = args.slice(2);
+  try {
+    const data = readFileSync(file, 'utf8');
+    // filter empty lines (including possible end of line characters)
+    const tns = data.split(/\r?\n/).filter(l=>l.length>5);
+    trackingNumbers = trackingNumbers.concat(tns);
+  } catch (err) {
+    console.error('Could not read the file: ' + file);
+    throw err;
+  }
+}
+// add remaining arguments
+trackingNumbers = trackingNumbers.concat(args);
 // check there are no duplicates
 if (new Set(trackingNumbers).size !== trackingNumbers.length) {
   throw new Error('Cannot pass duplicate trackingNumbers!');
@@ -261,7 +280,7 @@ function get_shipment(trackingNumber: string) {
               };
               resolve(result);
           }).catch((err)=>{
-              output.distance = {error: err.response.data};
+              output.distance = {error: err};
               resolve(result);
           });
         } else {
@@ -293,11 +312,11 @@ function get_shipment(trackingNumber: string) {
                   };
                   resolve(result);
               }).catch((err)=>{
-                  output.distance = {error: err.response.data};
+                  output.distance = {error: err};
                   resolve(result);
               });
           }).catch((err)=>{
-              output.geocode = {error: err.response.data};
+              output.geocode = {error: err};
               resolve(result);
           });
         }
@@ -319,7 +338,7 @@ function get_shipment(trackingNumber: string) {
 Promise.allSettled(trackingNumbers.map(get_shipment))
   .then(async (promises) => {
     const failures = promises.filter(p=>p.status!=='fulfilled').map(p=>(p.status === 'fulfilled')?p.value:p.reason);
-    if (failures.length) {
+    if (failures.length && 'Y'!==process.env.UPS_SKIP_ERRORS) {
       console.log(JSON.stringify({error:'Some request failed!', failures}, null, 4));
       return;
     }
@@ -336,7 +355,10 @@ Promise.allSettled(trackingNumbers.map(get_shipment))
     // save into IPFS
     const ipfs_client = create({url: process.env.IPFS_URL});
     const ipfs_res = await ipfs_client.add({content});
-    // convert to token amount, 1 tCo2e = 1e18 token
+    // convert to token amount in kCo2e
+    if (total_emissions < 1) {
+      throw new Error('Cannot issue tokens as the total emissions for the given shipments are less than 1 kCO2e ('+total_emissions+') try adding more shipments to the request.');
+    }
     const tokens = new BigNumber(total_emissions).shiftedBy(15);
     const token_res = await issue_tokens(tokens, `${algo}:${h}`, ipfs_res.path);
     console.log(JSON.stringify({

@@ -18,10 +18,9 @@ npm install
 
 ## Trying it
 
-Run
+Run by giving a list of tracking numbers and/or using a file containing one tracking number per line with:
 
 ```
-node ups.js <tracking-number1> [tracking-number2] ...
+node ups.js [-f file.txt] <tracking-number1> [tracking-number2] ...
 ```
 
-with one or more UPS tracking numbers.
