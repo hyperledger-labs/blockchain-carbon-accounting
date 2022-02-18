@@ -351,6 +351,8 @@ const import_utility_emissions = async (opts) => {
     }
 
     if (opts.file == 'all' || (opts.file == 'egrid2019_data.xlsx' && opts.sheet == 'NRL19')) {
+
+    
         const data = parse_worksheet(supportedFiles[3].file, supportedFiles[3]);
         progressBar.start(data.length, 0);
 
@@ -591,7 +593,7 @@ const import_utility_identifiers = async (opts) => {
 };
 
 (async () => {
-    const ipfs = create();
+    const ipfs = create({url:'http://127.0.0.1:5002'});
     const orbitdb = await OrbitDB.createInstance(ipfs as any);
     const dbOptions = {
         // Give write access to the creator of the database
@@ -611,6 +613,7 @@ const import_utility_identifiers = async (opts) => {
             'load_utility_emissions <file> [sheet]',
             'load data from XLSX file',
             (yargs) => {
+               
                 yargs
                     .positional('file', {
                         describe: 'XLSX file to load from',
@@ -621,6 +624,7 @@ const import_utility_identifiers = async (opts) => {
                     });
             },
             (argv) => {
+               
                 import_utility_emissions(argv);
             },
         )
