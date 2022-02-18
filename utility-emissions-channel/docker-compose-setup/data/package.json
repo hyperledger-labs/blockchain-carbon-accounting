@@ -7,6 +7,7 @@
         "node": ">=16"
     },
     "scripts": {
+        "ipfs_init": "jsipfs daemon",
         "build": "tsc",
         "lint": "eslint 'src/**/*.ts'",
         "lint:fix": "eslint 'src/**/*.ts' --fix"
@@ -17,7 +18,8 @@
         "ipfs-http-client": "^55.0.0",
         "orbit-db": "^0.28.0",
         "xlsx": "^0.17.5",
-        "yargs": "^17.3.1"
+        "yargs": "^17.3.1",
+        "ipfs": "^0.62.1"
     },
     "devDependencies": {
         "@types/cli-progress": "^3.9.2",
