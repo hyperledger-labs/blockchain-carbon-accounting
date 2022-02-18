@@ -101,6 +101,7 @@ export async function getRoles(w3provider, address) {
     roles = await contract.getRoles(address);
   } catch (error) {
     roles = error.message;
+    console.error('getRoles', error);
   }
   return roles;
 }
@@ -112,6 +113,7 @@ export async function getIssuer(w3provider, tokenId) {
     issuer = await contract.getIssuer(tokenId);
   } catch (error) {
     issuer = error.message;
+    console.error('getIssuer', error);
   }
   return issuer;
 }
@@ -123,6 +125,7 @@ export async function getTokenDetails(w3provider, tokenId) {
     details = await contract.getTokenDetails(tokenId);
   } catch (error) {
     details = error.message;
+    console.error('getTokenDetails', error);
   }
   return details;
 }
@@ -134,6 +137,7 @@ export async function getNumOfUniqueTokens(w3provider) {
     uniqueTokens = await contract.getNumOfUniqueTokens();
   } catch (error) {
     uniqueTokens = error.message;
+    console.error('getNumOfUniqueTokens', error);
   }
   return uniqueTokens;
 }
@@ -145,6 +149,7 @@ export async function getAvailableAndRetired(w3provider, address, tokenId) {
     balances = await contract.getAvailableAndRetired(address, tokenId);
   } catch (error) {
     balances = error.message;
+    console.error('getAvailableAndRetired', error);
   }
   return balances;
 }
@@ -156,6 +161,7 @@ export async function getTokenType(w3provider, tokenId) {
     tokenType = await contract.getTokenType(tokenId);
   } catch (error) {
     tokenType = error.message;
+    console.error('getTokenType', error);
   }
   return tokenType;
 }
@@ -167,6 +173,7 @@ export async function getLimitedMode(w3provider) {
     limitedMode = await contract.limitedMode();
   } catch (error) {
     limitedMode = error.message;
+    console.error('getLimitedMode', error);
   }
   return limitedMode;
 }
@@ -178,6 +185,7 @@ export async function getAdmin(w3provider) {
     admin = await contract.admin();
   } catch (error) {
     admin = error.message;
+    console.error('getAdmin', error);
   }
   return admin;
 }
