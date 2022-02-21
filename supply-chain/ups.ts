@@ -569,7 +569,7 @@ if (fetchObjectPath) {
       }, 0);
       // convert to token amount in kCo2e
       if (process.env.EMISSIONS_SHIFT) {
-        total_emissions = total_emissions *= 10**parseInt(process.env.EMISSIONS_SHIFT);
+        total_emissions *= 10**parseInt(process.env.EMISSIONS_SHIFT);
       }
       if (total_emissions < 1) {
         throw new Error('Cannot issue tokens as the total emissions for the given shipments are less than 1 kCO2e ('+total_emissions+') try adding more shipments to the request.');
