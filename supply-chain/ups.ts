@@ -146,7 +146,9 @@ type Output = {
   geocode?: OutputError,
 }
 
-async function issue_tokens(emissions: BigNumber, hash: string, ipfs_path: string) {
+async function issue_tokens(total_emissions: number, hash: string, ipfs_path: string) {
+  const tokens = new BigNumber(Math.round(total_emissions));
+  const total_emissions_rounded = Math.round(total_emissions*1000)/1000;
   const bcConfig = new BCGatewayConfig();
   const ethConnector = await bcConfig.ethConnector();
   const signer = new Signer('vault', bcConfig.inMemoryKeychainID, 'plain');
@@ -163,12 +165,12 @@ async function issue_tokens(emissions: BigNumber, hash: string, ipfs_path: strin
   };
   const input: IEthNetEmissionsTokenIssueInput = {
     addressToIssue: process.env.ETH_ISSUEE_ACCT || '',
-    quantity: emissions.toNumber(),
+    quantity: tokens.toNumber(),
     fromDate: nowTime,
     thruDate: nowTime,
     automaticRetireDate: 0,
     manifest: `ipfs://${ipfs_path} ${hash}`,
-    metadata: `Total emissions: ${emissions} UOM: kgCO2e`,
+    metadata: `Total emissions: ${total_emissions_rounded} UOM: kgCO2e Scope: 3 Type: Shipping`,
     description: 'Emissions from shipments',
   };
   const token = await gateway.issue(caller, input);
@@ -573,12 +575,12 @@ if (fetchObjectPath) {
         if (!current.output || !current.output.emissions) return prev;
         return prev + current.output.emissions.value;
       }, 0);
-      // convert to token amount in kCo2e
+      // convert to token amount in kgCo2e
       if (process.env.EMISSIONS_SHIFT) {
         total_emissions *= 10**parseInt(process.env.EMISSIONS_SHIFT);
       }
       if (total_emissions < 1) {
-        throw new Error('Cannot issue tokens as the total emissions for the given shipments are less than 1 kCO2e ('+total_emissions+') try adding more shipments to the request.');
+        throw new Error('Cannot issue tokens as the total emissions for the given shipments ('+total_emissions+') are less than 1 kgCO2e. Try adding more shipments to the request.');
       }
       // create a hash
       const doc = {shipments, total_emissions: { value: total_emissions, unit: 'kgCO2e'}};
@@ -587,8 +589,7 @@ if (fetchObjectPath) {
       // save into IPFS
       const ipfs_res = await uploadFileEncrypted(content, publicKeys);
       // issue tokens
-      const tokens = new BigNumber(Math.round(total_emissions));
-      const token_res = await issue_tokens(tokens, `${HASH_ALGO}:${h}`, ipfs_res.path);
+      const token_res = await issue_tokens(total_emissions, `${HASH_ALGO}:${h}`, ipfs_res.path);
       // print output in JSON
       console.log(JSON.stringify({
         shipments,
