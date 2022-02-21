@@ -15,6 +15,7 @@ import {
 } from '../utility-emissions-channel/typescript_app/src/blockchain-gateway/I-gateway';
 import { BigNumber } from 'bignumber.js';
 
+const HASH_ALGO = 'sha256';
 
 function print_usage() {
   console.log('Usage: node ups.js [-f tracking_number_file.txt] [-pk privatekey.pem] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ... [tracking_number1] [tracking_number2] ...');
@@ -23,6 +24,7 @@ function print_usage() {
   console.log('  -pk privatekey.pem: is used to decrypt content (only when fetching content from IPFS).');
   console.log('  -generatekeypair name: generates a name-privatekey.pem and name-publickey.pem which can be used as -pk and -pubk respectively.');
   console.log('  -fetch objectpath: fetch the ipfs://<objectpath> object, if -pk is given will decrypt the file with it.');
+  console.log('  -verify: when fetching from IPFS, outputs the hash.');
   console.log('  -h or --help displays this message.');
 }
 
@@ -165,8 +167,8 @@ async function issue_tokens(emissions: BigNumber, hash: string, ipfs_path: strin
     fromDate: nowTime,
     thruDate: nowTime,
     automaticRetireDate: 0,
-    metadata: `ipfs://${ipfs_path}`,
-    manifest: hash,
+    manifest: `ipfs://${ipfs_path} ${hash}`,
+    metadata: `Total emissions: ${emissions} UOM: kgCO2e`,
     description: 'Emissions from shipments',
   };
   const token = await gateway.issue(caller, input);
@@ -428,6 +430,7 @@ setup('silent', 'silent');
 const publicKeys = [];
 let privateKey = null;
 let fetchObjectPath = null;
+let verify = false;
 const generatedKeypairs = [];
 
 const args = process.argv.slice(2);
@@ -494,6 +497,8 @@ for (let i=0; i<args.length; i++) {
     if (fetchObjectPath) throw new Error('Cannot define multiple objects to fetch');
     a = args[i];
     fetchObjectPath = a;
+  } else if (a === '-verify') {
+    verify = true;
   } else if (a === '-h' || a === '--help') {
     print_usage();
     process.exit();
@@ -515,8 +520,13 @@ if (fetchObjectPath) {
     throw new Error('A privatekey is required, specify one with -pk <privatekey.pem>');
   }
   downloadFileEncrypted(fetchObjectPath, privateKey).then((res) => {
-    //const buff = Buffer.from(res.toString(), 'hex');
-    console.log(res.toString('utf8'));
+    const result = res.toString('utf8');
+    if (verify) {
+      const h = crypto.createHash(HASH_ALGO).update(result+'\n').digest('hex');
+      console.log(`HASH: ${HASH_ALGO}:${h}`);
+      console.log('');
+    }
+    console.log(result);
   });
 } else if (!trackingNumbers.length) {
   if(!generatedKeypairs.length) {
@@ -558,10 +568,6 @@ if (fetchObjectPath) {
         return;
       }
       const shipments = promises.map(p=>(p.status === 'fulfilled')?p.value:p.reason);
-      // create a hash
-      const algo = 'sha256';
-      const content = JSON.stringify(shipments);
-      const h = crypto.createHash(algo).update(content).digest('hex');
       // calculate total_emissions
       let total_emissions: number = shipments.reduce((prev, current) => {
         if (!current.output || !current.output.emissions) return prev;
@@ -574,18 +580,22 @@ if (fetchObjectPath) {
       if (total_emissions < 1) {
         throw new Error('Cannot issue tokens as the total emissions for the given shipments are less than 1 kCO2e ('+total_emissions+') try adding more shipments to the request.');
       }
+      // create a hash
+      const doc = {shipments, total_emissions: { value: total_emissions, unit: 'kgCO2e'}};
+      const content = JSON.stringify(doc);
+      const h = crypto.createHash(HASH_ALGO).update(content+'\n').digest('hex');
       // save into IPFS
       const ipfs_res = await uploadFileEncrypted(content, publicKeys);
       // issue tokens
       const tokens = new BigNumber(Math.round(total_emissions));
-      const token_res = await issue_tokens(tokens, `${algo}:${h}`, ipfs_res.path);
+      const token_res = await issue_tokens(tokens, `${HASH_ALGO}:${h}`, ipfs_res.path);
       // print output in JSON
       console.log(JSON.stringify({
         shipments,
-        hash: { type: algo, value: h },
+        hash: { type: HASH_ALGO, value: h },
         token: token_res,
         ipfs: ipfs_res,
-        emissions: { value: total_emissions, unit: 'kgCO2e'}
+        total_emissions: { value: total_emissions, unit: 'kgCO2e'}
       }, null, 4));
     });
 }
