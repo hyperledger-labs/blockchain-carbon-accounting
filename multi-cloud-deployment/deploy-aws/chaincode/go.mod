@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/hyperledger/fabric-chaincode-go v0.0.0-20220131132609-1476cf1d3206
-	github.com/hyperledger/fabric-protos-go v0.0.0-20200124220212-e9cfc186ba7b
+	github.com/hyperledger/fabric-protos-go v0.0.0-20220202165055-956c75de7b17
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
 	golang.org/x/sys v0.0.0-20200212091648-12a6c2dcc1e4 // indirect
 	golang.org/x/text v0.3.2 // indirect
