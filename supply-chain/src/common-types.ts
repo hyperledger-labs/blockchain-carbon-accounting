@@ -5,21 +5,24 @@ export type ValueAndUnit = {
   value: number,
   unit: string
 };
-export type Address = {
+export type AddressObject = {
   country?: string,
   address?: string,
   city?: string,
   state_province?: string,
   zip_code?: string,
 };
-export type AddressAndCoordinates = Address & {
+export type Address = string | AddressObject;
+export type AddressAndCoordinates = AddressObject & {
   coords?: LatLngLiteral
 };
+export type ShippingMode = 'air' | 'ground' | 'sea' | 'rail';
 export type Distance = {
   origin: AddressAndCoordinates,
   destination: AddressAndCoordinates,
   value: number,
-  unit: string
+  unit: string,
+  mode: ShippingMode
 };
 export type Flight = {
   flight_number: string,
@@ -30,32 +33,56 @@ export type Flight = {
 export type Shipment = {
   carrier: string,
   tracking: string,
-  mode?: string,
+  mode?: ShippingMode
   weight?: number,
   weight_uom?: string,
 };
-type ActivityBase = {
+export type Path = {
+  from: Address,
+  to: Address,
+};
+type ActivityBase = Path & {
   id: string,
   type: 'shipment' | 'flight',
-  from: Address,
-  tp: Address,
 };
 export type ShipmentActivity = ActivityBase & Shipment;
 export type FlightActivity = ActivityBase & Flight;
 export type Activity = ShipmentActivity | FlightActivity;
 export type EmissionActivity = Activity & {
   emissions: ValueAndUnit
+};
+export type ActivityResult = {
+  distance?: Distance,
+  weight?: ValueAndUnit,
+  emissions?: ValueAndUnit,
+}
+export type ProcessedActivity = {
+  activity: Activity,
+  result?: ActivityResult,
+  error?: string
 }
 
-export type OutputError = {
-  error: string
-};
 export type Output = {
   ups?: UpsResponse,
+  from?: Address,
+  to?: Address,
   weight?: ValueAndUnit,
-  distance?: Distance | OutputError,
+  distance?: Distance,
   emissions?: ValueAndUnit,
-  geocode?: OutputError,
 };
+
+
+export function is_shipment_activity(a: Activity): a is ShipmentActivity {
+  return a.type === 'shipment';
+}
+
+export function is_shipment_flight(a: Activity): a is ShipmentActivity {
+  return a.type === 'flight';
+}
+
+export function is_address_object(a: Address): a is AddressObject {
+  return typeof a !== 'string';
+}
+
 
 

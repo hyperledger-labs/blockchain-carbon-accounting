@@ -1,10 +1,10 @@
 import upsAPI from 'ups-nodejs-sdk';
 import { UpsAPI, UpsResponse } from './ups-types';
-import { Output } from './common-types';
+import { Output, Path } from './common-types';
 import { calc_distance } from './distance-utils';
-import { calc_flight_emissions, calc_ground_emissions } from './emissions-utils';
+import { calc_emissions } from './emissions-utils';
 
-function get_addresses(res: UpsResponse) {
+function get_path(res: UpsResponse): Path {
   const shipment = res.Shipment;
   if (shipment && shipment.ShipTo && shipment.ShipTo.Address) {
     const pack = shipment.Package;
@@ -23,7 +23,7 @@ function get_addresses(res: UpsResponse) {
           dest.push(d[p]);
         }
         if (dest && origin) {
-          return {dest, origin };
+          return { from: origin.join(' '), to: dest.join(' ') };
         }
       }
     }
@@ -70,15 +70,14 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
             value: weight,
             unit: 'kg'
           }
-          const emissions = isGround ? calc_ground_emissions(weight) : calc_flight_emissions(weight);
-          output.emissions = emissions;
         }
-        const addresses = get_addresses(res);
-        if (addresses) {
-          const address_o = addresses.origin.join(' ');
-          const address_d = addresses.dest.join(' ');
-          calc_distance(address_o, address_d, isGround ? 'ground' : 'flight').then((distance) => {
+        const path = get_path(res);
+        if (path) {
+          output.from = path.from;
+          output.to = path.to;
+          calc_distance(path.from, path.to, isGround ? 'ground' : 'air').then((distance) => {
             output.distance = distance;
+            output.emissions = calc_emissions(weight, distance);
             resolve(result);
           });
         } else {
