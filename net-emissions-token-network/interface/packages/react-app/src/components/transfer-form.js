@@ -107,7 +107,7 @@ export default function TransferForm({ provider, roles }) {
         />
       </Form.Group>
       {/* Only enable transfers if role is found */}
-      { (roles.length === 5) && (roles.some(r => r === true))
+      { (roles.length === 6) && (roles.some(r => r === true))
         ? <Button variant="success" size="lg" block onClick={handleTransfer}>Transfer</Button>
         : <Button disabled variant="success" size="lg" block>Must be a registered user</Button>
       }
