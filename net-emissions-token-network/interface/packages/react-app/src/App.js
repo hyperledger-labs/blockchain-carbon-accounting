@@ -9,6 +9,7 @@ import Tab from 'react-bootstrap/Tab';
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
 import IssueForm from "./components/issue-form";
+import TrackForm from "./components/track-form";
 import TransferForm from "./components/transfer-form";
 import RetireForm from "./components/retire-form";
 import AccessControlForm from "./components/access-control-form";
@@ -21,7 +22,7 @@ import GET_TRANSFERS from "./graphql/subgraph";
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
-  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode] = useWeb3Modal();
+  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode] = useWeb3Modal();
 
   const [location] = useLocation();
 
@@ -33,8 +34,10 @@ function App() {
     }
   }, [loading, error, data]);
 
-  let isOwnerOrDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true);
-  let isOwner = (roles[0] === true);
+  const isOwner = (roles[0] === true);
+  const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
+  const isOwnerOrDealer = (isOwner || isDealer);
+
 
   return (
     <>
@@ -68,6 +71,10 @@ function App() {
 
         <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
+        {((limitedMode && isOwner) || !limitedMode) &&
+          <Link href="track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
+        }
+
         {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
         <Link href="access-control"><Nav.Link eventKey="access-control">
                                       {( (!limitedMode && isOwnerOrDealer) ^ (limitedMode && isOwner) )
@@ -98,6 +105,9 @@ function App() {
                   </Route>
                   <Route path="/retire">
                     <RetireForm provider={provider} roles={roles} />
+                  </Route>
+                  <Route path="/track">
+                    <TrackForm provider={provider} registeredTracker={registeredTracker} signedInAddress={signedInAddress}/>
                   </Route>
                   <Route path="/access-control">
                     <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />

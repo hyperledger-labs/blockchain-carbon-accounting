@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import React, { useState } from "react";
 
-import { getRoles, registerConsumer, unregisterConsumer, registerDealer, unregisterDealer } from "../services/contract-functions";
+import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer } from "../services/contract-functions";
 
 import SubmissionModal from "./submission-modal";
 
@@ -14,7 +14,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import FormControl from 'react-bootstrap/FormControl';
 
 function RolesListElements({ roles }) {
-  const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Consumer", "Registered Industry", "Registered Industry Dealer"];
+  const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Registered Industry Dealer", "Consumer"];
   return roles.map((role, id) => 
     <div key={id}>{role && <li>{roleNames[id]}&nbsp;&nbsp;</li>}</div>
   );
@@ -73,7 +73,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         fetchRegisterDealer(3);
         break;
       case "REGISTERED_INDUSTRY":
-        fetchRegisterDealer(4);
+        fetchRegisterIndustry();
         break;
       case "REGISTERED_INDUSTRY_DEALER":
         fetchRegisterDealer(4);
@@ -120,6 +120,16 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
     setResult(result.toString());
   }
 
+  async function fetchRegisterIndustry() {
+    let result = await registerIndustry(provider, address);
+    setResult(result.toString());
+  }
+
+  async function fetchRegisterIndustrySelf() {
+    let result = await registerIndustry(provider, signedInAddress);
+    setResult(result.toString());
+  }
+
   async function fetchRegisterDealer(tokenTypeId) {
     let result = await registerDealer(provider, address, tokenTypeId);
     setResult(result.toString());
@@ -146,7 +156,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
       {signedInAddress &&
         <>
           <h4>My Roles</h4>
-          {roles.length === 5
+          {roles.length === 6
            ? <RolesList roles={roles}/>
            : <div className="text-center mt-3 mb-3">
                <Spinner animation="border" role="status">
@@ -174,7 +184,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
           </Spinner>
         </div>
       }
-      {theirRoles.length === 5 &&
+      {theirRoles.length === 6 &&
         <RolesList roles={theirRoles}/>
       }
 
@@ -193,7 +203,6 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
               <option value="REC">Renewable Energy Certificate (REC) Dealer</option>
               <option value="CEO">Offset Dealer</option>
               <option value="AE">Emissions Auditor</option>
-              <option value="REGISTERED_INDUSTRY">Registered Industry member (CarbonTracker)</option>
               <option value="REGISTERED_INDUSTRY_DEALER">Registered Industry Dealer (CarbonTracker)</option>
             </Form.Control>
           </Form.Group>
@@ -214,17 +223,18 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         </>
       }
 
-    {( (!limitedMode) && (roles[0] === false && (roles[1] === true || roles[2] === true || roles[3] === true))) &&
+    {( (!limitedMode) && (roles[0] === false && (roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true))) &&
      <>
-          <h4>Register/unregister consumers</h4>
+          <h4>Register/unregister consumer or industry member</h4>
           <Form.Group>
             <Form.Label>Address</Form.Label>
             <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
           </Form.Group>
           <Form.Group>
             <Form.Label>Role</Form.Label>
-            <Form.Control as="select" disabled>
+            <Form.Control as="select" onChange={onRoleChange}>
               <option value="Consumer">Consumer</option>
+              <option value="REGISTERED_INDUSTRY">Industry Member</option>
             </Form.Control>
           </Form.Group>
           <Form.Group>
@@ -237,6 +247,30 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
               <Col>
                 <Button variant="danger" size="lg" block onClick={handleUnregister}>
                   Unregister
+                </Button>
+              </Col>
+            </Row>
+          </Form.Group>
+        </>
+    }
+
+    {(roles[0] === false && roles[4] === false) &&
+     <>
+          <h4>Register my account as industry</h4>
+          <Form.Group>
+            {/*<Form.Label>Address</Form.Label>*/}
+            <Form.Control type="input" disabled hidden value={signedInAddress}/>
+          </Form.Group>
+          <Form.Group>
+            {/*<Form.Label>Role</Form.Label>*/}
+            <Form.Control as="select" disabled hidden>
+            </Form.Control>
+          </Form.Group>
+          <Form.Group>
+            <Row>
+              <Col>
+                <Button variant="success" size="lg" block onClick={fetchRegisterIndustrySelf}>
+                  Register
                 </Button>
               </Col>
             </Row>
