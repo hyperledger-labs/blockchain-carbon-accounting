@@ -157,13 +157,14 @@ if (fetchObjectPath) {
       // save into IPFS
       const ipfs_res = await uploadFileEncrypted(content, publicKeys);
       // issue tokens
-      const token_res = await issue_emissions_tokens(total_emissions, `${h.type}:${h.value}`, ipfs_res.path);
+      const total_emissions_rounded = Math.round(total_emissions*1000)/1000;
+      const metadata = `Total emissions: ${total_emissions_rounded} UOM: kgCO2e Scope: 3 Type: Shipping`
+      const token_res = await issue_emissions_tokens(total_emissions, metadata, `${h.type}:${h.value}`, ipfs_res.path);
       // print output in JSON
       console.log(JSON.stringify({
         shipments,
         hash: h,
         token: token_res,
-        ipfs: ipfs_res,
         total_emissions: { value: total_emissions, unit: 'kgCO2e'}
       }, null, 4));
     });

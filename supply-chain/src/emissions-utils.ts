@@ -61,13 +61,12 @@ export function calc_emissions(weight_kg: number, distance: Distance): ValueAndU
   return { value: emissions, unit: 'kgCO2e' };
 }
 
-export async function issue_emissions_tokens(total_emissions: number, hash: string, ipfs_path: string) {
+export async function issue_emissions_tokens(total_emissions: number, metadata: string, hash: string, ipfs_path: string) {
   if (!logger_setup) {
     setup(LOG_LEVEL, LOG_LEVEL);
     logger_setup = true;
   }
   const tokens = new BigNumber(Math.round(total_emissions));
-  const total_emissions_rounded = Math.round(total_emissions*1000)/1000;
   const bcConfig = new BCGatewayConfig();
   const ethConnector = await bcConfig.ethConnector();
   const signer = new Signer('vault', bcConfig.inMemoryKeychainID, 'plain');
@@ -89,7 +88,7 @@ export async function issue_emissions_tokens(total_emissions: number, hash: stri
     thruDate: nowTime,
     automaticRetireDate: 0,
     manifest: `ipfs://${ipfs_path} ${hash}`,
-    metadata: `Total emissions: ${total_emissions_rounded} UOM: kgCO2e Scope: 3 Type: Shipping`,
+    metadata: metadata,
     description: 'Emissions from shipments',
   };
   const token = await gateway.issue(caller, input);

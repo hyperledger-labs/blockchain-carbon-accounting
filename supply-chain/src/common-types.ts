@@ -48,13 +48,11 @@ type ActivityBase = Path & {
 export type ShipmentActivity = ActivityBase & Shipment;
 export type FlightActivity = ActivityBase & Flight;
 export type Activity = ShipmentActivity | FlightActivity;
-export type EmissionActivity = Activity & {
-  emissions: ValueAndUnit
-};
 export type ActivityResult = {
   distance?: Distance,
   weight?: ValueAndUnit,
   emissions?: ValueAndUnit,
+  details?: any
 }
 export type ProcessedActivity = {
   activity: Activity,
