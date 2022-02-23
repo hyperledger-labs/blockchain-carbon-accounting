@@ -305,7 +305,8 @@ describe("Carbon Tracker - Integration tests", function() {
       [cttOne,cttTwo],
       [cttOneRetiredAmount,cttTwoRetiredAmount],
       [cttOneTransferAmount,cttTwoTransferAmount],
-      [0,0]
+      [0,0],
+      0,0,"",""
     )
     expect(trackOne);
     let trackerReceipt = await trackOne.wait(0);
@@ -321,7 +322,8 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttOne,cttTwo],
           [cttOneRetiredAmount],
           [cttOneTransferAmount,cttTwoTransferAmount],
-          [0,0]
+          [0,0],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -335,7 +337,8 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttOne,cttTwo],
           [cttOneRetiredAmount,cttTwoRetiredAmount],
           [cttOneTransferAmount],
-          [0,0]
+          [0,0],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -349,7 +352,8 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttOne,cttTwo],
           [cttOneRetiredAmount,cttTwoRetiredAmount],
           [cttOneTransferAmount,cttTwoTransferAmount],
-          [trackerEvent.args[2].toNumber()]
+          [trackerEvent.args[2].toNumber()],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -363,7 +367,8 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttOne,cttTwo],
           [cttOneRetiredAmount,cttTwoRetiredAmount],
           [cttOneTransferAmount,cttTwoTransferAmount],
-          [0,0]
+          [0,0],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -371,27 +376,27 @@ describe("Carbon Tracker - Integration tests", function() {
       );
     }
 
-    let approveAuditor = await contractT
+    let approveVerifier = await contractT
       .connect(await ethers.getSigner(industry1))
-      .approveAuditor(dealer1,true);
-    expect(approveAuditor);
+      .approveVerifier(dealer1,true);
+    expect(approveVerifier);
     let approveAuditorError;
     try {
       approveAuditorError = await contractT
         .connect(await ethers.getSigner(industry1))
-        .approveAuditor(industry2,true)
+        .approveVerifier(industry2,true)
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::approveAuditor: address is not a registered emissions auditor"
+        "Error: VM Exception while processing transaction: revert CLM8::approveVerifier: address is not a registered emissions auditor"
       );
     }
     try {
       approveAuditorError = await contractT
         .connect(await ethers.getSigner(dealer1))
-        .approveAuditor(dealer1,true)
+        .approveVerifier(dealer1,true)
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::approveAuditor: auditor cannot be msg.sender"
+        "Error: VM Exception while processing transaction: revert CLM8::approveVerifier: auditor cannot be msg.sender"
       );
     }
     try {
@@ -401,7 +406,8 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttOne],
           [cttOneRetiredAmount],
           [0],
-          [0]
+          [0],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -416,7 +422,8 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttOne],
           [0],
           [cttOneTransferAmount+1],
-          [0]
+          [0],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -429,7 +436,8 @@ describe("Carbon Tracker - Integration tests", function() {
         [cttOne, aeTwo],
         [cttOneRetiredAmountTwo, aeTwoAmount],
         [cttOneTransferAmountTwo,0],
-        [trackerOne,0]
+        [trackerOne,0],
+        0,0,"",""
       )
 
     expect(trackTwo);
@@ -443,17 +451,18 @@ describe("Carbon Tracker - Integration tests", function() {
           [cttThree],
           [cttThreeRetiredAmount],
           [0],
-          [trackerOne]
+          [trackerOne],
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
         "Error: VM Exception while processing transaction: revert CLM8::_verifyTotalTracked: total amount tracked exceeds output of tokenId from trackerId"
       );
     } 
-    approveAuditor = await contractT
+    approveVerifier = await contractT
       .connect(await ethers.getSigner(industry2))
-      .approveAuditor(dealer1,true);
-    expect(approveAuditor);
+      .approveVerifier(dealer1,true);
+    expect(approveVerifier);
     
     issueAe = await contract
       .connect(await ethers.getSigner(dealer1))
@@ -484,7 +493,8 @@ describe("Carbon Tracker - Integration tests", function() {
         [aeThree],
         [0],
         [aeThreeAmount],
-        [0]
+        [0],
+        0,0,"",""
       )
     expect(trackTwo);
     let trackThree = await contractT
@@ -493,7 +503,8 @@ describe("Carbon Tracker - Integration tests", function() {
         [aeThree,cttThree],
         [aeThreeAmount,cttThreeRetiredAmountTwo],
         [0,cttThreeTransferAmountTwo],
-        [0,0]
+        [0,0],
+        0,0,"",""
       )
     expect(trackThree);
     trackerReceipt = await trackThree.wait(0);
@@ -503,18 +514,17 @@ describe("Carbon Tracker - Integration tests", function() {
     //console.log((await contractT.getTokenIds(2,0)));
     //console.log((await contractT._trackerData(2)));
     //console.log((await contractT.auditedTrackerId(aeThree)).toNumber())
-
-    let ci = await contractT.carbonIntensity(1,true);
+    let ci = await contractT.carbonIntensity(1,3);
     expect(ci).to.equal(1000000);
-    ci = await contractT.carbonIntensity(2,true);
+    ci = await contractT.carbonIntensity(2,3);
     expect(ci).to.equal(1300000);
-    ci = await contractT.carbonIntensity(3,true);
+    ci = await contractT.carbonIntensity(3,3);
     expect(ci).to.equal(1150000);
-    ci = await contractT.carbonIntensity(1,false);
+    ci = await contractT.carbonIntensity(1,4);
     expect(ci).to.equal(600000);
-    ci = await contractT.carbonIntensity(2,false);
+    ci = await contractT.carbonIntensity(2,4);
     expect(ci).to.equal(925000);
-    ci = await contractT.carbonIntensity(3,false);
+    ci = await contractT.carbonIntensity(3,4);
     expect(ci).to.equal(575000);
   });
 });
