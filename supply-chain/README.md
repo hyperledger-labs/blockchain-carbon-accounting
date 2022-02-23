@@ -10,18 +10,49 @@ Sign up for the [Google DistanceMatrix API](https://developers.google.com/maps/d
 
 Fill in the Google API key in `.env`.
 
-Install dependencies with
+Make sure you are using node version 16.
+
+Install dependencies here and in `utility-emissions-channel/typescript_app` with
 
 ```
 npm install
 ```
 
+Build the application:
+```
+npm run build
+```
+
 ## Trying it
 
-Run
+First generate one or more key pairs for encrypting and decrypting files on IPFS.
+```
+node ups.js -generatekeypair user1 -generatekeypair user2
+```
+
+Run by giving a list of tracking numbers and/or using a file containing one tracking number per line and one or more public key for encryption with:
 
 ```
-node ups.js <tracking-number1> [tracking-number2] ...
+node ups.js -pubk user1-public.pem [-pubk user2-public.pem] [-f file.txt] <tracking-number1> [tracking-number2] ...
 ```
 
-with one or more UPS tracking numbers.
+Note the IPFS content ID from the response, which is in the "ipfs.path" object and the "token.metadata" eg:
+```
+...
+"token": {
+    ...
+    "metadata": "ipfs://<content_id>",
+    ...
+},
+...
+"ipfs": {
+    "path": "<content_id>",
+    ...
+}
+...
+```
+
+Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
+```
+node ups.js -pk user1-private.pem -fetch <content_id>
+```

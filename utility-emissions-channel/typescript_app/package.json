@@ -36,6 +36,7 @@
     "fabric-client": "^1.4.17",
     "joi": "^17.4.2",
     "multer": "^1.4.2",
+    "nanoid": "^3.1.25",
     "node-vault": "0.9.22",
     "socket.io": "^4.2.0",
     "ssh2-streams": "^0.4.10",

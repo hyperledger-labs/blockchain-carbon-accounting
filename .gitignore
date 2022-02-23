@@ -122,7 +122,7 @@ open-offsets-directory/react/build
 open-offsets-directory/react/node_modules
 supply-chain/node_modules
 supply-chain/.env
-supply-chain/ups.js
+supply-chain/*.js
 net-emissions-token-network/deployments/goerli/solcInputs
 open-offsets-directory/node-server/pnpm-lock.yaml
 open-offsets-directory/react/pnpm-lock.yaml
@@ -146,3 +146,5 @@ utility-emissions-channel/typescript_app/src/errors/clientError.js
 utility-emissions-channel/typescript_app/src/utils/logger.js
 open-offsets-directory/data/.~lock.VCS_retirements.csv#
 net-emissions-token-network/my_notes.txt
+supply-chain/src/*.js
+supply-chain/*.pem

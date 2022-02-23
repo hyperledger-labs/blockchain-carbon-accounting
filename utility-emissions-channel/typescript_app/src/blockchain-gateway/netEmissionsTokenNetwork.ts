@@ -44,7 +44,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         input: { address: string },
     ): Promise<{ address: string }> {
         const fnTag = `${this.className}.issue()`;
-        ledgerLogger.debug(`${fnTag} getting signer for client`);
+        ledgerLogger.debug(`${fnTag} getting signer for client: caller = %o`, caller);
         const signer = await this.opts.signer.ethereum(caller);
         ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
         try {
@@ -67,7 +67,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         input: IEthNetEmissionsTokenIssueInput,
     ): Promise<IEthNetEmissionsTokenIssueOutput> {
         const fnTag = `${this.className}.issue()`;
-        ledgerLogger.debug(`${fnTag} getting signer for client`);
+        ledgerLogger.debug(`${fnTag} getting signer for client: caller = %o`, caller);
         const signer = await this.opts.signer.ethereum(caller);
         ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
         let result;
@@ -99,13 +99,16 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         // TODO move decode logic to cactus xdai connector
         ledgerLogger.debug(`${fnTag} decoding ethereum response`);
         const logData = txReceipt.logs[2];
+        ledgerLogger.debug(`${fnTag} logData = %o`, logData);
         const hexString = logData.data;
-        const topics = logData.topics;
+        // Need to remove the first element of topics for non-anonymous events
+        const topics = logData.topics.slice(1);
         const tokenCreatedDecoded = this.web3.eth.abi.decodeLog(
             this.EventTokenCreatedInput,
             hexString,
             topics,
         );
+        ledgerLogger.debug(`${fnTag} tokenCreatedDecoded = %o`, tokenCreatedDecoded);
 
         return {
             availableBalance: tokenCreatedDecoded.availableBalance,
