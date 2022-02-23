@@ -17,6 +17,8 @@ github.com/hyperledger/fabric-chaincode-go v0.0.0-20220131132609-1476cf1d3206 h1
 github.com/hyperledger/fabric-chaincode-go v0.0.0-20220131132609-1476cf1d3206/go.mod h1:poNJVTYwPIuHWJH0gyprZZSx70GpdWM2se3u/DEldYc=
 github.com/hyperledger/fabric-protos-go v0.0.0-20190919234611-2a87503ac7c9 h1:JgFP410JY/3uQQGcfxR1HUDdDnPWzmC0TlmPctPElCQ=
 github.com/hyperledger/fabric-protos-go v0.0.0-20190919234611-2a87503ac7c9/go.mod h1:xVYTjK4DtZRBxZ2D9aE4y6AbLaPwue2o/criQyQbVD0=
+github.com/hyperledger/fabric-protos-go v0.0.0-20220202165055-956c75de7b17 h1:TJzBJlpsO2wjlq/YyoAVLJCnb9MjeddYW2BHtQmbAI4=
+github.com/hyperledger/fabric-protos-go v0.0.0-20220202165055-956c75de7b17/go.mod h1:xVYTjK4DtZRBxZ2D9aE4y6AbLaPwue2o/criQyQbVD0=
 github.com/kr/pretty v0.1.0 h1:L/CwN0zerZDmRFUapSPitk6f+Q3+0za1rQkzVuMiMFI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
