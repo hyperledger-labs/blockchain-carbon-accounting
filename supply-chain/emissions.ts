@@ -116,7 +116,7 @@ type GroupedResult = {
   content: ProcessedActivity[],
   token?: any,
 };
-type GroupedResults = {[key: string]: GroupedResult | GroupedResults};
+type GroupedResults = {[key: string]: GroupedResult | GroupedResults | ProcessedActivity[]};
 
 process_activities(data.activities).then(async (activities)=>{
   // group the resulting emissions per activity type, and for shipment type group by mode:
@@ -154,6 +154,8 @@ process_activities(data.activities).then(async (activities)=>{
     }
 
   }
+  // add back any errors we filtered before to the output
+  grouped_by_type.errors = activities.filter(a=>a.error);
   return grouped_by_type;
 }).then((output)=>{
   console.log(JSON.stringify(output, null, 4));
