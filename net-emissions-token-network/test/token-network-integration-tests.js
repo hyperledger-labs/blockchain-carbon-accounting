@@ -683,6 +683,11 @@ describe("Net Emissions Token Network - Integration tests", function() {
       .connect(await ethers.getSigner(industry1))
       .safeTransferFrom(industry1, industry2, tokenId, transferAmount, signature);
     expect(transfer);
+    
+    /*
+    // Drop this test as we no longer require recieving party approval to transfer tracker tokens
+    // Assume that their in an inhenet value in holding volunrary tracker tokens linked to an emission profile
+
     // try to transfer carbon tokens again, verify that it fails with approval signature is not valid
     try {
       await contract
@@ -693,6 +698,8 @@ describe("Net Emissions Token Network - Integration tests", function() {
         "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer: receiver's approval signature is not valid"
       );
     }
+    */
+    
     // try to transfer carbon tokens again, verify that it fails with insufficient balance
     msg = await contract.getTransferHash(industry1, industry2, [tokenId], [quantity]);
     msg = ethers.utils.arrayify(msg);

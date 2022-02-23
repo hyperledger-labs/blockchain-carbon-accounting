@@ -91,7 +91,7 @@ export default function RetireForm({ provider, roles }) {
       </Form.Group>
 
       {/* Only enable retires if role is found */}
-      { (roles.length === 5) && (roles.some(r => r === true))
+      { (roles.length === 6) && (roles.some(r => r === true))
         ? <Button variant="danger" size="lg" block onClick={handleRetire}>Retire</Button>
         : <Button disabled variant="danger" size="lg" block>Must be a registered user</Button>
       }
