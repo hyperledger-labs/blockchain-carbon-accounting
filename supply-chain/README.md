@@ -27,21 +27,25 @@ npm run build
 
 First generate one or more key pairs for encrypting and decrypting files on IPFS.
 ```
-node ups.js -generatekeypair user1 -generatekeypair user2
+node emissions.js -generatekeypair user1 -generatekeypair user2
 ```
 
-Run by giving a list of tracking numbers and/or using a file containing one tracking number per line and one or more public key for encryption with:
-
+Run by giving a JSON file of activities to process and one or more public key for encryption with:
 ```
-node ups.js -pubk user1-public.pem [-pubk user2-public.pem] [-f file.txt] <tracking-number1> [tracking-number2] ...
+node emissions.js -pubk user1-public.pem [-pubk user2-public.pem] -f input.json
 ```
 
-Note the IPFS content ID from the response, which is in the "token.metadata" eg:
+To get a more complete output use the `-verbose` flag, this will output the grouped activities by type, while shipments
+are further grouped by shipping mode.
+```
+node emissions.js -pubk user1-public.pem [-pubk user2-public.pem] -f input.json -verbose
+```
+In this case the IPFS content ID can be retrieved in the group "token.manifest" eg:
 ```
 ...
 "token": {
     ...
-    "metadata": "ipfs://<content_id>",
+    "manifest": "ipfs://<content_id>",
     ...
 },
 .....
@@ -49,12 +53,10 @@ Note the IPFS content ID from the response, which is in the "token.metadata" eg:
 
 Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
 ```
-node ups.js -pk user1-private.pem -fetch <content_id>
+node emissions.js -pk user1-private.pem -fetch <content_id>
 ```
 
-## Emissions script
-
-This is a more general script which takes a JSON input of various activities and group them by type before generating tokens.
+## Sample JSON input
 
 Here is an example of a `input.json`:
 ```json
@@ -115,7 +117,3 @@ Here is an example of a `input.json`:
 
 ```
 
-Replace the UPS tracking code in the example an above with valid ones then call:
-```
-node emissions.js input.json -pubk test-public.pem
-```
