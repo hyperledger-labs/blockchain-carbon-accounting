@@ -136,7 +136,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
     let quantity_formatted;
     quantity_formatted = Math.round(quantity * 1000);
-    console.log(tokenTypeId)
+
     let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
     setResult(result.toString());
   }
@@ -146,7 +146,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     borderColor: '#dc3545'
   };
 
-  return (roles[0] || roles[1] || roles[2] || roles[3] || roles[4]) ? (
+  return (roles[0] || roles[1] || roles[2] || roles[3]) ? (
     <>
 
       <CreateProposalModal
@@ -183,7 +183,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             style={(address || !initializedAddressInput) ? {} : inputError}
           />
           <Form.Text className="text-muted">
-            Must be a registered consumer or industry.
+            Must be a registered consumer.
           </Form.Text>
         </Form.Group>
         :
@@ -206,7 +206,6 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
-          <option value={0}>{}</option>}
           {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
           {(roles[0] || roles[2]) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
           {(roles[0] || roles[3]) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
@@ -258,8 +257,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Row className="mt-4">
         <Col>
 
-          {/* if in limited mode, require dealer role (except AE & CarbonTacker) to make a DAO proposal */}
-          { (limitedMode && (!roles[0] && !roles[1] && !roles[2] && !roles[4]))
+          {/* if in limited mode, require dealer role (except AE) to make a DAO proposal */}
+          { (limitedMode && (!roles[0] && !roles[1] && !roles[2]))
             ?
             <Button
               variant="success"
@@ -290,7 +289,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         { ( !limitedMode || tokenTypeId === "3" ) &&
           <Col>
             {/* Only enable issue if role is found */}
-            { (roles[0] || roles[1] || roles[2] || roles[3] || roles[4])
+            { (roles[0] || roles[1] || roles[2] || roles[3])
               ?
                 <Button
                   variant="primary"

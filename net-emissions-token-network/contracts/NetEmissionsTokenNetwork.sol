@@ -307,15 +307,13 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             // burn/retire (to == address(0))
             // otherwise require receiver (to address) to have approved (signed) the transferHash
             if(token.tokenTypeId == 4 && to != address(0) && from != address(0)) {
-                approveCarbon = false;//true;
-                // TO-DO: drop internal approval of carbon transfers?
-                // voluntary carbon tracker token can be sent to anyone to use in the C-NFT
-                // they can be sent without approval inviting the receiver to track them to their NFT
+                approveCarbon = true;
+            }
+            if(from != address(0) && to != address(0)){
                 // accumulate total transferred balances (not minted or burnt)
                 _transferredBalances[token.tokenId][from] =
                     _transferredBalances[token.tokenId][from].add(amounts[i]);
             }
-
         }
         if(approveCarbon){
             bytes32 messageHash = getTransferHash(from,to,ids,amounts);
@@ -753,7 +751,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * Transfer can start only when both parties are registered and the token is not paused
      * Note: Token holders can arbitrarily call safeTransferFrom() without these checks
      * The requires commented out below have been moved to _beforeTokenTransfer hook
-     * so that they are always applied to safeTransferFrom (or safeBatch...)      
+     * so that they are applied to safeTransferFrom (or safeBatch...)      
      */
     function transfer(
         address to,
@@ -788,17 +786,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 available = super.balanceOf(account, tokenId);
         uint256 retired = this.getTokenRetiredAmount(account, tokenId);
         return (available, retired);
-    }
-    function getAvailableRetiredAndTransferred(address account, uint256 tokenId)
-        external
-        view
-        returns (uint256, uint256, uint256)
-    {
-        uint256 available;
-        uint256 retired;
-        (available,retired) = this.getAvailableAndRetired(account, tokenId);
-        uint256 transferred = _transferredBalances[tokenId][account];
-        return (available, retired, transferred);
     }
 
     /**

@@ -46,7 +46,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
 
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
-    if (roles.length === 6 && (role === "" || cachedRoles !== roles)) {
+    if (roles.length === 5 && (role === "" || cachedRoles !== roles)) {
       if (roles[0] === true) {
         setRole("Admin (superuser)");
       } else if (roles[1] === true) {
@@ -56,8 +56,6 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
       } else if (roles[3] === true) {
         setRole("Emissions Auditor");
       } else if (roles[4] === true) {
-        setRole("Industry");
-      } else if (roles[5] === true) {
         setRole("Consumer");
       } else {
         setRole("Unregistered");

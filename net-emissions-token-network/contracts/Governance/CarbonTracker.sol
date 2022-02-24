@@ -36,32 +36,19 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
      * trackee - address of the account the tracking will apply to
      * auditor -
      * totalEmissions - total amount of carbon in
-     * totalAudited - total outgoing audited emission certificates
-     * totalOffset - total outgoing offset credits
-     *    
-    **/
-    struct CarbonTrackerDetails {
-        uint trackerId;
-        address trackee;    
-        address auditor;    
-        uint256 totalEmissions;
-        uint256 totalAudited;
-        uint256 totalOffset;
-        uint256 fromDate;
-        uint256 thruDate;
-        uint256 dateCreated;
-        string metadata;
-        string description;
-    }
-    /** 
-     * @dev tracker mappings
+     * totalAudited - total audited outgoing emission certificates
      * trackerIds - arrays of tracker ids
      * trackerIndex - mapping sourceTrackerId to index in array. 1st index is 1, 0 reserved for unindexed.
      * carbonTokens -  mapping sourceTrackerId (0 for none) to current CarbonTokens input/outputs. 
      * totalOut - mapping tokenId to total Carbon output amounts tracked
      * totalTracked - mapping tokenId for aggregate carbon (token type 4) tracked to other tracker ids
-    */
-    struct CarbonTrackerMappings {
+    **/
+    struct CarbonTrackerDetails {
+        //uint trackerId;
+        address trackee;    
+        address auditor;    
+        uint256 totalEmissions;
+        uint256 totalAudited;
         uint256[] trackerIds;
         mapping(uint256 => uint256) trackerIndex;
         mapping(uint256 => CarbonTokens) carbonTokens;
@@ -70,7 +57,6 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     }
 
     mapping(uint => CarbonTrackerDetails) public _trackerData;
-    mapping(uint => CarbonTrackerMappings) internal _trackerMappings;
     CountersUpgradeable.Counter private _numOfUniqueTrackers;
 
     // retired balances of tokenId tracked to address trackee
@@ -82,8 +68,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     // map offset credit token to a trackerId 
     mapping(uint => uint) public offsetTrackerId;
 
-    // map verifier to trackee
-    mapping(address => mapping (address => bool)) isVerifierApproved;
+    // map auditor to trackee
+    mapping(address => mapping (address => bool)) isAuditorApproved;
 
     event RegisteredTracker(address indexed account);
     event TrackerUpdated(
@@ -94,8 +80,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint256[] outAmounts,
         uint256[] trackerIds);
     event TrackeeChanged(uint indexed trackerId, address indexed trackee);
-    event VerifierApproved(address indexed auditor,address indexed trackee);
-    event VerifierRemoved(address indexed auditor,address indexed trackee);
+    event AuditorApproved(address indexed auditor,address indexed trackee);
+    event AuditorRemoved(address indexed auditor,address indexed trackee);
     event VerifiedTransfer(uint indexed tokenId,address indexed trackee,uint amount );
 
     function initialize(address _net, address _admin) public initializer {
@@ -105,17 +91,20 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         _setupRole(REGISTERED_TRACKER, _admin);
     }  
     modifier notAudited(uint trackerId){
+        _notAudited(trackerId);
+        _;
+    }
+    function _notAudited(uint trackerId) view internal {
         require(_trackerData[trackerId].auditor==address(0),
             "CLM8::notAudited: trackerId is already audited"
         );
-        _;
     }
     modifier isAuditor(uint trackerId){
         _isAuditor(trackerId);
         _;
     }
     function _isAuditor(uint trackerId) view internal{
-        require(isVerifierApproved[msg.sender][_trackerData[trackerId].trackee],
+        require(isAuditorApproved[msg.sender][_trackerData[trackerId].trackee],
             "CLM8::isAuditor: auditor is not approved by the trackee");
     }
     modifier trackerTokenkExists(uint256 tokenId){
@@ -153,7 +142,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         return interfaceId == type(IAccessControlUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
     /**
-     * @dev create a tracker Token for trackee. Note _track will check that msg.sender is either the trackee, or is an approved auditor of the trackee (see isVerifierApproved[][] mapping)
+     * @dev create a tracker Token for trackee. Note _track will check that msg.sender is either the trackee, or is an approved auditor of the trackee (see isAuditorApproved[][] mapping)
      * @param trackee - target adress to be tracked
      * @param tokenIds - array of ids of tracked carbon tokens (direct/indirect/offsets)
      * @param inAmounts - array of incoming token id amounts (direct/indirect/offsets) matching each carbon token
@@ -165,24 +154,17 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint256[] memory tokenIds,
         uint256[] memory inAmounts,
         uint256[] memory outAmounts,
-        uint256[] memory trackerIds,
-        uint256 fromDate,
-        uint256 thruDate,
-        string memory metadata,
-        string memory description
-        ) public {
+        uint256[] memory trackerIds) 
+        public {
         // increment trackerId
         _numOfUniqueTrackers.increment();
         uint256 trackerId = _numOfUniqueTrackers.current();
+        _notAudited(trackerId);
 
         // create token details
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        trackerData.trackerId = trackerId;
         trackerData.trackee = trackee;
-        trackerData.dateCreated = block.timestamp;
-
-        _track(trackerData,tokenIds,inAmounts,outAmounts,trackerIds);
-        _trackSetMetadata(trackerData,fromDate,thruDate,metadata,description);
+        _track(trackerId,tokenIds,inAmounts,outAmounts,trackerIds);
         super._mint(msg.sender,trackerId);
     }
     /**
@@ -195,37 +177,21 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint256[] memory tokenIds,
         uint256[] memory inAmounts,
         uint256[] memory outAmounts,
-        uint256[] memory trackerIds,
-        uint256 fromDate,
-        uint256 thruDate,
-        string memory metadata,
-        string memory description) public 
+        uint[] memory trackerIds) public 
         notAudited(trackerId) trackerTokenkExists(trackerId) {
-        CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        _track(trackerData,tokenIds,inAmounts,outAmounts,trackerIds);
-        _trackSetMetadata(trackerData,fromDate,thruDate,metadata,description);
-    }
-    function _trackSetMetadata(
-        CarbonTrackerDetails storage trackerData,
-        uint256 fromDate,
-        uint256 thruDate,
-        string memory metadata,
-        string memory description) internal {
-        if(fromDate>0){trackerData.fromDate = fromDate;}
-        if(thruDate>0){trackerData.thruDate = thruDate;}
-        if(bytes(metadata).length>0){trackerData.metadata = metadata;}
-        if(bytes(description).length>0){trackerData.description = description;}
+        _track(trackerId,tokenIds,inAmounts,outAmounts,trackerIds);
     }
     /**
      * @dev internal track operations used by track() and trackUpdate()
      * see trackerUpdate() for description of other inputs
     **/ 
     function _track(
-        CarbonTrackerDetails storage trackerData,
+        uint256 trackerId,
         uint256[] memory tokenIds,
         uint256[] memory inAmounts,
         uint256[] memory outAmounts,
-        uint256[] memory trackerIds) internal {
+        uint256[] memory trackerIds) internal 
+        {
         require(inAmounts.length == tokenIds.length, 
             "CLM8::_track: inAmounts and tokenIds are not the same length"); 
         require(outAmounts.length == tokenIds.length, 
@@ -233,30 +199,26 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         require(trackerIds.length == tokenIds.length, 
             "CLM8::_track: trackerIds and tokenIds are not the same length");
         // create token details
-        CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerData.trackerId];
-
+        CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
+        
         uint256 sourceTrackerId = trackerIds[0];
-        CarbonTokens storage carbonTokens = trackerMappings.carbonTokens[sourceTrackerId];
+        CarbonTokens storage carbonTokens = trackerData.carbonTokens[sourceTrackerId];
 
         require(
-            ( msg.sender == trackerData.trackee          
-              //&& hasRole(REGISTERED_TRACKER, trackerData.trackee)
-            ) ||
+            ( msg.sender == trackerData.trackee &&          
+              hasRole(REGISTERED_TRACKER, trackerData.trackee)) ||
             (   net.isAuditor(msg.sender) &&
-                isVerifierApproved[msg.sender][trackerData.trackee]),
+                isAuditorApproved[msg.sender][trackerData.trackee]),
             "CLM8::_track: msg.sender is not the registered trackee or an approved auditor"
         );
         uint8 tokenTypeId;
         for (uint i = 0; i < tokenIds.length; i++) { 
-            // TO-DO write test to confirm this error.
-            require(trackerData.trackerId != sourceTrackerId, 
-                "CLM8::_track: trackerData.trackerId and sourceTrackerId can not be the same"); 
             tokenTypeId = net.getTokenTypeId(tokenIds[i]);
             if(i>0){
                  // get the data for the next tracker id if different
                 if(trackerIds[i]!=trackerIds[i-1]){
                     sourceTrackerId = trackerIds[i];
-                    carbonTokens = trackerMappings.carbonTokens[sourceTrackerId];
+                    carbonTokens = trackerData.carbonTokens[sourceTrackerId];
                 }   
             }
             // verify retired emissions and set total emissions
@@ -269,12 +231,12 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
                     _updateTrackerSource(carbonTokens,
                         sourceTrackerId,tokenIds[i],inAmounts[i],outAmounts[i]);
                 }
-                trackerMappings.totalOut[tokenIds[i]] = _verifyTransferred(
-                    trackerMappings.totalOut[tokenIds[i]], trackerData.trackee, 
+                trackerData.totalOut[tokenIds[i]] = _verifyTransferred(
+                    trackerData.totalOut[tokenIds[i]], trackerData.trackee, 
                     tokenIds[i], carbonTokens.outAmount[tokenIds[i]],outAmounts[i]); 
 
-                _verifyTotalTracked(trackerMappings.totalOut[tokenIds[i]],
-                    trackerMappings.totalTracked[tokenIds[i]]); 
+                _verifyTotalTracked(trackerData.totalOut[tokenIds[i]],
+                    trackerData.totalTracked[tokenIds[i]]); 
                 // TO-DO how to prevent/resolve inconsistencies if attempting to
                 // reduce tokenId totalOut after totalTracker has been increased?
             }else{
@@ -288,8 +250,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
                     // outoging offset tokens are mapped using offsetTrackerId
                 }
                 if(tokenTypeId==3){
-                    if(isVerifierApproved[msg.sender][trackerData.trackee]){
-                        //_isAuditor(trackerData.trackerId);
+                    if(isAuditorApproved[msg.sender][trackerData.trackee]){
+                        //_isAuditor(trackerId);
                         // only auditor can assign audited emissions as outgoing carbon token
                         // TO-DO use trackerId and associated tx hahses as inputs for the Fabric
                         // emissions auditing channel
@@ -305,7 +267,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
                         if(outAmounts[i]>0){
                             trackerData.totalAudited = 
                                 trackerData.totalAudited.add(outAmounts[i]);
-                            auditedTrackerId[tokenIds[i]]=trackerData.trackerId;        
+                            auditedTrackerId[tokenIds[i]]=trackerId;        
                         }else{
                             // if removing the outAmount delete the tracker mapping.
                             delete auditedTrackerId[tokenIds[i]];
@@ -323,13 +285,13 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
 
             if(i==tokenIds.length-1 || sourceTrackerId!=trackerIds[i+1]){
                 // before moving to the next tracker Id update the trackerIds array
-                _updateTrackerId(sourceTrackerId, trackerMappings, 
+                _updateTrackerId(sourceTrackerId, trackerData, 
                     carbonTokens.tokenIds.length);
             }
         }
         require(trackerData.totalEmissions>=trackerData.totalAudited,
             "CLM8::_track: total audited emission out is greater than total emissions tracked");  
-        emit TrackerUpdated(trackerData.trackerId,msg.sender,
+        emit TrackerUpdated(trackerId,msg.sender,
             tokenIds,inAmounts,outAmounts,trackerIds);
     } 
     /**
@@ -347,7 +309,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint256 sourceTrackerId, uint256 tokenId, 
         uint256 inAmount, uint256 outAmount) internal {
         // correct for previous amount assigned to the tokenId
-        CarbonTrackerMappings storage sourceTracker = _trackerMappings[sourceTrackerId];
+        CarbonTrackerDetails storage sourceTracker = _trackerData[sourceTrackerId];
         if(carbonTokens.inAmount[tokenId]!=inAmount){
             if(carbonTokens.inAmount[tokenId]>0){
                 sourceTracker.totalTracked[tokenId] = sourceTracker.totalTracked[tokenId]
@@ -407,34 +369,34 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     }
     /**
      * @dev update the token data within the Tacker
-     * @param trackerMappings to be modified with trackerId
+     * @param trackerData to be modified with trackerId
      * @param tokenIdsLength number of tokenIds mapped to a trackerId
     **/
     function _updateTrackerId(uint256 trackerId,
-        CarbonTrackerMappings storage trackerMappings, uint256 tokenIdsLength) internal  {
-        uint index = trackerMappings.trackerIndex[trackerId];
+        CarbonTrackerDetails storage trackerData, uint256 tokenIdsLength) internal  {
+        uint index = trackerData.trackerIndex[trackerId];
         if(tokenIdsLength>0){
             // if there are tracked tokenIds    
             if(trackerId>0 && index==0){
                 // if the trackerId is not indexed (default is 0) 
-                trackerMappings.trackerIds.push(trackerId);
-                trackerMappings.trackerIndex[trackerId]
-                    =trackerMappings.trackerIds.length;
+                trackerData.trackerIds.push(trackerId);
+                trackerData.trackerIndex[trackerId]
+                    =trackerData.trackerIds.length;
             }
         }else{
             if(trackerId>0 && index>0){
                 // if there are no tracked tokens (removed from tracker)
                 // remove any non-zero trackerId from array, update indexing
-                if (trackerMappings.trackerIds.length > 1) {
-                    trackerMappings.trackerIds[index-1] = 
-                        trackerMappings.trackerIds[trackerMappings.trackerIds.length-1];
-                    trackerMappings.trackerIndex[trackerMappings.trackerIds[index-1]]=index;
+                if (trackerData.trackerIds.length > 1) {
+                    trackerData.trackerIds[index-1] = 
+                        trackerData.trackerIds[trackerData.trackerIds.length-1];
+                    trackerData.trackerIndex[trackerData.trackerIds[index-1]]=index;
                 }
-                delete trackerMappings.trackerIndex[trackerId];
-                delete trackerMappings.trackerIds[trackerMappings.trackerIds.length-1];
+                delete trackerData.trackerIndex[trackerId];
+                delete trackerData.trackerIds[trackerData.trackerIds.length-1];
             }
             // and finally delete carbonToken data if 
-            delete trackerMappings.carbonTokens[trackerId];
+            delete trackerData.carbonTokens[trackerId];
         }
     }
     /**
@@ -475,7 +437,6 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     }
     /**
      * @dev verify amount of tokenId listed as transferred (output)
-     * @param totalOut tracked
      * @param tokenId being transfered
      * @param trackee transferring tokenId
      * @param amountOld previous balance listed transferred
@@ -529,208 +490,143 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         emit TrackeeChanged(trackerId,trackee);
     }    
     /**
-     * @dev approve verifier for trackee as msg.sender
-     * @param verifier to be approved or removed
-     * @param approve (true) or remove (false)
+     * @dev approve auditor for trackee as msg.sender
+     * @param auditor to be approved or removed
+     * @param approve approve (true) or remove (false)
      */
-    function approveVerifier(address verifier,bool approve) 
+    function approveAuditor(address auditor,bool approve) 
         external {
         require(
-            net.isAuditor(verifier) || !approve,
-            "CLM8::approveVerifier: address is not a registered emissions auditor"
+            net.isAuditor(auditor) || !approve,
+            "CLM8::approveAuditor: address is not a registered emissions auditor"
         );
-        require(verifier!=msg.sender,
-            "CLM8::approveVerifier: auditor cannot be msg.sender"
+        require(auditor!=msg.sender,
+            "CLM8::approveAuditor: auditor cannot be msg.sender"
         );
-        isVerifierApproved[verifier][msg.sender]=approve;
+        isAuditorApproved[auditor][msg.sender]=approve;
         if(approve){
-            emit VerifierApproved(verifier,msg.sender);
+            emit AuditorApproved(auditor,msg.sender);
         }else{
-            emit VerifierRemoved(verifier,msg.sender);
+            emit AuditorRemoved(auditor,msg.sender);
         }
     }
-    uint private constant MAX_NESTED_TRACKERS = 257; // 
     /**
-     * These are public view functions
+     * The are public view functions
      * Warning: should never be called within functions that update the network to avoid excessive gas fees
     */
-    // This struct stores the trackerIds used to calculate carbon intensity metircs
-    // used to stop any circular referencing.
-    // struct UsedTrackers {mapping(uint=>bool) trackerId;}
-    function carbonIntensity(uint trackerId, uint8 tokenTypeId)
-        public view returns (uint) {
-        //UsedTrackers calldata trackerIds;
-        uint[MAX_NESTED_TRACKERS] memory trackerIds;
-        //UsedTrackers storage usedTrackerIds;
-        return _carbonIntensity(trackerId,tokenTypeId,trackerIds);
-    } 
     /**
      * @dev measure the carbon intensity of a tracker NFT. 
      *      This is a recursive function that cycle through all previous trackerIds
      * @param trackerId to measure
-     * @param tokenTypeId measure total carbonIntensity of tracker token for tokenTypeId outputs (2. offset credits, audited emission certificates, carbon tracker tokens)
+     * @param audited measure carbonIntensity of outgoing audited emission certificates or transfered carbon tracker token 
     */
-    function _carbonIntensity(uint trackerId, uint8 tokenTypeId, uint[MAX_NESTED_TRACKERS] memory usedTrackerIds) 
+    function carbonIntensity(uint trackerId, bool audited) 
         public view returns (uint) {
-        //uint decimals = 1000000; // decimals used to calculate the final intensity metric (i.e., divide integer by this amount)
+        uint decimals = 1000000; // decimals used to calculate the final intensity metric (i.e., divide integer by this amount)
         
-        if(trackerId==0){if(tokenTypeId==3){return 1000000;}else{return 0;}}
+        if(trackerId==0){if(audited){return decimals;}else{return 0;}}
         // the carbon intensity of:
-        //      - untracked audited emission certificate inputs = 1 (scaled by 1000000)
-        //      - untracked burnt carbon offsets/tracker token inputs = 0
+        //      - untracked audited emission certificate inputs = 1 (scaled by decimals)
+        //      - untracked burnt carbon tracker token inputs = 0
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
-        
-        uint total;//= trackerData.totalEmissions;
+        uint256 total;//= trackerData.totalEmissions;
         uint outEmbedded; // embedded emissions associated with all outgoing CarbonTracker token amounts
         uint denominator; // of the carbon intensity metric
-        uint offsets;
-        //uint inAmount;
-        //uint outAmount;
-        uint ci;
-        uint8 _tokenTypeId; 
+        uint8 tokenTypeId;
+        uint inAmount;
+        uint outAmount;
+        uint ci; 
+        trackerId = 0; 
         // start by calculating carbon intensity for tokenIds mapped to the 
         // default trackerId 0 (no trackerId assigned).
-        trackerId = 0; 
-        CarbonTokens storage carbonTokens = trackerMappings.carbonTokens[trackerId];
-        for(uint i = 0; i <= trackerMappings.trackerIds.length; i++){
-            // Will only calculate embedded emisisons upto MAX_NESTED_TRACKERS
-            // Dont loop over tokens tracked back to previous tokenId (will cause recursive loop) 
-            if(usedTrackerIds[usedTrackerIds.length-1]!=MAX_NESTED_TRACKERS 
-                || contains(usedTrackerIds,trackerMappings.trackerIds[i])
-                ){
-                // trackerId and carbonTokens updated at the end of loop
-                for (uint j = 0; j < carbonTokens.tokenIds.length; j++) {
-                    /*if(trackerId>0){
-                        //There is no need to verifyTotalTracked. This is done in 
-                        //this is currenlty handled in _track() function afer
-                        _verifyTotalTracked(
-                            _trackerData[trackerId].carbonTokens.outAmount[tokenId],
-                            _trackerData[trackerId].totalTracked[tokenId]);
-                    } */
-                    _tokenTypeId = net.getTokenTypeId(carbonTokens.tokenIds[j]);
-                    //inAmount = carbonTokens.inAmount[carbonTokens.tokenIds[j]]
-                    //    .mul(1000000);
-                    //outAmount = carbonTokens.outAmount[carbonTokens.tokenIds[j]]
-                    //    .mul(1000000);
-                    if(_tokenTypeId==4){
-                        ci = _carbonIntensity(trackerId,_tokenTypeId,usedTrackerIds);
-                        total = total.add(carbonTokens.inAmount[carbonTokens.tokenIds[j]]
-                            .mul(1000000));
-                        outEmbedded=outEmbedded.add(carbonTokens.outAmount[carbonTokens.tokenIds[j]]
-                            .mul(1000000).mul(ci).div(1000000));
-                        denominator = denominator.add(
-                            carbonTokens.outAmount[carbonTokens.tokenIds[j]]);
-                    }else if(_tokenTypeId==3){
-                        if(carbonTokens.outAmount[carbonTokens.tokenIds[j]]==0){
-                            ci = _carbonIntensity(
-                                auditedTrackerId[carbonTokens.tokenIds[j]],
-                                _tokenTypeId,
-                                usedTrackerIds);
-                        }else{
-                            // audited emissions out will always point back to the the tracker id
-                            // set ci to 1, otherwise will enter recursive loop.
-                            ci = 1000000;
-                        }
-                    }else if(_tokenTypeId==2){
-                        // TO-DO setup how we handle offset tokens
-                        ci = _carbonIntensity(
-                            offsetTrackerId[carbonTokens.tokenIds[j]],
-                            _tokenTypeId,
-                            usedTrackerIds);
-                        total = total.sub(carbonTokens.inAmount[carbonTokens.tokenIds[j]]
-                            .mul(1000000));
-                        offsets = offsets.add(carbonTokens.outAmount[carbonTokens.tokenIds[j]]);
+        CarbonTokens storage carbonTokens = trackerData.carbonTokens[trackerId];
+        for(uint i = 0; i <= trackerData.trackerIds.length; i++){
+            // trackerId and carbonTokens updated at the end of loop
+            for (uint j = 0; j < carbonTokens.tokenIds.length; j++) {
+                /*if(trackerId>0){
+                    //There is no need to verifyTotalTracked. This is done in 
+                    //this is currenlty handled in _track() function afer
+                    _verifyTotalTracked(
+                        _trackerData[trackerId].carbonTokens.outAmount[tokenId],
+                        _trackerData[trackerId].totalTracked[tokenId]);
+                } */
+                tokenTypeId = net.getTokenTypeId(carbonTokens.tokenIds[j]);
+                inAmount = carbonTokens.inAmount[carbonTokens.tokenIds[j]]
+                    .mul(decimals);
+                outAmount = carbonTokens.outAmount[carbonTokens.tokenIds[j]]
+                    .mul(decimals);
+                if(tokenTypeId==4){
+                    ci = carbonIntensity(trackerId,false);
+                    total = total.add(inAmount);
+                    outEmbedded=outEmbedded.add(outAmount.mul(ci).div(decimals));
+                    denominator = denominator.add(
+                        carbonTokens.outAmount[carbonTokens.tokenIds[j]]);
+                }else if(tokenTypeId==3){
+                    if(outAmount==0){
+                        ci = carbonIntensity(auditedTrackerId[carbonTokens.tokenIds[j]],true);
+                    }else{
+                        // audited emissions out will always point back to the the tracker id
+                        // set ci to 1, otherwise will enter recursive loop.
+                        ci = decimals;
                     }
-                    total = total.add(carbonTokens.inAmount[carbonTokens.tokenIds[j]]
-                        .mul(1000000).mul(ci).div(1000000));              
+                }else if(tokenTypeId==2){
+                    // TO-DO setup how we handle offset tokens
+                    ci = carbonIntensity(offsetTrackerId[carbonTokens.tokenIds[j]],false);
+                    total = total.sub(inAmount);
                 }
+                total = total.add(inAmount.mul(ci).div(decimals));              
             }
-            if(i<trackerMappings.trackerIds.length){
-                trackerId = trackerMappings.trackerIds[i];
-                //usedTrackerIds.push(trackerId);
-                usedTrackerIds[usedTrackerIds.length-1] = usedTrackerIds[usedTrackerIds.length-1].add(1);
-                usedTrackerIds[usedTrackerIds[usedTrackerIds.length-1]]=trackerId;
-                carbonTokens = trackerMappings.carbonTokens[trackerId];
+            if(i<trackerData.trackerIds.length){
+                trackerId = trackerData.trackerIds[i];
+                carbonTokens = trackerData.carbonTokens[trackerId];
             }
         }
-        if(tokenTypeId==2 && offsets>0){
-            return(total.div(offsets));
-        }
-        if(denominator==0){
-            if(tokenTypeId==3 && trackerData.totalAudited>0){
-                return total.div(trackerData.totalAudited);
-            }
-            // if deonminator ==0 there can be no tracked typeID==4 
+        if(audited){
+            return total.div(trackerData.totalEmissions);
+
         }else{
-            if(tokenTypeId==3){
-                return total.div(trackerData.totalEmissions);
-            }else if(tokenTypeId==4 && trackerData.totalEmissions>0){
-                total = total.add(outEmbedded).sub(
-                    trackerData.totalAudited.mul(total.div(trackerData.totalEmissions))
-                );
+            if(denominator==0){
+                // If  no outgoing carbon transfers the denominator is by 
+                // default the total emissions reported
+                denominator = trackerData.totalEmissions;
             }
-        // subtract out the total embodied emission tied to outgoing 
-        // audited emission certificates
-        // TO-DO: GAMING OPPORTUNITY
-        // auditor could be paid to issue fake emission certificats on tracker
-        // to reduce the reportec carbon intensity rating of outgoing carbon tracker tokens
+            total = total.add(outEmbedded).sub(
+                trackerData.totalAudited.mul(total.div(trackerData.totalEmissions))
+            );
+            // subtract out the total embodied emission tied to outgoing 
+            // audited emission certificates
+            // TO-DO: GAMING OPPORTUNITY
+            // auditor could be paid to issue fake emission certificats on tracker
+            // to reduce the reportec carbon intensity rating of outgoing carbon tracker tokens
             return(total.div(denominator));
-        } 
-        return(0);  
-    }
-    function contains(uint[MAX_NESTED_TRACKERS] memory usedTrackerIds, uint trackerId) internal pure returns(bool){
-        for (uint i = 0; i < usedTrackerIds.length-1; i++) {
-            // the last array element is the last index stored
-            if(usedTrackerIds[i]==trackerId){
-                return true;
-            }
-        }
-        return false;
-    }
-    /**
-     * @dev returns number of unique trackers
-     */
-    function getNumOfUniqueTrackers() public view returns (uint256) {
-        return _numOfUniqueTrackers.current();
-    }
-    /**
-     * @dev returns the details of a given tokenId
-     * @param trackerId token to check
-     */
-    function getTrackerDetails(uint256 trackerId)
-        external
-        view
-        returns (
-            CarbonTrackerDetails memory)
-    {
-        return (_trackerData[trackerId]);
+        }   
     }
     function getTrackerIds(uint trackerId) public view returns(uint[] memory) {
-        return (_trackerMappings[trackerId].trackerIds);
+        return (_trackerData[trackerId].trackerIds);
     }
     function getTokenIds(uint trackerId, uint sourceTrackerId) 
         public view returns(uint[] memory, uint) {
-        return ( _trackerMappings[trackerId].carbonTokens[sourceTrackerId].tokenIds,
-                 _trackerMappings[trackerId].trackerIndex[sourceTrackerId]);
+        return ( _trackerData[trackerId].carbonTokens[sourceTrackerId].tokenIds,
+                 _trackerData[trackerId].trackerIndex[sourceTrackerId]);
     }
     function getTokenIdOut(uint trackerId, uint tokenId) 
         public view returns(uint, uint) {
-        return ( _trackerMappings[trackerId].totalOut[tokenId],
-                 _trackerMappings[trackerId].totalTracked[tokenId]);
+        return ( _trackerData[trackerId].totalOut[tokenId],
+                 _trackerData[trackerId].totalTracked[tokenId]);
     }
     function getTokenIdAmounts(uint trackerId, uint sourceTrackerId, uint tokenId) 
-        public view returns(uint, uint){
+        public view returns(uint, uint, uint){
             CarbonTokens storage carbonTokens = 
-                _trackerMappings[trackerId].carbonTokens[sourceTrackerId];
+                _trackerData[trackerId].carbonTokens[sourceTrackerId];
             return( carbonTokens.inAmount[tokenId],
-                    carbonTokens.outAmount[tokenId]);
+                    carbonTokens.outAmount[tokenId],
+                    carbonTokens.idIndex[tokenId]);
         }
     function getTokenAmounts(uint trackerId, uint sourceTrackerId) 
-        public view returns(uint[] memory,uint[] memory, uint[] memory) {
-        CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
+        public view returns(uint[] memory, uint[] memory) {
+        CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
         CarbonTokens storage carbonTokens;
-        carbonTokens = trackerMappings.carbonTokens[sourceTrackerId];
+        carbonTokens = trackerData.carbonTokens[sourceTrackerId];
         uint[] memory tokenIds = carbonTokens.tokenIds;
         uint[] memory inAmounts = new uint[](tokenIds.length);
         uint[] memory outAmounts = new uint[](tokenIds.length);
@@ -738,6 +634,6 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             inAmounts[j]=carbonTokens.inAmount[tokenIds[j]];
             outAmounts[j]=carbonTokens.outAmount[tokenIds[j]];
         }
-        return (tokenIds,inAmounts,outAmounts);
+        return (inAmounts,outAmounts);
     }
 }
