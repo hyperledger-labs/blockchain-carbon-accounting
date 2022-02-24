@@ -115,7 +115,7 @@ jobs:
           while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
-      - uses: actions/upload-artifact@v2 # Regardless of whether the tests passed or failed, upload the test results as an artifact
+      - uses: actions/upload-artifact@v2
         if: success() || failure()
         with:
           name: test-results
