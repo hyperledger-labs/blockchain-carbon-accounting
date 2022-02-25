@@ -38,18 +38,6 @@ export function distance_in_km(distance: Distance): number {
   throw new Error(`Distance UOM ${distance.unit} not supported`);
 }
 
-export function calc_ground_emissions(weight_kg: number, distance: Distance): ValueAndUnit {
-  const distance_km = distance_in_km(distance);
-  const emissions = weight_kg * 0.001 * 0.52218 * distance_km;
-  return { value: emissions, unit: 'kgCO2e' };
-}
-
-export function calc_flight_emissions(weight_kg: number, distance: Distance): ValueAndUnit {
-  const distance_km = distance_in_km(distance);
-  const emissions = weight_kg * 0.001 * 2.37968 * distance_km;
-  return { value: emissions, unit: 'kgCO2e' };
-}
-
 export function calc_emissions(weight_kg: number, distance: Distance): ValueAndUnit {
   const distance_km = distance_in_km(distance);
   const w_d = weight_kg * 0.001 * distance_km;
