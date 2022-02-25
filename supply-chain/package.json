@@ -2,7 +2,7 @@
   "name": "supply-chain",
   "version": "1.0.0",
   "description": "",
-  "main": "ups.js",
+  "main": "emissions.js",
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --ext .ts",
