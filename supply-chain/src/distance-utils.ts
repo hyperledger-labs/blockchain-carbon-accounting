@@ -1,5 +1,5 @@
 import { Client, LatLngLiteral, UnitSystem } from "@googlemaps/google-maps-services-js";
-import { Distance, OutputError } from './common-types';
+import { Address, Distance, is_address_object, ShippingMode } from './common-types';
 
 export function get_gclient() {
   return new Client({});
@@ -27,87 +27,106 @@ export function calc_coord_distance(o: LatLngLiteral, d: LatLngLiteral) {
   return 6371.0 * c;
 }
 
-export async function calc_ground_distance(origin: string, dest: string, client: Client = null): Promise<Distance|OutputError> {
+function get_address_string(address: Address): string {
+  if (is_address_object(address)) { 
+    const fields = [];
+    for (const p in address) {
+      fields.push(address[p]);
+    }
+    return fields.join(' ');
+  } else {
+    return address;
+  }
+}
+
+export async function calc_ground_distance(origin: Address, dest: Address, client: Client = null): Promise<Distance> {
 
   if (!client) client = get_gclient();
+  const o = get_address_string(origin);
+  const d = get_address_string(dest);
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     client.distancematrix({
       params: {
-        origins: [origin],
-        destinations: [dest],
+        origins: [o],
+        destinations: [d],
         units: UnitSystem.metric,
         key: process.env.GOOGLE_KEY || ''
       }
     }).then((results)=>{
+      if (!results.data||!results.data.rows||!results.data.rows.length||!results.data.rows[0].elements||!results.data.rows[0].elements.length) {
+        return reject(`No distancematrix results for address [${o}]`);
+      }
       const dist = results.data.rows[0].elements[0].distance;
       // the value is always in meter, need to convert into either km or mi
-      const dist_m = dist.value / 1000;
+      const dist_km = dist.value / 1000;
       const res: Distance = {
         origin: {
-          address: origin,
+          address: o,
         },
         destination: {
-          address: dest,
+          address: d,
         },
-        value: dist_m,
-        unit: 'km'
+        value: dist_km,
+        unit: 'km',
+        mode: 'ground'
       };
 
-      resolve(res);
-    }).catch((error)=>{
-      const res: OutputError = {error}
       resolve(res);
     });
   });
 }
 
-export async function calc_flight_distance(origin: string, dest: string, client: Client = null): Promise<Distance|OutputError> {
+export async function calc_direct_distance(origin: Address, dest: Address, mode: ShippingMode, client: Client = null): Promise<Distance> {
 
   if (!client) client = get_gclient();
+  const o = get_address_string(origin);
+  const d = get_address_string(dest);
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     client.geocode({
       params: {
-        address: origin,
+        address: o,
         key: process.env.GOOGLE_KEY || ''
       }
     }).then((results)=>{
+        if (!results.data||!results.data.results||!results.data.results.length) {
+          return reject(`No geocode results for address [${o}]`);
+        }
         const origin_r = results.data.results[0].geometry.location;
         client.geocode({
           params: {
-            address: dest,
+            address: d,
             key: process.env.GOOGLE_KEY || ''
           }
         }).then((results)=>{
+            if (!results.data||!results.data.results||!results.data.results.length) {
+              return reject(`No geocode results for address [${d}]`);
+            }
             const dest_r = results.data.results[0].geometry.location;
             const res: Distance = {
               origin: {
-                address: origin,
+                address: o,
                 coords: origin_r
               },
               destination: {
-                address: dest,
+                address: d,
                 coords: dest_r
               },
               value: calc_coord_distance(origin_r, dest_r),
-              unit: 'km'
+              unit: 'km',
+              mode
             };
             resolve(res);
-          }).catch((error)=>{
-            const res: OutputError = {error}
-            resolve(res);
           });
-      }).catch((error)=>{
-        const res: OutputError = {error}
-        resolve(res);
       });
   });
 }
 
-export async function calc_distance(origin: string, dest: string, mode: 'ground' | 'flight') {
+export async function calc_distance(origin: Address, dest: Address, mode: ShippingMode) {
   if (mode === 'ground') {
     return calc_ground_distance(origin, dest);
+  } else {
+    return calc_direct_distance(origin, dest, mode);
   }
-  return calc_flight_distance(origin, dest);
 }
