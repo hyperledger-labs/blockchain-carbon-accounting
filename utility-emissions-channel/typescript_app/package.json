@@ -55,7 +55,7 @@
     "@types/multer": "^1.4.2",
     "@types/ssh2-streams": "^0.1.9",
     "@types/swagger-ui-express": "^4.1.2",
-    "@types/uuid": "^8.3.1",
+    "@types/uuid": "8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "chai": "4.3.6",
     "chai-as-promised": "^7.1.1",
