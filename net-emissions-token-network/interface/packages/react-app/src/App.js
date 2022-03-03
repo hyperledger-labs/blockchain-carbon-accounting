@@ -38,7 +38,6 @@ function App() {
   const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
   const isOwnerOrDealer = (isOwner || isDealer);
 
-
   return (
     <>
       <NavigationBar
@@ -111,6 +110,9 @@ function App() {
                   </Route>
                   <Route path="/access-control">
                     <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+                  </Route>
+                  <Route>
+                    <Redirect to="/dashboard" />
                   </Route>
                 </Switch>
               </Tab.Content>

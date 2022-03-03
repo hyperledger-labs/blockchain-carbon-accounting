@@ -36,10 +36,16 @@ function useWeb3Modal(config = {}) {
     },
   });
 
+
   // Open wallet selection modal.
   const loadWeb3Modal = useCallback(async () => {
     const newProvider = await web3Modal.connect();
-    setProvider(new Web3Provider(newProvider));
+    newProvider.on("accountsChanged", (accounts) => {
+      setSignedInAddress(accounts[0]||'');
+    });
+
+    const web3Provider = new Web3Provider(newProvider);
+    setProvider(web3Provider);
     setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
