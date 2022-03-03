@@ -319,9 +319,9 @@ class EmissionsChaincode {
             'percent_of_renewables',
         ];
         const min = Math.min(fields.length, args.length);
-        const factorI: UtilityEmissionsFactorInterface = {
+        const factorI = {
             uuid: args[0],
-        };
+        } as UtilityEmissionsFactorInterface;
         for (let i = 1; i < min; i++) {
             factorI[fields[i]] = args[i];
         }
@@ -373,9 +373,9 @@ class EmissionsChaincode {
             'percent_of_renewables',
         ];
         const min = Math.min(fields.length, args.length);
-        const factorI: UtilityEmissionsFactorInterface = {
+        const factorI = {
             uuid: args[0],
-        };
+        } as UtilityEmissionsFactorInterface;
         for (let i = 1; i < min; i++) {
             factorI[fields[i]] = args[i];
         }
@@ -440,7 +440,7 @@ class EmissionsChaincode {
             'divisions',
         ];
         const min = Math.min(args.length, fields.length);
-        const identifier: UtilityLookupItemInterface = { uuid: args[0] };
+        const identifier = { uuid: args[0] } as UtilityLookupItemInterface;
         for (let i = 1; i < min; i++) {
             identifier[fields[i]] = args[i];
         }
@@ -492,7 +492,7 @@ class EmissionsChaincode {
             'divisions',
         ];
         const min = Math.min(args.length, fields.length);
-        const identifier: UtilityLookupItemInterface = { uuid: args[0] };
+        const identifier = { uuid: args[0] } as UtilityLookupItemInterface;
         for (let i = 1; i < min; i++) {
             identifier[fields[i]] = args[i];
         }

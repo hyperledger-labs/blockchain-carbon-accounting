@@ -9,6 +9,7 @@ export const ErrStateNotFound = 'STATE_NOT_FOUND';
 export const ErrStateAlreadyExists = 'STATE_ALREADY_EXISTS';
 export const ErrInvalidQueryString = 'INVALID_QUERY_STRING';
 export const ErrUnknownUOM = 'UNKNOWN_UOM';
+export const ErrInvalidFactorForActivity = 'INVALID_FACTOR_FOR_ACTIVITY';
 export const ErrInvalidDateFormat = 'INVALID_DATA_FORMAT';
 
 // chaincode entry point errors

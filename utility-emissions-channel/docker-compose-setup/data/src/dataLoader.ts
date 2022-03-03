@@ -1,7 +1,3 @@
-// TODO: Change utility emissions to scope 2
-// TODO: Add activity UOM
-// Fix OrbitDB import issue
-
 import { SingleBar, Presets } from 'cli-progress';
 import { create } from 'ipfs-http-client';
 const OrbitDB = require('orbit-db');
@@ -10,7 +6,8 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'xlsx';
 import { STATE_NAME_MAPPING, COUNTRY_MAPPINGS } from './abbrevToName';
-import { UtilityEmissionsFactorInterface, UtilityLookupItemInterface } from './orbitDbService';
+import { UtilityLookupItemInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
+import { UtilityEmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
