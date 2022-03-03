@@ -19,14 +19,21 @@ const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
 
 export interface UtilityEmissionsFactorInterface {
-    class?: string;
+    class: string;
     key?: string;
     uuid: string;
+    type: string;
+    scope: string;
+    level_1: string;
+    level_2: string;
+    level_3: string;
+    text?: string;
     year?: string;
     country?: string;
     division_type?: string;
     division_id?: string;
     division_name?: string;
+    activity_uom?: string;
     net_generation?: string;
     net_generation_uom?: string;
     co2_equivalent_emissions?: string;

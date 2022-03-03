@@ -93,7 +93,7 @@ jobs:
         run: |
           sudo chmod +x /usr/local/bin/docker-compose
           cd docker-compose-setup/
-          ./bootstrap.sh  2.2.1 1.4.9 -d -s
+          ./bootstrap.sh  2.4.2 1.5.2 -d -s
       - name: Start local Hardhat network # Start local Hardhat network needed for running net emissions token network
         run: |
           cd ../net-emissions-token-network/

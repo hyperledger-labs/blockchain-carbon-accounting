@@ -113,13 +113,14 @@ services:
 
   peer1.auditor1.carbonAccounting.com:
     container_name: peer1.auditor1.carbonAccounting.com
-    image: hyperledger/fabric-peer:2.3.0
+    image: hyperledger/fabric-peer:2.4.3
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
       # bridge network as the peers
       # https://docs.docker.com/compose/networking/
+      - CORE_CHAINCODE_NODE_RUNTIME=hyperledger/fabric-nodeenv:2.4.1
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_carbonAccounting
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
@@ -151,13 +152,14 @@ services:
 
   peer1.auditor2.carbonAccounting.com:
     container_name: peer1.auditor2.carbonAccounting.com
-    image: hyperledger/fabric-peer:2.3.0
+    image: hyperledger/fabric-peer:2.4.3
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
       # bridge network as the peers
       # https://docs.docker.com/compose/networking/
+      - CORE_CHAINCODE_NODE_RUNTIME=hyperledger/fabric-nodeenv:2.4.1
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_carbonAccounting
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
@@ -189,13 +191,14 @@ services:
 
   peer1.auditor3.carbonAccounting.com:
     container_name: peer1.auditor3.carbonAccounting.com
-    image: hyperledger/fabric-peer:2.3.0
+    image: hyperledger/fabric-peer:2.4.3
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
       # the following setting starts chaincode containers on the same
       # bridge network as the peers
       # https://docs.docker.com/compose/networking/
+      - CORE_CHAINCODE_NODE_RUNTIME=hyperledger/fabric-nodeenv:2.4.1
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_carbonAccounting
       - FABRIC_LOGGING_SPEC=INFO
       #- FABRIC_LOGGING_SPEC=DEBUG
