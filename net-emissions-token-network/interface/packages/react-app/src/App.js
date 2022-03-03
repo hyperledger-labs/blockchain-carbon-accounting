@@ -90,9 +90,9 @@ function App() {
               <Tab.Content animation="true">
                 <Switch>
                   <Route exact path="/"><Redirect to="/dashboard" /></Route>
-                  <Route path="/dashboard">
-                    <Dashboard ref={dashboardRef} provider={provider} signedInAddress={signedInAddress} roles={roles} />
-                  </Route>
+                  <Route path="/dashboard/:address?">{params=>
+                    <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} roles={roles} displayAddress={params.address} />
+                  }</Route>
                   <Route path="/governance">
                     <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
