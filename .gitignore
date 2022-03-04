@@ -149,6 +149,6 @@ net-emissions-token-network/my_notes.txt
 supply-chain/src/*.js
 supply-chain/*.pem
 
-ipfs-replicate/node_modules
-ipfs-replicate/orbitdb
-ipfs-replicate/testingOrbity
+orbitdb/node_modules
+orbitdb/orbitdb
+orbitdb/orbitIpfs
