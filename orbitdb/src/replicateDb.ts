@@ -36,7 +36,7 @@ async function main()
     })
     .recommendCommands()
     .showHelpOnFail(true).argv;
-  if (argv['http']) {
+  if (argv['ipfsapi']) {
     useHttpClient = true;
   }
   if (argv['ipfsdir']) {
@@ -45,14 +45,15 @@ async function main()
   if (argv['bootstrap']) {
     ipfsOptions.config.Bootstrap = [argv['bootstrap']]
   }
+  console.log('=== IPFS Bootstrap setting: ', ipfsOptions.config.Bootstrap)
 
   // Create IPFS instance
   if (useHttpClient) {
-    console.log(`=== Connecting to IPFS ${argv['http']}`)
+    console.log(`=== Connecting to IPFS ${argv['ipfsapi']}`)
   } else {
     console.log('=== Starting IPFS')
   }
-  const ipfs = useHttpClient ? create({url: argv['http']}) : await IPFS.create(ipfsOptions)
+  const ipfs = useHttpClient ? create({url: argv['ipfsapi']}) : await IPFS.create(ipfsOptions)
 
   // Create OrbitDB
   const orbitDir = argv['orbitdir'] || orbitDbDirectory
@@ -135,6 +136,8 @@ const loadingBar = new SingleBar(
     console.log('OrbitDB ready')
     const loadedRes = db.get('')
     console.log(`Current number of records: ${loadedRes.length}`)
+    // note do not call done if we were also somehow replicating or the number of record is 0
+    if (replicationBarStarted || !loadedRes.length) return
     done()
   });
   db.events.on('load', async (dbname) => {
