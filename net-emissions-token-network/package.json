@@ -26,7 +26,7 @@
     "solidity-coverage": "0.7.20"
   },
   "dependencies": {
-    "@eth-optimism/plugins": "0.0.16",
+    "@eth-optimism/plugins": "0.0.20",
     "@openzeppelin/contracts": "^4.4.1",
     "@openzeppelin/contracts-upgradeable": "^4.4.2",
     "axios": "^0.26.0"
