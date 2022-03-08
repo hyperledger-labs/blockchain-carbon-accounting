@@ -1,6 +1,5 @@
 {
   "extends": [
     "config:base"
-  ],
-  "commitMessageSuffix": "Signed-off-by: Renovate Bot <bot@example.com>"
+  ]
 }
