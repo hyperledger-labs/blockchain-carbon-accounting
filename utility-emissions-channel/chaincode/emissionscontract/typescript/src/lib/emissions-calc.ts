@@ -39,23 +39,23 @@ export const getYearFromDate = (date: string): number => {
     return time.getFullYear();
 };
 
-interface CO2EmissionFactorInterface {
+export interface CO2EmissionFactorInterface {
     emission: {
         value: number;
         uom: string;
     };
-    division_type: string;
-    division_id: string;
-    renewable_energy_use_amount: number;
-    nonrenewable_energy_use_amount: number;
+    division_type?: string;
+    division_id?: string;
+    renewable_energy_use_amount?: number;
+    nonrenewable_energy_use_amount?: number;
     year: number;
 }
 
-export function getCO2EmissionFactor(
+export const getCO2EmissionFactor = (
     factor: UtilityEmissionsFactorInterface,
     usage: number,
     usageUOM: string,
-): CO2EmissionFactorInterface {
+): CO2EmissionFactorInterface => {
     // initialize return variables
     let emissionsValue: number;
     let emissionsUOM: string;
@@ -108,4 +108,4 @@ export function getCO2EmissionFactor(
         nonrenewable_energy_use_amount: nonrenewableEnergyUseAmount,
         year: Number(factor.year),
     } as CO2EmissionFactorInterface;
-}
+};

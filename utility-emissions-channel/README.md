@@ -44,7 +44,7 @@ $ cd docker-compose-setup
 Install binaries for linux distribution.
 
 ```bash
-$ ./bootstrap.sh  2.2.1 1.4.9 -d -s
+$ ./bootstrap.sh  2.4.2 1.5.2 -d -s
 ```
 
 If you are using a Mac, you will also need to get the Mac binaries. In a separate directory, follow the steps from [Hyperledger Fabric Install Samples and Binaries](https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html) to install `fabric-samples` with a `bin/` directory. Then move that `bin/` directory over to a `bin_mac/` directory inside `docker-compose-setup`. For example, I had installed `fabric-samples` in a `hyperledger` directory, so:

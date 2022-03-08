@@ -1,22 +1,24 @@
 import { create } from 'ipfs-http-client';
-const OrbitDB = require('orbit-db');
+import type { OrbitDB as ODB } from 'orbit-db'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const OrbitDB = require('orbit-db')
 import type DocumentStore from 'orbit-db-docstore';
 import type {
     UtilityLookupItem,
     UtilityLookupItemInterface,
-} from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
+} from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
 import type {
     UtilityEmissionsFactor,
     UtilityEmissionsFactorInterface,
-} from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
-import type { CO2EmissionFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/emissions-calc';
+} from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
+import type { CO2EmissionFactorInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/emissions-calc';
 import {
     ErrInvalidFactorForActivity,
     ErrUnknownUOM,
-} from '../../../chaincode/emissionscontract/typescript/src/util/const';
+} from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/util/const';
+import { ipfsClientUrl, orbitDbFullPath } from './config'
 
-const DB_NAME =
-    '/orbitdb/zdpuAm6nPdDuL2wBZspcZgbdKPMCbN8pn3ez8Z3i5A9a1hXwb/org.hyperledger.blockchain-carbon-accounting';
+const DB_NAME = orbitDbFullPath;
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
 const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
@@ -75,9 +77,10 @@ export class OrbitDBService {
     private static _db: DocumentStore<UtilityLookupItemInterface | UtilityEmissionsFactorInterface>;
 
     public static init = async (): Promise<void> => {
-        const ipfs = create();
+        const ipfs = create({url:ipfsClientUrl});
 
-        const orbitdb = await OrbitDB.createInstance(ipfs as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const orbitdb: ODB = await OrbitDB.createInstance(ipfs as any);
         const dbOptions = {
             // Give write access to the creator of the database
             accessController: {
@@ -172,10 +175,10 @@ export class OrbitDBService {
         thruDate: string,
     ): UtilityEmissionsFactorInterface => {
         const hasStateData = lookup.state_province !== '';
-        const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
+        const isNercRegion = lookup.divisions?.division_type.toLowerCase() === 'nerc_region';
         const isNonUSCountry =
-            lookup.divisions.division_type.toLowerCase() === 'country' &&
-            lookup.divisions.division_id.toLowerCase() !== 'usa';
+            lookup.divisions?.division_type.toLowerCase() === 'country' &&
+            lookup.divisions?.division_id.toLowerCase() !== 'usa';
         let divisionID: string;
         let divisionType: string;
         let year: number;
@@ -183,10 +186,10 @@ export class OrbitDBService {
             divisionID = lookup.state_province;
             divisionType = 'STATE';
         } else if (isNercRegion) {
-            divisionID = lookup.divisions.division_id;
-            divisionType = lookup.divisions.division_type;
+            divisionID = lookup.divisions?.division_id;
+            divisionType = lookup.divisions?.division_type;
         } else if (isNonUSCountry) {
-            divisionID = lookup.divisions.division_id;
+            divisionID = lookup.divisions?.division_id;
             divisionType = 'Country';
         } else {
             divisionID = 'USA';

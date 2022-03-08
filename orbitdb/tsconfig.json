@@ -7,10 +7,8 @@
         "moduleResolution": "node",
         "module": "commonjs",
         "declaration": true,
-        "sourceMap": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true
+        "sourceMap": true
     },
-    "include": ["./src/**/*"],
-    "exclude": ["./src/**/*.spec.ts", "node_modules"]
+    "include": ["src/*"]
 }
+

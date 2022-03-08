@@ -16,7 +16,7 @@ export interface DivisionsInterface {
     division_id: string;
 }
 export interface UtilityLookupItemInterface {
-    class?: string;
+    class: string;
     key?: string;
     uuid: string;
     year?: string;

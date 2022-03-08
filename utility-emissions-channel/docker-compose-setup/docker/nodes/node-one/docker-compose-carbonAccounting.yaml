@@ -46,7 +46,7 @@ services:
 
   peer1.auditor1.carbonAccounting.com:
     container_name: peer1.auditor1.carbonAccounting.com
-    image: hyperledger/fabric-peer:2.3.0
+    image: hyperledger/fabric-peer:2.4.3
     environment:
       #Generic peer variables
       - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock

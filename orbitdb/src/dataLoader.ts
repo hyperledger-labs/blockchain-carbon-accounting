@@ -1,13 +1,15 @@
 import { SingleBar, Presets } from 'cli-progress';
 import { create } from 'ipfs-http-client';
-const OrbitDB = require('orbit-db');
+import type { OrbitDB as ODB } from 'orbit-db'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const OrbitDB = require('orbit-db')
 import type DocumentStore from 'orbit-db-docstore';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'xlsx';
 import { STATE_NAME_MAPPING, COUNTRY_MAPPINGS } from './abbrevToName';
-import { UtilityLookupItemInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
-import { UtilityEmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
+import { UtilityLookupItemInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
+import { UtilityEmissionsFactorInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
@@ -568,7 +570,7 @@ const import_utility_identifiers = async (opts) => {
                 uuid: 'USA_EIA_' + row['Utility Number'],
                 year: row['Data Year'],
                 utility_number: row['Utility Number'],
-                utility_name: row['Utility Name'].replace(/\'/g, '`').replace(/ /g, '_'),
+                utility_name: row['Utility Name'].replace(/'/g, '`').replace(/ /g, '_'),
                 country: 'USA',
                 state_province: row['State'],
                 divisions: {
@@ -589,7 +591,8 @@ const import_utility_identifiers = async (opts) => {
 
 (async () => {
     const ipfs = create();
-    const orbitdb = await OrbitDB.createInstance(ipfs as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const orbitdb: ODB = await OrbitDB.createInstance(ipfs as any);
     const dbOptions = {
         // Give write access to the creator of the database
         accessController: {

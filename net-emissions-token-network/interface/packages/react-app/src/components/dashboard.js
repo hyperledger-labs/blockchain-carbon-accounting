@@ -14,6 +14,7 @@ import {
   getNumOfUniqueTokens,
   getTokenDetails,
   getNumOfUniqueTrackers,
+  getRoles,
   getTrackerDetails,
   getTrackerIds,
   getTokenAmounts,
@@ -23,7 +24,7 @@ import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
 
 
-export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) => {
+export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
@@ -43,6 +44,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
 
   const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
   const isIndustry = (roles[4] === true);
+  const [displayAddressIsDealer, setDisplayAddressIsDealer] = useState(false);
+  const [displayAddressIsIndustry, setDisplayAddressIsIndustry] = useState(false);
+
   function handleOpenTokenInfoModal(token) {
     setSelectedToken(token);
     setModalShow(true);
@@ -69,6 +73,21 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
     setFetchingTokens(true);
     fetchBalances();
   }
+
+  async function fetchAddressRoles(provider, address) {
+    if (!address || !address.length) {
+      setDisplayAddressIsDealer(false);
+      setDisplayAddressIsIndustry(false);
+    } else {
+      const dRoles = await getRoles(provider, address);
+      setDisplayAddressIsDealer((dRoles[0] === true || dRoles[1] === true || dRoles[2] === true || dRoles[3] === true || dRoles[4] === true));
+      setDisplayAddressIsIndustry((dRoles[4] === true));
+    }
+  }
+
+  useEffect(() => {
+    fetchAddressRoles(provider, displayAddress);
+  }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async () => {
 
@@ -330,7 +349,11 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
       />
 
       <h2>Dashboard</h2>
-      <p className="mb-1">View your token balances and tokens you've issued.</p>
+      {(displayAddress) ? 
+        <p className="mb-1">View token balances and tokens issued for {displayAddress}.</p>
+        :
+        <p className="mb-1">View your token balances and tokens you've issued.</p>
+      }
 
       <p className="text-danger">{error}</p>
 
@@ -346,7 +369,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
 
         {(signedInAddress) &&
           <div className="mb-4">
-            <h4>Your Tokens</h4>
+            <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
@@ -379,9 +402,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
         }
 
         {/* Only display issued tokens if owner or dealer */}
-        {(isDealer) &&
+        {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
-            <h4>Tokens You've Issued</h4>
+            <h4>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued</h4>
             <Table hover size="sm">
               <thead>
                 <tr>
@@ -414,9 +437,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles }, ref) 
       </div>
       <div className={fetchingTrackers? "dimmed" : ""}>
         {/* Only display issued tokens if owner or dealer */}
-        {(isIndustry) &&
+        {((!displayAddress && isIndustry) || (displayAddress && displayAddressIsIndustry)) &&
           <div className="mt-4">
-            <h4>Carbon Tracker Tokens You've Issued</h4>
+            <h4>Carbon Tracker Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued</h4>
             <Table hover size="sm">
               <thead>
                 <tr>

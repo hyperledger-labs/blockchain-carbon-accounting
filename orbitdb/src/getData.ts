@@ -1,4 +1,4 @@
-import { UtilityEmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
+import { UtilityEmissionsFactorInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
 import { ActivityInterface, OrbitDBService } from './orbitDbService';
 
 (async () => {
