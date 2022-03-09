@@ -55,27 +55,27 @@ function App() {
         {/* Else on other page, click this link to go to dashboard */}
         {(location.substring(1) === "dashboard")
          ? <Nav.Link onClick={() => dashboardRef.current.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
-         : <Link href="dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
+         : <Link href="/dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
         }
 
-        <Link href="governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
+        <Link href="/governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
         {isOwnerOrDealer ? 
-          <Link href="issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+          <Link href="/issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
           : null
         }
 
         {((limitedMode && isOwner) || !limitedMode) &&
-          <Link href="transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
+          <Link href="/transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
         }
 
-        <Link href="retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
+        <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
         {((limitedMode && isOwner) || !limitedMode) &&
-          <Link href="track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
+          <Link href="/track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
         }
 
         {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
-        <Link href="access-control"><Nav.Link eventKey="access-control">
+        <Link href="/access-control"><Nav.Link eventKey="access-control">
                                       {( (!limitedMode && isOwnerOrDealer) ^ (limitedMode && isOwner) )
                                    ? "Manage roles"
                                    : "My roles"
