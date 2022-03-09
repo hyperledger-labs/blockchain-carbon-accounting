@@ -1,0 +1,72 @@
+{
+    "activities": [
+      {
+        "id": "1",
+        "type": "shipment",
+        "carrier": "ups",
+        "tracking": "1Z038EY90300111653"
+      },
+      {
+        "id": "1a",
+        "type": "shipment",
+        "carrier": "ups",
+        "tracking": "1Z038EY90300111662"
+      },
+      {
+        "id": "2",
+        "type": "shipment",
+        "carrier": "fedex",
+        "tracking": "FDX12341234",
+        "mode": "air",
+        "from": {
+          "country": "USA",
+          "state_province": "CA",
+          "city": "Los Angeles",
+          "address": "123 Foxboro"
+        },
+        "to": {
+          "country": "France",
+          "city": "Paris",
+          "address": "Grand Palais"
+        }
+      },
+      {
+        "id": "3",
+        "type": "flight",
+        "carrier": "Air France",
+        "flight_number": "AF666",
+        "from": {
+          "country": "France",
+          "city": "Paris",
+          "address": "Charle de Gaulle"
+        },
+        "to": {
+          "country": "Portugal",
+          "city": "Lisbon"
+        }
+      },
+      {
+        "id": "4",
+        "type": "unknown"
+      },
+      {
+        "id": "5",
+        "type": "shipment",
+        "mode": "ground",
+        "from": {
+          "country": "USA",
+          "state_province": "CA",
+          "city": "Los Angeles",
+          "address": "123 Foxboro"
+        },
+        "to": {
+          "country": "USA",
+          "state_province": "NY",
+          "city": "NY",
+          "address": "200 Park Ave"
+        },
+        "weight": "15",
+        "weight_uom": "lbs"
+      }
+    ]
+  }

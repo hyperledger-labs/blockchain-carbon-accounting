@@ -183,11 +183,21 @@ export async function issue_tokens(doc: GroupedResult, activity_type: string, pu
   const ipfs_res = await uploadFileEncrypted(content, publicKeys);
   // issue tokens
   const total_emissions_rounded = Math.round(total_emissions*1000)/1000;
-  let metadata = `Total emissions: ${total_emissions_rounded} UOM: kgCO2e Scope: 3 Type: ${activity_type}`;
-  if (mode) {
-    metadata += ` Mode: ${mode}`;
+  
+  // target format [{key: "key", value: "value"}, {,,,}]
+  const metadata = [
+    {key: "Total emissions", value: total_emissions_rounded},
+    {key: "UOM", value: "kgCO2e"},
+    {key: "Scope", value: 3},
+    {key: "Type", value: activity_type}
+  ];
+  if(mode) {
+    metadata.push({
+      key: "Mode", value: mode
+    });
   }
-  const token_res = await issue_emissions_tokens(total_emissions, metadata, `${h.type}:${h.value}`, ipfs_res.path);
+
+  const token_res = await issue_emissions_tokens(total_emissions, JSON.stringify(metadata), `${h.type}:${h.value}`, ipfs_res.path);
   doc.token = token_res;
   return token_res;
 }
