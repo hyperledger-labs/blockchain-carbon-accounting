@@ -42,13 +42,13 @@ Then you can run `npx ts-node src/replicateDb.ts --orbitdir orbitdb2 --bootstrap
 
 ## Loading Data
 
-If you want to load your own data, you will need to get your own emissions factors.  For example, you can download the [UK Government Greenhouse gas reporting: conversion factors 2019
-](https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2019).
+If you want to load your own data, you will need to get your own emissions factors.  For example, you can download the [UK Government Greenhouse gas reporting: conversion factors 2021
+](https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021).
 
 Once you download them, use
 
 ```
-$ npx ts-node src/dataLoader.ts load_utility_emissions conversion-factors-2021-flat-file-automatic-processing.xls
+$ npx ts-node src/dataLoader.ts load_utility_emissions conversion-factors-2021-flat-file-automatic-processing.xls --orbitcreate
 ```
 
-It will create an orbitdb address, then parse the worksheet, then load into orbitdb.  Then follow the steps from Replicating Data above to get your node id for replicating it. 
+It will create an orbitdb address, then parse the worksheet, then load into orbitdb.  Then follow the steps from Replicating Data above to get your node id for replicating it.

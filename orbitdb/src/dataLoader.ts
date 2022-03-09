@@ -1,23 +1,19 @@
 import { SingleBar, Presets } from 'cli-progress';
-import { create } from 'ipfs-http-client';
-import type { OrbitDB as ODB } from 'orbit-db'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const OrbitDB = require('orbit-db')
-import type DocumentStore from 'orbit-db-docstore';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { readFile } from 'xlsx';
 import { STATE_NAME_MAPPING, COUNTRY_MAPPINGS } from './abbrevToName';
 import { UtilityLookupItemInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
 import { UtilityEmissionsFactorInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
+import { addCommonYargsOptions } from './config';
+import { OrbitDBService } from './orbitDbService';
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
 const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
 
-const DB_NAME = 'org.hyperledger.blockchain-carbon-accounting';
-let db: DocumentStore<UtilityEmissionsFactorInterface | UtilityLookupItemInterface>;
+let db: OrbitDBService;
 
 const progressBar = new SingleBar(
     {
@@ -497,7 +493,9 @@ const import_utility_emissions = async (opts) => {
         const data = parse_worksheet(supportedFiles[8].file, supportedFiles[8]);
         progressBar.start(data.length, 0);
 
+        let i = 0;
         for (const row of data) {
+            i++;
             // skip empty rows
             if (!row) continue;
 
@@ -539,12 +537,17 @@ const import_utility_emissions = async (opts) => {
             };
 
             await db.put(d);
-
-            progressBar.increment();
+            progressBar.update(i);
         }
         progressBar.stop();
         if (opts.file !== 'all') process.exit(0);
     }
+    if (opts.file !== 'all') {
+        console.log(`Given file [${opts.file}] is not supported at the moment.`)
+    } else {
+        console.log('All supported files imported.')
+    }
+    process.exit(0);
 };
 
 const import_utility_identifiers = async (opts) => {
@@ -559,7 +562,7 @@ const import_utility_identifiers = async (opts) => {
         // Utility_Name = value from 'Utility Name'
         // State_Province = value from 'State'
         // Country = USA
-        // Divisions = an array of ojects
+        // Divisions = an array of objects
         // -- Division_type = NERC_REGION
         // -- Division_id = value from 'NERC Region'
         for (const row of data) {
@@ -590,23 +593,12 @@ const import_utility_identifiers = async (opts) => {
 };
 
 (async () => {
-    const ipfs = create();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const orbitdb: ODB = await OrbitDB.createInstance(ipfs as any);
-    const dbOptions = {
-        // Give write access to the creator of the database
-        accessController: {
-            type: 'orbitdb', //OrbitDBAccessController
-            write: [orbitdb.id],
-        },
-        indexBy: 'uuid',
-    };
+    const init = async (argv) => {
+        await OrbitDBService.init(argv);
+        db = new OrbitDBService();
+    }
 
-    db = await orbitdb.docstore(DB_NAME, dbOptions);
-    await db.load();
-    console.log(`OrbitDB address: ${db.address.toString()}`);
-
-    yargs(hideBin(process.argv))
+    addCommonYargsOptions(yargs(hideBin(process.argv)))
         .command(
             'load_utility_emissions <file> [sheet]',
             'load data from XLSX file',
@@ -620,8 +612,10 @@ const import_utility_identifiers = async (opts) => {
                         default: 'Sheet1',
                     });
             },
-            (argv) => {
-                import_utility_emissions(argv);
+            async (argv) => {
+                await init(argv);
+                console.log('=== Starting import_utility_emissions ...')
+                await import_utility_emissions(argv);
             },
         )
         .command(
@@ -637,8 +631,10 @@ const import_utility_identifiers = async (opts) => {
                         describe: 'name of the worksheet to load from',
                     });
             },
-            (argv) => {
-                import_utility_identifiers(argv);
+            async (argv) => {
+                await init(argv);
+                console.log('=== Starting import_utility_identifiers ...')
+                await import_utility_identifiers(argv);
             },
         )
         .option('verbose', {

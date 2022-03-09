@@ -1,7 +1,3 @@
-import { create } from 'ipfs-http-client';
-import type { OrbitDB as ODB } from 'orbit-db'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const OrbitDB = require('orbit-db')
 import type DocumentStore from 'orbit-db-docstore';
 import type {
     UtilityLookupItem,
@@ -16,9 +12,8 @@ import {
     ErrInvalidFactorForActivity,
     ErrUnknownUOM,
 } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/util/const';
-import { ipfsClientUrl, orbitDbFullPath } from './config'
+import { parseCommonYargsOptions } from './config'
 
-const DB_NAME = orbitDbFullPath;
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
 const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
@@ -73,32 +68,72 @@ export interface ActivityInterface {
     tonnesShipped?: number;
 }
 
+type StoreRecord = UtilityLookupItemInterface | UtilityEmissionsFactorInterface;
+
 export class OrbitDBService {
-    private static _db: DocumentStore<UtilityLookupItemInterface | UtilityEmissionsFactorInterface>;
+    private static _db: DocumentStore<StoreRecord>;
 
-    public static init = async (): Promise<void> => {
-        const ipfs = create({url:ipfsClientUrl});
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const orbitdb: ODB = await OrbitDB.createInstance(ipfs as any);
+    public static init = async (argv): Promise<void> => {
+        const opts = parseCommonYargsOptions(argv)
+        // Create IPFS instance
+        if (opts.useHttpClient) {
+            console.log(`=== Connecting to IPFS ${opts.ipfsApiUrl}`)
+        } else {
+            console.log('=== IPFS Bootstrap setting: ', opts.ipfsOptions.config.Bootstrap)
+            console.log('=== Starting IPFS')
+        }
+        const ipfs = await opts.createIpfsInstance()
+        // Create OrbitDB
+        console.log('=== Starting OrbitDB using directory: ', opts.orbitDbDirectory)
+        const orbitdb = await opts.createOrbitDbInstance(ipfs)
         const dbOptions = {
             // Give write access to the creator of the database
             accessController: {
-                type: 'orbitdb',
+                type: 'orbitdb', //OrbitDBAccessController
                 write: [orbitdb.id],
             },
             indexBy: 'uuid',
         };
+        const dbPath = opts.orbitCreate ? opts.orbitDbName : opts.orbitDbFullPath;
+        if (opts.orbitCreate) {
+            console.log('=== Creating new OrbitDB: ', dbPath)
+        } else {
+            console.log('=== Using OrbitDB: ', dbPath)
+        }
 
-        const db = await orbitdb.docstore(DB_NAME, dbOptions);
-        console.log('=== OrbitDBService init')
-
+        const db = await orbitdb.docstore(dbPath, dbOptions);
+        if (opts.orbitDebug) {
+            db.events.on('load.progress', async (_address, _hash, _entry, progress, have) => {
+                console.log('Loading DB...',have,progress)
+            });
+            db.events.on('ready', async () => {
+                console.log('OrbitDB ready')
+                const loadedRes = db.get('')
+                console.log(`Current number of records: ${loadedRes.length}`)
+            });
+            db.events.on('load', async (dbname) => {
+                console.log('Loading OrbitDB: ', dbname)
+            });
+            db.events.on('replicate.progress', (_address, _hash, _entry, progress, have) => {
+                console.log('Replicating...',have,progress)
+            });
+            db.events.on('replicated', async () => {
+                const loadedRes = db.get('')
+                console.log(`Replicated number of records: ${loadedRes.length}`)
+            });
+        }
         await db.load();
+        console.log(`=== OrbitDB address: ${db.address.toString()}`);
 
-        OrbitDBService._db = db as DocumentStore<
-            UtilityLookupItemInterface | UtilityEmissionsFactorInterface
-        >;
-        console.log(`OrbitDB address: ${db.address.toString()}`);
+        OrbitDBService._db = db as DocumentStore<StoreRecord>;
+    };
+
+    public get = (query: string) => {
+        return OrbitDBService._db.get(query);
+    };
+
+    public put = (doc: StoreRecord) => {
+        return OrbitDBService._db.put(doc);
     };
 
     public getUtilityLookupItem = (uuid: string): UtilityLookupItemInterface => {

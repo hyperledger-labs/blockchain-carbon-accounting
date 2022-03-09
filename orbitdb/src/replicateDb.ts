@@ -1,71 +1,32 @@
-import IPFS = require('ipfs')
-import { create } from 'ipfs-http-client';
-import type { OrbitDB as ODB } from 'orbit-db'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const OrbitDB = require('orbit-db')
 import { SingleBar, Presets } from 'cli-progress';
-import { orbitDbFullPath, orbitDbDirectory, ipfsOptions, ipfsRemoteNode } from './config'
+import { addCommonYargsOptions, parseCommonYargsOptions } from './config'
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
-
-let useHttpClient = false;
-
 async function main()
 {
-  const argv = yargs(hideBin(process.argv))
+  const argv = addCommonYargsOptions(yargs(hideBin(process.argv)))
     .option('serve', {
       type: 'boolean',
       description: 'Keep the node running',
     })
-    .option('bootstrap', {
-      type: 'string',
-      description: 'Set the custom bootstrap node address, default: '+ipfsRemoteNode,
-    })
-    .option('ipfsapi', {
-      type: 'string',
-      description: 'Connect to this IPFS API endpoint instead of running an IPFS node, eg: http://127.0.0.1:5001/api/v0',
-    })
-    .option('ipfsdir', {
-      type: 'string',
-      description: 'Directory of the IPFS data',
-    })
-    .option('ipfsport', {
-      type: 'string',
-      description: 'Use a custom port for IPFS (defaults to 4001)',
-    })
-    .option('orbitdir', {
-      type: 'string',
-      description: 'Directory of the orbit DB',
-    })
     .recommendCommands()
     .showHelpOnFail(true).argv;
-  if (argv['ipfsapi']) {
-    useHttpClient = true;
-  }
-  if (argv['ipfsdir']) {
-    ipfsOptions.repo = argv['ipfsdir']
-  }
-  if (argv['ipfsport']) {
-    ipfsOptions.config.Addresses.Swarm = ipfsOptions.config.Addresses.Swarm.map(a=>a.replace('4001', argv['ipfsport']))
-  }
-  if (argv['bootstrap']) {
-    ipfsOptions.config.Bootstrap = [argv['bootstrap']]
-  }
+
+  const opts = parseCommonYargsOptions(argv)
 
   // Create IPFS instance
-  if (useHttpClient) {
-    console.log(`=== Connecting to IPFS ${argv['ipfsapi']}`)
+  if (opts.useHttpClient) {
+    console.log(`=== Connecting to IPFS ${opts.ipfsApiUrl}`)
   } else {
-    console.log('=== IPFS Bootstrap setting: ', ipfsOptions.config.Bootstrap)
+    console.log('=== IPFS Bootstrap setting: ', opts.ipfsOptions.config.Bootstrap)
     console.log('=== Starting IPFS')
   }
-  const ipfs = useHttpClient ? ('local' === argv['ipfsapi'] ? create() : create({url: argv['ipfsapi']})) : await IPFS.create(ipfsOptions)
+  const ipfs = await opts.createIpfsInstance()
 
   // Create OrbitDB
-  const orbitDir = argv['orbitdir'] || orbitDbDirectory
-  console.log('=== Starting OrbitDB using directory: ', orbitDir)
-  const orbitdb: ODB = await OrbitDB.createInstance(ipfs,{directory: orbitDir})
+  console.log('=== Starting OrbitDB using directory: ', opts.orbitDbDirectory)
+  const orbitdb = await opts.createOrbitDbInstance(ipfs)
   const replicationBar = new SingleBar(
     {
       format:
@@ -105,7 +66,7 @@ async function main()
   console.log('=== Making existing OrbitDB replica')
 
   const start = async () => {
-    const db = await orbitdb.docstore(orbitDbFullPath)
+    const db = await orbitdb.docstore(opts.orbitDbFullPath)
     const done = async () => {
       stopBars();
       console.log('Done');
@@ -115,7 +76,7 @@ async function main()
       } else {
         console.log('=== Closing OrbitDB ...')
         await db.close()
-        if (!useHttpClient) {
+        if (!opts.useHttpClient) {
           console.log('=== Stopping IPFS, or press CTRL-C to terminate. ...')
           try {
             await ipfs.stop()
