@@ -91,6 +91,7 @@ export class OrbitDBService {
         };
 
         const db = await orbitdb.docstore(DB_NAME, dbOptions);
+        console.log('=== OrbitDBService init')
 
         await db.load();
 
