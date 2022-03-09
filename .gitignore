@@ -148,3 +148,7 @@ open-offsets-directory/data/.~lock.VCS_retirements.csv#
 net-emissions-token-network/my_notes.txt
 supply-chain/src/*.js
 supply-chain/*.pem
+
+orbitdb/node_modules
+orbitdb/orbitdb
+orbitdb/orbitIpfs

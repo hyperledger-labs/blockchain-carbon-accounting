@@ -19,14 +19,14 @@
     "ethers": "^5.0.32",
     "hardhat": "^2.1.2",
     "hardhat-deploy": "^0.7.0-beta.57",
-    "hardhat-deploy-ethers": "^0.3.0-beta.7",
+    "hardhat-deploy-ethers": "0.3.0-beta.13",
     "hardhat-gas-reporter": "1.0.8",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "1.0.0-beta.19",
     "solidity-coverage": "0.7.20"
   },
   "dependencies": {
-    "@eth-optimism/plugins": "0.0.16",
+    "@eth-optimism/plugins": "0.0.20",
     "@openzeppelin/contracts": "^4.4.1",
     "@openzeppelin/contracts-upgradeable": "^4.4.2",
     "axios": "^0.26.0"
