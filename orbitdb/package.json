@@ -23,7 +23,7 @@
     "ipfs": "^0.62.1",
     "ipfs-http-client": "^56.0.1",
     "ipfsd-ctl": "^10.0.6",
-    "node-fetch": "^3.2.1",
+    "node-fetch": "2",
     "orbit-db": "^0.28.2",
     "orbit-db-docstore": "^1.12.0",
     "orbit-db-io": "^1.0.2",
