@@ -41,7 +41,7 @@
     "react-copy-to-clipboard": "^5.0.2",
     "react-datetime": "^3.0.4",
     "react-dom": "16.14.0",
-    "react-icons": "^4.1.0",
+    "react-icons": "^4.3.1",
     "react-scripts": "3.4.3",
     "styled-components": "^5.2.0",
     "web3modal": "^1.9.1",

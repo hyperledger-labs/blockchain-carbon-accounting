@@ -8,6 +8,16 @@ import { FaCoins } from 'react-icons/fa';
 
 export default function TokenInfoModal(props) {
 
+  const castMetadata = (metadata) => {
+    if(metadata == undefined) return <></>;
+    const obj = JSON.parse(metadata);
+    return obj.map((field, key) => {
+      if(field.key == "" || field.value == "") return <></>;
+      return <div key={key}>{field.key} : {field.value}</div>;
+    })
+  };
+
+
   return (
     <Modal {...props} centered size="lg">
       <Modal.Header closeButton>
@@ -115,7 +125,7 @@ export default function TokenInfoModal(props) {
             <tr>
               <td>Metadata</td>
               <td className="text-monospace" style={{ wordWrap: "anywhere" }}>
-                {props.token.metadata}
+                {castMetadata(props.token.metadata)}
               </td>
             </tr>
             <tr>
