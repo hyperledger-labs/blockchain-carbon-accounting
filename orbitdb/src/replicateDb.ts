@@ -30,6 +30,10 @@ async function main()
       type: 'string',
       description: 'Directory of the IPFS data',
     })
+    .option('ipfsport', {
+      type: 'string',
+      description: 'Use a custom port for IPFS (defaults to 4001)',
+    })
     .option('orbitdir', {
       type: 'string',
       description: 'Directory of the orbit DB',
@@ -41,6 +45,9 @@ async function main()
   }
   if (argv['ipfsdir']) {
     ipfsOptions.repo = argv['ipfsdir']
+  }
+  if (argv['ipfsport']) {
+    ipfsOptions.config.Addresses.Swarm = ipfsOptions.config.Addresses.Swarm.map(a=>a.replace('4001', argv['ipfsport']))
   }
   if (argv['bootstrap']) {
     ipfsOptions.config.Bootstrap = [argv['bootstrap']]
