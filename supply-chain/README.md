@@ -2,7 +2,7 @@
 
 ## Installing
 
-Sign up for the [UPS Developer Kit](https://www.ups.com/upsdeveloperkit?loc=en_US) to get the access key.  
+Sign up for the [UPS Developer Kit](https://www.ups.com/upsdeveloperkit?loc=en_US) to get the access key.
 
 Copy `.env.SAMPLE` to `.env` and fill in your UPS username and password and access key in `.env`.
 
@@ -12,7 +12,7 @@ Fill in the Google API key in `.env`.
 
 Make sure you are using node version 16.
 
-Install dependencies here and in `utility-emissions-channel/typescript_app` with
+Install dependencies here and in `emissions-data/typescript_app` with
 
 ```
 npm install
