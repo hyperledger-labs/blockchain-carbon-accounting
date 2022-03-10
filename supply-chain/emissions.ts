@@ -1,6 +1,5 @@
 import * as dotenv from 'dotenv';
 import { readFileSync } from 'fs'
-import { ValueAndUnit } from './src/common-types';
 import { generateKeyPair, hash_content } from './src/crypto-utils';
 import { GroupedResult, GroupedResults, group_processed_activities, issue_tokens, process_activities } from './src/emissions-utils';
 import { downloadFileEncrypted } from './src/ipfs-utils';
