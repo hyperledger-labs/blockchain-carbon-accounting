@@ -5,8 +5,6 @@ import type { OrbitDB as ODB } from 'orbit-db'
 const OrbitDB = require('orbit-db')
 
 const ipfsDirectory = './orbitIpfs'
-const ipfsRemoteNode = '/ip4/52.204.157.187/tcp/4001/p2p/12D3KooWPKZ2NrS2wGxCQLV2DsEtdZDNRsPhTzdx18PHNvJDeWrQ'
-// export const ipfsRemoteNode = '/ip4/127.0.0.1/tcp/4001/p2p/12D3KooWDGUDi3vMhdp3gSq2DM3hJoXBQmmkVPEPcRHZGGPGqit3'
 const ipfsOptions = {
   repo: ipfsDirectory,
   config: {
@@ -19,39 +17,33 @@ const ipfsOptions = {
       "API": "/ip4/127.0.0.1/tcp/5001",
       "Gateway": "/ip4/127.0.0.1/tcp/8082"
     },
-    "Bootstrap": [
-      ipfsRemoteNode
-    ],
+    "Bootstrap": [],
   },
   EXPERIMENTAL: {
     pubsub: true
   }
 }
-// export const ipfsClientUrl = 'http://127.0.0.1:5001/api/v0'
-export const ipfsClientUrl = 'http://52.204.157.187:5001/api/v0'
 
 const orbitDbDirectory = './orbitdb'
 const orbitDbName = 'org.hyperledger.blockchain-carbon-accounting'
-const orbitDbAddress = 'zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed'
-const orbitDbFullPath = `/orbitdb/${orbitDbAddress}/${orbitDbName}`
 
 export const addCommonYargsOptions = (yargs) => {
   return yargs
     .option('bootstrap', {
       type: 'string',
-      description: `Set the custom bootstrap node address (default: ${ipfsRemoteNode})`,
+      description: `Set a bootstrap node address when using NodeJS ipfs, eg: /ip4/52.204.157.187/tcp/4001/p2p/12D3KooWPKZ2NrS2wGxCQLV2DsEtdZDNRsPhTzdx18PHNvJDeWrQ`,
     })
     .option('ipfsapi', {
       type: 'string',
-      description: 'Connect to this IPFS API endpoint instead of running an IPFS node, eg: http://127.0.0.1:5001/api/v0',
+      description: 'Connect to this IPFS API endpoint instead of running a NodeJS IPFS node, eg: local, 127.0.0.1, http://127.0.0.1:5001/api/v0',
     })
     .option('ipfsdir', {
       type: 'string',
-      description: `Directory of the IPFS data (default: ${ipfsDirectory})`,
+      description: `Directory of the IPFS data when running a NodeJS IPFS node (default: ${ipfsDirectory})`,
     })
     .option('ipfsport', {
       type: 'string',
-      description: `Use a custom port for IPFS (default: 4001)`,
+      description: `Use a custom port for IPFS when running a NodeJS IPFS node (default: 4001)`,
     })
     .option('orbitdir', {
       type: 'string',
@@ -59,7 +51,7 @@ export const addCommonYargsOptions = (yargs) => {
     })
     .option('orbitaddress', {
       type: 'string',
-      description: `Address of the orbit DB (default: ${orbitDbAddress})`,
+      description: `Address of the orbit DB (eg: zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed)`,
     })
     .option('orbitcreate', {
       type: 'boolean',
@@ -69,6 +61,12 @@ export const addCommonYargsOptions = (yargs) => {
       type: 'boolean',
       description: 'Debug orbitdb events',
     })
+    .conflicts('orbitcreate', 'orbitaddress')
+    .conflicts('bootstrap', 'ipfsapi')
+    .conflicts('ipfsport', 'ipfsapi')
+    .conflicts('ipfsdir', 'ipfsapi')
+    // one of those is required
+    .check((argv)=> argv.orbitcreate || argv.orbitaddress)
 }
 
 export const parseCommonYargsOptions = (argv) => {
@@ -77,13 +75,13 @@ export const parseCommonYargsOptions = (argv) => {
     ipfsApiUrl: null,
     ipfsDirectory: ipfsDirectory,
     ipfsPort: '4001',
-    ipfsBootstrap: ipfsRemoteNode,
+    ipfsBootstrap: null,
     useHttpClient: false,
     ipfsOptions: ipfsOpts,
     orbitDbDirectory: orbitDbDirectory,
     orbitDbName: orbitDbName,
-    orbitDbAddress: orbitDbAddress,
-    orbitDbFullPath: orbitDbFullPath,
+    orbitDbAddress: null,
+    orbitDbFullPath: null,
     orbitCreate: false,
     orbitDebug: false,
     createIpfsInstance: async () => await IPFS.create(ipfsOptions),
@@ -91,7 +89,13 @@ export const parseCommonYargsOptions = (argv) => {
   }
   if (argv['ipfsapi']) {
     opts.useHttpClient = true;
-    opts.ipfsApiUrl = argv['ipfsapi']
+    let url = argv['ipfsapi']
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
+      url = `http://${url}:5001/api/v0`
+    } else if (/^\d+\.\d+\.\d+\.\d+:\d+$/.test(url)) {
+      url = `http://${url}/api/v0`
+    }
+    opts.ipfsApiUrl = url
   }
   if (argv['ipfsdir']) {
     opts.ipfsDirectory = ipfsOpts.repo = argv['ipfsdir']
@@ -102,7 +106,7 @@ export const parseCommonYargsOptions = (argv) => {
   }
   if (argv['bootstrap']) {
     if ('false' === argv['bootstrap']) {
-      opts.ipfsBootstrap = ''
+      opts.ipfsBootstrap = null
       ipfsOpts.config.Bootstrap = []
     } else {
       opts.ipfsBootstrap = argv['bootstrap']

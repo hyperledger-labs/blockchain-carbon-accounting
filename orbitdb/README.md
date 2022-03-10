@@ -8,22 +8,25 @@ Run `npm install`.
 
 ## Replicating Data
 
-Script: `npx ts-node src/replicateDb.ts`
+To replicate the data from the upstream server:
 
-By default, this script starts an IPFS node.  You can also use another IPFS node, such as a local node started with `ipfs daemon --enable-pubsub-experiment`.  In that case, make sure you enable `pubsub`.  Then you can use `--ipfsapi http://127.0.0.1:5001/api/v0` to point to your local node.
+```
+npx ts-node src/replicateDb.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed --bootstrap /ip4/52.204.157.187/tcp/4001/p2p/12D3KooWPKZ2NrS2wGxCQLV2DsEtdZDNRsPhTzdx18PHNvJDeWrQ
+```
 
-By default, this script replicates against the upstream server (`52.204.157.187`).  To use another IPFS node as bootstrap, run `ipfs id` to obtain the correct node ID.  This is different from which server may run Orbit DB.  Then you can use `--bootstrap /ip4/IPADDRESS/tcp/4001/p2p/NODEID` to add your bootstrap node.
+By default, this script starts an IPFS node.  You can also use another IPFS node, such as a local node started with `ipfs daemon --enable-pubsub-experiment`.  In that case, make sure you enable `pubsub`.  Then you can use `--ipfsapi local` to point to your local node.
+
+To use another IPFS node as bootstrap, run `ipfs id` to obtain the correct node ID.
 
 To keep the Orbit DB process running use the `--serve` flag, this allows using the node for replicating other nodes (see examples below).
 
 This script stores data in `./orbitIpfs` or another directory set by `--ipfsdir` and the orbit DB metadata in `./orbitdb` or another directory set by `--orbitdir`.
 
-Run `npx ts-node src/replicateDb.ts --ipfsapi http://127.0.0.1:5001/api/v0 --serve` to replicate into the local IPFS daemon and keep it running.
+Run `npx ts-node src/replicateDb.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed --ipfsapi local --orbitdir orbitdb_2 --serve` to replicate using the local IPFS daemon and keep it running.
 
-When this works, you can run
-
+When this works, close the serving script and you can run:
 ```
-$ npx ts-node src/getData.ts test
+$ npx ts-node src/getData.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed test
 { emission: { value: 17720, uom: 'kg' }, year: 2021 }
 ```
 
@@ -38,7 +41,7 @@ ipfs id
 
 ```
 
-Then you can run `npx ts-node src/replicateDb.ts --orbitdir orbitdb2 --bootstrap /ip4/127.0.0.1/tcp/4001/p2p/12D3KooWDGUDi3vMhdp3gSq2DM3hJoXBQmmkVPEPcRHZGGPGqit3` to replicate against the local node instead of the upstream server.
+Then you can run `npx ts-node src/replicateDb.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed --orbitdir orbitdb_3 --bootstrap /ip4/127.0.0.1/tcp/4001/p2p/12D3KooWDGUDi3vMhdp3gSq2DM3hJoXBQmmkVPEPcRHZGGPGqit3` to replicate against the local node instead of the upstream server.
 
 ## Loading Data
 

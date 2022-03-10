@@ -42,12 +42,15 @@ let db: OrbitDBService;
         co2_equivalent_emissions: '8860',
         co2_equivalent_emissions_uom: 'kg',
       }
-      console.log('Test getCO2EmissionFactorByActivity: ', db.getCO2EmissionFactorByActivity(factor, activity))
-      console.log('Test getEmissionsFactorByActivity: ', db.getEmissionsFactorByActivity(activity))
-      console.log('Test getCO2EmissionByActivity: ', db.getCO2EmissionByActivity(activity))
+      console.log('Test getCO2EmissionFactorByActivity ...')
+      console.log(db.getCO2EmissionFactorByActivity(factor, activity))
+
+      console.log('Test getCO2EmissionByActivity ...')
+      console.log(db.getCO2EmissionByActivity(activity))
 
       const allLookup = db.getAllFactors()
-      console.log('Test getAllFactors got count : ', allLookup ? allLookup.length : null)
+      console.log('Test getAllFactors ...')
+      console.log(' got count : ', allLookup ? allLookup.length : null)
       if (allLookup && allLookup.length) {
         console.log('Sample first factor ...')
         console.log(allLookup[0])
@@ -120,5 +123,6 @@ let db: OrbitDBService;
   .demandCommand(1)
   .recommendCommands()
   .strict()
-  .showHelpOnFail(true).argv
+  .showHelpOnFail(true)
+  .argv
 })()

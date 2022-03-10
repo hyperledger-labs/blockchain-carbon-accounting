@@ -79,8 +79,8 @@ export class OrbitDBService {
         if (opts.useHttpClient) {
             console.log(`=== Connecting to IPFS ${opts.ipfsApiUrl}`)
         } else {
-            console.log('=== IPFS Bootstrap setting: ', opts.ipfsOptions.config.Bootstrap)
-            console.log('=== Starting IPFS')
+            if (opts.ipfsBootstrap) console.log('=== IPFS Bootstrap setting: ', opts.ipfsOptions.config.Bootstrap)
+            console.log('=== Starting NodeJS IPFS')
         }
         const ipfs = await opts.createIpfsInstance()
         // Create OrbitDB

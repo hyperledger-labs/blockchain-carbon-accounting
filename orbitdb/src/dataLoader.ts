@@ -645,5 +645,6 @@ const import_utility_identifiers = async (opts) => {
         .demandCommand(1)
         .recommendCommands()
         .strict()
-        .showHelpOnFail(true).argv;
+        .showHelpOnFail(true)
+        .argv;
 })();
