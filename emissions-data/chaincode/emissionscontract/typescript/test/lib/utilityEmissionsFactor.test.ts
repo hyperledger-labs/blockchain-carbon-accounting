@@ -4,9 +4,8 @@ import { createStubInstance } from 'sinon';
 import {
     EmissionsFactor,
     EmissionsFactorInterface,
-    EmissionsFactorState
+    EmissionsFactorState,
 } from '../../src/lib/emissionsFactor';
-
 
 const testData: EmissionsFactorInterface = {
     uuid: 'id',

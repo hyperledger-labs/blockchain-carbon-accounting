@@ -7,10 +7,9 @@ import {
     ErrInvalidArgument,
     ErrInvalidNumberOfArgument,
     ErrMethodNotSupported,
-    MsgSuccess
+    MsgSuccess,
 } from './util/const';
 import { logger, stringToBytes } from './util/util';
-
 
 class EmissionsChaincode {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

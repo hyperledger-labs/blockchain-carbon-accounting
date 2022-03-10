@@ -70,10 +70,7 @@ export class EmissionsFactorState extends WorldState<EmissionsFactorInterface> {
     async getEmissionsFactor(uuid: string): Promise<EmissionsFactor> {
         return new EmissionsFactor(await this.getState(uuid));
     }
-    async updateEmissionsFactor(
-        factor: EmissionsFactor,
-        uuid: string,
-    ): Promise<void> {
+    async updateEmissionsFactor(factor: EmissionsFactor, uuid: string): Promise<void> {
         return await this.updateState(uuid, factor.factor);
     }
     async getEmissionsFactorsByDivision(

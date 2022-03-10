@@ -2,14 +2,11 @@ import { MD5, SHA256 } from 'crypto-js';
 import { ChaincodeStub } from 'fabric-shim';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
 import { getCO2EmissionFactor } from './emissions-calc';
+import { EmissionsFactor, EmissionsFactorInterface, EmissionsFactorState } from './emissionsFactor';
 import {
-    EmissionsFactor,
-    EmissionsFactorInterface,
-    EmissionsFactorState
-} from './emissionsFactor';
-import {
-    UtilityLookupItem, UtilityLookupItemInterface,
-    UtilityLookupItemState
+    UtilityLookupItem,
+    UtilityLookupItemInterface,
+    UtilityLookupItemState,
 } from './utilityLookupItem';
 
 // EmissionsRecordContract : core bushiness logic of emissions record chaincode
