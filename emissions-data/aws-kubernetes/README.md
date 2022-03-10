@@ -1,6 +1,6 @@
 # aws-kubernetes
 
-Deploy utility-emissions-channel app to aws kubernetes
+Deploy emissions-data app to aws kubernetes
 
 ## Create api application Docker image
 
@@ -27,7 +27,7 @@ export const CHANNEL_NAME = "utilityemissionchannel"
 
 * Set S3_LOCAL = false and S3 BUCKET_NAME in the aws-config.js, access keys should be null and be set in the utilityemissions-api-deployment.yaml
 
-Run build from utility-emissions-channel directory
+Run build from emissions-data directory
 
     $ docker build -t krybalko/utilityemissions-api:0.0.1 -f aws-kubernetes/Dockerfile .
     $ docker image push krybalko/utilityemissions-api:0.0.1
@@ -36,12 +36,12 @@ Run build from utility-emissions-channel directory
 
 Create connection config json
 
-    $ cd utility-emissions-channel/aws-kubernetes/ccp-generate
+    $ cd emissions-data/aws-kubernetes/ccp-generate
     $ ./ccp-generate.sh
 
 Create ConfigMap from connection config json
 
-    $ cd utility-emissions-channel/aws-kubernetes
+    $ cd emissions-data/aws-kubernetes
     $ kubectl create configmap utilityemissions-api-config --from-file=./ccp-generate/connection-opentaps.json -n fabric-production
 
 Create ebs volume to store users wallets

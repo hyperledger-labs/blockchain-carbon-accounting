@@ -1,6 +1,6 @@
 import yargs = require('yargs')
 import { hideBin } from 'yargs/helpers'
-import { UtilityEmissionsFactorInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor'
+import { UtilityEmissionsFactorInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor";
 import { addCommonYargsOptions } from './config'
 import { ActivityInterface, OrbitDBService } from './orbitDbService'
 

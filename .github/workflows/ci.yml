@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./utility-emissions-channel/typescript_app
+        working-directory: ./emissions-data/typescript_app
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./utility-emissions-channel/chaincode/emissionscontract/typescript
+        working-directory: ./emissions-data/chaincode/emissionscontract/typescript
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -47,13 +47,13 @@ jobs:
       - name: Run lint script
         uses: golangci/golangci-lint-action@v2
         with:
-          working-directory: ./utility-emissions-channel/chaincode/datalock
+          working-directory: ./emissions-data/chaincode/datalock
 
   test-datalock-chaincode: # Run chaincode tests for the chaincode/datalock directory
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./utility-emissions-channel/chaincode/datalock
+        working-directory: ./emissions-data/chaincode/datalock
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -83,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./utility-emissions-channel
+        working-directory: ./emissions-data
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -100,7 +100,7 @@ jobs:
           npm i -g npm@latest
           npm ci
           echo "n" | npx hardhat node --show-accounts &
-      - name: Build utility-emissions-channel project # Add required hostnames to /etc/hosts and runs start script
+      - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd docker-compose-setup/
           echo "127.0.0.1       auditor1.carbonAccounting.com
@@ -119,4 +119,4 @@ jobs:
         if: success() || failure()
         with:
           name: test-results
-          path: utility-emissions-channel/typescript_app/test-results.json
+          path: emissions-data/typescript_app/test-results.json

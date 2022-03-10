@@ -1,6 +1,6 @@
 # Useful commands for testing
 
-Copy and paste these commands in the directory `utility-emissions-channel/docker-compose-setup/` to test certain functions and tasks of the chaincode, Express API (source code in `./typescript_app/`), and `egrid-data-loader.js` in `./docker-compose-setup/`.
+Copy and paste these commands in the directory `emissions-data/docker-compose-setup/` to test certain functions and tasks of the chaincode, Express API (source code in `./typescript_app/`), and `egrid-data-loader.js` in `./docker-compose-setup/`.
 
 ## Resetting, starting, and starting the Express API
 

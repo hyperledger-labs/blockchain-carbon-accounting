@@ -1,5 +1,5 @@
 # Secure Identities
-This directory provides packages used to secure client key files and setup credential types for signing blockchain transactions. The [utility-emissions-channel](../utility-emissions-channel) blockchain currently support two types of identity credential types used by the fabric network:
+This directory provides packages used to secure client key files and setup credential types for signing blockchain transactions. The [emissions-data](../emissions-data) blockchain currently support two types of identity credential types used by the fabric network:
 * cloud-based keystore based on Hashicorp's Vault to securely access secrets.
 * keys stored on the user’s external device using a secure (e.g., web-socket) connection.
 
@@ -18,7 +18,7 @@ In the first approach, the organization manages its users and controls access to
 
 The major advantage of this approach is that clients are not responsible for communicating with the Fabric network. A single application is used to manage identities of multiple users.  This application could have enhanced security features and policies.  The major disadvantage of this approach is that all private keys are stored in a centralized location.  However secure, it is still a honeypot for hackers to attempt to exploit/corrupt.
 
-The second option allows key files to be physically held by the user, not a third-party app, who then has full control over its use as well.  This is a true decentralized approach, and the major advantage is that each client's private key is never exposed or stored on the organization's application.  The major disadvantage is that clients are responsible for managing their own private keys, as well as communicating with the Fabric network.  
+The second option allows key files to be physically held by the user, not a third-party app, who then has full control over its use as well.  This is a true decentralized approach, and the major advantage is that each client's private key is never exposed or stored on the organization's application.  The major disadvantage is that clients are responsible for managing their own private keys, as well as communicating with the Fabric network.
 
 Choosing one over the other depends on whether the organization needs align with centralized identity services versus self-management and physical ownership of key files by its users.  A central secured server could be hardened with the best technology and security practices.  Individuals holding their own keys, on the other hand, do not present hackers with a single store containing many access keys. Some considerations for choosing one versus the other include:
 
@@ -34,7 +34,7 @@ Choosing one over the other depends on whether the organization needs align with
 
 ## Connecting external privates keys over web-socket
 
-In the context of the emissions application, the web-socket client security framework supports a wallet installed on a device used by an auditor to sign verified emissions data, like a notary stamp to verify documents.  It could also be installed on a physical device, such as a CO2 sensor or other measurement tool, that relays information about emissions directly to the Fabric network.  Such a device could be a power plant, a transpiration vehicle, or a mobile remote sensor such as an airplane or satellite.  The connection between Fabric and the wallet is made via a [WS-X.509 credential type for signing fabric transactions](https://github.com/hyperledger/cactus/pull/1333), which has been setup within the cactus connector for Fabric. 
+In the context of the emissions application, the web-socket client security framework supports a wallet installed on a device used by an auditor to sign verified emissions data, like a notary stamp to verify documents.  It could also be installed on a physical device, such as a CO2 sensor or other measurement tool, that relays information about emissions directly to the Fabric network.  Such a device could be a power plant, a transpiration vehicle, or a mobile remote sensor such as an airplane or satellite.  The connection between Fabric and the wallet is made via a [WS-X.509 credential type for signing fabric transactions](https://github.com/hyperledger/cactus/pull/1333), which has been setup within the cactus connector for Fabric.
 
 This security framework requires two packages:
 
@@ -44,7 +44,7 @@ This security framework requires two packages:
 
 The server does not store and never sees the user’s private key. It delivers request to sign various payloads, such as:
 
-- a Certificate Signing Request (CSR) used to construct the WS-X.509 identity file when enrolling with the Fabric application. 
+- a Certificate Signing Request (CSR) used to construct the WS-X.509 identity file when enrolling with the Fabric application.
 - a transaction to the Fabric network to record or query data.
 
 A third package, [ws-identity-client](./ws-identity-client/README.md), is used to setup the backend connection between the fabric app and the ws-identity server. This includes requesting a new session ticket, or access to a web-socket-client connected to a ws-wallet instance.

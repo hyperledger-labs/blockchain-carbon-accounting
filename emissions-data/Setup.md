@@ -53,7 +53,7 @@ API server has multiple configurations parameters which need be configured befor
     - vault : sign fabric tx with key stored as transit in vault server.
       - LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT : transit key path inside vault server, required in case of vault signing support
 
-Sample API configuration can be found as env file : `utility-emissions-channel/typescript_app/.env`
+Sample API configuration can be found as env file : `emissions-data/typescript_app/.env`
 
 ## Vault Setup
 
@@ -62,7 +62,7 @@ vault server is essentially for string api server, even if `vault` fabric tx sig
 Vault Server Deployment approaches
 
 - for development and testing [NOTE : DO NOT USE THIS IN PRODUCTION] : `docker run --rm --name vault -d --cap-add=IPC_LOCK -p 8200:8200 -e 'VAULT_DEV_ROOT_TOKEN_ID=tokenId' -e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' vault`
-- Kubernetes Deployment : `utility-emissions-channel/minikube-setup/README.md`
+- Kubernetes Deployment : `emissions-data/minikube-setup/README.md`
 
 Configuration for API Server
 

@@ -1,18 +1,18 @@
 import type DocumentStore from 'orbit-db-docstore';
+import type { CO2EmissionFactorInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissions-calc";
 import type {
-    UtilityLookupItem,
-    UtilityLookupItemInterface,
-} from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
+  UtilityEmissionsFactor,
+  UtilityEmissionsFactorInterface,
+} from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor";
 import type {
-    UtilityEmissionsFactor,
-    UtilityEmissionsFactorInterface,
-} from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
-import type { CO2EmissionFactorInterface } from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/lib/emissions-calc';
+  UtilityLookupItem,
+  UtilityLookupItemInterface,
+} from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
 import {
-    ErrInvalidFactorForActivity,
-    ErrUnknownUOM,
-} from '../../utility-emissions-channel/chaincode/emissionscontract/typescript/src/util/const';
-import { parseCommonYargsOptions } from './config'
+  ErrInvalidFactorForActivity,
+  ErrUnknownUOM,
+} from "../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
+import { parseCommonYargsOptions } from "./config";
 
 const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';

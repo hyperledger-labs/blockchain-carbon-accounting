@@ -1,4 +1,4 @@
-# utility-emissions-channel
+# emissions-data
 
 This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain. To see how it works, check out [this video](https://youtu.be/zIYfjF4U2G8).
 
@@ -53,7 +53,7 @@ If you are using a Mac, you will also need to get the Mac binaries. In a separat
 $ mv ~/hyperledger/fabric-samples/bin/ ./bin_mac/
 ```
 
-Then modify the file `utility-emissions-channel/docker-compose-setup/scripts/invokeChaincode.sh` and change `./bin/peer` to `./bin_mac/peer`
+Then modify the file `emissions-data/docker-compose-setup/scripts/invokeChaincode.sh` and change `./bin/peer` to `./bin_mac/peer`
 
 5.  Install the dependencies for the
     server. This is a temporary fix as reported in [issue #71](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/71)
@@ -96,9 +96,9 @@ sh ./scripts/fabricNetwork.sh reset && sh start.sh
 
 ## Seeding the Fabric database
 
-To calculate emissions, we need data on the emissions from electricity usage. We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6). The Node.js script `egrid-data-loader.js` in `utility-emissions-channel/docker-compose-setup/` imports this data into the Fabric network.
+To calculate emissions, we need data on the emissions from electricity usage. We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6). The Node.js script `egrid-data-loader.js` in `emissions-data/docker-compose-setup/` imports this data into the Fabric network.
 
-From `utility-emissions-channel/docker-compose-setup/`,
+From `emissions-data/docker-compose-setup/`,
 
 1. Install the dependencies:
 
@@ -173,7 +173,7 @@ To search for utility identifiers, run the Mango query:
 
 ## Recording emissions with chain code
 
-From the `utility-emissions-channel/docker-compose-setup` directory, you can run a script to record and get the emissions:
+From the `emissions-data/docker-compose-setup` directory, you can run a script to record and get the emissions:
 
 ```shell
 # Record emission to utilityemissionchannel
@@ -208,7 +208,7 @@ You should also be able to see your emissions records in Couchdb with a Mango qu
 
 ## Starting the Express server (REST API)
 
-This is normally done for you in the `start.sh` script, but you can also start it manually. From the `utility-emissions-channel/` directory:
+This is normally done for you in the `start.sh` script, but you can also start it manually. From the `emissions-data/` directory:
 
 ```bash
 $ cd typescript_app

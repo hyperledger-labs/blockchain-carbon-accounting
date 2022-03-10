@@ -27,14 +27,14 @@ Steps required before running the server.
 A quick setup for development purpose:
 
 - Install: `nom install`
-- Start vault server - This is usually already started by `startApi.sh` in `utility-emissions-channel/docker-compose-setup/scripts/`ss, but if you don't see a vault docker container running, then : `npm run vault`   
+- Start vault server - This is usually already started by `startApi.sh` in `emissions-data/docker-compose-setup/scripts/`ss, but if you don't see a vault docker container running, then : `npm run vault`
 - Setup : `npm run test:setup`
 
 ## Using Vault
 
 Vault is accessed through a REST API for Vault.  The process is to use Vault to generate a token and a Transit engine public key for a user, and then use that token in the Fabric application.  The Fabric application's typescript REST API will check Vault for the Transit engine public key to match against the token.  If successful, it will allow the user to access operations in Fabric.
 
-## Using the Vault API 
+## Using the Vault API
 
 ### Start Server
 
@@ -82,7 +82,7 @@ Output :
 
 ```json
 {
-  "token": "s.umh6gwaN1n7XN1rMVFkYaSM0" 
+  "token": "s.umh6gwaN1n7XN1rMVFkYaSM0"
 }
 ```
 
@@ -90,8 +90,8 @@ Output :
 
 Input :
 
-- `new_password` 
-  
+- `new_password`
+
 4. Create a Client
 
 Only Manager can create a client

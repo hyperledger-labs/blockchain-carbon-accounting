@@ -27,7 +27,7 @@
     - name: Step 1.1 node-one start
       command: sh ./scripts/deploy/node-one/start.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
     - name: Step 1.2 docker Init swarm
       community.general.docker_swarm:
         state: present
@@ -49,12 +49,12 @@
     - name: Step 2.2 node-two start
       command: sh ./scripts/deploy/node-two/start.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
     - name: Step 2.3 copy files
-      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server1_key -r /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor2 {{ hostvars['server1']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/
+      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server1_key -r /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/fabric-ca/auditor2 {{ hostvars['server1']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/fabric-ca/
     - name: Step 2.4 Create peerOrganizations directory
       file:
-        path: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations
+        path: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/peerOrganizations
         state: directory
         mode: '0755'
 
@@ -64,17 +64,17 @@
     - name: Step 3.1 generateCryptoCreateOrgs
       command: sh ./scripts/deploy/node-one/generateCryptoCreateOrgs.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
     - name: Step 3.2 copy files 1. system-genesis-block
-      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server2_key -r /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/system-genesis-block {{ hostvars['server2']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/
+      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server2_key -r /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/system-genesis-block {{ hostvars['server2']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/
     - name: Step 3.3 copy files 2. organizations/peerOrganizations/auditor2.carbonAccounting.com
-      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server2_key -r /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com {{ hostvars['server2']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/peerOrganizations/
+      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server2_key -r /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/peerOrganizations/auditor2.carbonAccounting.com {{ hostvars['server2']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/peerOrganizations/
     - name: Step 3.4 startAndConnectNetwork
       command: sh ./scripts/deploy/node-one/startAndConnectNetwork.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
     - name: Step 3.5 copy CA to Server B
-      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server2_key -r /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1 {{ hostvars['server2']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/
+      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server2_key -r /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/fabric-ca/auditor1 {{ hostvars['server2']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/fabric-ca/
 
 - hosts: server2
   become: yes
@@ -82,9 +82,9 @@
     - name: Step 4.1 startAndConnectNetwork
       command: sh ./scripts/deploy/node-two/startAndConnectNetwork.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
     - name: Step 4.2 copy files organizations/fabric-ca/auditor1
-      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server1_key -r /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/auditor1 {{ hostvars['server1']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup/organizations/fabric-ca/
+      command: scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /opt/server1_key -r /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/fabric-ca/auditor1 {{ hostvars['server1']['ansible_facts']['eth1']['ipv4']['address'] }}:/opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup/organizations/fabric-ca/
 
 - hosts: server1
   become: yes
@@ -92,8 +92,8 @@
     - name: Step 5.1 createChannel
       command: sh ./scripts/deploy/node-one/createChannel.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
     - name: Step 5.2 deploy the CC over the network
       command: sh ./scripts/deploy/node-one/deployCC.sh
       args:
-        chdir: /opt/blockchain-carbon-accounting/utility-emissions-channel/docker-compose-setup
+        chdir: /opt/blockchain-carbon-accounting/emissions-data/docker-compose-setup
