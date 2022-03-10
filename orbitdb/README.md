@@ -4,7 +4,7 @@ This directory contains the common data stored in OrbitDB for emissions calculat
 
 ## Setup
 
-Run `npm install`
+Run `npm install`.
 
 ## Replicating Data
 
@@ -23,7 +23,7 @@ Run `npx ts-node src/replicateDb.ts --ipfsapi http://127.0.0.1:5001/api/v0 --ser
 When this works, you can run
 
 ```
-$ ts-node src/getData.ts 
+$ npx ts-node src/getData.ts 
 { emission: { value: 17720, uom: 'kg' }, year: 2021 }
 ```
 
@@ -52,3 +52,56 @@ $ npx ts-node src/dataLoader.ts load_utility_emissions conversion-factors-2021-f
 ```
 
 It will create an orbitdb address, then parse the worksheet, then load into orbitdb.  Then follow the steps from Replicating Data above to get your node id for replicating it.
+
+## Example Usage
+
+### Using the NodeJS IPFS node
+
+Create a DB and load:
+```
+npx ts-node src/dataLoader.ts load_utility_emissions conversion-factors-2021-flat-file-automatic-processing.xls --orbitcreate
+```
+
+Optionally you can specify `--orbitdir orbitdb1 --ipfsdir orbitipfs1` to use different data folders when creating the DB.
+Example output:
+```
+=== Creating new OrbitDB:  org.hyperledger.blockchain-carbon-accounting
+=== OrbitDB address: /orbitdb/zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3/org.hyperledger.blockchain-carbon-accounting
+```
+
+The getData script can then be used with (using the same directories parameters if those were given above):
+```
+npx ts-node src/getData.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3
+```
+
+Then you can `serve` it (using the same directories parameters if those were given above) with:
+```
+npx ts-node src/replicateDb.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3 --serve
+```
+
+Replication in another IPFS node, not I added a port parameter since the first node would already use 4001:
+```
+npx ts-node src/replicateDb.ts --ipfsdir orbitipfs_2 --orbitdir orbitdb_2 --ipfsport 4002 --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3
+```
+
+This can also be tested for query:
+```
+npx ts-node src/getData.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3 --ipfsdir orbitipfs_2 --orbitdir orbitdb_2 --ipfsport 4002
+```
+
+## Using a local IPFS node
+
+Instead of using the NodeJS IPFS node, we can also use a daemon (like go-ipfs). This should be started in a terminal or as a service with:
+```
+ipfs daemon --enable-pubsub-experiment
+```
+
+In that case the DB creation can be done with:
+```
+npx ts-node src/dataLoader.ts load_utility_emissions conversion-factors-2021-flat-file-automatic-processing.xls --orbitcreate --ipfsapi local --orbitdir orbitdb_local
+```
+
+Then query (assuming this created zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m) (note: `--ipfsapi local` is a shortcut for `--ipfsapi http://127.0.0.1:5001/api/v0`, use the later form if your IPFS node is setup with a different API port):
+```
+npx ts-node src/getData.ts --orbitaddress zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m --ipfsapi local --orbitdir orbitdb_local
+```
