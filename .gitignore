@@ -115,6 +115,7 @@ secure-identities/identity-ui/package-lock.json
 secure-identities/identity-ui/dist
 .vscode
 net-emissions-token-network/interface/packages/react-app/node_modules
+net-emissions-token-network/interface/packages/react-app/build
 net-emissions-token-network/interface/packages/subgraph/node_modules
 open-offsets-directory/node-server/node_modules/.pnpm
 open-offsets-directory/node-server/node_modules
@@ -150,5 +151,5 @@ supply-chain/src/*.js
 supply-chain/*.pem
 
 orbitdb/node_modules
-orbitdb/orbitdb
-orbitdb/orbitIpfs
+orbitdb/orbitdb*
+orbitdb/orbitIpfs*
