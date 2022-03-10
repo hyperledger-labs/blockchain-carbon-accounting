@@ -66,7 +66,13 @@ export const addCommonYargsOptions = (yargs) => {
     .conflicts('ipfsport', 'ipfsapi')
     .conflicts('ipfsdir', 'ipfsapi')
     // one of those is required
-    .check((argv)=> argv.orbitcreate || argv.orbitaddress)
+    .check((argv) => {
+      if (argv.orbitcreate || argv.orbitaddress) {
+        return true
+      } else {
+        throw new Error('One of --orbitcreate or --orbitaddress must be given.')
+      }
+    })
 }
 
 export const parseCommonYargsOptions = (argv) => {
