@@ -23,7 +23,7 @@ Run `npx ts-node src/replicateDb.ts --ipfsapi http://127.0.0.1:5001/api/v0 --ser
 When this works, you can run
 
 ```
-$ npx ts-node src/getData.ts 
+$ npx ts-node src/getData.ts test
 { emission: { value: 17720, uom: 'kg' }, year: 2021 }
 ```
 
@@ -71,7 +71,7 @@ Example output:
 
 The getData script can then be used with (using the same directories parameters if those were given above):
 ```
-npx ts-node src/getData.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3
+npx ts-node src/getData.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3 test
 ```
 
 Then you can `serve` it (using the same directories parameters if those were given above) with:
@@ -86,7 +86,7 @@ npx ts-node src/replicateDb.ts --ipfsdir orbitipfs_2 --orbitdir orbitdb_2 --ipfs
 
 This can also be tested for query:
 ```
-npx ts-node src/getData.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3 --ipfsdir orbitipfs_2 --orbitdir orbitdb_2 --ipfsport 4002
+npx ts-node src/getData.ts --orbitaddress zdpuAxZtb1Vy92R1LxVQvzuXvuCEv4aLtGrBdM8bV63ciN4s3 --ipfsdir orbitipfs_2 --orbitdir orbitdb_2 --ipfsport 4002 test
 ```
 
 ## Using a local IPFS node
@@ -103,5 +103,5 @@ npx ts-node src/dataLoader.ts load_utility_emissions conversion-factors-2021-fla
 
 Then query (assuming this created zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m) (note: `--ipfsapi local` is a shortcut for `--ipfsapi http://127.0.0.1:5001/api/v0`, use the later form if your IPFS node is setup with a different API port):
 ```
-npx ts-node src/getData.ts --orbitaddress zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m --ipfsapi local --orbitdir orbitdb_local
+npx ts-node src/getData.ts --orbitaddress zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m --ipfsapi local --orbitdir orbitdb_local test
 ```
