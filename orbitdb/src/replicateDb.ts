@@ -11,6 +11,7 @@ async function main()
       description: 'Keep the node running',
     })
     .recommendCommands()
+    .strict()
     .showHelpOnFail(true).argv;
 
   const opts = parseCommonYargsOptions(argv)
