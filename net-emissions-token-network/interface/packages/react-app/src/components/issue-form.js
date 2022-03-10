@@ -59,13 +59,13 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     let array = [...metadata];
     array.splice(idx, 1);
     setMetadata(array);
-    setMetaJson(castMetadata(metadata));
+    setMetajson(castMetadata(metadata));
   }
 
   const addField = () => {
     metadata.push({key: "", value: ""});
     setMetadata([...metadata]);
-    setMetaJson(castMetadata(metadata));
+    setMetajson(castMetadata(metadata));
   }
 
   function handleSubmit() {
