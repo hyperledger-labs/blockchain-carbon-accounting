@@ -4,6 +4,7 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/contract-functions";
@@ -25,10 +26,12 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [fromDate, setFromDate] = useState("");
   const [thruDate, setThruDate] = useState("");
   const [automaticRetireDate, setAutomaticRetireDate] = useState("");
-  const [metadata, setMetadata] = useState("");
   const [manifest, setManifest] = useState("");
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
+
+  const [metajson, setMetajson] = useState("");
+  const [metadata, setMetadata] = useState([]);
 
   // Calldata
   const [calldata, setCalldata] = useState("");
@@ -43,9 +46,27 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
   const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
   const onAutomaticRetireDateChange = useCallback((event) => { setAutomaticRetireDate(event._d); }, []);
-  const onMetadataChange = useCallback((event) => { setMetadata(event.target.value); }, []);
   const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
   const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
+
+  const castMetadata = (pairlist) => {
+    const _metadata = JSON.stringify(pairlist);
+    return _metadata;
+  }
+
+  // handle metadata field list
+  const removeField = (idx) => {
+    let array = [...metadata];
+    array.splice(idx, 1);
+    setMetadata(array);
+    setMetaJson(castMetadata(metadata));
+  }
+
+  const addField = () => {
+    metadata.push({key: "", value: ""});
+    setMetadata([...metadata]);
+    setMetaJson(castMetadata(metadata));
+  }
 
   function handleSubmit() {
     submit();
@@ -88,7 +109,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             Number(fromDate)/1000,
             Number(thruDate)/1000,
             Number(automaticRetireDate)/1000,
-            metadata,
+            metajson,
             manifest,
             ("Issued by DAO. " + description)
           ]
@@ -108,7 +129,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     fromDate,
     thruDate,
     automaticRetireDate,
-    metadata,
+    metajson,
     manifest,
     description,
   ]);
@@ -137,7 +158,10 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     let quantity_formatted;
     quantity_formatted = Math.round(quantity * 1000);
     console.log(tokenTypeId)
-    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, metadata, manifest, description);
+
+    const _metadata = castMetadata(metadata);
+
+    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, _metadata, manifest, description);
     setResult(result.toString());
   }
 
@@ -206,7 +230,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Form.Group>
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
-          <option value={0}>{}</option>}
+          <option value={0}>{}</option>
           {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
           {(roles[0] || roles[2]) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
           {(roles[0] || roles[3]) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
@@ -248,7 +272,35 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       </Form.Group>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
-        <Form.Control as="textarea" placeholder="E.g. Region and time of energy generated, type of project, location, etc." value={metadata} onChange={onMetadataChange} />
+        <Form.Group>
+          {metadata.map((field, key) => 
+            <Row key={key} className="mt-2">
+              <Col>
+                <Form.Control 
+                  type="input" 
+                  value={field.key} 
+                  onChange={e => { metadata[key].key = e.target.value; setMetadata([...metadata]); }}
+                />
+              </Col>
+              <Col>
+                <Form.Control 
+                  type="input" 
+                  value={field.value} 
+                  onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
+                />
+              </Col>
+              <Col>
+                <Button onClick={() => removeField(key)}><BsTrash /></Button>
+              </Col>
+            </Row>
+          )}
+          <br />
+          <Row>
+            <Col>
+              <Button onClick={addField}><BsPlus /></Button>
+            </Col>
+          </Row>
+        </Form.Group>
       </Form.Group>
       <Form.Group>
         <Form.Label>Manifest</Form.Label>
