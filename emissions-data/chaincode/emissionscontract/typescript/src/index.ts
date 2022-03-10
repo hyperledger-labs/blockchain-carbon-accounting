@@ -1,16 +1,16 @@
 import { ChaincodeResponse, ChaincodeStub, Shim } from 'fabric-shim';
 import { EmissionsRecordInterface } from './lib/emissions';
-
+import { EmissionsFactorInterface } from './lib/emissionsFactor';
 import { EmissionsRecordContract } from './lib/emissionsRecordContract';
-import { UtilityEmissionsFactorInterface } from './lib/utilityEmissionsFactor';
 import { DivisionsInterface, UtilityLookupItemInterface } from './lib/utilityLookupItem';
 import {
     ErrInvalidArgument,
     ErrInvalidNumberOfArgument,
     ErrMethodNotSupported,
-    MsgSuccess,
+    MsgSuccess
 } from './util/const';
 import { logger, stringToBytes } from './util/util';
+
 
 class EmissionsChaincode {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -321,7 +321,7 @@ class EmissionsChaincode {
         const min = Math.min(fields.length, args.length);
         const factorI = {
             uuid: args[0],
-        } as UtilityEmissionsFactorInterface;
+        } as EmissionsFactorInterface;
         for (let i = 1; i < min; i++) {
             factorI[fields[i]] = args[i];
         }
@@ -375,7 +375,7 @@ class EmissionsChaincode {
         const min = Math.min(fields.length, args.length);
         const factorI = {
             uuid: args[0],
-        } as UtilityEmissionsFactorInterface;
+        } as EmissionsFactorInterface;
         for (let i = 1; i < min; i++) {
             factorI[fields[i]] = args[i];
         }

@@ -3,15 +3,15 @@ import chaiHttp from 'chai-http';
 import { SHA256 } from 'crypto-js';
 import { config } from 'dotenv';
 import { v4 as uuid4 } from 'uuid';
-
-import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
-import AWSS3 from '../../src/datasource/awsS3';
-import Signer from '../../src/blockchain-gateway/signer';
+import UtilityemissionchannelGateway from '../../src/blockchain-gateway/EmissionsChannel';
 import { IFabricTxCaller } from '../../src/blockchain-gateway/I-gateway';
-import { setup } from '../../src/utils/logger';
+import Signer from '../../src/blockchain-gateway/signer';
+import AWSS3 from '../../src/datasource/awsS3';
 import ClientError from '../../src/errors/clientError';
+import { setup } from '../../src/utils/logger';
 import { setupWebSocket } from '../setup-ws';
+
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
 chai.use(chaiHttp);
@@ -35,7 +35,7 @@ describe('UtilityemissionchannelGateway', () => {
     function tests(caller) {
         const signer = new Signer('vault web-socket', 'inMemoryKeychain', 'plain');
         const org = bcConfig.fabricConnector();
-        const utilityEmissionsGateway = new UtilityemissionchannelGateway({
+        const EmissionsGateway = new UtilityemissionchannelGateway({
             fabricConnector: org.connector,
             signer: signer,
         });
@@ -65,7 +65,7 @@ describe('UtilityemissionchannelGateway', () => {
         const mockPartyID = uuid4();
         let emissionsUUID: string;
         it('should record emissions data', async () => {
-            const data = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+            const data = await EmissionsGateway.recordEmissions(adminCaller, {
                 utilityId: mockUtilityID,
                 partyId: mockPartyID,
                 fromDate: '2020-05-07T10:10:09Z',
@@ -80,7 +80,7 @@ describe('UtilityemissionchannelGateway', () => {
 
         it('record emissions throws', async () => {
             try {
-                await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                await EmissionsGateway.recordEmissions(adminCaller, {
                     utilityId: mockUtilityID,
                     partyId: mockPartyID,
                     fromDate: '2020-05-07T10:10:09Z',
@@ -103,7 +103,7 @@ describe('UtilityemissionchannelGateway', () => {
             const emissions_uom_conversion = 1;
             const agent = chai.request.agent('http://127.0.0.1:5984');
 
-            const emission2018 = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+            const emission2018 = await EmissionsGateway.recordEmissions(adminCaller, {
                 utilityId: mockUtilityID,
                 partyId: mockPartyID2,
                 fromDate: '2018-01-01T00:00:00Z',
@@ -114,7 +114,7 @@ describe('UtilityemissionchannelGateway', () => {
                 md5: '',
             });
 
-            const emission2019 = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+            const emission2019 = await EmissionsGateway.recordEmissions(adminCaller, {
                 utilityId: mockUtilityID,
                 partyId: mockPartyID2,
                 fromDate: '2019-01-01T00:00:00Z',
@@ -199,7 +199,7 @@ describe('UtilityemissionchannelGateway', () => {
             const usage_uom_conversion = 1 / 1000;
             const agent = chai.request.agent('http://127.0.0.1:5984');
 
-            const emissionUSA = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+            const emissionUSA = await EmissionsGateway.recordEmissions(adminCaller, {
                 utilityId: mockUtilityID,
                 partyId: mockPartyID2,
                 fromDate: '2019-01-01T00:00:00Z',
@@ -210,7 +210,7 @@ describe('UtilityemissionchannelGateway', () => {
                 md5: '',
             });
 
-            const emissionDE = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+            const emissionDE = await EmissionsGateway.recordEmissions(adminCaller, {
                 utilityId: mockUtilityID_DE,
                 partyId: mockPartyID2,
                 fromDate: '2019-01-01T00:00:00Z',
@@ -308,7 +308,7 @@ describe('UtilityemissionchannelGateway', () => {
 
         const mockTokenId = '0xMockToken';
         it('should update token if for minted records', async () => {
-            await utilityEmissionsGateway.updateEmissionsMintedToken(adminCaller, {
+            await EmissionsGateway.updateEmissionsMintedToken(adminCaller, {
                 tokenId: mockTokenId,
                 partyId: mockPartyID,
                 uuids: [emissionsUUID],
@@ -317,7 +317,7 @@ describe('UtilityemissionchannelGateway', () => {
 
         it('updateEmissionsMintedToken throws', async () => {
             try {
-                await utilityEmissionsGateway.updateEmissionsMintedToken(adminCaller, {
+                await EmissionsGateway.updateEmissionsMintedToken(adminCaller, {
                     tokenId: mockTokenId,
                     partyId: mockPartyID,
                     uuids: ['not-found'],
@@ -329,27 +329,21 @@ describe('UtilityemissionchannelGateway', () => {
         });
 
         it('should get emissions record', async () => {
-            const record = await utilityEmissionsGateway.getEmissionData(
-                adminCaller,
-                emissionsUUID,
-            );
+            const record = await EmissionsGateway.getEmissionData(adminCaller, emissionsUUID);
             record.fromDate.should.be.eq('2020-05-07T10:10:09Z');
             record.thruDate.should.be.eq('2021-05-07T10:10:09Z');
             record.tokenId.should.be.eq(mockTokenId);
         });
 
         it('should store the hashed partyId', async () => {
-            const record = await utilityEmissionsGateway.getEmissionData(
-                adminCaller,
-                emissionsUUID,
-            );
+            const record = await EmissionsGateway.getEmissionData(adminCaller, emissionsUUID);
             const hash = SHA256(mockPartyID).toString();
             record.partyId.should.be.eq(hash);
         });
 
         it('getEmissionData throws', async () => {
             try {
-                await utilityEmissionsGateway.getEmissionData(adminCaller, 'not-found');
+                await EmissionsGateway.getEmissionData(adminCaller, 'not-found');
                 true.should.be.false;
             } catch (error) {
                 (error as ClientError).status.should.be.eq(409);
@@ -357,7 +351,7 @@ describe('UtilityemissionchannelGateway', () => {
         });
 
         it('should get emissions records', async () => {
-            const records = await utilityEmissionsGateway.getEmissionsRecords(adminCaller, {
+            const records = await EmissionsGateway.getEmissionsRecords(adminCaller, {
                 utilityId: mockUtilityID,
                 partyId: mockPartyID,
             });
@@ -366,7 +360,7 @@ describe('UtilityemissionchannelGateway', () => {
         });
 
         it('should get emissions records by date range', async () => {
-            await utilityEmissionsGateway.getAllEmissionsDataByDateRange(adminCaller, {
+            await EmissionsGateway.getAllEmissionsDataByDateRange(adminCaller, {
                 fromDate: '2020-05-07T10:10:09Z',
                 thruDate: '2021-05-07T10:10:09Z',
             });
@@ -376,7 +370,7 @@ describe('UtilityemissionchannelGateway', () => {
             try {
                 const mockPartyID2 = uuid4();
                 const s3 = new AWSS3();
-                const data = await utilityEmissionsGateway.recordEmissions(adminCaller, {
+                const data = await EmissionsGateway.recordEmissions(adminCaller, {
                     utilityId: mockUtilityID,
                     partyId: mockPartyID2,
                     fromDate: '2020-05-07T10:10:09Z',
@@ -391,7 +385,7 @@ describe('UtilityemissionchannelGateway', () => {
                 await s3.delete(filename);
                 const testFileBuffer = Buffer.from('Testing MD5 checksum');
                 await s3.upload(testFileBuffer, filename);
-                await utilityEmissionsGateway.getEmissionData(adminCaller, data.uuid);
+                await EmissionsGateway.getEmissionData(adminCaller, data.uuid);
             } catch (error) {
                 (error as ClientError).status.should.be.eq(409);
             }
@@ -400,7 +394,7 @@ describe('UtilityemissionchannelGateway', () => {
         if (caller === 'vault') {
             it('getEmissionsRecords throws', async () => {
                 try {
-                    await utilityEmissionsGateway.getEmissionsRecords(
+                    await EmissionsGateway.getEmissionsRecords(
                         { userId: 'not-found', vaultToken: adminVaultToken },
                         {
                             utilityId: mockUtilityID,
@@ -415,7 +409,7 @@ describe('UtilityemissionchannelGateway', () => {
 
             it('getAllEmissionsDataByDateRange throws', async () => {
                 try {
-                    await utilityEmissionsGateway.getAllEmissionsDataByDateRange(
+                    await EmissionsGateway.getAllEmissionsDataByDateRange(
                         { userId: 'not-found', vaultToken: adminVaultToken },
                         {
                             fromDate: '2020-05-07T10:10:09Z',

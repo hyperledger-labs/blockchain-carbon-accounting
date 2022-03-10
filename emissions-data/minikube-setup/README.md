@@ -22,7 +22,7 @@ This is a deployment architecture for `namespace=auditor1` (will be same for `au
 - fabric : contains fabric related servers/nodes and service, this component is further divided into multiple components
   - ca : contains org's ca server `fabric-ca-server`, internal service `fabric-ca-service` and volume `ca-data`.
   - orderer1 : contains orderer1's node, external service `orderer1-service` and Volume `orderer1-data`.
-  - peer1 :  contains peer1's node, external service `peer1-service`, two chaincode (`utilityEmissionsCC` and `dataLockCC`) component and Volume `peer1-data`.
+  - peer1 :  contains peer1's node, external service `peer1-service`, two chaincode (`EmissionsCC` and `dataLockCC`) component and Volume `peer1-data`.
 
 ## Prerequisite
 

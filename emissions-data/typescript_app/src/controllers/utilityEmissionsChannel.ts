@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { utilityEmissionsChannelService } from '../service/service';
+import { EmissionsChannelService } from '../service/service';
 
 export async function recordEmission(req: Request, res: Response): Promise<void> {
     try {
@@ -7,7 +7,7 @@ export async function recordEmission(req: Request, res: Response): Promise<void>
         if (req.file) {
             file = req.file.buffer;
         }
-        const record = await utilityEmissionsChannelService.recordEmission({
+        const record = await EmissionsChannelService.recordEmission({
             body: req.body,
             header: req.headers as Record<string, string | unknown>,
             query: req.query as Record<string, string>,
@@ -23,7 +23,7 @@ export async function recordEmission(req: Request, res: Response): Promise<void>
 
 export async function getEmissionsData(req: Request, res: Response): Promise<void> {
     try {
-        const record = await utilityEmissionsChannelService.getEmissionsData({
+        const record = await EmissionsChannelService.getEmissionsData({
             body: req.body,
             header: req.headers as Record<string, string | unknown>,
             query: req.query as Record<string, string>,
@@ -39,7 +39,7 @@ export async function getEmissionsData(req: Request, res: Response): Promise<voi
 
 export async function getAllEmissionsData(req: Request, res: Response): Promise<void> {
     try {
-        const record = await utilityEmissionsChannelService.getAllEmissionsData({
+        const record = await EmissionsChannelService.getAllEmissionsData({
             body: req.body,
             header: req.headers as Record<string, string | unknown>,
             query: req.query as Record<string, string>,
@@ -55,7 +55,7 @@ export async function getAllEmissionsData(req: Request, res: Response): Promise<
 
 export async function getAllEmissionsDataByDateRange(req: Request, res: Response): Promise<void> {
     try {
-        const record = await utilityEmissionsChannelService.getAllEmissionsDataByDateRange({
+        const record = await EmissionsChannelService.getAllEmissionsDataByDateRange({
             body: req.body,
             header: req.headers as Record<string, string | unknown>,
             query: req.query as Record<string, string>,
@@ -71,7 +71,7 @@ export async function getAllEmissionsDataByDateRange(req: Request, res: Response
 
 export async function recordAuditedEmissionsToken(req: Request, res: Response): Promise<void> {
     try {
-        const record = await utilityEmissionsChannelService.recordAuditedEmissionsToken({
+        const record = await EmissionsChannelService.recordAuditedEmissionsToken({
             body: req.body,
             header: req.headers as Record<string, string | unknown>,
             query: req.query as Record<string, string>,

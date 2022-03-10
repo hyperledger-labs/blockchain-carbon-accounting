@@ -1,31 +1,31 @@
+import { createHash } from 'crypto';
+import Joi from 'joi';
 import {
-    IUtilityemissionchannelGateway,
-    IEthNetEmissionsTokenGateway,
-    IFabricTxCaller,
-    IEthTxCaller,
-    IDataLockGateway,
-    ITxDetails,
     IDataChaincodeInput,
+    IDataLockGateway,
+    IEthNetEmissionsTokenGateway,
+    IEthTxCaller,
+    IFabricTxCaller,
+    ITxDetails,
     IUtilityemissionchannelEmissionData,
     IUtilityemissionchannelEmissionMetadata,
+    IUtilityemissionchannelGateway,
+    IWebSocketKey,
 } from '../blockchain-gateway/I-gateway';
 import AWSS3 from '../datasource/awsS3';
-import Joi from 'joi';
-import { createHash } from 'crypto';
+import ClientError from '../errors/clientError';
 import { checkDateConflict, toTimestamp } from '../utils/dateUtils';
-import { IWebSocketKey } from '../blockchain-gateway/I-gateway';
+import { appLogger } from '../utils/logger';
+import { Input } from './input';
 
-interface UtilityEmissionsChannelServiceOptions {
-    utilityEmissionsGateway: IUtilityemissionchannelGateway;
+interface EmissionsChannelServiceOptions {
+    EmissionsGateway: IUtilityemissionchannelGateway;
     netEmissionsContractGateway: IEthNetEmissionsTokenGateway;
     datalockGateway: IDataLockGateway;
     s3: AWSS3;
     ethContractAddress: string;
     orgName: string;
 }
-import { Input } from './input';
-import ClientError from '../errors/clientError';
-import { appLogger } from '../utils/logger';
 
 interface IRecordAuditedEmissionsTokenResponse {
     tokenId: string;
@@ -38,9 +38,9 @@ interface IRecordAuditedEmissionsTokenResponse {
     description: string;
 }
 
-export default class UtilityEmissionsChannelService {
-    private readonly className = 'UtilityEmissionsChannelService';
-    constructor(private readonly opts: UtilityEmissionsChannelServiceOptions) {}
+export default class EmissionsChannelService {
+    private readonly className = 'EmissionsChannelService';
+    constructor(private readonly opts: EmissionsChannelServiceOptions) {}
     async recordEmission(input: Input): Promise<IUtilityemissionchannelEmissionData> {
         const fnTag = `${this.className}.recordEmission()`;
         this.__validateUserID(input);
@@ -63,7 +63,7 @@ export default class UtilityEmissionsChannelService {
             appLogger.debug(
                 `${fnTag} fetching emissions records, utilityId = ${utilityId}, partyID = ${partyId}`,
             );
-            const emissionRecords = await this.opts.utilityEmissionsGateway.getEmissionsRecords(
+            const emissionRecords = await this.opts.EmissionsGateway.getEmissionsRecords(
                 fabricCaller,
                 {
                     utilityId: utilityId,
@@ -103,7 +103,7 @@ export default class UtilityEmissionsChannelService {
                 }
             }
 
-            return await this.opts.utilityEmissionsGateway.recordEmissions(fabricCaller, {
+            return await this.opts.EmissionsGateway.recordEmissions(fabricCaller, {
                 utilityId: utilityId,
                 partyId: partyId,
                 fromDate: fromDate,
@@ -189,10 +189,7 @@ export default class UtilityEmissionsChannelService {
                     );
                     for (const uuid of validUUIDs) {
                         records.push(
-                            await this.opts.utilityEmissionsGateway.getEmissionData(
-                                fabricCaller,
-                                uuid,
-                            ),
+                            await this.opts.EmissionsGateway.getEmissionData(fabricCaller, uuid),
                         );
                     }
                 }
@@ -275,10 +272,7 @@ export default class UtilityEmissionsChannelService {
         };
         const uuid = input.params.uuid;
         try {
-            const record = await this.opts.utilityEmissionsGateway.getEmissionData(
-                fabricCaller,
-                uuid,
-            );
+            const record = await this.opts.EmissionsGateway.getEmissionData(fabricCaller, uuid);
             await this.emissionsRecordChecksum(record);
             return record;
         } catch (error) {
@@ -299,13 +293,10 @@ export default class UtilityEmissionsChannelService {
         const utilityId = input.params.utilityId;
         const partyId = input.params.partyId;
         try {
-            const records = await this.opts.utilityEmissionsGateway.getEmissionsRecords(
-                fabricCaller,
-                {
-                    utilityId: utilityId,
-                    partyId: partyId,
-                },
-            );
+            const records = await this.opts.EmissionsGateway.getEmissionsRecords(fabricCaller, {
+                utilityId: utilityId,
+                partyId: partyId,
+            });
             for (const record of records) {
                 await this.emissionsRecordChecksum(record);
             }
@@ -330,7 +321,7 @@ export default class UtilityEmissionsChannelService {
         const fromDate = input.params.fromDate;
         const thruDate = input.params.thruDate;
         try {
-            const records = await this.opts.utilityEmissionsGateway.getAllEmissionsDataByDateRange(
+            const records = await this.opts.EmissionsGateway.getAllEmissionsDataByDateRange(
                 fabricCaller,
                 {
                     fromDate: fromDate,

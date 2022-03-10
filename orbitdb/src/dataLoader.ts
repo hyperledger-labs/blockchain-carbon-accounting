@@ -2,16 +2,11 @@ import { Presets, SingleBar } from "cli-progress";
 import { readFile } from "xlsx";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { UtilityEmissionsFactorInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor";
-import { UtilityLookupItemInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
+import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
+import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
 import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
 import { addCommonYargsOptions } from "./config";
-import { OrbitDBService } from "./orbitDbService";
-
-const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
-  "org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem";
-const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
-  "org.hyperledger.blockchain-carbon-accounting.utilitylookuplist";
+import { EMISSIONS_FACTOR_TYPE, OrbitDBService } from "./orbitDbService";
 
 let db: OrbitDBService;
 
@@ -107,7 +102,7 @@ const parse_worksheet = (file_name: string, opts) => {
   return data;
 };
 
-const import_utility_emissions = async (opts) => {
+const load_emissions_factors = async (opts) => {
   const supportedFiles = [
     { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
     { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
@@ -154,10 +149,10 @@ const import_utility_emissions = async (opts) => {
         row["Data Year"] +
         "_NERC_REGION_" +
         row["NERC region acronym"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: "USA",
         level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
         scope: "SCOPE 2",
@@ -209,11 +204,11 @@ const import_utility_emissions = async (opts) => {
       // generate a unique for the row
       const document_id =
         "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: document_id,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: "USA",
         level_3: `STATE: ${row["State abbreviation"]}`,
         scope: "SCOPE 2",
@@ -258,10 +253,10 @@ const import_utility_emissions = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
       const document_id = "COUNTRY_USA_" + row["Data Year"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: "USA",
         level_3: "COUNTRY: USA",
         scope: "SCOPE 2",
@@ -312,10 +307,10 @@ const import_utility_emissions = async (opts) => {
       // generate a unique for the row
 
       const document_id = "COUNTRY_USA_" + row["Data Year"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: "USA",
         level_3: "COUNTRY: USA",
         scope: "SCOPE 2",
@@ -363,10 +358,10 @@ const import_utility_emissions = async (opts) => {
       // generate a unique for the row
       const document_id =
         "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: "USA",
         level_3: `STATE: ${row["State abbreviation"]}`,
         scope: "SCOPE 2",
@@ -418,10 +413,10 @@ const import_utility_emissions = async (opts) => {
         row["Data Year"] +
         "_NERC_REGION_" +
         row["NERC region acronym"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: "USA",
         level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
         scope: "SCOPE 2",
@@ -473,11 +468,11 @@ const import_utility_emissions = async (opts) => {
 
       const countryName = COUNTRY_MAPPINGS[row["CountryShort"]];
       const document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: document_id,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
-        level_1: "Utility Emissions Factor",
+        type: EMISSIONS_FACTOR_TYPE,
+        level_1: "Emissions Factor",
         level_2: countryName,
         level_3: `COUNTRY: ${countryName}`,
         scope: "SCOPE 2",
@@ -531,28 +526,25 @@ const import_utility_emissions = async (opts) => {
       const document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
       const d = {
         uuid: document_id,
-        type: "UTILITY_EMISSIONS_ELECTRICITY",
+        type: EMISSIONS_FACTOR_TYPE,
         co2_equivalent_emissions: row["index:number"],
         co2_equivalent_emissions_uom: "g/KWH",
         source: `https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6`,
       };
 
       // find previous record to update
-      const utilityFactorCall = db.get(
-        document_id
-      ) as UtilityEmissionsFactorInterface[];
-      if (utilityFactorCall.length) {
-        const utilityFactor = utilityFactorCall[0];
+      const factorCall = db.get(document_id) as EmissionsFactorInterface[];
+      if (factorCall.length) {
+        const factor = factorCall[0];
 
-        utilityFactor.co2_equivalent_emissions = d.co2_equivalent_emissions;
-        utilityFactor.co2_equivalent_emissions_uom =
-          d.co2_equivalent_emissions_uom;
-        utilityFactor.source = d.source;
+        factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
+        factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
+        factor.source = d.source;
 
-        await db.put(utilityFactor);
+        await db.put(factor);
         progressBar.increment();
       } else {
-        console.log("Could not find imported utility factor");
+        console.log("Could not find imported factor");
       }
     }
     progressBar.stop();
@@ -593,8 +585,8 @@ const import_utility_emissions = async (opts) => {
         .toUpperCase()
         .replace(/[-:._^&()<>]/g, "")
         .replace(/[^A-Z0-9]/g, "_");
-      const d: UtilityEmissionsFactorInterface = {
-        class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+      const d: EmissionsFactorInterface = {
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: `${row.Scope.replace(/ /g, "_").toUpperCase()}_EMISSIONS`,
         level_1: row["Level 1"].toUpperCase(),
         level_2: row["Level 2"].toUpperCase(),
@@ -674,7 +666,7 @@ const import_utility_identifiers = async (opts) => {
 
   addCommonYargsOptions(yargs(hideBin(process.argv)))
     .command(
-      "load_utility_emissions <file> [sheet]",
+      "load_emissions_factors <file> [sheet]",
       "load data from XLSX file",
       (yargs) => {
         yargs
@@ -688,8 +680,8 @@ const import_utility_identifiers = async (opts) => {
       },
       async (argv) => {
         await init(argv);
-        console.log("=== Starting import_utility_emissions ...");
-        await import_utility_emissions(argv);
+        console.log("=== Starting load_emissions_factors ...");
+        await load_emissions_factors(argv);
       }
     )
     .command(

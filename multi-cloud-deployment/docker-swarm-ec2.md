@@ -133,7 +133,7 @@ scp -i ~/ssh_key -r $BASE_PATH/organizations/fabric-ca/auditor1 $SERVER_A_IP:$BA
 ./scripts/deploy/node-one/createChannel.sh
 ```
 
-This will generate the utilityEmissions channel by executing the script into the client container.
+This will generate the Emissions channel by executing the script into the client container.
 
 2. On Server A, deploy the CC by running:
 

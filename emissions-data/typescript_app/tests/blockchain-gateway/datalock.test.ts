@@ -1,14 +1,14 @@
 import chai from 'chai';
+import { config } from 'dotenv';
+import { v4 as uuid4 } from 'uuid';
+import BCGatewayConfig from '../../src/blockchain-gateway/config';
+import { DataLockGateway } from '../../src/blockchain-gateway/datalock';
+import UtilityemissionchannelGateway from '../../src/blockchain-gateway/EmissionsChannel';
+import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway/I-gateway';
+import Signer from '../../src/blockchain-gateway/signer';
+import { setup } from '../../src/utils/logger';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
-import BCGatewayConfig from '../../src/blockchain-gateway/config';
-import Signer from '../../src/blockchain-gateway/signer';
-import { DataLockGateway } from '../../src/blockchain-gateway/datalock';
-import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway/I-gateway';
-import UtilityemissionchannelGateway from '../../src/blockchain-gateway/utilityEmissionsChannel';
-import { v4 as uuid4 } from 'uuid';
-import { setup } from '../../src/utils/logger';
-import { config } from 'dotenv';
 
 setup('DEBUG', 'DEBUG');
 

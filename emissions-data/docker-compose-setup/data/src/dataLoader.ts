@@ -1,21 +1,22 @@
-import { SingleBar, Presets } from 'cli-progress';
+import { Presets, SingleBar } from 'cli-progress';
 import { create } from 'ipfs-http-client';
-const OrbitDB = require('orbit-db');
 import type DocumentStore from 'orbit-db-docstore';
+import { readFile } from 'xlsx';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { readFile } from 'xlsx';
-import { STATE_NAME_MAPPING, COUNTRY_MAPPINGS } from './abbrevToName';
-import { UtilityLookupItemInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
-import { UtilityEmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
-
-const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
-    'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
-const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
-    'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
+import {
+    EmissionsFactorInterface,
+    EMISSIONS_FACTOR_CLASS_IDENTIFER,
+} from '../../../chaincode/emissionscontract/typescript/src/lib/emissionsFactor';
+import {
+    UtilityLookupItemInterface,
+    UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER,
+} from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
+import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from './abbrevToName';
+const OrbitDB = require('orbit-db');
 
 const DB_NAME = 'org.hyperledger.blockchain-carbon-accounting';
-let db: DocumentStore<UtilityEmissionsFactorInterface | UtilityLookupItemInterface>;
+let db: DocumentStore<EmissionsFactorInterface | UtilityLookupItemInterface>;
 
 const progressBar = new SingleBar(
     {
@@ -142,8 +143,8 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
             const document_id =
                 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
                 level_2: 'USA',
@@ -187,8 +188,8 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'USA_' + row['Data Year'] + '_STATE_' + row['State abbreviation'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
@@ -229,8 +230,8 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'COUNTRY_USA_' + row['Data Year'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
                 level_2: 'USA',
@@ -275,8 +276,8 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
 
             const document_id = 'COUNTRY_USA_' + row['Data Year'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
                 level_2: 'USA',
@@ -317,8 +318,8 @@ const import_utility_emissions = async (opts) => {
             opts.verbose && console.log('-- Prepare to insert from ', row);
             // generate a unique for the row
             const document_id = 'USA_' + row['Data Year'] + '_STATE_' + row['State abbreviation'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
                 level_2: 'USA',
@@ -361,8 +362,8 @@ const import_utility_emissions = async (opts) => {
             // generate a unique for the row
             const document_id =
                 'USA_' + row['Data Year'] + '_NERC_REGION_' + row['NERC region acronym'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
                 level_2: 'USA',
@@ -408,8 +409,8 @@ const import_utility_emissions = async (opts) => {
 
             const countryName = COUNTRY_MAPPINGS[row['CountryShort']];
             const document_id = `COUNTRY_${row['CountryShort']}_` + row['Year'];
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 uuid: document_id,
                 type: 'UTILITY_EMISSIONS_ELECTRICITY',
                 level_1: 'Utility Emissions Factor',
@@ -470,7 +471,7 @@ const import_utility_emissions = async (opts) => {
             };
 
             // find previous record to update
-            const utilityFactorCall = db.get(document_id) as UtilityEmissionsFactorInterface[];
+            const utilityFactorCall = db.get(document_id) as EmissionsFactorInterface[];
             if (utilityFactorCall.length) {
                 const utilityFactor = utilityFactorCall[0];
 
@@ -520,8 +521,8 @@ const import_utility_emissions = async (opts) => {
                 .toUpperCase()
                 .replace(/[-:._^&()<>]/g, '')
                 .replace(/[^A-Z0-9]/g, '_');
-            const d: UtilityEmissionsFactorInterface = {
-                class: UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER,
+            const d: EmissionsFactorInterface = {
+                class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
                 type: `${row.Scope.replace(/ /g, '_').toUpperCase()}_EMISSIONS`,
                 level_1: row['Level 1'].toUpperCase(),
                 level_2: row['Level 2'].toUpperCase(),

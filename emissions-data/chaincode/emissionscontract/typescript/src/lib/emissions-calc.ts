@@ -3,7 +3,7 @@
 */
 
 import { ErrInvalidDateFormat, ErrUnknownUOM } from '../util/const';
-import { UtilityEmissionsFactorInterface } from './utilityEmissionsFactor';
+import { EmissionsFactorInterface } from './emissionsFactor';
 
 //
 const UOM_FACTORS: { [key: string]: number } = {
@@ -52,7 +52,7 @@ export interface CO2EmissionFactorInterface {
 }
 
 export const getCO2EmissionFactor = (
-    factor: UtilityEmissionsFactorInterface,
+    factor: EmissionsFactorInterface,
     usage: number,
     usageUOM: string,
 ): CO2EmissionFactorInterface => {

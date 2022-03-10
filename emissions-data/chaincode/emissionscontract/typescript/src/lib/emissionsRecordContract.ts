@@ -1,26 +1,25 @@
+import { MD5, SHA256 } from 'crypto-js';
 import { ChaincodeStub } from 'fabric-shim';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
 import { getCO2EmissionFactor } from './emissions-calc';
 import {
-    UtilityEmissionsFactor,
-    UtilityEmissionsFactorInterface,
-    UtilityEmissionsFactorState,
-} from './utilityEmissionsFactor';
-import { MD5, SHA256 } from 'crypto-js';
+    EmissionsFactor,
+    EmissionsFactorInterface,
+    EmissionsFactorState
+} from './emissionsFactor';
 import {
-    UtilityLookupItemInterface,
-    UtilityLookupItemState,
-    UtilityLookupItem,
+    UtilityLookupItem, UtilityLookupItemInterface,
+    UtilityLookupItemState
 } from './utilityLookupItem';
 
 // EmissionsRecordContract : core bushiness logic of emissions record chaincode
 export class EmissionsRecordContract {
     protected emissionsState: EmissionRecordState;
-    protected utilityEmissionsFactorState: UtilityEmissionsFactorState;
+    protected EmissionsFactorState: EmissionsFactorState;
     protected utilityLookupState: UtilityLookupItemState;
     constructor(stub: ChaincodeStub) {
         this.emissionsState = new EmissionRecordState(stub);
-        this.utilityEmissionsFactorState = new UtilityEmissionsFactorState(stub);
+        this.EmissionsFactorState = new EmissionsFactorState(stub);
         this.utilityLookupState = new UtilityLookupItemState(stub);
     }
     /**
@@ -45,7 +44,7 @@ export class EmissionsRecordContract {
     ): Promise<Uint8Array> {
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
         const lookup = await this.utilityLookupState.getUtilityLookupItem(utilityId);
-        const factor = await this.utilityEmissionsFactorState.getEmissionsFactorByLookupItem(
+        const factor = await this.EmissionsFactorState.getEmissionsFactorByLookupItem(
             lookup.item,
             thruDate,
         );
@@ -154,18 +153,18 @@ export class EmissionsRecordContract {
         );
         return Buffer.from(JSON.stringify(records));
     }
-    async importUtilityFactor(factorI: UtilityEmissionsFactorInterface): Promise<Uint8Array> {
-        const factor = new UtilityEmissionsFactor(factorI);
-        await this.utilityEmissionsFactorState.addUtilityEmissionsFactor(factor, factorI.uuid);
+    async importUtilityFactor(factorI: EmissionsFactorInterface): Promise<Uint8Array> {
+        const factor = new EmissionsFactor(factorI);
+        await this.EmissionsFactorState.addEmissionsFactor(factor, factorI.uuid);
         return factor.toBuffer();
     }
-    async updateUtilityFactor(factorI: UtilityEmissionsFactorInterface): Promise<Uint8Array> {
-        const factor = new UtilityEmissionsFactor(factorI);
-        await this.utilityEmissionsFactorState.updateUtilityEmissionsFactor(factor, factorI.uuid);
+    async updateUtilityFactor(factorI: EmissionsFactorInterface): Promise<Uint8Array> {
+        const factor = new EmissionsFactor(factorI);
+        await this.EmissionsFactorState.updateEmissionsFactor(factor, factorI.uuid);
         return factor.toBuffer();
     }
     async getUtilityFactor(uuid: string): Promise<Uint8Array> {
-        return (await this.utilityEmissionsFactorState.getUtilityEmissionsFactor(uuid)).toBuffer();
+        return (await this.EmissionsFactorState.getEmissionsFactor(uuid)).toBuffer();
     }
     async importUtilityIdentifier(
         lookupInterface: UtilityLookupItemInterface,

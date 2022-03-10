@@ -10,7 +10,7 @@ import (
 	"github.com/hyperledger/fabric-protos-go/peer"
 )
 
-// Package utilityEmissionsCC : a dummy chaincode for testing
+// Package EmissionsCC : a dummy chaincode for testing
 // same kind of business logic as record audited Emissions
 
 type MockEmissionsCC struct{}

@@ -1,4 +1,4 @@
-import { UtilityEmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
+import { EmissionsFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/emissionsFactor';
 import { ActivityInterface, OrbitDBService } from './orbitDbService';
 
 (async () => {
@@ -12,7 +12,7 @@ import { ActivityInterface, OrbitDBService } from './orbitDbService';
         activity_uom: 'kg',
         activity: 2,
     };
-    const factor: UtilityEmissionsFactorInterface = {
+    const factor: EmissionsFactorInterface = {
         text: '',
         type: 'UTILITY_EMISSIONS_SCOPE_1',
         uuid: 'SCOPE_1 PERFLUOROBUTANE (PFC-3-1-10)',

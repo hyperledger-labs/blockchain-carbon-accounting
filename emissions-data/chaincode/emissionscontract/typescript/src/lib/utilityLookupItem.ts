@@ -8,7 +8,7 @@ import { QueryResult, WorldState } from '../util/worldstate';
 
 /* tslint:disable:max-classes-per-file */
 
-const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
+export const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
 
 export interface DivisionsInterface {

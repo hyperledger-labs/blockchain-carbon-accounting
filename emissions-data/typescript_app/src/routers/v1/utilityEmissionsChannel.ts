@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import {
-    recordEmission,
-    getEmissionsData,
     getAllEmissionsData,
     getAllEmissionsDataByDateRange,
+    getEmissionsData,
     recordAuditedEmissionsToken,
-} from '../../controllers/utilityEmissionsChannel';
+    recordEmission,
+} from '../../controllers/EmissionsChannel';
 
 const router = Router();
 

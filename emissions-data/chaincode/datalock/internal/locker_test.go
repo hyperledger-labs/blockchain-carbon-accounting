@@ -51,7 +51,7 @@ func loadMockEmissions(emStub *shimtest.MockStub) {
 func TestLockerLock(t *testing.T) {
 	is := assert.New(t)
 
-	emCCName := "UtilityEmissionsCC"
+	emCCName := "EmissionsCC"
 	emStub := shimtest.NewMockStub(emCCName, mock.MockEmissionsCC{})
 	loadMockEmissions(emStub)
 
@@ -88,11 +88,11 @@ func TestLockerLock(t *testing.T) {
 
 	// test on state
 	is.Len(reqStub.State, 4)
-	raw, ok = reqStub.State["UtilityEmissionsCC::uuid-1"]
+	raw, ok = reqStub.State["EmissionsCC::uuid-1"]
 	is.True(ok)
 	is.Equal(txID, string(raw))
 
-	raw, ok = reqStub.State["UtilityEmissionsCC::uuid-3"]
+	raw, ok = reqStub.State["EmissionsCC::uuid-3"]
 	is.True(ok)
 	is.Equal(txID, string(raw))
 
@@ -101,7 +101,7 @@ func TestLockerLock(t *testing.T) {
 func TestLockerLockFail(t *testing.T) {
 	is := assert.New(t)
 
-	emCCName := "UtilityEmissionsCC"
+	emCCName := "EmissionsCC"
 	emStub := shimtest.NewMockStub(emCCName, mock.MockEmissionsCC{})
 	loadMockEmissions(emStub)
 
@@ -148,7 +148,7 @@ func TestLockerLockFail(t *testing.T) {
 func TestLockerUnlock(t *testing.T) {
 	is := assert.New(t)
 
-	emCCName := "UtilityEmissionsCC"
+	emCCName := "EmissionsCC"
 	emStub := shimtest.NewMockStub(emCCName, mock.MockEmissionsCC{})
 	loadMockEmissions(emStub)
 
@@ -197,7 +197,7 @@ func TestLockerUnlock(t *testing.T) {
 func TestLockerUnlockFail(t *testing.T) {
 	is := assert.New(t)
 
-	emCCName := "UtilityEmissionsCC"
+	emCCName := "EmissionsCC"
 	emStub := shimtest.NewMockStub(emCCName, mock.MockEmissionsCC{})
 	loadMockEmissions(emStub)
 

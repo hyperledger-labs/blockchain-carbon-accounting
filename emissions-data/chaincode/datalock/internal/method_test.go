@@ -16,7 +16,7 @@ import (
 func TestE2E(t *testing.T) {
 	is := assert.New(t)
 	logger.NewAppLogger("DEBUG")
-	emCCName := "UtilityEmissionsCC"
+	emCCName := "EmissionsCC"
 	emStub := shimtest.NewMockStub(emCCName, mock.MockEmissionsCC{})
 	loadMockEmissions(emStub)
 
@@ -110,7 +110,7 @@ func TestE2E(t *testing.T) {
 		json.Unmarshal(resp.Payload, &tx)
 		is.Equal(tx.CurrentStage, "MintedEmissionsToken")
 	}
-	validUUIDsraw := tx.StageData["GetValidEmissions"].Output["UtilityEmissionsCC"]["validUUIDs"]
+	validUUIDsraw := tx.StageData["GetValidEmissions"].Output["EmissionsCC"]["validUUIDs"]
 	var uuids []string
 	{
 		raw, err := base64.StdEncoding.DecodeString(validUUIDsraw)
@@ -137,7 +137,7 @@ func TestE2E(t *testing.T) {
 func TestMethodFail(t *testing.T) {
 	is := assert.New(t)
 	logger.NewAppLogger("DEBUG")
-	emCCName := "UtilityEmissionsCC"
+	emCCName := "EmissionsCC"
 	emStub := shimtest.NewMockStub(emCCName, mock.MockEmissionsCC{})
 	loadMockEmissions(emStub)
 

@@ -15,10 +15,10 @@ import { QueryResult, WorldState } from '../util/worldstate';
 import { getYearFromDate } from './emissions-calc';
 import { UtilityLookupItemInterface } from './utilityLookupItem';
 
-const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
-    'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
+export const EMISSIONS_FACTOR_CLASS_IDENTIFER =
+    'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem';
 
-export interface UtilityEmissionsFactorInterface {
+export interface EmissionsFactorInterface {
     class: string;
     key?: string;
     uuid: string;
@@ -44,53 +44,53 @@ export interface UtilityEmissionsFactorInterface {
     percent_of_renewables?: string;
 }
 
-export class UtilityEmissionsFactor extends State {
-    factor: UtilityEmissionsFactorInterface;
-    constructor(_factor: UtilityEmissionsFactorInterface) {
+export class EmissionsFactor extends State {
+    factor: EmissionsFactorInterface;
+    constructor(_factor: EmissionsFactorInterface) {
         super([_factor.uuid, _factor.year, _factor.division_type, _factor.division_id]);
         this.factor = _factor;
-        this.factor.class = UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+        this.factor.class = EMISSIONS_FACTOR_CLASS_IDENTIFER;
         this.factor.key = this.getKey();
     }
     toBuffer(): Uint8Array {
-        return State.serialize<UtilityEmissionsFactorInterface>(this.factor);
+        return State.serialize<EmissionsFactorInterface>(this.factor);
     }
-    fromBuffer(buf: Uint8Array): UtilityEmissionsFactor {
-        return new UtilityEmissionsFactor(State.deserialize<UtilityEmissionsFactorInterface>(buf));
+    fromBuffer(buf: Uint8Array): EmissionsFactor {
+        return new EmissionsFactor(State.deserialize<EmissionsFactorInterface>(buf));
     }
 }
 
-export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFactorInterface> {
+export class EmissionsFactorState extends WorldState<EmissionsFactorInterface> {
     constructor(stub: ChaincodeStub) {
         super(stub);
     }
-    async addUtilityEmissionsFactor(factor: UtilityEmissionsFactor, uuid: string): Promise<void> {
+    async addEmissionsFactor(factor: EmissionsFactor, uuid: string): Promise<void> {
         return await this.addState(uuid, factor.factor);
     }
-    async getUtilityEmissionsFactor(uuid: string): Promise<UtilityEmissionsFactor> {
-        return new UtilityEmissionsFactor(await this.getState(uuid));
+    async getEmissionsFactor(uuid: string): Promise<EmissionsFactor> {
+        return new EmissionsFactor(await this.getState(uuid));
     }
-    async updateUtilityEmissionsFactor(
-        factor: UtilityEmissionsFactor,
+    async updateEmissionsFactor(
+        factor: EmissionsFactor,
         uuid: string,
     ): Promise<void> {
         return await this.updateState(uuid, factor.factor);
     }
-    async getUtilityEmissionsFactorsByDivision(
+    async getEmissionsFactorsByDivision(
         divisionID: string,
         divisionType: string,
         year?: number,
-    ): Promise<QueryResult<UtilityEmissionsFactorInterface>[]> {
+    ): Promise<QueryResult<EmissionsFactorInterface>[]> {
         const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
         let retryCount = 0;
         let queryString = '';
-        let results: QueryResult<UtilityEmissionsFactorInterface>[] = [];
+        let results: QueryResult<EmissionsFactorInterface>[] = [];
         while (results.length === 0 && retryCount <= maxYearLookup) {
             if (year !== undefined) {
                 queryString = `{
                 "selector" : {
                   "class": {
-                     "$eq": "${UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER}"
+                     "$eq": "${EMISSIONS_FACTOR_CLASS_IDENTIFER}"
                   },
                   "division_id" : {
                     "$eq": "${divisionID}"
@@ -107,7 +107,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
                 queryString = `{
             "selector" : {
               "class": {
-                 "$eq": "${UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER}"
+                 "$eq": "${EMISSIONS_FACTOR_CLASS_IDENTIFER}"
               },
               "division_id" : {
                 "$eq": "${divisionID}"
@@ -134,7 +134,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
     async getEmissionsFactorByLookupItem(
         lookup: UtilityLookupItemInterface,
         thruDate: string,
-    ): Promise<UtilityEmissionsFactor> {
+    ): Promise<EmissionsFactor> {
         const hasStateData = lookup.state_province !== '';
         const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
         const isNonUSCountry =
@@ -165,7 +165,7 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
         }
 
         console.log('fetching utilityFactors');
-        const utilityFactors = await this.getUtilityEmissionsFactorsByDivision(
+        const utilityFactors = await this.getEmissionsFactorsByDivision(
             divisionID,
             divisionType,
             year,
@@ -174,6 +174,6 @@ export class UtilityEmissionsFactorState extends WorldState<UtilityEmissionsFact
         if (utilityFactors.length === 0) {
             throw new Error('No utility emissions factor found for given query');
         }
-        return new UtilityEmissionsFactor(utilityFactors[0].Record);
+        return new EmissionsFactor(utilityFactors[0].Record);
     }
 }

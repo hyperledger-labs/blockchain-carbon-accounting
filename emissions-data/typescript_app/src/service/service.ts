@@ -1,15 +1,15 @@
+import { PluginLedgerConnectorFabric } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import BCGatewayConfig from '../blockchain-gateway/config';
+import { DataLockGateway } from '../blockchain-gateway/datalock';
+import UtilityemissionchannelGateway from '../blockchain-gateway/EmissionsChannel';
 import FabricRegistryGateway from '../blockchain-gateway/fabricRegistry';
 import EthNetEmissionsTokenGateway from '../blockchain-gateway/netEmissionsTokenNetwork';
 import Signer from '../blockchain-gateway/signer';
-import FabricRegistryService from './fabricRegistry';
-import UtilityEmissionsChannelServiceOptions from './utilityEmissionsChannel';
-import UtilityemissionchannelGateway from '../blockchain-gateway/utilityEmissionsChannel';
 import AWSS3 from '../datasource/awsS3';
-import { DataLockGateway } from '../blockchain-gateway/datalock';
-import { PluginLedgerConnectorFabric } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
+import EmissionsChannelServiceOptions from './EmissionsChannel';
+import FabricRegistryService from './fabricRegistry';
 export let fabricRegistryService: FabricRegistryService;
-export let utilityEmissionsChannelService: UtilityEmissionsChannelServiceOptions;
+export let EmissionsChannelService: EmissionsChannelServiceOptions;
 export let fabricConnector: PluginLedgerConnectorFabric;
 export async function setup(): Promise<void> {
     const bcConfig = new BCGatewayConfig();
@@ -40,7 +40,7 @@ export async function setup(): Promise<void> {
         contractStoreKeychain: ethConnector.contractStoreKeychain,
     });
 
-    const utilityEmissionsGateway = new UtilityemissionchannelGateway({
+    const EmissionsGateway = new UtilityemissionchannelGateway({
         fabricConnector: orgFabric.connector,
         signer: signer,
     });
@@ -49,8 +49,8 @@ export async function setup(): Promise<void> {
         fabricConnector: orgFabric.connector,
         signer: signer,
     });
-    utilityEmissionsChannelService = new UtilityEmissionsChannelServiceOptions({
-        utilityEmissionsGateway: utilityEmissionsGateway,
+    EmissionsChannelService = new EmissionsChannelServiceOptions({
+        EmissionsGateway: EmissionsGateway,
         netEmissionsContractGateway: netEmissionsContractGateway,
         datalockGateway: datalockGateway,
         ethContractAddress: process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS,

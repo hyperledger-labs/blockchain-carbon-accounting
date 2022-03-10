@@ -1,23 +1,23 @@
 import { create } from 'ipfs-http-client';
-const OrbitDB = require('orbit-db');
 import type DocumentStore from 'orbit-db-docstore';
+import type { CO2EmissionFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/emissions-calc';
+import type {
+    EmissionsFactor,
+    EmissionsFactorInterface,
+} from '../../../chaincode/emissionscontract/typescript/src/lib/emissionsFactor';
 import type {
     UtilityLookupItem,
     UtilityLookupItemInterface,
 } from '../../../chaincode/emissionscontract/typescript/src/lib/utilityLookupItem';
-import type {
-    UtilityEmissionsFactor,
-    UtilityEmissionsFactorInterface,
-} from '../../../chaincode/emissionscontract/typescript/src/lib/utilityEmissionsFactor';
-import type { CO2EmissionFactorInterface } from '../../../chaincode/emissionscontract/typescript/src/lib/emissions-calc';
 import {
     ErrInvalidFactorForActivity,
     ErrUnknownUOM,
 } from '../../../chaincode/emissionscontract/typescript/src/util/const';
+const OrbitDB = require('orbit-db');
 
 const DB_NAME =
     '/orbitdb/zdpuAm6nPdDuL2wBZspcZgbdKPMCbN8pn3ez8Z3i5A9a1hXwb/org.hyperledger.blockchain-carbon-accounting';
-const UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER =
+const EMISSIONS_FACTOR_CLASS_IDENTIFER =
     'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem';
 const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
@@ -72,7 +72,7 @@ export interface ActivityInterface {
 }
 
 export class OrbitDBService {
-    private static _db: DocumentStore<UtilityLookupItemInterface | UtilityEmissionsFactorInterface>;
+    private static _db: DocumentStore<UtilityLookupItemInterface | EmissionsFactorInterface>;
 
     public static init = async (): Promise<void> => {
         const ipfs = create();
@@ -92,7 +92,7 @@ export class OrbitDBService {
         await db.load();
 
         OrbitDBService._db = db as DocumentStore<
-            UtilityLookupItemInterface | UtilityEmissionsFactorInterface
+            UtilityLookupItemInterface | EmissionsFactorInterface
         >;
         console.log(`OrbitDB address: ${db.address.toString()}`);
     };
@@ -111,31 +111,30 @@ export class OrbitDBService {
         await OrbitDBService._db.put(item.item);
     };
 
-    public getUtilityEmissionsFactor = (uuid: string): UtilityEmissionsFactorInterface => {
-        return OrbitDBService._db.get(uuid)[0] as UtilityEmissionsFactorInterface;
+    public getEmissionsFactor = (uuid: string): EmissionsFactorInterface => {
+        return OrbitDBService._db.get(uuid)[0] as EmissionsFactorInterface;
     };
 
-    public getAllFactors = (): UtilityEmissionsFactorInterface[] => {
-        return OrbitDBService._db.get('') as UtilityEmissionsFactorInterface[];
+    public getAllFactors = (): EmissionsFactorInterface[] => {
+        return OrbitDBService._db.get('') as EmissionsFactorInterface[];
     };
 
-    public updateUtilityEmissionsFactor = async (factor: UtilityEmissionsFactor): Promise<void> => {
+    public updateEmissionsFactor = async (factor: EmissionsFactor): Promise<void> => {
         await OrbitDBService._db.put(factor.factor);
     };
 
-    public getUtilityEmissionsFactorsByDivision = (
+    public getEmissionsFactorsByDivision = (
         divisionID: string,
         divisionType: string,
         year?: number,
-    ): UtilityEmissionsFactorInterface[] => {
+    ): EmissionsFactorInterface[] => {
         const maxYearLookup = 5; // if current year not found, try each preceding year up to this many times
         let retryCount = 0;
-        let results: UtilityEmissionsFactorInterface[] = [];
+        let results: EmissionsFactorInterface[] = [];
         while (results.length === 0 && retryCount <= maxYearLookup) {
             if (year !== undefined) {
-                results = OrbitDBService._db.query((doc: UtilityEmissionsFactorInterface) => {
-                    const isEmissionsFactor =
-                        doc.class === UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+                results = OrbitDBService._db.query((doc: EmissionsFactorInterface) => {
+                    const isEmissionsFactor = doc.class === EMISSIONS_FACTOR_CLASS_IDENTIFER;
                     const isUtilityFactor = doc.type === UTILITY_EMISSIONS_FACTOR_TYPE;
                     const hasDivisionId = doc.division_id === divisionID;
                     const hasDivisionType = doc.division_type === divisionType;
@@ -147,16 +146,15 @@ export class OrbitDBService {
                         hasDivisionType &&
                         isOfQueriedYear
                     );
-                }) as UtilityEmissionsFactorInterface[];
+                }) as EmissionsFactorInterface[];
             } else {
-                results = OrbitDBService._db.query((doc: UtilityEmissionsFactorInterface) => {
-                    const isEmissionsFactor =
-                        doc.class === UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+                results = OrbitDBService._db.query((doc: EmissionsFactorInterface) => {
+                    const isEmissionsFactor = doc.class === EMISSIONS_FACTOR_CLASS_IDENTIFER;
                     const isUtilityFactor = doc.type === UTILITY_EMISSIONS_FACTOR_TYPE;
                     const hasDivisionId = doc.division_id === divisionID;
                     const hasDivisionType = doc.division_type === divisionType;
                     return isEmissionsFactor && isUtilityFactor && hasDivisionId && hasDivisionType;
-                }) as UtilityEmissionsFactorInterface[];
+                }) as EmissionsFactorInterface[];
             }
             retryCount++;
         }
@@ -170,7 +168,7 @@ export class OrbitDBService {
     public getEmissionsFactorByLookupItem = (
         lookup: UtilityLookupItemInterface,
         thruDate: string,
-    ): UtilityEmissionsFactorInterface => {
+    ): EmissionsFactorInterface => {
         const hasStateData = lookup.state_province !== '';
         const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
         const isNonUSCountry =
@@ -201,11 +199,7 @@ export class OrbitDBService {
         }
 
         console.log('fetching utilityFactors');
-        const utilityFactors = this.getUtilityEmissionsFactorsByDivision(
-            divisionID,
-            divisionType,
-            year,
-        );
+        const utilityFactors = this.getEmissionsFactorsByDivision(divisionID, divisionType, year);
 
         if (utilityFactors.length === 0) {
             throw new Error('No utility emissions factor found for given query');
@@ -213,19 +207,19 @@ export class OrbitDBService {
         return utilityFactors[0];
     };
 
-    public getEmissionsFactorByScope = (scope: string): UtilityEmissionsFactorInterface[] => {
-        return OrbitDBService._db.query((doc: UtilityEmissionsFactorInterface) => {
-            const isEmissionsFactor = doc.class === UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+    public getEmissionsFactorByScope = (scope: string): EmissionsFactorInterface[] => {
+        return OrbitDBService._db.query((doc: EmissionsFactorInterface) => {
+            const isEmissionsFactor = doc.class === EMISSIONS_FACTOR_CLASS_IDENTIFER;
             const isOfQueriedScope = doc.scope?.toUpperCase() === scope.toUpperCase();
             return isEmissionsFactor && isOfQueriedScope;
-        }) as UtilityEmissionsFactorInterface[];
+        }) as EmissionsFactorInterface[];
     };
 
     public getEmissionsFactorByActivity = (
         activity: ActivityInterface,
-    ): UtilityEmissionsFactorInterface[] => {
-        return OrbitDBService._db.query((doc: UtilityEmissionsFactorInterface) => {
-            const isEmissionsFactor = doc.class === UTILITY_EMISSIONS_FACTOR_CLASS_IDENTIFER;
+    ): EmissionsFactorInterface[] => {
+        return OrbitDBService._db.query((doc: EmissionsFactorInterface) => {
+            const isEmissionsFactor = doc.class === EMISSIONS_FACTOR_CLASS_IDENTIFER;
             const isOfQueriedScope = doc.scope?.toUpperCase() === activity.scope.toUpperCase();
             const matchesLevel1 = doc.level_1 === activity.level_1.toUpperCase();
             const matchesLevel2 = doc.level_2 === activity.level_2.toUpperCase();
@@ -240,11 +234,11 @@ export class OrbitDBService {
                 matchesLevel3 &&
                 matchesActivityUOM
             );
-        }) as UtilityEmissionsFactorInterface[];
+        }) as EmissionsFactorInterface[];
     };
 
-    public getCO2UtilityEmissionFactor = (
-        factor: UtilityEmissionsFactorInterface,
+    public getCO2EmissionFactor = (
+        factor: EmissionsFactorInterface,
         usage: number,
         usageUOM: string,
     ): CO2EmissionFactorInterface => {
@@ -304,7 +298,7 @@ export class OrbitDBService {
     };
 
     public getCO2EmissionFactorByActivity = (
-        factor: UtilityEmissionsFactorInterface,
+        factor: EmissionsFactorInterface,
         activity: ActivityInterface,
     ): CO2EmissionFactorInterface => {
         // initialize return variables

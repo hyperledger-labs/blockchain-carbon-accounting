@@ -1,8 +1,8 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import { appLogger } from '../../utils/logger';
-import registerEnroll from './registerEnroll';
-import emissionscontract from './utilityEmissionsChannel';
+import emissionscontract from './EmissionsChannel';
 import identity from './identity';
+import registerEnroll from './registerEnroll';
 const router = Router();
 router.use((req: Request, res: Response, next: NextFunction) => {
     appLogger.info(`${req.method.toUpperCase()} ${req.url}`);

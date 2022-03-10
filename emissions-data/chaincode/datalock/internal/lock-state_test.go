@@ -12,7 +12,7 @@ func TestLockState(t *testing.T) {
 	stub := buildEmptyMockStub()
 
 	txID := "txID-1"
-	ccName := "UtilityEmissionsChaincode"
+	ccName := "EmissionsChaincode"
 	key := "uuid-1"
 	lockId := lockStateID(ccName, key)
 	lockIndex := lockStateIndex(txID, lockId)
@@ -71,7 +71,7 @@ func TestLockState(t *testing.T) {
 		locks, err := getAllLockState(stub, txID)
 		is.NoError(err)
 		is.Len(locks, 2)
-		wantLocks := []string{"UtilityEmissionsChaincode::uuid-1-1", "UtilityEmissionsChaincode::uuid-1-2"}
+		wantLocks := []string{"EmissionsChaincode::uuid-1-1", "EmissionsChaincode::uuid-1-2"}
 		is.True(reflect.DeepEqual(wantLocks, locks))
 	})
 }

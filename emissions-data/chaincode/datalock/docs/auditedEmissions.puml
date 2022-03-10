@@ -18,9 +18,9 @@ entity "WorldState" as reqState
 end box
 
 note over reqCC, reqState
-    Locks are stored as state on worldstate with key 
+    Locks are stored as state on worldstate with key
     LOCK_PREFIX::chaincode_name::key
-    chaincode_name: utilityEmissions
+    chaincode_name: Emissions
     key: uuid of emissions record
 end note
 
@@ -77,7 +77,7 @@ loop uuid in validLockedUUIDs
     return ok
     dataCC->dataCC: updatedUUIds.push(emissions.uuid)
 end updatedUUIds
-return 
+return
 loop uuid in updatedUUIds
     reqCC->reqState: unlock(uuid)
     activate reqState
