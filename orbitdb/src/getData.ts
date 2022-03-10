@@ -39,6 +39,8 @@ let db: OrbitDBService;
     co2_equivalent_emissions_uom: 'kg',
   }
   console.log('Test getCO2EmissionFactorByActivity: ', db.getCO2EmissionFactorByActivity(factor, activity))
+  console.log('Test getEmissionsFactorByActivity: ', db.getEmissionsFactorByActivity(activity))
+  console.log('Test getCO2EmissionByActivity: ', db.getCO2EmissionByActivity(activity))
 
   const allLookup = db.getAllFactors()
   console.log('Test getAllFactors got count : ', allLookup ? allLookup.length : null)

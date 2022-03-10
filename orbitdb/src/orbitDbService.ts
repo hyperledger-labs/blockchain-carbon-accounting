@@ -342,6 +342,20 @@ export class OrbitDBService {
         };
     };
 
+    public getCO2EmissionByActivity = (
+        activity: ActivityInterface,
+    ): CO2EmissionFactorInterface => {
+        const factors = this.getEmissionsFactorByActivity(activity);
+        console.log('...', factors)
+        if (!factors || !factors.length) {
+            throw new Error(
+                `${ErrInvalidFactorForActivity} No emission factor matches the given activity`,
+            );
+
+        }
+        return this.getCO2EmissionFactorByActivity(factors[0], activity)
+    }
+
     public getCO2EmissionFactorByActivity = (
         factor: UtilityEmissionsFactorInterface,
         activity: ActivityInterface,
