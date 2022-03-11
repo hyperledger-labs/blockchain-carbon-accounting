@@ -22,11 +22,12 @@ function print_usage() {
   console.log('In verbose output format returns a JSON object of the activities grouped by type (and shipments are also grouped by mode) with the results of distance, emissions and issued tokens.');
 }
 
-const args = process.argv.splice( /node$/.test(process.argv[0]) ? 2 : 1 );
+const args = process.argv.splice( /ts-node/.test(process.argv[0]) || /node$/.test(process.argv[0]) ? 2 : 1 );
 let source: string = null;
 const publicKeys: string[] = [];
 let privateKey: string = null;
 let fetchObjectPath: string = null;
+let pretend = false;
 let verbose = false;
 let verify = false;
 const generatedKeypairs: string[] = [];
@@ -70,6 +71,8 @@ for (let i=0; i<args.length; i++) {
     fetchObjectPath = a;
   } else if (a === '-verify') {
     verify = true;
+  } else if (a === '-p' || a === '-pretend' || a === '--pretend') {
+    pretend = true;
   } else if (a === '-v' || a === '-verbose' || a === '--verbose') {
     verbose = true;
   } else if (a === '-h' || a === '-help' || a === '--help') {
@@ -131,15 +134,18 @@ if (fetchObjectPath) {
   const data_raw = readFileSync(source, 'utf8');
   const data = JSON.parse(data_raw);
 
-  if (!publicKeys.length) {
+  if (!publicKeys.length && !pretend) {
     throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
   }
 
   process_activities(data.activities).then(async (activities)=>{
     // group the resulting emissions per activity type, and for shipment type group by mode:
     const grouped_by_type = group_processed_activities(activities);
-    const output_array: OutputActivity[] = [];
+    if (pretend) {
+      return grouped_by_type;
+    }
     // now we can emit the tokens for each group and prepare the relevant data for final output
+    const output_array: OutputActivity[] = [];
     for (const t in grouped_by_type) {
       if (t === 'shipment') {
         const group = grouped_by_type[t] as GroupedResults;
