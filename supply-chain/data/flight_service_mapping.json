@@ -1,0 +1,43 @@
+{
+  "economy": {
+    "scope": "Scope 3",
+    "level_1": "Business travel- air",
+    "level_2": "Flights",
+    "level_3": "Long-haul, to/from UK",
+    "level_4": "Economy class",
+    "description": "With RF",
+    "uom": "passenger.km",
+    "amount": 0.14787
+  },
+  "premium economy": {
+    "scope": "Scope 3",
+    "level_1": "Business travel- air",
+    "level_2": "Flights",
+    "level_3": "Long-haul, to/from UK",
+    "level_4": "Premium economy class",
+    "description": "With RF",
+    "uom": "passenger.km",
+    "amount": 0.23659
+  },
+  "business": {
+    "scope": "Scope 3",
+    "level_1": "Business travel- air",
+    "level_2": "Flights",
+    "level_3": "Long-haul, to/from UK",
+    "level_4": "Business class",
+    "description": "With RF",
+    "uom": "passenger.km",
+    "amount": 0.42882
+  },
+  "first": {
+    "scope": "Scope 3",
+    "level_1": "Business travel- air",
+    "level_2": "Flights",
+    "level_3": "Long-haul, to/from UK",
+    "level_4": "First class",
+    "description": "With RF",
+    "uom": "passenger.km",
+    "amount": 0.59147
+  }
+}
+

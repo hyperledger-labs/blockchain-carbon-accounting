@@ -1,10 +1,10 @@
 import express, { Express, json, urlencoded } from 'express';
-import { appLogger } from './utils/logger';
-import v1 from './routers/v1/index';
-import openapiSpec from './static/openapi.json';
-import { serve, setup } from 'swagger-ui-express';
-import { setup as serviceSetup } from './service/service';
 import multer from 'multer';
+import { serve, setup } from 'swagger-ui-express';
+import v1 from './routers/v1/index';
+import { setup as serviceSetup } from './service/service';
+import openapiSpec from './static/openapi.json';
+import { appLogger } from './utils/logger';
 
 export default class App {
     private readonly app: Express = express();
@@ -40,7 +40,7 @@ export default class App {
             });
     }
     private __applyMiddleware() {
-        openapiSpec.servers[0].url = `http://localhost:${this.PORT}/api/v1/utilityemissionchannel`;
+        openapiSpec.servers[0].url = `http://localhost:${this.PORT}/api/v1/emissions-data`;
         this.app.use('/api-docs', serve, setup(openapiSpec));
         this.app.use('/api/v1', v1);
     }

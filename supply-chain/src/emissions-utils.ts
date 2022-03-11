@@ -22,6 +22,8 @@ import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
+import * as carrier_emission_factors from "../data/carrier_service_mapping.json"
+import * as flight_emission_factors from "../data/flight_service_mapping.json"
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -33,9 +35,24 @@ export function weight_in_kg(weight: number, uom?: string) {
   const u = uom.toLowerCase();
   if (u === "kg") return weight;
   if (u === "lb" || u === "lbs" || u === "pound") return weight * 0.453592;
-  if (u === "pound") return weight * 0.453592;
-  if (u === "t") return weight * 1000.0;
+  if (u === "t" || u === "tonne") return weight * 1000.0;
   if (u === "g") return weight / 1000.0;
+  // not recognized
+  throw new Error(`Weight UOM ${uom} not supported`);
+}
+
+// use this to convert kg into the emission factor uom, most should be 'tonne.kg'
+// but also support different weight uoms
+function get_convert_kg_for_uom(uom: string) {
+  if (uom.includes('.')) {
+    return get_convert_kg_for_uom(uom.split('.')[0]);
+  }
+
+  const u = uom.toLowerCase();
+  if (u === "kg") return 1;
+  if (u === "lb" || u === "lbs" || u === "pound") return 2.20462;
+  if (u === "t" || u === "tonne") return 0.001;
+  if (u === "g") return 1000.0;
   // not recognized
   throw new Error(`Weight UOM ${uom} not supported`);
 }
@@ -47,21 +64,37 @@ export function distance_in_km(distance: Distance): number {
   throw new Error(`Distance UOM ${distance.unit} not supported`);
 }
 
-export function calc_emissions(
+export function calc_flight_emissions(
+  passengers: number,
+  seat_class: string,
+  distance: Distance
+): ValueAndUnit {
+  const distance_km = distance_in_km(distance);
+  // lookup the factor for different class
+  const f = flight_emission_factors[seat_class];
+  if (!f) {
+    throw new Error(`Flight class ${seat_class} not supported`);
+  }
+  // assume the factor uom is in person.km here
+  const emissions = passengers * distance_km * f.amount;
+  // assume all factors produce kgCO2e
+  return { value: emissions, unit: "kgCO2e" };
+}
+
+export function calc_freight_emissions(
   weight_kg: number,
   distance: Distance
 ): ValueAndUnit {
   const distance_km = distance_in_km(distance);
-  const w_d = weight_kg * 0.001 * distance_km;
-  // for difference 'mode'
-  let emissions = w_d;
-  if (distance.mode === "air") {
-    emissions *= 2.37968;
-  } else if (distance.mode === "ground") {
-    emissions *= 0.52218;
-  } else {
+  // lookup factor for different 'mode'
+  const f = carrier_emission_factors[distance.mode];
+  if (!f) {
     throw new Error(`Distance mode ${distance.mode} not supported`);
   }
+  // most uom should be in tonne.km here
+  const convert = get_convert_kg_for_uom(f.uom);
+  const emissions = weight_kg * convert * distance_km * f.amount;
+  // assume all factors produce kgCO2e
   return { value: emissions, unit: "kgCO2e" };
 }
 
@@ -168,7 +201,7 @@ export async function process_shipment(
     const distance = await calc_distance(a.from, a.to, a.mode);
     // then calc emissions ...
     const weight = weight_in_kg(a.weight, a.weight_uom);
-    const emissions = calc_emissions(weight, distance);
+    const emissions = calc_freight_emissions(weight, distance);
     return { distance, weight: { value: weight, unit: "kg" }, emissions };
   }
 }
@@ -177,9 +210,11 @@ export async function process_flight(
   a: FlightActivity
 ): Promise<ActivityResult> {
   const distance = await calc_direct_distance(a.from, a.to, "air");
-  const weight = 80; // arbitrary value here
-  const emissions = calc_emissions(weight, distance);
-  return { distance, weight: { value: weight, unit: "kg" }, emissions };
+  // use default values when missing
+  const number_of_passengers = a.number_of_passengers || 1;
+  const seat_class = a.class || 'economy';
+  const emissions = calc_flight_emissions(number_of_passengers, seat_class, distance);
+  return { distance, flight: { number_of_passengers, class: seat_class }, emissions };
 }
 
 export async function process_activity(activity: Activity) {

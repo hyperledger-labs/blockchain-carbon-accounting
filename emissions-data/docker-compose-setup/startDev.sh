@@ -23,7 +23,7 @@ echo "Creating the channel..."
 docker exec cli /bin/bash ./network.sh createChannel
 
 echo "Installing utility emissions channel TypeScript chaincode..."
-docker exec cli /bin/bash ./network.sh deployCC -ccn utilityemissions -ccp ../chaincode/emissionscontract/typescript -ccv 1 -ccl typescript
+docker exec cli /bin/bash ./network.sh deployCC -ccn emissions -ccp ../chaincode/emissionscontract/typescript -ccv 1 -ccl typescript
 
 echo "Installing datalock chaincode..."
 docker exec cli /bin/bash ./network.sh deployCC -ccn datalock -ccp ../chaincode/datalock -ccv 1 -ccl go

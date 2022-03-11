@@ -1,35 +1,35 @@
 import {
-    IUtilityemissionchannelGateway,
-    IFabricTxCaller,
-    IUtilityemissionchannelRecordEmissionsInput,
-    IUtilityemissionchannelGetAllEmissionsDataByDateRangeInput,
-    IUtilityemissionchannelGetEMissionsRecordsInput,
-    IUtilityemissionchannelEmissionData,
-    IUtilityemissionchannelUpdateEmissionsMintedTokenInput,
-} from './I-gateway';
-import {
     FabricContractInvocationType,
     PluginLedgerConnectorFabric,
 } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
-import Signer from './signer';
-import { ledgerLogger } from '../utils/logger';
 import ClientError from '../errors/clientError';
+import { ledgerLogger } from '../utils/logger';
+import {
+    IEmissionsDataEmission,
+    IEmissionsDataGateway,
+    IEmissionsDataGetAllEmissionsDataByDateRangeInput,
+    IEmissionsDataGetEMissionsRecordsInput,
+    IEmissionsDataRecordEmissionsInput,
+    IEmissionsDataUpdateEmissionsMintedTokenInput,
+    IFabricTxCaller,
+} from './I-gateway';
+import Signer from './signer';
 
-interface IUtilityemissionchannelGatewayOptions {
+interface IEmissionsDataGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;
     signer: Signer;
 }
 
-export default class UtilityemissionchannelGateway implements IUtilityemissionchannelGateway {
-    private readonly className = 'UtilityemissionchannelGateway';
-    private readonly ccName = 'utilityemissions';
-    private readonly channelName = 'utilityemissionchannel';
-    constructor(private readonly opts: IUtilityemissionchannelGatewayOptions) {}
+export default class EmissionsDataGateway implements IEmissionsDataGateway {
+    private readonly className = 'EmissionsDataGateway';
+    private readonly ccName = 'emissions';
+    private readonly channelName = 'emissions-data';
+    constructor(private readonly opts: IEmissionsDataGatewayOptions) {}
 
     async recordEmissions(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelRecordEmissionsInput,
-    ): Promise<IUtilityemissionchannelEmissionData> {
+        input: IEmissionsDataRecordEmissionsInput,
+    ): Promise<IEmissionsDataEmission> {
         const fnTag = `${this.className}.recordEmissions()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
         const signer = this.opts.signer.fabric(caller);
@@ -66,7 +66,7 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
     }
     async updateEmissionsMintedToken(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelUpdateEmissionsMintedTokenInput,
+        input: IEmissionsDataUpdateEmissionsMintedTokenInput,
     ): Promise<void> {
         const fnTag = `${this.className}.updateEmissionsMintedToken()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
@@ -91,10 +91,7 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
             );
         }
     }
-    async getEmissionData(
-        caller: IFabricTxCaller,
-        uuid: string,
-    ): Promise<IUtilityemissionchannelEmissionData> {
+    async getEmissionData(caller: IFabricTxCaller, uuid: string): Promise<IEmissionsDataEmission> {
         const fnTag = `${this.className}.getEmissionData()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
         const signer = this.opts.signer.fabric(caller);
@@ -121,8 +118,8 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
 
     async getEmissionsRecords(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelGetEMissionsRecordsInput,
-    ): Promise<IUtilityemissionchannelEmissionData[]> {
+        input: IEmissionsDataGetEMissionsRecordsInput,
+    ): Promise<IEmissionsDataEmission[]> {
         const fnTag = `${this.className}.getEmissionsRecords()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
         const signer = this.opts.signer.fabric(caller);
@@ -137,10 +134,8 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
                 params: [input.utilityId, input.partyId],
             });
             ledgerLogger.debug(`${fnTag} returned emissions record data : ${resp.functionOutput}`);
-            const json: Record<string, IUtilityemissionchannelEmissionData>[] = JSON.parse(
-                resp.functionOutput,
-            );
-            const out: IUtilityemissionchannelEmissionData[] = [];
+            const json: Record<string, IEmissionsDataEmission>[] = JSON.parse(resp.functionOutput);
+            const out: IEmissionsDataEmission[] = [];
             for (const emission of json) {
                 out.push(this.__toEmissionRecord(emission.Record));
             }
@@ -155,8 +150,8 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
 
     async getAllEmissionsDataByDateRange(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelGetAllEmissionsDataByDateRangeInput,
-    ): Promise<IUtilityemissionchannelEmissionData[]> {
+        input: IEmissionsDataGetAllEmissionsDataByDateRangeInput,
+    ): Promise<IEmissionsDataEmission[]> {
         const fnTag = `${this.className}.getAllEmissionsDataByDateRange()`;
         ledgerLogger.debug(`${fnTag} creating signer for the client`);
         const signer = this.opts.signer.fabric(caller);
@@ -171,10 +166,8 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
                 params: [input.fromDate, input.thruDate],
             });
             ledgerLogger.debug(`${fnTag} returned emissions record data : ${resp.functionOutput}`);
-            const json: Record<string, IUtilityemissionchannelEmissionData>[] = JSON.parse(
-                resp.functionOutput,
-            );
-            const out: IUtilityemissionchannelEmissionData[] = [];
+            const json: Record<string, IEmissionsDataEmission>[] = JSON.parse(resp.functionOutput);
+            const out: IEmissionsDataEmission[] = [];
             for (const emission of json) {
                 out.push(this.__toEmissionRecord(emission.Record));
             }
@@ -187,9 +180,7 @@ export default class UtilityemissionchannelGateway implements IUtilityemissionch
         }
     }
 
-    private __toEmissionRecord(
-        json: IUtilityemissionchannelEmissionData,
-    ): IUtilityemissionchannelEmissionData {
+    private __toEmissionRecord(json: IEmissionsDataEmission): IEmissionsDataEmission {
         return {
             uuid: json.uuid,
             utilityId: json.utilityId,

@@ -1,5 +1,5 @@
 #!/bin/bash
-CHANNEL_NAME="utilityemissionchannel"
+CHANNEL_NAME="emissions-data"
 # CC_NAME="emissionscontract"
 LOG_FILE_NAME=chaincode${2}_log.txt
 LOCKDATA_LOG_FILE_NAME=datalock_chaincode${2}_log.txt
@@ -39,11 +39,11 @@ echo
 cd ./chaincode/${CC_SUBDIR}
 # tar connection.json and metadata.json
 tar cfz code.tar.gz connection.json
-tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
+tar cfz emissions-chaincode.tgz code.tar.gz metadata.json
 
 cd ../..
 
-./bin/peer lifecycle chaincode install chaincode/${CC_SUBDIR}/utilityemissions-chaincode.tgz >&$LOG_FILE_NAME
+./bin/peer lifecycle chaincode install chaincode/${CC_SUBDIR}/emissions-chaincode.tgz >&$LOG_FILE_NAME
 
 export CHAINCODE_CCID=`cat ${LOG_FILE_NAME} | grep "Chaincode code package identifier:" | awk '{split($0,a,"Chaincode code package identifier: "); print a[2]}'`
 

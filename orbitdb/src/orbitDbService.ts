@@ -3,13 +3,13 @@ import type { CO2EmissionFactorInterface } from "../../emissions-data/chaincode/
 import type {
   EmissionsFactor,
   EmissionsFactorInterface,
-  EMISSIONS_FACTOR_CLASS_IDENTIFER
 } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
+import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import type {
   UtilityLookupItem,
   UtilityLookupItemInterface,
-  UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER
 } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
+import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
 import {
   ErrInvalidFactorForActivity,
   ErrUnknownUOM,

@@ -1,12 +1,12 @@
 // configuration required before running the tests
-import BCGatewayConfig from '../src/blockchain-gateway/config';
 import {
     FabricContractInvocationType,
     FabricSigningCredential,
 } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
+import axios from 'axios';
 // import { execSync } from 'child_process';
 import { config } from 'dotenv';
-import axios from 'axios';
+import BCGatewayConfig from '../src/blockchain-gateway/config';
 config();
 
 const bcConfig = new BCGatewayConfig();
@@ -28,8 +28,8 @@ async function mockEmissionsRecord() {
         mspId: org.orgMSP,
     });
 
-    const channelName = 'utilityemissionchannel';
-    const ccName = 'utilityemissions';
+    const channelName = 'emissions-data';
+    const ccName = 'emissions';
     // import utility identifier
     const mockUtilityID = 'USA_EIA_11208';
 

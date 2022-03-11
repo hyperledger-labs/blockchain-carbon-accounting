@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { appLogger } from '../../utils/logger';
-import emissionscontract from './EmissionsChannel';
+import emissionscontract from './emissionsChannel';
 import identity from './identity';
 import registerEnroll from './registerEnroll';
 const router = Router();
@@ -12,8 +12,8 @@ router.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-router.use('/utilityemissionchannel/registerEnroll', registerEnroll);
-router.use('/utilityemissionchannel/emissionscontract', emissionscontract);
-router.use('/utilityemissionchannel/identity', identity);
+router.use('/emissions-data/registerEnroll', registerEnroll);
+router.use('/emissions-data/emissionscontract', emissionscontract);
+router.use('/emissions-data/identity', identity);
 
 export default router;

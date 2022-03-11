@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import { v4 as uuid4 } from 'uuid';
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
 import { DataLockGateway } from '../../src/blockchain-gateway/datalock';
-import UtilityemissionchannelGateway from '../../src/blockchain-gateway/EmissionsChannel';
+import EmissionsDataGateway from '../../src/blockchain-gateway/emissionsChannel';
 import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway/I-gateway';
 import Signer from '../../src/blockchain-gateway/signer';
 import { setup } from '../../src/utils/logger';
@@ -37,7 +37,7 @@ describe('DataLockGateway', () => {
                 caId: org.caID,
                 mspId: org.orgMSP,
             });
-            const data = await new UtilityemissionchannelGateway({
+            const data = await new EmissionsDataGateway({
                 fabricConnector: org.connector,
                 signer: signer,
             }).recordEmissions(adminCaller, {
@@ -63,7 +63,7 @@ describe('DataLockGateway', () => {
                 tx_id: txID,
                 name: 'GetValidEmissions',
                 data_locks: {
-                    utilityemissions: {
+                    emissions: {
                         keys: [emissionID],
                         params: ['getValidEmissions', emissionID],
                     },
@@ -90,7 +90,7 @@ describe('DataLockGateway', () => {
                 name: 'MintedTokenUpdate',
                 is_last: true,
                 data_free: {
-                    utilityemissions: {
+                    emissions: {
                         keys: [emissionID],
                         params: ['updateEmissionsMintedToken', tokenId, partyID, emissionID],
                     },

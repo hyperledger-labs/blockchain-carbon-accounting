@@ -75,5 +75,5 @@ Configuration for API Server
 ### When Using Vault Signing
 
 1. Create transit key for org's registrar under the path `LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT` with label register username. [USE Vault-UI or Custom Identity Application]
-2. Using vault Token, execute `POST api/v1/utilityemissionchannel/registerEnroll/enroll`.
-3. Using vault Token, execute `POST api/v1/utilityemissionchannel/registerEnroll/register?userId=admin`, for registering a new client.
+2. Using vault Token, execute `POST api/v1/emissions-data/registerEnroll/enroll`.
+3. Using vault Token, execute `POST api/v1/emissions-data/registerEnroll/register?userId=admin`, for registering a new client.

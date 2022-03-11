@@ -3,13 +3,13 @@ import Joi from 'joi';
 import {
     IDataChaincodeInput,
     IDataLockGateway,
+    IEmissionsDataEmission,
+    IEmissionsDataEmissionMetadata,
+    IEmissionsDataGateway,
     IEthNetEmissionsTokenGateway,
     IEthTxCaller,
     IFabricTxCaller,
     ITxDetails,
-    IUtilityemissionchannelEmissionData,
-    IUtilityemissionchannelEmissionMetadata,
-    IUtilityemissionchannelGateway,
     IWebSocketKey,
 } from '../blockchain-gateway/I-gateway';
 import AWSS3 from '../datasource/awsS3';
@@ -19,7 +19,7 @@ import { appLogger } from '../utils/logger';
 import { Input } from './input';
 
 interface EmissionsChannelServiceOptions {
-    EmissionsGateway: IUtilityemissionchannelGateway;
+    EmissionsGateway: IEmissionsDataGateway;
     netEmissionsContractGateway: IEthNetEmissionsTokenGateway;
     datalockGateway: IDataLockGateway;
     s3: AWSS3;
@@ -41,7 +41,7 @@ interface IRecordAuditedEmissionsTokenResponse {
 export default class EmissionsChannelService {
     private readonly className = 'EmissionsChannelService';
     constructor(private readonly opts: EmissionsChannelServiceOptions) {}
-    async recordEmission(input: Input): Promise<IUtilityemissionchannelEmissionData> {
+    async recordEmission(input: Input): Promise<IEmissionsDataEmission> {
         const fnTag = `${this.className}.recordEmission()`;
         this.__validateUserID(input);
         this.__validateRecordEmissionsInput(input);
@@ -148,11 +148,11 @@ export default class EmissionsChannelService {
             throw error;
         }
         let err: ClientError = null;
-        const emissionCCName = 'utilityemissions';
+        const emissionCCName = 'emissions';
 
         try {
             appLogger.debug(`${fnTag} current stage name = ${tx.current_stage}`);
-            let records: IUtilityemissionchannelEmissionData[];
+            let records: IEmissionsDataEmission[];
             let validUUIDs: string[];
             if (tx.current_stage === '') {
                 appLogger.debug(`${fnTag} executing first stage::LOCK_UUIDS`);
@@ -261,7 +261,7 @@ export default class EmissionsChannelService {
         return null;
     }
 
-    async getEmissionsData(input: Input): Promise<IUtilityemissionchannelEmissionData> {
+    async getEmissionsData(input: Input): Promise<IEmissionsDataEmission> {
         const fnTag = `${this.className}.getEmissionsData()`;
         this.__validateUserID(input);
         this.__validateGetEmissionsDataInput(input);
@@ -281,7 +281,7 @@ export default class EmissionsChannelService {
         }
     }
 
-    async getAllEmissionsData(input: Input): Promise<IUtilityemissionchannelEmissionData[]> {
+    async getAllEmissionsData(input: Input): Promise<IEmissionsDataEmission[]> {
         const fnTag = `${this.className}.getAllEmissionsData()`;
         this.__validateUserID(input);
         this.__validateGetAllEmissionsDataInput(input);
@@ -307,9 +307,7 @@ export default class EmissionsChannelService {
         }
     }
 
-    async getAllEmissionsDataByDateRange(
-        input: Input,
-    ): Promise<IUtilityemissionchannelEmissionData[]> {
+    async getAllEmissionsDataByDateRange(input: Input): Promise<IEmissionsDataEmission[]> {
         const fnTag = `${this.className}.getAllEmissionsDataByDateRange()`;
         this.__validateUserID(input);
         this.__validateGetAllEmissionsDataByDateRangeInput(input);
@@ -337,7 +335,7 @@ export default class EmissionsChannelService {
             throw error;
         }
     }
-    private async emissionsRecordChecksum(record: IUtilityemissionchannelEmissionData) {
+    private async emissionsRecordChecksum(record: IEmissionsDataEmission) {
         const fnTag = `${this.className}.EmissionsRecordChecksum`;
         if (record.url && record.url.length > 0) {
             const url = record.url;
@@ -365,14 +363,14 @@ export default class EmissionsChannelService {
         }
     }
 
-    private async tokenMetadata(records: IUtilityemissionchannelEmissionData[]): Promise<{
-        metadata: IUtilityemissionchannelEmissionMetadata;
+    private async tokenMetadata(records: IEmissionsDataEmission[]): Promise<{
+        metadata: IEmissionsDataEmissionMetadata;
         manifest: string;
         quantity: number;
         fromDate: number;
         thruDate: number;
     }> {
-        const metadata: IUtilityemissionchannelEmissionMetadata = {
+        const metadata: IEmissionsDataEmissionMetadata = {
             org: this.opts.orgName,
             type: 'Utility Emissions',
             partyId: [],
@@ -432,7 +430,7 @@ export default class EmissionsChannelService {
         return {
             metadata,
             manifest:
-                'URL: https://utilityemissions.opentaps.net/api/v1/utilityemissionchannel, UUID: ' +
+                'URL: https://emissions.opentaps.net/api/v1/emissions-data, UUID: ' +
                 manifestIds.join(', '),
             quantity,
             fromDate,

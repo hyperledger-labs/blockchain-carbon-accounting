@@ -1,9 +1,9 @@
-CHANNEL_NAME="utilityemissionchannel"
+CHANNEL_NAME="emissions-data"
 CC_NN=${2}
 LOG_FILE_NAME=chaincode${2}_log.txt
 LOCKDATA_LOG_FILE_NAME=datalock_chaincode${2}_log.txt
 
-export CHAINCODE_NAME=utilityemissions
+export CHAINCODE_NAME=emissions
 export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH
 
@@ -48,11 +48,11 @@ echo $CC_PACKAGE_ID
 echo $CHAINCODE_NAME
 echo
 echo "+++++Approve chaincode for my org+++++"
-./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
+./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID emissions-data --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
 
 echo
 echo "+++++Check commitreadiness of chaincode+++++"
-./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
+./bin/peer lifecycle chaincode checkcommitreadiness --channelID emissions-data --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
 
 echo "===================== Query Request Manager chaincode on $PEERS on channel '$CHANNEL_NAME' ===================== "
 echo
@@ -67,11 +67,11 @@ CHAINCODE_NAME=datalock
 echo $CHAINCODE_NAME
 echo
 echo "+++++Approve chaincode for my org+++++"
-./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
+./bin/peer lifecycle chaincode approveformyorg -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --channelID emissions-data --name ${CHAINCODE_NAME} --version 1.0 --package-id ${CC_PACKAGE_ID} --sequence 1 --tls --cafile ${ORDERER_TLSCA}
 
 echo
 echo "+++++Check commitreadiness of chaincode+++++"
-./bin/peer lifecycle chaincode checkcommitreadiness --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
+./bin/peer lifecycle chaincode checkcommitreadiness --channelID emissions-data --name ${CHAINCODE_NAME} --version 1.0 --sequence 1 --tls --cafile ${ORDERER_TLSCA} --output json
 ### Examples
 # sudo bash ./scripts/deployCCExt.sh 1 1
 # sudo bash ./scripts/deployCCExt.sh 1 2
