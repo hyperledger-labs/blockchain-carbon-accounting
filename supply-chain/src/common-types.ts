@@ -51,6 +51,7 @@ export type Activity = ShipmentActivity | FlightActivity;
 export type ActivityResult = {
   distance?: Distance,
   weight?: ValueAndUnit,
+  flight?: { number_of_passengers?: number, class?: string },
   emissions?: ValueAndUnit,
   details?: any
 }
