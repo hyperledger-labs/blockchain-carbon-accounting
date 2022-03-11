@@ -1,0 +1,69 @@
+version: '2.1'
+
+volumes:
+  locals3:
+
+services:
+    locals3:
+      container_name: locals3
+      image: localstack/localstack:0.12.18
+      ports:
+        - 4566:4566
+        - 4571:4571
+      environment:
+        - SERVICES=s3
+        - DEBUG=DEBUG
+        - DATA_DIR=/tmp/localstack/data
+        - DOCKER_HOST=unix:///var/run/docker.sock
+      volumes:
+        - locals3:/tmp/localstack
+        - /var/run/docker.sock:/var/run/docker.sock
+    vault:
+        image: vault:latest
+        container_name: vault
+        ports:
+          - "8200:8200"
+        environment:
+          - VAULT_LOG_LEVEL=debug
+        cap_add:
+          - IPC_LOCK
+        command: server -dev -dev-root-token-id tokenId
+    api:
+        container_name: api
+        image: zzocker20/emissions-api:0.0.3
+        environment:
+            # Ethereum configs
+            - LEDGER_ETH_JSON_RPC_URL=http://localhost:8545
+            - LEDGER_ETH_NETWORK=hardhat # ropsten || goerli
+            - LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS=0x610178dA211FEF7D417bC0e6FeD39F05609AD788
+            - LEDGER_ETH_TX_SIGNER=kv
+
+            # S3 data storage
+            - DEV_S3_ADDRESS=http://locals3:4566
+            - S3_LOCAL=true
+            - BUCKET_NAME=local-bucket
+            # required if s3_local!=true
+            - AWS_ACCESS_KEY_ID=
+            - AWS_SECRET_ACCESS_KEY=
+
+            # Vault config
+            - VAULT_ENDPOINT=http://vault:8200
+            - VAULT_TOKEN=tokenId
+            - VAULT_KV_MOUNT_PATH=secret
+
+            # Application config
+            - APP_PORT=8080
+            - APP_LOG_LEVEL=DEBUG
+            - LEDGER_LOG_LEVEL=DEBUG
+
+            # HL Fabric configs
+            - LEDGER_FABRIC_AS_LOCALHOST=false
+            - LEDGER_FABRIC_CCP=/hlf-config/connection-profile.json
+            - LEDGER_FABRIC_ORG_CA=ca.auditor1.carbonAccounting.com
+            - LEDGER_FABRIC_ORG_MSP=auditor1
+            - LEDGER_FABRIC_TX_SIGNER_TYPE=vault
+            - LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT=transit
+        ports:
+            - 8080:8080
+        volumes:
+            - ../../organizations/peerOrganizations/auditor1.carbonAccounting.com/connection-auditor1.json:/hlf-config/connection-profile.json

@@ -29,7 +29,7 @@ kubectl create -f ./namespace-fabric-production.json
 ###### Nginx Controller Config
 Go to https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider and copy the `deploy.yaml` file to your filesystem according to your cloud provider.
 
-In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. 
+In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container.
 
 **For AWS you may use `/deploy-aws/ kubernetes-ingress-controller-deploy.yaml`**
 
@@ -49,7 +49,7 @@ AWS: set up Route 53 to have your domain pointed to the NLB
 ![plot](./imgs/subdomain.png)
 
 ##### Ingress Service Config
-Next, you need to prepare your ingress to route the the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. 
+Next, you need to prepare your ingress to route the the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`.
 
 **For AWS you can use `/deploy-aws/ingress-fabric-services-deployment.yaml`**
 
@@ -79,7 +79,7 @@ Change value of namespace.
 ```shell
 kubectl create cm fabric-ca-server-config --from-file=./fabric-config/fabric-ca-server-config.yaml -n fabric-production
 ```
-   3.  Adjust the deployment configuration of `./deploy-aws/fabric-ca-deployment.yaml`. 
+   3.  Adjust the deployment configuration of `./deploy-aws/fabric-ca-deployment.yaml`.
 
 Take a closer look at the PVC section.
 
@@ -93,7 +93,7 @@ aws ec2 --profile <aws_profile> --region <us-west-2> create-volume --availabilit
 ```
 Update `PersistentVolume` `./fabric-ca-deployment.yaml` with volumeID of created ebs.
 
-NOTE: if you re-initializing the setup you should delete old `ebs` and create a new ones as it stores old configs. 
+NOTE: if you re-initializing the setup you should delete old `ebs` and create a new ones as it stores old configs.
 
 4. Start fabric-ca
 ```shell
@@ -120,7 +120,7 @@ kubectl get pod -n fabric-production | grep fabric-ca
 kubectl cp "<fabric-ca-pod>:/etc/hyperledger/fabric-ca-server/tls-cert.pem" "${FABRIC_CA_CLIENT_HOME}/tls-cert.pem" -n fabric-production
 ```
 6. Configure ingress (Skip this step if this already happened)
-Adjust the deployment configuration of `./ingress-fabric-services-deploy.yaml` 
+Adjust the deployment configuration of `./ingress-fabric-services-deploy.yaml`
 Change:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
@@ -145,7 +145,7 @@ Run the script
 #### 4.2. Orderer
 Once all the crypto material is created, we can start the orderer.
 
-1. Create orderer genesis block 
+1. Create orderer genesis block
 NOTE: For testing purposes, change the values of `/fabric-config/configtx.yaml`. This is just a way for you to test the functionality of your configuration before you try to start interacting with nodes from different organizations. Values to change:
 - Name of the organization (sampleorg)
 - Subdomain of peer and orderer
@@ -160,7 +160,7 @@ kubectl create cm system-genesis-block  --from-file=./system-genesis-block/order
 ```
 
 2. Create secret of crypto-material
-   
+
 Next we need to create a secret that contains all the crypto-material of the orderer (msp and tls). Change the path to crypto-material of orderer and Kubernetes namespace.
 ```shell
 mkdir tmp-crypto && cd tmp-crypto
@@ -172,7 +172,7 @@ kubectl create secret generic orderer-crypto --from-file=orderer-crypto=orderer-
 ```
 
 3. Start orderer
-   
+
 Now it's time to start the orderer. Apply `fabric-orderer-deplyoment.yaml` to your cluster.   But first, change the value of `ORDERER_GENERAL_LOCALMSPID` to your organization's msp (find it here `./fabric-config/orderer.yaml` value `LocalMSPID`).
 
 Create ebs volume
@@ -184,7 +184,7 @@ aws ec2 --profile opensolar --region us-west-2 create-volume --availability-zone
 
 Update `PersistentVolume` at `./deploy-aws/fabric-orderer-deplyoment.yaml` with volumeID of created ebs
 
-Run orderer deployment 
+Run orderer deployment
 
 ```shell
 kubectl apply -f ./fabric-orderer-deployment.yaml -n fabric-production
@@ -201,7 +201,7 @@ kubectl logs fabric-orderer-564897bb8c-lhz9d --tail 100 -n fabric-production
 ```
 
 #### 4.3. Peer
-Now it's time to start (and test) the peer node. 
+Now it's time to start (and test) the peer node.
 
 1. Create a new ebs volume
 
@@ -241,11 +241,11 @@ In order to pass the channel artifacts of the first channel, we package them int
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create channel artifacts
 
-./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/utilityemissionchannel.tx -channelID utilityemissionchannel -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/emissions-data.tx -channelID emissions-data -configPath ./fabric-config
 
 # Create configmap
 
-kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilityemissionchannel.tx -n fabric-production
+kubectl create cm emissions-data  --from-file=./channel-artifacts/emissions-data.tx -n fabric-production
 ```
 
 4. Create configmap of anchor peers update
@@ -254,7 +254,7 @@ Next, we create a second configmap of the peer nodes which contains the informat
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
 
-./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/emitrasanchors.tx -channelID utilityemissionchannel -asOrg opensolarx -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/emitrasanchors.tx -channelID emissions-data -asOrg opensolarx -configPath ./fabric-config
 
 kubectl create cm opensolarxanchors --from-file=./channel-artifacts/emitrasanchors.tx -n fabric-production
 ```
@@ -271,7 +271,7 @@ configmap/external-chaincode-builder-config
 ```
 
 6. Start peer
-Now it's time to start the peer. Apply `fabric-peer-deplyoment.yaml` to your cluster.  
+Now it's time to start the peer. Apply `fabric-peer-deplyoment.yaml` to your cluster.
 ```shell
 kubectl apply -f ./fabric-peer-deployment.yaml -n fabric-production
 ```
@@ -299,7 +299,7 @@ source ./setEnv.sh
 Run the command `peer channel create` and the value of yourdomain
 
 ```shell
-./bin/peer channel create -o ${ORDERER_ADDRESS} -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile $ORDERER_TLSCA
+./bin/peer channel create -o ${ORDERER_ADDRESS} -c emissions-data -f ./channel-artifacts/emissions-data.tx --outputBlock ./channel-artifacts/emissions-data.block --tls --cafile $ORDERER_TLSCA
 
 # Should print a similar output
 2021-01-11 10:53:30.112 MSK [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
@@ -311,7 +311,7 @@ Run the command `peer channel create` and the value of yourdomain
 3. Join Peer to Channel
 Run the command `peer channel join`
 ```shell
-./bin/peer channel join -b ./channel-artifacts/utilityemissionchannel.block
+./bin/peer channel join -b ./channel-artifacts/emissions-data.block
 
 # Should print a similar output
 2021-01-11 11:00:44.314 MSK [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
@@ -325,8 +325,8 @@ Run the command `peer channel join`
 
 # Should print similar output to
 2021-01-11 11:01:32.253 MSK [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
-Channels peers has joined: 
-utilityemissionchannel
+Channels peers has joined:
+emissions-data
 ```
 
 #### 4.5. Deploy chaincode
@@ -334,9 +334,9 @@ utilityemissionchannel
 
 ##### 1. Deploy marbles example chaincode as external service
 
-Next, we deploy a sample chaincode to the utilityemissionchannel. Follow the next steps carefully.
+Next, we deploy a sample chaincode to the emissions-data. Follow the next steps carefully.
 
-1.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric-production:7052"). If you use `fabric-production` namespace, than 
+1.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric-production:7052"). If you use `fabric-production` namespace, than
 ``` shell
 # change dir to chaincode/packaging
 parentdir="$(pwd)"
@@ -350,7 +350,7 @@ tar cfz marbles-chaincode.tgz code.tar.gz metadata.json
 $parentdir/bin/peer lifecycle chaincode install marbles-chaincode.tgz
 
 # Should print similar output to
-2021-01-16 13:20:31.383 MSK [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nHmarbles:d750084d91b0f536fb76471ed3854eb7892271a44b95563d1e7dbbb122f47469\022\007marbles" > 
+2021-01-16 13:20:31.383 MSK [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nHmarbles:d750084d91b0f536fb76471ed3854eb7892271a44b95563d1e7dbbb122f47469\022\007marbles" >
 2021-01-16 13:20:31.383 MSK [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: marbles:d750084d91b0f536fb76471ed3854eb7892271a44b95563d1e7dbbb122f47469
 ```
 
@@ -398,65 +398,65 @@ fabric-peer1-5cf97d7cb4-5gftb        2/2     Running   0          32m
 +++++Export chaincode package identifier+++++
 [...]
 +++++Query commited chaincode+++++
-Committed chaincode definition for chaincode 'marbles' on channel 'utilityemissionchannel':
+Committed chaincode definition for chaincode 'marbles' on channel 'emissions-data':
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [sampleOrg: true]
 ```
 
 1.6. Invoke chaincode manually by running the following commands. If you get the expected results without any errors, you successfully deployed Hyperledger Fabric to your Kubernetes cluster. Congrats on that!!
 ```shell
 # Invoke chaincode
-peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C utilityemissionchannel -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
+peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C emissions-data -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
 
 # Should print a similar output
 2021-01-10 14:44:46.497 CET [chaincodeCmd] ClientWait -> INFO 001 txid [c176a9600494de93d0e213b106f595fee421c7f3affa465ec1b05d1bd0ba4e55] committed with status (VALID) at fabric-peer1.emissionsaccounting.sampleOrg.de:443
-2021-01-10 14:44:46.497 CET [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 002 Chaincode invoke successful. result: status:200 
+2021-01-10 14:44:46.497 CET [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 002 Chaincode invoke successful. result: status:200
 
 
 # Query chaincode
-peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarble","marble1"]}'
+peer chaincode query -C emissions-data -n marbles -c '{"Args":["readMarble","marble1"]}'
 
 # Should print a similar output
 {"color":"blue","docType":"marble","name":"marble1","owner":"tom","size":35}
 ```
 
-##### 2. Deploy utilityemissions chaincode as external service
+##### 2. Deploy emissions chaincode as external service
 
-Next, we deploy a utilityemissions chaincode to the utilityemissionchannel. Follow the next steps carefully.
+Next, we deploy a emissions chaincode to the emissions-data. Follow the next steps carefully.
 
-2.1. First, we package and install the chaincode to one peer. In `utility-emissions-channel/chaincode/packaging/connection.json` set the value of `your address` (e.g., "address": "chaincode-utilityemissions.fabric-production:7052"). If you use `fabric-production` namespace, than 
+2.1. First, we package and install the chaincode to one peer. In `emissions-data/chaincode/packaging/connection.json` set the value of `your address` (e.g., "address": "chaincode-emissions.fabric-production:7052"). If you use `fabric-production` namespace, than
 ``` shell
-# change dir to utility-emissions-channel/chaincode/packaging
-cd utility-emissions-channel/chaincode/packaging
+# change dir to emissions-data/chaincode/packaging
+cd emissions-data/chaincode/packaging
 source ../../../multi-cloud-deployment/deploy-aws/setEnv.sh
 
 # tar connection.json and metadata.json
 tar cfz code.tar.gz connection.json
-tar cfz utilityemissions-chaincode.tgz code.tar.gz metadata.json
+tar cfz emissions-chaincode.tgz code.tar.gz metadata.json
 
 # install chaincecode package to peer
-../../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode install utilityemissions-chaincode.tgz
+../../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode install emissions-chaincode.tgz
 
 # Should print similar output to
-2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nQutilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97\022\020utilityemissions" > 
-2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
+2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nQemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97\022\020emissions" >
+2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
 ```
 
-2.2. Copy the chaincode package identifier (here: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `utility-emissions-channel/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+2.2. Copy the chaincode package identifier (here: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `emissions-data/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
 ```shell
 # Query installed chaincode of peer
 ../../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
 
 # Should print similar output to
 Installed chaincodes on peer:
-Package ID: utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: utilityemissions
+Package ID: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: emissions
 ```
 
-2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `utility-emissions-channel/chaincode/typescript`.
+2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `emissions-data/chaincode/typescript`.
 ``` shell
-docker build -t krybalko/utilityemissions-chaincode:0.0.3 .
+docker build -t krybalko/emissions-chaincode:0.0.3 .
 ```
 
-Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `krybalko/utilityemissions-chaincode:0.0.3` (Docker Hub, public)
+Next, you would need to push the docker image to an image registry. However, this has already been done and you can you use `krybalko/emissions-chaincode:0.0.3` (Docker Hub, public)
 
 
 2.4. Now we can start the chaincode. The next command will create one pod (1 container) with one service. Change the value of yournamespace
@@ -468,15 +468,15 @@ cd ../..
 kubectl apply -f ./chaincode/deploy/chaincode-deployment.yaml -n fabric-production
 
 # Should print similar output to
-deployment.apps/chaincode-utilityemissions created
-service/chaincode-utilityemissions created
+deployment.apps/chaincode-emissions created
+service/chaincode-emissions created
 
 # Wait for 1 minutes and check if peer is chaincode container is running
 kubectl get pods -n fabric-production
 
 # Should print a similar output
 NAME                                         READY   STATUS    RESTARTS   AGE
-chaincode-utilityemissions-89c496668-trf47   1/1     Running   0          22h
+chaincode-emissions-89c496668-trf47   1/1     Running   0          22h
 fabric-ca-f949798db-8fv2q                    1/1     Running   0          12d
 fabric-orderer-6b94b74596-29rww              1/1     Running   0          12d
 fabric-peer-77b54dc4cf-kf7xl                 2/2     Running   0          12d
@@ -490,19 +490,19 @@ fabric-peer-77b54dc4cf-kf7xl                 2/2     Running   0          12d
 
 # Should print a similar output
 +++++Export chaincode package identifier+++++
-utilityemissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
-utilityemissions
+emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
+emissions
 [...]
 +++++Query commited chaincode+++++
-Committed chaincode definition for chaincode 'utilityemissions' on channel 'utilityemissionchannel':
+Committed chaincode definition for chaincode 'emissions' on channel 'emissions-data':
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [opentaps: true]
 ```
 
-2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/utility-emissions-channel#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
+2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/emissions-data#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
 
-Make sure you have node modules installed in the utility-emissions-channel/docker-compose-setup directory
+Make sure you have node modules installed in the emissions-data/docker-compose-setup directory
 
-    $ cd utility-emissions-channel/docker-compose-setup
+    $ cd emissions-data/docker-compose-setup
     $ npm install
 
 and in the `multi-cloud-deployment/deploy-aws` directory run
@@ -511,16 +511,16 @@ and in the `multi-cloud-deployment/deploy-aws` directory run
 
 and
 
-    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
-    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
-    $ node ../../utility-emissions-channel/docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
+    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
 
 
 After seeding  you can run a script to record and get the emissions:
 ```shell
-# Record emission to utilityemissionchannel
+# Record emission to emissions-data
 $ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
 
 # Query emission data

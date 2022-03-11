@@ -11,11 +11,11 @@
 ## 1. Overview
 This document describes how to get your Hyperledger Fabric infrastructure ready to run on Kubernetes and connect with different organizations that host their infrastructure in their own Kubernetes cluster. (as of 2020-12-09)
 
-This readme file describes the deployment to a Kubernetes cluster hosted at Digital Ocean. If you want to deploy Hyperledger Fabric to AWS EKS follow the [instructions](./deploy-aws/README.md) in ./deploy-aws. 
+This readme file describes the deployment to a Kubernetes cluster hosted at Digital Ocean. If you want to deploy Hyperledger Fabric to AWS EKS follow the [instructions](./deploy-aws/README.md) in ./deploy-aws.
 
 ## 2. Architecture
 The following image shows a sample architecture of the multi-cloud deployment consisting of three organizations. The Hyperledger Fabric infrastructure of each organization is hosted separately in Kubernetes clusters.
-![Image of sample architecture](images/multi-cloud-deployment-utilityEmissionChannel.png)
+![Image of sample architecture](images/multi-cloud-deployment-EmissionChannel.png)
 
 The following image gives a high-level overview of the components of each organizations' Kubernetes cluster.
 ![Image of sample Kubernetes cluster](images/kubernetes-cluster-of-sampleOrg.png)
@@ -25,14 +25,14 @@ The following image gives a high-level overview of the components of each organi
 1. Create subdomains for fabric-ca, fabric-peer, and fabric-orderer, e.g., fabric-ca.emissionsaccounting.yourdomain.com
 2. Link subdomains to nginx ingress IP address (at cluster management level) after you've started the nginx ingress as describe in step 3.2.
 #### 3.2 Kubernetes
-You need to have a running Kubernetes cluster. You need to deploy one nginx ingress controller to your Kubernetes cluster. 
+You need to have a running Kubernetes cluster. You need to deploy one nginx ingress controller to your Kubernetes cluster.
 
 ###### Nginx Controller Config
 Go to https://github.com/kubernetes/ingress-nginx/tree/master/deploy/static/provider and copy the `deploy.yaml` file to your filesystem according to your cloud provider.
-In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/multi-cloud-deployment/deploy-digitalocean/kubernetes-ingress-controller-deployment.yaml#L353) of the nginx ingress for DigitalOcean (do). 
+In the `deploy.yaml` file add `--enable-ssl-passthrough` to the args section of the controller container. For an example, take a look at the deployment file [kubernetes-ingress-controller-deploy.yaml](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/multi-cloud-deployment/deploy-digitalocean/kubernetes-ingress-controller-deployment.yaml#L353) of the nginx ingress for DigitalOcean (do).
 
 ##### Ingress Service Config
-Next, you need to prepare your ingress to route the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. As a starting point you can use `deploy-digitalocean/ingress-fabric-services-deployment.yaml´. 
+Next, you need to prepare your ingress to route the subdomains of your Hyperledger Fabric infrastructure with `nginx.ingress.kubernetes.io/ssl-passthrough: "true"`. As a starting point you can use `deploy-digitalocean/ingress-fabric-services-deployment.yaml´.
 Set the following values according to your setup:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
@@ -47,7 +47,7 @@ Get fabric binaries in fabric version 2.2.1 and fabric-ca at version 1.4.9 and i
 curl -sSL https://bit.ly/2ysbOFE | bash -s -- 2.2.1 1.4.9 -d -s
 
 # include bin directory in path
-export PATH=${PWD}/bin:$PATH  
+export PATH=${PWD}/bin:$PATH
 ```
 
 #### 3.4 Kubernetes Namespace
@@ -82,7 +82,7 @@ kubectl create cm fabric-ca-server-config --from-file=./fabric-config/fabric-ca-
 # Should print a similar output
 configmap/fabric-ca-server-config created
 ```
-3. Adjust the deployment configuration of `./deploy-digitalocean/fabric-ca-deployment.yaml` according to your cloud provider. 
+3. Adjust the deployment configuration of `./deploy-digitalocean/fabric-ca-deployment.yaml` according to your cloud provider.
 4. Start fabric-ca
 
 Change value of `yournamespace`.
@@ -119,7 +119,7 @@ kubectl cp "<fabric-ca-pod>:/etc/hyperledger/fabric-ca-server/tls-cert.pem" "${F
 ```
 6. Configure ingress (Skip this step if this already happened)
 
-Adjust the deployment configuration of `./deploy-digitalocean/ingress-fabric-services-deployment.yaml` 
+Adjust the deployment configuration of `./deploy-digitalocean/ingress-fabric-services-deployment.yaml`
 Change:
 - name: name-of-your-ingress
 - host: sudomain-to-fabric-ca
@@ -142,7 +142,7 @@ Run the script
 #### 4.2. Orderer
 Once all the crypto material is created, we can start the orderer.
 
-1. Create orderer genesis block 
+1. Create orderer genesis block
 
 NOTE: For testing purposes, change the values of `configtx.yaml` in fabric-config. This is just a way for you to test the functionality of your configuration before you try to start interacting with nodes from different organizations. Values to change:
 - Name of the organization (sampleorg)
@@ -209,7 +209,7 @@ fabric-orderer1-56688dbbdc-r42ps   1/1     Running   0          106s
 ```
 
 #### 4.3. Peer
-Now it's time to start (and test) the peer node. 
+Now it's time to start (and test) the peer node.
 
 1. First, edit `./deploy-digitalocean/fabric-peer-deployment.yaml` and change the following values according to your configuration:
 
@@ -250,7 +250,7 @@ cd -
 In order to pass the channel artifacts of the first channel, we package them into a configmap which we'll mount to the pod. Changes the value of yournamespace.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create channel artifacts
-./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/utilityemissionchannel.tx -channelID utilityemissionchannel -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/emissions-data.tx -channelID emissions-data -configPath ./fabric-config
 
 # Should print a similar output
 2021-01-06 17:58:06.505 CET [common.tools.configtxgen] main -> INFO 001 Loading configuration
@@ -259,10 +259,10 @@ In order to pass the channel artifacts of the first channel, we package them int
 
 
 # Create configmap of channel tx
-kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilityemissionchannel.tx -n yournamespace
+kubectl create cm emissions-data  --from-file=./channel-artifacts/emissions-data.tx -n yournamespace
 
 # Should print a similar output
-configmap/utilityemissionchannel created
+configmap/emissions-data created
 ```
 
 4. Create configmap of anchor peers update
@@ -270,7 +270,7 @@ configmap/utilityemissionchannel created
 Next, we create a second configmap of the peer nodes which contains the information about the anchor peer. Changes the values of yournamespace, sampleOrg, and sampleorganchors.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
-./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/sampleOrganchors.tx -channelID utilityemissionchannel -asOrg sampleOrg -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/sampleOrganchors.tx -channelID emissions-data -asOrg sampleOrg -configPath ./fabric-config
 
 # Should print a similar output
 2021-01-06 17:59:17.746 CET [common.tools.configtxgen] main -> INFO 001 Loading configuration
@@ -297,7 +297,7 @@ configmap/external-chaincode-builder-config
 
 6. Start peer
 
-Now it's time to start the peer. Apply `./deploy-digitalocean/fabric-peer-deployment.yaml`to your cluster.  
+Now it's time to start the peer. Apply `./deploy-digitalocean/fabric-peer-deployment.yaml`to your cluster.
 ```shell
 # Change value of yournamespace
 kubectl apply -f ./deploy-digitalocean/fabric-peer-deployment.yaml -n yournamespace
@@ -335,7 +335,7 @@ source ./setEnv.sh
 
 Run the command `peer channel create` and the value of yourdomain
 ```shell
-./bin/peer channel create -o ${ORDERER_ADDRESS} -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile ${ORDERER_TLSCA}
+./bin/peer channel create -o ${ORDERER_ADDRESS} -c emissions-data -f ./channel-artifacts/emissions-data.tx --outputBlock ./channel-artifacts/emissions-data.block --tls --cafile ${ORDERER_TLSCA}
 
 # Should print a similar output
 2021-01-06 18:08:08.775 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
@@ -352,7 +352,7 @@ Run the command `peer channel create` and the value of yourdomain
 
 Run the command `peer channel join`
 ```shell
-./bin/peer channel join -b ./channel-artifacts/utilityemissionchannel.block
+./bin/peer channel join -b ./channel-artifacts/emissions-data.block
 
 # Should print a similar output
 2021-01-06 18:11:23.889 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
@@ -365,13 +365,13 @@ Run the command `peer channel join`
 
 # Should print similar output to
 2021-01-06 18:11:43.755 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
-Channels peers has joined: 
-utilityemissionchannel
+Channels peers has joined:
+emissions-data
 ```
 
 5. Deploy chaincode as external service
 
-Next, we deploy a sample chaincode to the utilityemissionchannel. Follow the next steps carefully.
+Next, we deploy a sample chaincode to the emissions-data. Follow the next steps carefully.
 
 5.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric:7052").
 ``` shell
@@ -386,7 +386,7 @@ tar cfz marbles-chaincode.tgz code.tar.gz metadata.json
 peer lifecycle chaincode install marbles-chaincode.tgz
 
 # Should print similar output to
-2021-01-10 14:16:07.493 CET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nHmarbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649\022\007marbles" > 
+2021-01-10 14:16:07.493 CET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 001 Installed remotely: response:<status:200 payload:"\nHmarbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649\022\007marbles" >
 2021-01-10 14:16:07.493 CET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: marbles:68219a1d6006f8b5a2eb0ad394b125670a279a7f7eaf816f30d86574af8df649
 ```
 
@@ -434,22 +434,22 @@ fabric-peer1-5cf97d7cb4-5gftb        2/2     Running   0          32m
 +++++Export chaincode package identifier+++++
 [...]
 +++++Query commited chaincode+++++
-Committed chaincode definition for chaincode 'marbles' on channel 'utilityemissionchannel':
+Committed chaincode definition for chaincode 'marbles' on channel 'emissions-data':
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [sampleOrg: true]
 ```
 
 5.6. Invoke chaincode manually by running the following commands. If you get the expected results without any errors, you successfully deployed Hyperledger Fabric to your Kubernetes cluster. Congrats on that!!
 ```shell
 # Invoke chaincode
-peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C utilityemissionchannel -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
+peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C emissions-data -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
 
 # Should print a similar output
 2021-01-10 14:44:46.497 CET [chaincodeCmd] ClientWait -> INFO 001 txid [c176a9600494de93d0e213b106f595fee421c7f3affa465ec1b05d1bd0ba4e55] committed with status (VALID) at fabric-peer1.emissionsaccounting.sampleOrg.de:443
-2021-01-10 14:44:46.497 CET [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 002 Chaincode invoke successful. result: status:200 
+2021-01-10 14:44:46.497 CET [chaincodeCmd] chaincodeInvokeOrQuery -> INFO 002 Chaincode invoke successful. result: status:200
 
 
 # Query chaincode
-peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarble","marble1"]}'
+peer chaincode query -C emissions-data -n marbles -c '{"Args":["readMarble","marble1"]}'
 
 # Should print a similar output
 {"color":"blue","docType":"marble","name":"marble1","owner":"tom","size":35}

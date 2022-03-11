@@ -1,0 +1,88 @@
+@startuml
+
+skinparam BoxPadding 50
+title "Locking Fabric Data using RequestManager"
+
+
+entity "Client Appliction" as client
+
+box "Utility\nEmissions\nChaincode" #Aqua
+entity "Chaincode" as dataCC
+entity "WorldState" as state
+end box
+
+
+box "DataLock\nChaincode"
+entity "Chaincode" as reqCC
+entity "WorldState" as reqState
+end box
+
+note over reqCC, reqState
+    Locks are stored as state on worldstate with key
+    LOCK_PREFIX::chaincode_name::key
+    chaincode_name: Emissions
+    key: uuid of emissions record
+end note
+
+== "Locking for requestId = req_id" ==
+client->reqCC: lock\n(method=getValidEmissions,\nparams=[]uuids)
+activate reqCC
+note over reqCC: remove locked\nuuid from params
+loop uuid in uuids
+    reqCC->reqState: getLock(uuid)
+    activate reqState
+    return Lock
+    reqCC->reqCC: if lock != null ; throw
+    reqCC->reqCC: freeUUIDs.push(uuid)
+end
+reqCC->dataCC: invoke(getValidEmissions,freeUUIDs)
+activate dataCC
+note over dataCC: remove invalid uuids\n>>>business logic
+loop uuid in freeUUIDs
+    dataCC->state: getState(uuid)
+    activate state
+    return emi = EmissionsRecord
+    dataCC->dataCC: if emi.tokenId != null;continue
+    dataCC->dataCC: validUUIDs.push(emi.uuid)
+end
+return validUUIDs
+note over reqCC: lock uuids
+loop uuid in validUUIDs
+    reqCC->reqState: putLock(uuid)
+    activate reqState
+    return error
+    reqCC->reqCC: if error != nil; throw
+    reqCC->reqCC: lockedUUID.push(uuid)
+end
+return lockedUUID
+
+== "Unlocking Data" ==
+client->reqCC: Unlock\n(method=updateEmissions,\nparams=[tokenId,partyId,uuids...])
+activate reqCC
+note over reqCC: check for locks
+loop uuid in uuids
+    reqCC->reqState: getLock(uuid)
+    activate reqState
+    return Lock
+    reqCC->reqCC: if lock == null ; throw
+    reqCC->reqCC: if lock.reqId != req_id ; throw
+    reqCC->reqCC: lockedUUIDs.push(uuid)
+end
+reqCC->dataCC: invoke(updateEmissions,params:{uuids:lockedUUIDs})
+activate dataCC
+note over dataCC: update logic
+loop uuid in validLockedUUIDs
+    dataCC->state: updateState(uuid,update)
+    activate state
+    return ok
+    dataCC->dataCC: updatedUUIds.push(emissions.uuid)
+end updatedUUIds
+return
+loop uuid in updatedUUIds
+    reqCC->reqState: unlock(uuid)
+    activate reqState
+    return OK
+end
+return OK
+
+@enduml

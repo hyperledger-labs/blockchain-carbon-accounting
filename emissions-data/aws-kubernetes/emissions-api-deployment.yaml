@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-emissions-api
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp2
+  awsElasticBlockStore:
+    fsType: ext4
+    volumeID: vol-xxxxxxxxxxxxxx
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: emissions-api-pvc
+  namespace: fabric-production
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: pv-emissions-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emissions-api
+  labels:
+    app: emissions-api
+spec:
+  selector:
+    matchLabels:
+      app: emissions-api
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: emissions-api
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: emissions-api
+          image: krybalko/emissions-api:0.0.1
+          imagePullPolicy: Always
+          env:
+            - name: ADMIN_USER_ID
+              value: "admin"
+            - name: ADMIN_USER_PASSWD
+              value: "adminpw"
+            - name: WALLET_PRIVATE_KEY
+              value: ""
+            - name: CONTRACT_ADDRESS
+              value: ""
+            - name: INFURA_PROJECT_ID
+              value: ""
+            - name: INFURA_PROJECT_SECRET
+              value: ""
+            - name: AWS_ACCESS_KEY_ID
+              value: "secret-id"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "secret-key"
+            - name: JSON_RPC_URL
+              value: ""
+            - name: NETWORK
+              value: ""
+          ports:
+            - containerPort: 9000
+          volumeMounts:
+            - name: config
+              mountPath: "/config"
+              readOnly: true
+            - name: emissions-api-server-pvc
+              mountPath: /appdata
+      volumes:
+        # You set volumes at the Pod level, then mount them into containers inside that Pod
+        - name: config
+          configMap:
+            # Provide the name of the ConfigMap you want to mount.
+            name: emissions-api-config
+            # An array of keys from the ConfigMap to create as files
+            items:
+            - key: "connection-opentaps.json"
+              path: "connection-opentaps.json"
+        - persistentVolumeClaim:
+            claimName: emissions-api-pvc
+          name: emissions-api-server-pvc

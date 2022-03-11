@@ -1,0 +1,57 @@
+{
+  "name": "emissions${ORG}",
+  "version": "1.0.0",
+  "client": {
+    "organization": "${ORG}",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        }
+      }
+    }
+  },
+  "organizations": {
+    "${ORG}": {
+      "mspid": "${ORG}",
+      "peers": ["fabric-peer.${ORG}.net"],
+      "certificateAuthorities": ["fabric-ca.${ORG}.net"]
+    }
+  },
+  "orderers": {
+    "fabric-orderer.${ORG}.net": {
+      "url": "grpcs://fabric-orderer.${ORG}.net:${ORDPORT}",
+      "grpcOptions": {
+        "ssl-target-name-override": "fabric-orderer.${ORG}.net",
+        "hostnameOverride": "fabric-orderer.${ORG}.net"
+      },
+      "tlsCACerts": {
+        "pem": "${ORDERERPEM}"
+      }
+    }
+  },
+  "peers": {
+    "fabric-peer.${ORG}.net": {
+      "url": "grpcs://fabric-peer.${ORG}.net:${P0PORT}",
+      "tlsCACerts": {
+        "pem": "${PEERPEM}"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "fabric-peer.${ORG}.net",
+        "hostnameOverride": "fabric-peer.${ORG}.net"
+      }
+    }
+  },
+  "certificateAuthorities": {
+    "fabric-ca.${ORG}.net": {
+      "url": "https://fabric-ca.${ORG}.net:${CAPORT}",
+      "caName": "fabric-ca.${ORG}.net",
+      "tlsCACerts": {
+        "pem": ["${CAPEM}"]
+      },
+      "httpOptions": {
+        "verify": false
+      }
+    }
+  }
+}

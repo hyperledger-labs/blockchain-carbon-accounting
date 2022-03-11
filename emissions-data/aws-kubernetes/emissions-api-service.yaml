@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: emissions-api
+  namespace: fabric-production
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:{region}:{user id}:certificate/{id}"
+spec:
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 9000
+    - name: https
+      port: 443
+      targetPort: 9000
+  loadBalancerSourceRanges:
+    - "x.x.x.x/32"
+  selector:
+    app: emissions-api

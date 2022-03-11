@@ -2,7 +2,7 @@ import upsAPI from 'ups-nodejs-sdk';
 import { UpsAPI, UpsResponse } from './ups-types';
 import { Output, Path } from './common-types';
 import { calc_distance } from './distance-utils';
-import { calc_emissions } from './emissions-utils';
+import { calc_freight_emissions } from './emissions-utils';
 
 function get_path(res: UpsResponse): Path {
   const shipment = res.Shipment;
@@ -77,7 +77,7 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
           output.to = path.to;
           calc_distance(path.from, path.to, isGround ? 'ground' : 'air').then((distance) => {
             output.distance = distance;
-            output.emissions = calc_emissions(weight, distance);
+            output.emissions = calc_freight_emissions(weight, distance);
             resolve(result);
           });
         } else {

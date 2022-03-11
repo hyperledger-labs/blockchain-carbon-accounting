@@ -1,0 +1,30 @@
+#---------------- Chaincode Deployment ---------------------
+apiVersion: apps/v1 # for versions before 1.8.0 use apps/v1beta1
+kind: Deployment
+metadata:
+  name: chaincode-emissions
+  labels:
+    app: chaincode-emissions
+spec:
+  selector:
+    matchLabels:
+      app: chaincode-emissions
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: chaincode-emissions
+    spec:
+      containers:
+        - image: krybalko/emissions-chaincode:0.0.2
+          name: chaincode-emissions
+          imagePullPolicy: Always
+          env:
+            - name: CHAINCODE_CCID
+              value: "emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97"
+            - name: CHAINCODE_ADDRESS
+              value: "0.0.0.0:7052"
+          ports:
+            - containerPort: 7052
+
