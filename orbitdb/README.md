@@ -107,4 +107,20 @@ npx esr src/dataLoader.ts load_utility_emissions conversion-factors-2021-flat-fi
 Then query (assuming this created zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m) (note: `--ipfsapi local` is a shortcut for `--ipfsapi http://127.0.0.1:5001/api/v0`, use the later form if your IPFS node is setup with a different API port):
 ```
 npx esr src/getData.ts --orbitaddress zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjBxaDvx2m --ipfsapi local --orbitdir orbitdb_local test
+
 ```
+
+## Querying the database
+
+The script `src/getData.ts` can be used to query the database specific rows of the database, like this:
+```
+$ npx esr  src/getData.ts --orbitaddress zdpuB21J5YVqyyNKx4isq3QUket12gx2zA1YTUr11Zwp2pArX activity-emissions 'scope 1' 'REFRIGERANT & OTHER' 'KYOTO PROTOCOL - STANDARD' 'PERFLUOROBUTANE (PFC-3-1-10)' 12 'kg'
+....
+{ emission: { value: 106320, uom: 'kg' }, year: 2021 }
+
+$ npx esr  src/getData.ts --orbitaddress zdpuB21J5YVqyyNKx4isq3QUket12gx2zA1YTUr11Zwp2pArX activity-emissions 'scope 3' 'HOTEL STAY' 'HOTEL STAY' 'ROMANIA' 4 'Room per night'
+....
+{ emission: { value: 102, uom: 'kg' }, year: 2021 }
+```
+
+Substitute your orbitdb's address from dataLoader or replicateDb for `zdpuB21J5YVqyyNKx4isq3QUket12gx2zA1YTUr11Zwp2pArX`.  Use the Scope, level 1, 2, 3, 4, and UOM for the rows of the `conversion-factors-2021-flat-file-automatic-processing.xls spreadsheet.
