@@ -95,7 +95,7 @@ async function process_group(output_array: OutputActivity[], g: GroupedResult, a
   for (const a of g.content) {
     const out: OutputActivity = { id: a.activity.id };
     if (a.error) out.error = a.error;
-    if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId;
+    if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId; 
     output_array.push(out);
   }
 }
@@ -166,3 +166,4 @@ if (fetchObjectPath) {
     console.log(JSON.stringify(output, null, 4));
   });
 }
+

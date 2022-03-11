@@ -104,6 +104,50 @@ export async function issue_emissions_tokens(
   return token;
 }
 
+export async function issue_emissions_tokens_with_issuee(
+  issuee: string,
+  total_emissions: number,
+  metadata: string,
+  hash: string,
+  ipfs_path: string
+) {
+  if (!logger_setup) {
+    setup(LOG_LEVEL, LOG_LEVEL);
+    logger_setup = true;
+  }
+  const tokens = new BigNumber(Math.round(total_emissions));
+  const bcConfig = new BCGatewayConfig();
+  const ethConnector = await bcConfig.ethConnector();
+  const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
+  const nowTime = Math.floor(new Date().getTime() / 1000);
+
+  const gateway = new EthNetEmissionsTokenGateway({
+    contractStoreKeychain: ethConnector.contractStoreKeychain,
+    ethClient: ethConnector.connector,
+    signer: signer,
+  });
+  const caller: IEthTxCaller = {
+    address: process.env.ETH_ISSUER_ACCT,
+    private: process.env.ETH_ISSUER_PRIVATE_KEY,
+  };
+  const input: IEthNetEmissionsTokenIssueInput = {
+    addressToIssue: issuee,
+    quantity: tokens.toNumber(),
+    fromDate: nowTime,
+    thruDate: nowTime,
+    automaticRetireDate: 0,
+    manifest: `ipfs://${ipfs_path} ${hash}`,
+    metadata: metadata,
+    description: "Emissions from shipments",
+  };
+  try {
+    const token = await gateway.issue(caller, input);
+    return token;
+  } catch (error) {
+    new Error(error);
+  }
+}
+
 export async function process_shipment(
   a: ShipmentActivity
 ): Promise<ActivityResult> {
@@ -238,6 +282,43 @@ export async function issue_tokens(
   }
   
   const token_res = await issue_emissions_tokens(
+    total_emissions,
+    JSON.stringify(metadata),
+    `${h.type}:${h.value}`,
+    ipfs_res.path
+  );
+  doc.token = token_res;
+  return token_res;
+}
+
+export async function issue_tokens_with_issuee(
+  issuee: string,
+  doc: GroupedResult,
+  activity_type: string,
+  publicKeys: string[],
+  mode = null
+) {
+  const content = JSON.stringify(doc);
+  const total_emissions = doc.total_emissions.value;
+  const h = hash_content(content);
+  // save into IPFS
+  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  // issue tokens
+  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
+  
+  // target format [{key: "key", value: "value"}, {,,,}]
+  const metadata = [
+    {key: "Total emissions", value: total_emissions_rounded},
+    {key: "UOM", value: "kgCO2e"},
+    {key: "Scope", value: 3},
+    {key: "Type", value: activity_type}
+  ];
+  if(mode) {
+    metadata.push({key: "Mode", value: mode});
+  }
+  
+  const token_res = await issue_emissions_tokens_with_issuee(
+    issuee,
     total_emissions,
     JSON.stringify(metadata),
     `${h.type}:${h.value}`,

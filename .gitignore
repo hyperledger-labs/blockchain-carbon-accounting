@@ -147,8 +147,14 @@ emissions-data/typescript_app/src/errors/clientError.js
 emissions-data/typescript_app/src/utils/logger.js
 open-offsets-directory/data/.~lock.VCS_retirements.csv#
 net-emissions-token-network/my_notes.txt
+
 supply-chain/src/*.js
 supply-chain/*.pem
+supply-chain/interface/node_modules
+supply-chain/interface/.env
+supply-chain/interface/keys
+supply-chain/input.json
+
 
 orbitdb/node_modules
 orbitdb/orbitdb*
