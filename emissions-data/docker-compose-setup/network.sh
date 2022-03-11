@@ -430,7 +430,7 @@ function startBlockchainExplorer() {
   echo " URL: http://localhost:8080/"
   echo " Username: exploreradmin"
   echo " Password: exploreradminpw"
-	echo 
+	echo
 }
 
 ## Stop blockchain explorer and remove docker container
@@ -443,7 +443,7 @@ function stopBlockchainExplorer() {
 
   echo
 	echo "===================== Blockchain Explorer stopped ===================== "
-	echo 
+	echo
 }
 
 
@@ -510,7 +510,7 @@ MAX_RETRY=5
 # default for delay between commands
 CLI_DELAY=3
 # channel name defaults to "mychannel"
-CHANNEL_NAME="utilityemissionchannel"
+CHANNEL_NAME="emissions-data"
 # chaincode name defaults to "basic"
 CC_NAME="emissionscontract"
 # chaincode path defaults to "NA"

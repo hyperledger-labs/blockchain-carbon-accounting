@@ -7,8 +7,8 @@ The following data is stored:
 - TLS certificates of the orderer nodes in `./organization/ORG_NAME/orderers/ORDEREr_ADDRESS/TLS/server.cert`
 - configtx.yaml file containing the initial configuration of the network
 - genesis-files
---- orderer.genesis.block 
---- utilityemissionchannel.tx
+--- orderer.genesis.block
+--- emissions-data.tx
 
 ### Create config maps of channel articats
 1. Orderer
@@ -20,5 +20,5 @@ kubectl create cm system-genesis-block  --from-file=./network-artifacts/genesis-
 2. Peer
 ```bash
 # Create configmap of channel tx
-kubectl create cm utilityemissionchannel  --from-file=./network-artifacts/genesis-files/utilityemissionchannel.tx -n yournamespace
+kubectl create cm emissions-data  --from-file=./network-artifacts/genesis-files/emissions-data.tx -n yournamespace
 ```

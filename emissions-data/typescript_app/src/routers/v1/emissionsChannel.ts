@@ -5,7 +5,7 @@ import {
     getEmissionsData,
     recordAuditedEmissionsToken,
     recordEmission,
-} from '../../controllers/EmissionsChannel';
+} from '../../controllers/emissionsChannel';
 
 const router = Router();
 

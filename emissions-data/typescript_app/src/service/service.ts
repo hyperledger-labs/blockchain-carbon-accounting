@@ -1,12 +1,12 @@
 import { PluginLedgerConnectorFabric } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import BCGatewayConfig from '../blockchain-gateway/config';
 import { DataLockGateway } from '../blockchain-gateway/datalock';
-import UtilityemissionchannelGateway from '../blockchain-gateway/EmissionsChannel';
+import EmissionsDataGateway from '../blockchain-gateway/emissionsChannel';
 import FabricRegistryGateway from '../blockchain-gateway/fabricRegistry';
 import EthNetEmissionsTokenGateway from '../blockchain-gateway/netEmissionsTokenNetwork';
 import Signer from '../blockchain-gateway/signer';
 import AWSS3 from '../datasource/awsS3';
-import EmissionsChannelServiceOptions from './EmissionsChannel';
+import EmissionsChannelServiceOptions from './emissionsChannel';
 import FabricRegistryService from './fabricRegistry';
 export let fabricRegistryService: FabricRegistryService;
 export let EmissionsChannelService: EmissionsChannelServiceOptions;
@@ -40,7 +40,7 @@ export async function setup(): Promise<void> {
         contractStoreKeychain: ethConnector.contractStoreKeychain,
     });
 
-    const EmissionsGateway = new UtilityemissionchannelGateway({
+    const EmissionsGateway = new EmissionsDataGateway({
         fabricConnector: orgFabric.connector,
         signer: signer,
     });

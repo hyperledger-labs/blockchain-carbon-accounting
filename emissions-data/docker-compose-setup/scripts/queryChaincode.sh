@@ -1,4 +1,4 @@
-CHANNEL_NAME="utilityemissionchannel"
+CHANNEL_NAME="emissions-data"
 
 export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH

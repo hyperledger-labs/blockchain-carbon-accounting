@@ -92,8 +92,8 @@ spec:
           value: 0.0.0.0:9443
         - name: CORE_METRICS_PROVIDER
           value: prometheus
-        # - name: 
-        #   value: 
+        # - name:
+        #   value:
         volumeMounts:
           # - name: cm-configtx-yaml
           #   mountPath: /etc/hyperledger/fabric/configtx.yaml
@@ -101,9 +101,9 @@ spec:
           - name: sampleorganchors
             mountPath: /etc/hyperledger/fabric/channel-artifacts/sampleorganchors.tx
             subPath: sampleorganchors.tx
-          - name: utilityemissionchannel
-            mountPath: /etc/hyperledger/fabric/channel-artifacts/utilityemissionchannel.tx
-            subPath: utilityemissionchannel.tx
+          - name: emissions-data
+            mountPath: /etc/hyperledger/fabric/channel-artifacts/emissions-data.tx
+            subPath: emissions-data.tx
           - name: fabric-peer1-pvc
             mountPath: /var/hyperledger/production
             subPath: production
@@ -154,21 +154,21 @@ spec:
               - name: fabric-peer1-pvc
                 mountPath: /etc/hyperledger/fabric/crypto-material
                 subPath: crypto-material
-          
+
       volumes:
       - configMap:
           name: sampleorganchors
         name: sampleorganchorsanchors
       - configMap:
-          name: utilityemissionchannel
-        name: utilityemissionchannel
+          name: emissions-data
+        name: emissions-data
       - secret:
           secretName: peer1-crypto
         name: peer1-crypto
       - persistentVolumeClaim:
           claimName: fabric-peer1
         name: fabric-peer1-pvc
-      # External chaincode builder 
+      # External chaincode builder
       - name: builders-config-core-yaml
         configMap:
           name: external-chaincode-builder-config

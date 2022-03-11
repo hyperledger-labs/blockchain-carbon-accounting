@@ -1,14 +1,13 @@
 import chai from 'chai';
 import chaiHTTP from 'chai-http';
+import { v4 as uuid4 } from 'uuid';
+import { WsWallet } from 'ws-wallet';
+import { setupWebSocket } from './setup-ws';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
-import { WsWallet } from 'ws-wallet';
 chai.use(chaiHTTP);
 
-import { v4 as uuid4 } from 'uuid';
-import { setupWebSocket } from './setup-ws';
-
-const v1Base = 'http://localhost:8080/api/v1/utilityemissionchannel';
+const v1Base = 'http://localhost:8080/api/v1/emissions-data';
 
 const apiEndpoints = {
     newWsSessionId: '/identity/webSocket',

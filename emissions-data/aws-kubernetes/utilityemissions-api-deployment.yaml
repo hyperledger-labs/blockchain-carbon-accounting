@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pv-utilityemissions-api
+  name: pv-emissions-api
 spec:
   capacity:
     storage: 5Gi
@@ -15,7 +15,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: utilityemissions-api-pvc
+  name: emissions-api-pvc
   namespace: fabric-production
 spec:
   accessModes:
@@ -23,30 +23,30 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  volumeName: pv-utilityemissions-api
+  volumeName: pv-emissions-api
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: utilityemissions-api
+  name: emissions-api
   labels:
-    app: utilityemissions-api
+    app: emissions-api
 spec:
   selector:
     matchLabels:
-      app: utilityemissions-api
+      app: emissions-api
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: utilityemissions-api
+        app: emissions-api
     spec:
       securityContext:
         fsGroup: 1000
       containers:
-        - name: utilityemissions-api
-          image: krybalko/utilityemissions-api:0.0.1
+        - name: emissions-api
+          image: krybalko/emissions-api:0.0.1
           imagePullPolicy: Always
           env:
             - name: ADMIN_USER_ID
@@ -75,18 +75,18 @@ spec:
             - name: config
               mountPath: "/config"
               readOnly: true
-            - name: utilityemissions-api-server-pvc
+            - name: emissions-api-server-pvc
               mountPath: /appdata
       volumes:
         # You set volumes at the Pod level, then mount them into containers inside that Pod
         - name: config
           configMap:
             # Provide the name of the ConfigMap you want to mount.
-            name: utilityemissions-api-config
+            name: emissions-api-config
             # An array of keys from the ConfigMap to create as files
             items:
             - key: "connection-opentaps.json"
               path: "connection-opentaps.json"
         - persistentVolumeClaim:
-            claimName: utilityemissions-api-pvc
-          name: utilityemissions-api-server-pvc
+            claimName: emissions-api-pvc
+          name: emissions-api-server-pvc

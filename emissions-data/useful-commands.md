@@ -34,14 +34,14 @@ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ## Express API - Registering admin and user, recording US emissions, auditing emissions to ERC1155 token
 
 ```bash
-curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll/admin" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"orgName\":\"auditor1\"}"
+curl -X POST "http://localhost:9000/api/v1/emissions-data/registerEnroll/admin" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"orgName\":\"auditor1\"}"
 
-curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/registerEnroll/user" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"userId\":\"testuser1\",\"orgName\":\"auditor1\",\"affiliation\":\"auditor1.department1\"}"
+curl -X POST "http://localhost:9000/api/v1/emissions-data/registerEnroll/user" -H  "accept: */*" -H  "Content-Type: application/json" -d "{\"userId\":\"testuser1\",\"orgName\":\"auditor1\",\"affiliation\":\"auditor1.department1\"}"
 
-curl -X POST "http://localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordEmissions" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "userId=testuser1" -F "orgName=auditor1" -F "utilityId=USA_EIA_11208" -F "partyId=1234567890" -F "fromDate=2018-01-06T10:10:09Z" -F "thruDate=2018-12-06T10:10:09Z" -F "energyUseAmount=200" -F "energyUseUom=KWH"
+curl -X POST "http://localhost:9000/api/v1/emissions-data/emissionscontract/recordEmissions" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "userId=testuser1" -F "orgName=auditor1" -F "utilityId=USA_EIA_11208" -F "partyId=1234567890" -F "fromDate=2018-01-06T10:10:09Z" -F "thruDate=2018-12-06T10:10:09Z" -F "energyUseAmount=200" -F "energyUseUom=KWH"
 
 # Call `recordAuditedEmissionsToken` to issue audited tokens to the contract
-curl -H 'Content-Type: application/json'  -X POST 'localhost:9000/api/v1/utilityemissionchannel/emissionscontract/recordAuditedEmissionsToken' -d '{
+curl -H 'Content-Type: application/json'  -X POST 'localhost:9000/api/v1/emissions-data/emissionscontract/recordAuditedEmissionsToken' -d '{
     "userId": "userid",
     "orgName": "auditor1",
     "partyId": "xxxxxxxxx",

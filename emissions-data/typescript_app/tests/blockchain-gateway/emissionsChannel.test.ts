@@ -4,7 +4,7 @@ import { SHA256 } from 'crypto-js';
 import { config } from 'dotenv';
 import { v4 as uuid4 } from 'uuid';
 import BCGatewayConfig from '../../src/blockchain-gateway/config';
-import UtilityemissionchannelGateway from '../../src/blockchain-gateway/EmissionsChannel';
+import EmissionsDataGateway from '../../src/blockchain-gateway/emissionsChannel';
 import { IFabricTxCaller } from '../../src/blockchain-gateway/I-gateway';
 import Signer from '../../src/blockchain-gateway/signer';
 import AWSS3 from '../../src/datasource/awsS3';
@@ -22,7 +22,7 @@ config();
 
 const mockUtilityID = 'USA_EIA_11208';
 
-describe('UtilityemissionchannelGateway', () => {
+describe('EmissionsDataGateway', () => {
     const bcConfig = new BCGatewayConfig();
     const adminVaultToken = 'tokenId';
 
@@ -35,7 +35,7 @@ describe('UtilityemissionchannelGateway', () => {
     function tests(caller) {
         const signer = new Signer('vault web-socket', 'inMemoryKeychain', 'plain');
         const org = bcConfig.fabricConnector();
-        const EmissionsGateway = new UtilityemissionchannelGateway({
+        const EmissionsGateway = new EmissionsDataGateway({
             fabricConnector: org.connector,
             signer: signer,
         });
@@ -135,7 +135,7 @@ describe('UtilityemissionchannelGateway', () => {
             const emissionSelector = (year: string) => ({
                 selector: {
                     class: {
-                        $eq: 'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem',
+                        $eq: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
                     },
                     division_id: {
                         $eq: 'WECC',
@@ -151,7 +151,7 @@ describe('UtilityemissionchannelGateway', () => {
             });
 
             await agent
-                .post('/utilityemissionchannel_utilityemissions/_find')
+                .post('/emissions-data_emissions/_find')
                 .set('content-type', 'application/json')
                 .send(emissionSelector('2018'))
                 .then((response) => {
@@ -171,7 +171,7 @@ describe('UtilityemissionchannelGateway', () => {
                 });
 
             await agent
-                .post('/utilityemissionchannel_utilityemissions/_find')
+                .post('/emissions-data_emissions/_find')
                 .set('content-type', 'application/json')
                 .send(emissionSelector('2019'))
                 .then((response) => {
@@ -229,12 +229,12 @@ describe('UtilityemissionchannelGateway', () => {
             });
 
             await agent
-                .post('/utilityemissionchannel_utilityemissions/_find')
+                .post('/emissions-data_emissions/_find')
                 .set('content-type', 'application/json')
                 .send({
                     selector: {
                         class: {
-                            $eq: 'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem',
+                            $eq: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
                         },
                         division_id: {
                             $eq: 'WECC',
@@ -265,12 +265,12 @@ describe('UtilityemissionchannelGateway', () => {
                 });
 
             await agent
-                .post('/utilityemissionchannel_utilityemissions/_find')
+                .post('/emissions-data_emissions/_find')
                 .set('content-type', 'application/json')
                 .send({
                     selector: {
                         class: {
-                            $eq: 'org.hyperledger.blockchain-carbon-accounting.utilityemissionsfactoritem',
+                            $eq: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
                         },
                         division_id: {
                             $eq: 'Germany',

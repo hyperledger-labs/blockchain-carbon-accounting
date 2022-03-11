@@ -250,7 +250,7 @@ cd -
 In order to pass the channel artifacts of the first channel, we package them into a configmap which we'll mount to the pod. Changes the value of yournamespace.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create channel artifacts
-./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/utilityemissionchannel.tx -channelID utilityemissionchannel -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputCreateChannelTx ./channel-artifacts/emissions-data.tx -channelID emissions-data -configPath ./fabric-config
 
 # Should print a similar output
 2021-01-06 17:58:06.505 CET [common.tools.configtxgen] main -> INFO 001 Loading configuration
@@ -259,10 +259,10 @@ In order to pass the channel artifacts of the first channel, we package them int
 
 
 # Create configmap of channel tx
-kubectl create cm utilityemissionchannel  --from-file=./channel-artifacts/utilityemissionchannel.tx -n yournamespace
+kubectl create cm emissions-data  --from-file=./channel-artifacts/emissions-data.tx -n yournamespace
 
 # Should print a similar output
-configmap/utilityemissionchannel created
+configmap/emissions-data created
 ```
 
 4. Create configmap of anchor peers update
@@ -270,7 +270,7 @@ configmap/utilityemissionchannel created
 Next, we create a second configmap of the peer nodes which contains the information about the anchor peer. Changes the values of yournamespace, sampleOrg, and sampleorganchors.
 ```shell
 # run the tool configtxgen with the sample confitgtx.yaml file you created in section 1 of chapter 4.2 to create anchros peers update.
-./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/sampleOrganchors.tx -channelID utilityemissionchannel -asOrg sampleOrg -configPath ./fabric-config
+./bin/configtxgen -profile MultipleOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/sampleOrganchors.tx -channelID emissions-data -asOrg sampleOrg -configPath ./fabric-config
 
 # Should print a similar output
 2021-01-06 17:59:17.746 CET [common.tools.configtxgen] main -> INFO 001 Loading configuration
@@ -335,7 +335,7 @@ source ./setEnv.sh
 
 Run the command `peer channel create` and the value of yourdomain
 ```shell
-./bin/peer channel create -o ${ORDERER_ADDRESS} -c utilityemissionchannel -f ./channel-artifacts/utilityemissionchannel.tx --outputBlock ./channel-artifacts/utilityemissionchannel.block --tls --cafile ${ORDERER_TLSCA}
+./bin/peer channel create -o ${ORDERER_ADDRESS} -c emissions-data -f ./channel-artifacts/emissions-data.tx --outputBlock ./channel-artifacts/emissions-data.block --tls --cafile ${ORDERER_TLSCA}
 
 # Should print a similar output
 2021-01-06 18:08:08.775 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
@@ -352,7 +352,7 @@ Run the command `peer channel create` and the value of yourdomain
 
 Run the command `peer channel join`
 ```shell
-./bin/peer channel join -b ./channel-artifacts/utilityemissionchannel.block
+./bin/peer channel join -b ./channel-artifacts/emissions-data.block
 
 # Should print a similar output
 2021-01-06 18:11:23.889 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
@@ -366,12 +366,12 @@ Run the command `peer channel join`
 # Should print similar output to
 2021-01-06 18:11:43.755 CET [channelCmd] InitCmdFactory -> INFO 001 Endorser and orderer connections initialized
 Channels peers has joined:
-utilityemissionchannel
+emissions-data
 ```
 
 5. Deploy chaincode as external service
 
-Next, we deploy a sample chaincode to the utilityemissionchannel. Follow the next steps carefully.
+Next, we deploy a sample chaincode to the emissions-data. Follow the next steps carefully.
 
 5.1. First, we package and install the chaincode to one peer. In `./chaincode/packacking/connection.json` replace the value of `yournamespace` (e.g., "address": "chaincode-marbles.fabric:7052").
 ``` shell
@@ -434,14 +434,14 @@ fabric-peer1-5cf97d7cb4-5gftb        2/2     Running   0          32m
 +++++Export chaincode package identifier+++++
 [...]
 +++++Query commited chaincode+++++
-Committed chaincode definition for chaincode 'marbles' on channel 'utilityemissionchannel':
+Committed chaincode definition for chaincode 'marbles' on channel 'emissions-data':
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [sampleOrg: true]
 ```
 
 5.6. Invoke chaincode manually by running the following commands. If you get the expected results without any errors, you successfully deployed Hyperledger Fabric to your Kubernetes cluster. Congrats on that!!
 ```shell
 # Invoke chaincode
-peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C utilityemissionchannel -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
+peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C emissions-data -n marbles --peerAddresses ${CORE_PEER_ADDRESS} --tlsRootCertFiles ${CORE_PEER_TLS_ROOTCERT_FILE} -c '{"Args":["initMarble","marble1","blue","35","tom"]}' --waitForEvent
 
 # Should print a similar output
 2021-01-10 14:44:46.497 CET [chaincodeCmd] ClientWait -> INFO 001 txid [c176a9600494de93d0e213b106f595fee421c7f3affa465ec1b05d1bd0ba4e55] committed with status (VALID) at fabric-peer1.emissionsaccounting.sampleOrg.de:443
@@ -449,7 +449,7 @@ peer chaincode invoke -o ${ORDERER_ADDRESS} --tls --cafile ${ORDERER_TLSCA} -C u
 
 
 # Query chaincode
-peer chaincode query -C utilityemissionchannel -n marbles -c '{"Args":["readMarble","marble1"]}'
+peer chaincode query -C emissions-data -n marbles -c '{"Args":["readMarble","marble1"]}'
 
 # Should print a similar output
 {"color":"blue","docType":"marble","name":"marble1","owner":"tom","size":35}

@@ -1,4 +1,4 @@
-CHANNEL_NAME=${1:-"utilityemissionchannel"}
+CHANNEL_NAME=${1:-"emissions-data"}
 CC_NAME=${2:-"emissionscontract"}
 CC_SRC_PATH=${3:-"NA"}
 CC_SRC_LANGUAGE=${4:-"javascript"}

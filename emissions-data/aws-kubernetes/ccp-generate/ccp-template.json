@@ -1,5 +1,5 @@
 {
-  "name": "utilityemission-${ORG}",
+  "name": "emissions${ORG}",
   "version": "1.0.0",
   "client": {
     "organization": "${ORG}",

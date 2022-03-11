@@ -1,8 +1,8 @@
-CHANNEL_NAME="utilityemissionchannel"
+CHANNEL_NAME="emissions-data"
 CC_NN=${2}
 LOG_FILE_NAME=chaincode${2}_log.txt
 
-export CHAINCODE_NAME=utilityemissions
+export CHAINCODE_NAME=emissions
 export FABRIC_CFG_PATH=$PWD/fabric-config/
 export PATH=${PWD}/bin:$PATH
 
@@ -57,13 +57,13 @@ echo
 echo $CHAINCODE_NAME
 echo
 echo "+++++Commit chaincode+++++"
-./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --tls --cafile ${ORDERER_TLSCA} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --peerAddresses ${CORE_PEER_ADDRESS_1} --tlsRootCertFiles ${PEER_ROOT_SERT_1} --peerAddresses ${CORE_PEER_ADDRESS_2} --tlsRootCertFiles ${PEER_ROOT_SERT_2} --version 1.0 --sequence 1
+./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --tls --cafile ${ORDERER_TLSCA} --channelID emissions-data --name ${CHAINCODE_NAME} --peerAddresses ${CORE_PEER_ADDRESS_1} --tlsRootCertFiles ${PEER_ROOT_SERT_1} --peerAddresses ${CORE_PEER_ADDRESS_2} --tlsRootCertFiles ${PEER_ROOT_SERT_2} --version 1.0 --sequence 1
 
 sleep 10
 
 echo
 echo "+++++Query commited chaincode+++++"
-./bin/peer lifecycle chaincode querycommitted --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --cafile ${ORDERER_ADDRESS}
+./bin/peer lifecycle chaincode querycommitted --channelID emissions-data --name ${CHAINCODE_NAME} --cafile ${ORDERER_ADDRESS}
 
 
 echo "===================== Query Data Lock chaincode on $PEERS on channel '$CHANNEL_NAME' ===================== "
@@ -73,12 +73,12 @@ CHAINCODE_NAME=datalock
 echo $CHAINCODE_NAME
 echo
 echo "+++++Commit chaincode+++++"
-./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --tls --cafile ${ORDERER_TLSCA} --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --peerAddresses ${CORE_PEER_ADDRESS_1} --tlsRootCertFiles ${PEER_ROOT_SERT_1} --peerAddresses ${CORE_PEER_ADDRESS_2} --tlsRootCertFiles ${PEER_ROOT_SERT_2} --version 1.0 --sequence 1
+./bin/peer lifecycle chaincode commit -o ${ORDERER_ADDRESS} --ordererTLSHostnameOverride ${ORDERER_OVERRIDE} --tls --cafile ${ORDERER_TLSCA} --channelID emissions-data --name ${CHAINCODE_NAME} --peerAddresses ${CORE_PEER_ADDRESS_1} --tlsRootCertFiles ${PEER_ROOT_SERT_1} --peerAddresses ${CORE_PEER_ADDRESS_2} --tlsRootCertFiles ${PEER_ROOT_SERT_2} --version 1.0 --sequence 1
 
 sleep 10
 
 echo
 echo "+++++Query commited chaincode+++++"
-./bin/peer lifecycle chaincode querycommitted --channelID utilityemissionchannel --name ${CHAINCODE_NAME} --cafile ${ORDERER_ADDRESS}
+./bin/peer lifecycle chaincode querycommitted --channelID emissions-data --name ${CHAINCODE_NAME} --cafile ${ORDERER_ADDRESS}
 ### Examples
 # sudo bash ./scripts/commitCCExt.sh 1 1

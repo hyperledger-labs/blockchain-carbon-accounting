@@ -16,34 +16,31 @@ export interface IWebSocketKey {
 }
 
 // ##############################################################
-// gateway to utilityemissionchannel
+// gateway to emissions-data
 // ##############################################################
-export interface IUtilityemissionchannelGateway {
+export interface IEmissionsDataGateway {
     recordEmissions(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelRecordEmissionsInput,
-    ): Promise<IUtilityemissionchannelEmissionData>;
-    getEmissionData(
-        caller: IFabricTxCaller,
-        uuid: string,
-    ): Promise<IUtilityemissionchannelEmissionData>;
+        input: IEmissionsDataRecordEmissionsInput,
+    ): Promise<IEmissionsDataEmission>;
+    getEmissionData(caller: IFabricTxCaller, uuid: string): Promise<IEmissionsDataEmission>;
 
     getEmissionsRecords(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelGetEMissionsRecordsInput,
-    ): Promise<IUtilityemissionchannelEmissionData[]>;
+        input: IEmissionsDataGetEMissionsRecordsInput,
+    ): Promise<IEmissionsDataEmission[]>;
 
     getAllEmissionsDataByDateRange(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelGetAllEmissionsDataByDateRangeInput,
-    ): Promise<IUtilityemissionchannelEmissionData[]>;
+        input: IEmissionsDataGetAllEmissionsDataByDateRangeInput,
+    ): Promise<IEmissionsDataEmission[]>;
     updateEmissionsMintedToken(
         caller: IFabricTxCaller,
-        input: IUtilityemissionchannelUpdateEmissionsMintedTokenInput,
+        input: IEmissionsDataUpdateEmissionsMintedTokenInput,
     ): Promise<void>;
 }
 
-export interface IUtilityemissionchannelRecordEmissionsInput {
+export interface IEmissionsDataRecordEmissionsInput {
     utilityId: string;
     partyId: string;
     fromDate: string;
@@ -54,7 +51,7 @@ export interface IUtilityemissionchannelRecordEmissionsInput {
     md5: string;
 }
 
-export interface IUtilityemissionchannelEmissionData {
+export interface IEmissionsDataEmission {
     uuid: string;
     utilityId: string;
     partyId: string;
@@ -70,7 +67,7 @@ export interface IUtilityemissionchannelEmissionData {
     tokenId: string;
 }
 
-export interface IUtilityemissionchannelEmissionMetadata {
+export interface IEmissionsDataEmissionMetadata {
     org: string;
     type: string;
     partyId: string[];
@@ -84,17 +81,17 @@ export interface IUtilityemissionchannelEmissionMetadata {
     thruDates: string[];
 }
 
-export interface IUtilityemissionchannelGetEMissionsRecordsInput {
+export interface IEmissionsDataGetEMissionsRecordsInput {
     utilityId: string;
     partyId: string;
 }
 
-export interface IUtilityemissionchannelGetAllEmissionsDataByDateRangeInput {
+export interface IEmissionsDataGetAllEmissionsDataByDateRangeInput {
     fromDate: string;
     thruDate: string;
 }
 
-export interface IUtilityemissionchannelUpdateEmissionsMintedTokenInput {
+export interface IEmissionsDataUpdateEmissionsMintedTokenInput {
     tokenId: string;
     partyId: string;
     uuids: string[];

@@ -2,16 +2,16 @@ import {
     FabricContractInvocationType,
     PluginLedgerConnectorFabric,
 } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
+import ClientError from '../errors/clientError';
 import { ledgerLogger } from '../utils/logger';
 import {
-    IFabricTxCaller,
     IDataLockGateway,
+    IFabricTxCaller,
     ITxDetails,
     ITxStageUpdateInput,
     ITxStageUpdateOutput,
 } from './I-gateway';
 import Signer from './signer';
-import ClientError from '../errors/clientError';
 
 interface IDataLockGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;
@@ -20,7 +20,7 @@ interface IDataLockGatewayOptions {
 export class DataLockGateway implements IDataLockGateway {
     private readonly className = 'DataLockGateway';
     private readonly ccName = 'datalock';
-    private readonly channelName = 'utilityemissionchannel';
+    private readonly channelName = 'emissions-data';
 
     constructor(private readonly opts: IDataLockGatewayOptions) {}
 

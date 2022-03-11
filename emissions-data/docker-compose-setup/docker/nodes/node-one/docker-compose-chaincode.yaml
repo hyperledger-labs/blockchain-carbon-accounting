@@ -8,11 +8,11 @@ networks:
   carbonAccounting:
 
 services:
-  chaincode-utilityemissions1:
-    container_name: chaincode-utilityemissions1.carbonAccounting.com
-    image: zzocker20/utilityemissions-chaincode:0.0.6
+  chaincode-emissions1:
+    container_name: chaincode-emissions1.carbonAccounting.com
+    image: zzocker20/emissions-chaincode:0.0.6
     environment:
-      - CHAINCODE_CCID=utilityemissions:b7da638fdad84f463798742c0f6a50d166a81add7a639f836448aa5b24943075
+      - CHAINCODE_CCID=emissions:b7da638fdad84f463798742c0f6a50d166a81add7a639f836448aa5b24943075
       - CHAINCODE_ADDRESS=0.0.0.0:9998
     ports:
       - "9998:9998"

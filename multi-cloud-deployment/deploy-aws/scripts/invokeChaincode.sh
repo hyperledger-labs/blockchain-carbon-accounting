@@ -1,5 +1,5 @@
-CHANNEL_NAME="utilityemissionchannel"
-CC_NAME="utilityemissions"
+CHANNEL_NAME="emissions-data"
+CC_NAME="emissions"
 
 # set env
 . setEnv.sh

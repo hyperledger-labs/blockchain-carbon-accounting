@@ -1,7 +1,7 @@
 #!/bin/bash
-CHANNEL_NAME="utilityemissionchannel"
+CHANNEL_NAME="emissions-data"
 #CC_NAME="emissionscontract"
-CC_NAME="utilityemissions"
+CC_NAME="emissions"
 # CC_SRC_PATH=${3:-"NA"}
 # CC_SRC_LANGUAGE=${4:-"javascript"}
 # CC_VERSION=${5:-"1.0"}

@@ -19,21 +19,21 @@
 		}
 	},
 	"channels": {
-		"utilityemissionchannel": {
-			"peers": {
-				"peer1.auditor1.carbonAccounting.com": {}
-			},
-			"connection": {
-				"timeout": {
-					"peer": {
-						"endorser": "6000",
-						"eventHub": "6000",
-						"eventReg": "6000"
-					}
-				}
-			}
-		}
-	},
+    "emissions-data": {
+      "peers": {
+        "peer1.auditor1.carbonAccounting.com": {}
+      },
+      "connection": {
+        "timeout": {
+          "peer": {
+            "endorser": "6000",
+            "eventHub": "6000",
+            "eventReg": "6000"
+          }
+        }
+      }
+    }
+  },
 	"organizations": {
 		"auditor1": {
 			"mspid": "auditor1",
