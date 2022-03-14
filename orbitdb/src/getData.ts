@@ -85,6 +85,51 @@ let db: OrbitDBService
     process.exit(0)
   })
   .command(
+    "factor <scope> [level1] [level2] [level3] [uom]",
+    "Lookup an emission factor",
+    (yargs) => {
+      yargs
+        .positional("scope", {
+          describe: 'The activity scope, eg: "scope 1"',
+          type: "string",
+        })
+        .positional("level1", {
+          describe: "Activity level 1",
+          type: "string",
+        })
+        .positional("level2", {
+          describe: "Activity level 2",
+          type: "string",
+        })
+        .positional("level3", {
+          describe: "Activity level 3",
+          type: "string",
+        })
+        .positional("uom", {
+          describe: 'Activity uom, eg: "kg"',
+          type: "string",
+        })
+    },
+    async (args) => {
+      await init(args)
+      try {
+        console.log(
+          db.getEmissionsFactors({
+            scope: args.scope,
+            level_1: args.level1,
+            level_2: args.level2,
+            level_3: args.level3,
+            activity_uom: args.uom,
+            activity: 1,
+          })
+        )
+      } catch (e) {
+        console.log('Error', e)
+      }
+      process.exit(0)
+    }
+  )
+  .command(
     "activity-emissions <scope> <level1> <level2> <level3> <amount> [uom]",
     "Calculate the emissions for an activity",
     (yargs) => {

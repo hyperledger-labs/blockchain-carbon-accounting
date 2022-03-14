@@ -275,6 +275,20 @@ export class OrbitDBService {
     return utilityFactors[0];
   };
 
+  public getEmissionsFactors = (
+    activity: Partial<ActivityInterface>
+  ): EmissionsFactorInterface[] => {
+    return OrbitDBService._db.query((doc: EmissionsFactorInterface) => {
+      if (doc.class !== EMISSIONS_FACTOR_CLASS_IDENTIFER) return false;
+      if (activity.scope && doc.scope?.toUpperCase() !== activity.scope.toUpperCase()) return false;
+      if (activity.level_1 && doc.level_1?.toUpperCase() !== activity.level_1.toUpperCase()) return false;
+      if (activity.level_2 && doc.level_2?.toUpperCase() !== activity.level_2.toUpperCase()) return false;
+      if (activity.level_3 && doc.level_3?.toUpperCase() !== activity.level_3.toUpperCase()) return false;
+      if (activity.activity_uom && doc.activity_uom?.toUpperCase() !== activity.activity_uom.toUpperCase()) return false;
+      return true;
+    }) as EmissionsFactorInterface[];
+  };
+
   public getEmissionsFactorByScope = (
     scope: string
   ): EmissionsFactorInterface[] => {
