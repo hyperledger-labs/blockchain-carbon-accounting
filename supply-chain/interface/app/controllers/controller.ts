@@ -25,25 +25,22 @@ async function process_group(issuee: string, output_array: OutputActivity[], g: 
 
 export function issueToken(req: Request, res: Response) {
 
-    // get verbose flag
     const verbose = req.body.verbose;
-    
+    const pretend = req.body.pretend;
     const issuee = req.body.issuee;
-    if(issuee == undefined) {
+
+    console.log(`Start request, issue to ${issuee} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issuee == undefined) {
+        console.log('== 400 No issuee.')
         return res.status(400).json({
             status: "failed",
             msg: "Issuee was not given."
         });
     }
 
-    // user can upload multiple files
+    // user can upload multiple files, those are the input file and the keys
     const files = req.files;
-    if(files.length == 0) {
-        return res.status(400).json({
-            status: "failed",
-            msg: "Key files was not given."
-        });
-    }
+    console.log('== files?', files)
     const pubKeys: string[] = [];
     let data = undefined;
     for (const group in files) {
@@ -60,47 +57,58 @@ export function issueToken(req: Request, res: Response) {
         }
     }
 
-    if(data == undefined || data.activities == undefined) {
+    if (!pubKeys.length && !pretend) {
+        console.log('== 400 No keys.')
         return res.status(400).json({
             status: "failed",
-            msg: "There is no any data."
+            msg: "There was no public key file given."
+        });
+    }
+    if (data == undefined || data.activities == undefined) {
+        console.log('== 400 No activities.')
+        return res.status(400).json({
+            status: "failed",
+            msg: "There was no input data to process."
         });
     }
 
     process_activities(data.activities).then(async (activities)=>{
         // group the resulting emissions per activity type, and for shipment type group by mode:
         const grouped_by_type = group_processed_activities(activities);
+        if (pretend) {
+            return grouped_by_type;
+        }
         const output_array: OutputActivity[] = [];
         // now we can emit the tokens for each group and prepare the relevant data for final output
-        try {
-            for (const t in grouped_by_type) {
-                if (t === 'shipment') {
-                    const group = grouped_by_type[t] as GroupedResults;
-                    for (const mode in group) {
+        for (const t in grouped_by_type) {
+            if (t === 'shipment') {
+                const group = grouped_by_type[t] as GroupedResults;
+                for (const mode in group) {
                     const doc = group[mode] as GroupedResult;
                     await process_group(issuee, output_array, doc, t, pubKeys, mode);
-                    }
-                } else {
-                    const doc = grouped_by_type[t] as GroupedResult;
-                    await process_group(issuee, output_array, doc, t, pubKeys);
                 }
+            } else {
+                const doc = grouped_by_type[t] as GroupedResult;
+                await process_group(issuee, output_array, doc, t, pubKeys);
             }
-            // add back any errors we filtered before to the output
-            grouped_by_type.errors = activities.filter(a=>a.error);
-            if (verbose == 'true') return grouped_by_type;
-            // short form output: return an Array of objects with {id, tokenId, error }
-            for (const a of activities.filter(a=>a.error)) {
-                output_array.push({id: a.activity.id, error: a.error});
-            }
-            return output_array;
-        } catch (error) {
-            return res.status(201).json(error);
         }
+        // add back any errors we filtered before to the output
+        grouped_by_type.errors = activities.filter(a=>a.error);
+        if (verbose == 'true') return grouped_by_type;
+        // short form output: return an Array of objects with {id, tokenId, error }
+        for (const a of activities.filter(a=>a.error)) {
+            output_array.push({id: a.activity.id, error: a.error});
+        }
+        return output_array;
     }).then((output)=>{
         readdirSync('./keys').forEach(file => {
             unlinkSync(path.join('./keys', file));
         });
+        console.log('== 201 Output:', output)
         return res.status(201).json(output);
+    }).catch((error)=>{
+        console.log('== 201 Error:', error)
+        return res.status(201).json(error);
     });
 }
 
