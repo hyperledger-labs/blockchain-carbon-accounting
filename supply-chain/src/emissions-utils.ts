@@ -11,6 +11,8 @@ import {
   Activity,
   ActivityResult,
   Distance,
+  EmissionFactor,
+  Emissions,
   FlightActivity,
   is_shipment_activity,
   is_shipment_flight,
@@ -64,38 +66,48 @@ export function distance_in_km(distance: Distance): number {
   throw new Error(`Distance UOM ${distance.unit} not supported`);
 }
 
-export function calc_flight_emissions(
-  passengers: number,
-  seat_class: string,
-  distance: Distance
-): ValueAndUnit {
-  const distance_km = distance_in_km(distance);
-  // lookup the factor for different class
+export function get_freight_emission_factor(mode: string): EmissionFactor {
+  const f = carrier_emission_factors[mode];
+  if (!f) {
+    throw new Error(`Distance mode ${mode} not supported`);
+  }
+  return f;
+}
+
+export function get_flight_emission_factor(seat_class: string): EmissionFactor {
   const f = flight_emission_factors[seat_class];
   if (!f) {
     throw new Error(`Flight class ${seat_class} not supported`);
   }
+  return f;
+}
+
+export function calc_flight_emissions(
+  passengers: number,
+  seat_class: string,
+  distance: Distance
+): Emissions {
+  const distance_km = distance_in_km(distance);
+  // lookup the factor for different class
+  const f = get_flight_emission_factor(seat_class);
   // assume the factor uom is in person.km here
   const emissions = passengers * distance_km * f.amount;
   // assume all factors produce kgCO2e
-  return { value: emissions, unit: "kgCO2e" };
+  return { amount: { value: emissions, unit: "kgCO2e" }, factor: f };
 }
 
 export function calc_freight_emissions(
   weight_kg: number,
   distance: Distance
-): ValueAndUnit {
+): Emissions {
   const distance_km = distance_in_km(distance);
   // lookup factor for different 'mode'
-  const f = carrier_emission_factors[distance.mode];
-  if (!f) {
-    throw new Error(`Distance mode ${distance.mode} not supported`);
-  }
+  const f = get_freight_emission_factor(distance.mode);
   // most uom should be in tonne.km here
   const convert = get_convert_kg_for_uom(f.uom);
   const emissions = weight_kg * convert * distance_km * f.amount;
   // assume all factors produce kgCO2e
-  return { value: emissions, unit: "kgCO2e" };
+  return { amount: { value: emissions, unit: "kgCO2e" }, factor: f };
 }
 
 export async function issue_emissions_tokens(
@@ -264,7 +276,7 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
           total_emissions: { value: 0.0, unit: "kgCO2e" },
           content: [],
         }) as GroupedResult;
-        d.total_emissions.value += a.result.emissions.value;
+        d.total_emissions.value += a.result.emissions.amount.value;
         d.content.push(a);
         g[m] = d;
       } else {
@@ -273,7 +285,7 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
           content: [],
         }) as GroupedResult;
         const v = d.total_emissions as ValueAndUnit;
-        v.value += a.result.emissions.value;
+        v.value += a.result.emissions.amount.value;
         d.content.push(a);
         prev[t] = d;
       }
