@@ -117,3 +117,7 @@ Here is an example of a `input.json`:
 
 ```
 
+## REST API
+
+See [here](interface/README.md)
+

@@ -11,7 +11,7 @@ Run `npm install`.
 To replicate the data from the upstream server:
 
 ```
-npx esr src/replicateDb.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed --bootstrap /ip4/52.204.157.187/tcp/4001/p2p/12D3KooWPKZ2NrS2wGxCQLV2DsEtdZDNRsPhTzdx18PHNvJDeWrQ
+npx esr src/replicateDb.ts --orbitaddress zdpuAtGwo7LfcvBXy1vXtfULgqqW8sCzKUihUBcWviWB5Bz5Y --bootstrap /ip4/52.204.157.187/tcp/4001/p2p/12D3KooWPKZ2NrS2wGxCQLV2DsEtdZDNRsPhTzdx18PHNvJDeWrQ
 ```
 
 By default, this script starts an IPFS node.  You can also use another IPFS node, such as a local node started with `ipfs daemon --enable-pubsub-experiment`.  In that case, make sure you enable `pubsub`.  Then you can use `--ipfsapi local` to point to your local node.
@@ -22,11 +22,11 @@ To keep the Orbit DB process running use the `--serve` flag, this allows using t
 
 This script stores data in `./orbitIpfs` or another directory set by `--ipfsdir` and the orbit DB metadata in `./orbitdb` or another directory set by `--orbitdir`.
 
-Run `npx esr src/replicateDb.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed --ipfsapi local --orbitdir orbitdb_2 --serve` to replicate using the local IPFS daemon and keep it running.
+Run `npx esr src/replicateDb.ts --orbitaddress zdpuAtGwo7LfcvBXy1vXtfULgqqW8sCzKUihUBcWviWB5Bz5Y --ipfsapi local --orbitdir orbitdb_2 --serve` to replicate using the local IPFS daemon and keep it running.
 
 When this works, close the serving script and you can run:
 ```
-$ npx esr src/getData.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed test
+$ npx esr src/getData.ts --orbitaddress zdpuAtGwo7LfcvBXy1vXtfULgqqW8sCzKUihUBcWviWB5Bz5Y test
 { emission: { value: 17720, uom: 'kg' }, year: 2021 }
 ```
 
@@ -41,7 +41,7 @@ ipfs id
 
 ```
 
-Then you can run `npx esr src/replicateDb.ts --orbitaddress zdpuAwsVJEKAebXSPJj75UimncxdD11RJ1BbbRPYYVrVdCjed --orbitdir orbitdb_3 --bootstrap /ip4/127.0.0.1/tcp/4001/p2p/12D3KooWDGUDi3vMhdp3gSq2DM3hJoXBQmmkVPEPcRHZGGPGqit3` to replicate against the local node instead of the upstream server.
+Then you can run `npx esr src/replicateDb.ts --orbitaddress zdpuAtGwo7LfcvBXy1vXtfULgqqW8sCzKUihUBcWviWB5Bz5Y --orbitdir orbitdb_3 --bootstrap /ip4/127.0.0.1/tcp/4001/p2p/12D3KooWDGUDi3vMhdp3gSq2DM3hJoXBQmmkVPEPcRHZGGPGqit3` to replicate against the local node instead of the upstream server.
 
 ## Loading Data
 
