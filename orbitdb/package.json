@@ -28,6 +28,7 @@
     "orbit-db-docstore": "^1.12.0",
     "orbit-db-io": "^1.0.2",
     "orbit-db-store": "^4.3.3",
+    "uuid": "^8.3.2",
     "xlsx": "^0.18.3",
     "yargs": "^17.3.1"
   },

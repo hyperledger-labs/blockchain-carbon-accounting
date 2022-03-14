@@ -1,6 +1,7 @@
 import { Presets, SingleBar } from "cli-progress";
 import { readFile } from "xlsx";
 import yargs from "yargs";
+import { v4 as uuidv4 } from 'uuid';
 import { hideBin } from "yargs/helpers";
 import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
@@ -144,11 +145,6 @@ const load_emissions_factors = async (opts) => {
       // skip header rows
       if (row["Data Year"] == "YEAR") continue;
       // generate a unique for the row
-      const document_id =
-        "USA_" +
-        row["Data Year"] +
-        "_NERC_REGION_" +
-        row["NERC region acronym"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -156,7 +152,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: row["Data Year"].toString(),
         country: "USA",
         division_type: "NERC_REGION",
@@ -202,11 +198,9 @@ const load_emissions_factors = async (opts) => {
       if (row["Data Year"] == "YEAR") continue;
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
-      const document_id =
-        "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        uuid: document_id,
+        uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
         level_1: "Emissions Factor",
         level_2: "USA",
@@ -252,7 +246,6 @@ const load_emissions_factors = async (opts) => {
       if (row["Data Year"] == "YEAR") continue;
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
-      const document_id = "COUNTRY_USA_" + row["Data Year"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -260,7 +253,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: "COUNTRY: USA",
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "COUNTRY",
@@ -306,7 +299,6 @@ const load_emissions_factors = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
 
-      const document_id = "COUNTRY_USA_" + row["Data Year"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -314,7 +306,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: "COUNTRY: USA",
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "COUNTRY",
@@ -356,8 +348,6 @@ const load_emissions_factors = async (opts) => {
       if (row["Data Year"] == "YEAR") continue;
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
-      const document_id =
-        "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -365,7 +355,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: `STATE: ${row["State abbreviation"]}`,
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "STATE",
@@ -408,11 +398,6 @@ const load_emissions_factors = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
       // generate a unique for the row
-      const document_id =
-        "USA_" +
-        row["Data Year"] +
-        "_NERC_REGION_" +
-        row["NERC region acronym"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -420,7 +405,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "NERC_REGION",
@@ -467,10 +452,9 @@ const load_emissions_factors = async (opts) => {
       if (row["Market_Sector"] !== "Electricity") continue;
 
       const countryName = COUNTRY_MAPPINGS[row["CountryShort"]];
-      const document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        uuid: document_id,
+        uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
         level_1: "Emissions Factor",
         level_2: countryName,
@@ -523,7 +507,7 @@ const load_emissions_factors = async (opts) => {
       // skip if country name not found
       if (!countryShort) continue;
 
-      const document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
+      const document_id = uuidv4();
       const d = {
         uuid: document_id,
         type: EMISSIONS_FACTOR_TYPE,
@@ -573,18 +557,7 @@ const load_emissions_factors = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
       // generate a unique for the rows
-      const document_id = (
-        row.Scope +
-        "_" +
-        row["Level 1"] +
-        "_" +
-        row["Level 2"] +
-        "_" +
-        row["Level 3"]
-      )
-        .toUpperCase()
-        .replace(/[-:._^&()<>]/g, "")
-        .replace(/[^A-Z0-9]/g, "_");
+      const document_id = uuidv4();
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: `${row.Scope.replace(/ /g, "_").toUpperCase()}_EMISSIONS`,
