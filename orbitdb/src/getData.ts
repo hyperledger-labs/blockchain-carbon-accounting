@@ -151,7 +151,7 @@ let db: OrbitDBService
           type: "string",
         })
         .positional("amount", {
-          describe: "Activity amount",
+          describe: "Amount of the activity UOM",
           type: "number",
         })
         .positional("uom", {
@@ -171,6 +171,8 @@ let db: OrbitDBService
             level_3: args.level3,
             activity_uom: args.uom,
             activity: args.amount,
+            tonnesShipped: args.uom?.startsWith('tonne') ? 1 : null,
+            passengers: args.uom?.startsWith('passenger') ? 1 : null,
           })
         )
       } catch (e) {
