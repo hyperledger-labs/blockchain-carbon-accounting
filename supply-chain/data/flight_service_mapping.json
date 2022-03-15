@@ -5,7 +5,7 @@
     "level_2": "Flights",
     "level_3": "Long-haul, to/from UK",
     "level_4": "Economy class",
-    "description": "With RF",
+    "text": "With RF",
     "uom": "passenger.km",
     "amount": 0.14787
   },
@@ -15,7 +15,7 @@
     "level_2": "Flights",
     "level_3": "Long-haul, to/from UK",
     "level_4": "Premium economy class",
-    "description": "With RF",
+    "text": "With RF",
     "uom": "passenger.km",
     "amount": 0.23659
   },
@@ -25,7 +25,7 @@
     "level_2": "Flights",
     "level_3": "Long-haul, to/from UK",
     "level_4": "Business class",
-    "description": "With RF",
+    "text": "With RF",
     "uom": "passenger.km",
     "amount": 0.42882
   },
@@ -35,7 +35,7 @@
     "level_2": "Flights",
     "level_3": "Long-haul, to/from UK",
     "level_4": "First class",
-    "description": "With RF",
+    "text": "With RF",
     "uom": "passenger.km",
     "amount": 0.59147
   }

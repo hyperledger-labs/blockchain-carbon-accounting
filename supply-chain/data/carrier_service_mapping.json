@@ -14,7 +14,7 @@
     "level_2": "Vans",
     "level_3": "Class III (1.74 to 3.5 tonnes)",
     "level_4": "",
-    "description": "Diesel",
+    "text": "Diesel",
     "uom": "tonne.km",
     "amount": 0.59232
   },
@@ -24,7 +24,7 @@
     "level_2": "Freight flights",
     "level_3": "Long-haul, to/from UK",
     "level_4": "Average",
-    "description": "With RF",
+    "text": "With RF",
     "uom": "tonne.km",
     "amount": 1.0189
   },
@@ -34,7 +34,7 @@
     "level_2": "Vans",
     "level_3": "Class III (1.74 to 3.5 tonnes)",
     "level_4": "",
-    "description": "Diesel",
+    "text": "Diesel",
     "uom": "tonne.km",
     "amount": 0.59232
   },
@@ -44,7 +44,7 @@
     "level_2": "Freight flights",
     "level_3": "Long-haul, to/from UK",
     "level_4": "Average",
-    "description": "With RF",
+    "text": "With RF",
     "uom": "tonne.km",
     "amount": 1.0189
   }
