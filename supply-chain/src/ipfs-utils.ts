@@ -54,6 +54,22 @@ export async function downloadFileEncrypted(ipfspath: string, pk: string) {
   }
 }
 
+export async function downloadFileEncryptedWithoutPk(ipfspath: string) {
+  try {
+    const ipfs_client = create({url: process.env.IPFS_URL});
+    const data = [];
+    for await (const chunk of ipfs_client.cat(ipfspath)) {
+      data.push(chunk);
+    }
+    const edata0 = Buffer.concat(data);
+    return edata0.toString();
+  } catch (err) {
+    console.log(err)
+    throw err;
+  }
+
+}
+
 export async function uploadFileEncrypted(plain_content: string, pubkeys: string[]) {
   try {
     const ipfs_client = create({url: process.env.IPFS_URL});
