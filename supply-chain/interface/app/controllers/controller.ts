@@ -4,6 +4,7 @@ import path from 'path';
 
 // import from supply chain
 import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from '../../../src/emissions-utils';
+import { downloadFileEncryptedWithoutPk } from '../../../src/ipfs-utils';
 
 type OutputActivity = {
     id: string,
@@ -104,5 +105,30 @@ export function issueToken(req: Request, res: Response) {
     });
 }
 
+export async function fetchIpfs(req: Request, res: Response) {
+    
+    const ipfsPath = req.query.ipfs.toString();
+
+    if(ipfsPath == null || ipfsPath == undefined) {
+        return res.status(400).json({
+            status: "failed",
+            msg: "There is no path."
+        });
+    }
+    try {
+        const content = await downloadFileEncryptedWithoutPk(ipfsPath);
+        return res.status(200).json({
+            status: "success",
+            msg: content
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: "failed",
+            msg: "Internal error."
+        });
+    }
+
+
+}
 
   
