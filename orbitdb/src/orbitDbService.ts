@@ -275,6 +275,20 @@ export class OrbitDBService {
     return utilityFactors[0];
   };
 
+  public getEmissionsFactors = (
+    activity: Partial<ActivityInterface>
+  ): EmissionsFactorInterface[] => {
+    return OrbitDBService._db.query((doc: EmissionsFactorInterface) => {
+      if (doc.class !== EMISSIONS_FACTOR_CLASS_IDENTIFER) return false;
+      if (activity.scope && doc.scope?.toUpperCase() !== activity.scope.toUpperCase()) return false;
+      if (activity.level_1 && doc.level_1?.toUpperCase() !== activity.level_1.toUpperCase()) return false;
+      if (activity.level_2 && doc.level_2?.toUpperCase() !== activity.level_2.toUpperCase()) return false;
+      if (activity.level_3 && doc.level_3?.toUpperCase() !== activity.level_3.toUpperCase()) return false;
+      if (activity.activity_uom && doc.activity_uom?.toUpperCase() !== activity.activity_uom.toUpperCase()) return false;
+      return true;
+    }) as EmissionsFactorInterface[];
+  };
+
   public getEmissionsFactorByScope = (
     scope: string
   ): EmissionsFactorInterface[] => {
@@ -292,9 +306,9 @@ export class OrbitDBService {
       const isEmissionsFactor = doc.class === EMISSIONS_FACTOR_CLASS_IDENTIFER;
       const isOfQueriedScope =
         doc.scope?.toUpperCase() === activity.scope.toUpperCase();
-      const matchesLevel1 = doc.level_1 === activity.level_1.toUpperCase();
-      const matchesLevel2 = doc.level_2 === activity.level_2.toUpperCase();
-      const matchesLevel3 = doc.level_3 === activity.level_3.toUpperCase();
+      const matchesLevel1 = doc.level_1?.toUpperCase() === activity.level_1.toUpperCase();
+      const matchesLevel2 = doc.level_2?.toUpperCase() === activity.level_2.toUpperCase();
+      const matchesLevel3 = doc.level_3?.toUpperCase() === activity.level_3.toUpperCase();
       const matchesActivityUOM =
         doc.activity_uom?.toUpperCase() === activity.activity_uom.toUpperCase();
       return (
@@ -395,11 +409,11 @@ export class OrbitDBService {
     const emissionsUOM = "kg";
 
     const activityMatches =
-      activity.scope?.toUpperCase() == factor.scope?.toUpperCase() &&
-      activity.level_1 == factor.level_1 &&
-      activity.level_2 == factor.level_2 &&
-      activity.level_3 == factor.level_3 &&
-      activity.activity_uom == factor.activity_uom;
+      activity.scope?.toUpperCase() === factor.scope?.toUpperCase() &&
+      activity.level_1?.toUpperCase() === factor.level_1?.toUpperCase() &&
+      activity.level_2?.toUpperCase() === factor.level_2?.toUpperCase() &&
+      activity.level_3?.toUpperCase() === factor.level_3?.toUpperCase() &&
+      activity.activity_uom?.toUpperCase() === factor.activity_uom?.toUpperCase();
 
     const isTonneKmUsed =
       factor.activity_uom == "tonne.km" && activity.tonnesShipped !== undefined;
@@ -410,8 +424,8 @@ export class OrbitDBService {
     // Check if activity matches the emissions factor
     if (activityMatches) {
       if (
-        factor.activity_uom != "tonne.km" &&
-        activity.activity_uom != "passenger.km"
+        factor.activity_uom !== "tonne.km" &&
+        activity.activity_uom !== "passenger.km"
       ) {
         emissionsValue =
           activity.activity * parseFloat(factor.co2_equivalent_emissions);

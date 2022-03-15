@@ -12,6 +12,19 @@ export type AddressObject = {
   state_province?: string,
   zip_code?: string,
 };
+export type EmissionFactor = {
+    scope: string,
+    level_1: string,
+    level_2: string,
+    level_3: string,
+    level_4: string,
+    uom: string,
+    amount: number,
+}
+export type Emissions = {
+    amount: ValueAndUnit,
+    factor: EmissionFactor
+}
 export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {
   coords?: LatLngLiteral
@@ -52,7 +65,7 @@ export type ActivityResult = {
   distance?: Distance,
   weight?: ValueAndUnit,
   flight?: { number_of_passengers?: number, class?: string },
-  emissions?: ValueAndUnit,
+  emissions?: Emissions,
   details?: any
 }
 export type ProcessedActivity = {
@@ -67,7 +80,7 @@ export type Output = {
   to?: Address,
   weight?: ValueAndUnit,
   distance?: Distance,
-  emissions?: ValueAndUnit,
+  emissions?: Emissions,
 };
 
 
