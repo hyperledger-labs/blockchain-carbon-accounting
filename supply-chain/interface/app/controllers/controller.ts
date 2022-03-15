@@ -108,8 +108,8 @@ export function issueToken(req: Request, res: Response) {
         console.log('== 201 Output:', output)
         return res.status(201).json(output);
     }).catch((error)=>{
-        console.log('== 201 Error:', error)
-        return res.status(201).json(error);
+        console.log('== 500 Error:', error)
+        return res.status(500).json(error);
     });
 }
 

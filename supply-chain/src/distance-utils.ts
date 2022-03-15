@@ -73,7 +73,11 @@ export async function calc_ground_distance(origin: Address, dest: Address, clien
       };
 
       resolve(res);
-    });
+    })
+      .catch(error => {
+        console.log(error);
+        reject(error);
+      });
   });
 }
 
@@ -118,7 +122,13 @@ export async function calc_direct_distance(origin: Address, dest: Address, mode:
               mode
             };
             resolve(res);
+          })
+          .catch(error => {
+            reject(error);
           });
+      })
+      .catch(error => {
+        reject(error);
       });
   });
 }
