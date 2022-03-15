@@ -85,7 +85,7 @@ let db: OrbitDBService
     process.exit(0)
   })
   .command(
-    "factor <scope> [level1] [level2] [level3] [uom]",
+    "factor <scope> [level1] [level2] [level3] [level4] [text] [uom]",
     "Lookup an emission factor",
     (yargs) => {
       yargs
@@ -105,6 +105,14 @@ let db: OrbitDBService
           describe: "Activity level 3",
           type: "string",
         })
+        .positional("level4", {
+          describe: "Activity level 4",
+          type: "string",
+        })
+        .positional("text", {
+          describe: "Activity text, eg: With RF, or: Without RF",
+          type: "string",
+        })
         .positional("uom", {
           describe: 'Activity uom, eg: "kg"',
           type: "string",
@@ -119,6 +127,8 @@ let db: OrbitDBService
             level_1: args.level1,
             level_2: args.level2,
             level_3: args.level3,
+            level_4: args.level4,
+            text: args.text,
             activity_uom: args.uom,
             activity: 1,
           })
@@ -130,7 +140,7 @@ let db: OrbitDBService
     }
   )
   .command(
-    "activity-emissions <scope> <level1> <level2> <level3> <amount> [uom]",
+    "activity-emissions <scope> <level1> <level2> <level3> <level4> <text> <amount> [uom]",
     "Calculate the emissions for an activity",
     (yargs) => {
       yargs
@@ -148,6 +158,14 @@ let db: OrbitDBService
         })
         .positional("level3", {
           describe: "Activity level 3",
+          type: "string",
+        })
+        .positional("level4", {
+          describe: "Activity level 4",
+          type: "string",
+        })
+        .positional("text", {
+          describe: "Activity text, eg: With RF, or: Without RF",
           type: "string",
         })
         .positional("amount", {
@@ -169,6 +187,8 @@ let db: OrbitDBService
             level_1: args.level1,
             level_2: args.level2,
             level_3: args.level3,
+            level_4: args.level4,
+            text: args.text,
             activity_uom: args.uom,
             activity: args.amount,
             tonnesShipped: args.uom?.startsWith('tonne') ? 1 : null,

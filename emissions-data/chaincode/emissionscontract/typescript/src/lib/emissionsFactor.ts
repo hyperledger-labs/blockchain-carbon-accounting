@@ -27,6 +27,7 @@ export interface EmissionsFactorInterface {
     level_1: string;
     level_2: string;
     level_3: string;
+    level_4?: string;
     text?: string;
     year?: string;
     country?: string;

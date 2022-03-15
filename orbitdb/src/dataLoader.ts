@@ -564,6 +564,7 @@ const load_emissions_factors = async (opts) => {
         level_1: row["Level 1"].toUpperCase(),
         level_2: row["Level 2"].toUpperCase(),
         level_3: row["Level 3"].toUpperCase(),
+        level_4: row["Level 4"] ? row["Level 4"].toUpperCase() : '',
         text: row["Column Text"] ?? "",
         scope: row.Scope,
         uuid: document_id,
