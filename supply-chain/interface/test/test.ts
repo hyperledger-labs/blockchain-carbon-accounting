@@ -1,5 +1,4 @@
 import { writeFileSync } from "fs";
-import { downloadFileEncryptedWithoutPk } from "../../src/ipfs-utils";
 import { decryptAES, decryptRSA } from "../../src/crypto-utils";
 import axios from "axios";
 
