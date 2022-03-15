@@ -67,6 +67,22 @@
       },
       "weight": "15",
       "weight_uom": "lbs"
+    },
+    {
+      "id": "6",
+      "type": "flight",
+      "carrier": "Air France",
+      "flight_number": "AF666",
+      "class": "business",
+      "from": {
+        "country": "France",
+        "city": "Paris",
+        "address": "Charle de Gaulle"
+      },
+      "to": {
+        "country": "Portugal",
+        "city": "Lisbon"
+      }
     }
   ]
 }
