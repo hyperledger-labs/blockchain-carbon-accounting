@@ -114,13 +114,22 @@ npx esr src/getData.ts --orbitaddress zdpuAsPTgBqwm9W3gff2BA4snv4NJ6TVEZpD1DcFjB
 
 The script `src/getData.ts` can be used to query the database specific rows of the database, like this:
 ```
-$ npx esr src/getData.ts --ipfsapi local --orbitaddress zdpuAuCqi5pqTjDPXcU2LhAErAy7GSeFX37yGGqtjh1Z3mUo4 activity-emissions 'scope 1' 'REFRIGERANT & OTHER' 'KYOTO PROTOCOL - STANDARD' 'PERFLUOROBUTANE (PFC-3-1-10)' '' '' 12 'kg'
+$ npx esr src/getData.ts --ipfsapi local --orbitaddress <your-orbitdb-hash-address> activity-emissions 'scope 1' 'REFRIGERANT & OTHER' 'KYOTO PROTOCOL - STANDARD' 'PERFLUOROBUTANE (PFC-3-1-10)' '' '' 12 'kg'
 ....
 { emission: { value: 106320, uom: 'kg' }, year: 2021 }
 
-$ npx esr src/getData.ts --orbitaddress zdpuAuCqi5pqTjDPXcU2LhAErAy7GSeFX37yGGqtjh1Z3mUo4 activity-emissions 'scope 3' 'HOTEL STAY' 'HOTEL STAY' 'ROMANIA' '' '' 4 'Room per night'
+$ npx esr src/getData.ts --orbitaddress <your-orbitdb-hash-address> activity-emissions 'scope 3' 'HOTEL STAY' 'HOTEL STAY' 'ROMANIA' '' '' 4 'Room per night'
 ....
 { emission: { value: 102, uom: 'kg' }, year: 2021 }
+
+$ npx esr src/getData.ts  --orbitaddress zdpuB21J5YVqyyNKx4isq3QUket12gx2zA1YTUr11Zwp2pArX activity-emissions 'scope 3' 'WTT- business travel- air' 'WTT- flights' 'International, to/from non-UK' 'First class' 'With RF' 2500 'passenger.km'
+{ emission: { value: 153.975, uom: 'kg' }, year: 2021 }
+
+$ npx esr src/getData.ts  --orbitaddress zdpuB21J5YVqyyNKx4isq3QUket12gx2zA1YTUr11Zwp2pArX activity-emissions 'scope 3' 'WTT- business travel- air' 'WTT- flights' 'International, to/from non-UK' 'Premium economy class' 'With RF' 2500 'passenger.km
+{ emission: { value: 61.599999999999994, uom: 'kg' }, year: 2021 }
+
+
 ```
 
-Substitute your orbitdb's address from dataLoader or replicateDb for `zdpuAuCqi5pqTjDPXcU2LhAErAy7GSeFX37yGGqtjh1Z3mUo4`.  Use the Scope, level 1, 2, 3, 4, and UOM for the rows of the `conversion-factors-2021-flat-file-automatic-processing.xls spreadsheet.
+
+Substitute your orbitdb's hash address from dataLoader or replicateDb, which would look like `zdpuAuCqi5pqTjDPXcU2LhAErAy7GSeFX37yGGqtjh1Z3mUo4`.  Use the Scope, level 1, 2, 3, 4, and UOM for the rows of the `conversion-factors-2021-flat-file-automatic-processing.xls spreadsheet.
