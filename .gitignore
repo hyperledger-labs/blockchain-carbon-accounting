@@ -159,7 +159,9 @@ supply-chain/interface/test/output.txt
 
 
 supply-chain/input.json
-
+supply-chain/example/venv
+__pycache__
+.idea
 
 
 orbitdb/node_modules
