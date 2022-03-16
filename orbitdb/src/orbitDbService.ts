@@ -171,6 +171,19 @@ export class OrbitDBService {
     return OrbitDBService._db.put(doc);
   };
 
+  public putEmissionFactor = (doc: EmissionsFactorInterface) => {
+    // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
+    const factors = this.getEmissionsFactors(doc).filter(d=>d.year===doc.year);
+    for (const f of factors) {
+      OrbitDBService._db.del(f.uuid);
+    }
+    return OrbitDBService._db.put(doc);
+  };
+
+  public putUtilityLookupItem = (doc: UtilityLookupItemInterface) => {
+    return OrbitDBService._db.put(doc);
+  };
+
   public getUtilityLookupItem = (uuid: string): UtilityLookupItemInterface => {
     return OrbitDBService._db.get(uuid)[0];
   };
@@ -406,9 +419,24 @@ export class OrbitDBService {
       );
     }
     if (factors.length > 1) {
-      throw new Error(
-        `${ErrInvalidFactorForActivity} More than one factor matched the given activity: ` + JSON.stringify(factors)
-      );
+      // throw an error if there are multiple factors that have different scope/l1/l2/l3/l4/text/activity_uom
+      const keys = factors.reduce((p: Record<string,number>,c)=>{
+        const k = `${c.scope}/${c.level_1}/${c.level_2}/${c.level_3}/${c.level_4}/${c.text}/${c.activity_uom}`
+        p[k] ? p[k]++ : p[k] = 1;
+        return p;
+      }, {})
+      if (keys.length > 1) {
+        throw new Error(
+          `${ErrInvalidFactorForActivity} More than one factor matched the given activity: ` + JSON.stringify(factors)
+        );
+      }
+      // else return the most recent one by year
+      const f = factors.reduce((p,c)=>{
+        if (c.year && p.year && parseInt(c.year) > parseInt(p.year)) return c;
+        return p;
+      }, factors[0])
+      return this.getCO2EmissionFactorByActivity(f, activity);
+
     }
     return this.getCO2EmissionFactorByActivity(factors[0], activity);
   };
