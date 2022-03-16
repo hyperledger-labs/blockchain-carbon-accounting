@@ -77,8 +77,10 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
           output.to = path.to;
           calc_distance(path.from, path.to, isGround ? 'ground' : 'air').then((distance) => {
             output.distance = distance;
-            output.emissions = calc_freight_emissions(weight, distance);
-            resolve(result);
+            calc_freight_emissions(weight, distance).then(emissions=>{
+              output.emissions = emissions;
+              resolve(result);
+            });
           });
         } else {
           resolve(result);

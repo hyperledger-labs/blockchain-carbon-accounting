@@ -70,25 +70,47 @@ export interface ActivityInterface {
 
 type StoreRecord = UtilityLookupItemInterface | EmissionsFactorInterface;
 
+function PromiseTimeout(delayms: number) {
+  return new Promise(function (resolve) {
+    setTimeout(resolve, delayms);
+  });
+}
+
 export class OrbitDBService {
   private static _db: DocumentStore<StoreRecord>;
+  private static _initCalled = false;
+
+  public static getInstance = async (argv): Promise<OrbitDBService> => {
+    if (!OrbitDBService._db) {
+      if (!OrbitDBService._initCalled) {
+        await OrbitDBService.init(argv);
+      } else {
+        // wait for the instance to initialize
+        while (!OrbitDBService._db) {
+          await PromiseTimeout(1000);
+        }
+      }
+    }
+    return new OrbitDBService();
+  }
 
   public static init = async (argv): Promise<void> => {
+    OrbitDBService._initCalled = true;
     const opts = parseCommonYargsOptions(argv);
     // Create IPFS instance
     if (opts.useHttpClient) {
-      console.log(`=== Connecting to IPFS ${opts.ipfsApiUrl}`);
+      if(!opts.silent) console.log(`=== Connecting to IPFS ${opts.ipfsApiUrl}`);
     } else {
       if (opts.ipfsBootstrap)
-        console.log(
+        if(!opts.silent) console.log(
           "=== IPFS Bootstrap setting: ",
           opts.ipfsOptions.config.Bootstrap
         );
-      console.log("=== Starting NodeJS IPFS");
+      if(!opts.silent) console.log("=== Starting NodeJS IPFS");
     }
     const ipfs = await opts.createIpfsInstance();
     // Create OrbitDB
-    console.log(
+    if(!opts.silent) console.log(
       "=== Starting OrbitDB using directory: ",
       opts.orbitDbDirectory
     );
@@ -103,9 +125,9 @@ export class OrbitDBService {
     };
     const dbPath = opts.orbitCreate ? opts.orbitDbName : opts.orbitDbFullPath;
     if (opts.orbitCreate) {
-      console.log("=== Creating new OrbitDB: ", dbPath);
+      if(!opts.silent) console.log("=== Creating new OrbitDB: ", dbPath);
     } else {
-      console.log("=== Using OrbitDB: ", dbPath);
+      if(!opts.silent) console.log("=== Using OrbitDB: ", dbPath);
     }
 
     const db = await orbitdb.docstore(dbPath, dbOptions);
@@ -136,7 +158,7 @@ export class OrbitDBService {
       });
     }
     await db.load();
-    console.log(`=== OrbitDB address: ${db.address.toString()}`);
+    if(!opts.silent) console.log(`=== OrbitDB address: ${db.address.toString()}`);
 
     OrbitDBService._db = db as DocumentStore<StoreRecord>;
   };

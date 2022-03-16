@@ -6,8 +6,7 @@
     "level_3": "Long-haul, to/from UK",
     "level_4": "Economy class",
     "text": "With RF",
-    "uom": "passenger.km",
-    "amount": 0.14787
+    "activity_uom": "passenger.km"
   },
   "premium economy": {
     "scope": "Scope 3",
@@ -16,8 +15,7 @@
     "level_3": "Long-haul, to/from UK",
     "level_4": "Premium economy class",
     "text": "With RF",
-    "uom": "passenger.km",
-    "amount": 0.23659
+    "activity_uom": "passenger.km"
   },
   "business": {
     "scope": "Scope 3",
@@ -26,8 +24,7 @@
     "level_3": "Long-haul, to/from UK",
     "level_4": "Business class",
     "text": "With RF",
-    "uom": "passenger.km",
-    "amount": 0.42882
+    "activity_uom": "passenger.km"
   },
   "first": {
     "scope": "Scope 3",
@@ -36,8 +33,7 @@
     "level_3": "Long-haul, to/from UK",
     "level_4": "First class",
     "text": "With RF",
-    "uom": "passenger.km",
-    "amount": 0.59147
+    "activity_uom": "passenger.km"
   }
 }
 

@@ -5,8 +5,7 @@
     "level_2": "Cargo ship",
     "level_3": "Container ship",
     "level_4": "Average",
-    "uom": "tonne.km",
-    "amount": 0.01614
+    "activity_uom": "tonne.km"
   },
   "ground": {
     "scope": "Scope 3",
@@ -15,8 +14,7 @@
     "level_3": "Class III (1.74 to 3.5 tonnes)",
     "level_4": "",
     "text": "Diesel",
-    "uom": "tonne.km",
-    "amount": 0.59232
+    "activity_uom": "tonne.km"
   },
   "air": {
     "scope": "Scope 3",
@@ -25,8 +23,7 @@
     "level_3": "Long-haul, to/from UK",
     "level_4": "Average",
     "text": "With RF",
-    "uom": "tonne.km",
-    "amount": 1.0189
+    "activity_uom": "tonne.km"
   },
   "ups ground": {
     "scope": "Scope 3",
@@ -35,8 +32,7 @@
     "level_3": "Class III (1.74 to 3.5 tonnes)",
     "level_4": "",
     "text": "Diesel",
-    "uom": "tonne.km",
-    "amount": 0.59232
+    "activity_uom": "tonne.km"
   },
   "ups air": {
     "scope": "Scope 3",
@@ -45,7 +41,6 @@
     "level_3": "Long-haul, to/from UK",
     "level_4": "Average",
     "text": "With RF",
-    "uom": "tonne.km",
-    "amount": 1.0189
+    "activity_uom": "tonne.km"
   }
 }

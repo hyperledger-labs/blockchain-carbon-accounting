@@ -121,8 +121,7 @@ let db: OrbitDBService
     async (args) => {
       await init(args)
       try {
-        console.log(
-          db.getEmissionsFactors({
+        const f = {
             scope: args.scope,
             level_1: args.level1,
             level_2: args.level2,
@@ -130,9 +129,8 @@ let db: OrbitDBService
             level_4: args.level4,
             text: args.text,
             activity_uom: args.uom,
-            activity: 1,
-          })
-        )
+          }
+        console.log(db.getEmissionsFactors(f))
       } catch (e) {
         console.log('Error', e)
       }
