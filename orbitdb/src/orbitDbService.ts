@@ -407,7 +407,7 @@ export class OrbitDBService {
     }
     if (factors.length > 1) {
       throw new Error(
-        `${ErrInvalidFactorForActivity} More than one factor matched the given activity`
+        `${ErrInvalidFactorForActivity} More than one factor matched the given activity: ` + JSON.stringify(factors)
       );
     }
     return this.getCO2EmissionFactorByActivity(factors[0], activity);
