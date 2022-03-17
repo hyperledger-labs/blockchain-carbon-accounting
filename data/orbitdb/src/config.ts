@@ -82,7 +82,7 @@ export const parseCommonYargsOptions = (argv) => {
     ipfsDirectory: ipfsDirectory,
     ipfsPort: '4001',
     ipfsBootstrap: null,
-    useHttpClient: false,
+    useHttpClient: true,
     silent: false,
     ipfsOptions: ipfsOpts,
     orbitDbDirectory: orbitDbDirectory,
@@ -94,30 +94,36 @@ export const parseCommonYargsOptions = (argv) => {
     createIpfsInstance: async () => await IPFS.create(ipfsOptions),
     createOrbitDbInstance: async (ipfs):Promise<ODB> => await OrbitDB.createInstance(ipfs)
   }
-  if (argv['ipfsapi']) {
-    opts.useHttpClient = true;
-    let url = argv['ipfsapi']
-    if (/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
-      url = `http://${url}:5001/api/v0`
-    } else if (/^\d+\.\d+\.\d+\.\d+:\d+$/.test(url)) {
-      url = `http://${url}/api/v0`
-    }
-    opts.ipfsApiUrl = url
-  }
   if (argv['ipfsdir']) {
+    opts.useHttpClient = false;
     opts.ipfsDirectory = ipfsOpts.repo = argv['ipfsdir']
   }
   if (argv['ipfsport']) {
+    opts.useHttpClient = false;
     opts.ipfsPort = argv['ipfsport']
     ipfsOpts.config.Addresses.Swarm = ipfsOpts.config.Addresses.Swarm.map(a=>a.replace('4001', argv['ipfsport']))
   }
   if (argv['bootstrap']) {
+    opts.useHttpClient = false;
     if ('false' === argv['bootstrap']) {
       opts.ipfsBootstrap = null
       ipfsOpts.config.Bootstrap = []
     } else {
       opts.ipfsBootstrap = argv['bootstrap']
       ipfsOpts.config.Bootstrap = [argv['bootstrap']]
+    }
+  }
+  if (opts.useHttpClient) {
+    if (argv['ipfsapi']) {
+      let url = argv['ipfsapi']
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(url)) {
+        url = `http://${url}:5001/api/v0`
+      } else if (/^\d+\.\d+\.\d+\.\d+:\d+$/.test(url)) {
+        url = `http://${url}/api/v0`
+      }
+      opts.ipfsApiUrl = url
+    } else {
+      opts.ipfsApiUrl = 'local';
     }
   }
   if (argv['orbitcreate']) {

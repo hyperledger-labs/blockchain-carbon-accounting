@@ -10,63 +10,11 @@ import type {
   UtilityLookupItemInterface,
 } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
 import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
-import {
-  ErrInvalidFactorForActivity,
-  ErrUnknownUOM,
-} from "../../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
+import { ErrInvalidFactorForActivity } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
 import { parseCommonYargsOptions } from "./config";
+import { getUomFactor } from "../../common/uom";
+import { ActivityInterface, EMISSIONS_FACTOR_TYPE, getYearFromDate } from "../../common/utils";
 
-export const EMISSIONS_FACTOR_TYPE = "EMISSIONS_ELECTRICITY";
-
-const UOM_FACTORS: { [key: string]: number } = {
-  wh: 1.0,
-  kwh: 1000.0,
-  mwh: 1000000.0,
-  gwh: 1000000000.0,
-  twh: 1000000000000.0,
-  kg: 1.0,
-  t: 1000.0,
-  ton: 1000.0,
-  tons: 1000.0,
-  tonnes: 1000,
-  g: 0.001,
-  kt: 1000000.0,
-  mt: 1000000000.0,
-  pg: 1000000000.0,
-  gt: 1000000000000.0,
-  "Room per night": 1,
-  "passenger.km": 1,
-  "tonne.km": 1,
-};
-
-const getYearFromDate = (date: string): number => {
-  const time = new Date(date);
-  if (!time.getFullYear()) {
-    throw new Error(`${date} date format not supported`);
-  }
-  return time.getFullYear();
-};
-
-const getUomFactor = (uom: string): number => {
-  const factor = UOM_FACTORS[uom.toLowerCase()];
-  if (!factor) {
-    throw new Error(`${ErrUnknownUOM} : ${uom} is not a valid uom`);
-  }
-  return factor;
-};
-
-export interface ActivityInterface {
-  scope: string;
-  level_1: string;
-  level_2: string;
-  level_3: string;
-  level_4?: string;
-  text?: string;
-  activity_uom: string;
-  activity: number;
-  passengers?: number;
-  tonnesShipped?: number;
-}
 
 type StoreRecord = UtilityLookupItemInterface | EmissionsFactorInterface;
 
@@ -171,21 +119,35 @@ export class OrbitDBService {
     return OrbitDBService._db.put(doc);
   };
 
-  public putEmissionFactor = (doc: EmissionsFactorInterface) => {
+  public putEmissionFactor = async (doc: EmissionsFactorInterface) => {
     // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
     const factors = this.getEmissionsFactors(doc).filter(d=>d.year===doc.year);
     for (const f of factors) {
       OrbitDBService._db.del(f.uuid);
     }
-    return OrbitDBService._db.put(doc);
+    await OrbitDBService._db.put(doc);
   };
 
-  public putUtilityLookupItem = (doc: UtilityLookupItemInterface) => {
-    return OrbitDBService._db.put(doc);
+  public getEmissionFactor = async (uuid: string) => {
+    const docs = this.get(uuid) as EmissionsFactorInterface[];
+    if (docs && docs.length) {
+      const doc = docs[0];
+      if (doc.class === EMISSIONS_FACTOR_CLASS_IDENTIFER) return doc;
+    }
+    return null;
   };
 
-  public getUtilityLookupItem = (uuid: string): UtilityLookupItemInterface => {
-    return OrbitDBService._db.get(uuid)[0];
+  public putUtilityLookupItem = async (doc: UtilityLookupItemInterface) => {
+    await OrbitDBService._db.put(doc);
+  };
+
+  public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface> => {
+    const docs = this.get(uuid) as UtilityLookupItemInterface[];
+    if (docs && docs.length) {
+      const doc = docs[0];
+      if (doc.class === UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER) return doc;
+    }
+    return null;
   };
 
   public getAllUtilityLookupItems = (): UtilityLookupItemInterface[] => {

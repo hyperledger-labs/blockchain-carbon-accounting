@@ -165,6 +165,6 @@ __pycache__
 .idea
 
 
-orbitdb/node_modules
-orbitdb/orbitdb*
-orbitdb/orbitIpfs*
+data/**/node_modules
+data/orbitdb/orbitdb*
+data/orbitdb/orbitIpfs*
