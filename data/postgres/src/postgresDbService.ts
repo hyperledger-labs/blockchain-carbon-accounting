@@ -48,7 +48,7 @@ export class PostgresDBService implements DbInterface {
 
   private makeEmissionFactorMatchWhereCondition = (doc: Partial<EmissionsFactorInterface>) => {
     const cond = this.makeEmissionFactorMatchCondition(doc);
-    return { where: { [Op.and]: cond }}
+    return { where: { [Op.and]: cond }, raw: true}
   }
 
   private makeEmissionFactorMatchCondition = (doc: Partial<EmissionsFactorInterface>) => {
