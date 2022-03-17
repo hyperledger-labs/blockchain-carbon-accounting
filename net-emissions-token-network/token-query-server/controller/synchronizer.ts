@@ -1,8 +1,8 @@
 import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
-import { CreatedToken, MetaMap, TokenPayload } from "../models/commonTypes";
-import { count, insert, selectAll, selectPaginated } from "../repositories/token";
+import { CreatedToken, TokenPayload } from "../models/commonTypes";
+import { count, insert, selectAll, selectPaginated } from "../repositories/token.repo";
 
 const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
 const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
@@ -37,31 +37,20 @@ export const fillTokens = async () => {
             // restructure 
             const metadata = token.metadata;
             const metaObj = JSON.parse(metadata);
-            let metaMap: MetaMap = null;
 
             // extract scope and type
             let scope = null, type = null;
             if(metaObj.hasOwnProperty('Scope')) scope = metaObj['Scope'];
             if(metaObj.hasOwnProperty('Type')) type = metaObj['Type'];
 
-            // buidl metadata mapping
-            for (const key in metaObj) {
-                if (Object.prototype.hasOwnProperty.call(metaObj, key)) {
-                   metaMap[key] = metaObj[key];
-                }
-            }
-
             // build token model
             const tokenPayload: TokenPayload = {
                 ...token,
                 scope,
                 type,
-                metaMap
+                metaObj
             }
             await insert(tokenPayload);
         }
     }
-
-    const paginatedTokens = await selectPaginated(1, 2);
-    console.log(paginatedTokens);
 }

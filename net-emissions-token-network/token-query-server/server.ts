@@ -9,17 +9,19 @@ dotenv.config();
 // import synchronizer
 import { fillTokens } from './controller/synchronizer';
 
+import tokenRouter from './router/router';
+import { synchronize } from "./middleware/sync.middle";
+
 const app: Application = express();
 const PORT: number | string = process.env.PORT || 8000;
 
 // middleware setting
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+// app.use(synchronize);
 
 // router
-app.use('/', () => {
-    
-});
+app.use('/', tokenRouter);
 
 createConnection(dbConfig)
     .then(async (_connection) => {
