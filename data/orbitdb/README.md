@@ -1,5 +1,7 @@
 # Orbit DB
 
+_This feature is not currently used.  The code is kept here as a reference._
+
 This directory contains the common data stored in OrbitDB for emissions calculations.  You can use it to replicate the data from our OrbitDB database, or set up your own.
 
 ## Setup
