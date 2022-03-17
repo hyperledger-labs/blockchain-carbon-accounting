@@ -176,7 +176,7 @@ const load_emissions_factors = async (opts) => {
           ].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
@@ -226,7 +226,7 @@ const load_emissions_factors = async (opts) => {
           row["State annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
@@ -274,7 +274,7 @@ const load_emissions_factors = async (opts) => {
           row["U.S. annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
@@ -327,7 +327,7 @@ const load_emissions_factors = async (opts) => {
           row["U.S. annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
@@ -376,7 +376,7 @@ const load_emissions_factors = async (opts) => {
           row["State annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
@@ -429,7 +429,7 @@ const load_emissions_factors = async (opts) => {
         percent_of_renewables: "",
       };
 
-      await db.put(d);
+      await db.putEmissionFactor(d);
 
       progressBar.increment();
     }
@@ -475,7 +475,7 @@ const load_emissions_factors = async (opts) => {
         renewables: "",
         percent_of_renewables: (Number(row[" ValueNumeric"]) * 100).toString(),
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
@@ -525,7 +525,7 @@ const load_emissions_factors = async (opts) => {
         factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
         factor.source = d.source;
 
-        await db.put(factor);
+        await db.putEmissionFactor(factor);
         progressBar.increment();
       } else {
         console.log("Could not find imported factor");
@@ -576,7 +576,7 @@ const load_emissions_factors = async (opts) => {
           "https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021",
       };
 
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.update(i);
     }
     progressBar.stop();
@@ -622,7 +622,7 @@ const import_utility_identifiers = async (opts) => {
         },
       };
 
-      await db.put(d);
+      await db.putUtilityLookupItem(d);
       progressBar.increment();
     }
     progressBar.stop();

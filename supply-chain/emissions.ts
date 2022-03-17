@@ -245,6 +245,7 @@ if (fetchObjectPath) {
 
   }).then((output)=>{
     console.log(JSON.stringify(output, null, 4));
+      process.exit(0)
   });
 }
 

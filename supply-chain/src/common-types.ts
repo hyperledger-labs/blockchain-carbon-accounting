@@ -1,4 +1,5 @@
 import { LatLngLiteral } from "@googlemaps/google-maps-services-js";
+import { EmissionsFactorInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { UpsResponse } from './ups-types';
 
 export type ValueAndUnit = {
@@ -19,12 +20,11 @@ export type EmissionFactor = {
     level_3: string,
     level_4?: string,
     text?: string,
-    uom: string,
-    amount: number,
+    activity_uom: string,
 }
 export type Emissions = {
     amount: ValueAndUnit,
-    factor: EmissionFactor
+    factor: EmissionsFactorInterface 
 }
 export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {

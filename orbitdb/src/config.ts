@@ -83,6 +83,7 @@ export const parseCommonYargsOptions = (argv) => {
     ipfsPort: '4001',
     ipfsBootstrap: null,
     useHttpClient: false,
+    silent: false,
     ipfsOptions: ipfsOpts,
     orbitDbDirectory: orbitDbDirectory,
     orbitDbName: orbitDbName,
@@ -124,6 +125,9 @@ export const parseCommonYargsOptions = (argv) => {
   }
   if (argv['orbitdebug']) {
     opts.orbitDebug = true
+  }
+  if (argv['silent']) {
+    opts.silent = true
   }
   if (argv['orbitdir']) {
     opts.orbitDbDirectory = argv['orbitdir']

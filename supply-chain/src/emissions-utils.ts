@@ -7,6 +7,7 @@ import {
 import EthNetEmissionsTokenGateway from "../../emissions-data/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork";
 import Signer from "../../emissions-data/typescript_app/src/blockchain-gateway/signer";
 import { setup } from "../../emissions-data/typescript_app/src/utils/logger";
+import { OrbitDBService } from "../../orbitdb/src/orbitDbService"
 import {
   Activity,
   ActivityResult,
@@ -29,6 +30,21 @@ import * as flight_emission_factors from "../data/flight_service_mapping.json"
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
+let _orbitdb: OrbitDBService = null;
+
+
+async function getOrbitDBInstance() {
+  if (_orbitdb) return _orbitdb;
+  if (!process.env.ORBIT_DB_DIR) throw new Error('Must set ORBIT_DB_DIR in the environment.')
+  if (!process.env.ORBIT_DB_ADDRESS) throw new Error('Must set ORBIT_DB_ADDRESS in the environment.')
+  _orbitdb = await OrbitDBService.getInstance({
+    ipfsapi: 'local', 
+    orbitaddress: process.env.ORBIT_DB_ADDRESS,
+    orbitdir: process.env.ORBIT_DB_DIR,
+    silent: true
+  });
+  return _orbitdb;
+}
 
 export function weight_in_kg(weight: number, uom?: string) {
   if (!weight) throw new Error(`Invalid weight ${weight}`);
@@ -82,32 +98,45 @@ export function get_flight_emission_factor(seat_class: string): EmissionFactor {
   return f;
 }
 
-export function calc_flight_emissions(
+async function getEmissionFactor(f: EmissionFactor) {
+  const db = await getOrbitDBInstance();
+  const factors = db.getEmissionsFactors(f);
+  if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
+  if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
+  return factors[0];
+}
+
+export async function calc_flight_emissions(
   passengers: number,
   seat_class: string,
   distance: Distance
-): Emissions {
+): Promise<Emissions> {
   const distance_km = distance_in_km(distance);
   // lookup the factor for different class
   const f = get_flight_emission_factor(seat_class);
-  // assume the factor uom is in person.km here
-  const emissions = passengers * distance_km * f.amount;
+  // assume the factor uom is in passenger.km here
+  if (f.activity_uom !== 'passenger.km') {
+    throw new Error(`Expected flight emission factor uom to be passenger.km but got ${f.activity_uom}`);
+  }
+  const factor = await getEmissionFactor(f);
+  const emissions = passengers * distance_km * parseFloat(factor.co2_equivalent_emissions);
   // assume all factors produce kgCO2e
-  return { amount: { value: emissions, unit: "kgCO2e" }, factor: f };
+  return { amount: { value: emissions, unit: "kgCO2e" }, factor };
 }
 
-export function calc_freight_emissions(
+export async function calc_freight_emissions(
   weight_kg: number,
   distance: Distance
-): Emissions {
+): Promise<Emissions> {
   const distance_km = distance_in_km(distance);
   // lookup factor for different 'mode'
   const f = get_freight_emission_factor(distance.mode);
   // most uom should be in tonne.km here
-  const convert = get_convert_kg_for_uom(f.uom);
-  const emissions = weight_kg * convert * distance_km * f.amount;
+  const convert = get_convert_kg_for_uom(f.activity_uom);
+  const factor = await getEmissionFactor(f);
+  const emissions = weight_kg * convert * distance_km * parseFloat(factor.co2_equivalent_emissions);
   // assume all factors produce kgCO2e
-  return { amount: { value: emissions, unit: "kgCO2e" }, factor: f };
+  return { amount: { value: emissions, unit: "kgCO2e" }, factor };
 }
 
 export async function issue_emissions_tokens(
@@ -213,7 +242,7 @@ export async function process_shipment(
     const distance = await calc_distance(a.from, a.to, a.mode);
     // then calc emissions ...
     const weight = weight_in_kg(a.weight, a.weight_uom);
-    const emissions = calc_freight_emissions(weight, distance);
+    const emissions = await calc_freight_emissions(weight, distance);
     return { distance, weight: { value: weight, unit: "kg" }, emissions };
   }
 }
@@ -225,7 +254,7 @@ export async function process_flight(
   // use default values when missing
   const number_of_passengers = a.number_of_passengers || 1;
   const seat_class = a.class || 'economy';
-  const emissions = calc_flight_emissions(number_of_passengers, seat_class, distance);
+  const emissions = await calc_flight_emissions(number_of_passengers, seat_class, distance);
   return { distance, flight: { number_of_passengers, class: seat_class }, emissions };
 }
 

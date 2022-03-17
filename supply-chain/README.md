@@ -5,6 +5,7 @@
 Sign up for the [UPS Developer Kit](https://www.ups.com/upsdeveloperkit?loc=en_US) to get the access key.
 
 Copy `.env.SAMPLE` to `.env` and fill in your UPS username and password and access key in `.env`.
+You will need a local replicated Orbit DB which you can get with the [Replicate DB script](../orbitdb/README.md) and then fill out the Orbit DB directory (should be `../orbitdb/orbitdb`) and the Orbit DB Address.
 
 Sign up for the [Google DistanceMatrix API](https://developers.google.com/maps/documentation/distance-matrix/overview) and [Google Geocode API](https://developers.google.com/maps/documentation/geocoding/overview) and get an access key for both API's.
 
