@@ -1,9 +1,18 @@
 # Setup
 
+## preliminary
+
+* Run `ipfs` on local
+* Google api key in `.env`
+* Run `hardhat` on local
+* Replace `issuer` address in `.env`
+
+## Run server
+
 Run `npm install`.
 
-Copy the `.env` from the parent directory `supply-chain` here.
-Note the `PORT` key is to setup the API server port, by default it will use port 5000.
+This `interface` is using `.env` in the parent directory `supply-chain`. 
+Note the `REST_API_PORT` key in that `.env` is to setup the API server port, by default it will use port 5000.
 
 Run `npm run dev`.
 

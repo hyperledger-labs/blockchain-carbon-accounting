@@ -317,17 +317,16 @@ export async function issue_tokens(
   // issue tokens
   const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
   
-  // target format [{key: "key", value: "value"}, {,,,}]
-  const metadata = [
-    {key: "Total emissions", value: total_emissions_rounded},
-    {key: "UOM", value: "kgCO2e"},
-    {key: "Scope", value: 3},
-    {key: "Type", value: activity_type}
-  ];
-  if(mode) {
-    metadata.push({key: "Mode", value: mode});
+  const metadata = {
+    "Total emissions": total_emissions_rounded,
+    "UOM": "kgCO2e",
+    "Scope": 3,
+    "Type": activity_type
   }
-  
+  if(mode) {
+    metadata['Mode'] = mode;
+  }
+
   const token_res = await issue_emissions_tokens(
     total_emissions,
     JSON.stringify(metadata),
@@ -353,17 +352,16 @@ export async function issue_tokens_with_issuee(
   // issue tokens
   const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
   
-  // target format [{key: "key", value: "value"}, {,,,}]
-  const metadata = [
-    {key: "Total emissions", value: total_emissions_rounded},
-    {key: "UOM", value: "kgCO2e"},
-    {key: "Scope", value: 3},
-    {key: "Type", value: activity_type}
-  ];
-  if(mode) {
-    metadata.push({key: "Mode", value: mode});
+  const metadata = {
+    "Total emissions": total_emissions_rounded,
+    "UOM": "kgCO2e",
+    "Scope": 3,
+    "Type": activity_type
   }
-  
+  if(mode) {
+    metadata['Mode'] = mode;
+  }
+
   const token_res = await issue_emissions_tokens_with_issuee(
     issuee,
     total_emissions,
