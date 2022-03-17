@@ -31,7 +31,7 @@ export class Token {
     automaticRetiredDate!: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    metaMap!: Map<string, string>;
+    metaObj!: Object;
 
     @Column()
     manifest!: string;
@@ -46,7 +46,7 @@ export class Token {
     totalRetired!: number;
 
     @Column({nullable: true})
-    scope!: string;
+    scope!: number;
 
     @Column({nullable: true})
     type!: string;
