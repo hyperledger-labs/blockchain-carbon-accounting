@@ -3,7 +3,7 @@ import type { EmissionsFactorInterface } from "../../../emissions-data/chaincode
 import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import type { UtilityLookupItemInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
 import { ErrInvalidFactorForActivity } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
-import type { DbOpts } from "./config";
+import { DbOpts, parseCommonYargsOptions } from "./config";
 import { getUomFactor } from "../../common/uom";
 import { ActivityInterface, getYearFromDate } from "../../common/utils";
 import { DbInterface } from "../../common/db";
@@ -16,8 +16,10 @@ export class PostgresDBService implements DbInterface {
   private _db: Sequelize;
   private static _instance: PostgresDBService;
 
-  public static getInstance = async (opts: DbOpts): Promise<PostgresDBService> => {
+  public static getInstance = async (opts?: DbOpts): Promise<PostgresDBService> => {
     if (PostgresDBService._instance) return PostgresDBService._instance
+    // get default options
+    if (!opts) opts = parseCommonYargsOptions({})
     
     try {
       const db = new Sequelize(opts.dbName, opts.dbUser, opts.dbPassword, {

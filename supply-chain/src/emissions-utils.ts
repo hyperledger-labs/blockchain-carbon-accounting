@@ -7,7 +7,7 @@ import {
 import EthNetEmissionsTokenGateway from "../../emissions-data/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork";
 import Signer from "../../emissions-data/typescript_app/src/blockchain-gateway/signer";
 import { setup } from "../../emissions-data/typescript_app/src/utils/logger";
-import { OrbitDBService } from "../../data/orbitdb/src/orbitDbService"
+import { PostgresDBService } from "../../data/postgres/src/postgresDbService"
 import {
   Activity,
   ActivityResult,
@@ -30,20 +30,13 @@ import * as flight_emission_factors from "../data/flight_service_mapping.json"
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
-let _orbitdb: OrbitDBService = null;
+let _db: PostgresDBService = null;
 
 
-async function getOrbitDBInstance() {
-  if (_orbitdb) return _orbitdb;
-  if (!process.env.ORBIT_DB_DIR) throw new Error('Must set ORBIT_DB_DIR in the environment.')
-  if (!process.env.ORBIT_DB_ADDRESS) throw new Error('Must set ORBIT_DB_ADDRESS in the environment.')
-  _orbitdb = await OrbitDBService.getInstance({
-    ipfsapi: 'local', 
-    orbitaddress: process.env.ORBIT_DB_ADDRESS,
-    orbitdir: process.env.ORBIT_DB_DIR,
-    silent: true
-  });
-  return _orbitdb;
+async function getDBInstance() {
+  if (_db) return _db;
+  _db = await PostgresDBService.getInstance();
+  return _db;
 }
 
 export function weight_in_kg(weight: number, uom?: string) {
@@ -99,8 +92,8 @@ export function get_flight_emission_factor(seat_class: string): EmissionFactor {
 }
 
 async function getEmissionFactor(f: EmissionFactor) {
-  const db = await getOrbitDBInstance();
-  const factors = db.getEmissionsFactors(f);
+  const db = await getDBInstance();
+  const factors = await db.getEmissionsFactors(f);
   if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
   if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
   return factors[0];
