@@ -2,8 +2,7 @@ import express, { Application } from 'express';
 import bodyParser from 'body-parser';
 import { fetchIpfs } from './app/controllers/controller';
 import dotenv from 'dotenv';
-import path from 'path';
-dotenv.config({path: path.resolve(__dirname + '../.env')});
+dotenv.config({path: '../.env'});
 
 // import router
 import { router as keyRouter } from './app/routers/router';
