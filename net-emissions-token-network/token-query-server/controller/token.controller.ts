@@ -63,7 +63,9 @@ export async function getTokens(req: Request, res: Response) {
        
         // pass bundle to repository
         const bundles: Array<string> = req.query.bundles as Array<string>;
-        const queryBundles: Array<QueryBundle> = queryProcessor(bundles);
+        let queryBundles: Array<QueryBundle> = [];
+        if(bundles != undefined)
+             queryBundles = queryProcessor(bundles);
         if(offset != undefined && limit != undefined && limit != 0) {
             const tokens = await selectPaginated(offset, limit, queryBundles);
             return res.status(200).json({
