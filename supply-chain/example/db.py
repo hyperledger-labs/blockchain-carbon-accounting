@@ -48,22 +48,26 @@ def get_shipment_route_segments(conn, from_date, thru_date, facility_id):
     return cursor
 
 
-def save_token(conn, shipment_id, shipment_route_segment_id, status, token_id, error):
-    shipment_route_segment_token = get_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id)
+def save_token(conn, shipment_id, shipment_route_segment_id, tracking, status, token_id, error):
+    shipment_route_segment_token = get_shipment_route_segment_token(conn, shipment_id,
+                                                                    shipment_route_segment_id, tracking)
     if shipment_route_segment_token:
-        update_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, status, token_id, error)
+        update_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking,
+                                            status, token_id, error)
     else:
-        create_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, status, token_id, error)
+        create_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking,
+                                            status, token_id, error)
 
 
-def get_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id):
+def get_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking):
     shipment_route_segment_token = None
 
     cursor = conn.cursor()
     try:
         cursor.execute(''' select shipment_id, shipment_route_segment_id, token_id
         from shipment_route_segment_token
-        where shipment_id = %s and  shipment_route_segment_id = %s''', (shipment_id, shipment_route_segment_id,))
+        where shipment_id = %s and shipment_route_segment_id = %s and tracking_number = %s
+        ''', (shipment_id, shipment_route_segment_id, tracking,))
 
         shipment_route_segment_token = cursor.fetchone()
 
@@ -74,14 +78,15 @@ def get_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_i
     return shipment_route_segment_token
 
 
-def create_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, status, token_id, error):
+def create_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id,
+                                        tracking, status, token_id, error):
     cursor = conn.cursor()
     try:
         cursor.execute(''' insert into shipment_route_segment_token
-        (shipment_id, shipment_route_segment_id, status, token_id, error,
+        (shipment_id, shipment_route_segment_id, tracking_number, status, token_id, error,
         created_stamp, created_tx_stamp, last_updated_stamp, last_updated_tx_stamp) 
-        values (%s, %s, %s, %s, %s, now(), now(), now(), now())
-        ''', (shipment_id,shipment_route_segment_id, status, token_id, error,))
+        values (%s, %s, %s, %s, %s, %s, now(), now(), now(), now())
+        ''', (shipment_id, shipment_route_segment_id, tracking, status, token_id, error,))
 
         conn.commit()
 
@@ -92,7 +97,8 @@ def create_shipment_route_segment_token(conn, shipment_id, shipment_route_segmen
     cursor.close()
 
 
-def update_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, status, token_id, error):
+def update_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id,
+                                        tracking, status, token_id, error):
     cursor = conn.cursor()
     try:
         cursor.execute(''' update shipment_route_segment_token 
@@ -101,8 +107,8 @@ def update_shipment_route_segment_token(conn, shipment_id, shipment_route_segmen
         error = %s,
         last_updated_stamp = now(),
         last_updated_tx_stamp = now()
-        where shipment_id = %s and shipment_route_segment_id = %s
-        ''', (status, token_id, error, shipment_id, shipment_route_segment_id,))
+        where shipment_id = %s and shipment_route_segment_id = %s and tracking_number = %s
+        ''', (status, token_id, error, shipment_id, shipment_route_segment_id, tracking,))
 
         conn.commit()
 

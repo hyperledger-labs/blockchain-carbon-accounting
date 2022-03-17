@@ -15,6 +15,8 @@ pip install -r requirements.txt
 
 Set database credentials in the config.py.
 
+Create table using sql/create_table.sql
+
 ### Run all required applications
 
 ```

@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 from datetime import datetime
 
 import db
@@ -20,40 +21,18 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                 break
 
             for row in rows:
-                activity = {"id": row.shipment_id + ":" + row.shipment_route_segment_id, "type": "shipment",
-                            "carrier": row.carrier_party_id.lower()}
-
-                if row.tracking_id_number:
-                    activity["tracking"] = row.tracking_id_number
-
-                if row.carrier_party_id != "UPS" or not row.tracking_id_number:
-                    if row.shipment_method_type_id:
-                        activity["mode"] = row.shipment_method_type_id.lower()
-                    from_addr = {"country": row.origin_country_geo_id}
-                    if row.origin_state_province_geo_id:
-                        from_addr["state_province"] = row.origin_state_province_geo_id
-                    from_addr["city"] = row.origin_city
-                    from_addr["address"] = row.origin_address1
-                    if row.origin_address2:
-                        from_addr["address"] += " " + row.origin_address2
-
-                    activity["from"] = from_addr
-
-                    to_addr = {"country": row.dest_country_geo_id}
-                    if row.dest_state_province_geo_id:
-                        to_addr["state_province"] = row.dest_state_province_geo_id
-                    to_addr["city"] = row.dest_city
-                    to_addr["address"] = row.dest_address1
-                    if row.dest_address2:
-                        to_addr["address"] += " " + row.dest_address2
-
-                    activity["to"] = to_addr
-
-                    if row.billing_weight:
-                        activity["weight"] = row.billing_weight
-                    if row.billing_weight_uom_id:
-                        activity["weight_uom"] = row.billing_weight_uom_id.lower()
-                activities.append(activity)
+                if row.carrier_party_id == "UPS" and row.tracking_id_number:
+                    tracking_numbers = row.tracking_id_number.split(",")
+                    for tracking in tracking_numbers:
+                        tracking = tracking.strip()
+                        if len(tracking) > 18:
+                            logging.warning("Could be wrong tracking number: skip shipment {}:{} - tracking: {}"
+                                            .format(row.shipment_id, row.shipment_route_segment_id, tracking))
+                            continue
+                        item_id = row.shipment_id + ":" + row.shipment_route_segment_id + ":" + tracking
+                        activity = {"id": item_id, "type": "shipment",
+                                    "carrier": row.carrier_party_id.lower(), "tracking": tracking}
+                        activities.append(activity)
 
         if len(activities) == 0:
             logging.warning("Noting to tokenize")
@@ -75,6 +54,9 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
 def save_tokenize_result(conn, tokenize_data):
     for item in tokenize_data:
         tmp = item["id"].split(":")
+        tracking = None
+        if len(tmp) > 2:
+            tracking = tmp[2]
         token_id = None
         error = None
         status = "failed"
@@ -86,11 +68,11 @@ def save_tokenize_result(conn, tokenize_data):
         else:
             error = "Cannot create a token"
 
-        logging.info("tokenize_emissions: shipment {}:{} - {}"
-                     .format(tmp[0], tmp[1], status))
+        logging.info("tokenize_emissions: shipment {}:{}:{} - {}"
+                     .format(tmp[0], tmp[1], tracking, status))
         if error:
             error = str(error)
-        db.save_token(conn, tmp[0], tmp[1], status, token_id, error)
+        db.save_token(conn, tmp[0], tmp[1], tracking, status, token_id, error)
 
 
 def main(args):
