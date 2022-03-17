@@ -117,6 +117,7 @@ secure-identities/identity-ui/dist
 net-emissions-token-network/interface/packages/react-app/node_modules
 net-emissions-token-network/interface/packages/react-app/build
 net-emissions-token-network/interface/packages/subgraph/node_modules
+net-emissions-token-network/token-query-server/node_modules
 open-offsets-directory/node-server/node_modules/.pnpm
 open-offsets-directory/node-server/node_modules
 open-offsets-directory/react/build

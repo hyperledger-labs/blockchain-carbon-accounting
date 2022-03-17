@@ -49,9 +49,13 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
   const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
 
+  // params: key-value object list
   const castMetadata = (pairlist) => {
-    const _metadata = JSON.stringify(pairlist);
-    return _metadata;
+    const metaObj = {};
+    pairlist.forEach((elem) => {
+      metaObj[elem.key] = elem.value;
+    });
+    return JSON.stringify(metaObj);
   }
 
   // handle metadata field list
