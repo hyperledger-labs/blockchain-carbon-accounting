@@ -15,6 +15,8 @@ def get_shipment_route_segments(conn, from_date, thru_date, facility_id):
         srs.origin_contact_mech_id, srs.dest_contact_mech_id,
         srs.carrier_party_id, srs.shipment_method_type_id,
         srs.tracking_id_number,
+        srs.billing_weight,
+        srs.billing_weight_uom_id,
         pa.address1 as origin_address1,
         pa.address2 as origin_address2,
         pa.city as origin_city,

@@ -21,9 +21,12 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
 
             for row in rows:
                 activity = {"id": row.shipment_id + ":" + row.shipment_route_segment_id, "type": "shipment",
-                            "carrier": row.carrier_party_id.lower(), "tracking": row.tracking_id_number}
+                            "carrier": row.carrier_party_id.lower()}
 
-                if row.carrier_party_id != "UPS" or row.tracking_id_number is None:
+                if row.tracking_id_number:
+                    activity["tracking"] = row.tracking_id_number
+
+                if row.carrier_party_id != "UPS" or not row.tracking_id_number:
                     if row.shipment_method_type_id:
                         activity["mode"] = row.shipment_method_type_id.lower()
                     from_addr = {"country": row.origin_country_geo_id}
@@ -46,6 +49,10 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
 
                     activity["to"] = to_addr
 
+                    if row.billing_weight:
+                        activity["weight"] = row.billing_weight
+                    if row.billing_weight_uom_id:
+                        activity["weight_uom"] = row.billing_weight_uom_id.lower()
                 activities.append(activity)
 
         if len(activities) == 0:
@@ -58,7 +65,7 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
             if tokenize_data:
                 save_tokenize_result(conn, tokenize_data)
             else:
-                logging.warning("There is no tokenize_data")
+                logging.error("Cannot tokenize shipments")
     except Exception as e1:
         logging.exception(e1)
     finally:
