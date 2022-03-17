@@ -7,7 +7,7 @@ import {
 import EthNetEmissionsTokenGateway from "../../emissions-data/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork";
 import Signer from "../../emissions-data/typescript_app/src/blockchain-gateway/signer";
 import { setup } from "../../emissions-data/typescript_app/src/utils/logger";
-import { OrbitDBService } from "../../orbitdb/src/orbitDbService"
+import { OrbitDBService } from "../../data/orbitdb/src/orbitDbService"
 import {
   Activity,
   ActivityResult,

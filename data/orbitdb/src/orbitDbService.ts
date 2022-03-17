@@ -1,19 +1,19 @@
 import type DocumentStore from 'orbit-db-docstore';
-import type { CO2EmissionFactorInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissions-calc";
+import type { CO2EmissionFactorInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissions-calc";
 import type {
   EmissionsFactor,
   EmissionsFactorInterface,
-} from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
-import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
+} from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
+import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import type {
   UtilityLookupItem,
   UtilityLookupItemInterface,
-} from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
-import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
+} from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
+import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
 import {
   ErrInvalidFactorForActivity,
   ErrUnknownUOM,
-} from "../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
+} from "../../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
 import { parseCommonYargsOptions } from "./config";
 
 export const EMISSIONS_FACTOR_TYPE = "EMISSIONS_ELECTRICITY";

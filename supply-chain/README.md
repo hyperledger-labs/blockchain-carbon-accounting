@@ -13,7 +13,7 @@ Fill in the Google API key in `.env`.
 
 Make sure you are using node version 16.
 
-Install dependencies here and in `emissions-data/typescript_app` with
+Install dependencies here, in `../emissions-data/chaincode/emissionscontract/typescript` and then in `../emissons-data/typescript_app` with
 
 ```
 npm install
