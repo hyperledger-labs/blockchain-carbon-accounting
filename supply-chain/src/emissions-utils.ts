@@ -7,7 +7,8 @@ import {
 import EthNetEmissionsTokenGateway from "../../emissions-data/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork";
 import Signer from "../../emissions-data/typescript_app/src/blockchain-gateway/signer";
 import { setup } from "../../emissions-data/typescript_app/src/utils/logger";
-import { PostgresDBService } from "../../data/postgres/src/postgresDbService"
+import { PostgresDBService } from "../../data/postgres/src/postgresDbService";
+import { DbOpts, parseCommonYargsOptions } from "../../data/postgres/src/config";
 import {
   Activity,
   ActivityResult,
@@ -32,10 +33,11 @@ let logger_setup = false;
 const LOG_LEVEL = "silent";
 let _db: PostgresDBService = null;
 
-
 async function getDBInstance() {
   if (_db) return _db;
-  _db = await PostgresDBService.getInstance();
+
+  let opts = parseCommonYargsOptions({'dbuser': process.env.DB_USER, 'dbpassword': process.env.DB_PASSWORD});
+  _db = await PostgresDBService.getInstance(opts);
   return _db;
 }
 
