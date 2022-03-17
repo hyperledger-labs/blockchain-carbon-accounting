@@ -14,6 +14,7 @@ import { ErrInvalidFactorForActivity } from "../../../emissions-data/chaincode/e
 import { parseCommonYargsOptions } from "./config";
 import { getUomFactor } from "../../common/uom";
 import { ActivityInterface, EMISSIONS_FACTOR_TYPE, getYearFromDate } from "../../common/utils";
+import { DbInterface } from '../../common/db';
 
 
 type StoreRecord = UtilityLookupItemInterface | EmissionsFactorInterface;
@@ -24,7 +25,7 @@ function PromiseTimeout(delayms: number) {
   });
 }
 
-export class OrbitDBService {
+export class OrbitDBService implements DbInterface {
   private static _db: DocumentStore<StoreRecord>;
   private static _initCalled = false;
 

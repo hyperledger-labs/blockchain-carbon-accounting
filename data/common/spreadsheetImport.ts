@@ -172,7 +172,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
@@ -221,7 +221,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
   if (
     opts.file == "all" ||
@@ -269,7 +269,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   // eGRID Data for year 2019 ..
@@ -322,7 +322,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
@@ -371,7 +371,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
@@ -425,7 +425,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
@@ -470,7 +470,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
   if (
     opts.file == "all" ||
@@ -521,7 +521,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       }
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
@@ -569,14 +569,13 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.update(i);
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
   if (opts.file !== "all") {
     console.log(`Given file [${opts.file}] is not supported at the moment.`);
   } else {
     console.log("All supported files imported.");
   }
-  process.exit(0);
 }
 
 export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: DbInterface) => {
@@ -615,7 +614,6 @@ export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progres
       progressBar.increment();
     }
     progressBar.stop();
-    process.exit(0);
   } else {
     console.log("This sheet or PDF is not currently supported.");
   }
