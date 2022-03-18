@@ -7,7 +7,7 @@ const config: ConnectionOptions = {
   port: Number(process.env.PG_PORT) || 5432,
   username: process.env.PG_USER || "postgres",
   password: process.env.PG_PASSWORD || "postgres",
-  database: process.env.PG_DB || "postgres",
+  database: process.env.PG_DB || "blockchain-carbon-accounting",
   entities: [Token],
   synchronize: true,
 };

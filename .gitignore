@@ -114,10 +114,13 @@ secure-identities/identity-ui/node_modules
 secure-identities/identity-ui/package-lock.json
 secure-identities/identity-ui/dist
 .vscode
+
 net-emissions-token-network/interface/packages/react-app/node_modules
 net-emissions-token-network/interface/packages/react-app/build
 net-emissions-token-network/interface/packages/subgraph/node_modules
 net-emissions-token-network/token-query-server/node_modules
+net-emissions-token-network/token-query-server/.env
+
 open-offsets-directory/node-server/node_modules/.pnpm
 open-offsets-directory/node-server/node_modules
 open-offsets-directory/react/build

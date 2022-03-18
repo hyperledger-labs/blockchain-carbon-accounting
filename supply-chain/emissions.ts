@@ -1,10 +1,8 @@
 import * as dotenv from 'dotenv';
-import { readFileSync, writeFileSync } from 'fs'
+import { readFileSync } from 'fs'
 import { generateKeyPair, hash_content } from './src/crypto-utils';
 import { GroupedResult, GroupedResults, group_processed_activities, issue_tokens, process_activities } from './src/emissions-utils';
-import { decryptAES, decryptRSA } from "./src/crypto-utils";
 import { downloadFileEncrypted } from './src/ipfs-utils';
-import axios from "axios";
 
 // common config
 dotenv.config();
@@ -32,7 +30,6 @@ let fetchObjectPath: string = null;
 let pretend = false;
 let verbose = false;
 let verify = false;
-let output: string = null;
 const generatedKeypairs: string[] = [];
 
 // parse arguments
@@ -72,11 +69,6 @@ for (let i=0; i<args.length; i++) {
     if (fetchObjectPath) throw new Error('Cannot define multiple objects to fetch');
     a = args[i];
     fetchObjectPath = a;
-  } else if(a === '-o') {
-    i++ ;
-    if( i == args.length) throw new Error('Missing argument object afeter -o');
-    a = args[i];
-    output = a;
   } else if (a === '-verify') {
     verify = true;
   } else if (a === '-p' || a === '-pretend' || a === '--pretend') {
@@ -99,13 +91,6 @@ type OutputActivity = {
   error?: string
 };
 
-type Response = {
-  data: {
-      status: string,
-      msg: string
-  }
-}
-
 async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
   const token_res = await issue_tokens(g, activity_type, publicKeys, mode);
   // add each activity to output array
@@ -117,70 +102,12 @@ async function process_group(output_array: OutputActivity[], g: GroupedResult, a
   }
 }
 
-async function decryptAndSave(ipfsPath: string) {
-  try {
-      // const encryptedText = await downloadFileEncryptedWithoutPk(ipfsPath);
-      
-      const res: Response = await axios.get('http://127.0.0.1:5000/ipfs', {params: {ipfs: ipfsPath}});
-      
-      if(res.data.status === 'failed') throw Error("cannot download content");
-      const edata0 = Buffer.from(res.data.msg, 'utf8');
-
-      const kcount = edata0.readUint8(0);
-      const edata = edata0.slice(1);
-      const keys: string[] = [];
-      for (let i=0; i<kcount; i++) {
-      try {
-          const kbuff = edata.slice(684*i, 684*(i+1));
-          const key = decryptRSA(kbuff.toString('utf8'), privateKey);
-          keys.push(key);
-      } catch (err) {
-          // note: if not our key, it might just fail to decrypt here
-          // so don't print anything
-      }
-      }
-      if (!keys.length) {
-      throw new Error('Cannot decrypt the content with the given private key.');
-      }
-      const iv = edata.slice(684*kcount, 684*kcount+16).toString('utf8');
-      const econtent = edata.slice(684*kcount+16).toString('utf8');
-      const ebuf = Buffer.from(econtent, 'hex');
-      // try all the keys?
-      let content = null;
-      for (const key of keys) {
-      try {
-          content = decryptAES(ebuf, key, iv);
-          break;
-      } catch (err) {
-          // if the wrong key is used this might fail
-          console.error('Error in trying to decrypt the content with key: '+key);
-          console.error(err);
-      }
-      }
-      console.log('=====from REST API =======')
-      console.log(content.toString());
-      return content;
-  } catch (error) {
-      console.log(error)
-      throw error;
-  }
-}
 
 // check if we are fetching an object from ipfs
 if (fetchObjectPath) {
   // if also given tracking numbers, error out
   if (!privateKey) {
     throw new Error('A privatekey is required, specify one with -pk <privatekey.pem>');
-  }
-
-  if (output) {
-    decryptAndSave(fetchObjectPath)
-      .then(content => {
-          writeFileSync(output, content);
-      })
-      .catch(err => {
-          console.log(err);
-      });
   }
 
   downloadFileEncrypted(fetchObjectPath, privateKey).then((res) => {
