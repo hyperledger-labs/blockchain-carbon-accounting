@@ -81,6 +81,8 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
               output.emissions = emissions;
               resolve(result);
             });
+          }).catch(error => {
+            reject({trackingNumber, error});
           });
         } else {
           resolve(result);
