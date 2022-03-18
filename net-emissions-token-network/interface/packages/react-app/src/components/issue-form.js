@@ -30,6 +30,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
+  const [scope, setScope] = useState(1);
+  const [type, setType] = useState("");
+
   const [metajson, setMetajson] = useState("");
   const [metadata, setMetadata] = useState([]);
 
@@ -48,6 +51,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const onAutomaticRetireDateChange = useCallback((event) => { setAutomaticRetireDate(event._d); }, []);
   const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
   const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
+  const onScopeChange = useCallback((event) => { setScope(event.target.value); }, []);
+  const onTypeChange = useCallback((event) => { setType(event.target.value); }, []);
 
   // params: key-value object list
   const castMetadata = (pairlist) => {
@@ -55,6 +60,11 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     pairlist.forEach((elem) => {
       metaObj[elem.key] = elem.value;
     });
+
+    // add scope and type too.
+    metaObj["scope"] = scope;
+    metaObj["type"] = type;
+
     return JSON.stringify(metaObj);
   }
 
@@ -276,6 +286,33 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       </Form.Group>
       <Form.Group>
         <Form.Label>Metadata</Form.Label>
+        <Row>
+          <Col sm={3}>
+            <Row className="mb-3">
+              <Form.Label column sm={3}>
+                Scope
+              </Form.Label>
+              <Col sm={6}>
+              <Form.Control as="select" onChange={onScopeChange}>
+                <option value={0}>{}</option>
+                <option value={1}>1</option>
+                <option value={2}>2</option>
+                <option value={3}>3</option>
+              </Form.Control>
+              </Col>
+            </Row>
+          </Col>
+          <Col sm={6}>
+            <Row className="mb-3">
+              <Form.Label column sm={1}>
+                Type
+              </Form.Label>
+              <Col sm={8}>
+                <Form.Control type="text" placeholder="Type" onChange={onTypeChange} />
+              </Col>
+            </Row>
+          </Col>
+        </Row>
         <Form.Group>
           {metadata.map((field, key) => 
             <Row key={key} className="mt-2">
