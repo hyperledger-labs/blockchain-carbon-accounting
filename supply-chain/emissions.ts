@@ -1,11 +1,11 @@
 import * as dotenv from 'dotenv';
-// common config
-dotenv.config();
 import { readFileSync } from 'fs'
 import { generateKeyPair, hash_content } from './src/crypto-utils';
 import { GroupedResult, GroupedResults, group_processed_activities, issue_tokens, process_activities } from './src/emissions-utils';
 import { downloadFileEncrypted } from './src/ipfs-utils';
 
+// common config
+dotenv.config();
 
 function print_usage() {
   console.log('Usage: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
