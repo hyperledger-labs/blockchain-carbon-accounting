@@ -35,9 +35,7 @@ let _db: PostgresDBService = null;
 
 async function getDBInstance() {
   if (_db) return _db;
-
-  let opts = parseCommonYargsOptions({'dbuser': process.env.DB_USER, 'dbpassword': process.env.DB_PASSWORD});
-  _db = await PostgresDBService.getInstance(opts);
+  _db = await PostgresDBService.getInstance();
   return _db;
 }
 
