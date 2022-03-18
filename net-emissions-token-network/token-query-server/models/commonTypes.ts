@@ -25,26 +25,22 @@ export type QueryBundle = {
     fieldType: string,
     value: number | string,
     op: string,
-    nextOp?: string
 }
 
 
 export type FIELD = {
     fieldType: string;
     op: Array<string>;
-    nextOp?: Array<string>
 }
 
 const STRING_FIELD: FIELD = {
     fieldType: "string",
     op: ["=", "like"],
-    nextOp: ["and", "or"]
 }
 
 const NUMERIC_FIELD: FIELD = {
     fieldType: "number",
     op: [">", "<", "="],
-    nextOp: ["and", "or"]
 }
 
 export interface StringPayload {

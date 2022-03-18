@@ -14,14 +14,6 @@ function validateQuery(bundle: QueryBundle) : boolean {
     
     // op checking
     if(!validator.op.includes(bundle.op)) return false;
-
-    // last 
-    if(bundle.nextOp != '' && bundle.nextOp != undefined) {
-        if(!validator.nextOp?.includes(bundle.nextOp)) return false;
-    } else {
-        // default next operation
-        bundle.nextOp = 'and';
-    }
     
     return true;
 }
@@ -35,7 +27,6 @@ function queryProcessor(bundles: Array<string>) : Array<QueryBundle> {
             fieldType: elems[1],
             value: elems[2],
             op: elems[3],
-            nextOp: elems[4]
         }
         if(validateQuery(queryBundle)) queryBundles.push(queryBundle);
     }
@@ -47,7 +38,6 @@ function queryProcessor(bundles: Array<string>) : Array<QueryBundle> {
                 fieldType: elems[1],
                 value: elems[2],
                 op: elems[3],
-                nextOp: elems[4]
             }
             if(validateQuery(queryBundle)) queryBundles.push(queryBundle);
         });

@@ -120,6 +120,8 @@ net-emissions-token-network/interface/packages/react-app/build
 net-emissions-token-network/interface/packages/subgraph/node_modules
 net-emissions-token-network/token-query-server/node_modules
 net-emissions-token-network/token-query-server/.env
+net-emissions-token-network/token-query-server/**/*.js
+
 
 open-offsets-directory/node-server/node_modules/.pnpm
 open-offsets-directory/node-server/node_modules
@@ -149,6 +151,7 @@ emissions-data/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork.js
 emissions-data/typescript_app/src/blockchain-gateway/signer.js
 emissions-data/typescript_app/src/errors/clientError.js
 emissions-data/typescript_app/src/utils/logger.js
+emissions-data/chaincode/emissionscontract/typescript/**/*.js
 open-offsets-directory/data/.~lock.VCS_retirements.csv#
 net-emissions-token-network/my_notes.txt
 
@@ -171,3 +174,4 @@ __pycache__
 data/**/node_modules
 data/orbitdb/orbitdb*
 data/orbitdb/orbitIpfs*
+data/**/*.js

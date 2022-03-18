@@ -20,12 +20,7 @@ function buildQueries(builder: SelectQueryBuilder<Token>, queries: Array<QueryBu
             payload[query.field] = query.value as number;
         else continue;
         
-        if(query.nextOp == "and") {
-            // if(query.op ==)
-            builder = builder.andWhere(`token.${query.field} ${query.op} :${query.field}`, payload);
-        } else if (query.nextOp == "or") {
-            builder = builder.orWhere(`token.${query.field} ${query.op} :${query.field}`, payload);
-        }
+        builder = builder.andWhere(`token.${query.field} ${query.op} :${query.field}`, payload);
     }
     return builder;
 }
