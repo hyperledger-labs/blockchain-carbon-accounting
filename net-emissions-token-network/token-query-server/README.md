@@ -83,22 +83,21 @@ Query Parameters:
 
 Each params are separated by `comma(,)`. 
 
-[field],[fieldType],[operator],[next operator]
+[field],[fieldType],[operator]
 
 You can use multiple query bundles. 
 
 * fieldType: `number` and `string` (`date` format is included in `number`)
 * operator type: `=`, `like` for `string`, `>`, `>`, `=` for `number` type.
-* next operator type: `and`, `or`
 
 Order is important.
 
 for example, 
 
-`issuee,string,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,=,and`
+`issuee,string,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,=`
 
-`issuee,string,ffFb92266,like,or`
+`issuee,string,ffFb92266,like`
 
-`scope,number,2,>,and`
+`scope,number,2,>`
 
-`totalRetired,number,10000,>,or`
+`totalRetired,number,10000,>`
