@@ -1,9 +1,6 @@
 import { Dialect } from 'sequelize'
 const dbName = process.env.DB_NAME as string || 'blockchain-carbon-accounting'
-const dbUser = process.env.DB_USER as string
-const dbHost = process.env.DB_HOST as string
-const dbDialect = process.env.DB_DRIVER as Dialect || 'postgres'
-const dbPassword = process.env.DB_PASSWORD as string
+const dbDialect = 'postgres'
 
 export type DbOpts = {
   dbName: string, 
@@ -46,11 +43,11 @@ export const addCommonYargsOptions = (yargs) => {
 
 export const parseCommonYargsOptions = (argv): DbOpts => {
   const opts = {
-    dbName: argv['dbname'] || dbName,
-    dbUser: argv['dbuser'] || dbUser,
-    dbPassword: argv['dbpassword'] || dbPassword,
-    dbHost: argv['dbhost'] || dbHost,
-    dbDialect: dbDialect,
+    dbName: argv['dbname'] || process.env.DB_NAME as string || 'blockchain-carbon-accounting',
+    dbUser: argv['dbuser'] || process.env.DB_USER as string,
+    dbPassword: argv['dbpassword'] || process.env.DB_PASSWORD as string,
+    dbHost: argv['dbhost'] || process.env.DB_HOST as string,
+    dbDialect: dbDialect as Dialect,
     dbVerbose: argv['dbverbose'],
     dbClear: argv['dbclear']
   }
