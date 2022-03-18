@@ -1,29 +1,21 @@
 import { Presets, SingleBar } from "cli-progress";
 import { readFile } from "xlsx";
-import yargs from "yargs";
-import { hideBin } from "yargs/helpers";
+import { v4 as uuidv4 } from 'uuid';
+import { DbInterface } from "./db";
+import { EMISSIONS_FACTOR_TYPE } from "./utils";
+import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
 import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
-import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
-import { addCommonYargsOptions } from "./config";
-import { EMISSIONS_FACTOR_TYPE, OrbitDBService } from "./orbitDbService";
 
-let db: OrbitDBService;
 
-const progressBar = new SingleBar(
-  {
-    format:
-      "Loading into OrbitDB |" +
-      "{bar}" +
-      "| {percentage}% | ETA: {eta}s | {value}/{total} records",
-    barCompleteChar: "\u2588",
-    barIncompleteChar: "\u2591",
-    hideCursor: true,
-  },
-  Presets.shades_classic
-);
+export type ParseWorksheetOpts = {
+  verbose?: boolean, 
+  file: string, 
+  sheet: string, 
+  skip_rows?: number
+};
 
-const parse_worksheet = (file_name: string, opts) => {
+export const parseWorksheet = (opts: ParseWorksheetOpts) => {
   const bar = new SingleBar(
     {
       format:
@@ -36,6 +28,7 @@ const parse_worksheet = (file_name: string, opts) => {
     },
     Presets.shades_classic
   );
+  const file_name = opts.file;
 
   opts.verbose && console.log("Reading file ...  ", file_name);
   const workbook = readFile(file_name);
@@ -102,7 +95,7 @@ const parse_worksheet = (file_name: string, opts) => {
   return data;
 };
 
-const load_emissions_factors = async (opts) => {
+export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: DbInterface) => {
   const supportedFiles = [
     { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
     { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
@@ -123,7 +116,7 @@ const load_emissions_factors = async (opts) => {
     opts.file == "all" ||
     (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18")
   ) {
-    const data = parse_worksheet(supportedFiles[0].file, supportedFiles[0]);
+    const data = parseWorksheet(supportedFiles[0]);
     // import data for each valid row, eg:
     // Year = 2018 from 'Data Year'
     // Country = USA
@@ -144,11 +137,6 @@ const load_emissions_factors = async (opts) => {
       // skip header rows
       if (row["Data Year"] == "YEAR") continue;
       // generate a unique for the row
-      const document_id =
-        "USA_" +
-        row["Data Year"] +
-        "_NERC_REGION_" +
-        row["NERC region acronym"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -156,7 +144,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: row["Data Year"].toString(),
         country: "USA",
         division_type: "NERC_REGION",
@@ -180,19 +168,18 @@ const load_emissions_factors = async (opts) => {
           ].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
-    console.log((await db.get(""))[0]);
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
     opts.file == "all" ||
     (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")
   ) {
-    const data = parse_worksheet(supportedFiles[1].file, supportedFiles[1]);
+    const data = parseWorksheet(supportedFiles[1]);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -202,11 +189,9 @@ const load_emissions_factors = async (opts) => {
       if (row["Data Year"] == "YEAR") continue;
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
-      const document_id =
-        "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        uuid: document_id,
+        uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
         level_1: "Emissions Factor",
         level_2: "USA",
@@ -232,17 +217,17 @@ const load_emissions_factors = async (opts) => {
           row["State annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
   if (
     opts.file == "all" ||
     (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")
   ) {
-    const data = parse_worksheet(supportedFiles[2].file, supportedFiles[2]);
+    const data = parseWorksheet(supportedFiles[2]);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -252,7 +237,6 @@ const load_emissions_factors = async (opts) => {
       if (row["Data Year"] == "YEAR") continue;
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
-      const document_id = "COUNTRY_USA_" + row["Data Year"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -260,7 +244,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: "COUNTRY: USA",
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "COUNTRY",
@@ -281,11 +265,11 @@ const load_emissions_factors = async (opts) => {
           row["U.S. annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   // eGRID Data for year 2019 ..
@@ -294,7 +278,7 @@ const load_emissions_factors = async (opts) => {
     opts.file == "all" ||
     (opts.file == "egrid2019_data.xlsx" && opts.sheet == "US19")
   ) {
-    const data = parse_worksheet(supportedFiles[5].file, supportedFiles[5]);
+    const data = parseWorksheet(supportedFiles[5]);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -306,7 +290,6 @@ const load_emissions_factors = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
 
-      const document_id = "COUNTRY_USA_" + row["Data Year"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -314,7 +297,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: "COUNTRY: USA",
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "COUNTRY",
@@ -335,18 +318,18 @@ const load_emissions_factors = async (opts) => {
           row["U.S. annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
     opts.file == "all" ||
     (opts.file == "egrid2019_data.xlsx" && opts.sheet == "ST19")
   ) {
-    const data = parse_worksheet(supportedFiles[4].file, supportedFiles[4]);
+    const data = parseWorksheet(supportedFiles[4]);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -356,8 +339,6 @@ const load_emissions_factors = async (opts) => {
       if (row["Data Year"] == "YEAR") continue;
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // generate a unique for the row
-      const document_id =
-        "USA_" + row["Data Year"] + "_STATE_" + row["State abbreviation"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -365,7 +346,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: `STATE: ${row["State abbreviation"]}`,
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "STATE",
@@ -386,18 +367,18 @@ const load_emissions_factors = async (opts) => {
           row["State annual total renewables net generation (MWh)"].toString(),
         percent_of_renewables: "",
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
     opts.file == "all" ||
     (opts.file == "egrid2019_data.xlsx" && opts.sheet == "NRL19")
   ) {
-    const data = parse_worksheet(supportedFiles[3].file, supportedFiles[3]);
+    const data = parseWorksheet(supportedFiles[3]);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -408,11 +389,6 @@ const load_emissions_factors = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
       // generate a unique for the row
-      const document_id =
-        "USA_" +
-        row["Data Year"] +
-        "_NERC_REGION_" +
-        row["NERC region acronym"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: EMISSIONS_FACTOR_TYPE,
@@ -420,7 +396,7 @@ const load_emissions_factors = async (opts) => {
         level_2: "USA",
         level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
         scope: "SCOPE 2",
-        uuid: document_id,
+        uuid: uuidv4(),
         year: "" + row["Data Year"],
         country: "USA",
         division_type: "NERC_REGION",
@@ -444,19 +420,19 @@ const load_emissions_factors = async (opts) => {
         percent_of_renewables: "",
       };
 
-      await db.put(d);
+      await db.putEmissionFactor(d);
 
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
     opts.file == "all" ||
     (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")
   ) {
-    const data = parse_worksheet(supportedFiles[6].file, supportedFiles[6]);
+    const data = parseWorksheet(supportedFiles[6]);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -467,10 +443,9 @@ const load_emissions_factors = async (opts) => {
       if (row["Market_Sector"] !== "Electricity") continue;
 
       const countryName = COUNTRY_MAPPINGS[row["CountryShort"]];
-      const document_id = `COUNTRY_${row["CountryShort"]}_` + row["Year"];
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        uuid: document_id,
+        uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
         level_1: "Emissions Factor",
         level_2: countryName,
@@ -491,11 +466,11 @@ const load_emissions_factors = async (opts) => {
         renewables: "",
         percent_of_renewables: (Number(row[" ValueNumeric"]) * 100).toString(),
       };
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
   if (
     opts.file == "all" ||
@@ -504,7 +479,7 @@ const load_emissions_factors = async (opts) => {
     console.log(
       "Assuming 2019-RES_proxies_EEA.csv has already been imported..."
     );
-    const data = parse_worksheet(supportedFiles[7].file, supportedFiles[7]);
+    const data = parseWorksheet(supportedFiles[7]);
     progressBar.start(data.length, 0);
     for (const row of data) {
       // skip empty rows
@@ -523,7 +498,7 @@ const load_emissions_factors = async (opts) => {
       // skip if country name not found
       if (!countryShort) continue;
 
-      const document_id = `COUNTRY_` + countryShort + `_` + row["Date:year"];
+      const document_id = uuidv4();
       const d = {
         uuid: document_id,
         type: EMISSIONS_FACTOR_TYPE,
@@ -533,29 +508,27 @@ const load_emissions_factors = async (opts) => {
       };
 
       // find previous record to update
-      const factorCall = db.get(document_id) as EmissionsFactorInterface[];
-      if (factorCall.length) {
-        const factor = factorCall[0];
-
+      const factor = await db.getEmissionFactor(document_id);
+      if (factor) {
         factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
         factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
         factor.source = d.source;
 
-        await db.put(factor);
+        await db.putEmissionFactor(factor);
         progressBar.increment();
       } else {
         console.log("Could not find imported factor");
       }
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
 
   if (
     opts.file == "all" ||
     opts.file == "conversion-factors-2021-flat-file-automatic-processing.xls"
   ) {
-    const data = parse_worksheet(supportedFiles[8].file, supportedFiles[8]);
+    const data = parseWorksheet(supportedFiles[8]);
     progressBar.start(data.length, 0);
 
     let i = 0;
@@ -573,24 +546,14 @@ const load_emissions_factors = async (opts) => {
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
       // generate a unique for the rows
-      const document_id = (
-        row.Scope +
-        "_" +
-        row["Level 1"] +
-        "_" +
-        row["Level 2"] +
-        "_" +
-        row["Level 3"]
-      )
-        .toUpperCase()
-        .replace(/[-:._^&()<>]/g, "")
-        .replace(/[^A-Z0-9]/g, "_");
+      const document_id = uuidv4();
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         type: `${row.Scope.replace(/ /g, "_").toUpperCase()}_EMISSIONS`,
         level_1: row["Level 1"].toUpperCase(),
         level_2: row["Level 2"].toUpperCase(),
         level_3: row["Level 3"].toUpperCase(),
+        level_4: row["Level 4"] ? row["Level 4"].toUpperCase() : '',
         text: row["Column Text"] ?? "",
         scope: row.Scope,
         uuid: document_id,
@@ -602,25 +565,24 @@ const load_emissions_factors = async (opts) => {
           "https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021",
       };
 
-      await db.put(d);
+      await db.putEmissionFactor(d);
       progressBar.update(i);
     }
     progressBar.stop();
-    if (opts.file !== "all") process.exit(0);
+    if (opts.file !== "all") return;
   }
   if (opts.file !== "all") {
     console.log(`Given file [${opts.file}] is not supported at the moment.`);
   } else {
     console.log("All supported files imported.");
   }
-  process.exit(0);
-};
+}
 
-const import_utility_identifiers = async (opts) => {
+export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: DbInterface) => {
   opts.skip_rows = 1;
 
   if (opts.file == "Utility_Data_2019.xlsx") {
-    const data = parse_worksheet(opts.file, opts);
+    const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
 
     // import data for each valid row, eg:
@@ -648,68 +610,11 @@ const import_utility_identifiers = async (opts) => {
         },
       };
 
-      await db.put(d);
+      await db.putUtilityLookupItem(d);
       progressBar.increment();
     }
     progressBar.stop();
-    process.exit(0);
   } else {
     console.log("This sheet or PDF is not currently supported.");
   }
-};
-
-(async () => {
-  const init = async (argv) => {
-    await OrbitDBService.init(argv);
-    db = new OrbitDBService();
-  };
-
-  addCommonYargsOptions(yargs(hideBin(process.argv)))
-    .command(
-      "load_emissions_factors <file> [sheet]",
-      "load data from XLSX file",
-      (yargs) => {
-        yargs
-          .positional("file", {
-            describe: "XLSX file to load from",
-          })
-          .positional("sheet", {
-            describe: "name of the worksheet to load from",
-            default: "Sheet1",
-          });
-      },
-      async (argv) => {
-        await init(argv);
-        console.log("=== Starting load_emissions_factors ...");
-        await load_emissions_factors(argv);
-      }
-    )
-    .command(
-      "load_utility_identifiers <file> [sheet]",
-      "load data from XLSX file",
-      (yargs) => {
-        yargs
-          .positional("file", {
-            describe: "XLSX file to load from",
-            demandOption: true,
-          })
-          .positional("sheet", {
-            describe: "name of the worksheet to load from",
-          });
-      },
-      async (argv) => {
-        await init(argv);
-        console.log("=== Starting import_utility_identifiers ...");
-        await import_utility_identifiers(argv);
-      }
-    )
-    .option("verbose", {
-      alias: "v",
-      type: "boolean",
-      description: "Run with verbose logging",
-    })
-    .demandCommand(1)
-    .recommendCommands()
-    .strict()
-    .showHelpOnFail(true).argv;
-})();
+}

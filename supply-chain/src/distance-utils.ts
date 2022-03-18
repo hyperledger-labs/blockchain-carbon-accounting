@@ -57,6 +57,10 @@ export async function calc_ground_distance(origin: Address, dest: Address, clien
       if (!results.data||!results.data.rows||!results.data.rows.length||!results.data.rows[0].elements||!results.data.rows[0].elements.length) {
         return reject(`No distancematrix results for address [${o}]`);
       }
+      if (results.data.rows[0].elements[0].status != "OK") {
+        return reject(`No distance results for address [${o}], status [${results.data.rows[0].elements[0].status}]`);
+      }
+
       const dist = results.data.rows[0].elements[0].distance;
       // the value is always in meter, need to convert into either km or mi
       const dist_km = dist.value / 1000;
@@ -73,7 +77,11 @@ export async function calc_ground_distance(origin: Address, dest: Address, clien
       };
 
       resolve(res);
-    });
+    })
+      .catch(error => {
+        console.log(error);
+        reject(error);
+      });
   });
 }
 
@@ -118,7 +126,13 @@ export async function calc_direct_distance(origin: Address, dest: Address, mode:
               mode
             };
             resolve(res);
+          })
+          .catch(error => {
+            reject(error);
           });
+      })
+      .catch(error => {
+        reject(error);
       });
   });
 }

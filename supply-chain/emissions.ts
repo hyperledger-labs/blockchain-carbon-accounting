@@ -97,10 +97,11 @@ async function process_group(output_array: OutputActivity[], g: GroupedResult, a
   for (const a of g.content) {
     const out: OutputActivity = { id: a.activity.id };
     if (a.error) out.error = a.error;
-    if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId;
+    if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId; 
     output_array.push(out);
   }
 }
+
 
 // check if we are fetching an object from ipfs
 if (fetchObjectPath) {
@@ -108,6 +109,7 @@ if (fetchObjectPath) {
   if (!privateKey) {
     throw new Error('A privatekey is required, specify one with -pk <privatekey.pem>');
   }
+
   downloadFileEncrypted(fetchObjectPath, privateKey).then((res) => {
     const result = res.toString('utf8');
     if (verify) {
@@ -115,6 +117,7 @@ if (fetchObjectPath) {
       console.log(`HASH: ${h.type}:${h.value}`);
       console.log('');
     }
+    console.log('=====from IPFS =======')
     console.log(result);
   });
 } else {
@@ -169,5 +172,7 @@ if (fetchObjectPath) {
 
   }).then((output)=>{
     console.log(JSON.stringify(output, null, 4));
+      process.exit(0)
   });
 }
+

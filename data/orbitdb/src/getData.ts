@@ -1,8 +1,9 @@
 import yargs = require('yargs')
 import { hideBin } from "yargs/helpers"
-import { EmissionsFactorInterface } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor"
+import { EmissionsFactorInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor"
 import { addCommonYargsOptions } from "./config"
-import { ActivityInterface, OrbitDBService } from "./orbitDbService"
+import { OrbitDBService } from "./orbitDbService"
+import { ActivityInterface } from "../../common/utils";
 
 let db: OrbitDBService
 
@@ -85,7 +86,60 @@ let db: OrbitDBService
     process.exit(0)
   })
   .command(
-    "activity-emissions <scope> <level1> <level2> <level3> <amount> [uom]",
+    "factor <scope> [level1] [level2] [level3] [level4] [text] [uom]",
+    "Lookup an emission factor",
+    (yargs) => {
+      yargs
+        .positional("scope", {
+          describe: 'The activity scope, eg: "scope 1"',
+          type: "string",
+        })
+        .positional("level1", {
+          describe: "Activity level 1",
+          type: "string",
+        })
+        .positional("level2", {
+          describe: "Activity level 2",
+          type: "string",
+        })
+        .positional("level3", {
+          describe: "Activity level 3",
+          type: "string",
+        })
+        .positional("level4", {
+          describe: "Activity level 4",
+          type: "string",
+        })
+        .positional("text", {
+          describe: "Activity text, eg: With RF, or: Without RF",
+          type: "string",
+        })
+        .positional("uom", {
+          describe: 'Activity uom, eg: "kg"',
+          type: "string",
+        })
+    },
+    async (args) => {
+      await init(args)
+      try {
+        const f = {
+            scope: args.scope,
+            level_1: args.level1,
+            level_2: args.level2,
+            level_3: args.level3,
+            level_4: args.level4,
+            text: args.text,
+            activity_uom: args.uom,
+          }
+        console.log(db.getEmissionsFactors(f))
+      } catch (e) {
+        console.log('Error', e)
+      }
+      process.exit(0)
+    }
+  )
+  .command(
+    "activity-emissions <scope> <level1> <level2> <level3> <level4> <text> <amount> [uom]",
     "Calculate the emissions for an activity",
     (yargs) => {
       yargs
@@ -105,8 +159,16 @@ let db: OrbitDBService
           describe: "Activity level 3",
           type: "string",
         })
+        .positional("level4", {
+          describe: "Activity level 4",
+          type: "string",
+        })
+        .positional("text", {
+          describe: "Activity text, eg: With RF, or: Without RF",
+          type: "string",
+        })
         .positional("amount", {
-          describe: "Activity amount",
+          describe: "Amount of the activity UOM",
           type: "number",
         })
         .positional("uom", {
@@ -124,8 +186,12 @@ let db: OrbitDBService
             level_1: args.level1,
             level_2: args.level2,
             level_3: args.level3,
+            level_4: args.level4,
+            text: args.text,
             activity_uom: args.uom,
             activity: args.amount,
+            tonnesShipped: args.uom?.startsWith('tonne') ? 1 : null,
+            passengers: args.uom?.startsWith('passenger') ? 1 : null,
           })
         )
       } catch (e) {
