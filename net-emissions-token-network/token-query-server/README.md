@@ -16,8 +16,8 @@ LEDGER_ETH_NETWORK="hardhat"
 LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS="0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
 
 PG_HOST=127.0.0.1
-PG_USER=postgres
-PG_PASSWORD=postgres
+PG_USER=
+PG_PASSWORD=
 PG_PORT=5432
 ```
 You can set change `PG_USER` and `PG_PASSWORD` based on your postgres setting.
@@ -26,7 +26,7 @@ Run `npm run dev`.
 
 # Usage
 
-Base URL `http://127.0.0.1:8000/count`
+Base URL `http://127.0.0.1:8000`
 
 ## Get Total Number of Tokens
 GET `/count`

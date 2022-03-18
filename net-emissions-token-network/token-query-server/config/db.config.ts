@@ -3,7 +3,7 @@ import { Token } from "../models/token.model";
 
 const config: ConnectionOptions = {
   type: "postgres",
-  host: process.env.PG_HOST || "localhost",
+  host: process.env.PG_HOST || "127.0.0.1",
   port: Number(process.env.PG_PORT) || 5432,
   username: process.env.PG_USER || "postgres",
   password: process.env.PG_PASSWORD || "postgres",
