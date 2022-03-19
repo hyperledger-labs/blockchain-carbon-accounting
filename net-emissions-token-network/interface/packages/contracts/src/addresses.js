@@ -95,9 +95,27 @@ const networksAndAddresses = {
       }
     }
   },
+
+  testnet: {
+    network: "Binance Testnet",
+    tokenNetwork: {
+      address: "0xEb04d93256EA8511974041f5E0aB871c228E6c56", // deployed 2022-03-20
+    },
+    carbonTracker: {
+      address: "0x5F0399E6d55A3E2aCCce4eDF9EB909dB95aBAa30", // deployed 2022-03-20
+    },
+    dao: {
+      governor: {
+        address: "0x1D05f8153A0Dc80fB76fA728cFa3349624479ecb", // deployed 2022-03-20
+      },
+      daoToken: {
+        address: "0x5AE9c3d853bcfe87E048255E1937046a956FEC92", // deployed 2022-03-20
+      }
+    }
+  },
 }
 
 // change this to the network you want
-const addresses = networksAndAddresses.hardhat;
+const addresses = networksAndAddresses.testnet;
 
 export default addresses;

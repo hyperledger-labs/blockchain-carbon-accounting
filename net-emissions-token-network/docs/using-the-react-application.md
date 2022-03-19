@@ -71,6 +71,26 @@ yarn react-app:start
 
 You should now be connected to the contracts in Goerli and be able to interact with contracts deployed on it through the React application.
 
+## With BSC testnet
+
+BSC testnet is a test environment for Binance Chain network, run by the Binance Chain development community, which is open to developers. Transactions can be viewed by anyone on [Bscscan](https://testnet.bscscan.com/) (to see the history of transactions, one can enter the current contract address at `net-emissions-token-network/interface/packages/contracts/src/addresses.js`). After deploying the contracts to BSC testnet (as also outlined in the docs), connect the interface with the following steps:
+
+1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "testnet" since the contract addresses are already defined in the same file.
+
+2. Start the React app with
+
+```bash
+yarn react-app:start
+```
+
+3. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Binance Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
+
+4. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
+
+5. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
+
+You should now be connected to the contracts in Binance and be able to interact with contracts deployed on it through the React application.
+
 ## With Optimism local testnet
 
 Optimism is a layer-2 solution for EVM-based layer-1 chains. It runs in a separate repository and can be used to test deployment to Optimism.
