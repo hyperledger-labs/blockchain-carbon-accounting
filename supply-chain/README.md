@@ -55,67 +55,6 @@ Try fetching the encrypted content from IPFS by specifying the IPFS content ID a
 node emissions.js -pk user1-private.pem -fetch <content_id>
 ```
 
-## Sample JSON input
-
-Here is an example of a `input.json`:
-```json
-
-{
-  "activities": [
-    {
-      "id": "1",
-      "type": "shipment",
-      "carrier": "ups",
-      "tracking": "xxxxxxxxxx"
-    },
-    {
-      "id": "1a",
-      "type": "shipment",
-      "carrier": "ups",
-      "tracking": "yyyyyyyy"
-    },
-    {
-      "id": "2",
-      "type": "shipment",
-      "carrier": "fedex",
-      "tracking": "zzzzzzzzz",
-      "mode": "air",
-      "from": {
-        "country": "USA",
-        "state_province": "CA",
-        "city": "Los Angeles",
-        "address": "123 Foxboro"
-      },
-      "to": {
-        "country": "France",
-        "city": "Paris",
-        "address": "Grand Palais"
-      }
-    },
-    {
-      "id": "3",
-      "type": "flight",
-      "carrier": "Air France",
-      "flight_number": "AF666",
-      "from": {
-        "country": "France",
-        "city": "Paris",
-        "address": "Charle de Gaulle"
-      },
-      "to": {
-        "country": "Portugal",
-        "city": "Lisbon"
-      }
-    },
-    {
-      "id": "4",
-      "type": "unknown"
-    }
-  ]
-}
-
-```
-
 ## REST API
 
 See [here](interface/README.md)
