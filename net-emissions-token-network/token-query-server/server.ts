@@ -2,6 +2,7 @@ import "reflect-metadata";
 import express, { Application } from 'express';
 import { createConnection } from "typeorm";
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -15,8 +16,12 @@ import { synchronize } from "./middleware/sync.middle";
 
 const app: Application = express();
 const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
+const corsOptions = {
+    origin: "http://localhost:3000"
+}
 
 // middleware setting
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(synchronize);

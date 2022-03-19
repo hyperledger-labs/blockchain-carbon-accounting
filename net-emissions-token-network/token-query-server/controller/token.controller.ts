@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { Token } from "../models/token.model";
-import { FIELD, IFIELDS, FIELDS, QueryBundle, TokenPayload } from "../models/commonTypes";
+import { FIELD, IFIELDS, FIELDS, QueryBundle, TokenPayload, OP_MAP, IOP_MAP } from "../models/commonTypes";
 import { selectAll, insert, count, selectPaginated } from "../repositories/token.repo";
 
 function validateQuery(bundle: QueryBundle) : boolean {
@@ -14,7 +14,8 @@ function validateQuery(bundle: QueryBundle) : boolean {
     
     // op checking
     if(!validator.op.includes(bundle.op)) return false;
-    
+    bundle.op = OP_MAP[bundle.op as keyof IOP_MAP];
+
     return true;
 }
 

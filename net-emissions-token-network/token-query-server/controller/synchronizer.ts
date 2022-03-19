@@ -22,11 +22,9 @@ export const fillTokens = async () => {
     
     // get number tokens from database
     const numOfSavedTokens = await count();
-    console.log(`saved tokens: ${numOfSavedTokens}`);
 
     // get number tokens from network
     const numOfIssuedTokens = await getNumOfUniqueTokens();
-    console.log(`issued tokens: ${numOfIssuedTokens}`);
 
     // getting tokens from network
     // save to database
@@ -35,21 +33,23 @@ export const fillTokens = async () => {
             const token: CreatedToken = await getTokenDetails(i);
 
             // restructure 
-            const metadata = token.metadata;
-            const metaObj = JSON.parse(metadata);
+            const _metadata = token.metadata as string;
+            const metaObj = JSON.parse(_metadata);
 
             // extract scope and type
             let scope = null, type = null;
-            if(metaObj.hasOwnProperty('Scope')) scope = metaObj['Scope'];
-            if(metaObj.hasOwnProperty('Type')) type = metaObj['Type'];
-
+            if(metaObj.hasOwnProperty('Scope') || metaObj.hasOwnProperty('scope')) scope = metaObj['Scope'];
+            if(metaObj.hasOwnProperty('Type') || metaObj.hasOwnProperty('type')) type = metaObj['Type'];
+            
             // build token model
+            let { metadata, ..._tokenPayload } = { ...token };
             const tokenPayload: TokenPayload = {
-                ...token,
+                ..._tokenPayload,
                 scope,
                 type,
-                metaObj
+                metadata: metaObj
             }
+
             await insert(tokenPayload);
         }
     }

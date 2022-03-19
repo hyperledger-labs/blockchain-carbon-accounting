@@ -28,10 +28,10 @@ export class Token {
     dateCreated!: number;
 
     @Column({nullable: true})
-    automaticRetiredDate!: number;
+    automaticRetireDate!: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    metaObj!: Object;
+    metadata!: Object;
 
     @Column()
     manifest!: string;
