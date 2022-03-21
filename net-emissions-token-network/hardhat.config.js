@@ -20,7 +20,7 @@ let encodeParameters = function (types, values) {
 };
 
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
-const ethereumConfig = require("./.ethereum-config");
+// const ethereumConfig = require("./.ethereum-config");
 
 // Task to set limited mode on NetEmissionsTokenNetwork
 task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
@@ -378,12 +378,12 @@ module.exports = {
       url: `http://localhost:9545`
     },
 
-    testnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
-      chainId: 97,
-      gasPrice: 20000000000,
-      accounts: [`0x${ethereumConfig.BSC_PRIVATE_KEY}`]
-    }
+    // testnet: {
+    //   url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+    //   chainId: 97,
+    //   gasPrice: 20000000000,
+    //   accounts: [`0x${ethereumConfig.BSC_PRIVATE_KEY}`]
+    // }
 
     // Uncomment the following lines if deploying contract to Optimism on Kovan
     // Deploy with npx hardhat run --network optimism_kovan scripts/___.js
