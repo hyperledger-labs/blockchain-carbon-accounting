@@ -2,8 +2,16 @@
 
 ## preliminary
 
-* Run `hardhat` on local
-* Issue some tokens by `emissions.js` or `dapp`
+* Run `hardhat` on local. If you're going to use Binance testnet, skip this.
+* Issue some tokens by `emissions.js` or `dapp`. If you're going to use Binance testnet, skip this.
+* For synchronizing, we need moralis api_key.
+### Getting Moralis API KEY
+
+* Sign up [Moralis](https://moralis.io/)
+* Go to admin page and select `Speedy Nodes` tab.
+* Select `Binance Network Endpoints` and switch into `WS`.
+* You can find `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws`.
+* You can use this `API_KEY` as `MORALIS_API_KEY` in `.env`.
 
 ## Run server
 

@@ -2,7 +2,7 @@ import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { CreatedToken, TokenPayload } from "../models/commonTypes";
-import { count, insert, selectAll, selectPaginated } from "../repositories/token.repo";
+import { count, insert, selectAll, selectPaginated, truncate } from "../repositories/token.repo";
 
 const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
 const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
@@ -18,8 +18,15 @@ const getTokenDetails = async (tokenId: number): Promise<CreatedToken> => {
     return token;
 }
 
+export const truncateTable = async () => {
+    await truncate();
+    console.log('--- Token table has been cleared. ----\n')
+}
+
 export const fillTokens = async () => {
-    
+    let elapsed = 0;
+    const started = Date.now();
+    console.log('--- Synchronization started at: ', new Date().toLocaleString());
     // get number tokens from database
     const numOfSavedTokens = await count();
 
@@ -38,8 +45,10 @@ export const fillTokens = async () => {
 
             // extract scope and type
             let scope = null, type = null;
-            if(metaObj.hasOwnProperty('Scope') || metaObj.hasOwnProperty('scope')) scope = metaObj['Scope'];
-            if(metaObj.hasOwnProperty('Type') || metaObj.hasOwnProperty('type')) type = metaObj['Type'];
+            if(metaObj.hasOwnProperty('Scope')) scope = metaObj['Scope']; 
+            else if(metaObj.hasOwnProperty('scope')) scope = metaObj['scope'];
+            if(metaObj.hasOwnProperty('Type')) type = metaObj['Type']; 
+            else if(metaObj.hasOwnProperty('type')) type = metaObj['type'];
             
             // build token model
             let { metadata, ..._tokenPayload } = { ...token };
@@ -53,4 +62,7 @@ export const fillTokens = async () => {
             await insert(tokenPayload);
         }
     }
+    elapsed = Date.now() - started;
+    console.log(`\t${numOfIssuedTokens} tokens are stored into database.`);
+    console.log(`\telapsed ${elapsed / 1000} seconds.\n`);
 }
