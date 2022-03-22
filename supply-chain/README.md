@@ -64,4 +64,4 @@ node emissions.js -pk user1-private.pem -fetch <content_id>
 
 A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/interface/`](interface/README.md) directory.
 
-Examples for using the REST API is in the [`/example`] directory.
+Examples for using the REST API is in the [`/example`](example/README.md) directory.
