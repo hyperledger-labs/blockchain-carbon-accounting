@@ -23,7 +23,7 @@ Create a new table using sql/create_table.sql
 
 Make sure all of the following are running:
 - The emissions tokens contracts must be running on a network which is configured in your `supply-chain/.env` file.  The issuer must have the role of Emissions Auditor.
-- You have generated a public/private key based on the instructions in [`supply-chain/README.md`](../supply-chain/README.md)
+- You have generated a public/private key based on the instructions in [`supply-chain/README.md`](../README.md)
 - IPFS daemon must be running
 - The `supply-chain/interface` REST API must be running 
 
