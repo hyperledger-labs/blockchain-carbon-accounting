@@ -22,6 +22,11 @@ Build the application:
 npm run build
 ```
 
+Install IPFS.  Then start the daemon in another window
+```
+ipfs daemon
+```
+
 ## Trying it
 
 First generate one or more key pairs for encrypting and decrypting files on IPFS.
@@ -57,5 +62,6 @@ node emissions.js -pk user1-private.pem -fetch <content_id>
 
 ## REST API
 
-See [here](interface/README.md)
+A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/interface/`](interface/README.md) directory.
 
+Examples for using the REST API is in the [`/example`] directory.

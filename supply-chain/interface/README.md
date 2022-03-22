@@ -2,24 +2,21 @@
 
 ## preliminary
 
-* Run `ipfs` on local
-* Google api key in `.env`
-* Run `hardhat` on local
-* Replace `issuer` address in `.env`
+* Run `ipfs daemon` on local computer.
+* Emissions contract is running on a network, either local hardhat or a public testnet or livenet.
+* Configure `supply-chain/.env` with issuer wallet and private key and API keys.
+* The `REST_API_PORT` key in that `.env` is to setup the API server port, by default it will use port 5000.
+* Create public/private key pair for encrypting your file base on instructions in [`supply-chain/README.md`](../supply-chain/README.md)
 
 ## Run server
 
 Run `npm install`.
 
-This `interface` is using `.env` in the parent directory `supply-chain`. 
-Note the `REST_API_PORT` key in that `.env` is to setup the API server port, by default it will use port 5000.
-
 Run `npm run dev`.
-
 
 ## Usage
 
-API endpoint is `http://127.0.0.1:5000/issue` and accepts POST methods only.
+API endpoint is by default `http://127.0.0.1:5000/issue` and accepts POST methods only.
 
 Parameters:
 
@@ -37,3 +34,7 @@ curl --location --request POST 'http://127.0.0.1:5000/issue' \
 --form 'issuee="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"' \
 --form 'input=@"input.json"'
 ```
+
+## Decrypting the data file
+
+This must be done with the public/private key you created using `emissions.js`.  See instructions from [`supply-chain/README.md`](../supply-chain/README.md)

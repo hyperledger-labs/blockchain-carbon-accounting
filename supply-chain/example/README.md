@@ -21,30 +21,17 @@ Create a new table using sql/create_table.sql
 
 ### Run all required applications
 
-```
-cd net-emissions-token-network
-npx hardhat node --show-accounts
-```
+Make sure all of the following are running:
+- The emissions tokens contracts must be running on a network which is configured in your `supply-chain/.env` file.  The issuer must have the role of Emissions Auditor.
+- You have generated a public/private key based on the instructions in [`supply-chain/README.md`](../supply-chain/README.md)
+- IPFS daemon must be running
+- The `supply-chain/interface` REST API must be running 
 
-in other terminal
-```
-cd net-emissions-token-network
-npx hardhat setTestAccountRoles --network localhost --contract 0x610178dA211FEF7D417bC0e6FeD39F05609AD788
-```
-
-run ipfs service
-
-run rest api
-```
-cd supply-chain/interface
-npm run dev
-```
-
-tokenize script parameters example
+Then you can tokenize the shipments in OFBiz/opentaps database using:
 ```
 python tokenize-ofbiz.py --from_date "2022-01-01 00:00:01" \
 --thru_date "2022-01-02 23:59:59" \
---facility_id "<your-facility-id>" \
+--facility_id "<ofbiz-facility-id>" \
 --pubkey ../user1-public.pem \
---issuee "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+--issuee "0x<issuee-wallet-address>"
 ```
