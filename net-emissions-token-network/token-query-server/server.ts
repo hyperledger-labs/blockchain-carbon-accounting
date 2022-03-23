@@ -5,6 +5,18 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 dotenv.config();
+// sanity checks
+const assertEnv = (key: string) => {
+    if (!process.env[key]) {
+        console.error(`${key} must be set as an environment variable, check your .env`)
+        process.exit(1);
+    }
+}
+assertEnv('MORALIS_API_KEY')
+assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
+assertEnv('LEDGER_ETH_NETWORK')
+assertEnv('LEDGER_ETH_JSON_RPC_URL')
+assertEnv('PG_DB')
 
 import dbConfig from './config/db.config';
 
