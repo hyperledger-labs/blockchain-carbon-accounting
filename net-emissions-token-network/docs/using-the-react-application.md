@@ -75,7 +75,7 @@ You should now be connected to the contracts in Goerli and be able to interact w
 
 BSC testnet is a test environment for Binance Chain network, run by the Binance Chain development community, which is open to developers. Transactions can be viewed by anyone on [Bscscan](https://testnet.bscscan.com/) (to see the history of transactions, one can enter the current contract address at `net-emissions-token-network/interface/packages/contracts/src/addresses.js`). After deploying the contracts to BSC testnet (as also outlined in the docs), connect the interface with the following steps:
 
-1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "testnet" since the contract addresses are already defined in the same file.
+1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "bsctestnet" since the contract addresses are already defined in the same file.
 
 2. Start the React app with
 

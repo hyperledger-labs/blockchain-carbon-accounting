@@ -171,7 +171,7 @@ Connect to BSC testnet via MetaMask by [Use MetaMask For Binance Smart Chain](ht
 Be sure your `.ethereum-config.js` has the private key of your deployer address, uncomment out the "testnet" network in `hardhat.config.js` (similar to the steps above) and deploy with:
 
 ```bash
-npx hardhat deploy --network testnet
+npx hardhat deploy --network bsctestnet
 ```
 
 Be sure to copy the command to complete the Timelock admin switch in two days from the time of deployment (example in the section above).

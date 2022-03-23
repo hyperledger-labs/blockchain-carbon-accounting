@@ -96,7 +96,7 @@ const networksAndAddresses = {
     }
   },
 
-  testnet: {
+  bsctestnet: {
     network: "Binance Testnet",
     tokenNetwork: {
       address: "0xc691F38362180210435199a368Aa6d9BE30906F7", // deployed 2022-03-22
@@ -116,6 +116,6 @@ const networksAndAddresses = {
 }
 
 // change this to the network you want
-const addresses = networksAndAddresses.testnet;
+const addresses = networksAndAddresses.bsctestnet;
 
 export default addresses;
