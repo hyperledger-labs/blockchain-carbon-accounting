@@ -7,6 +7,16 @@ import { insert, updateTotalRetired } from "../repositories/token.repo";
 const web3 = new Web3(new Web3.providers.WebsocketProvider(`wss://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_API_KEY}/bsc/testnet/ws`));
 const contract = new web3.eth.Contract(abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
 
+
+const makeErrorHandler = (name: string) => (err: any) => {
+  if (err.message.indexOf('connection not open on send') > -1) {
+    throw new Error(`Error in ${name} event: ${err.message} -> Check your MORALIS_API_KEY is correctly setup.`)
+  } else {
+    console.error(`Error in ${name} event: ${err.message}`)
+    throw err
+  }
+}
+
 export const subscribeEvent = () => {
 
     contract.events.TokenCreated({
@@ -47,7 +57,7 @@ export const subscribeEvent = () => {
             console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
         })
         .on('changed', (changed: any) => console.log(changed))
-        .on('error', (err: any) => {throw err})
+        .on('error', makeErrorHandler('TokenCreated'))
         .on('connected', (str: any) => console.log(`Created Token event listener is connected: ${str}`));
     
     // Single transfer event catch.
@@ -61,7 +71,7 @@ export const subscribeEvent = () => {
             // console.log(returnValues);
         })
         .on('changed', (changed: any) => console.log(changed))
-        .on('error', (err: any) => {throw err})
+        .on('error', makeErrorHandler('TransferSingle'))
         .on('connected', (str: any) => console.log(`Token Transferred event listener is connected: ${str}`));
 
     contract.events.TokenRetired({
@@ -80,7 +90,7 @@ export const subscribeEvent = () => {
             console.log(`\n--- ${amount / 1000} of Token ${tokenId} has been retired and updated database.`);
         })
         .on('changed', (changed: any) => console.log(changed))
-        .on('error', (err: any) => {throw err})
+        .on('error', makeErrorHandler('TokenRetired'))
         .on('connected', (str: any) => console.log(`Token Retired event listener is connected: ${str}`));
 }
 

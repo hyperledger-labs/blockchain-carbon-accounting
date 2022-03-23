@@ -33,14 +33,29 @@ app.use('/', tokenRouter);
 createConnection(dbConfig)
     .then(async (_connection) => {
         // add truncate
-        await truncateTable();
-        await fillTokens();
-        subscribeEvent();
+        try {
+            await truncateTable();
+        } catch (err) {
+            console.error('An error occurred while truncating the table', err)
+            throw err
+        }
+        try {
+            await fillTokens();
+        } catch (err) {
+            console.error('An error occurred while fetching the tokens', err)
+            throw err
+        }
+        try {
+            subscribeEvent();
+        } catch (err) {
+            console.error('An error occurred while setting up the blockchain event handlers', err)
+            throw err
+        }
         app.listen(PORT, () => {
             console.log(`Server is listening on ${PORT}\n`)
         });
     })
     .catch((err) => {
-        console.log("Unable to connect to db", err);
+        console.log("Fatal Error: ", err);
         process.exit(1);
     });
