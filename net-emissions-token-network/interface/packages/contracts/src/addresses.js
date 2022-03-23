@@ -116,6 +116,6 @@ const networksAndAddresses = {
 }
 
 // change this to the network you want
-const addresses = networksAndAddresses.hardhat;
+const addresses = networksAndAddresses.bsctestnet;
 
 export default addresses;
