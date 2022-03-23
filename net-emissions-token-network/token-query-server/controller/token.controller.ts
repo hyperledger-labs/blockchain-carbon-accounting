@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { Token } from "../models/token.model";
-import { FIELD, IFIELDS, FIELDS, QueryBundle, TokenPayload } from "../models/commonTypes";
+import { FIELD, IFIELDS, FIELDS, QueryBundle, TokenPayload, OP_MAP, IOP_MAP } from "../models/commonTypes";
 import { selectAll, insert, count, selectPaginated } from "../repositories/token.repo";
 
 function validateQuery(bundle: QueryBundle) : boolean {
@@ -14,7 +14,8 @@ function validateQuery(bundle: QueryBundle) : boolean {
     
     // op checking
     if(!validator.op.includes(bundle.op)) return false;
-    
+    bundle.op = OP_MAP[bundle.op as keyof IOP_MAP];
+
     return true;
 }
 
@@ -84,8 +85,11 @@ export async function insertNewToken(token: TokenPayload): Promise<Token> {
 
 export async function getNumOfTokens (req: Request, res: Response) {
     try {
-        const numOfTokens = await count();
-        console.log('======== get count =============', numOfTokens);
+        const bundles: Array<string> = req.query.bundles as Array<string>;
+        let queryBundles: Array<QueryBundle> = [];
+        if(bundles != undefined)
+             queryBundles = queryProcessor(bundles);
+        const numOfTokens = await count(queryBundles);
         return res.status(200).json({
             status: 'success',
             count: numOfTokens

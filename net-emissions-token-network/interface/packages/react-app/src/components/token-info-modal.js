@@ -10,6 +10,14 @@ export default function TokenInfoModal(props) {
 
   const castMetadata = (metadata) => {
     if(metadata == undefined) return <></>;
+    // const obj = JSON.parse(metadata);
+    // let keys = [];
+    // let values = [];
+    // for (const key in metadata) {
+    //   keys.push(key);
+    //   values.push(metadata[key]);
+    // }
+
     const obj = JSON.parse(metadata);
     let keys = [];
     let values = [];

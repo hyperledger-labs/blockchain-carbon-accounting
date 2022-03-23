@@ -22,6 +22,7 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
+import { getNumOfTokens, getTokens } from '../services/token.service';
 
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
@@ -99,10 +100,17 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       // First, fetch number of unique tokens
       let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
 
+      // let count = await getNumOfTokens();
+      
+      // // fetch token from database
+      // let tokens = await getTokens();
+      // console.log(tokens);
+
       // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= numOfUniqueTokens; i++) {
         // Fetch token details
         let tokenDetails = await getTokenDetails(provider, i);
+        // let tokenDetails = tokens[i-1];
         console.log('--- tokenDetails', tokenDetails);
 
         // Format unix times to Date objects
@@ -111,6 +119,11 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         let automaticRetireDate = formatDate(
           tokenDetails.automaticRetireDate.toNumber()
         );
+        // let fromDate = formatDate(tokenDetails.fromDate);
+        // let thruDate = formatDate(tokenDetails.thruDate);
+        // let automaticRetireDate = formatDate(
+        //   tokenDetails.automaticRetireDate
+        // );
 
         // Format tokenType from tokenTypeId
         let tokenTypes = [
@@ -129,6 +142,9 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         let availableBalance = balances[0].toNumber();
         let retiredBalance = balances[1].toNumber();
         let transferredBalance = balances[2].toNumber();
+        // let availableBalance = balances[0];
+        // let retiredBalance = balances[1];
+        // let transferredBalance = balances[2];
 
         // Format decimal points for all tokens
         availableBalance = (availableBalance / 1000).toFixed(3);
@@ -138,6 +154,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         let totalIssued = "";
         try {
           totalIssued = tokenDetails.totalIssued.toNumber();
+          // totalIssued = tokenDetails.totalIssued;
           totalIssued = (totalIssued / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
@@ -147,6 +164,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         let totalRetired = "";
         try {
           totalRetired = tokenDetails.totalRetired.toNumber();
+          // totalRetired = tokenDetails.totalRetired;
           totalRetired = (totalRetired / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
@@ -155,6 +173,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
 
         let token = {
           tokenId: tokenDetails.tokenId.toNumber(),
+          // tokenId: tokenDetails.tokenId,
           tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
           availableBalance: availableBalance,
           retiredBalance: retiredBalance,
@@ -165,6 +184,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
           thruDate: thruDate,
           automaticRetireDate: automaticRetireDate,
           metadata: tokenDetails.metadata,
+          // metadata: tokenDetails.metaObj,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
           totalIssued: totalIssued,

@@ -95,6 +95,24 @@ const networksAndAddresses = {
       }
     }
   },
+
+  bsctestnet: {
+    network: "Binance Testnet",
+    tokenNetwork: {
+      address: "0xc691F38362180210435199a368Aa6d9BE30906F7", // deployed 2022-03-22
+    },
+    carbonTracker: {
+      address: "0xb2579688CE533FC53ACca66F2Bb722b52849dA62", // deployed 2022-03-22
+    },
+    dao: {
+      governor: {
+        address: "0xD69c082D0a1557bf7Fef1d2a87f82bBdB966a9ee", // deployed 2022-03-22
+      },
+      daoToken: {
+        address: "0x8247A355Bad841CeD06B8617eBffEC47A0Cb64FF", // deployed 2022-03-22
+      }
+    }
+  },
 }
 
 // change this to the network you want

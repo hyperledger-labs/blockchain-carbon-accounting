@@ -50,8 +50,32 @@ export const insert = async (payload: TokenPayload): Promise<Token> => {
     });
 }
 
-export const count = async (): Promise<number> => {
+export const updateTotalRetired = async (tokenId: number, amount: number) => {
+    try {
+        await getRepository(Token)
+            .createQueryBuilder('token')
+                .update(Token)
+                .set({totalRetired: () => `token.\"totalRetired\" + ${amount}`})
+                .where("tokenId = :tokenId", {tokenId})
+                .execute();    
+    } catch (error) {
+        throw new Error("Cannot update totalRetired.")
+    }
+}
+
+export const count = async (bundles: Array<QueryBundle>): Promise<number> => {
+    try {
+        let selectBuilder: SelectQueryBuilder<Token> = getRepository(Token).createQueryBuilder("token");
+        selectBuilder = buildQueries(selectBuilder, bundles);
+        return selectBuilder.getCount();
+    } catch (error) {
+        throw new Error("Cannot get count.");       
+    }
+}
+
+export const truncate = async () => {
     const tokenRepository = getRepository(Token);
-    const count = await tokenRepository.count();
-    return count;
+    tokenRepository.createQueryBuilder('token')
+        .delete()
+        .execute();
 }

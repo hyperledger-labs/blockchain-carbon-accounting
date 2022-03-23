@@ -116,8 +116,8 @@ if (fetchObjectPath) {
       const h = hash_content(result);
       console.log(`HASH: ${h.type}:${h.value}`);
       console.log('');
+      console.log('=====from IPFS =======')
     }
-    console.log('=====from IPFS =======')
     console.log(result);
   });
 } else {

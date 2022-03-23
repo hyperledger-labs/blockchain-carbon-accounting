@@ -342,8 +342,8 @@ export async function issue_tokens(
   const metadata = {
     "Total emissions": total_emissions_rounded,
     "UOM": "kgCO2e",
-    "Scope": 3,
-    "Type": activity_type
+    "scope": 3,
+    "type": activity_type
   }
   if(mode) {
     metadata['Mode'] = mode;

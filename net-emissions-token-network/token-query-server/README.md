@@ -1,26 +1,21 @@
-# Setup
+# API Server for searching for tokens by fields and json metadata of token
 
 ## preliminary
 
-* Run `hardhat` on local
-* Issue some tokens by `emissions.js` or `dapp`
+* Run `hardhat` on local. If you're going to use Binance testnet, skip this.
+* Issue some tokens by `emissions.js` or `dapp`. If you're going to use Binance testnet, skip this.
+* For synchronizing, we need moralis api_key.
+### Getting Moralis API KEY
+
+* Sign up [Moralis](https://moralis.io/)
+* Go to admin page and select `Speedy Nodes` tab.
+* Select `Binance Network Endpoints` and switch into `WS`.
+* You can find `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws`.
+* You can use this `API_KEY` as `MORALIS_API_KEY` in `.env`.
 
 ## Run server
 
 Run `npm install`.
-
-Create `.env` file and fill the following 
-```
-LEDGER_ETH_JSON_RPC_URL="http://localhost:8545"
-LEDGER_ETH_NETWORK="hardhat"
-LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS="0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
-
-PG_HOST=127.0.0.1
-PG_USER=
-PG_PASSWORD=
-PG_PORT=5432
-```
-You can set change `PG_USER` and `PG_PASSWORD` based on your postgres setting.
 
 Run `npm run dev`.
 
@@ -38,6 +33,9 @@ Sample response
     "count": 3
 }
 ```
+curl sample command
+
+curl -H "Accept: application/json" -X GET http://localhost:8000/count
 
 ## Get Tokens 
 GET `/tokens`
@@ -73,6 +71,9 @@ GET `/tokens`
     ]
 }
 ```
+Curl sample command
+
+curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=issuee,string,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,eq
 
 Query Parameters:
 
@@ -88,16 +89,20 @@ Each params are separated by `comma(,)`.
 You can use multiple query bundles. 
 
 * fieldType: `number` and `string` (`date` format is included in `number`)
-* operator type: `=`, `like` for `string`, `>`, `>`, `=` for `number` type.
+* operator type: `eq(equals)`, `like(contains)` for `string`, `gt(greater)`, `ls(less)`, `eq(equals)` for `number` type.
 
 Order is important.
 
 for example, 
 
-`issuee,string,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,=`
+`issuee,string,0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,eq`
 
 `issuee,string,ffFb92266,like`
 
-`scope,number,2,>`
+`scope,number,2,gt`
 
-`totalRetired,number,10000,>`
+`totalRetired,number,10000,ls`
+
+curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=issuee,string,ffFb92266,like
+
+curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=scope,number,2,gt&bundles=issuee,string,ffFb92265,like
