@@ -9,13 +9,23 @@ const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[]
 
 // get number of unique tokens
 const getNumOfUniqueTokens = async (): Promise<number> => {
-    const result = await contract.methods.getNumOfUniqueTokens().call();    
-    return result;
+    try {
+        const result = await contract.methods.getNumOfUniqueTokens().call();    
+        return result;
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in getNumOfUniqueTokens: ' + err)
+    }
 }
 
 const getTokenDetails = async (tokenId: number): Promise<CreatedToken> => {
-    const token: CreatedToken = await contract.methods.getTokenDetails(tokenId).call();
-    return token;
+    try {
+        const token: CreatedToken = await contract.methods.getTokenDetails(tokenId).call();
+        return token;
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in getTokenDetails: ' + err)
+    }
 }
 
 export const truncateTable = async () => {
