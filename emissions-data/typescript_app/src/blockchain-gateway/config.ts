@@ -160,7 +160,7 @@ export default class BCGatewayConfig {
                 return 5;
             case 'ropsten':
                 return 3;
-            case 'testnet':
+            case 'bsctestnet':
                 return 97;
             default:
                 throw new Error(

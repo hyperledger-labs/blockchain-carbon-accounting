@@ -63,10 +63,14 @@ export const updateTotalRetired = async (tokenId: number, amount: number) => {
     }
 }
 
-export const count = async (): Promise<number> => {
-    const tokenRepository = getRepository(Token);
-    const count = await tokenRepository.count();
-    return count;
+export const count = async (bundles: Array<QueryBundle>): Promise<number> => {
+    try {
+        let selectBuilder: SelectQueryBuilder<Token> = getRepository(Token).createQueryBuilder("token");
+        selectBuilder = buildQueries(selectBuilder, bundles);
+        return selectBuilder.getCount();
+    } catch (error) {
+        throw new Error("Cannot get count.");       
+    }
 }
 
 export const truncate = async () => {

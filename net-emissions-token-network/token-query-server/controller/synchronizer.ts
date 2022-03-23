@@ -28,7 +28,7 @@ export const fillTokens = async () => {
     const started = Date.now();
     console.log('--- Synchronization started at: ', new Date().toLocaleString());
     // get number tokens from database
-    const numOfSavedTokens = await count();
+    const numOfSavedTokens = await count([]);
 
     // get number tokens from network
     const numOfIssuedTokens = await getNumOfUniqueTokens();

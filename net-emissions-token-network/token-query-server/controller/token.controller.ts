@@ -85,8 +85,11 @@ export async function insertNewToken(token: TokenPayload): Promise<Token> {
 
 export async function getNumOfTokens (req: Request, res: Response) {
     try {
-        const numOfTokens = await count();
-        console.log('======== get count =============', numOfTokens);
+        const bundles: Array<string> = req.query.bundles as Array<string>;
+        let queryBundles: Array<QueryBundle> = [];
+        if(bundles != undefined)
+             queryBundles = queryProcessor(bundles);
+        const numOfTokens = await count(queryBundles);
         return res.status(200).json({
             status: 'success',
             count: numOfTokens
