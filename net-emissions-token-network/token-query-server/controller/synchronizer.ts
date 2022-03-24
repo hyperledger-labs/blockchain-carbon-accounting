@@ -86,7 +86,7 @@ export const truncateTable = async () => {
     console.log('--- Tables has been cleared. ----\n')
 }
 
-export const fillTokens = async () => {
+export const fillTokens = async ():Promise<number> => {
     
     // get number tokens from database
     const numOfSavedTokens = await countTokens([]);
@@ -104,17 +104,14 @@ export const fillTokens = async () => {
         }
     }
     console.log(`${numOfIssuedTokens} tokens are stored into database.`);
+    return await web3.eth.getBlockNumber();
 }
 
 /**
  * TODOs
  * 1. Cannot insert with available!
  */
-export const fillBalances = async () => {
-
-    const currentBlock: number = await web3.eth.getBlockNumber();
-    console.log('current block: ', currentBlock);
-    console.log('block difference: ', currentBlock - FIRST_BLOCK);
+export const fillBalances = async (currentBlock: number) => {
 
     let fromBlock: number = FIRST_BLOCK;
     let toBlock: number | string = fromBlock;
@@ -177,5 +174,4 @@ export const fillBalances = async () => {
         if(toBlock == 'latest') break;
         fromBlock += 5000;
     }
-
 }

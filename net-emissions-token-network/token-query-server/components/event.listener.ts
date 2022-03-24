@@ -3,7 +3,7 @@ import { AbiItem } from 'web3-utils';
 import { abi } from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { insertNewBalance } from "../controller/balance.controller";
 import { BalancePayload, CreatedToken, TokenPayload } from "../models/commonTypes";
-import { addAvailableBalance, retireBalance, selectBalance } from "../repositories/balance.repo";
+import { addAvailableBalance, retireBalance, selectBalance, transferBalance } from "../repositories/balance.repo";
 import { insertToken, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(`wss://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_API_KEY}/bsc/testnet/ws`));
@@ -21,11 +21,11 @@ const makeErrorHandler = (name: string) => (err: any) => {
   }
 }
 
-export const subscribeEvent = () => {
+export const subscribeEvent = (fromBlock: number) => {
 
     contract.events.TokenCreated({
         filter: { value: []},
-        fromBlock: 'latest'
+        fromBlock
     })
         .on('data', async (event: any) => {
             const createdToken = event.returnValues;
@@ -78,7 +78,7 @@ export const subscribeEvent = () => {
             const to: string = transferred.to;
             const amount: number = transferred.value; // it must be divided by 10^3
 
-            // ignore issue case
+            // issue case
             if(from == BURN) {
                 const balancePayload: BalancePayload = {
                     tokenId,
@@ -99,8 +99,13 @@ export const subscribeEvent = () => {
 
                 // update issuee balance 
                 await retireBalance(from, tokenId, amount);
+                console.log(`--- ${amount} of Token ${tokenId} Retired from ${from}`);
                 return;
             }
+
+            // general transfer!
+            // 1) deduct 'from' balance
+            await transferBalance(from, tokenId, amount);
 
             // transfer case
             const balance = await selectBalance(to, tokenId);
@@ -117,7 +122,7 @@ export const subscribeEvent = () => {
             } else {
                 await addAvailableBalance(to, tokenId, amount);
             }
-
+            console.log(`--- ${amount} of Token ${tokenId} transferred from ${from} to ${to}`);
         })
         .on('changed', (changed: any) => console.log(changed))
         .on('error', makeErrorHandler('TransferSingle'))

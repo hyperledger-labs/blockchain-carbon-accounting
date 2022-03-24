@@ -59,15 +59,15 @@ createConnection(dbConfig)
         let elapsed = 0;
         const started = Date.now();
         console.log('--- Synchronization started at: ', new Date().toLocaleString());
+        let lastBlock = 0;
         try {
-            await fillTokens();
+            lastBlock = await fillTokens();
         } catch (err) {
             console.error('An error occurred while fetching the tokens', err)
             throw err
         }
-
         try {
-            await fillBalances();
+            await fillBalances(lastBlock);
         } catch (err) {
             console.error('An error occurred while filling balances', err)
             throw err
@@ -77,7 +77,7 @@ createConnection(dbConfig)
         console.log(`elapsed ${elapsed / 1000} seconds.\n`);
         
         try {
-            subscribeEvent();
+            subscribeEvent(lastBlock);
         } catch (err) {
             console.error('An error occurred while setting up the blockchain event handlers', err)
             throw err
