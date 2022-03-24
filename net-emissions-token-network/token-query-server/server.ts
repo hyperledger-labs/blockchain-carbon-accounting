@@ -21,11 +21,12 @@ assertEnv('PG_DB')
 import dbConfig from './config/db.config';
 
 // import synchronizer
-import { fillTokens, truncateTable } from './controller/synchronizer';
+import { fillBalances, fillTokens, truncateTable } from './controller/synchronizer';
 
 import tokenRouter from './router/router';
 import { synchronize } from "./middleware/sync.middle";
 import { subscribeEvent } from "./components/event.listener";
+import { queryProcessing } from "./middleware/query.middle";
 
 const app: Application = express();
 const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
@@ -40,8 +41,12 @@ app.use(bodyParser.urlencoded({extended: true}));
 // app.use(synchronize);
 
 // router
-app.use('/', tokenRouter);
+app.use('/', queryProcessing, tokenRouter);
 
+/**
+ * TODOs.
+ * 1. must make sure sync issued tokens between fillToken & subscribeEvent!
+ */
 createConnection(dbConfig)
     .then(async (_connection) => {
         // add truncate
@@ -51,12 +56,26 @@ createConnection(dbConfig)
             console.error('An error occurred while truncating the table', err)
             throw err
         }
+        let elapsed = 0;
+        const started = Date.now();
+        console.log('--- Synchronization started at: ', new Date().toLocaleString());
         try {
             await fillTokens();
         } catch (err) {
             console.error('An error occurred while fetching the tokens', err)
             throw err
         }
+
+        try {
+            await fillBalances();
+        } catch (err) {
+            console.error('An error occurred while filling balances', err)
+            throw err
+        }
+
+        elapsed = Date.now() - started;
+        console.log(`elapsed ${elapsed / 1000} seconds.\n`);
+        
         try {
             subscribeEvent();
         } catch (err) {

@@ -1,29 +1,7 @@
 import { getRepository, SelectQueryBuilder } from "typeorm";
 import { Token } from "../models/token.model";  
-import { QueryBundle, StringPayload, TokenPayload } from "../models/commonTypes";
-
-function buildQueries(builder: SelectQueryBuilder<Token>, queries: Array<QueryBundle>) : SelectQueryBuilder<Token> {
-    const len = queries.length;
-    for (let i = 0; i < len; i++) {
-        const query: QueryBundle = queries[i];
-        
-        // last payload
-        const payload: StringPayload = {};
-        if(query.fieldType == "string") {
-            
-            // process 'like' exception for payload
-            if(query.op == 'like') payload[query.field] = '%' + query.value as string + '%';
-            else if(query.op == '=') payload[query.field] = query.value as string;
-
-        }
-        else if (query.fieldType == 'number')
-            payload[query.field] = query.value as number;
-        else continue;
-        
-        builder = builder.andWhere(`token.${query.field} ${query.op} :${query.field}`, payload);
-    }
-    return builder;
-}
+import { QueryBundle, TokenPayload } from "../models/commonTypes";
+import { buildQueries } from './base.repo';
 
 export const selectAll = async (): Promise<Array<Token>> => {
     const tokenRepository = getRepository(Token);
@@ -41,13 +19,26 @@ export const selectPaginated = async (offset: number, limit: number, bundles: Ar
             .getMany();
 }
 
-export const insert = async (payload: TokenPayload): Promise<Token> => {
+export const insertToken = async (payload: TokenPayload): Promise<Token> => {
     const tokenRepository = getRepository(Token);
     const token = new Token();
     return await tokenRepository.save({
         ...token,
         ...payload
     });
+}
+
+export const updateTotalIssued = async (tokenId: number, amount: number) => {
+    try {
+        await getRepository(Token)
+            .createQueryBuilder('token')
+                .update(Token)
+                .set({totalIssued: () => `token.\"totalIssued\" + ${amount}`})
+                .where("tokenId = :tokenId", {tokenId})
+                .execute();    
+    } catch (error) {
+        throw new Error("Cannot update totalIssued.");
+    }
 }
 
 export const updateTotalRetired = async (tokenId: number, amount: number) => {
@@ -59,11 +50,11 @@ export const updateTotalRetired = async (tokenId: number, amount: number) => {
                 .where("tokenId = :tokenId", {tokenId})
                 .execute();    
     } catch (error) {
-        throw new Error("Cannot update totalRetired.")
+        throw new Error("Cannot update totalRetired.");
     }
 }
 
-export const count = async (bundles: Array<QueryBundle>): Promise<number> => {
+export const countTokens = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
         let selectBuilder: SelectQueryBuilder<Token> = getRepository(Token).createQueryBuilder("token");
         selectBuilder = buildQueries(selectBuilder, bundles);
@@ -73,9 +64,9 @@ export const count = async (bundles: Array<QueryBundle>): Promise<number> => {
     }
 }
 
-export const truncate = async () => {
-    const tokenRepository = getRepository(Token);
-    tokenRepository.createQueryBuilder('token')
+export const truncateTokens = async () => {
+    await getRepository(Token)
+        .createQueryBuilder('token')
         .delete()
         .execute();
 }

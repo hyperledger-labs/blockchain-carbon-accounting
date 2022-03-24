@@ -380,6 +380,7 @@ module.exports = {
 
 
     // Uncomment the following lines if deploying contract to Binance BSC testnet
+    // Deploy with npx hardhat --network bsctestnet --reset deploy
     // bsctestnet: {
     //   url: "https://data-seed-prebsc-1-s1.binance.org:8545",
     //   chainId: 97,

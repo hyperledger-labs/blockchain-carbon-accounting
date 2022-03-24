@@ -2,11 +2,13 @@ import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import { abi } from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { CreatedToken, TokenPayload } from "../models/commonTypes";
-import { insert, updateTotalRetired } from "../repositories/token.repo";
+import { insertToken, updateTotalRetired } from "../repositories/token.repo";
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(`wss://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_API_KEY}/bsc/testnet/ws`));
 const contract = new web3.eth.Contract(abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
 
+// burn address 
+const BURN = '0x0000000000000000000000000000000000000000';
 
 const makeErrorHandler = (name: string) => (err: any) => {
   if (err.message.indexOf('connection not open on send') > -1) {
@@ -53,7 +55,7 @@ export const subscribeEvent = () => {
                 metadata: metaObj
             }
 
-            await insert(tokenPayload);
+            await insertToken(tokenPayload);
             console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
         })
         .on('changed', (changed: any) => console.log(changed))
@@ -66,9 +68,26 @@ export const subscribeEvent = () => {
         filter: {value: []},
         fromBlock: 'latest'
     })
-        .on('data', (event: any) => {
-            const returnValues = event.returnValues;
-            // console.log(returnValues);
+        .on('data', async (event: any) => {
+            const transferred = event.returnValues;
+
+            const tokenId: number = transferred.id;
+            const from: string = transferred.from;
+            const to: string = transferred.to;
+            const amount: number = transferred.value; // it must be divided by 10^3
+
+            // ignore issue case
+            if(from == BURN) return;
+
+            // retire case
+            if(to == BURN) {
+                // update total retired
+                await updateTotalRetired(tokenId, amount);
+
+                // update issuee balance 
+                return;
+            }
+
         })
         .on('changed', (changed: any) => console.log(changed))
         .on('error', makeErrorHandler('TransferSingle'))

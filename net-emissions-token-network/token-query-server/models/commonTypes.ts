@@ -32,6 +32,14 @@ export interface TokenPayload {
     type: string;
 }
 
+export interface BalancePayload {
+    issuee: string;
+    tokenId: number;
+    available: number;
+    retired: number;
+    transferred: number;
+}
+
 export type QueryBundle = {
     field: string,
     fieldType: string,
