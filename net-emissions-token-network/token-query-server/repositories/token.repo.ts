@@ -60,7 +60,7 @@ export const countTokens = async (bundles: Array<QueryBundle>): Promise<number> 
         selectBuilder = buildQueries(selectBuilder, bundles);
         return selectBuilder.getCount();
     } catch (error) {
-        throw new Error("Cannot get count.");       
+        throw new Error("Cannot get tokens count.");       
     }
 }
 

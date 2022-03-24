@@ -118,7 +118,6 @@ export const subscribeEvent = (fromBlock: number) => {
                     transferred: 0
                 }
                 await insertNewBalance(balancePayload);
-                // await addAvailableBalance(to, tokenId, amount);
             } else {
                 await addAvailableBalance(to, tokenId, amount);
             }

@@ -25,7 +25,6 @@ export async function getTokens(req: Request, res: Response) {
     } catch (error) {
         return res.status(500).json({
             status: 'failed',
-            count: 0,
             error
         });
     }

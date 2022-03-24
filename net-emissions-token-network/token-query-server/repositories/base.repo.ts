@@ -1,6 +1,4 @@
 import { SelectQueryBuilder } from 'typeorm';
-import { Token } from '../models/token.model';
-import { Balance } from '../models/balance.model';
 import { QueryBundle, StringPayload } from '../models/commonTypes';
 
 export function buildQueries(builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
@@ -25,7 +23,7 @@ export function buildQueries(builder: SelectQueryBuilder<any>, queries: Array<Qu
         if(query.field == 'issuee' || query.field == 'issuer') {
             builder = builder.andWhere(`LOWER(${query.field}) ${query.op} LOWER(:${query.field})`, payload);
         } else {
-            builder = builder.andWhere(`token.${query.field} ${query.op} :${query.field}`, payload);
+            builder = builder.andWhere(`${query.field} ${query.op} :${query.field}`, payload);
         }
 
     }

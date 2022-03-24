@@ -88,3 +88,13 @@ export const retireBalance = async (issuee: string, tokenId: number, amount: num
         throw new Error(`Cannot add ${tokenId} retired balance ${amount} to ${issuee}`);
     }
 }
+
+export async function count(bundles: Array<QueryBundle>): Promise<number> {
+    try {
+        let selectBuilder: SelectQueryBuilder<Balance> = getRepository(Balance).createQueryBuilder("balance");
+        selectBuilder = buildQueries(selectBuilder, bundles);
+        return selectBuilder.getCount();
+    } catch (error) {
+        throw new Error("Cannot get balances count.");       
+    }
+}

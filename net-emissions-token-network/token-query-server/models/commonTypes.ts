@@ -114,7 +114,10 @@ export type IFIELDS = {
     "totalIssued"? : FIELD,
     "totalRetired"? : FIELD,
     "scope"? : FIELD,
-    "type"? : FIELD
+    "type"? : FIELD,
+    "retired"?: FIELD,
+    "available"?: FIELD,
+    "transferred"?: FIELD
 }
 
 export const FIELDS = {
@@ -132,5 +135,8 @@ export const FIELDS = {
     "totalIssued": NUMERIC_FIELD,
     "totalRetired": NUMERIC_FIELD,
     "scope": NUMERIC_FIELD,
-    "type": STRING_FIELD
+    "type": STRING_FIELD,
+    "retired": NUMERIC_FIELD,
+    "available": NUMERIC_FIELD,
+    "transferred": NUMERIC_FIELD
 };
