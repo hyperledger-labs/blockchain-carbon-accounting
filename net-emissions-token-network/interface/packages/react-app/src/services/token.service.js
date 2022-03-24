@@ -6,7 +6,7 @@ axios.defaults.baseURL = BASE_URL;
 export const getTokens = async () => {
     try {
         const { data } = await axios.get('/tokens');
-        if(data.status == 'success') {
+        if(data.status === 'success') {
             return data.tokens;
         } else {
             return [];
@@ -19,7 +19,7 @@ export const getTokens = async () => {
 export const getNumOfTokens = async () => {
     try {
         const { data } = await axios.get('/count');
-        if(data.status == 'success') {
+        if(data.status === 'success') {
             return data.count;
         } else {
             return 0;

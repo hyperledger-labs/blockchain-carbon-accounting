@@ -22,7 +22,6 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
-import { getNumOfTokens, getTokens } from '../services/token.service';
 
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
