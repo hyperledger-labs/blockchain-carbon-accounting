@@ -175,3 +175,5 @@ data/**/node_modules
 data/orbitdb/orbitdb*
 data/orbitdb/orbitIpfs*
 data/**/*.js
+
+net-emissions-token-network/deployments/bsctestnet/solcInputs
