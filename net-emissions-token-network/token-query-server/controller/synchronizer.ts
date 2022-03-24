@@ -3,7 +3,7 @@ import { AbiItem } from 'web3-utils';
 import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { CreatedToken, TokenPayload, BalancePayload } from "../models/commonTypes";
 import { countTokens, insertToken, truncateTokens, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
-import { addAvailableBalance, retireBalance, transferBalance, select, truncateBalances } from "../repositories/balance.repo";
+import { addAvailableBalance, retireBalance, transferBalance, selectBalance, truncateBalances } from "../repositories/balance.repo";
 import { insertNewBalance } from "./balance.controller";
 
 const BURN = '0x0000000000000000000000000000000000000000';
@@ -141,7 +141,6 @@ export const fillBalances = async () => {
                     transferred: 0
                 }
                 await insertNewBalance(balancePayload);
-                await addAvailableBalance(to, tokenId, amount);
                 await updateTotalIssued(tokenId, amount);
                 continue;
             }
@@ -160,7 +159,7 @@ export const fillBalances = async () => {
             await transferBalance(from, tokenId, amount);
 
             // 2) add available 'to' balance
-            const balance = await select(to, tokenId);
+            const balance = await selectBalance(to, tokenId);
             if(balance.length == 0) {
                 const balancePayload: BalancePayload = {
                     tokenId,
@@ -170,7 +169,6 @@ export const fillBalances = async () => {
                     transferred: 0
                 }
                 await insertNewBalance(balancePayload);
-                await addAvailableBalance(to, tokenId, amount);
             } else {
                 await addAvailableBalance(to, tokenId, amount);
             }

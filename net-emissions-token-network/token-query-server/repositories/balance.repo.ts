@@ -13,7 +13,7 @@ export const insert = async (payload: BalancePayload): Promise<InsertResult> => 
         .execute();
 }
 
-export const select = async (issuee: string, tokenId: number): Promise<Array<Balance>> => {
+export const selectBalance = async (issuee: string, tokenId: number): Promise<Array<Balance>> => {
     try {
         return await getRepository(Balance)
             .createQueryBuilder('balance')

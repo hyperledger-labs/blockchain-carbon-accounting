@@ -1,8 +1,10 @@
 import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import { abi } from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
-import { CreatedToken, TokenPayload } from "../models/commonTypes";
-import { insertToken, updateTotalRetired } from "../repositories/token.repo";
+import { insertNewBalance } from "../controller/balance.controller";
+import { BalancePayload, CreatedToken, TokenPayload } from "../models/commonTypes";
+import { addAvailableBalance, retireBalance, selectBalance } from "../repositories/balance.repo";
+import { insertToken, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(`wss://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_API_KEY}/bsc/testnet/ws`));
 const contract = new web3.eth.Contract(abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
@@ -31,8 +33,8 @@ export const subscribeEvent = () => {
             // build token
             const token: CreatedToken = {
                 ...createdToken,
-                totalIssued: createdToken.availableBalance,
-                totalRetired: createdToken.retiredBalance
+                totalIssued: 0,
+                totalRetired: 0
             };
 
             // metadata conversion
@@ -77,7 +79,18 @@ export const subscribeEvent = () => {
             const amount: number = transferred.value; // it must be divided by 10^3
 
             // ignore issue case
-            if(from == BURN) return;
+            if(from == BURN) {
+                const balancePayload: BalancePayload = {
+                    tokenId,
+                    issuee: to,
+                    available: Number(amount),
+                    retired: 0,
+                    transferred: 0
+                }
+                await insertNewBalance(balancePayload);
+                await updateTotalIssued(tokenId, amount);
+                return;
+            }
 
             // retire case
             if(to == BURN) {
@@ -85,31 +98,30 @@ export const subscribeEvent = () => {
                 await updateTotalRetired(tokenId, amount);
 
                 // update issuee balance 
+                await retireBalance(from, tokenId, amount);
                 return;
+            }
+
+            // transfer case
+            const balance = await selectBalance(to, tokenId);
+            if(balance.length == 0) {
+                const balancePayload: BalancePayload = {
+                    tokenId,
+                    issuee: to,
+                    available: Number(amount),
+                    retired: 0,
+                    transferred: 0
+                }
+                await insertNewBalance(balancePayload);
+                // await addAvailableBalance(to, tokenId, amount);
+            } else {
+                await addAvailableBalance(to, tokenId, amount);
             }
 
         })
         .on('changed', (changed: any) => console.log(changed))
         .on('error', makeErrorHandler('TransferSingle'))
         .on('connected', (str: any) => console.log(`Token Transferred event listener is connected: ${str}`));
-
-    contract.events.TokenRetired({
-        filter: {value: []},
-        fromBlock: 'latest'
-    })
-        .on('data', async (event: any) => {
-            const retired = event.returnValues;
-            
-            // const sender: string = retired.account;
-            const tokenId: number = retired.tokenId;
-            const amount: number = retired.amount;
-
-            // update totalRetired
-            await updateTotalRetired(tokenId, amount);
-            console.log(`\n--- ${amount / 1000} of Token ${tokenId} has been retired and updated database.`);
-        })
-        .on('changed', (changed: any) => console.log(changed))
-        .on('error', makeErrorHandler('TokenRetired'))
-        .on('connected', (str: any) => console.log(`Token Retired event listener is connected: ${str}`));
 }
+
 
