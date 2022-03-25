@@ -129,7 +129,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
 
     try {
       // First, fetch number of unique tokens
-      const query = `issuee,string,${signedInAddress},eq`;
+      const query = `issuer,string,${signedInAddress},eq`;
       let _count = await getNumOfTokens(query);
       setCount(_count % _pageSize === 0 ? _count / _pageSize : _count / _pageSize + 1);
       
