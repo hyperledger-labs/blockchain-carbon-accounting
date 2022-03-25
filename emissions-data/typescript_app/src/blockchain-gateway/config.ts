@@ -164,7 +164,8 @@ export default class BCGatewayConfig {
                 return 97;
             default:
                 throw new Error(
-                    'LEDGER_ETH_NETWORK : hardhat || goerli || ropsten ethereum network are supported',
+                    'LEDGER_ETH_NETWORK : hardhat || bsctestnet || goerli || ropsten ethereum network are supported, got: ' +
+                        network,
                 );
         }
     }
