@@ -141,6 +141,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= _pageSize; i++) {
         let tokenDetails = tokens[i-1];
+        if (!tokenDetails) continue;
         console.log('--- tokenDetails', tokenDetails);
 
         let fromDate = formatDate(tokenDetails.fromDate);
