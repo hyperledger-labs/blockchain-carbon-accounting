@@ -113,7 +113,7 @@ export const fillTokens = async ():Promise<number> => {
  */
 export const fillBalances = async (currentBlock: number) => {
 
-    let fromBlock: number = FIRST_BLOCK;
+    let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
     let toBlock: number | string = fromBlock;
     while(true) {
         // target event is TokenRetired & TransferSingle

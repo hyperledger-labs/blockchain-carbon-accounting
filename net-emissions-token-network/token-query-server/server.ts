@@ -24,7 +24,6 @@ import dbConfig from './config/db.config';
 import { fillBalances, fillTokens, truncateTable } from './controller/synchronizer';
 
 import tokenRouter from './router/router';
-import { synchronize } from "./middleware/sync.middle";
 import { subscribeEvent } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
