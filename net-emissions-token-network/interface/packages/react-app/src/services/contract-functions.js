@@ -662,6 +662,7 @@ export async function getRegisteredTracker(w3provider, signedInAddress){
   } catch (error) {
     registeredTracker = error.message;
   }
+  console.log('getRegisteredTracker: hasRole result = ' + registeredTracker);
   return true;
 }
 

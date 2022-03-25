@@ -9,7 +9,7 @@ import { FaCoins } from 'react-icons/fa';
 export default function TokenInfoModal(props) {
 
   const castMetadata = (metadata) => {
-    if(metadata == undefined) return <></>;
+    if(metadata === undefined) return <></>;
     // const obj = JSON.parse(metadata);
     let keys = [];
     let values = [];
@@ -19,7 +19,7 @@ export default function TokenInfoModal(props) {
     }
     
     return keys.map((key, i) => {
-      if(keys == "" || values[i] == "") return <></>;
+      if(keys === "" || values[i] === "") return <></>;
       return <div key={i}>{key} : {values[i]}</div>;
     })
   };

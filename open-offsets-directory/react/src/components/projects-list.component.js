@@ -2,7 +2,7 @@ import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
 import { withGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { ActivityIndicator } from "react-native";
-import { withRouter } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ProjectDataService from "../services/project.service";
 
 const FIELD_OPS = [
@@ -16,6 +16,12 @@ const FIELD_OPS = [
 ];
 
 const DEFAULT_PAGE_SIZE = 25;
+
+const withNavigate = Component => props => {
+  const navigate = useNavigate();
+  const params = useParams();
+  return <Component {...props} navigate={navigate} params={params} />;
+};
 
 class ProjectsList extends Component {
   constructor(props) {
@@ -83,17 +89,17 @@ class ProjectsList extends Component {
   };
 
   componentDidMount() {
-    if (this.props.match.params.pageSize || this.props.match.params.page) {
+    if (this.props.params.pageSize || this.props.params.page) {
       let update = {};
-      if (this.props.match.params.pageSize) {
-        update.pageSize = parseInt(this.props.match.params.pageSize);
+      if (this.props.params.pageSize) {
+        update.pageSize = parseInt(this.props.params.pageSize);
       }
-      if (this.props.match.params.page) {
-        update.page = parseInt(this.props.match.params.page);
+      if (this.props.params.page) {
+        update.page = parseInt(this.props.params.page);
       }
-      if (this.props.match.params.filters) {
+      if (this.props.params.filters) {
         // format in URL <field>__<op>__<value>
-        let filters = this.props.match.params.filters.split("/");
+        let filters = this.props.params.filters.split("/");
         let res = this.filterStringsToSearchFieldsArray(filters);
         if (res.searchFields.length) update.searchFields = res.searchFields;
         if (res.onlyWithIssued) update.onlyWithIssued = res.onlyWithIssued;
@@ -115,15 +121,15 @@ class ProjectsList extends Component {
     );
     let update = {};
     let changed = false;
-    if (prevProps.match.params.pageSize !== this.props.match.params.pageSize) {
-      let ps = parseInt(this.props.match.params.pageSize) || DEFAULT_PAGE_SIZE;
+    if (prevProps.params.pageSize !== this.props.params.pageSize) {
+      let ps = parseInt(this.props.params.pageSize) || DEFAULT_PAGE_SIZE;
       if (ps !== this.state.pageSize) {
         update.pageSize = ps;
         changed = true;
       }
     }
-    if (prevProps.match.params.page !== this.props.match.params.page) {
-      let ps = parseInt(this.props.match.params.page) || 1;
+    if (prevProps.params.page !== this.props.params.page) {
+      let ps = parseInt(this.props.params.page) || 1;
       if (ps !== this.state.page) {
         update.page = ps;
         changed = true;
@@ -239,7 +245,7 @@ class ProjectsList extends Component {
 
   setActiveProject(project, index) {
     console.log("Changed active project: ", project);
-    this.props.history.push(`/projects/${project.id}`);
+    this.props.navigate(`/projects/${project.id}`);
   }
 
   onChangeSearchValue(event, index) {
@@ -309,7 +315,7 @@ class ProjectsList extends Component {
       fs.push('only_with_issued_credits');
     }
     console.log("syncCurrentUrl:: with filters ", fs);
-    this.props.history.push(
+    this.props.navigate(
       `/projects-list/${this.state.pageSize}/${this.state.page}/${fs.join("/")}`
     );
   }
@@ -509,4 +515,4 @@ class ProjectsList extends Component {
   }
 }
 
-export default withRouter(withGoogleReCaptcha(ProjectsList));
+export default withNavigate(withGoogleReCaptcha(ProjectsList));

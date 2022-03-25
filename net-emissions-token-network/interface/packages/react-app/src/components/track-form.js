@@ -6,14 +6,12 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { encodeParameters, getAdmin, track, registerTracker } from "../services/contract-functions";
-import CreateProposalModal from "./create-proposal-modal";
+import { encodeParameters, track, registerTracker } from "../services/contract-functions";
 import SubmissionModal from "./submission-modal";
 
 export default function TrackForm({ provider, registeredTracker, signedInAddress }) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
-  const [createModalShow, setCreateModalShow] = useState(false);
 
   // Form inputs
   const [address, setAddress] = useState("");
@@ -46,17 +44,17 @@ export default function TrackForm({ provider, registeredTracker, signedInAddress
     setSubmissionModalShow(true);
   }
 
-  function disableIssueButton(calldata, inAmounts, address) {
-    let qty = Number(inAmounts);
-    return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
-  }
+  // function disableIssueButton(calldata, inAmounts, address) {
+  //   let qty = Number(inAmounts);
+  //   return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
+  // }
 
   // update calldata on input change
   useEffect(() => {
     if (signedInAddress) {
       let encodedCalldata;
-      let qty = Number(inAmounts);
-      qty = Math.round(inAmounts * 1000);
+      // let qty = Number(inAmounts);
+      // qty = Math.round(inAmounts * 1000);
 
       try {
         encodedCalldata = encodeParameters(
