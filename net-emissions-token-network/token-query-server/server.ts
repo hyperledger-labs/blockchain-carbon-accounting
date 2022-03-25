@@ -12,7 +12,7 @@ const assertEnv = (key: string) => {
         process.exit(1);
     }
 }
-assertEnv('MORALIS_API_KEY')
+// assertEnv('MORALIS_API_KEY')
 assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
 assertEnv('LEDGER_ETH_NETWORK')
 assertEnv('LEDGER_ETH_JSON_RPC_URL')
@@ -27,6 +27,9 @@ import tokenRouter from './router/router';
 import { subscribeEvent } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
+// for hardhat test!
+import { synchronize } from "./middleware/sync.middle";
+
 const app: Application = express();
 const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
 const corsOptions = {
@@ -37,7 +40,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-// app.use(synchronize);
+
+// for hardhat test sync
+if(process.env.LEDGER_ETH_NETWORK === 'hardhat')
+    app.use(synchronize);
+
 
 // router
 app.use('/', queryProcessing, tokenRouter);
@@ -61,6 +68,7 @@ createConnection(dbConfig)
         let lastBlock = 0;
         try {
             lastBlock = await fillTokens();
+            console.log('--first last block: ', lastBlock);
         } catch (err) {
             console.error('An error occurred while fetching the tokens', err)
             throw err
@@ -76,7 +84,10 @@ createConnection(dbConfig)
         console.log(`elapsed ${elapsed / 1000} seconds.\n`);
         
         try {
-            subscribeEvent(lastBlock);
+            // for hardhat
+            if(process.env.LEDGER_ETH_NETWORK === 'bsctestnet') {
+                subscribeEvent(lastBlock);
+            }
         } catch (err) {
             console.error('An error occurred while setting up the blockchain event handlers', err)
             throw err

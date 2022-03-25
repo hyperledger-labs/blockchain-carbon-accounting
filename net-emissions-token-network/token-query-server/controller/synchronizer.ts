@@ -2,9 +2,14 @@ import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { CreatedToken, TokenPayload, BalancePayload } from "../models/commonTypes";
-import { countTokens, insertToken, truncateTokens, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
+import { countTokens, insertToken, selectToken, truncateTokens, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
 import { addAvailableBalance, retireBalance, transferBalance, selectBalance, truncateBalances } from "../repositories/balance.repo";
 import { insertNewBalance } from "./balance.controller";
+import { Token } from "../models/token.model";
+import { Balance } from "../models/balance.model";
+
+// for hardhat test purpose
+let hardhatLastBlock = 0;
 
 const BURN = '0x0000000000000000000000000000000000000000';
 
@@ -103,7 +108,7 @@ export const fillTokens = async ():Promise<number> => {
             await insertToken(token);
         }
     }
-    console.log(`${numOfIssuedTokens} tokens are stored into database.`);
+    console.log(`${numOfIssuedTokens - numOfSavedTokens} tokens are stored into database.`);
     return await web3.eth.getBlockNumber();
 }
 
@@ -117,12 +122,15 @@ export const fillBalances = async (currentBlock: number) => {
     let toBlock: number | string = fromBlock;
     while(true) {
         // target event is TokenRetired & TransferSingle
-        if(fromBlock + 5000 > currentBlock) toBlock = 'latest';
-        else toBlock = fromBlock + 5000; 
+        if(fromBlock + 5000 > currentBlock) 
+            toBlock = currentBlock;
+        else 
+            toBlock = fromBlock + 5000; 
         const singleTransfers = await contract.getPastEvents('TransferSingle', 
-            {fromBlock, toBlock: fromBlock + 5000});
+            {fromBlock, toBlock});
         const len = singleTransfers.length;
         for (let i = 0; i < len; i++) {
+            
             const singleTransfer = singleTransfers[i].returnValues;
             const tokenId: number = singleTransfer.id;
             const from: string = singleTransfer.from;
@@ -137,6 +145,11 @@ export const fillBalances = async (currentBlock: number) => {
                     retired: 0,
                     transferred: 0
                 }
+
+                // resolve conflicts
+                const balance: Balance | undefined = await selectBalance(to, tokenId);
+                if(balance != undefined) continue;
+
                 await insertNewBalance(balancePayload);
                 await updateTotalIssued(tokenId, amount);
                 continue;
@@ -156,8 +169,8 @@ export const fillBalances = async (currentBlock: number) => {
             await transferBalance(from, tokenId, amount);
 
             // 2) add available 'to' balance
-            const balance = await selectBalance(to, tokenId);
-            if(balance.length == 0) {
+            const balance: Balance | undefined = await selectBalance(to, tokenId);
+            if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuee: to,
@@ -171,7 +184,7 @@ export const fillBalances = async (currentBlock: number) => {
             }
         }
 
-        if(toBlock == 'latest') break;
+        if(toBlock == currentBlock) break;
         fromBlock += 5000;
     }
 }

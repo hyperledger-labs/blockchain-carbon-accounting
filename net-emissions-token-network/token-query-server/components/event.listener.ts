@@ -109,7 +109,7 @@ export const subscribeEvent = (fromBlock: number) => {
 
             // transfer case
             const balance = await selectBalance(to, tokenId);
-            if(balance.length == 0) {
+            if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuee: to,

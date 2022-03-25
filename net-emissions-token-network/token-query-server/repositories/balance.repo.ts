@@ -14,13 +14,13 @@ export const insert = async (payload: BalancePayload): Promise<InsertResult> => 
         .execute();
 }
 
-export const selectBalance = async (issuee: string, tokenId: number): Promise<Array<Balance>> => {
+export const selectBalance = async (issuee: string, tokenId: number): Promise<Balance | undefined> => {
     try {
         return await getRepository(Balance)
             .createQueryBuilder('balance')
             .where("balance.tokenId = :tokenId", {tokenId})
             .andWhere('LOWER(balance.issuee) = LOWER(:issuee)', {issuee})
-            .getMany();
+            .getOne();
     } catch (error) {
         throw new Error('cannot select one');
     }

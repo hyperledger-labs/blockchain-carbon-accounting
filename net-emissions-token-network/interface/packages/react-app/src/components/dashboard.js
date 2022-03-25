@@ -218,7 +218,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         let token = {
           tokenId: balance.token.tokenId,
           token: balance.token,
-          tokenType: tokenTypes[balance.token.tokenTypeId],
+          tokenType: tokenTypes[balance.token.tokenTypeId - 1],
           issuee: balance.issuee,
           availableBalance: (balance.available / 1000).toFixed(3),
           retiredBalance: (balance.retired / 1000).toFixed(3),

@@ -20,6 +20,11 @@ export const selectPaginated = async (offset: number, limit: number, bundles: Ar
             .getMany();
 }
 
+export const selectToken = async (tokenId: number): Promise<Token | undefined> => {
+    return await getRepository(Token)
+        .findOne({tokenId});
+}
+
 export const insertToken = async (payload: TokenPayload): Promise<Token> => {
     const tokenRepository = getRepository(Token);
     const token = new Token();
