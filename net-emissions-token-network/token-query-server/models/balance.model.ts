@@ -1,8 +1,11 @@
 import {
     Entity,
     PrimaryColumn,
-    Column
+    Column,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
+import { Token } from './token.model';
 
 /**
  * primary key: issee address & token id

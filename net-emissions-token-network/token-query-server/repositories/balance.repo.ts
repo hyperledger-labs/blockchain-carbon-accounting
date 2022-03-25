@@ -1,6 +1,7 @@
 import { getRepository, InsertResult, SelectQueryBuilder } from "typeorm";
 import { Balance } from "../models/balance.model";
 import { QueryBundle, BalancePayload } from "../models/commonTypes";
+import { Token } from "../models/token.model";
 import { buildQueries } from './base.repo';
 
 export const insert = async (payload: BalancePayload): Promise<InsertResult> => {
@@ -26,12 +27,19 @@ export const selectBalance = async (issuee: string, tokenId: number): Promise<Ar
 }
 
 export const selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>) : Promise<Array<Balance>> => {
-    let selectBuilder: SelectQueryBuilder<Balance> = getRepository(Balance).createQueryBuilder('balance');
-    selectBuilder = buildQueries(selectBuilder, bundles);
-    return selectBuilder    
-        .limit(limit)
-        .offset(offset)
-        .getMany();
+    try {
+        let selectBuilder: SelectQueryBuilder<Balance> = getRepository(Balance).createQueryBuilder('balance');
+        selectBuilder = buildQueries('balance', selectBuilder, bundles);
+        return selectBuilder    
+            .limit(limit)
+            .offset(offset)
+            .orderBy('balance.tokenId', 'ASC')
+            .leftJoinAndMapOne('balance.token', Token, 'token', 'token.tokenId = balance.tokenId')
+            .getMany();
+    } catch (error) {
+        console.log(error);
+        throw new Error('Cannot select balances.');
+    }
 }
 
 export const truncateBalances = async () => {
@@ -92,7 +100,7 @@ export const retireBalance = async (issuee: string, tokenId: number, amount: num
 export async function count(bundles: Array<QueryBundle>): Promise<number> {
     try {
         let selectBuilder: SelectQueryBuilder<Balance> = getRepository(Balance).createQueryBuilder("balance");
-        selectBuilder = buildQueries(selectBuilder, bundles);
+        selectBuilder = buildQueries('balance', selectBuilder, bundles);
         return selectBuilder.getCount();
     } catch (error) {
         throw new Error("Cannot get balances count.");       

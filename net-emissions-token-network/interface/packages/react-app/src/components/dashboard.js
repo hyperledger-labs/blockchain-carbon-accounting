@@ -22,7 +22,8 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
-import { getNumOfTokens, getTokens } from '../services/token.service';
+import { getBalances, getNumOfBalances, getNumOfTokens, getTokens } from '../services/api.service';
+import Paginator from "./paginate";
 
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
@@ -48,6 +49,31 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   const [displayAddressIsDealer, setDisplayAddressIsDealer] = useState(false);
   const [displayAddressIsIndustry, setDisplayAddressIsIndustry] = useState(false);
 
+  // state vars for pagination
+  const [ page, setPage ] = useState(1);
+  const [ count, setCount ] = useState(0);
+  const [ pageSize, setPageSize ] = useState(10);
+
+  const [ balancePage, setBalancePage ] = useState(1);
+  const [ balanceCount, setBalanceCount ] = useState(0);
+  const [ balancePageSize, setBalancePageSize ] = useState(5);
+
+  async function handlePageChange(event, value) {
+    await fetchBalances(value, pageSize, balancePage, balancePageSize);
+  }
+
+  async function handlePageSizeChange(event) {
+    await fetchBalances(1, event.target.value, balancePage, balancePageSize);
+  }
+
+  async function handleBalancePageChange(event, value) {
+    await fetchBalances(page, pageSize, value, balancePageSize);
+  }
+
+  async function handleBalancePageSizeChanged(event) {
+    await fetchBalances(page, pageSize, 1, event.target.value);
+  }
+
   function handleOpenTokenInfoModal(token) {
     setSelectedToken(token);
     setModalShow(true);
@@ -72,7 +98,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     localStorage.setItem('token_balances', null);
 
     setFetchingTokens(true);
-    fetchBalances();
+    fetchBalances(page, pageSize, balancePage, balancePageSize);
   }
 
   async function fetchAddressRoles(provider, address) {
@@ -90,71 +116,45 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async () => {
+  const fetchBalances = useCallback(async (_page, _pageSize, _balancePage, _balancePageSize) => {
 
     let newMyBalances = [];
     let newMyIssuedTokens = [];
     let newMyIssuedTrackers = [];
 
+    // Format tokenType from tokenTypeId
+    let tokenTypes = [
+      "Renewable Energy Certificate",
+      "Carbon Emissions Offset",
+      "Audited Emissions",
+      "Carbon Tracker"
+    ];
+
     try {
       // First, fetch number of unique tokens
-      let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
-
-      // let count = await getNumOfTokens();
+      const query = `issuee,string,${signedInAddress},eq`;
+      let _count = await getNumOfTokens(query);
+      setCount(_count % _pageSize == 0 ? _count / _pageSize : _count / _pageSize + 1);
       
-      // // fetch token from database
-      // let tokens = await getTokens();
-      // console.log(tokens);
-
+      // fetch token from database
+      const offset = (_page - 1) * _pageSize;
+      
+      // my tokens
+      let tokens = await getTokens(offset, _pageSize, query);
       // Iterate over each tokenId and find balance of signed in address
-      for (let i = 1; i <= numOfUniqueTokens; i++) {
-        // Fetch token details
-        let tokenDetails = await getTokenDetails(provider, i);
-        // let tokenDetails = tokens[i-1];
+      for (let i = 1; i <= _pageSize; i++) {
+        let tokenDetails = tokens[i-1];
         console.log('--- tokenDetails', tokenDetails);
 
-        // Format unix times to Date objects
-        let fromDate = formatDate(tokenDetails.fromDate.toNumber());
-        let thruDate = formatDate(tokenDetails.thruDate.toNumber());
+        let fromDate = formatDate(tokenDetails.fromDate);
+        let thruDate = formatDate(tokenDetails.thruDate);
         let automaticRetireDate = formatDate(
-          tokenDetails.automaticRetireDate.toNumber()
+          tokenDetails.automaticRetireDate
         );
-        // let fromDate = formatDate(tokenDetails.fromDate);
-        // let thruDate = formatDate(tokenDetails.thruDate);
-        // let automaticRetireDate = formatDate(
-        //   tokenDetails.automaticRetireDate
-        // );
-
-        // Format tokenType from tokenTypeId
-        let tokenTypes = [
-          "Renewable Energy Certificate",
-          "Carbon Emissions Offset",
-          "Audited Emissions",
-          "Carbon Tracker"
-        ];
-
-        // Fetch available and retired balances
-        let balances = await getAvailableRetiredAndTransferred(
-          provider,
-          signedInAddress,
-          i
-        );
-        let availableBalance = balances[0].toNumber();
-        let retiredBalance = balances[1].toNumber();
-        let transferredBalance = balances[2].toNumber();
-        // let availableBalance = balances[0];
-        // let retiredBalance = balances[1];
-        // let transferredBalance = balances[2];
-
-        // Format decimal points for all tokens
-        availableBalance = (availableBalance / 1000).toFixed(3);
-        retiredBalance = (retiredBalance / 1000).toFixed(3)
-        transferredBalance = (transferredBalance / 1000).toFixed(3);
-
+        
         let totalIssued = "";
         try {
-          totalIssued = tokenDetails.totalIssued.toNumber();
-          // totalIssued = tokenDetails.totalIssued;
+          totalIssued = tokenDetails.totalIssued;
           totalIssued = (totalIssued / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
@@ -163,8 +163,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
 
         let totalRetired = "";
         try {
-          totalRetired = tokenDetails.totalRetired.toNumber();
-          // totalRetired = tokenDetails.totalRetired;
+          totalRetired = tokenDetails.totalRetired;
           totalRetired = (totalRetired / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
@@ -172,30 +171,20 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         }
 
         let token = {
-          tokenId: tokenDetails.tokenId.toNumber(),
-          // tokenId: tokenDetails.tokenId,
+          tokenId: tokenDetails.tokenId,
           tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
-          availableBalance: availableBalance,
-          retiredBalance: retiredBalance,
-          transferredBalance: transferredBalance,
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
           fromDate: fromDate,
           thruDate: thruDate,
           automaticRetireDate: automaticRetireDate,
           metadata: tokenDetails.metadata,
-          // metadata: tokenDetails.metaObj,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
           totalIssued: totalIssued,
           totalRetired: totalRetired,
         };
 
-        // Push token to myBalances or myIssuedTokens in state
-        if (token.availableBalance > 0 || token.retiredBalance > 0 || token.transferredBalance > 0) {
-          newMyBalances.push({ ...token });
-          console.log("newMyBalances pushed -> ", newMyBalances);
-        }
         if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
           token.isMyIssuedToken = true;
@@ -205,6 +194,42 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     } catch (error) {
       console.log(error);
       setError("Could not connect to contract on the selected network. Check your wallet provider settings.");
+    }
+
+    // fetch balances
+    let _balanceCount = 0;
+    try {
+      // get total count of balance
+      const query = `issuee,string,${signedInAddress},eq`;
+      let _count = await getNumOfBalances(query);
+      
+      _balanceCount = _count % _balancePage == 0 ? _count / _balancePageSize : _count / _balancePageSize + 1;
+      const offset = (_balancePage - 1) * _balancePageSize;;
+
+      let balances = await getBalances(offset, _balancePageSize, query);
+
+      for (let i = 0; i < balances.length; i++) {
+        const balance = balances[i];
+
+        // cast time from long to date
+        balance.token.fromDate = formatDate(balance.token.fromDate);
+        balance.token.thruDate = formatDate(balance.token.thruDate);
+        balance.token.dateCreated = formatDate(balance.token.dateCreated);
+        balance.token.automaticRetireDate = formatDate(balance.token.automaticRetireDate);
+
+        let token = {
+          tokenId: balance.token.tokenId,
+          token: balance.token,
+          tokenType: tokenTypes[balance.token.tokenTypeId],
+          issuee: balance.issuee,
+          availableBalance: (balance.available / 1000).toFixed(3),
+          retiredBalance: (balance.retired / 1000).toFixed(3),
+          transferredBalance: (balance.transferred / 1000).toFixed(3)
+        }
+        newMyBalances.push(token);
+      }
+    } catch (error) {
+      
     }
 
     try {
@@ -328,6 +353,11 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     setMyIssuedTrackers(newMyIssuedTrackers);
     setFetchingTrackers(false);
     setError("");
+    setPage(_page);
+    setPageSize(_pageSize);
+    setBalanceCount(_balanceCount);
+    setBalancePage(_balancePage);
+    setBalancePageSize(_balancePageSize);
   }, [provider, signedInAddress]);
 
   // If address and provider detected then fetch balances
@@ -336,7 +366,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       if (myBalances !== [] && !fetchingTokens) {
         setFetchingTokens(true);
         setFetchingTrackers(true);
-        fetchBalances();
+        console.log(`page: `, page);
+        fetchBalances(page, pageSize, balancePage, balancePageSize);
       }
     }
   }, [provider, signedInAddress]);
@@ -402,22 +433,29 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
               </thead>
               <tbody>
                 {(myBalances !== [] && !fetchingTokens) &&
-                  myBalances.map((token) => (
+                  myBalances.map((balance) => (
                     <tr
-                      key={token.tokenId}
-                      onClick={() => handleOpenTokenInfoModal(token)}
+                      key={balance.token.tokenId}
+                      onClick={() => handleOpenTokenInfoModal(balance.token)}
                       onMouseOver={pointerHover}
-                      className={`${(Number(token.availableBalance) <= 0) ? "table-secondary" : ""}`}
+                      className={`${(Number(balance.availableBalance) <= 0) ? "table-secondary" : ""}`}
                     >
-                      <td>{token.tokenId}</td>
-                      <td>{token.tokenType}</td>
-                      <td>{token.availableBalance}</td>
-                      <td>{token.retiredBalance}</td>
-                      <td>{token.transferredBalance}</td>
+                      <td>{balance.token.tokenId}</td>
+                      <td>{balance.tokenType}</td>
+                      <td>{balance.availableBalance}</td>
+                      <td>{balance.retiredBalance}</td>
+                      <td>{balance.transferredBalance}</td>
                     </tr>
                   ))}
               </tbody>
             </Table>
+            <Paginator 
+              count={balanceCount}
+              page={balancePage}
+              pageSize={balancePageSize}
+              pageChangeHandler={handleBalancePageChange}
+              pageSizeHandler={handleBalancePageSizeChanged}
+            />
           </div>
         }
 
@@ -452,6 +490,13 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
                   ))}
               </tbody>
             </Table>
+            <Paginator 
+              count={count}
+              page={page}
+              pageSize={pageSize}
+              pageChangeHandler={handlePageChange}
+              pageSizeHandler={handlePageSizeChange}
+            />
           </div>
         }
       </div>

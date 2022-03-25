@@ -12,10 +12,11 @@ export const selectPaginated = async (offset: number, limit: number, bundles: Ar
     let selectBuilder: SelectQueryBuilder<Token> = getRepository(Token).createQueryBuilder("token");
     
     // category by issuer address
-    selectBuilder = buildQueries(selectBuilder, bundles);
+    selectBuilder = buildQueries('token', selectBuilder, bundles);
     return selectBuilder
             .limit(limit)
             .offset(offset)
+            .orderBy('token.tokenId', 'ASC')
             .getMany();
 }
 
@@ -57,7 +58,7 @@ export const updateTotalRetired = async (tokenId: number, amount: number) => {
 export const countTokens = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
         let selectBuilder: SelectQueryBuilder<Token> = getRepository(Token).createQueryBuilder("token");
-        selectBuilder = buildQueries(selectBuilder, bundles);
+        selectBuilder = buildQueries('token', selectBuilder, bundles);
         return selectBuilder.getCount();
     } catch (error) {
         throw new Error("Cannot get tokens count.");       

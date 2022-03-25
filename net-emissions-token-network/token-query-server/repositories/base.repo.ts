@@ -1,7 +1,7 @@
 import { SelectQueryBuilder } from 'typeorm';
 import { QueryBundle, StringPayload } from '../models/commonTypes';
 
-export function buildQueries(builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
+export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
     const len = queries.length;
     for (let i = 0; i < len; i++) {
         const query: QueryBundle = queries[i];
@@ -21,9 +21,9 @@ export function buildQueries(builder: SelectQueryBuilder<any>, queries: Array<Qu
         
         // make case insensitive for issuee issuer cases
         if(query.field == 'issuee' || query.field == 'issuer') {
-            builder = builder.andWhere(`LOWER(${query.field}) ${query.op} LOWER(:${query.field})`, payload);
+            builder = builder.andWhere(`LOWER(${table}.${query.field}) ${query.op} LOWER(:${query.field})`, payload);
         } else {
-            builder = builder.andWhere(`${query.field} ${query.op} :${query.field}`, payload);
+            builder = builder.andWhere(`${table}.${query.field} ${query.op} :${query.field}`, payload);
         }
 
     }

@@ -2,8 +2,7 @@
 
 ## preliminary
 
-* Run `hardhat` on local. If you're going to use Binance testnet, skip this.
-* Issue some tokens by `emissions.js` or `dapp`. If you're going to use Binance testnet, skip this.
+* Issue some tokens by `emissions.js` or `dapp`. 
 * For synchronizing, we need moralis api_key.
 ### Getting Moralis API KEY
 
@@ -24,7 +23,7 @@ Run `npm run dev`.
 Base URL `http://127.0.0.1:8000`
 
 ## Get Total Number of Tokens
-GET `/count`
+GET `/tokens/count`
 
 Sample response
 ```
@@ -35,7 +34,7 @@ Sample response
 ```
 curl sample command
 
-curl -H "Accept: application/json" -X GET http://localhost:8000/count
+curl -H "Accept: application/json" -X GET http://localhost:8000/tokens/count
 
 ## Get Tokens 
 GET `/tokens`
@@ -106,3 +105,48 @@ for example,
 curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=issuee,string,ffFb92266,like
 
 curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=scope,number,2,gt&bundles=issuee,string,ffFb92265,like
+
+## Get Number of Balances
+
+GET `/balances/count`
+
+Sample response
+```
+{
+    "status": "success",
+    "count": 3
+}
+```
+curl sample command
+
+curl -H "Accept: application/json" -X GET http://localhost:8000/balances/count
+
+## Get Balances
+
+GET `/balances`
+```
+{
+    "status": "success",
+    "balances": [
+        {
+            "issuee": "0xA2D69B8B08FA9C5987544B6c27F69F848d746Ed6",
+            "tokenId": 5,
+            "available": 100000,
+            "retired": 0,
+            "transferred": 0
+        },
+        {
+            "issuee": "0xA2D69B8B08FA9C5987544B6c27F69F848d746Ed6",
+            "tokenId": 6,
+            "available": 100000,
+            "retired": 0,
+            "transferred": 0
+        }
+    ]
+}
+```
+Curl sample command
+
+curl -H "Accept: application/json" -X GET http://localhost:8000/balances?bundles=issuee,string,0xA2D69B8B08FA9C5987544B6c27F69F848d746Ed6,eq
+
+Query format is same as tokens.
