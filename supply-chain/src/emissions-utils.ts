@@ -8,7 +8,6 @@ import EthNetEmissionsTokenGateway from "../../emissions-data/typescript_app/src
 import Signer from "../../emissions-data/typescript_app/src/blockchain-gateway/signer";
 import { setup } from "../../emissions-data/typescript_app/src/utils/logger";
 import { PostgresDBService } from "../../data/postgres/src/postgresDbService";
-import { DbOpts, parseCommonYargsOptions } from "../../data/postgres/src/config";
 import {
   Activity,
   ActivityResult,
