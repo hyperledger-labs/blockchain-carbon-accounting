@@ -1,6 +1,10 @@
 # Tokenize Shipping Emissions Example
 
-This script implements an example of integrating the supply-chain application with an ERP system which has the shipping records for orders.  It is designed to work wih the [opentaps Open Source ERP + CRM](https://github.com/opentaps/opentaps-1) and should also work with [Apache OFBiz](https://ofbiz.apache.org/).  It will get all the shipments in a Facility (a warehouse) with UPS tracking numbers, tokenize them, and record the token ID or any error messages.
+The scripts here implement two examples of tokenizing shipments' emissions.  
+
+In the first example, we integrate with an ERP system which has the shipping records for orders.  It is designed to work wih the [opentaps Open Source ERP + CRM](https://github.com/opentaps/opentaps-1) and should also work with [Apache OFBiz](https://ofbiz.apache.org/).  It will get all the shipments in a Facility (a warehouse)'s `shipment_route_segment` table and submit either the UPS tracking numbers or the shipment origin, destination, weight, and service information to be tokenized.  It will record the token ID or any error messages.
+
+In the second example, we integrate with records from [UPS Quantum View](https://www.ups.com/co/en/tracking/quantum-view.page).  Quantum View provides details about UPS shipments in several tables.  We are using the `Delivery` table to get tracking numbers to be tokenized.
 
 ### Install Requirements and configure python scripts
 
@@ -15,7 +19,7 @@ Install requirements
 pip install -r requirements.txt
 ```
 
-Set your OFBiz/opentaps database credentials in `config.py`.
+Set your OFBiz/opentaps or Quantum View database credentials in `config.py`.
 
 Create a new table using sql/create_table.sql
 
