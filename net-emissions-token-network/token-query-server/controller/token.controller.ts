@@ -19,7 +19,7 @@ export async function getTokens(req: Request, res: Response) {
         }
 
         return res.status(400).json({
-            status: 'falied',
+            status: 'failed',
             error: 'Bad query request'
         });
     } catch (error) {
