@@ -31,6 +31,11 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                             logging.warning("Could be wrong tracking number: skip shipment {}:{} - tracking: {}"
                                             .format(row.shipment_id, row.shipment_route_segment_id, tracking))
                             continue
+
+                        if check_shipment_route_segment_token(conn, row.shipment_id,
+                                                              row.shipment_route_segment_id, tracking):
+                            continue
+
                         item_id = row.shipment_id + ":" + row.shipment_route_segment_id + ":" + tracking
                         activity["id"] = item_id
                         activity["tracking"] = tracking
@@ -42,6 +47,11 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                         tracking = "_NA_"
                     else:
                         activity["tracking"] = tracking
+
+                    if check_shipment_route_segment_token(conn, row.shipment_id,
+                                                          row.shipment_route_segment_id, tracking):
+                        continue
+
                     item_id = row.shipment_id + ":" + row.shipment_route_segment_id + ":" + tracking
                     activity["id"] = item_id
                     if row.shipment_method_type_id:
@@ -88,6 +98,18 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
         logging.exception(e1)
     finally:
         shipment_route_segments.close()
+
+
+def check_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking):
+    shrst = db.get_shipment_route_segment_token(conn, shipment_id,
+                                                shipment_route_segment_id, tracking)
+    if shrst and shrst.token_id:
+        logging.warning("shipment {}:{} - tracking: {} already tokenized, token id: {}"
+                        .format(shipment_id, shipment_route_segment_id,
+                                tracking, shrst.token_id))
+        return True
+
+    return False
 
 
 def save_tokenize_result(conn, tokenize_data):
