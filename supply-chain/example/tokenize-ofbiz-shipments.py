@@ -74,7 +74,7 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                     activities.append(activity)
 
         if len(activities) == 0:
-            logging.warning("Noting to tokenize")
+            logging.warning("Nothing to tokenize")
         else:
             input_data = {"activities": activities}
             with open(json_file_name, 'w') as outfile:
@@ -111,7 +111,7 @@ def save_tokenize_result(conn, tokenize_data):
                      .format(tmp[0], tmp[1], tracking, status))
         if error:
             error = str(error)
-        db.save_token(conn, tmp[0], tmp[1], tracking, status, token_id, error)
+        db.save_shipment_route_segment_token(conn, tmp[0], tmp[1], tracking, status, token_id, error)
 
 
 def main(args):
