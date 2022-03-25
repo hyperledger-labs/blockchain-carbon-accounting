@@ -10,9 +10,6 @@ import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import {
   formatDate,
-  getAvailableRetiredAndTransferred,
-  getNumOfUniqueTokens,
-  getTokenDetails,
   getNumOfUniqueTrackers,
   getRoles,
   getTrackerDetails,
@@ -134,7 +131,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       // First, fetch number of unique tokens
       const query = `issuee,string,${signedInAddress},eq`;
       let _count = await getNumOfTokens(query);
-      setCount(_count % _pageSize == 0 ? _count / _pageSize : _count / _pageSize + 1);
+      setCount(_count % _pageSize === 0 ? _count / _pageSize : _count / _pageSize + 1);
       
       // fetch token from database
       const offset = (_page - 1) * _pageSize;
@@ -203,7 +200,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       const query = `issuee,string,${signedInAddress},eq`;
       let _count = await getNumOfBalances(query);
       
-      _balanceCount = _count % _balancePage == 0 ? _count / _balancePageSize : _count / _balancePageSize + 1;
+      _balanceCount = _count % _balancePage === 0 ? _count / _balancePageSize : _count / _balancePageSize + 1;
       const offset = (_balancePage - 1) * _balancePageSize;;
 
       let balances = await getBalances(offset, _balancePageSize, query);

@@ -12,7 +12,7 @@ export const getTokens = async (offset, limit, query) => {
                 bundles: query
             }
         });
-        if(data.status == 'success') {
+        if(data.status === 'success') {
             return data.tokens;
         } else {
             return [];
@@ -27,7 +27,7 @@ export const getNumOfTokens = async (bundles) => {
         const { data } = await axios.get('/tokens/count', {
             params: {bundles}
         });
-        if(data.status == 'success') {
+        if(data.status === 'success') {
             return data.count;
         } else {
             return 0;
@@ -44,7 +44,7 @@ export const getBalances = async (offset, limit, query) => {
                 offset, limit, bundles: query
             }
         });
-        if(data.status == 'success') return data.balances;
+        if(data.status === 'success') return data.balances;
         else return [];
     } catch(error) {
         throw new Error("cannot get balances from api server");
@@ -56,7 +56,7 @@ export const getNumOfBalances = async (bundles) => {
         const { data } = await axios.get('/balances/count', {
             params: {bundles}
         });
-        if(data.status == 'success') {
+        if(data.status === 'success') {
             return data.count;
         } else {
             return 0;
