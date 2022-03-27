@@ -2,7 +2,7 @@ import React from 'react';
 import Pagination from "@material-ui/lab/Pagination";
 
 const Paginator = ({count, page, pageSize, pageChangeHandler, pageSizeHandler}) => {
-    const pageSizes = [5, 10, 25, 50, 100];
+    const pageSizes = [5, 10, 20, 50, 100];
     return (
         <div className="row">
           <div className="col-auto">

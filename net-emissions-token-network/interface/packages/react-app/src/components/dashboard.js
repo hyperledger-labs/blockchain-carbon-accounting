@@ -49,11 +49,11 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   // state vars for pagination
   const [ page, setPage ] = useState(1);
   const [ count, setCount ] = useState(0);
-  const [ pageSize, setPageSize ] = useState(10);
+  const [ pageSize, setPageSize ] = useState(20);
 
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balanceCount, setBalanceCount ] = useState(0);
-  const [ balancePageSize, setBalancePageSize ] = useState(5);
+  const [ balancePageSize, setBalancePageSize ] = useState(20);
 
   async function handlePageChange(event, value) {
     await fetchBalances(value, pageSize, balancePage, balancePageSize);
@@ -126,12 +126,12 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       "Audited Emissions",
       "Carbon Tracker"
     ];
-
+    let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
       const query = `issuer,string,${signedInAddress},eq`;
       let _count = await getNumOfTokens(query);
-      setCount(_count % _pageSize === 0 ? _count / _pageSize : _count / _pageSize + 1);
+      _issuedCount = _count % _pageSize === 0 ? _count / _pageSize : Math.floor(_count / _pageSize) + 1;
       
       // fetch token from database
       const offset = (_page - 1) * _pageSize;
@@ -201,7 +201,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       const query = `issuee,string,${signedInAddress},eq`;
       let _count = await getNumOfBalances(query);
       
-      _balanceCount = _count % _balancePage === 0 ? _count / _balancePageSize : _count / _balancePageSize + 1;
+      _balanceCount = _count % _balancePageSize === 0 ? _count / _balancePageSize : Math.floor(_count / _balancePageSize) + 1;
       const offset = (_balancePage - 1) * _balancePageSize;;
 
       let balances = await getBalances(offset, _balancePageSize, query);
@@ -345,12 +345,16 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       setError("Could not connect to carbon tracker contract on the selected network. Check your wallet provider settings.");
     }
 
+    console.log('--- balance count', _balanceCount);
+    console.log('--- issued count', _issuedCount);
+
     setMyBalances(newMyBalances);
     setMyIssuedTokens(newMyIssuedTokens);    
     setFetchingTokens(false);
     setMyIssuedTrackers(newMyIssuedTrackers);
     setFetchingTrackers(false);
     setError("");
+    setCount(_issuedCount);
     setPage(_page);
     setPageSize(_pageSize);
     setBalanceCount(_balanceCount);
@@ -447,13 +451,13 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
                   ))}
               </tbody>
             </Table>
-            <Paginator 
+            {myBalances.length !== 0 ? <Paginator 
               count={balanceCount}
               page={balancePage}
               pageSize={balancePageSize}
               pageChangeHandler={handleBalancePageChange}
               pageSizeHandler={handleBalancePageSizeChanged}
-            />
+            /> : <></>}
           </div>
         }
 
@@ -488,13 +492,13 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
                   ))}
               </tbody>
             </Table>
-            <Paginator 
+            {myIssuedTokens.length !== 0 ? <Paginator 
               count={count}
               page={page}
               pageSize={pageSize}
               pageChangeHandler={handlePageChange}
               pageSizeHandler={handlePageSizeChange}
-            />
+            /> : <></>}
           </div>
         }
       </div>
