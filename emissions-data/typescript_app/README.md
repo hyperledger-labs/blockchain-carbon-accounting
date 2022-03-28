@@ -20,4 +20,4 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 
 1. Start Hardhat ethereum node : `cd net-emissions-token-network && npx hardhat node`
 2. Insert some mock data, configure vault server for the testing : `npm run test:setup`
-3 Run Test Coverage : `npm run coverage`
+3. Run Test Coverage : `npm run coverage`
