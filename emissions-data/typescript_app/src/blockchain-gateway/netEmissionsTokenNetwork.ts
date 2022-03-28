@@ -50,7 +50,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         try {
             await this.opts.ethClient.invokeContract({
                 contractName: this.contractName,
-                signingCredential: signer,
+                web3SigningCredential: signer,
                 invocationType: EthContractInvocationType.Send,
                 methodName: 'registerConsumer',
                 params: [input.address],
@@ -75,7 +75,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
             const automaticRetireDate = +input.automaticRetireDate.toFixed();
             result = await this.opts.ethClient.invokeContract({
                 contractName: this.contractName,
-                signingCredential: signer,
+                web3SigningCredential: signer,
                 invocationType: EthContractInvocationType.Send,
                 methodName: 'issue',
                 params: [
