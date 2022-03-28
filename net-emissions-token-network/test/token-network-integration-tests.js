@@ -10,7 +10,8 @@ const {
   automaticRetireDate,
   metadata,
   manifest,
-  description
+  description,
+  revertError
 } = require("./common.js");
 const { ethers } = require("./ethers-provider");
 
@@ -74,7 +75,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered REC dealer"
+        revertError("CLM8::_issue: issuer not a registered REC dealer")
       );
     }
 
@@ -93,7 +94,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
+      expect(err.toString()).to.equal(revertError("CLM8::onlyDealer: msg.sender not a dealer"));
     }
 
     // Get ID of token just issued
@@ -120,7 +121,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let transferFail = await contract.transfer(consumer1, tokenId, quantity + 1);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+        revertError("ERC1155: insufficient balance for transfer")
       );
     }
 
@@ -159,7 +160,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let transferRetired = await contract.transfer(consumer1, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+        revertError("ERC1155: insufficient balance for transfer")
       );
     }
 
@@ -257,7 +258,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered offset dealer"
+        revertError("CLM8::_issue: issuer not a registered offset dealer")
       );
     }
 
@@ -276,7 +277,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
+      expect(err.toString()).to.equal(revertError("CLM8::onlyDealer: msg.sender not a dealer"));
     }
 
     // Get ID of token just issued
@@ -303,7 +304,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let transferFail = await contract.transfer(consumer1, tokenId, quantity + 1);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+        revertError("ERC1155: insufficient balance for transfer")
       );
     }
 
@@ -342,7 +343,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let transferRetired = await contract.transfer(consumer1, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+        revertError("ERC1155: insufficient balance for transfer")
       );
     }
 
@@ -454,7 +455,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered emissions auditor"
+        revertError("CLM8::_issue: issuer not a registered emissions auditor")
       );
     }
 
@@ -473,7 +474,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
+      expect(err.toString()).to.equal(revertError("CLM8::onlyDealer: msg.sender not a dealer"));
     }
 
     // Get ID of token just issued
@@ -498,7 +499,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let transferRetired = await contract.transfer(consumer1, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+        revertError("ERC1155: insufficient balance for transfer")
       );
     }
 
@@ -576,7 +577,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         .connect(await ethers.getSigner(industry1))
         .registerConsumer(consumer1);
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
+      expect(err.toString()).to.equal(revertError("CLM8::onlyDealer: msg.sender not a dealer"));
     }
 
     let registerConsumerTwo = await contract.connect(await ethers.getSigner(industry1)).registerConsumer(consumer2);
@@ -615,7 +616,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::onlyDealer: msg.sender not a dealer");
+      expect(err.toString()).to.equal(revertError("CLM8::onlyDealer: msg.sender not a dealer"));
     }
 
     try {
@@ -634,7 +635,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         );
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_issue: registered industry can only issue carbon to itself"
+        revertError("CLM8::_issue: registered industry can only issue carbon to itself")
       );
     }
 
@@ -653,7 +654,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::_issue: issuer not a registered industry");
+      expect(err.toString()).to.equal(revertError("CLM8::_issue: issuer not a registered industry"));
     }
 
     // Get ID of token just issued
@@ -695,7 +696,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         .safeTransferFrom(industry1, industry2, tokenId, transferAmount,signature);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_beforeTokenTransfer: receiver's approval signature is not valid"
+        revertError("CLM8::_beforeTokenTransfer: receiver's approval signature is not valid")
       );
     }
     */
@@ -710,7 +711,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         .safeTransferFrom(industry1, industry2, tokenId, quantity,signature);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert ERC1155: insufficient balance for transfer"
+        revertError("ERC1155: insufficient balance for transfer")
       );
     }
 
@@ -734,7 +735,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         .retire(tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::retire: not enough available balance to retire"
+        revertError("CLM8::retire: not enough available balance to retire")
       );
     }
 

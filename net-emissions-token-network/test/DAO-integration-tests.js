@@ -26,7 +26,7 @@ describe("Climate DAO - Integration tests", function() {
   //   const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
   //   const governor = await ethers.getContract('Governor');
 
-  //   let proposal = createProposal({
+  //   let proposal = await createProposal({
   //     deployer: deployer,
   //     governor: governor,
   //     netEmissionsTokenNetwork: netEmissionsTokenNetwork,
@@ -106,7 +106,7 @@ describe("Climate DAO - Integration tests", function() {
       .connect(await ethers.getSigner(deployer))
       .registerDealer(dealer1, 1);  // REC dealer
 
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: dealer1,
       deployer: deployer,
       governor: governor,
@@ -190,7 +190,7 @@ describe("Climate DAO - Integration tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer3, quarterOfSupply);
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer4, quarterOfSupply);
 
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: dealer1,
       deployer: deployer,
       governor: governor,
@@ -233,7 +233,7 @@ describe("Climate DAO - Integration tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer3, quarterOfSupply);
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(dealer4, quarterOfSupply);
 
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: dealer1,
       deployer: deployer,
       governor: governor,

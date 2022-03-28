@@ -4,7 +4,8 @@ const {
   advanceBlocks,
   createMultiAttributeProposal,
   hoursToBlocks,
-  proposalStates
+  proposalStates,
+  revertError
 } = require("./common.js");
 const { getNamedAccounts } = require("hardhat");
 
@@ -931,7 +932,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: already refunded this proposal"
+      revertError("Governor::refund: already refunded this proposal")
     );
     console.log("Done deployer refunds.");
 
@@ -945,7 +946,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
     console.log("Done dealer1 refunds.");
 
@@ -958,7 +959,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
     console.log("Done dealer2 refunds.");
 
@@ -1152,7 +1153,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: already refunded this proposal"
+      revertError("Governor::refund: already refunded this proposal")
     );
     console.log("Done deployer refunds.");
 
@@ -1175,7 +1176,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: already refunded this proposal"
+      revertError("Governor::refund: already refunded this proposal")
     );
     console.log("Done dealer1 refunds.");
 
@@ -1198,7 +1199,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: already refunded this proposal"
+      revertError("Governor::refund: already refunded this proposal")
     );
     console.log("Done dealer2 refunds.");
 
@@ -1296,7 +1297,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
     error = null;
     try {
@@ -1305,7 +1306,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
 
     // attempts to refund on children
@@ -1316,7 +1317,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
     error = null;
     try {
@@ -1325,7 +1326,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
   });
 });
