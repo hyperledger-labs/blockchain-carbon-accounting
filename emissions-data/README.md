@@ -299,7 +299,7 @@ From the `docker-compose-setup/` directory:
 2. Update Chaincode:
    Run `./network.sh deployCC -ccv 'VERSION' -ccs 'SEQUENCE'`
    e.g. update chaincode `emissionscontract` to version 2: `./network.sh deployCC -ccv 2.0 -ccs 2`
-3. Check help, if further infomation is needed. Run: `./network.sh -h`
+3. Check help, if further information is needed. Run: `./network.sh -h`
 
 ### Hyperledger explorer
 
