@@ -363,7 +363,7 @@ export async function issue_tokens(
   const token_res = await issue_emissions_tokens(
     total_emissions,
     JSON.stringify(metadata),
-    `${h.type}:${h.value}`,
+    `${h.value}`,
     ipfs_res.path,
     publicKeys[0]
   );
@@ -400,7 +400,7 @@ export async function issue_tokens_with_issuee(
     issuee,
     total_emissions,
     JSON.stringify(metadata),
-    `${h.type}:${h.value}`,
+    `${h.value}`,
     ipfs_res.path,
     publicKeys[0]
   );
