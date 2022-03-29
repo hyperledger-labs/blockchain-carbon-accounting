@@ -8,6 +8,25 @@ def get_connection():
                         user=config.DB_USER, password=config.DB_PASS)
 
 
+def check_tracking_code_token(conn, tracking):
+    cursor = conn.cursor()
+    token = None
+    
+    sql = ''' select token_id from shipment_route_segment_token 
+                where tracking_number = %s and token_id is not null
+            union select token_id from q_v_delivery_token
+                where tracking_number = %s and token_id is not null
+            '''
+    try:
+        cursor.execute(sql, (tracking, tracking,))
+        token = cursor.fetchone()
+    except Exception as e:
+        logging.exception(e)
+
+    cursor.close()
+    return token
+
+
 def get_shipment_route_segments(conn, from_date, thru_date, facility_id):
     cursor = conn.cursor()
 
@@ -119,7 +138,7 @@ def update_q_v_delivery_token(conn, delivery_id,
                                         tracking, status, token_id, error):
     cursor = conn.cursor()
     try:
-        cursor.execute(''' update q_v_delivery_token_token 
+        cursor.execute(''' update q_v_delivery_token
         set status = %s,
         token_id = %s,
         error = %s,

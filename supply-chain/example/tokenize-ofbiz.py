@@ -1,6 +1,5 @@
 import argparse
 import json
-import logging
 from datetime import datetime
 
 import db
@@ -32,6 +31,11 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                                             .format(row.shipment_id, row.shipment_route_segment_id, tracking))
                             continue
 
+                        token = db.check_tracking_code_token(conn, tracking)
+                        if token:
+                            logging.warning("tracking number {} already tokenized, token id: {}"
+                                            .format(tracking, token.token_id, ))
+                            continue
                         if check_shipment_route_segment_token(conn, row.shipment_id,
                                                               row.shipment_route_segment_id, tracking):
                             continue
@@ -46,6 +50,11 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                     if not tracking:
                         tracking = "_NA_"
                     else:
+                        token = db.check_tracking_code_token(conn, tracking)
+                        if token:
+                            logging.warning("tracking number {} already tokenized, token id: {}"
+                                            .format(tracking, token.token_id, ))
+                            continue
                         activity["tracking"] = tracking
 
                     if check_shipment_route_segment_token(conn, row.shipment_id,

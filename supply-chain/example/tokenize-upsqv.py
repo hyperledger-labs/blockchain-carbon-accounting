@@ -1,6 +1,5 @@
 import argparse
 import json
-import logging
 from datetime import datetime
 
 import db
@@ -26,6 +25,12 @@ def tokenize_emissions(conn, from_date, thru_date, issuee, pubkey):
                 if row.tracking_number:
                     tracking_numbers = row.tracking_number.split(",")
                     for tracking in tracking_numbers:
+                        token = db.check_tracking_code_token(conn, tracking)
+                        if token:
+                            logging.warning("tracking number {} already tokenized, token id: {}"
+                                            .format(tracking, token.token_id, ))
+                            continue
+
                         activity = {"type": "shipment", "carrier": CARRIER_PARTY_ID.lower()}
                         tracking = tracking.strip()
                         if len(tracking) > 18:
