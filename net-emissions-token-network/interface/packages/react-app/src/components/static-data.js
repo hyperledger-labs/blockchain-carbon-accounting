@@ -30,18 +30,18 @@ export const BALANCE_FIELDS = [
 },
 {
     alias: 'Balance',
-    name: 'balance',
-    type: 'number'
+    name: 'available',
+    type: 'balance'
 },
 {
     alias: 'Retired',
     name: 'retired',
-    type: 'number'
+    type: 'balance'
 },
 {
     alias: 'Transferred',
     name: 'transferred',
-    type: 'number'
+    type: 'balance'
 },
 {
     alias: 'Scope',

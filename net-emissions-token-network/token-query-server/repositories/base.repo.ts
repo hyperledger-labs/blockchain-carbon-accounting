@@ -1,7 +1,7 @@
 import { SelectQueryBuilder } from 'typeorm';
 import { QueryBundle, StringPayload } from '../models/commonTypes';
 
-const BALANCE_FIELDS = ['issuee', 'tokenId', 'balance', 'retired', 'transferred'];
+const BALANCE_FIELDS = ['issuee', 'tokenId', 'available', 'retired', 'transferred'];
 
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
     const len = queries.length;
