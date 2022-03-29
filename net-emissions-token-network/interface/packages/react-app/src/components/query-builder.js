@@ -46,6 +46,7 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
     function onChangeFieldName(event, key) {
         const fieldName = event.target.value;
         const match = fieldList.find(item => item.name === fieldName);
+        if(match === undefined) return;
         fields[key] = {
             name: fieldName,
             ops: OPERATORS[match.type],
@@ -77,7 +78,7 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         // getting query
         let queries = [];
         fields.map(item => {
-            if(item.value === undefined) return null;
+            if(item.value === undefined || item.op === '') return null;
             const op = FIELD_OPS.find(op => op.label === item.op);
             let query = '';
             if(item.type === 'enum') {
