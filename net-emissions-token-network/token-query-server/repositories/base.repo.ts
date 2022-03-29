@@ -1,6 +1,8 @@
 import { SelectQueryBuilder } from 'typeorm';
 import { QueryBundle, StringPayload } from '../models/commonTypes';
 
+const BALANCE_FIELDS = ['issuee', 'tokenId', 'balance', 'retired', 'transferred'];
+
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
     const len = queries.length;
     for (let i = 0; i < len; i++) {
@@ -20,6 +22,10 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
         else continue;
         
         // make case insensitive for issuee issuer cases
+        if(!BALANCE_FIELDS.includes(query.field)) {
+            console.log(query);
+            table = 'token';
+        }
         if(query.field == 'issuee' || query.field == 'issuer') {
             builder = builder.andWhere(`LOWER(${table}.${query.field}) ${query.op} LOWER(:${query.field})`, payload);
         } else {

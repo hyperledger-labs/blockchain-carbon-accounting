@@ -101,7 +101,9 @@ export async function count(bundles: Array<QueryBundle>): Promise<number> {
     try {
         let selectBuilder: SelectQueryBuilder<Balance> = getRepository(Balance).createQueryBuilder("balance");
         selectBuilder = buildQueries('balance', selectBuilder, bundles);
-        return selectBuilder.getCount();
+        return selectBuilder
+            .leftJoinAndMapOne('balance.token', Token, 'token', 'token.tokenId = balance.tokenId')
+            .getCount();
     } catch (error) {
         throw new Error("Cannot get balances count.");       
     }
