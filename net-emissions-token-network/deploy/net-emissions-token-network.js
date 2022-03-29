@@ -14,9 +14,11 @@ module.exports = async ({
     proxy: {
       owner: deployer,
       proxyContract: "OptimizedTransparentProxy",
-      methodName: 'initialize'
+      execute: {
+        methodName: 'initialize',
+        args: [ deployer ]
+      }
     },
-    args: [ deployer ],
   });
 
   console.log("NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
@@ -39,9 +41,11 @@ module.exports = async ({
     proxy: {
       owner: deployer,
       proxyContract: "OptimizedTransparentProxy",
-      methodName: 'initialize'
+      execute: {
+        methodName: 'initialize',
+        args: [ netEmissionsTokenNetwork.address, deployer, ]
+      }
     },
-    args: [ netEmissionsTokenNetwork.address, deployer, ],
   });
 
   console.log("CarbonTracker deployed to:", carbonTracker.address);
