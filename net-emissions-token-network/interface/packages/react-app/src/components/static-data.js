@@ -50,7 +50,7 @@ export const BALANCE_FIELDS = [
 },
 {
     alias: 'Type',
-    name: 'Type',
+    name: 'type',
     type: 'string'
 },
 ]
@@ -83,7 +83,7 @@ export const TOKEN_FIELDS = [
 },
 {
     alias: 'Type',
-    name: 'Type',
+    name: 'type',
     type: 'string'
 },
 ]
