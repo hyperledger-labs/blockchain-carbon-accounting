@@ -19,8 +19,10 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
-import { getBalances, getNumOfBalances, getNumOfTokens, getTokens } from '../services/api.service';
+import { getBalances, getTokens } from '../services/api.service';
 import Paginator from "./paginate";
+import QueryBuilder from "./query-builder";
+import { BALANCE_FIELDS, TOKEN_FIELDS } from "./static-data";
 
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
@@ -50,25 +52,35 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   const [ page, setPage ] = useState(1);
   const [ count, setCount ] = useState(0);
   const [ pageSize, setPageSize ] = useState(20);
+  const [ query, setQuery ] = useState([]);
 
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balanceCount, setBalanceCount ] = useState(0);
   const [ balancePageSize, setBalancePageSize ] = useState(20);
+  const [ balanceQuery, setBalanceQuery ] = useState([]);
 
   async function handlePageChange(event, value) {
-    await fetchBalances(value, pageSize, balancePage, balancePageSize);
+    await fetchBalances(value, pageSize, balancePage, balancePageSize, query, balanceQuery);
   }
 
   async function handlePageSizeChange(event) {
-    await fetchBalances(1, event.target.value, balancePage, balancePageSize);
+    await fetchBalances(1, event.target.value, balancePage, balancePageSize, query, balanceQuery);
   }
 
   async function handleBalancePageChange(event, value) {
-    await fetchBalances(page, pageSize, value, balancePageSize);
+    await fetchBalances(page, pageSize, value, balancePageSize, query, balanceQuery);
   }
 
   async function handleBalancePageSizeChanged(event) {
-    await fetchBalances(page, pageSize, 1, event.target.value);
+    await fetchBalances(page, pageSize, 1, event.target.value, query, balanceQuery);
+  }
+
+  async function handleQueryChanged(_query) {
+    await fetchBalances(page, pageSize, balancePage, balancePageSize, _query, balanceQuery);
+  }
+
+  async function handleBalanceQueryChanged(_query) {
+    await fetchBalances(page, pageSize, balancePage, balancePageSize, query, _query);
   }
 
   function handleOpenTokenInfoModal(token) {
@@ -95,7 +107,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     localStorage.setItem('token_balances', null);
 
     setFetchingTokens(true);
-    fetchBalances(page, pageSize, balancePage, balancePageSize);
+    fetchBalances(page, pageSize, balancePage, balancePageSize, query, balanceQuery);
   }
 
   async function fetchAddressRoles(provider, address) {
@@ -113,7 +125,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async (_page, _pageSize, _balancePage, _balancePageSize) => {
+  const fetchBalances = useCallback(async (_page, _pageSize, _balancePage, _balancePageSize, _query, _balanceQuery) => {
 
     let newMyBalances = [];
     let newMyIssuedTokens = [];
@@ -130,14 +142,17 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     try {
       // First, fetch number of unique tokens
       const query = `issuer,string,${signedInAddress},eq`;
-      let _count = await getNumOfTokens(query);
-      _issuedCount = _count % _pageSize === 0 ? _count / _pageSize : Math.floor(_count / _pageSize) + 1;
+      const offset = (_page - 1) * _pageSize;
+
+      // this count means total number of issued tokens
+      let {tokens, count} = await getTokens(offset, _pageSize, [..._query, query]);
+      
+      // this count means total pages of issued tokens
+      _issuedCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
       
       // fetch token from database
-      const offset = (_page - 1) * _pageSize;
       
       // my tokens
-      let tokens = await getTokens(offset, _pageSize, query);
       // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= _pageSize; i++) {
         let tokenDetails = tokens[i-1];
@@ -199,12 +214,14 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     try {
       // get total count of balance
       const query = `issuee,string,${signedInAddress},eq`;
-      let _count = await getNumOfBalances(query);
-      
-      _balanceCount = _count % _balancePageSize === 0 ? _count / _balancePageSize : Math.floor(_count / _balancePageSize) + 1;
-      const offset = (_balancePage - 1) * _balancePageSize;;
+      const offset = (_balancePage - 1) * _balancePageSize;
 
-      let balances = await getBalances(offset, _balancePageSize, query);
+      // this count means total number of balances
+      let {count, balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
+      
+      // this count means total pages of balances
+      _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
+
 
       for (let i = 0; i < balances.length; i++) {
         const balance = balances[i];
@@ -357,9 +374,11 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     setCount(_issuedCount);
     setPage(_page);
     setPageSize(_pageSize);
+    setQuery(_query);
     setBalanceCount(_balanceCount);
     setBalancePage(_balancePage);
     setBalancePageSize(_balancePageSize);
+    setBalanceQuery(_balanceQuery);
   }, [provider, signedInAddress]);
 
   // If address and provider detected then fetch balances
@@ -368,11 +387,10 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       if (myBalances !== [] && !fetchingTokens) {
         setFetchingTokens(true);
         setFetchingTrackers(true);
-        console.log(`page: `, page);
-        fetchBalances(page, pageSize, balancePage, balancePageSize);
+        fetchBalances(page, pageSize, balancePage, balancePageSize, query, balanceQuery);
       }
     }
-  }, [provider, signedInAddress]);
+  }, [provider, signedInAddress, balancePage, balancePageSize, balanceQuery, page, pageSize, query]);
 
   function pointerHover(e) {
     e.target.style.cursor = "pointer";
@@ -423,6 +441,10 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         {(signedInAddress) &&
           <div className="mb-4">
             <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
+            <QueryBuilder 
+              fieldList={BALANCE_FIELDS}
+              handleQueryChanged={handleBalanceQueryChanged}
+            />
             <Table hover size="sm">
               <thead>
                 <tr>
@@ -465,6 +487,10 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
             <h4>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued</h4>
+            <QueryBuilder 
+              fieldList={TOKEN_FIELDS}
+              handleQueryChanged={handleQueryChanged}
+            />
             <Table hover size="sm">
               <thead>
                 <tr>

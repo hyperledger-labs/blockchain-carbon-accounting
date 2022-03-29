@@ -22,25 +22,12 @@ Run `npm run dev`.
 
 Base URL `http://127.0.0.1:8000`
 
-## Get Total Number of Tokens
-GET `/tokens/count`
-
-Sample response
-```
-{
-    "status": "success",
-    "count": 3
-}
-```
-curl sample command
-
-curl -H "Accept: application/json" -X GET http://localhost:8000/tokens/count
-
 ## Get Tokens 
 GET `/tokens`
 ```
 {
     "status": "success",
+    "count" : 13,
     "tokens": [
         {
             "tokenId": 2,
@@ -106,27 +93,13 @@ curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=i
 
 curl -H "Accept: application/json" -X GET http://localhost:8000/tokens?bundles=scope,number,2,gt&bundles=issuee,string,ffFb92265,like
 
-## Get Number of Balances
-
-GET `/balances/count`
-
-Sample response
-```
-{
-    "status": "success",
-    "count": 3
-}
-```
-curl sample command
-
-curl -H "Accept: application/json" -X GET http://localhost:8000/balances/count
-
 ## Get Balances
 
 GET `/balances`
 ```
 {
     "status": "success",
+    "count": 12,
     "balances": [
         {
             "issuee": "0xA2D69B8B08FA9C5987544B6c27F69F848d746Ed6",

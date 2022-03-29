@@ -12,9 +12,11 @@ export async function getTokens(req: Request, res: Response) {
 
         if(offset != undefined && limit != undefined && limit != 0) {
             const tokens = await selectPaginated(offset, limit, queryBundles);
+            const totalCount = await countTokens(queryBundles);
             return res.status(200).json({
                 status: 'success',
-                tokens
+                tokens,
+                count: totalCount
             });
         }
 

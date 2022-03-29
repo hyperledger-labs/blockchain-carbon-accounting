@@ -5,7 +5,6 @@ import { CreatedToken, TokenPayload, BalancePayload } from "../models/commonType
 import { countTokens, insertToken, selectToken, truncateTokens, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
 import { addAvailableBalance, retireBalance, transferBalance, selectBalance, truncateBalances } from "../repositories/balance.repo";
 import { insertNewBalance } from "./balance.controller";
-import { Token } from "../models/token.model";
 import { Balance } from "../models/balance.model";
 
 // for hardhat test purpose

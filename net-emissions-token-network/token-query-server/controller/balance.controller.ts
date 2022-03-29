@@ -1,8 +1,6 @@
 import { Response, Request } from 'express';
-import { Balance } from '../models/balance.model';
 import { QueryBundle, BalancePayload } from "../models/commonTypes";
 import { insert, selectPaginated, count } from '../repositories/balance.repo';
-import { queryProcessor } from '../middleware/base.middle';
 import { InsertResult } from 'typeorm';
 
 export async function getBalances(req: Request, res: Response) {
@@ -13,9 +11,11 @@ export async function getBalances(req: Request, res: Response) {
 
         if(offset != undefined && limit != undefined && limit != 0) {
             const balances = await selectPaginated(offset, limit, queryBundles);
+            const totalCount = await count(queryBundles);
             return res.status(200).json({
                 status: 'success',
-                balances
+                balances,
+                count: totalCount
             });
         }
         return res.status(400).json({

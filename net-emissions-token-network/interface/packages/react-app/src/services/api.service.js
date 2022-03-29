@@ -5,15 +5,17 @@ axios.defaults.baseURL = BASE_URL;
 
 export const getTokens = async (offset, limit, query) => {
     try {
+        var params = new URLSearchParams();
+        params.append('offset', offset);
+        params.append('limit', limit);
+        query.forEach(elem => {
+            params.append('bundles', elem);
+        });
         const { data } = await axios.get('/tokens', {
-            params: {
-                offset,
-                limit,
-                bundles: query
-            }
+            params
         });
         if(data.status === 'success') {
-            return data.tokens;
+            return data;
         } else {
             return [];
         }
@@ -22,46 +24,20 @@ export const getTokens = async (offset, limit, query) => {
     }
 }
 
-export const getNumOfTokens = async (bundles) => {
-    try {
-        const { data } = await axios.get('/tokens/count', {
-            params: {bundles}
-        });
-        if(data.status === 'success') {
-            return data.count;
-        } else {
-            return 0;
-        }
-    } catch (error) {
-        throw new Error("cannot get count from api server");
-    }
-}
-
 export const getBalances = async (offset, limit, query) => {
     try {
-        const { data } = await axios.get('/balances', {
-            params: {
-                offset, limit, bundles: query
-            }
+        var params = new URLSearchParams();
+        params.append('offset', offset);
+        params.append('limit', limit);
+        query.forEach(elem => {
+            params.append('bundles', elem);
         });
-        if(data.status === 'success') return data.balances;
+        const { data } = await axios.get('/balances', {
+            params
+        });
+        if(data.status === 'success') return data;
         else return [];
     } catch(error) {
         throw new Error("cannot get balances from api server");
-    }
-}
-
-export const getNumOfBalances = async (bundles) => {
-    try {
-        const { data } = await axios.get('/balances/count', {
-            params: {bundles}
-        });
-        if(data.status === 'success') {
-            return data.count;
-        } else {
-            return 0;
-        }
-    } catch (error) {
-        throw new Error("cannot get count from api server");
     }
 }
