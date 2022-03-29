@@ -23,25 +23,35 @@ export const TOKEN_TYPES = [
   ];
 
 export const BALANCE_FIELDS = [
-// {
-//   alias: 'Token Type',
-//   name: 'tokenTypeId',
-//   type: 'enum'
-// },
+{
+    alias: 'Token Type',
+    name: 'tokenTypeId',
+    type: 'enum'
+},
 {
     alias: 'Balance',
-    name: 'balance',
-    type: 'number'
+    name: 'available',
+    type: 'balance'
 },
 {
     alias: 'Retired',
     name: 'retired',
-    type: 'number'
+    type: 'balance'
 },
 {
     alias: 'Transferred',
     name: 'transferred',
+    type: 'balance'
+},
+{
+    alias: 'Scope',
+    name: 'scope',
     type: 'number'
+},
+{
+    alias: 'Type',
+    name: 'Type',
+    type: 'string'
 },
 ]
 
