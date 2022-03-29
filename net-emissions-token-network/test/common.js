@@ -28,6 +28,11 @@ exports.proposalStates = {
   executed: 8
 }
 
+exports.revertError = function(err) {
+  return "Error: VM Exception while processing transaction: reverted with reason string '" + err + "'";
+  // return "Error: VM Exception while processing transaction: revert " + err;
+}
+
 exports.hoursToSeconds = function (hours) {
   return (hours * 60 * 60);
 }
@@ -141,15 +146,17 @@ exports.createProposal = async function (params) {
   });
 
   // try to execute proposal before it's been passed
+  let errMsg = null;
   try {
     await params.governor
       .connect(await ethers.getSigner(params.deployer))
       .execute(proposalId);
   } catch (err) {
-    expect(err.toString()).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::execute: proposal can only be executed if it is queued"
-    );
+    errMsg = err.toString();
   }
+  expect(errMsg).to.equal(
+    exports.revertError("Governor::execute: proposal can only be executed if it is queued")
+  );
 
   // get proposal state
   await params.governor.state(proposalId).then((response) => {
