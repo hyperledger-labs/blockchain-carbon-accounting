@@ -31,12 +31,16 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
     }]);
 
     function removeField (e, idx) {
-        if(fields.length === 1) return;
+        if(fields.length === 1) {
+            setFields([{name: '', op: '', value: ''}])
+            search(null, []);
+            return;
+        }
         const filtered = fields.filter((item, i) => {
             return idx !== i;
         })
         setFields([...filtered]);
-        fieldList = [...fieldList]
+        search(null, filtered);
     }
 
     function addField() {
@@ -74,10 +78,11 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         setFields([...fields]);
     }
 
-    function search() {
+    function search(e, _fields) {
         // getting query
+        console.log(_fields);
         let queries = [];
-        fields.map(item => {
+        _fields.map(item => {
             if(item.value === undefined || item.op === '') return null;
             const op = FIELD_OPS.find(op => op.label === item.op);
             let query = '';
@@ -95,6 +100,7 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
             return queries;
         })
         // send query
+        console.log(queries);
         handleQueryChanged(queries);
     }
 
@@ -157,7 +163,7 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
                     </Form.Group>
                 )
             })}
-            <Button className="mb-1" onClick={search}>Search</Button>
+            <Button className="mb-1" onClick={e => search(e, fields)}>Search</Button>
         </>
     )
 }

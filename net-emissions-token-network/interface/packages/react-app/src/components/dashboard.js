@@ -60,27 +60,28 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   const [ balanceQuery, setBalanceQuery ] = useState([]);
 
   async function handlePageChange(event, value) {
-    await fetchBalances(value, pageSize, balancePage, balancePageSize, query, balanceQuery);
+    await fetchTokens(value, pageSize, query);
   }
 
   async function handlePageSizeChange(event) {
-    await fetchBalances(1, event.target.value, balancePage, balancePageSize, query, balanceQuery);
+    await fetchTokens(1, event.target.value, query);
   }
 
   async function handleBalancePageChange(event, value) {
-    await fetchBalances(page, pageSize, value, balancePageSize, query, balanceQuery);
+    await fetchBalances(value, balancePageSize, balanceQuery);
   }
 
   async function handleBalancePageSizeChanged(event) {
-    await fetchBalances(page, pageSize, 1, event.target.value, query, balanceQuery);
+    await fetchBalances(1, event.target.value, balanceQuery);
+
   }
 
   async function handleQueryChanged(_query) {
-    await fetchBalances(page, pageSize, balancePage, balancePageSize, _query, balanceQuery);
+    await fetchTokens(page, pageSize,  _query);
   }
 
   async function handleBalanceQueryChanged(_query) {
-    await fetchBalances(page, pageSize, balancePage, balancePageSize, query, _query);
+    await fetchBalances(balancePage, balancePageSize, _query);
   }
 
   function handleOpenTokenInfoModal(token) {
@@ -107,7 +108,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     localStorage.setItem('token_balances', null);
 
     setFetchingTokens(true);
-    fetchBalances(page, pageSize, balancePage, balancePageSize, query, balanceQuery);
+    fetchTokens(page, pageSize, query);
+    fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
   async function fetchAddressRoles(provider, address) {
@@ -125,9 +127,63 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async (_page, _pageSize, _balancePage, _balancePageSize, _query, _balanceQuery) => {
-
+  const fetchBalances = useCallback(async (_balancePage, _balancePageSize, _balanceQuery) => {
     let newMyBalances = [];
+    // Format tokenType from tokenTypeId
+    let tokenTypes = [
+      "Renewable Energy Certificate",
+      "Carbon Emissions Offset",
+      "Audited Emissions",
+      "Carbon Tracker"
+    ];
+
+    let _balanceCount = 0;
+    try {
+      // get total count of balance
+      const query = `issuee,string,${signedInAddress},eq`;
+      const offset = (_balancePage - 1) * _balancePageSize;
+
+      // this count means total number of balances
+      let {count, balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
+      
+      // this count means total pages of balances
+      _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
+
+
+      for (let i = 0; i < balances.length; i++) {
+        const balance = balances[i];
+
+        // cast time from long to date
+        balance.token.fromDate = formatDate(balance.token.fromDate);
+        balance.token.thruDate = formatDate(balance.token.thruDate);
+        balance.token.dateCreated = formatDate(balance.token.dateCreated);
+        balance.token.automaticRetireDate = formatDate(balance.token.automaticRetireDate);
+
+        let token = {
+          tokenId: balance.token.tokenId,
+          token: balance.token,
+          tokenType: tokenTypes[balance.token.tokenTypeId - 1],
+          issuee: balance.issuee,
+          availableBalance: (balance.available / 1000).toFixed(3),
+          retiredBalance: (balance.retired / 1000).toFixed(3),
+          transferredBalance: (balance.transferred / 1000).toFixed(3)
+        }
+        newMyBalances.push(token);
+      }
+    } catch (error) {
+      
+    }
+
+    setMyBalances(newMyBalances);
+    setBalanceCount(_balanceCount);
+    setBalancePage(_balancePage);
+    setBalancePageSize(_balancePageSize);
+    setBalanceQuery(_balanceQuery);
+    setFetchingTokens(false);
+  }, [signedInAddress]);
+
+  const fetchTokens = useCallback(async (_page, _pageSize, _query) => {
+
     let newMyIssuedTokens = [];
     let newMyIssuedTrackers = [];
 
@@ -207,44 +263,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     } catch (error) {
       console.log(error);
       setError("Could not connect to contract on the selected network. Check your wallet provider settings.");
-    }
-
-    // fetch balances
-    let _balanceCount = 0;
-    try {
-      // get total count of balance
-      const query = `issuee,string,${signedInAddress},eq`;
-      const offset = (_balancePage - 1) * _balancePageSize;
-
-      // this count means total number of balances
-      let {count, balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
-      
-      // this count means total pages of balances
-      _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
-
-
-      for (let i = 0; i < balances.length; i++) {
-        const balance = balances[i];
-
-        // cast time from long to date
-        balance.token.fromDate = formatDate(balance.token.fromDate);
-        balance.token.thruDate = formatDate(balance.token.thruDate);
-        balance.token.dateCreated = formatDate(balance.token.dateCreated);
-        balance.token.automaticRetireDate = formatDate(balance.token.automaticRetireDate);
-
-        let token = {
-          tokenId: balance.token.tokenId,
-          token: balance.token,
-          tokenType: tokenTypes[balance.token.tokenTypeId - 1],
-          issuee: balance.issuee,
-          availableBalance: (balance.available / 1000).toFixed(3),
-          retiredBalance: (balance.retired / 1000).toFixed(3),
-          transferredBalance: (balance.transferred / 1000).toFixed(3)
-        }
-        newMyBalances.push(token);
-      }
-    } catch (error) {
-      
     }
 
     try {
@@ -362,10 +380,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       setError("Could not connect to carbon tracker contract on the selected network. Check your wallet provider settings.");
     }
 
-    console.log('--- balance count', _balanceCount);
-    console.log('--- issued count', _issuedCount);
-
-    setMyBalances(newMyBalances);
+    // setMyBalances(newMyBalances);
     setMyIssuedTokens(newMyIssuedTokens);    
     setFetchingTokens(false);
     setMyIssuedTrackers(newMyIssuedTrackers);
@@ -375,22 +390,21 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     setPage(_page);
     setPageSize(_pageSize);
     setQuery(_query);
-    setBalanceCount(_balanceCount);
-    setBalancePage(_balancePage);
-    setBalancePageSize(_balancePageSize);
-    setBalanceQuery(_balanceQuery);
   }, [provider, signedInAddress]);
 
   // If address and provider detected then fetch balances
   useEffect(() => {
-    if (provider && signedInAddress) {
-      if (myBalances !== [] && !fetchingTokens) {
-        setFetchingTokens(true);
-        setFetchingTrackers(true);
-        fetchBalances(page, pageSize, balancePage, balancePageSize, query, balanceQuery);
-      }
-    }
-  }, [provider, signedInAddress, balancePage, balancePageSize, balanceQuery, page, pageSize, query]);
+    const init = async () => {
+      if (provider && signedInAddress) {
+        if (myBalances !== [] && !fetchingTokens) {
+          setFetchingTokens(true);
+          setFetchingTrackers(true);
+          await fetchTokens(page, pageSize, query);
+          await fetchBalances(balancePage, balancePageSize, balanceQuery);
+        }
+    } }
+    init();
+  }, [provider, signedInAddress]);
 
   function pointerHover(e) {
     e.target.style.cursor = "pointer";
