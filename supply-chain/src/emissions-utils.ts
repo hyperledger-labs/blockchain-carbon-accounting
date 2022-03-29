@@ -135,7 +135,8 @@ export async function issue_emissions_tokens(
   total_emissions: number,
   metadata: string,
   hash: string,
-  ipfs_path: string
+  ipfs_path: string,
+  publicKey: string
 ) {
   if (!logger_setup) {
     setup(LOG_LEVEL, LOG_LEVEL);
@@ -156,13 +157,18 @@ export async function issue_emissions_tokens(
     address: process.env.ETH_ISSUER_ACCT,
     private: process.env.ETH_ISSUER_PRIVATE_KEY,
   };
+  const manifest = {
+    "Public Key": publicKey,
+    "Location": `ipfs://${ipfs_path}`,
+    "SHA256": hash
+  };
   const input: IEthNetEmissionsTokenIssueInput = {
     addressToIssue: process.env.ETH_ISSUEE_ACCT || "",
     quantity: tokens.toNumber(),
     fromDate: nowTime,
     thruDate: nowTime,
     automaticRetireDate: 0,
-    manifest: `ipfs://${ipfs_path} ${hash}`,
+    manifest: JSON.stringify(manifest),
     metadata: metadata,
     description: "Emissions from shipments",
   };
@@ -175,7 +181,8 @@ export async function issue_emissions_tokens_with_issuee(
   total_emissions: number,
   metadata: string,
   hash: string,
-  ipfs_path: string
+  ipfs_path: string,
+  publicKey: string
 ) {
   if (!logger_setup) {
     setup(LOG_LEVEL, LOG_LEVEL);
@@ -196,13 +203,18 @@ export async function issue_emissions_tokens_with_issuee(
     address: process.env.ETH_ISSUER_ACCT,
     private: process.env.ETH_ISSUER_PRIVATE_KEY,
   };
+  const manifest = {
+    "Public Key": publicKey,
+    "Location": `ipfs://${ipfs_path}`,
+    "SHA256": hash
+  };
   const input: IEthNetEmissionsTokenIssueInput = {
     addressToIssue: issuee,
     quantity: tokens.toNumber(),
     fromDate: nowTime,
     thruDate: nowTime,
     automaticRetireDate: 0,
-    manifest: `ipfs://${ipfs_path} ${hash}`,
+    manifest: JSON.stringify(manifest),
     metadata: metadata,
     description: "Emissions from shipments",
   };
@@ -352,7 +364,8 @@ export async function issue_tokens(
     total_emissions,
     JSON.stringify(metadata),
     `${h.type}:${h.value}`,
-    ipfs_res.path
+    ipfs_res.path,
+    publicKeys[0]
   );
   doc.token = token_res;
   return token_res;
@@ -388,7 +401,8 @@ export async function issue_tokens_with_issuee(
     total_emissions,
     JSON.stringify(metadata),
     `${h.type}:${h.value}`,
-    ipfs_res.path
+    ipfs_res.path,
+    publicKeys[0]
   );
   doc.token = token_res;
   return token_res;
