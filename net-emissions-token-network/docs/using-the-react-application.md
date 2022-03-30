@@ -34,7 +34,7 @@ yarn react-app:start
 2. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
 
 ```bash
-npx hardhat node --show-accounts
+npx hardhat node 
 ```
 
 3. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.
