@@ -99,7 +99,7 @@ jobs:
           cd ../net-emissions-token-network/
           npm i -g npm@latest
           npm ci
-          echo "n" | npx hardhat node --show-accounts &
+          echo "n" | npx hardhat node &
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd docker-compose-setup/
