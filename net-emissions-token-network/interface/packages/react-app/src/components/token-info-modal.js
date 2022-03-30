@@ -133,6 +133,10 @@ export default function TokenInfoModal(props) {
               <td>{props.token.thruDate}</td>
             </tr>
             <tr>
+              <td>Automatic retire date</td>
+              <td>{props.token.automaticRetireDate}</td>
+            </tr>
+            <tr>
               <td>Metadata</td>
               <td className="text-monospace" style={{ wordWrap: "anywhere" }}>
                 {castMetadata(props.token.metadata)}

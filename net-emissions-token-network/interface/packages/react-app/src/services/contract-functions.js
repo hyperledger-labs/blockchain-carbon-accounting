@@ -197,6 +197,7 @@ export async function issue(
   quantity,
   fromDate,
   thruDate,
+  automaticRetireDate,
   metadata,
   manifest,
   description
@@ -212,6 +213,7 @@ export async function issue(
       quantity,
       convertToZeroIfBlank(toUnixTime(fromDate)),
       convertToZeroIfBlank(toUnixTime(thruDate)),
+      convertToZeroIfBlank(toUnixTime(automaticRetireDate)),
       metadata,
       manifest,
       description

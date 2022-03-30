@@ -25,6 +25,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [quantity, setQuantity] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [thruDate, setThruDate] = useState("");
+  const [automaticRetireDate, setAutomaticRetireDate] = useState("");
   const [manifest, setManifest] = useState("");
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
@@ -47,6 +48,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const onQuantityChange = useCallback((event) => { setQuantity(event.target.value); }, []);
   const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
   const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
+  const onAutomaticRetireDateChange = useCallback((event) => { setAutomaticRetireDate(event._d); }, []);
   const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
   const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
   const onScopeChange = useCallback((event) => { setScope(event.target.value); }, []);
@@ -120,6 +122,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             qty,
             Number(fromDate)/1000,
             Number(thruDate)/1000,
+            Number(automaticRetireDate)/1000,
             metajson,
             manifest,
             ("Issued by DAO. " + description)
@@ -139,6 +142,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     quantity,
     fromDate,
     thruDate,
+    automaticRetireDate,
     metajson,
     manifest,
     description,
@@ -171,7 +175,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
     const _metadata = castMetadata(metadata);
 
-    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, manifest, description);
+    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, automaticRetireDate, _metadata, manifest, description);
     setResult(result.toString());
   }
 
@@ -270,6 +274,10 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         <Form.Group as={Col}>
           <Form.Label>Through date</Form.Label>
           <Datetime onChange={onThruDateChange}/>
+        </Form.Group>
+        <Form.Group as={Col}>
+          <Form.Label>Automatic retire date</Form.Label>
+          <Datetime onChange={onAutomaticRetireDateChange}/>
         </Form.Group>
       </Form.Row>
       <Form.Group>
