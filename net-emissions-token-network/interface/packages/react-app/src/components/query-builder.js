@@ -51,11 +51,13 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         const fieldName = event.target.value;
         const match = fieldList.find(item => item.name === fieldName);
         if(match === undefined) return;
+        const ops = OPERATORS[match.type];
+        const op = ops.length === 1 ? ops[0] : '';
         fields[key] = {
             name: fieldName,
-            ops: OPERATORS[match.type],
+            ops: ops,
             type: match.type,
-            op: '',
+            op: op,
             value: ''
         }
         setFields([...fields]);
