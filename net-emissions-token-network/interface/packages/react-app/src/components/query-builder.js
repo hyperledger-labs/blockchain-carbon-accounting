@@ -52,7 +52,7 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         const match = fieldList.find(item => item.name === fieldName);
         if(match === undefined) return;
         const ops = OPERATORS[match.type];
-        const op = ops.length === 1 ? ops[0] : '';
+        const op = ops.length >= 1 ? ops[0] : '';
         fields[key] = {
             name: fieldName,
             ops: ops,
