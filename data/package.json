@@ -20,6 +20,6 @@
   "dependencies": {
     "cli-progress": "^3.10.0",
     "uuid": "^8.3.2",
-    "xlsx": "^0.18.4"
+    "xlsx": "^0.18.5"
   }
 }

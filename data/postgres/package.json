@@ -19,7 +19,7 @@
     "pg": "^8.7.3",
     "sequelize": "^6.17.0",
     "uuid": "^8.3.2",
-    "xlsx": "^0.18.3",
+    "xlsx": "^0.18.5",
     "yargs": "^17.3.1"
   },
   "devDependencies": {
