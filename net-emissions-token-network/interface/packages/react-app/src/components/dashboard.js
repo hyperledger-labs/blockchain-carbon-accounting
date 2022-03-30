@@ -102,14 +102,14 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     }
   }));
 
-  function handleRefresh() {
+  async function handleRefresh() {
     // clear localStorage
     let localStorage = window.localStorage;
     localStorage.setItem('token_balances', null);
 
     setFetchingTokens(true);
-    fetchTokens(page, pageSize, query);
-    fetchBalances(balancePage, balancePageSize, balanceQuery);
+    await fetchTokens(page, pageSize, query);
+    await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
   async function fetchAddressRoles(provider, address) {
