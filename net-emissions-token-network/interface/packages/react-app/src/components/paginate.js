@@ -17,7 +17,7 @@ const Paginator = ({count, page, pageSize, pageChangeHandler, pageSizeHandler}) 
               onChange={pageChangeHandler}
             />
           </div>
-          <div className="col-auto my-3 row">
+          <div className="col-auto my-3 row align-items-center">
             <label className="col-auto col-form-label" htmlFor="pageSize">
               Items per Page:
             </label>
