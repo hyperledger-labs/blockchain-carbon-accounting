@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
@@ -8,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+contract NetEmissionsTokenNetworkV3 is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
 
     using SafeMathUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
@@ -46,13 +45,13 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      *   1 => Renewable Energy Certificate
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
-     *   4 => Carbon Tracker tokens (traded, burnt or stored fuel/feed stock)
-     *   TO-DO define carbon tracker storage transactions (i.e. captured CO2 management) 
+     *   4 => Carbon tokens (traded fuel/feed stocks) 
      * issuer - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
      * fromDate - Unix timestamp
      * thruDate - Unix timestamp
      * dateCreated - Unix timestamp
+     * automaticRetireDate - Unix timestamp
      */
     struct CarbonTokenDetails {
         uint256 tokenId;
@@ -62,6 +61,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 fromDate;
         uint256 thruDate;
         uint256 dateCreated;
+        uint256 automaticRetireDate;
         string metadata;
         string manifest;
         string description;
@@ -92,6 +92,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 fromDate,
         uint256 thruDate,
         uint256 dateCreated,
+        uint256 automaticRetireDate,
         string metadata,
         string manifest,
         string description
@@ -177,7 +178,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             // the below will achieve the same as the above
             hasRole(REGISTERED_DEALER,msg.sender) || 
             // REGISTERED_INDSUTRY are considered dealers of carbon tokens
-            // but have not be assigned REGISTERED_DEALER role by admin
+            // but have not be assingned REGISTERED_DEALER role by admin
             hasRole(REGISTERED_INDUSTRY,msg.sender),
             "CLM8::onlyDealer: msg.sender not a dealer"
         );
@@ -188,7 +189,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      */
     function _consumerOrDealer(address entity) public view returns (bool) {
         // check for one role and return if true if true
-        // before checking the next to minimize gas
+        // before checking the next to minimze gas
         if(hasRole(REGISTERED_DEALER, entity) ||
            hasRole(REGISTERED_CONSUMER, entity) ||
            hasRole(REGISTERED_INDUSTRY, entity) 
@@ -304,15 +305,13 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             // burn/retire (to == address(0))
             // otherwise require receiver (to address) to have approved (signed) the transferHash
             if(token.tokenTypeId == 4 && to != address(0) && from != address(0)) {
-                approveCarbon = false;//true;
-                // TO-DO: drop internal approval of carbon transfers?
-                // voluntary carbon tracker token can be sent to anyone to use in the C-NFT
-                // they can be sent without approval inviting the receiver to track them to their NFT
+                approveCarbon = true;
+            }
+            if(from != address(0) && to != address(0)){
                 // accumulate total transferred balances (not minted or burnt)
                 _transferredBalances[token.tokenId][from] =
                     _transferredBalances[token.tokenId][from].add(amounts[i]);
             }
-
         }
         if(approveCarbon){
             bytes32 messageHash = getTransferHash(from,to,ids,amounts);
@@ -338,6 +337,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 quantity,
         uint256 fromDate,
         uint256 thruDate,
+        uint256 automaticRetireDate,
         string memory metadata,
         string memory manifest,
         string memory description
@@ -349,6 +349,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             quantity,
             fromDate,
             thruDate,
+            automaticRetireDate,
             metadata,
             manifest,
             description
@@ -367,6 +368,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 quantity,
         uint256 fromDate,
         uint256 thruDate,
+        uint256 automaticRetireDate,
         string memory metadata,
         string memory manifest,
         string memory description
@@ -384,6 +386,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             quantity,
             fromDate,
             thruDate,
+            automaticRetireDate,
             metadata,
             manifest,
             description
@@ -397,6 +400,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 _quantity,
         uint256 _fromDate,
         uint256 _thruDate,
+        uint256 _automaticRetireDate,
         string memory _metadata,
         string memory _manifest,
         string memory _description
@@ -469,6 +473,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         tokenInfo.issuer = _issuer;
         tokenInfo.fromDate = _fromDate;
         tokenInfo.thruDate = _thruDate;
+        tokenInfo.automaticRetireDate = _automaticRetireDate;
         tokenInfo.dateCreated = block.timestamp;
         tokenInfo.metadata = _metadata;
         tokenInfo.manifest = _manifest;
@@ -493,6 +498,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             tokenInfo.issuee,
             tokenInfo.fromDate,
             tokenInfo.thruDate,
+            tokenInfo.automaticRetireDate,
             tokenInfo.dateCreated,
             tokenInfo.metadata,
             tokenInfo.manifest,
@@ -536,7 +542,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         } else if (token.tokenTypeId == 3) {
             return "Audited Emissions";
         } else if (token.tokenTypeId == 4) {
-            return "Carbon Tracker";
+            return "Carbon Tokens";
         } else {
             return "Token does not exist";
         }
@@ -657,7 +663,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             grantRole(REGISTERED_OFFSET_DEALER, account);
         } else if (tokenTypeId == 3){
             grantRole(REGISTERED_EMISSIONS_AUDITOR, account);
-        } else if (tokenTypeId == 4) {
+        } else {
             grantRole(REGISTERED_INDUSTRY, account);
             grantRole(REGISTERED_INDUSTRY_DEALER, account);
         }
@@ -743,7 +749,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * Transfer can start only when both parties are registered and the token is not paused
      * Note: Token holders can arbitrarily call safeTransferFrom() without these checks
      * The requires commented out below have been moved to _beforeTokenTransfer hook
-     * so that they are always applied to safeTransferFrom (or safeBatch...)      
+     * so that they are applied to safeTransferFrom (or safeBatch...)      
      */
     function transfer(
         address to,
@@ -778,17 +784,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 available = super.balanceOf(account, tokenId);
         uint256 retired = this.getTokenRetiredAmount(account, tokenId);
         return (available, retired);
-    }
-    function getAvailableRetiredAndTransferred(address account, uint256 tokenId)
-        external
-        view
-        returns (uint256, uint256, uint256)
-    {
-        uint256 available;
-        uint256 retired;
-        (available,retired) = this.getAvailableAndRetired(account, tokenId);
-        uint256 transferred = _transferredBalances[tokenId][account];
-        return (available, retired, transferred);
     }
 
     /**

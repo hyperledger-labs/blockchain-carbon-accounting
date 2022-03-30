@@ -157,7 +157,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         balance.token.fromDate = formatDate(balance.token.fromDate);
         balance.token.thruDate = formatDate(balance.token.thruDate);
         balance.token.dateCreated = formatDate(balance.token.dateCreated);
-        balance.token.automaticRetireDate = formatDate(balance.token.automaticRetireDate);
 
         let token = {
           tokenId: balance.token.tokenId,
@@ -217,9 +216,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
 
         let fromDate = formatDate(tokenDetails.fromDate);
         let thruDate = formatDate(tokenDetails.thruDate);
-        let automaticRetireDate = formatDate(
-          tokenDetails.automaticRetireDate
-        );
         
         let totalIssued = "";
         try {
@@ -246,7 +242,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
           issuee: tokenDetails.issuee,
           fromDate: fromDate,
           thruDate: thruDate,
-          automaticRetireDate: automaticRetireDate,
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
