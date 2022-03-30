@@ -10,7 +10,11 @@ export default function TokenInfoModal(props) {
 
   const castMetadata = (metadata) => {
     if(metadata === undefined) return <></>;
-    // const obj = JSON.parse(metadata);
+    
+    if(typeof metadata === 'string') {
+      metadata = JSON.parse(metadata);
+    } 
+    
     let keys = [];
     let values = [];
     for (const key in metadata) {
@@ -20,7 +24,7 @@ export default function TokenInfoModal(props) {
     
     return keys.map((key, i) => {
       if(keys === "" || values[i] === "") return <></>;
-      return <div key={i}>{key} : {values[i]}</div>;
+      return <div key={i}><b>{key}</b> : {values[i]}</div>;
     })
   };
 
@@ -136,7 +140,9 @@ export default function TokenInfoModal(props) {
             </tr>
             <tr>
               <td>Manifest</td>
-              <td style={{ wordWrap: "anywhere" }}>{props.token.manifest}</td>
+              <td style={{ wordWrap: "anywhere" }}>
+                {castMetadata(props.token.manifest)}
+              </td>
             </tr>
             <tr>
               <td>Description</td>
