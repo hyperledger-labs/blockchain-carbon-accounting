@@ -23,8 +23,6 @@ import { OPERATORS, FIELD_OPS, TOKEN_TYPES } from "./static-data";
 
 const QueryBuilder = ({fieldList, handleQueryChanged}) => {
 
-    let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
     // start with empty one
     const [fields, setFields] = useState([{
         op:'',
@@ -84,7 +82,6 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         // getting query
         if(loading) return;
         setLoading(true);
-        await sleep(3000);
         let queries = [];
         _fields.map(item => {
             if(item.value === undefined || item.op === '') return null;
