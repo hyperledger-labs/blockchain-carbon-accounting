@@ -1,8 +1,10 @@
 import {
     Entity,
     PrimaryColumn,
-    Column
+    Column,
+    OneToMany
 } from 'typeorm';
+import { Balance } from './balance.model';
 
 @Entity()
 export class Token {
@@ -28,10 +30,10 @@ export class Token {
     dateCreated!: number;
 
     @Column({nullable: true})
-    automaticRetiredDate!: number;
+    automaticRetireDate!: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    metaObj!: Object;
+    metadata!: Object;
 
     @Column()
     manifest!: string;

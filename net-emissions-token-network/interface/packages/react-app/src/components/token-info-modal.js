@@ -9,18 +9,26 @@ import { FaCoins } from 'react-icons/fa';
 export default function TokenInfoModal(props) {
 
   const castMetadata = (metadata) => {
-    if(metadata == undefined) return <></>;
-    const obj = JSON.parse(metadata);
+    if(metadata === undefined || !metadata) return <></>;
+    
+    if(typeof metadata === 'string') {
+      try {
+        metadata = JSON.parse(metadata);
+      } catch (err) {
+        console.error('Could not parse JSON from ', metadata);
+      }
+    } 
+    
     let keys = [];
     let values = [];
-    for (const key in obj) {
+    for (const key in metadata) {
       keys.push(key);
-      values.push(obj[key]);
+      values.push(metadata[key]);
     }
     
     return keys.map((key, i) => {
-      if(keys == "" || values[i] == "") return <></>;
-      return <div key={i}>{key} : {values[i]}</div>;
+      if(keys === "" || values[i] === "") return <></>;
+      return <div key={i}><b>{key}</b> : {values[i]}</div>;
     })
   };
 
@@ -136,7 +144,9 @@ export default function TokenInfoModal(props) {
             </tr>
             <tr>
               <td>Manifest</td>
-              <td style={{ wordWrap: "anywhere" }}>{props.token.manifest}</td>
+              <td style={{ wordWrap: "anywhere" }}>
+                {castMetadata(props.token.manifest)}
+              </td>
             </tr>
             <tr>
               <td>Description</td>

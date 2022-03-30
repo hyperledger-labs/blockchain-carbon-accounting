@@ -8,6 +8,25 @@ def get_connection():
                         user=config.DB_USER, password=config.DB_PASS)
 
 
+def check_tracking_code_token(conn, tracking):
+    cursor = conn.cursor()
+    token = None
+    
+    sql = ''' select token_id from shipment_route_segment_token 
+                where tracking_number = %s and token_id is not null
+            union select token_id from q_v_delivery_token
+                where tracking_number = %s and token_id is not null
+            '''
+    try:
+        cursor.execute(sql, (tracking, tracking,))
+        token = cursor.fetchone()
+    except Exception as e:
+        logging.exception(e)
+
+    cursor.close()
+    return token
+
+
 def get_shipment_route_segments(conn, from_date, thru_date, facility_id):
     cursor = conn.cursor()
 
@@ -48,7 +67,96 @@ def get_shipment_route_segments(conn, from_date, thru_date, facility_id):
     return cursor
 
 
-def save_token(conn, shipment_id, shipment_route_segment_id, tracking, status, token_id, error):
+def get_q_v_subscription_file_deliveries(conn, from_date, thru_date):
+    cursor = conn.cursor()
+
+    sql = '''select
+        qv.delivery_id,
+        qv.tracking_number
+        from q_v_subscription_file_delivery qv
+        where
+        (qv.delivery_date + qv.delivery_time) between %s and %s
+        order by qv.delivery_date, qv.delivery_time '''
+
+    try:
+        cursor.execute(sql, (from_date, thru_date,))
+    except Exception as e:
+        logging.exception(e)
+
+    return cursor
+
+
+def save_q_v_delivery_token(conn, delivery_id, tracking, status, token_id, error):
+    q_v_delivery_token = get_q_v_delivery_token(conn, delivery_id, tracking)
+    if q_v_delivery_token:
+        update_q_v_delivery_token(conn, delivery_id, tracking,
+                                            status, token_id, error)
+    else:
+        create_q_v_delivery_token(conn, delivery_id, tracking,
+                                            status, token_id, error)
+
+
+def get_q_v_delivery_token(conn, delivery_id, tracking):
+    q_v_delivery_token = None
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute(''' select delivery_id, token_id
+        from q_v_delivery_token
+        where delivery_id = %s and tracking_number = %s
+        ''', (delivery_id, tracking,))
+
+        q_v_delivery_token = cursor.fetchone()
+
+    except Exception as e:
+        logging.exception(e)
+
+    cursor.close()
+    return q_v_delivery_token
+
+
+def create_q_v_delivery_token(conn, delivery_id,
+                                        tracking, status, token_id, error):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(''' insert into q_v_delivery_token
+        (delivery_id, tracking_number, status, token_id, error,
+        created_stamp, created_tx_stamp, last_updated_stamp, last_updated_tx_stamp) 
+        values (%s, %s, %s, %s, %s, now(), now(), now(), now())
+        ''', (delivery_id, tracking, status, token_id, error,))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        logging.exception(e)
+
+    cursor.close()
+
+
+def update_q_v_delivery_token(conn, delivery_id,
+                                        tracking, status, token_id, error):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(''' update q_v_delivery_token
+        set status = %s,
+        token_id = %s,
+        error = %s,
+        last_updated_stamp = now(),
+        last_updated_tx_stamp = now()
+        where delivery_id = %s and tracking_number = %s
+        ''', (status, token_id, error, delivery_id, tracking,))
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        logging.exception(e)
+
+    cursor.close()
+
+
+def save_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking, status, token_id, error):
     shipment_route_segment_token = get_shipment_route_segment_token(conn, shipment_id,
                                                                     shipment_route_segment_id, tracking)
     if shipment_route_segment_token:

@@ -10,9 +10,6 @@ import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import {
   formatDate,
-  getAvailableRetiredAndTransferred,
-  getNumOfUniqueTokens,
-  getTokenDetails,
   getNumOfUniqueTrackers,
   getRoles,
   getTrackerDetails,
@@ -22,6 +19,10 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
+import { getBalances, getTokens } from '../services/api.service';
+import Paginator from "./paginate";
+import QueryBuilder from "./query-builder";
+import { BALANCE_FIELDS, TOKEN_FIELDS } from "./static-data";
 
 
 export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
@@ -47,6 +48,42 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   const [displayAddressIsDealer, setDisplayAddressIsDealer] = useState(false);
   const [displayAddressIsIndustry, setDisplayAddressIsIndustry] = useState(false);
 
+  // state vars for pagination
+  const [ page, setPage ] = useState(1);
+  const [ count, setCount ] = useState(0);
+  const [ pageSize, setPageSize ] = useState(20);
+  const [ query, setQuery ] = useState([]);
+
+  const [ balancePage, setBalancePage ] = useState(1);
+  const [ balanceCount, setBalanceCount ] = useState(0);
+  const [ balancePageSize, setBalancePageSize ] = useState(20);
+  const [ balanceQuery, setBalanceQuery ] = useState([]);
+
+  async function handlePageChange(event, value) {
+    await fetchTokens(value, pageSize, query);
+  }
+
+  async function handlePageSizeChange(event) {
+    await fetchTokens(1, event.target.value, query);
+  }
+
+  async function handleBalancePageChange(event, value) {
+    await fetchBalances(value, balancePageSize, balanceQuery);
+  }
+
+  async function handleBalancePageSizeChanged(event) {
+    await fetchBalances(1, event.target.value, balanceQuery);
+
+  }
+
+  async function handleQueryChanged(_query) {
+    await fetchTokens(page, pageSize,  _query);
+  }
+
+  async function handleBalanceQueryChanged(_query) {
+    await fetchBalances(balancePage, balancePageSize, _query);
+  }
+
   function handleOpenTokenInfoModal(token) {
     setSelectedToken(token);
     setModalShow(true);
@@ -65,13 +102,14 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     }
   }));
 
-  function handleRefresh() {
+  async function handleRefresh() {
     // clear localStorage
     let localStorage = window.localStorage;
     localStorage.setItem('token_balances', null);
 
     setFetchingTokens(true);
-    fetchBalances();
+    await fetchTokens(page, pageSize, query);
+    await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
   async function fetchAddressRoles(provider, address) {
@@ -89,55 +127,103 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async () => {
-
+  const fetchBalances = useCallback(async (_balancePage, _balancePageSize, _balanceQuery) => {
     let newMyBalances = [];
+    // Format tokenType from tokenTypeId
+    let tokenTypes = [
+      "Renewable Energy Certificate",
+      "Carbon Emissions Offset",
+      "Audited Emissions",
+      "Carbon Tracker"
+    ];
+
+    let _balanceCount = 0;
+    try {
+      // get total count of balance
+      const query = `issuee,string,${signedInAddress},eq`;
+      const offset = (_balancePage - 1) * _balancePageSize;
+
+      // this count means total number of balances
+      let {count, balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
+      
+      // this count means total pages of balances
+      _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
+
+
+      for (let i = 0; i < balances.length; i++) {
+        const balance = balances[i];
+
+        // cast time from long to date
+        balance.token.fromDate = formatDate(balance.token.fromDate);
+        balance.token.thruDate = formatDate(balance.token.thruDate);
+        balance.token.dateCreated = formatDate(balance.token.dateCreated);
+        balance.token.automaticRetireDate = formatDate(balance.token.automaticRetireDate);
+
+        let token = {
+          tokenId: balance.token.tokenId,
+          token: balance.token,
+          tokenType: tokenTypes[balance.token.tokenTypeId - 1],
+          issuee: balance.issuee,
+          availableBalance: (balance.available / 1000).toFixed(3),
+          retiredBalance: (balance.retired / 1000).toFixed(3),
+          transferredBalance: (balance.transferred / 1000).toFixed(3)
+        }
+        newMyBalances.push(token);
+      }
+    } catch (error) {
+      
+    }
+
+    setMyBalances(newMyBalances);
+    setBalanceCount(_balanceCount);
+    setBalancePage(_balancePage);
+    setBalancePageSize(_balancePageSize);
+    setBalanceQuery(_balanceQuery);
+    setFetchingTokens(false);
+  }, [signedInAddress]);
+
+  const fetchTokens = useCallback(async (_page, _pageSize, _query) => {
+
     let newMyIssuedTokens = [];
     let newMyIssuedTrackers = [];
 
+    // Format tokenType from tokenTypeId
+    let tokenTypes = [
+      "Renewable Energy Certificate",
+      "Carbon Emissions Offset",
+      "Audited Emissions",
+      "Carbon Tracker"
+    ];
+    let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
-      let numOfUniqueTokens = (await getNumOfUniqueTokens(provider)).toNumber();
+      const query = `issuer,string,${signedInAddress},eq`;
+      const offset = (_page - 1) * _pageSize;
 
+      // this count means total number of issued tokens
+      let {tokens, count} = await getTokens(offset, _pageSize, [..._query, query]);
+      
+      // this count means total pages of issued tokens
+      _issuedCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
+      
+      // fetch token from database
+      
+      // my tokens
       // Iterate over each tokenId and find balance of signed in address
-      for (let i = 1; i <= numOfUniqueTokens; i++) {
-        // Fetch token details
-        let tokenDetails = await getTokenDetails(provider, i);
+      for (let i = 1; i <= _pageSize; i++) {
+        let tokenDetails = tokens[i-1];
+        if (!tokenDetails) continue;
         console.log('--- tokenDetails', tokenDetails);
 
-        // Format unix times to Date objects
-        let fromDate = formatDate(tokenDetails.fromDate.toNumber());
-        let thruDate = formatDate(tokenDetails.thruDate.toNumber());
+        let fromDate = formatDate(tokenDetails.fromDate);
+        let thruDate = formatDate(tokenDetails.thruDate);
         let automaticRetireDate = formatDate(
-          tokenDetails.automaticRetireDate.toNumber()
+          tokenDetails.automaticRetireDate
         );
-
-        // Format tokenType from tokenTypeId
-        let tokenTypes = [
-          "Renewable Energy Certificate",
-          "Carbon Emissions Offset",
-          "Audited Emissions",
-          "Carbon Tracker"
-        ];
-
-        // Fetch available and retired balances
-        let balances = await getAvailableRetiredAndTransferred(
-          provider,
-          signedInAddress,
-          i
-        );
-        let availableBalance = balances[0].toNumber();
-        let retiredBalance = balances[1].toNumber();
-        let transferredBalance = balances[2].toNumber();
-
-        // Format decimal points for all tokens
-        availableBalance = (availableBalance / 1000).toFixed(3);
-        retiredBalance = (retiredBalance / 1000).toFixed(3)
-        transferredBalance = (transferredBalance / 1000).toFixed(3);
-
+        
         let totalIssued = "";
         try {
-          totalIssued = tokenDetails.totalIssued.toNumber();
+          totalIssued = tokenDetails.totalIssued;
           totalIssued = (totalIssued / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
@@ -146,7 +232,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
 
         let totalRetired = "";
         try {
-          totalRetired = tokenDetails.totalRetired.toNumber();
+          totalRetired = tokenDetails.totalRetired;
           totalRetired = (totalRetired / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
@@ -154,11 +240,8 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         }
 
         let token = {
-          tokenId: tokenDetails.tokenId.toNumber(),
+          tokenId: tokenDetails.tokenId,
           tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
-          availableBalance: availableBalance,
-          retiredBalance: retiredBalance,
-          transferredBalance: transferredBalance,
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
           fromDate: fromDate,
@@ -171,11 +254,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
           totalRetired: totalRetired,
         };
 
-        // Push token to myBalances or myIssuedTokens in state
-        if (token.availableBalance > 0 || token.retiredBalance > 0 || token.transferredBalance > 0) {
-          newMyBalances.push({ ...token });
-          console.log("newMyBalances pushed -> ", newMyBalances);
-        }
         if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
           token.isMyIssuedToken = true;
@@ -302,23 +380,30 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       setError("Could not connect to carbon tracker contract on the selected network. Check your wallet provider settings.");
     }
 
-    setMyBalances(newMyBalances);
+    // setMyBalances(newMyBalances);
     setMyIssuedTokens(newMyIssuedTokens);    
     setFetchingTokens(false);
     setMyIssuedTrackers(newMyIssuedTrackers);
     setFetchingTrackers(false);
     setError("");
+    setCount(_issuedCount);
+    setPage(_page);
+    setPageSize(_pageSize);
+    setQuery(_query);
   }, [provider, signedInAddress]);
 
   // If address and provider detected then fetch balances
   useEffect(() => {
-    if (provider && signedInAddress) {
-      if (myBalances !== [] && !fetchingTokens) {
-        setFetchingTokens(true);
-        setFetchingTrackers(true);
-        fetchBalances();
-      }
-    }
+    const init = async () => {
+      if (provider && signedInAddress) {
+        if (myBalances !== [] && !fetchingTokens) {
+          setFetchingTokens(true);
+          setFetchingTrackers(true);
+          await fetchTokens(page, pageSize, query);
+          await fetchBalances(balancePage, balancePageSize, balanceQuery);
+        }
+    } }
+    init();
   }, [provider, signedInAddress]);
 
   function pointerHover(e) {
@@ -370,6 +455,10 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         {(signedInAddress) &&
           <div className="mb-4">
             <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
+            <QueryBuilder 
+              fieldList={BALANCE_FIELDS}
+              handleQueryChanged={handleBalanceQueryChanged}
+            />
             <Table hover size="sm">
               <thead>
                 <tr>
@@ -382,22 +471,29 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
               </thead>
               <tbody>
                 {(myBalances !== [] && !fetchingTokens) &&
-                  myBalances.map((token) => (
+                  myBalances.map((balance) => (
                     <tr
-                      key={token.tokenId}
-                      onClick={() => handleOpenTokenInfoModal(token)}
+                      key={balance.token.tokenId}
+                      onClick={() => handleOpenTokenInfoModal(balance.token)}
                       onMouseOver={pointerHover}
-                      className={`${(Number(token.availableBalance) <= 0) ? "table-secondary" : ""}`}
+                      className={`${(Number(balance.availableBalance) <= 0) ? "table-secondary" : ""}`}
                     >
-                      <td>{token.tokenId}</td>
-                      <td>{token.tokenType}</td>
-                      <td>{token.availableBalance}</td>
-                      <td>{token.retiredBalance}</td>
-                      <td>{token.transferredBalance}</td>
+                      <td>{balance.token.tokenId}</td>
+                      <td>{balance.tokenType}</td>
+                      <td>{balance.availableBalance}</td>
+                      <td>{balance.retiredBalance}</td>
+                      <td>{balance.transferredBalance}</td>
                     </tr>
                   ))}
               </tbody>
             </Table>
+            {myBalances.length !== 0 ? <Paginator 
+              count={balanceCount}
+              page={balancePage}
+              pageSize={balancePageSize}
+              pageChangeHandler={handleBalancePageChange}
+              pageSizeHandler={handleBalancePageSizeChanged}
+            /> : <></>}
           </div>
         }
 
@@ -405,6 +501,10 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
             <h4>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued</h4>
+            <QueryBuilder 
+              fieldList={TOKEN_FIELDS}
+              handleQueryChanged={handleQueryChanged}
+            />
             <Table hover size="sm">
               <thead>
                 <tr>
@@ -432,6 +532,13 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
                   ))}
               </tbody>
             </Table>
+            {myIssuedTokens.length !== 0 ? <Paginator 
+              count={count}
+              page={page}
+              pageSize={pageSize}
+              pageChangeHandler={handlePageChange}
+              pageSizeHandler={handlePageSizeChange}
+            /> : <></>}
           </div>
         }
       </div>

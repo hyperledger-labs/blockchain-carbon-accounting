@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "12.15.0"
+          node-version: "16.14.2"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "12.15.0"
+          node-version: "16.14.2"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "12.15.0"
+          node-version: "16.14.2"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -88,7 +88,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "12.15.0"
+          node-version: "16.14.2"
       - name: Download Fabric binaries
         run: |
           sudo chmod +x /usr/local/bin/docker-compose
@@ -99,7 +99,7 @@ jobs:
           cd ../net-emissions-token-network/
           npm i -g npm@latest
           npm ci
-          echo "n" | npx hardhat node --show-accounts &
+          echo "n" | npx hardhat node &
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd docker-compose-setup/

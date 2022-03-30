@@ -15,9 +15,18 @@ export class PostgresDBService implements DbInterface {
 
   private _db: Sequelize;
   private static _instance: PostgresDBService;
+  private static _instanceLoading: Promise<PostgresDBService>;
 
   public static getInstance = async (opts?: DbOpts): Promise<PostgresDBService> => {
     if (PostgresDBService._instance) return PostgresDBService._instance
+    if (!PostgresDBService._instanceLoading) {
+      PostgresDBService._instanceLoading = PostgresDBService.connect(opts)
+    }
+    return await PostgresDBService._instanceLoading
+  }
+
+  private static connect = async (opts?: DbOpts): Promise<PostgresDBService> => {
+
     // get default options
     if (!opts) opts = parseCommonYargsOptions({})
     
@@ -29,9 +38,7 @@ export class PostgresDBService implements DbInterface {
       })
 
       await initModels(db, opts)
-      const i = new PostgresDBService(db)
-      PostgresDBService._instance = i
-      return i
+      return new PostgresDBService(db)
     } catch (error) {
       throw new Error('Error initializing the DB:' + error)
     }

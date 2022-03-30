@@ -4,6 +4,7 @@ import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
 import Linkify from "react-linkify";
 import { ActivityIndicator } from "react-native";
+import { useNavigate, useParams } from "react-router-dom";
 import ProjectDataService from "../services/project.service";
 
 const componentDecorator = (href, text, key) => (
@@ -15,7 +16,13 @@ const componentDecorator = (href, text, key) => (
 const DEFAULT_PAGE_SIZE = 25;
 const DEFAULT_TAB = 0;
 
-export default class Project extends Component {
+const withNavigate = Component => props => {
+  const navigate = useNavigate();
+  const params = useParams();
+  return <Component {...props} navigate={navigate} params={params} />;
+};
+
+class Project extends Component {
   constructor(props) {
     super(props);
     this.getProject = this.getProject.bind(this);
@@ -72,11 +79,11 @@ export default class Project extends Component {
   }
 
   componentDidMount() {
-    this.getProject(this.props.match.params.id);
+    this.getProject(this.props.params.id);
   }
 
   goBack() {
-    this.props.history.goBack();
+    this.props.navigate(-1);
   }
 
   handleTabChange(event, newValue) {
@@ -605,3 +612,5 @@ export default class Project extends Component {
     );
   }
 }
+
+export default withNavigate(Project);

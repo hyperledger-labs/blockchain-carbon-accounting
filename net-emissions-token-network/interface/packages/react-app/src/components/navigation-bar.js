@@ -67,6 +67,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
   }, [roles, role, signedInAddress, cachedRoles]);
 
   function truncateAddress(addr) {
+    if (!addr) return addr;
     let prefix = addr.substring(0,6);
     let suffix = addr.substring(addr.length - 4);
     return prefix + "..." + suffix;

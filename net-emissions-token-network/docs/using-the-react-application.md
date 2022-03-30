@@ -21,6 +21,10 @@ From the `net-emissions-token-network/interface` directory, run
 yarn install
 ```
 
+## Token Query Server
+
+The token query server synchronizes the blockchain network with a PostgreSQL database so that the UI could search and query the tokens and create dashboards.  See [token-query-server README](../token-query-server/README.md) on how to configure and start it. 
+
 ## With Hardhat Network local testnet
 
 To run a testnet locally via Hardhat Network:
@@ -34,7 +38,7 @@ yarn react-app:start
 2. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
 
 ```bash
-npx hardhat node --show-accounts
+npx hardhat node 
 ```
 
 3. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.
@@ -70,6 +74,26 @@ yarn react-app:start
 5. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
 
 You should now be connected to the contracts in Goerli and be able to interact with contracts deployed on it through the React application.
+
+## With BSC testnet
+
+BSC testnet is a test environment for Binance Chain network, run by the Binance Chain development community, which is open to developers. Transactions can be viewed by anyone on [Bscscan](https://testnet.bscscan.com/) (to see the history of transactions, one can enter the current contract address at `net-emissions-token-network/interface/packages/contracts/src/addresses.js`). After deploying the contracts to BSC testnet (as also outlined in the docs), connect the interface with the following steps:
+
+1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "bsctestnet" since the contract addresses are already defined in the same file.
+
+2. Start the React app with
+
+```bash
+yarn react-app:start
+```
+
+3. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Binance Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
+
+4. Press _Connect Wallet_ in the interface to connect to your MetaMask wallet.
+
+5. To test with different accounts, click on the account icon in MetaMask and then click on another account and refresh your browser. The navigation bar should display the new account and its role.
+
+You should now be connected to the contracts in Binance and be able to interact with contracts deployed on it through the React application.
 
 ## With Optimism local testnet
 

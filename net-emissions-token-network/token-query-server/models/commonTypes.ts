@@ -14,10 +14,30 @@ export interface CreatedToken {
     totalRetired: number;
 }
 
-export interface TokenPayload extends CreatedToken {
+export interface TokenPayload {
+    tokenId: number;
+    tokenTypeId: number;
+    issuee: string;
+    issuer: string;
+    fromDate: number;
+    thruDate: number;
+    dateCreated: number;
+    automaticRetiredDate: number;
+    metadata: Object;
+    manifest: string;
+    description: string;
+    totalIssued: number;
+    totalRetired: number;
     scope: number;
     type: string;
-    metaObj: any;
+}
+
+export interface BalancePayload {
+    issuee: string;
+    tokenId: number;
+    available: number;
+    retired: number;
+    transferred: number;
 }
 
 export type QueryBundle = {
@@ -35,12 +55,26 @@ export type FIELD = {
 
 const STRING_FIELD: FIELD = {
     fieldType: "string",
-    op: ["=", "like"],
+    op: ["eq", "like"],
 }
 
 const NUMERIC_FIELD: FIELD = {
     fieldType: "number",
-    op: [">", "<", "="],
+    op: ["ls", "gt", "eq"],
+}
+
+export interface IOP_MAP {
+    eq: string;
+    like: string;
+    ls: string;
+    gt: string
+}
+
+export const OP_MAP: IOP_MAP = {
+    'eq': '=',
+    'like': 'like',
+    'ls': '<',
+    'gt': '>',
 }
 
 export interface StringPayload {
@@ -80,7 +114,10 @@ export type IFIELDS = {
     "totalIssued"? : FIELD,
     "totalRetired"? : FIELD,
     "scope"? : FIELD,
-    "type"? : FIELD
+    "type"? : FIELD,
+    "retired"?: FIELD,
+    "available"?: FIELD,
+    "transferred"?: FIELD
 }
 
 export const FIELDS = {
@@ -98,5 +135,8 @@ export const FIELDS = {
     "totalIssued": NUMERIC_FIELD,
     "totalRetired": NUMERIC_FIELD,
     "scope": NUMERIC_FIELD,
-    "type": STRING_FIELD
+    "type": STRING_FIELD,
+    "retired": NUMERIC_FIELD,
+    "available": NUMERIC_FIELD,
+    "transferred": NUMERIC_FIELD
 };

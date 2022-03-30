@@ -21,7 +21,7 @@
     "level_1": "Freighting goods",
     "level_2": "Freight flights",
     "level_3": "Long-haul, to/from UK",
-    "level_4": "Average",
+    "level_4": "",
     "text": "With RF",
     "activity_uom": "tonne.km"
   },
@@ -39,7 +39,7 @@
     "level_1": "Freighting goods",
     "level_2": "Freight flights",
     "level_3": "Long-haul, to/from UK",
-    "level_4": "Average",
+    "level_4": "",
     "text": "With RF",
     "activity_uom": "tonne.km"
   }

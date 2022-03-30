@@ -10,7 +10,8 @@ const {
   automaticRetireDate,
   metadata,
   manifest,
-  description
+  description,
+  revertError
 } = require("./common.js");
 const { ethers } = require("./ethers-provider");
 
@@ -47,7 +48,7 @@ describe("Carbon Tracker - Integration tests", function() {
         .connect(await ethers.getSigner(industry1))
         .registerTracker(industry2);
     } catch (err) {
-      expect(err.toString()).to.equal("Error: VM Exception while processing transaction: revert CLM8::selfOrAdmin: msg.sender does not own this address or is not an admin");
+      expect(err.toString()).to.equal(revertError("CLM8::selfOrAdmin: msg.sender does not own this address or is not an admin"));
     }
 
     // register Industry as tracker (admin assigned)
@@ -327,7 +328,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_track: inAmounts and tokenIds are not the same length"
+        revertError("CLM8::_track: inAmounts and tokenIds are not the same length")
       );
     }
     try {
@@ -342,7 +343,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_track: outAmounts and tokenIds are not the same length"
+        revertError("CLM8::_track: outAmounts and tokenIds are not the same length")
       );
     }
     try {
@@ -357,7 +358,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_track: trackerIds and tokenIds are not the same length"
+        revertError("CLM8::_track: trackerIds and tokenIds are not the same length")
       );
     }
     try {
@@ -372,7 +373,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_track: msg.sender is not the registered trackee or an approved auditor"
+        revertError("CLM8::_track: msg.sender is not the registered trackee or an approved auditor")
       );
     }
 
@@ -387,7 +388,7 @@ describe("Carbon Tracker - Integration tests", function() {
         .approveVerifier(industry2,true)
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::approveVerifier: address is not a registered emissions auditor"
+        revertError("CLM8::approveVerifier: address is not a registered emissions auditor")
       );
     }
     try {
@@ -396,7 +397,7 @@ describe("Carbon Tracker - Integration tests", function() {
         .approveVerifier(dealer1,true)
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::approveVerifier: auditor cannot be msg.sender"
+        revertError("CLM8::approveVerifier: auditor cannot be msg.sender")
       );
     }
     try {
@@ -411,7 +412,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_verifyRetired: the retired balance exceeds what has been reported in NET"
+        revertError("CLM8::_verifyRetired: the retired balance exceeds what has been reported in NET")
       );
     }
 
@@ -427,7 +428,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_verifyTransferred: the transferred balance exceeds what has been reported in NET"
+        revertError("CLM8::_verifyTransferred: the transferred balance exceeds what has been reported in NET")
       );
     }
     let trackTwo = await contractT
@@ -456,7 +457,7 @@ describe("Carbon Tracker - Integration tests", function() {
         )
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert CLM8::_verifyTotalTracked: total amount tracked exceeds output of tokenId from trackerId"
+        revertError("CLM8::_verifyTotalTracked: total amount tracked exceeds output of tokenId from trackerId")
       );
     } 
     approveVerifier = await contractT

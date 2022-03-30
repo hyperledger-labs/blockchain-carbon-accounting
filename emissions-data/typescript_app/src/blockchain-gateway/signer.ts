@@ -81,6 +81,7 @@ export default class Signer {
             };
         } else if (this.ethSupport.includes('kv') && caller.keyName) {
             try {
+                // eslint-disable-next-line
                 const key = (await this.ethSecretKeychain.get(`eth-` + caller.keyName)) as any;
                 signer = {
                     type: Web3SigningCredentialType.PrivateKeyHex,

@@ -4,7 +4,8 @@ const {
   advanceBlocks,
   createProposal,
   hoursToBlocks,
-  proposalStates
+  proposalStates,
+  revertError
 } = require("./common.js");
 const { getNamedAccounts } = require("hardhat");
 
@@ -54,7 +55,7 @@ describe("Climate DAO - Unit tests", function() {
            .transfer(consumer2, 1000000);
     } catch (err) {
       expect(err.toString()).to.equal(
-        "Error: VM Exception while processing transaction: revert dCLM8::transfer: sender must be initial holder or DAO governor"
+        revertError("dCLM8::transfer: sender must be initial holder or DAO governor")
       );
     }
   });
@@ -95,7 +96,7 @@ describe("Climate DAO - Unit tests", function() {
       .transfer(dealer1, halfOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -161,7 +162,7 @@ describe("Climate DAO - Unit tests", function() {
       );
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -229,7 +230,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::setQuorum: must be guardian"
+      revertError("Governor::setQuorum: must be guardian")
     );
 
     // set new quorum from deployer
@@ -257,7 +258,7 @@ describe("Climate DAO - Unit tests", function() {
     expect(fullSupply).to.equal("10000000000000000000000000");
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -301,7 +302,7 @@ describe("Climate DAO - Unit tests", function() {
       );
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -335,7 +336,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::_castVote: cannot top off same vote without refunding"
+      revertError("Governor::_castVote: cannot top off same vote without refunding")
     );
 
     // try to vote with different support
@@ -346,7 +347,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::_castVote: cannot top off same vote without refunding"
+      revertError("Governor::_castVote: cannot top off same vote without refunding")
     );
 
     // check receipt, should be unchanged from previously
@@ -371,7 +372,7 @@ describe("Climate DAO - Unit tests", function() {
     expect(fullSupply).to.equal("10000000000000000000000000");
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -420,7 +421,7 @@ describe("Climate DAO - Unit tests", function() {
       .transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -499,7 +500,7 @@ describe("Climate DAO - Unit tests", function() {
       );
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -544,7 +545,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
 
   });
@@ -560,7 +561,7 @@ describe("Climate DAO - Unit tests", function() {
     expect(fullSupply).to.equal("10000000000000000000000000");
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -587,7 +588,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::_castVote: proposer cannot top off vote"
+      revertError("Governor::_castVote: proposer cannot top off vote")
     );
   });
 
@@ -613,7 +614,7 @@ describe("Climate DAO - Unit tests", function() {
       );
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -685,7 +686,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -728,7 +729,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
   });
 
@@ -750,7 +751,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -793,7 +794,7 @@ describe("Climate DAO - Unit tests", function() {
       error = err.toString();
     }
     expect(error).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund"
+      revertError("Governor::refund: not eligible for refund")
     );
   });
 
@@ -815,7 +816,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -876,7 +877,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,
@@ -923,7 +924,7 @@ describe("Climate DAO - Unit tests", function() {
     }
 
     expect(refundError).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::refund: not eligible for refund, votes cancel period is ended"
+      revertError("Governor::refund: not eligible for refund, votes cancel period is ended")
     );
 
     await daoToken
@@ -951,7 +952,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: dealer1,
       deployer: deployer,
       governor: governor,
@@ -968,7 +969,7 @@ describe("Climate DAO - Unit tests", function() {
     }
 
     expect(cancelError).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::cancel: you cannot cancel proposal"
+      revertError("Governor::cancel: you cannot cancel proposal")
     );
 
     await governor.connect(await ethers.getSigner(dealer1)).cancel(proposal);
@@ -998,7 +999,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: dealer1,
       deployer: deployer,
       governor: governor,
@@ -1024,7 +1025,7 @@ describe("Climate DAO - Unit tests", function() {
     }
 
     expect(cancelError).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::cancel: you cannot cancel proposal, cancel period is ended"
+      revertError("Governor::cancel: you cannot cancel proposal, cancel period is ended")
     );
 
     // check state
@@ -1054,7 +1055,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: dealer1,
       deployer: deployer,
       governor: governor,
@@ -1074,7 +1075,7 @@ describe("Climate DAO - Unit tests", function() {
     }
 
     expect(cancelError).to.equal(
-      "Error: VM Exception while processing transaction: revert Governor::cancel: you cannot cancel proposal with someone voted"
+      revertError("Governor::cancel: you cannot cancel proposal with someone voted")
     );
 
   });
@@ -1098,7 +1099,7 @@ describe("Climate DAO - Unit tests", function() {
     await daoToken.connect(await ethers.getSigner(deployer)).transfer(governor.address, quarterOfSupply);
 
     // create a proposal
-    let proposal = createProposal({
+    let proposal = await createProposal({
       proposer: deployer,
       deployer: deployer,
       governor: governor,

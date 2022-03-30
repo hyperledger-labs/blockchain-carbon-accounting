@@ -67,7 +67,6 @@ function useWeb3Modal(config = {}) {
   }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
 
   useEffect(() => {
-
     async function fetchRoles() {
       setRoles(await getRoles(provider, signedInAddress));
     };

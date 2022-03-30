@@ -1,4 +1,5 @@
 import requests
+from common import logging
 
 import config
 
@@ -13,5 +14,8 @@ def tokenize(issuee, pubkey, input_file_name):
         res = requests.post(config.API_BASE_URL + "/issue", data=form_data, files=files, verify=True)
         return res.json()
     except requests.exceptions.ConnectionError:
+        return None
+    except Exception as e:
+        logging.error(e)
         return None
 
