@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Spinner } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -20,27 +21,28 @@ import { OPERATORS, FIELD_OPS, TOKEN_TYPES } from "./static-data";
  * d) generate query bundle
  */
 
-
-
 const QueryBuilder = ({fieldList, handleQueryChanged}) => {
+
+    let sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // start with empty one
     const [fields, setFields] = useState([{
         op:'',
         value: ''
     }]);
+    const [loading, setLoading] = useState(false);
 
-    function removeField (e, idx) {
+    async function removeField (e, idx) {
         if(fields.length === 1) {
             setFields([{name: '', op: '', value: ''}])
-            search(null, []);
+            await search(null, []);
             return;
         }
         const filtered = fields.filter((item, i) => {
             return idx !== i;
         })
         setFields([...filtered]);
-        search(null, filtered);
+        await search(null, filtered);
     }
 
     function addField() {
@@ -78,9 +80,11 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         setFields([...fields]);
     }
 
-    function search(e, _fields) {
+    async function search(e, _fields) {
         // getting query
-        console.log(_fields);
+        if(loading) return;
+        setLoading(true);
+        await sleep(3000);
         let queries = [];
         _fields.map(item => {
             if(item.value === undefined || item.op === '') return null;
@@ -101,7 +105,8 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         })
         // send query
         console.log(queries);
-        handleQueryChanged(queries);
+        await handleQueryChanged(queries);
+        setLoading(false);
     }
 
     return (
@@ -162,8 +167,17 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
                         </Row>
                     </Form.Group>
                 )
-            })}
-            <Button className="mb-1" onClick={e => search(e, fields)}>Search</Button>
+            })}            
+            <Button className="mb-1" onClick={e => search(e, fields)}>{loading ? 
+                <Spinner 
+                    animation="border" 
+                    variant="warning" 
+                    size="sm"   
+                    as="span"
+                    role="status"
+                    aria-hidden="true"
+                /> : <></>}&nbsp;Search 
+            </Button>
         </>
     )
 }
