@@ -132,6 +132,7 @@ export async function calc_freight_emissions(
 }
 
 export async function issue_emissions_tokens(
+  activity_type: string,
   total_emissions: number,
   metadata: string,
   hash: string,
@@ -170,13 +171,14 @@ export async function issue_emissions_tokens(
     automaticRetireDate: 0,
     manifest: JSON.stringify(manifest),
     metadata: metadata,
-    description: "Emissions from shipments",
+    description: `Emissions from ${activity_type}`,
   };
   const token = await gateway.issue(caller, input);
   return token;
 }
 
 export async function issue_emissions_tokens_with_issuee(
+  activity_type: string,
   issuee: string,
   total_emissions: number,
   metadata: string,
@@ -216,7 +218,7 @@ export async function issue_emissions_tokens_with_issuee(
     automaticRetireDate: 0,
     manifest: JSON.stringify(manifest),
     metadata: metadata,
-    description: "Emissions from shipments",
+    description: `Emissions from ${activity_type}`,
   };
   try {
     const token = await gateway.issue(caller, input);
@@ -361,6 +363,7 @@ export async function issue_tokens(
   }
 
   const token_res = await issue_emissions_tokens(
+    activity_type,
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
@@ -397,6 +400,7 @@ export async function issue_tokens_with_issuee(
   }
 
   const token_res = await issue_emissions_tokens_with_issuee(
+    activity_type,
     issuee,
     total_emissions,
     JSON.stringify(metadata),
