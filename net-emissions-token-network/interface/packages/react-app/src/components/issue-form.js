@@ -302,6 +302,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
               <Col sm={8}>
                 <Form.Control type="text" placeholder="Type" onChange={onTypeChange} />
               </Col>
+              <Col>
+                <Button onClick={addField}><BsPlus /></Button>
+              </Col>
             </Row>
           </Col>
         </Row>
@@ -322,17 +325,15 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                   onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
                 />
               </Col>
+              <div>
+                <Button onClick={addField}><BsPlus /></Button>
+              </div>
               <Col>
                 <Button onClick={() => removeField(key)}><BsTrash /></Button>
               </Col>
             </Row>
           )}
           <br />
-          <Row>
-            <Col>
-              <Button onClick={addField}><BsPlus /></Button>
-            </Col>
-          </Row>
         </Form.Group>
       </Form.Group>
       <Form.Group>
