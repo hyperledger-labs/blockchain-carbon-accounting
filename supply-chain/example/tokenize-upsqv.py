@@ -40,6 +40,8 @@ def tokenize_emissions(conn, from_date, thru_date, issuee, pubkey):
                         item_id = row.delivery_id + ":" + tracking
                         activity["id"] = item_id
                         activity["tracking"] = tracking
+                        activity["from_date"] = from_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z')
+                        activity["thru_date"] = thru_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z') 
                         activities.append(activity)
                 else:
                     logging.warning("Unexpected QVSubscriptionFileDelivery entry without tracking number!")

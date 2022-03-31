@@ -175,12 +175,8 @@ export async function issue_emissions_tokens_with_issuee(
   const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
-  console.log('??? f_date', f_date)
-  console.log('??? t_date', t_date)
   const fd = Math.floor(f_date.getTime() / 1000);
   const td = Math.floor(t_date.getTime() / 1000);
-  console.log('??? fd', fd)
-  console.log('??? td', td)
 
   const gateway = new EthNetEmissionsTokenGateway({
     contractStoreKeychain: ethConnector.contractStoreKeychain,

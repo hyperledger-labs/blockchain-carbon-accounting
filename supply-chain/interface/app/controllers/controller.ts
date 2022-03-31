@@ -94,6 +94,11 @@ export function issueToken(req: Request, res: Response) {
         }
         // add back any errors we filtered before to the output
         grouped_by_type.errors = activities.filter(a=>a.error);
+        if (grouped_by_type.errors) {
+            grouped_by_type.errors.forEach(e=>{
+                console.log("!! Error for ", e);
+            })
+        }
         if (verbose == 'true') return grouped_by_type;
         // short form output: return an Array of objects with {id, tokenId, error }
         for (const a of activities.filter(a=>a.error)) {
