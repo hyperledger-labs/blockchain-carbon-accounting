@@ -46,7 +46,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
      * fromDate - Unix timestamp
      * thruDate - Unix timestamp
      * dateCreated - Unix timestamp
-     * automaticRetireDate - Unix timestamp
      */
     struct CarbonTokenDetails {
         uint256 tokenId;
@@ -56,7 +55,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 fromDate;
         uint256 thruDate;
         uint256 dateCreated;
-        uint256 automaticRetireDate;
         string metadata;
         string manifest;
         string description;
@@ -88,7 +86,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 fromDate,
         uint256 thruDate,
         uint256 dateCreated,
-        uint256 automaticRetireDate,
         string metadata,
         string manifest,
         string description
@@ -247,7 +244,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 quantity,
         uint256 fromDate,
         uint256 thruDate,
-        uint256 automaticRetireDate,
         string memory metadata,
         string memory manifest,
         string memory description
@@ -259,7 +255,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
             quantity,
             fromDate,
             thruDate,
-            automaticRetireDate,
             metadata,
             manifest,
             description
@@ -278,7 +273,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 quantity,
         uint256 fromDate,
         uint256 thruDate,
-        uint256 automaticRetireDate,
         string memory metadata,
         string memory manifest,
         string memory description
@@ -296,7 +290,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
             quantity,
             fromDate,
             thruDate,
-            automaticRetireDate,
             metadata,
             manifest,
             description
@@ -310,7 +303,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 _quantity,
         uint256 _fromDate,
         uint256 _thruDate,
-        uint256 _automaticRetireDate,
         string memory _metadata,
         string memory _manifest,
         string memory _description
@@ -372,7 +364,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         tokenInfo.issuer = _issuer;
         tokenInfo.fromDate = _fromDate;
         tokenInfo.thruDate = _thruDate;
-        tokenInfo.automaticRetireDate = _automaticRetireDate;
         tokenInfo.dateCreated = block.timestamp;
         tokenInfo.metadata = _metadata;
         tokenInfo.manifest = _manifest;
@@ -398,7 +389,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
             tokenInfo.fromDate,
             tokenInfo.thruDate,
             tokenInfo.dateCreated,
-            tokenInfo.automaticRetireDate,
             tokenInfo.metadata,
             tokenInfo.manifest,
             tokenInfo.description

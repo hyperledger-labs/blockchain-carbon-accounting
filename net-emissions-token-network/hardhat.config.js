@@ -115,7 +115,7 @@ task("createTestProposal", "Create a test proposal using the default account rol
     let calldatas = [
       encodeParameters(
         // types of params
-        ["address","address","uint8","uint256","uint256","uint256","uint256","string","string","string",],
+        ["address","address","uint8","uint256","uint256","uint256","string","string","string",],
         // value of params
         [
           dealer2, // account
@@ -124,7 +124,6 @@ task("createTestProposal", "Create a test proposal using the default account rol
           50, // qty
           0, // fromDate
           0, // thruDate
-          0, // automaticRetireDate
           "some metadata",
           "a manifest",
           "some action inside a test proposal",
@@ -135,7 +134,7 @@ task("createTestProposal", "Create a test proposal using the default account rol
     await govContract.connect(admin).propose(
       [contract.address], // targets
       [0], // values
-      ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",], // signatures
+      ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",], // signatures
       calldatas,
       "a test proposal"
     );
@@ -156,7 +155,7 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
     let calldatas = [
       encodeParameters(
         // types of params
-        ["address","address","uint8","uint256","uint256","uint256","uint256","string","string","string",],
+        ["address","address","uint8","uint256","uint256","uint256","string","string","string",],
         // value of params
         [
           dealer2, // account
@@ -165,7 +164,6 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
           50, // qty
           0, // fromDate
           0, // thruDate
-          0, // automaticRetireDate
           "some metadata",
           "a manifest",
           "some action inside a test proposal",
@@ -176,7 +174,7 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
     let targets = [contract.address];
     let values = [0];
     let signatures = [
-      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",
+      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",
     ];
     let descriptions = ["a test proposal"];
     for (let i = 0; i < taskArgs.children; i++) {

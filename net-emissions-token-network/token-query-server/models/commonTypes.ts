@@ -6,7 +6,6 @@ export interface CreatedToken {
     fromDate: number;
     thruDate: number;
     dateCreated: number;
-    automaticRetiredDate: number;
     metadata: string;
     manifest: string;
     description: string;
@@ -22,7 +21,6 @@ export interface TokenPayload {
     fromDate: number;
     thruDate: number;
     dateCreated: number;
-    automaticRetiredDate: number;
     metadata: Object;
     manifest: string;
     description: string;
@@ -89,7 +87,6 @@ export type QueryPayload = {
     fromDate? : number,
     thruDate? : number,
     dateCreated? : number,
-    automaticRetireDate? : number,
     metadata? : string,
     manifest? : string,
     desc? : string,
@@ -107,7 +104,6 @@ export type IFIELDS = {
     "fromDate"? : FIELD,
     "thruDate"? : FIELD,
     "dateCreated"? : FIELD,
-    "automaticRetireDate"? : FIELD,
     "metadata"? : FIELD,
     "manifest"? : FIELD,
     "desc"? : FIELD,
@@ -128,7 +124,6 @@ export const FIELDS = {
     "fromDate": NUMERIC_FIELD,
     "thruDate": NUMERIC_FIELD,
     "dateCreated": NUMERIC_FIELD,
-    "automaticRetireDate": NUMERIC_FIELD,
     "metadata": STRING_FIELD,
     "manifest": STRING_FIELD,
     "desc": STRING_FIELD,

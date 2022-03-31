@@ -28,7 +28,6 @@ export default function ProposalCallDetailsModal(props) {
           quantity: qty,
           fromDate: formatDate(decodedCall[4].toNumber()),
           thruDate: formatDate(decodedCall[5].toNumber()),
-          automaticRetireDate: formatDate(decodedCall[6].toNumber()),
           metadata: decodedCall[7],
           manifest: decodedCall[8],
           description: decodedCall[9],
@@ -70,7 +69,6 @@ export default function ProposalCallDetailsModal(props) {
             <Form.Text>Quantity of tokens: {decoded.quantity}</Form.Text>
             <Form.Text>From date: {decoded.fromDate}</Form.Text>
             <Form.Text>Through date: {decoded.thruDate}</Form.Text>
-            <Form.Text>Automatic retire date: {decoded.automaticRetireDate}</Form.Text>
             <Form.Text>Metadata: {decoded.metadata}</Form.Text>
             <Form.Text>Manifest: {decoded.manifest}</Form.Text>
             <Form.Text>Description: {decoded.description}</Form.Text>

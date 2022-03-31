@@ -199,20 +199,16 @@ export class TokenCreated__Params {
     return this._event.parameters[8].value.toBigInt();
   }
 
-  get automaticRetireDate(): BigInt {
-    return this._event.parameters[9].value.toBigInt();
-  }
-
   get metadata(): string {
-    return this._event.parameters[10].value.toString();
+    return this._event.parameters[9].value.toString();
   }
 
   get manifest(): string {
-    return this._event.parameters[11].value.toString();
+    return this._event.parameters[10].value.toString();
   }
 
   get description(): string {
-    return this._event.parameters[12].value.toString();
+    return this._event.parameters[11].value.toString();
   }
 }
 
@@ -446,20 +442,16 @@ export class NetEmissionsTokenNetwork__getTokenDetailsResultValue0Struct extends
     return this[6].toBigInt();
   }
 
-  get automaticRetireDate(): BigInt {
-    return this[7].toBigInt();
-  }
-
   get metadata(): string {
-    return this[8].toString();
+    return this[7].toString();
   }
 
   get manifest(): string {
-    return this[9].toString();
+    return this[8].toString();
   }
 
   get description(): string {
-    return this[10].toString();
+    return this[9].toString();
   }
 }
 
@@ -1193,20 +1185,16 @@ export class IssueCall__Inputs {
     return this._call.inputValues[4].value.toBigInt();
   }
 
-  get automaticRetireDate(): BigInt {
-    return this._call.inputValues[5].value.toBigInt();
-  }
-
   get metadata(): string {
-    return this._call.inputValues[6].value.toString();
+    return this._call.inputValues[5].value.toString();
   }
 
   get manifest(): string {
-    return this._call.inputValues[7].value.toString();
+    return this._call.inputValues[6].value.toString();
   }
 
   get description(): string {
-    return this._call.inputValues[8].value.toString();
+    return this._call.inputValues[7].value.toString();
   }
 }
 

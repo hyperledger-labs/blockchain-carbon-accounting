@@ -197,7 +197,6 @@ export async function issue_emissions_tokens_with_issuee(
     quantity: tokens.toNumber(),
     fromDate: fd,
     thruDate: td,
-    automaticRetireDate: 0,
     manifest: JSON.stringify(manifest),
     metadata: metadata,
     description: `Emissions from ${activity_type}`,

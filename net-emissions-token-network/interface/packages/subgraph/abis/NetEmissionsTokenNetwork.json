@@ -188,12 +188,6 @@
         },
         {
           "indexed": false,
-          "internalType": "uint256",
-          "name": "automaticRetireDate",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
           "internalType": "string",
           "name": "metadata",
           "type": "string"
@@ -694,11 +688,6 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint256",
-              "name": "automaticRetireDate",
-              "type": "uint256"
-            },
-            {
               "internalType": "string",
               "name": "metadata",
               "type": "string"
@@ -907,11 +896,6 @@
         {
           "internalType": "uint256",
           "name": "thruDate",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "automaticRetireDate",
           "type": "uint256"
         },
         {

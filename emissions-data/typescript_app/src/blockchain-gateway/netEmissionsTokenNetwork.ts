@@ -72,7 +72,6 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         ledgerLogger.debug(`${fnTag} calling issue method input = %o`, input);
         let result;
         try {
-            const automaticRetireDate = +input.automaticRetireDate.toFixed();
             result = await this.opts.ethClient.invokeContract({
                 contractName: this.contractName,
                 web3SigningCredential: signer,
@@ -84,7 +83,6 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
                     input.quantity,
                     input.fromDate,
                     input.thruDate,
-                    automaticRetireDate,
                     input.metadata,
                     input.manifest,
                     input.description,
@@ -120,7 +118,6 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
             fromDate: tokenCreatedDecoded.fromDate,
             thruDate: tokenCreatedDecoded.thruDate,
             dateCreated: tokenCreatedDecoded.dateCreated,
-            automaticRetireDate: tokenCreatedDecoded.automaticRetireDate,
             metadata: tokenCreatedDecoded.metadata,
             manifest: tokenCreatedDecoded.manifest,
             description: tokenCreatedDecoded.description,

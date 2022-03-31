@@ -186,7 +186,6 @@ export interface IEthNetEmissionsTokenIssueInput {
     quantity: number;
     fromDate: number;
     thruDate: number;
-    automaticRetireDate: number;
     metadata: string;
     manifest: string;
     description: string;
@@ -200,7 +199,6 @@ export interface IEthNetEmissionsTokenIssueOutput {
     fromDate: string;
     thruDate: string;
     dateCreated: string;
-    automaticRetireDate: string;
     metadata: string;
     manifest: string;
     description: string;
