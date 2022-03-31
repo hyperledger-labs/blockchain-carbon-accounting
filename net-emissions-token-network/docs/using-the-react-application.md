@@ -21,6 +21,10 @@ From the `net-emissions-token-network/interface` directory, run
 yarn install
 ```
 
+## Token Query Server
+
+The token query server synchronizes the blockchain network with a PostgreSQL database so that the UI could search and query the tokens and create dashboards.  See [token-query-server README](../token-query-server/README.md) on how to configure and start it. 
+
 ## With Hardhat Network local testnet
 
 To run a testnet locally via Hardhat Network:
@@ -34,7 +38,7 @@ yarn react-app:start
 2. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
 
 ```bash
-npx hardhat node --show-accounts
+npx hardhat node 
 ```
 
 3. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.

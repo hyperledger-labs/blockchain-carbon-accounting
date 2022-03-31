@@ -1,21 +1,29 @@
-# Supply Chain Emissions Application
+`# Supply Chain Emissions Application
 
 ## Installing
 
 Following the steps from [data/postgres](../data/postgres/README.md) to install the emissions factors database.
 
 Copy `.env.SAMPLE` to `.env`.  You will need to fill in:
-- Your PostgreSQL username and password.
+- Your PostgreSQL host, port, username, and password.
 - The Google API key for the [Google DistanceMatrix API](https://developers.google.com/maps/documentation/distance-matrix/overview) and [Google Geocode API](https://developers.google.com/maps/documentation/geocoding/overview).
 - If you have access to the [UPS Developer Kit](https://www.ups.com/upsdeveloperkit?loc=en_US), your UPS username, password, and access key.
 
 Make sure you are using node version 16.
 
-Install dependencies here, in `../emissions-data/chaincode/emissionscontract/typescript` and then in `../emissons-data/typescript_app` with
+Install dependencies here with
 
 ```
 npm install
 ```
+
+in the following places:
+
+- in this directory
+- `interface/` sub-directory of this directory
+- `../emissions-data/chaincode/emissionscontract/typescript`
+- `../emissons-data/typescript_app`
+- `../data/postgres`
 
 Build the application:
 ```

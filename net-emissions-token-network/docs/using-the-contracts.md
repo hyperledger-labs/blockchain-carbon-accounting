@@ -23,14 +23,14 @@ After cloning this repository, navigate to the `net-emissions-token-network` dir
 - To see all commands, run `npx hardhat`
 - To compile, run `npx hardhat compile`
 - To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`)
-- To run a local test network without deploying the contracts, run `npx hardhat node --no-deploy --show-accounts`
-- To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node --show-accounts`
+- To run a local test network without deploying the contracts, run `npx hardhat node --no-deploy`
+- To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node`
 - To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
 
 After deploying to hardhat locally, and you will see the addresses of the deployed contracts as well as 20 accounts available for testing:
 
 ```
-$ npx hardhat node --show-accounts
+$ npx hardhat node 
 Nothing to compile
 Deploying DAO with account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 Timelock deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
