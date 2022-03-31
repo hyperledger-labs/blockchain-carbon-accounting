@@ -35,6 +35,8 @@
       "type": "flight",
       "carrier": "Air France",
       "flight_number": "AF666",
+      "from_date": "2021-03-23T18:25:43.511Z",
+      "thru_date": "2012-03-24T09:47:23.172Z",
       "from": {
         "country": "France",
         "city": "Paris",
@@ -73,6 +75,8 @@
       "type": "flight",
       "carrier": "Air France",
       "flight_number": "AF666",
+      "from_date": "2021-02-02T08:13:28.311Z",
+      "thru_date": "2012-02-02T09:32:23.172Z",
       "class": "business",
       "from": {
         "country": "France",

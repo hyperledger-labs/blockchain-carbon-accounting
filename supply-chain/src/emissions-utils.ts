@@ -133,52 +133,31 @@ export async function calc_freight_emissions(
 
 export async function issue_emissions_tokens(
   activity_type: string,
+  from_date: Date,
+  thru_date: Date,
   total_emissions: number,
   metadata: string,
   hash: string,
   ipfs_path: string,
   publicKey: string
 ) {
-  if (!logger_setup) {
-    setup(LOG_LEVEL, LOG_LEVEL);
-    logger_setup = true;
-  }
-  const tokens = new BigNumber(Math.round(total_emissions));
-  const bcConfig = new BCGatewayConfig();
-  const ethConnector = await bcConfig.ethConnector();
-  const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
-  const nowTime = Math.floor(new Date().getTime() / 1000);
-
-  const gateway = new EthNetEmissionsTokenGateway({
-    contractStoreKeychain: ethConnector.contractStoreKeychain,
-    ethClient: ethConnector.connector,
-    signer: signer,
-  });
-  const caller: IEthTxCaller = {
-    address: process.env.ETH_ISSUER_ACCT,
-    private: process.env.ETH_ISSUER_PRIVATE_KEY,
-  };
-  const manifest = {
-    "Public Key": publicKey,
-    "Location": `ipfs://${ipfs_path}`,
-    "SHA256": hash
-  };
-  const input: IEthNetEmissionsTokenIssueInput = {
-    addressToIssue: process.env.ETH_ISSUEE_ACCT || "",
-    quantity: tokens.toNumber(),
-    fromDate: nowTime,
-    thruDate: nowTime,
-    automaticRetireDate: 0,
-    manifest: JSON.stringify(manifest),
-    metadata: metadata,
-    description: `Emissions from ${activity_type}`,
-  };
-  const token = await gateway.issue(caller, input);
-  return token;
+  return await issue_emissions_tokens_with_issuee(
+    activity_type,
+    from_date,
+    thru_date,
+    process.env.ETH_ISSUEE_ACCT || "",
+    total_emissions,
+    metadata,
+    hash,
+    ipfs_path,
+    publicKey
+  );
 }
 
 export async function issue_emissions_tokens_with_issuee(
   activity_type: string,
+  from_date: Date,
+  thru_date: Date,
   issuee: string,
   total_emissions: number,
   metadata: string,
@@ -194,7 +173,14 @@ export async function issue_emissions_tokens_with_issuee(
   const bcConfig = new BCGatewayConfig();
   const ethConnector = await bcConfig.ethConnector();
   const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
-  const nowTime = Math.floor(new Date().getTime() / 1000);
+  const f_date = from_date || new Date();
+  const t_date = thru_date || new Date();
+  console.log('??? f_date', f_date)
+  console.log('??? t_date', t_date)
+  const fd = Math.floor(f_date.getTime() / 1000);
+  const td = Math.floor(t_date.getTime() / 1000);
+  console.log('??? fd', fd)
+  console.log('??? td', td)
 
   const gateway = new EthNetEmissionsTokenGateway({
     contractStoreKeychain: ethConnector.contractStoreKeychain,
@@ -213,8 +199,8 @@ export async function issue_emissions_tokens_with_issuee(
   const input: IEthNetEmissionsTokenIssueInput = {
     addressToIssue: issuee,
     quantity: tokens.toNumber(),
-    fromDate: nowTime,
-    thruDate: nowTime,
+    fromDate: fd,
+    thruDate: td,
     automaticRetireDate: 0,
     manifest: JSON.stringify(manifest),
     metadata: metadata,
@@ -294,11 +280,20 @@ export async function process_activities(
   );
 }
 
+function read_date(v: string | Date, default_date?: Date) {
+  if (!v) return default_date || new Date();
+  if (v instanceof Date) return v;
+  if (typeof v === 'string') return new Date(v as string);
+  throw new Error('Cannot read as a Date: ' + v);
+}
+
 export function group_processed_activities(activities: ProcessedActivity[]) {
   return activities
     .filter((a) => !a.error)
     .reduce((prev: GroupedResults, a) => {
       const t = a.activity.type;
+      const fd = read_date(a.activity.from_date);
+      const td = read_date(a.activity.thru_date, fd);
       if (t === "shipment") {
         const m = a.result.distance.mode;
         const g = prev[t] || ({} as GroupedResults);
@@ -313,6 +308,12 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
         }) as GroupedResult;
         d.total_emissions.value += a.result.emissions.amount.value;
         d.content.push(a);
+        if (!d.from_date || d.from_date > fd) {
+          d.from_date = fd;
+        }
+        if (!d.thru_date || d.thru_date < td) {
+          d.thru_date = td;
+        }
         g[m] = d;
       } else {
         const d = (prev[t] || {
@@ -322,6 +323,12 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
         const v = d.total_emissions as ValueAndUnit;
         v.value += a.result.emissions.amount.value;
         d.content.push(a);
+        if (!d.from_date || d.from_date > fd) {
+          d.from_date = fd;
+        }
+        if (!d.thru_date || d.thru_date < td) {
+          d.thru_date = td;
+        }
         prev[t] = d;
       }
       return prev;
@@ -331,6 +338,8 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
 export type GroupedResult = {
   total_emissions: ValueAndUnit;
   content: ProcessedActivity[];
+  from_date?: Date,
+  thru_date?: Date,
   token?: any;
 };
 
@@ -364,6 +373,8 @@ export async function issue_tokens(
 
   const token_res = await issue_emissions_tokens(
     activity_type,
+    doc.from_date,
+    doc.thru_date,
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
@@ -401,6 +412,8 @@ export async function issue_tokens_with_issuee(
 
   const token_res = await issue_emissions_tokens_with_issuee(
     activity_type,
+    doc.from_date,
+    doc.thru_date,
     issuee,
     total_emissions,
     JSON.stringify(metadata),

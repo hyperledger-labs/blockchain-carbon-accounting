@@ -58,6 +58,8 @@ export type Path = {
 type ActivityBase = Path & {
   id: string,
   type: 'shipment' | 'flight',
+  from_date?: Date,
+  thru_date?: Date,
 };
 export type ShipmentActivity = ActivityBase & Shipment;
 export type FlightActivity = ActivityBase & Flight;
