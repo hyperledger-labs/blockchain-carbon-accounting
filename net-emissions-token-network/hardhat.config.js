@@ -76,7 +76,7 @@ task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 req
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async taskArgs => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2} = await getNamedAccounts();
+    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, dealer4, dealer5, dealer6, dealer7} = await getNamedAccounts();
 
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
@@ -86,8 +86,14 @@ task("setTestAccountRoles", "Set default account roles for testing")
     console.log("Account " + dealer1 + " is now a REC dealer");
     await contract.connect(admin).registerDealer(dealer2, 3); // emissions auditor
     console.log("Account " + dealer2 + " is now an emissions auditor");
-    await contract.connect(admin).registerDealer(dealer3, 2); // offsets dealer
-    console.log("Account " + dealer3 + " is now an offsets  dealer");
+    await contract.connect(admin).registerDealer(dealer4, 3); // emissions auditor
+    console.log("Account " + dealer4 + " is now an emissions auditor");
+    await contract.connect(admin).registerDealer(dealer5, 3); // emissions auditor
+    console.log("Account " + dealer5 + " is now an emissions auditor");
+    await contract.connect(admin).registerDealer(dealer6, 3); // emissions auditor
+    console.log("Account " + dealer6 + " is now an emissions auditor");
+    await contract.connect(admin).registerDealer(dealer7, 2); // offsets dealer
+    console.log("Account " + dealer7 + " is now an offsets  dealer");
 
     await contract.connect(admin).registerDealer(industry1,4);
     console.log("Account " + industry1 + " is now an industry")
@@ -334,11 +340,14 @@ module.exports = {
     dealer2: { default: 2 },
     dealer3: { default: 3 },
     dealer4: { default: 4 },
+    dealer5: { default: 5 },
+    dealer6: { default: 6 },
+    dealer7: { default: 7 },
     consumer1: { default: 19 },
     consumer2: { default: 18 },
     industry1: { default: 15 },
     industry2: { default: 16 },
-    unregistered: { default: 7 }
+    unregistered: { default: 8 }
   },
 
   solidity: {
