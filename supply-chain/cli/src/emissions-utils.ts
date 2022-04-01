@@ -1,13 +1,13 @@
 import { BigNumber } from "bignumber.js";
-import BCGatewayConfig from "../../emissions-data/typescript_app/src/blockchain-gateway/config";
+import BCGatewayConfig from "emissions_data/src/blockchain-gateway/config";
 import {
   IEthNetEmissionsTokenIssueInput,
   IEthTxCaller,
-} from "../../emissions-data/typescript_app/src/blockchain-gateway/I-gateway";
-import EthNetEmissionsTokenGateway from "../../emissions-data/typescript_app/src/blockchain-gateway/netEmissionsTokenNetwork";
-import Signer from "../../emissions-data/typescript_app/src/blockchain-gateway/signer";
-import { setup } from "../../emissions-data/typescript_app/src/utils/logger";
-import { PostgresDBService } from "../../data/postgres/src/postgresDbService";
+} from "../../../emissions-data/typescript_app/src/blockchain-gateway/I-gateway";
+import EthNetEmissionsTokenGateway from "emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
+import Signer from "emissions_data/src/blockchain-gateway/signer";
+import { setup } from "emissions_data/src/utils/logger";
+import { PostgresDBService } from "blockchain-carbon-accounting-data/postgres/src/postgresDbService";
 import {
   Activity,
   ActivityResult,
@@ -335,7 +335,7 @@ export type GroupedResult = {
   content: ProcessedActivity[];
   from_date?: Date,
   thru_date?: Date,
-  token?: any;
+  token?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 export type GroupedResults = {

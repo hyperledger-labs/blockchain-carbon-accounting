@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
 // import from supply chain
-import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from '../../../src/emissions-utils';
+import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
     id: string,

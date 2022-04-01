@@ -17,20 +17,8 @@ Install dependencies here with
 npm install
 ```
 
-in the following places:
+Install IPFS.  Then start the daemon in another window.
 
-- in this directory
-- `interface/` sub-directory of this directory
-- `../emissions-data/chaincode/emissionscontract/typescript`
-- `../emissons-data/typescript_app`
-- `../data/postgres`
-
-Build the application:
-```
-npm run build
-```
-
-Install IPFS.  Then start the daemon in another window
 ```
 ipfs daemon
 ```
@@ -39,18 +27,18 @@ ipfs daemon
 
 First generate one or more key pairs for encrypting and decrypting files on IPFS.
 ```
-node emissions.js -generatekeypair user1 -generatekeypair user2
+npm run cli -- -generatekeypair user1 -generatekeypair user2
 ```
 
 Run by giving a JSON file of activities to process and one or more public key for encryption with:
 ```
-node emissions.js -pubk user1-public.pem [-pubk user2-public.pem] -f input.json
+npm run cli -- -pubk user1-public.pem [-pubk user2-public.pem] -f input.json
 ```
 
 To get a more complete output use the `-verbose` flag, this will output the grouped activities by type, while shipments
 are further grouped by shipping mode.
 ```
-node emissions.js -pubk user1-public.pem [-pubk user2-public.pem] -f input.json -verbose
+npm run cli -- -pubk user1-public.pem [-pubk user2-public.pem] -f input.json -verbose
 ```
 In this case the IPFS content ID can be retrieved in the group "token.manifest" eg:
 ```
@@ -65,11 +53,11 @@ In this case the IPFS content ID can be retrieved in the group "token.manifest" 
 
 Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
 ```
-node emissions.js -pk user1-private.pem -fetch <content_id>
+npm run cli -- -pk user1-private.pem -fetch <content_id>
 ```
 
 ## REST API
 
-A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/interface/`](interface/README.md) directory.
+A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/api/`](api/README.md) directory.
 
 Examples for using the REST API is in the [`/example`](example/README.md) directory.
