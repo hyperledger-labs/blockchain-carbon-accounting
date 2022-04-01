@@ -25,7 +25,6 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [quantity, setQuantity] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [thruDate, setThruDate] = useState("");
-  const [manifest, setManifest] = useState("");
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
@@ -34,6 +33,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
   const [metajson, setMetajson] = useState("");
   const [metadata, setMetadata] = useState([]);
+
+  const [manifestjson, setManifestjson] = useState("");
+  const [manifest, setManifest] = useState([]);
 
   // Calldata
   const [calldata, setCalldata] = useState("");
@@ -47,7 +49,6 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const onQuantityChange = useCallback((event) => { setQuantity(event.target.value); }, []);
   const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
   const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
-  const onManifestChange = useCallback((event) => { setManifest(event.target.value); }, []);
   const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
   const onScopeChange = useCallback((event) => { setScope(event.target.value); }, []);
   const onTypeChange = useCallback((event) => { setType(event.target.value); }, []);
@@ -78,6 +79,28 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     metadata.push({key: "", value: ""});
     setMetadata([...metadata]);
     setMetajson(castMetadata(metadata));
+  }
+
+  const castManifest = (pairlist) => {
+    const manifestObj = {};
+    pairlist.forEach((elem) => {
+      manifestObj[elem.key] = elem.value;
+    });
+
+    return JSON.stringify(manifestObj);
+  }
+
+  const addFieldManifest = () => {
+    manifest.push({key: "", value: ""});
+    setManifest([...manifest]);
+    setManifestjson(castManifest(manifest));
+  }
+
+  const removeFieldManifest = (idx) => {
+    let array = [...manifest];
+    array.splice(idx, 1);
+    setManifest(array);
+    setManifestjson(castManifest(manifest));
   }
 
   function handleSubmit() {
@@ -120,7 +143,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             Number(fromDate)/1000,
             Number(thruDate)/1000,
             metajson,
-            manifest,
+            manifestjson,
             ("Issued by DAO. " + description)
           ]
         );
@@ -139,7 +162,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     fromDate,
     thruDate,
     metajson,
-    manifest,
+    manifestjson,
     description,
   ]);
 
@@ -169,8 +192,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     console.log(tokenTypeId)
 
     const _metadata = castMetadata(metadata);
+    const _manifest = castManifest(manifest);
 
-    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, manifest, description);
+    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     setResult(result.toString());
   }
 
@@ -336,8 +360,37 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         </Form.Group>
       </Form.Group>
       <Form.Group>
-        <Form.Label>Manifest</Form.Label>
-        <Form.Control as="textarea" placeholder="E.g. URL linking to the registration for the REC, emissions offset purchased, etc." value={manifest} onChange={onManifestChange} />
+        <Form.Group>
+          <Form.Label class="form-label col-sm-2">Manifest</Form.Label>
+          <Button onClick={addFieldManifest}><BsPlus /></Button>
+        </Form.Group>
+        <Form.Group>
+          {manifest.map((field, key) =>
+            <Row key={key} className="mt-2">
+              <Col>
+                <Form.Control
+                  type="input"
+                  value={field.key}
+                  onChange={e => { manifest[key].key = e.target.value; setManifest([...manifest]); }}
+                />
+              </Col>
+              <Col>
+                <Form.Control
+                  type="input"
+                  value={field.value}
+                  onChange={e => { manifest[key].value = e.target.value; setManifest([...manifest]); }}
+                />
+              </Col>
+              <div>
+                <Button onClick={addFieldManifest}><BsPlus /></Button>
+              </div>
+              <Col>
+                <Button onClick={() => removeFieldManifest(key)}><BsTrash /></Button>
+              </Col>
+            </Row>
+          )}
+          <br />
+        </Form.Group>
       </Form.Group>
 
       <Row className="mt-4">
