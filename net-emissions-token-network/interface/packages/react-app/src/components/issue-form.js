@@ -107,7 +107,6 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             'uint256',
             'uint256',
             'uint256',
-            'uint256',
             'string',
             'string',
             'string'
