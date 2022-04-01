@@ -29,9 +29,6 @@ export class Token {
     @Column({nullable: true})
     dateCreated!: number;
 
-    @Column({nullable: true})
-    automaticRetireDate!: number;
-
     @Column({type: "hstore", hstoreType:"object", nullable: true})
     metadata!: Object;
 

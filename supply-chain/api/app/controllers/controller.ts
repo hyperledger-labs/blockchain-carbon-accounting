@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
 // import from supply chain
-import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from '../../../src/emissions-utils';
+import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
     id: string,
@@ -94,6 +94,11 @@ export function issueToken(req: Request, res: Response) {
         }
         // add back any errors we filtered before to the output
         grouped_by_type.errors = activities.filter(a=>a.error);
+        if (grouped_by_type.errors) {
+            grouped_by_type.errors.forEach(e=>{
+                console.log("!! Error for ", e);
+            })
+        }
         if (verbose == 'true') return grouped_by_type;
         // short form output: return an Array of objects with {id, tokenId, error }
         for (const a of activities.filter(a=>a.error)) {

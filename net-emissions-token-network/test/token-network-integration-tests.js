@@ -7,7 +7,6 @@ const {
   transferAmount,
   fromDate,
   thruDate,
-  automaticRetireDate,
   metadata,
   manifest,
   description,
@@ -51,7 +50,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -68,7 +66,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -88,7 +85,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -173,7 +169,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -234,7 +229,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -251,7 +245,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -271,7 +264,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -356,7 +348,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -370,7 +361,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -431,7 +421,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -448,7 +437,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -468,7 +456,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -512,7 +499,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -526,7 +512,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -592,7 +577,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -610,7 +594,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -628,7 +611,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description
@@ -648,7 +630,6 @@ describe("Net Emissions Token Network - Integration tests", function() {
           quantity,
           fromDate,
           thruDate,
-          automaticRetireDate,
           metadata,
           manifest,
           description

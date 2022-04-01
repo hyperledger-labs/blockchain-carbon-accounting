@@ -43,6 +43,8 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
                         item_id = row.shipment_id + ":" + row.shipment_route_segment_id + ":" + tracking
                         activity["id"] = item_id
                         activity["tracking"] = tracking
+                        activity["from_date"] = from_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z')
+                        activity["thru_date"] = thru_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z') 
                         activities.append(activity)
                 else:
                     activity = {"type": "shipment"}
@@ -63,6 +65,8 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee, pubkey):
 
                     item_id = row.shipment_id + ":" + row.shipment_route_segment_id + ":" + tracking
                     activity["id"] = item_id
+                    activity["from_date"] = from_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z')
+                    activity["thru_date"] = thru_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z') 
                     if row.shipment_method_type_id:
                         activity["mode"] = row.shipment_method_type_id.lower()
                     from_addr = {"country": row.origin_country_geo_id}

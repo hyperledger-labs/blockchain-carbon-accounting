@@ -7,7 +7,6 @@ const {
   transferAmount,
   fromDate,
   thruDate,
-  automaticRetireDate,
   metadata,
   manifest,
   description,
@@ -65,7 +64,6 @@ describe("Carbon Tracker - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -145,7 +143,6 @@ describe("Carbon Tracker - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -192,7 +189,6 @@ describe("Carbon Tracker - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -264,7 +260,6 @@ describe("Carbon Tracker - Integration tests", function() {
         quantity,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -286,7 +281,6 @@ describe("Carbon Tracker - Integration tests", function() {
         1,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description
@@ -473,7 +467,6 @@ describe("Carbon Tracker - Integration tests", function() {
         1,
         fromDate,
         thruDate,
-        automaticRetireDate,
         metadata,
         manifest,
         description

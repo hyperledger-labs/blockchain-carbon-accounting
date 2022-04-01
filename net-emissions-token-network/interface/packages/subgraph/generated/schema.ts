@@ -87,15 +87,6 @@ export class Token extends Entity {
     this.set("thruDate", Value.fromBigInt(value));
   }
 
-  get automaticRetireDate(): BigInt {
-    let value = this.get("automaticRetireDate");
-    return value.toBigInt();
-  }
-
-  set automaticRetireDate(value: BigInt) {
-    this.set("automaticRetireDate", Value.fromBigInt(value));
-  }
-
   get metadata(): string | null {
     let value = this.get("metadata");
     if (value === null || value.kind == ValueKind.NULL) {

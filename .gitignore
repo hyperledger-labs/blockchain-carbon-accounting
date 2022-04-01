@@ -134,7 +134,6 @@ net-emissions-token-network/deployments/goerli/solcInputs
 open-offsets-directory/node-server/pnpm-lock.yaml
 open-offsets-directory/react/pnpm-lock.yaml
 secure-identities/ws-wallet/pnpm-lock.yaml
-supply-chain/package-lock.json
 open-offsets-directory/data/projects-v3
 emissions-data/chaincode/go/go.sum
 emissions-data/chaincode/node/lib/aws-config.js
@@ -142,7 +141,6 @@ emissions-data/docker-compose-setup/scripts/ansible/vagrant/.vagrant
 emissions-data/docker-compose-setup/scripts/ansible/vagrant/ansible.log
 emissions-data/typescript_app/pnpm-lock.yaml
 emissions-data/package-lock.json
-package-lock.json
 xaa
 emissions-data/docker-compose-setup/scripts/ansible/aws-vpc
 emissions-data/typescript_app/src/blockchain-gateway/I-gateway.js

@@ -14,7 +14,6 @@ exports.thruDate = "1607463909";
 exports.metadata = "metaData";
 exports.manifest = "manifest";
 exports.description = "description";
-exports.automaticRetireDate = "1607464809";
 
 exports.proposalStates = {
   pending: 0,
@@ -76,7 +75,6 @@ exports.createProposal = async function (params) {
     quantity: 300,
     fromDate: 0,
     thruDate: 0,
-    automaticRetireDate: 0,
     metadata: "metadata",
     manifest: "manifest",
     description: "description",
@@ -87,7 +85,7 @@ exports.createProposal = async function (params) {
     targets: [params.netEmissionsTokenNetwork.address], // contract to call
     values: [0], // number of wei sent with call, i.e. msg.value
     signatures: [
-      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)",
+      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",
     ], // function in contract to call
     calldatas: [
       exports.encodeParameters(
@@ -96,7 +94,6 @@ exports.createProposal = async function (params) {
           "address",
           "address",
           "uint8",
-          "uint256",
           "uint256",
           "uint256",
           "uint256",
@@ -112,7 +109,6 @@ exports.createProposal = async function (params) {
           proposalCallParams.quantity,
           proposalCallParams.fromDate,
           proposalCallParams.thruDate,
-          proposalCallParams.automaticRetireDate,
           proposalCallParams.metadata,
           proposalCallParams.manifest,
           proposalCallParams.description,
@@ -183,7 +179,6 @@ exports.createMultiAttributeProposal = async function (params) {
     quantity: 300,
     fromDate: 0,
     thruDate: 0,
-    automaticRetireDate: 0,
     metadata: "metadata",
     manifest: "manifest",
     description: "parent description"
@@ -193,10 +188,10 @@ exports.createMultiAttributeProposal = async function (params) {
   let proposalParent = {
     targets: params.netEmissionsTokenNetwork.address, // contract to call
     values: 0, // number of wei sent with call, i.e. msg.value
-    signatures: "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)", // function in contract to call
+    signatures: "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)", // function in contract to call
     calldatas: exports.encodeParameters(
       // types of params
-      ['address','address','uint8','uint256','uint256','uint256','uint256','string','string','string'],
+      ['address','address','uint8','uint256','uint256','uint256','string','string','string'],
       // value of params
       [
         proposalCallParams.account,
@@ -205,7 +200,6 @@ exports.createMultiAttributeProposal = async function (params) {
         proposalCallParams.quantity,
         proposalCallParams.fromDate,
         proposalCallParams.thruDate,
-        proposalCallParams.automaticRetireDate,
         proposalCallParams.metadata,
         proposalCallParams.manifest,
         proposalCallParams.description

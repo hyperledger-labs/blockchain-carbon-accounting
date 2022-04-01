@@ -37,7 +37,6 @@ GET `/tokens`
             "fromDate": 1647529200,
             "thruDate": 1648134000,
             "dateCreated": 1647736640,
-            "automaticRetiredDate": null,
             "metaObj": {
                 "Type": "ground",
                 "Scope": "2"

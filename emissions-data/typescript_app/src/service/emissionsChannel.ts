@@ -32,7 +32,6 @@ interface IRecordAuditedEmissionsTokenResponse {
     quantity: number;
     fromDate: number;
     thruDate: number;
-    automaticRetireDate: string;
     metadata: string;
     manifest: string;
     description: string;
@@ -138,7 +137,6 @@ export default class EmissionsChannelService {
         const toAuditString = input.body.emissionsRecordsToAudit as string;
         const txID = input.body.txID;
         const emissionsRecordsToAudit = toAuditString.toString().split(',');
-        const automaticRetireDate = new Date().toISOString();
         appLogger.debug(`${fnTag} start processing for txID = ${txID}`);
         let tx: ITxDetails;
         try {
@@ -201,7 +199,6 @@ export default class EmissionsChannelService {
                     quantity: metadata.quantity,
                     fromDate: metadata.fromDate,
                     thruDate: metadata.thruDate,
-                    automaticRetireDate: toTimestamp(automaticRetireDate),
                     metadata: JSON.stringify(metadata.metadata),
                     manifest: metadata.manifest,
                     description: description,

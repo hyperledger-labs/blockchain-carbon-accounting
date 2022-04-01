@@ -26,7 +26,7 @@ export default function CreateProposalModal(props) {
       let args = {
         targets: [ addresses.tokenNetwork.address ],
         values: [ 0 ],
-        signatures: [ "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,uint256,string,string,string)" ],
+        signatures: [ "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)" ],
         calldata: [ props.calldata ],
         description: description
       }

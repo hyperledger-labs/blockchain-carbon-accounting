@@ -1,4 +1,5 @@
 export type UpsAPI = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   track: (trackingNumber: string, opts: any, cb: (err: any, res: UpsResponse) => void) => void;
 };
 export type UpsAddress = {

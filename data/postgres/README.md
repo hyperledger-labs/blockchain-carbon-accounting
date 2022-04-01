@@ -5,7 +5,7 @@ Create your database:
 createdb "blockchain-carbon-accounting"
 ```
 
-Install the dependencies:
+Install the dependencies in the parent folder (`data`):
 ```
 npm install
 ```

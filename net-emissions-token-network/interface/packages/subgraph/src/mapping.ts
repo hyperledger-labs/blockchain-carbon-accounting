@@ -116,7 +116,6 @@ export function handleTokenCreated(event: TokenCreated): void {
   token.issuee = event.params.issuee;
   token.fromDate = event.params.fromDate;
   token.thruDate = event.params.thruDate;
-  token.automaticRetireDate = event.params.automaticRetireDate;
   token.metadata = event.params.metadata;
   token.manifest = event.params.manifest;
   token.description = event.params.description;
