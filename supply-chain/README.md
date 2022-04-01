@@ -61,3 +61,8 @@ npm run cli -- -pk user1-private.pem -fetch <content_id>
 A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/api/`](api/README.md) directory.
 
 Examples for using the REST API is in the [`/example`](example/README.md) directory.
+
+To start the API server:
+```
+npm run api
+```
