@@ -326,7 +326,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                 <Form.Control type="text" placeholder="Type" onChange={onTypeChange} />
               </Col>
               <Col>
-                <Button variant="secondary" onClick={addField}><BsPlus /></Button>
+                <Button variant="outline-dark" onClick={addField}><BsPlus /></Button>
               </Col>
             </Row>
           </Col>
@@ -349,10 +349,10 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                 />
               </Col>
               <div>
-                <Button variant="secondary" onClick={addField}><BsPlus /></Button>
+                <Button variant="outline-dark" onClick={addField}><BsPlus /></Button>
               </div>
               <Col>
-                <Button variant="secondary" onClick={() => removeField(key)}><BsTrash /></Button>
+                <Button variant="outline-dark" onClick={() => removeField(key)}><BsTrash /></Button>
               </Col>
             </Row>
           )}
@@ -362,7 +362,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Form.Group>
         <Form.Group>
           <Form.Label>Manifest</Form.Label>
-          <Button className="label-button" variant="secondary" onClick={addFieldManifest}><BsPlus /></Button>
+          <Button className="label-button" variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
         </Form.Group>
         <Form.Group>
           {manifest.map((field, key) =>
@@ -382,10 +382,10 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
                 />
               </Col>
               <div>
-                <Button variant="secondary" onClick={addFieldManifest}><BsPlus /></Button>
+                <Button variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
               </div>
               <Col>
-                <Button variant="secondary" onClick={() => removeFieldManifest(key)}><BsTrash /></Button>
+                <Button variant="outline-dark" onClick={() => removeFieldManifest(key)}><BsTrash /></Button>
               </Col>
             </Row>
           )}

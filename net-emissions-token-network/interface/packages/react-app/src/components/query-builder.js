@@ -159,15 +159,15 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
                             </Col>
                             <Col sm={1}>
                                 <Row>
-                                    <Button className="mr-1" onClick={e => removeField(e, key)}><BsTrash /></Button>
-                                    <Button onClick={addField}><BsPlus /></Button>
+                                    <Button className="mr-1" onClick={e => removeField(e, key)} variant="outline-dark"><BsTrash /></Button>
+                                    <Button onClick={addField} variant="outline-dark"><BsPlus /></Button>
                                 </Row>
                             </Col>
                         </Row>
                     </Form.Group>
                 )
             })}            
-            <Button className="mb-1" onClick={e => search(e, fields)}>{loading ? 
+            <Button className="mb-1" onClick={e => search(e, fields)} variant="outline-dark">{loading ? 
                 <Spinner 
                     animation="border" 
                     variant="warning" 
