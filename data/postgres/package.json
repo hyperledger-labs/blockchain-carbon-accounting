@@ -1,5 +1,5 @@
 {
-  "name": "blockchain-carbon-accounting-postgres",
+  "name": "blockchain-carbon-accounting-data-postgres",
   "version": "1.0.0",
   "description": "Postgres database store for the blockchain-carbon-accounting project",
   "main": "src/dataLoader.ts",
@@ -7,17 +7,20 @@
     "node": ">=16"
   },
   "scripts": {
+    "init": "ts-node src/dataLoader.ts init",
+    "dataLoader": "esr src/dataLoader.ts",
     "getData": "ts-node src/getData.ts",
-    "build": "tsc",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "blockchain-carbon-accounting-data-common": "1.0.0",
+    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript",
     "cli-progress": "^3.10.0",
     "pg": "^8.7.3",
-    "sequelize": "^6.17.0",
+    "sequelize": "^6.18.0",
     "uuid": "^8.3.2",
     "xlsx": "^0.18.5",
     "yargs": "^17.3.1"
@@ -29,7 +32,7 @@
     "@types/yargs": "^17.0.9",
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.14.0",
-    "esbuild": "^0.14.25",
+    "esbuild": "^0.14.31",
     "esbuild-runner": "^2.2.1",
     "eslint": "^8.10.0",
     "typescript": "^4.6.2"

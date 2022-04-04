@@ -1,12 +1,12 @@
-import type { CO2EmissionFactorInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissions-calc";
-import type { EmissionsFactorInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
-import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
-import type { UtilityLookupItemInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
-import { ErrInvalidFactorForActivity } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
+import type { CO2EmissionFactorInterface } from "emissions_data_chaincode/src/lib/emissions-calc";
+import type { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
+import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor";
+import type { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem";
+import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const";
 import { DbOpts, parseCommonYargsOptions } from "./config";
-import { getUomFactor } from "../../common/uom";
-import { ActivityInterface, getYearFromDate } from "../../common/utils";
-import { DbInterface } from "../../common/db";
+import { getUomFactor } from "blockchain-carbon-accounting-data-common/uom";
+import { ActivityInterface, getYearFromDate } from "blockchain-carbon-accounting-data-common/utils";
+import { DbInterface } from "blockchain-carbon-accounting-data-common/db";
 import { initModels, EmissionsFactorModel, UtilityLookupItemModel } from './models'
 import { Op, Sequelize } from "sequelize";
 

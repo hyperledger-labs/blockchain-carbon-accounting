@@ -3,7 +3,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { addCommonYargsOptions } from "./config";
 import { OrbitDBService } from "./orbitDbService";
-import { importUtilityIdentifiers, loadEmissionsFactors } from "../../common/spreadsheetImport";
+import { importUtilityIdentifiers, loadEmissionsFactors } from "blockchain-carbon-accounting-data-common/spreadsheetImport"
 
 let db: OrbitDBService;
 

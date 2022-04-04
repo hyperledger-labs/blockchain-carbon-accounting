@@ -1,6 +1,6 @@
 import { Sequelize, Model, DataTypes } from 'sequelize'
-import { EmissionsFactorInterface } from '../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor'
-import { UtilityLookupItemInterface } from '../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem'
+import { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor'
+import { UtilityLookupItemInterface } from 'emissions_data_chaincode/src/lib/utilityLookupItem'
 import { DbOpts } from './config'
 
 export class EmissionsFactorModel extends Model implements EmissionsFactorInterface {
@@ -41,6 +41,15 @@ export class UtilityLookupItemModel extends Model implements UtilityLookupItemIn
   state_province?: string;
   division_type?: string;
   division_id?: string; 
+}
+
+export class WalletModel extends Model {
+  address: string;
+  name: string;
+  organization: string;
+  publickey: string;
+  publickey_name: string;
+  roles: string;
 }
 
 export const initModels = async (connection: Sequelize, opts?: DbOpts) => {
@@ -91,11 +100,24 @@ export const initModels = async (connection: Sequelize, opts?: DbOpts) => {
       timestamps: false,
     })
 
+  WalletModel.init({
+    address: { type: DataTypes.STRING, allowNull: false, primaryKey: true },
+    name: { type: DataTypes.STRING },
+    organization: { type: DataTypes.STRING },
+    publickey: { type: DataTypes.STRING },
+    publickey_name: { type: DataTypes.STRING },
+    roles: { type: DataTypes.STRING },
+  }, {
+      sequelize: connection,
+      timestamps: false
+    })
+
   // sync will create the tables as needed
   if (opts?.dbClear) {
     console.log('Clearing DB and recreating tables...')
   }
   await EmissionsFactorModel.sync({alter: true, force: opts?.dbClear})
   await UtilityLookupItemModel.sync({alter: true, force: opts?.dbClear})
+  await WalletModel.sync({alter: true, force: opts?.dbClear})
 }
 

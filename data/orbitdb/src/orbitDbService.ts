@@ -1,20 +1,20 @@
 import type DocumentStore from 'orbit-db-docstore';
-import type { CO2EmissionFactorInterface } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissions-calc";
+import type { CO2EmissionFactorInterface } from "emissions_data_chaincode/src/lib/emissions-calc";
 import type {
   EmissionsFactor,
   EmissionsFactorInterface,
-} from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
-import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
+} from "emissions_data_chaincode/src/lib/emissionsFactor";
+import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor";
 import type {
   UtilityLookupItem,
   UtilityLookupItemInterface,
-} from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
-import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
-import { ErrInvalidFactorForActivity } from "../../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
+} from "emissions_data_chaincode/src/lib/utilityLookupItem";
+import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "emissions_data_chaincode/src/lib/utilityLookupItem";
+import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const";
 import { parseCommonYargsOptions } from "./config";
-import { getUomFactor } from "../../common/uom";
-import { ActivityInterface, EMISSIONS_FACTOR_TYPE, getYearFromDate } from "../../common/utils";
-import { DbInterface } from '../../common/db';
+import { getUomFactor } from "blockchain-carbon-accounting-data-common/uom";
+import { ActivityInterface, EMISSIONS_FACTOR_TYPE, getYearFromDate } from "blockchain-carbon-accounting-data-common/utils";
+import { DbInterface } from 'blockchain-carbon-accounting-data-common/db';
 
 
 type StoreRecord = UtilityLookupItemInterface | EmissionsFactorInterface;
