@@ -22,7 +22,7 @@
     "bignumber.js": "^9.0.2",
     "ipfs-http-client": "^56.0.1",
     "ups-nodejs-sdk": "^1.0.0",
-    "blockchain-carbon-accounting-data": "file:../../data",
+    "blockchain-carbon-accounting-data-postgres": "file:../../data/postgres",
     "emissions_data": "file:../../emissions-data/typescript_app",
     "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript"
   }
