@@ -7,9 +7,6 @@ import { addAvailableBalance, retireBalance, transferBalance, selectBalance, tru
 import { insertNewBalance } from "./balance.controller";
 import { Balance } from "../models/balance.model";
 
-// for hardhat test purpose
-let hardhatLastBlock = 0;
-
 const BURN = '0x0000000000000000000000000000000000000000';
 
 const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
@@ -67,22 +64,6 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
     }
 }
 
-async function getBalances(issuee: string, tokenId: number): Promise<BalancePayload> {
-    try {
-        // const balances: Array<number> = await contract.methods.getAvailableRetiredAndTransferred(issuee, tokenId).call();
-        const balancePayload: BalancePayload = {
-            tokenId,
-            issuee,
-            available: 0,
-            retired: 0,
-            transferred: 0
-        };
-        return balancePayload;
-    } catch (err) {
-        console.error(err);
-        throw new Error('Error in getTokenDetails: ' + err);
-    }
-}
 
 export const truncateTable = async () => {
     await truncateTokens();
