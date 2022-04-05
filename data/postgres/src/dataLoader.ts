@@ -2,7 +2,7 @@ import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { PostgresDBService } from "./postgresDbService"
-import { importUtilityIdentifiers, loadEmissionsFactors } from "../../common/spreadsheetImport"
+import { importUtilityIdentifiers, loadEmissionsFactors } from "blockchain-carbon-accounting-data-common/spreadsheetImport"
 import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
 import type { DbOpts } from "./config"
 
@@ -25,6 +25,15 @@ const progressBar = new SingleBar(
   }
 
   addCommonYargsOptions(yargs(hideBin(process.argv)))
+  .command(
+    "init",
+    "DB init and table sync",
+    async (argv) => {
+      const db = await init(parseCommonYargsOptions(argv))
+      console.log("=== Init ...")
+      await db.close()
+    }
+  )
   .command(
     "load_emissions_factors <file> [sheet]",
     "load data from XLSX file",

@@ -1,10 +1,8 @@
 import {
     Entity,
     PrimaryColumn,
-    Column,
-    OneToMany
+    Column
 } from 'typeorm';
-import { Balance } from './balance.model';
 
 @Entity()
 export class Token {

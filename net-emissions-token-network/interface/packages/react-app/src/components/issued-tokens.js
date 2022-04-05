@@ -7,6 +7,7 @@ import React, {
   useState
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
+import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
 import {
   formatDate,
@@ -25,7 +26,7 @@ import QueryBuilder from "./query-builder";
 import { BALANCE_FIELDS, TOKEN_FIELDS } from "./static-data";
 
 
-export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
+export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
@@ -95,7 +96,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     console.log(tracker)
   }
 
-  // Allows the parent component to refresh balances on clicking the Dashboard button in the navigation
+  // Allows the parent component to refresh balances on clicking the button in the navigation
   useImperativeHandle(ref, () => ({
     refresh() {
       handleRefresh();
@@ -428,13 +429,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         }}
       />
 
-      <h2>Dashboard</h2>
-      {(displayAddress) ? 
-        <p className="mb-1">View token balances for {displayAddress}.</p>
-        :
-        <p className="mb-1">View your token balances.</p>
-      }
-
       <p className="text-danger">{error}</p>
 
       <div className={fetchingTokens ? "dimmed" : ""}>
@@ -447,52 +441,51 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
           </div>
         )}
 
-        {(signedInAddress) &&
-          <div className="mb-4">
-            <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
+
+        {/* Only display issued tokens if owner or dealer */}
+        {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
+          <div className="mt-4">
+            <h2>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued <Button variant="outline-dark" href="/issue">Issue</Button> </h2>
             <QueryBuilder 
-              fieldList={BALANCE_FIELDS}
-              handleQueryChanged={handleBalanceQueryChanged}
+              fieldList={TOKEN_FIELDS}
+              handleQueryChanged={handleQueryChanged}
             />
             <Table hover size="sm">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Type</th>
-                  <th>Balance</th>
+                  <th>Description</th>
+                  <th>Issued</th>
                   <th>Retired</th>
-                  <th>Transferred (carbon tracker)</th>
                 </tr>
               </thead>
               <tbody>
-                {(myBalances !== [] && !fetchingTokens) &&
-                  myBalances.map((balance) => (
+                {(myIssuedTokens !== [] && !fetchingTokens) &&
+                  myIssuedTokens.map((token) => (
                     <tr
-                      key={balance.token.tokenId}
-                      onClick={() => handleOpenTokenInfoModal(balance.token)}
+                      key={token.tokenId}
+                      onClick={() => handleOpenTokenInfoModal(token)}
                       onMouseOver={pointerHover}
-                      className={`${(Number(balance.availableBalance) <= 0) ? "table-secondary" : ""}`}
                     >
-                      <td>{balance.token.tokenId}</td>
-                      <td>{balance.tokenType}</td>
-                      <td>{balance.availableBalance}</td>
-                      <td>{balance.retiredBalance}</td>
-                      <td>{balance.transferredBalance}</td>
+                      <td>{token.tokenId}</td>
+                      <td>{token.tokenType}</td>
+                      <td>{token.description}</td>
+                      <td>{token.totalIssued}</td>
+                      <td>{token.totalRetired}</td>
                     </tr>
                   ))}
               </tbody>
             </Table>
-            {myBalances.length !== 0 ? <Paginator 
-              count={balanceCount}
-              page={balancePage}
-              pageSize={balancePageSize}
-              pageChangeHandler={handleBalancePageChange}
-              pageSizeHandler={handleBalancePageSizeChanged}
+            {myIssuedTokens.length !== 0 ? <Paginator 
+              count={count}
+              page={page}
+              pageSize={pageSize}
+              pageChangeHandler={handlePageChange}
+              pageSizeHandler={handlePageSizeChange}
             /> : <></>}
           </div>
         }
-
-
       </div>
       <div className={fetchingTrackers? "dimmed" : ""}>
         {/* Only display issued tokens if owner or dealer */}
@@ -537,4 +530,4 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   );
 });
 
-export default Dashboard;
+export default IssuedTokens;

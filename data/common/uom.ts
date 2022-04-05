@@ -1,4 +1,4 @@
-import { ErrUnknownUOM } from "../../emissions-data/chaincode/emissionscontract/typescript/src/util/const";
+import { ErrUnknownUOM } from "emissions_data_chaincode/src/util/const";
 
 const UOM_FACTORS: { [key: string]: number } = {
   wh: 1.0,

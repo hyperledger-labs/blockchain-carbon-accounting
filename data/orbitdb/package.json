@@ -1,5 +1,5 @@
 {
-  "name": "blockchain-carbon-accounting-orbitdb",
+  "name": "blockchain-carbon-accounting-data-orbitdb",
   "version": "1.0.0",
   "description": "Testing out OrbitDB for use in blockchain-carbon-accounting project",
   "main": "src/dataLoader.ts",
@@ -11,13 +11,14 @@
     "serve": "ts-node src/serve.ts",
     "replicateDb": "ts-node src/replicateDb.ts",
     "getData": "ts-node src/getData.ts",
-    "build": "tsc",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "blockchain-carbon-accounting-data-common": "1.0.0",
+    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript",
     "cli-progress": "^3.10.0",
     "go-ipfs": "^0.12.1",
     "ipfs": "^0.62.1",
@@ -40,7 +41,7 @@
     "@types/yargs": "^17.0.10",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
-    "esbuild": "^0.14.29",
+    "esbuild": "^0.14.31",
     "esbuild-runner": "^2.2.1",
     "eslint": "^8.12.0",
     "typescript": "^4.6.3"

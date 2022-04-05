@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { DbInterface } from "./db";
 import { EMISSIONS_FACTOR_TYPE } from "./utils";
 import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
-import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
-import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "../../emissions-data/chaincode/emissionscontract/typescript/src/lib/utilityLookupItem";
+import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor";
+import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "emissions_data_chaincode/src/lib/utilityLookupItem";
 
 
 export type ParseWorksheetOpts = {
