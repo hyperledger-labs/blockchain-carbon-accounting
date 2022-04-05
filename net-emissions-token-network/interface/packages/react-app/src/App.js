@@ -8,6 +8,7 @@ import Tab from 'react-bootstrap/Tab';
 
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./components/dashboard";
+import IssuedTokens from "./components/issued-tokens";
 import IssueForm from "./components/issue-form";
 import TrackForm from "./components/track-form";
 import TransferForm from "./components/transfer-form";
@@ -60,7 +61,7 @@ function App() {
 
         <Link href="/governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
         {isOwnerOrDealer ? 
-          <Link href="/issue"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+          <Link href="/issuedtokens"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
           : null
         }
 
@@ -98,6 +99,9 @@ function App() {
                   </Route>
                   <Route path="/issue">
                     <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
+                  </Route>
+                  <Route path="/issuedtokens">
+                    <IssuedTokens provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                   </Route>
                   <Route path="/transfer">
                     <TransferForm provider={provider} roles={roles} />
