@@ -1,18 +1,19 @@
 import { Response, Request } from 'express';
-import { Token } from "../models/token.model";
-import { QueryBundle, TokenPayload, } from "../models/commonTypes";
-import { countTokens, selectPaginated, insertToken } from "../repositories/token.repo";
+import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
+import { QueryBundle, TokenPayload } from 'blockchain-accounting-data-postgres/src/repositories/common';
+import { Token } from 'blockchain-accounting-data-postgres/src/models/token';
 
 export async function getTokens(req: Request, res: Response) {
     try {
         // getting query from req body
-        let queryBundles: Array<QueryBundle> = req.body.queryBundles;
+        const db = await PostgresDBService.getInstance()
+        const queryBundles: Array<QueryBundle> = req.body.queryBundles;
         const limit = req.body.limit;
         const offset = req.body.offset;
 
         if(offset != undefined && limit != undefined && limit != 0) {
-            const tokens = await selectPaginated(offset, limit, queryBundles);
-            const totalCount = await countTokens(queryBundles);
+            const tokens = await db.getTokenRepo().selectPaginated(offset, limit, queryBundles);
+            const totalCount = await db.getTokenRepo().countTokens(queryBundles);
             return res.status(200).json({
                 status: 'success',
                 tokens,
@@ -34,13 +35,15 @@ export async function getTokens(req: Request, res: Response) {
 
 // not used!
 export async function insertNewToken(token: TokenPayload): Promise<Token> {
-    return insertToken(token);
+    const db = await PostgresDBService.getInstance()
+    return db.getTokenRepo().insertToken(token);
 }
 
 export async function getNumOfTokens (req: Request, res: Response) {
     try {
-        let queryBundles: Array<QueryBundle> = req.body.queryBundles;
-        const numOfTokens = await countTokens(queryBundles);
+        const db = await PostgresDBService.getInstance()
+        const queryBundles: Array<QueryBundle> = req.body.queryBundles;
+        const numOfTokens = await db.getTokenRepo().countTokens(queryBundles);
         return res.status(200).json({
             status: 'success',
             count: numOfTokens

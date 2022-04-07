@@ -2,9 +2,9 @@ import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import { abi } from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { insertNewBalance } from "../controller/balance.controller";
-import { BalancePayload, CreatedToken, TokenPayload } from "../models/commonTypes";
-import { addAvailableBalance, retireBalance, selectBalance, transferBalance } from "../repositories/balance.repo";
-import { insertToken, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
+import { CreatedToken } from "../models/commonTypes";
+import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
+import { BalancePayload, TokenPayload } from 'blockchain-accounting-data-postgres/src/repositories/common';
 
 const web3 = new Web3(new Web3.providers.WebsocketProvider(`wss://speedy-nodes-nyc.moralis.io/${process.env.MORALIS_API_KEY}/bsc/testnet/ws`));
 const contract = new web3.eth.Contract(abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
@@ -43,13 +43,14 @@ export const subscribeEvent = (fromBlock: number) => {
 
             // extract scope and type
             let scope = null, type = null;
-            if(metaObj.hasOwnProperty('Scope')) scope = metaObj['Scope']; 
-            else if(metaObj.hasOwnProperty('scope')) scope = metaObj['scope'];
-            if(metaObj.hasOwnProperty('Type')) type = metaObj['Type']; 
-            else if(metaObj.hasOwnProperty('type')) type = metaObj['type'];
+            if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope']; 
+            else if(Object.prototype.hasOwnProperty.call(metaObj,'scope')) scope = metaObj['scope'];
+            if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type']; 
+            else if(Object.prototype.hasOwnProperty.call(metaObj,'type')) type = metaObj['type'];
 
             // build token model
-            let { metadata, ..._tokenPayload } = { ...token };
+            // eslint-ignore-next-line
+            const { metadata, ..._tokenPayload } = { ...token };
             const tokenPayload: TokenPayload = {
                 ..._tokenPayload,
                 scope,
@@ -57,7 +58,8 @@ export const subscribeEvent = (fromBlock: number) => {
                 metadata: metaObj
             }
 
-            await insertToken(tokenPayload);
+            const db = await PostgresDBService.getInstance()
+            await db.getTokenRepo().insertToken(tokenPayload);
             console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
         })
         .on('changed', (changed: any) => console.log(changed))
@@ -71,6 +73,7 @@ export const subscribeEvent = (fromBlock: number) => {
         fromBlock: 'latest'
     })
         .on('data', async (event: any) => {
+            const db = await PostgresDBService.getInstance()
             const transferred = event.returnValues;
 
             const tokenId: number = transferred.id;
@@ -88,27 +91,27 @@ export const subscribeEvent = (fromBlock: number) => {
                     transferred: 0
                 }
                 await insertNewBalance(balancePayload);
-                await updateTotalIssued(tokenId, amount);
+                await db.getTokenRepo().updateTotalIssued(tokenId, amount);
                 return;
             }
 
             // retire case
             if(to == BURN) {
                 // update total retired
-                await updateTotalRetired(tokenId, amount);
+                await db.getTokenRepo().updateTotalRetired(tokenId, amount);
 
                 // update issuee balance 
-                await retireBalance(from, tokenId, amount);
+                await db.getBalanceRepo().retireBalance(from, tokenId, amount);
                 console.log(`--- ${amount} of Token ${tokenId} Retired from ${from}`);
                 return;
             }
 
             // general transfer!
             // 1) deduct 'from' balance
-            await transferBalance(from, tokenId, amount);
+            await db.getBalanceRepo().transferBalance(from, tokenId, amount);
 
             // transfer case
-            const balance = await selectBalance(to, tokenId);
+            const balance = await db.getBalanceRepo().selectBalance(to, tokenId);
             if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,
@@ -119,7 +122,7 @@ export const subscribeEvent = (fromBlock: number) => {
                 }
                 await insertNewBalance(balancePayload);
             } else {
-                await addAvailableBalance(to, tokenId, amount);
+                await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
             }
             console.log(`--- ${amount} of Token ${tokenId} transferred from ${from} to ${to}`);
         })

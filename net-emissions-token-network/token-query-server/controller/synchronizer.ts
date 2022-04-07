@@ -1,18 +1,18 @@
 import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
-import { CreatedToken, TokenPayload, BalancePayload } from "../models/commonTypes";
-import { countTokens, insertToken, selectToken, truncateTokens, updateTotalIssued, updateTotalRetired } from "../repositories/token.repo";
-import { addAvailableBalance, retireBalance, transferBalance, selectBalance, truncateBalances } from "../repositories/balance.repo";
+import { CreatedToken } from "../models/commonTypes";
+import { TokenPayload, BalancePayload } from 'blockchain-accounting-data-postgres/src/repositories/common'
 import { insertNewBalance } from "./balance.controller";
-import { Balance } from "../models/balance.model";
+import { Balance } from "blockchain-accounting-data-postgres/src/models/balance";
+import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 
 const BURN = '0x0000000000000000000000000000000000000000';
 
 const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
 const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
 
-const FIRST_BLOCK: number = 17770812;
+const FIRST_BLOCK = 17770812;
 
 // get number of unique tokens
 const getNumOfUniqueTokens = async (): Promise<number> => {
@@ -35,17 +35,14 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
         // extract scope and type
         let scope = null, type = null;
-        if (metaObj.hasOwnProperty('Scope'))
-            scope = metaObj['Scope'];
-        else if (metaObj.hasOwnProperty('scope'))
-            scope = metaObj['scope'];
-        if (metaObj.hasOwnProperty('Type'))
-            type = metaObj['Type'];
-        else if (metaObj.hasOwnProperty('type'))
-            type = metaObj['type'];
+        if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope']; 
+        else if(Object.prototype.hasOwnProperty.call(metaObj,'scope')) scope = metaObj['scope'];
+        if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type']; 
+        else if(Object.prototype.hasOwnProperty.call(metaObj,'type')) type = metaObj['type'];
 
         // build token model
-        let { metadata, ..._tokenPayload } = { ...token };
+        // eslint-disable-next-line
+        const { metadata, ..._tokenPayload } = { ...token };
         const tokenPayload: TokenPayload = {
             ..._tokenPayload,
             scope,
@@ -66,15 +63,18 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
 
 export const truncateTable = async () => {
-    await truncateTokens();
-    await truncateBalances();
+    const db = await PostgresDBService.getInstance()
+    await db.getTokenRepo().truncateTokens();
+    await db.getBalanceRepo().truncateBalances();
     console.log('--- Tables has been cleared. ----\n')
 }
 
-export const fillTokens = async ():Promise<number> => {
+export const fillTokens = async (): Promise<number> => {
     
+    const db = await PostgresDBService.getInstance()
+
     // get number tokens from database
-    const numOfSavedTokens = await countTokens([]);
+    const numOfSavedTokens = await db.getTokenRepo().countTokens([]);
 
     // get number tokens from network
     const numOfIssuedTokens = await getNumOfUniqueTokens();
@@ -85,7 +85,7 @@ export const fillTokens = async ():Promise<number> => {
         for (let i = numOfSavedTokens + 1; i <= numOfIssuedTokens; i++) {
             // getting token details and store
             const token: TokenPayload = await getTokenDetails(i);
-            await insertToken(token);
+            await db.getTokenRepo().insertToken(token);
         }
     }
     console.log(`${numOfIssuedTokens - numOfSavedTokens} tokens are stored into database.`);
@@ -98,9 +98,10 @@ export const fillTokens = async ():Promise<number> => {
  */
 export const fillBalances = async (currentBlock: number) => {
 
+    const db = await PostgresDBService.getInstance()
     let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
     let toBlock: number | string = fromBlock;
-    while(true) {
+    while(toBlock != currentBlock) {
         // target event is TokenRetired & TransferSingle
         if(fromBlock + 5000 > currentBlock) 
             toBlock = currentBlock;
@@ -127,29 +128,29 @@ export const fillBalances = async (currentBlock: number) => {
                 }
 
                 // resolve conflicts
-                const balance: Balance | undefined = await selectBalance(to, tokenId);
+                const balance: Balance | undefined = await db.getBalanceRepo().selectBalance(to, tokenId);
                 if(balance != undefined) continue;
 
                 await insertNewBalance(balancePayload);
-                await updateTotalIssued(tokenId, amount);
+                await db.getTokenRepo().updateTotalIssued(tokenId, amount);
                 continue;
             }
 
             // retire case
             if(to == BURN) {
                 // update issuee balance
-                await retireBalance(from, tokenId, amount);
+                await db.getBalanceRepo().retireBalance(from, tokenId, amount);
                 
                 // update token balance
-                await updateTotalRetired(tokenId, amount);
+                await db.getTokenRepo().updateTotalRetired(tokenId, amount);
                 continue;
             }
             // general transfer!
             // 1) deduct 'from' balance
-            await transferBalance(from, tokenId, amount);
+            await db.getBalanceRepo().transferBalance(from, tokenId, amount);
 
             // 2) add available 'to' balance
-            const balance: Balance | undefined = await selectBalance(to, tokenId);
+            const balance: Balance | undefined = await db.getBalanceRepo().selectBalance(to, tokenId);
             if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,
@@ -160,7 +161,7 @@ export const fillBalances = async (currentBlock: number) => {
                 }
                 await insertNewBalance(balancePayload);
             } else {
-                await addAvailableBalance(to, tokenId, amount);
+                await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
             }
         }
 

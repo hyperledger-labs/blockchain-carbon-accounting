@@ -1,6 +1,6 @@
 // Process query bundles for GET request
 import {Request, Response, NextFunction } from 'express';
-import { QueryBundle } from "../models/commonTypes";
+import { QueryBundle } from 'blockchain-accounting-data-postgres/src/repositories/common'
 import { queryProcessor } from './base.middle';
 
 export const queryProcessing = async (req: Request, res: Response, next: NextFunction) => {

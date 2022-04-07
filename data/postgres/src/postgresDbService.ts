@@ -10,7 +10,7 @@ import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 export class PostgresDBService {
 
   private _db: DataSource
-  private static _instance: PostgresDBService
+  private static _instance: PostgresDBService | null
   private static _instanceLoading: Promise<PostgresDBService>
 
   public static getInstance = async (opts?: DbOpts): Promise<PostgresDBService> => {

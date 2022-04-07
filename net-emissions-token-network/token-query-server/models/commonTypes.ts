@@ -13,39 +13,6 @@ export interface CreatedToken {
     totalRetired: number;
 }
 
-export interface TokenPayload {
-    tokenId: number;
-    tokenTypeId: number;
-    issuee: string;
-    issuer: string;
-    fromDate: number;
-    thruDate: number;
-    dateCreated: number;
-    metadata: Object;
-    manifest: string;
-    description: string;
-    totalIssued: number;
-    totalRetired: number;
-    scope: number;
-    type: string;
-}
-
-export interface BalancePayload {
-    issuee: string;
-    tokenId: number;
-    available: number;
-    retired: number;
-    transferred: number;
-}
-
-export type QueryBundle = {
-    field: string,
-    fieldType: string,
-    value: number | string,
-    op: string,
-}
-
-
 export type FIELD = {
     fieldType: string;
     op: Array<string>;
@@ -73,10 +40,6 @@ export const OP_MAP: IOP_MAP = {
     'like': 'like',
     'ls': '<',
     'gt': '>',
-}
-
-export interface StringPayload {
-    [key: string] : string | number
 }
 
 export type QueryPayload = {

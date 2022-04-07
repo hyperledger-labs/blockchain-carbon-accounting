@@ -1,4 +1,5 @@
-import { FIELD, IFIELDS, FIELDS, QueryBundle, OP_MAP, IOP_MAP } from "../models/commonTypes";
+import { QueryBundle } from "blockchain-accounting-data-postgres/src/repositories/common";
+import { FIELD, IFIELDS, FIELDS, OP_MAP, IOP_MAP } from "../models/commonTypes";
 
 function validateQuery(bundle: QueryBundle) : boolean {
     // field name checking
