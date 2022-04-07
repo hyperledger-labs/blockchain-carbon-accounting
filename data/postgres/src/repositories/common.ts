@@ -37,6 +37,16 @@ export interface TokenPayload {
   type: string;
 }
 
+export interface EmissionsRequestPayload {
+  input_data: string;
+  public_key: string;
+  public_key_name: string;
+  issuee: string;
+  status: string;
+
+}
+
+
 const BALANCE_FIELDS = ['issuee', 'tokenId', 'available', 'retired', 'transferred']
 
 // eslint-disable-next-line
