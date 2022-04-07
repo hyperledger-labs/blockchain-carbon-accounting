@@ -42,23 +42,6 @@ export const OP_MAP: IOP_MAP = {
     'gt': '>',
 }
 
-export type QueryPayload = {
-    tokenId? : number,
-    tokenTypeId? : number,
-    issuer? : string,
-    issuee? : string,
-    fromDate? : number,
-    thruDate? : number,
-    dateCreated? : number,
-    metadata? : string,
-    manifest? : string,
-    desc? : string,
-    totalIssued? : number,
-    totalRetired? : number,
-    scope? : number,
-    type? : string
-}
-
 export type IFIELDS = {
     "tokenId"? : FIELD,
     "tokenTypeId"? : FIELD,

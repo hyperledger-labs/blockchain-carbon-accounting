@@ -5,6 +5,7 @@ import { BalanceRepo } from "./repositories/balance.repo"
 import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
+import { WalletRepo } from "./repositories/wallet.repo"
 
 
 export class PostgresDBService {
@@ -57,6 +58,10 @@ export class PostgresDBService {
 
   public getBalanceRepo() {
     return new BalanceRepo(this._db)
+  }
+
+  public getWalletRepo() {
+    return new WalletRepo(this._db)
   }
 }
 

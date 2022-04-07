@@ -2,7 +2,7 @@ import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { QueryBundle } from 'blockchain-accounting-data-postgres/src/repositories/common';
 
-export async function getTokens(req: Request, res: Response) {
+export async function getWallets(req: Request, res: Response) {
     try {
         // getting query from req body
         const db = await PostgresDBService.getInstance()
@@ -11,11 +11,11 @@ export async function getTokens(req: Request, res: Response) {
         const offset = req.body.offset;
 
         if(offset != undefined && limit != undefined && limit != 0) {
-            const tokens = await db.getTokenRepo().selectPaginated(offset, limit, queryBundles);
-            const totalCount = await db.getTokenRepo().countTokens(queryBundles);
+            const wallets = await db.getWalletRepo().selectPaginated(offset, limit, queryBundles);
+            const totalCount = await db.getWalletRepo().countWallets(queryBundles);
             return res.status(200).json({
                 status: 'success',
-                tokens,
+                wallets,
                 count: totalCount
             });
         }
@@ -33,14 +33,32 @@ export async function getTokens(req: Request, res: Response) {
     }
 }
 
-export async function getNumOfTokens (req: Request, res: Response) {
+export async function insertNewWallet(req: Request, res: Response) {
+    try {
+        const db = await PostgresDBService.getInstance()
+        const wallet = await db.getWalletRepo().insertWallet(req.body);
+        return res.status(200).json({
+            status: 'success',
+            wallet,
+        });
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            status: 'failed',
+            error
+        });
+    }
+}
+
+export async function getNumOfWallets(req: Request, res: Response) {
     try {
         const db = await PostgresDBService.getInstance()
         const queryBundles: Array<QueryBundle> = req.body.queryBundles;
-        const numOfTokens = await db.getTokenRepo().countTokens(queryBundles);
+        const numOfWallets = await db.getWalletRepo().countWallets(queryBundles);
         return res.status(200).json({
             status: 'success',
-            count: numOfTokens
+            count: numOfWallets
         });
     } catch (error) {
         console.error(error)
@@ -50,3 +68,4 @@ export async function getNumOfTokens (req: Request, res: Response) {
         });
     }
 }
+

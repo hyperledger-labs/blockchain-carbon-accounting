@@ -41,3 +41,37 @@ export const getBalances = async (offset, limit, query) => {
         throw new Error("cannot get balances from api server");
     }
 }
+
+export const registerUserRole = async (address, name, organization, public_key, public_key_name, roles) => {
+    try {
+        var params = {
+            address,
+            name,
+            organization,
+            public_key,
+            public_key_name,
+            roles
+        };
+        const { data } = await axios.post('/wallets', params);
+        console.log('registerUserRole response:', data);
+        if(data.status === 'success') return data;
+        else return [];
+    } catch(error) {
+        throw new Error("cannot get balances from api server");
+    }
+}
+
+export const unregisterUserRole = async (address, roles) => {
+    try {
+        var params = {
+            address,
+            roles
+        };
+        const { data } = await axios.post('/wallets', params);
+        console.log('unregisterUserRole response:', data);
+        if(data.status === 'success') return data;
+        else return [];
+    } catch(error) {
+        throw new Error("cannot get balances from api server");
+    }
+}

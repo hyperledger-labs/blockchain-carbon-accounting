@@ -8,18 +8,18 @@ import {
 @Entity()
 export class Wallet {
 
-  @PrimaryColumn("uuid")
+  @PrimaryColumn()
   address: string
 
-  @Column()
+  @Column({nullable:true})
   name?: string
-  @Column()
+  @Column({nullable:true})
   organization?: string
-  @Column()
+  @Column({nullable:true})
   public_key?: string
-  @Column()
+  @Column({nullable:true})
   public_key_name?: string
-  @Column()
+  @Column({nullable:true})
   roles?: string
 }
 

@@ -23,6 +23,7 @@ export async function getBalances(req: Request, res: Response) {
             error: 'Bad query request'
         });
     } catch (error) {
+        console.error(error)
         return res.status(500).json({
             status: 'failed',
             error
@@ -45,6 +46,7 @@ export async function getNumOfBalances(req: Request, res: Response) {
             count: numOfBalances
         });
     } catch (error) {
+        console.error(error)
         return res.status(500).json({
             status: 'failed',
             error
