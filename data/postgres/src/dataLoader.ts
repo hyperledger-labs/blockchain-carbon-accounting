@@ -24,14 +24,18 @@ const progressBar = new SingleBar(
     return await PostgresDBService.getInstance(dbopts)
   }
 
-  addCommonYargsOptions(yargs(hideBin(process.argv)))
+  const a = addCommonYargsOptions(yargs(hideBin(process.argv)))
+  .parserConfiguration({
+    "dot-notation": false, // Note: this is required or yargs gets confused in ts-node with file names having a dot
+  })
   .command(
     "init",
     "DB init and table sync",
     async (argv) => {
-      const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Init ...")
+      const db = await init(parseCommonYargsOptions(argv))
       await db.close()
+      console.log("=== Done")
     }
   )
   .command(

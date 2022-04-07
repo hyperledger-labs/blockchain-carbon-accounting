@@ -1,19 +1,21 @@
-import type { CO2EmissionFactorInterface } from "emissions_data_chaincode/src/lib/emissions-calc";
-import type { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import type { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem";
-import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const";
-import { DbOpts, parseCommonYargsOptions } from "./config";
-import { getUomFactor } from "blockchain-carbon-accounting-data-common/uom";
-import { ActivityInterface, getYearFromDate } from "blockchain-carbon-accounting-data-common/utils";
-import { DbInterface } from "blockchain-carbon-accounting-data-common/db";
-import { initModels, EmissionsFactorModel, UtilityLookupItemModel } from './models'
-import { Op, Sequelize } from "sequelize";
+import type { CO2EmissionFactorInterface } from "emissions_data_chaincode/src/lib/emissions-calc"
+import type { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor"
+import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor"
+import type { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem"
+import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const"
+import { getUomFactor } from "blockchain-carbon-accounting-data-common/uom"
+import { ActivityInterface, getYearFromDate } from "blockchain-carbon-accounting-data-common/utils"
+import { DbInterface } from "blockchain-carbon-accounting-data-common/db"
+import { DataSource, FindOptionsWhere, ILike } from "typeorm"
+import { DbOpts, parseCommonYargsOptions } from "./config"
+import { initDb } from './models'
+import { EmissionsFactor } from './models/emissionsFactor'
+import { UtilityLookupItem } from "./models/utilityLookupItem"
 
 
 export class PostgresDBService implements DbInterface {
 
-  private _db: Sequelize;
+  private _db: DataSource;
   private static _instance: PostgresDBService;
   private static _instanceLoading: Promise<PostgresDBService>;
 
@@ -31,46 +33,40 @@ export class PostgresDBService implements DbInterface {
     if (!opts) opts = parseCommonYargsOptions({})
     
     try {
-      const db = new Sequelize(opts.dbName, opts.dbUser, opts.dbPassword, {
-        host: opts.dbHost,
-        dialect: opts.dbDialect,
-        logging: opts.dbVerbose
-      })
-
-      await initModels(db, opts)
+      const db = await initDb(opts)
       return new PostgresDBService(db)
     } catch (error) {
       throw new Error('Error initializing the DB:' + error)
     }
   }
 
-  constructor(dbConnection: Sequelize) {
+  constructor(dbConnection: DataSource) {
     this._db = dbConnection
   }
 
   public async close() {
-    await this._db.close()
+    await this._db.destroy()
     PostgresDBService._instance = null
   }
-
+  
   private makeEmissionFactorMatchWhereCondition = (doc: Partial<EmissionsFactorInterface>) => {
     const cond = this.makeEmissionFactorMatchCondition(doc);
-    return { where: { [Op.and]: cond }, raw: true}
+    return { where: cond }
   }
 
   private makeEmissionFactorMatchCondition = (doc: Partial<EmissionsFactorInterface>) => {
     // creates an array of case insensitive queries
-    const conditions = []
-    if (doc.scope) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('scope')), doc.scope.toUpperCase())); 
-    if (doc.level_1) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('level_1')), doc.level_1.toUpperCase())); 
-    if (doc.level_2) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('level_2')), doc.level_2.toUpperCase())); 
-    if (doc.level_3) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('level_3')), doc.level_3.toUpperCase())); 
-    if (doc.level_4) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('level_4')), doc.level_4.toUpperCase())); 
-    if (doc.text) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('text')), doc.text.toUpperCase())); 
-    if (doc.activity_uom) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('activity_uom')), doc.activity_uom.toUpperCase())); 
-    if (doc.year) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('year')), doc.year.toUpperCase())); 
-    if (doc.division_id) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('division_id')), doc.division_id.toUpperCase())); 
-    if (doc.division_type) conditions.push(Sequelize.where(Sequelize.fn('UPPER', Sequelize.col('division_type')), doc.division_type.toUpperCase())); 
+    const conditions: FindOptionsWhere<EmissionsFactor> = {}
+    if (doc.scope) conditions.scope = ILike(doc.scope)
+    if (doc.level_1) conditions.level_1 = ILike(doc.level_1)
+    if (doc.level_2) conditions.level_2 = ILike(doc.level_2)
+    if (doc.level_3) conditions.level_3 = ILike(doc.level_3)
+    if (doc.level_4) conditions.level_4 = ILike(doc.level_4)
+    if (doc.text) conditions.text = ILike(doc.text)
+    if (doc.activity_uom) conditions.activity_uom = ILike(doc.activity_uom)
+    if (doc.year) conditions.year = ILike(doc.year)
+    if (doc.division_id) conditions.division_id = ILike(doc.division_id)
+    if (doc.division_type) conditions.division_type = ILike(doc.division_type)
     return conditions
   }
 
@@ -92,36 +88,37 @@ export class PostgresDBService implements DbInterface {
 
   public putEmissionFactor = async (doc: EmissionsFactorInterface) => {
     // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
-    await EmissionsFactorModel.destroy(this.makeEmissionFactorMatchWhereCondition(doc))
-    await EmissionsFactorModel.create(doc as Partial<EmissionsFactorInterface>)
+    const repo = this._db.getRepository(EmissionsFactor)
+    await repo.delete(this.makeEmissionFactorMatchCondition(doc))
+    await repo.save(doc)
   };
 
   public getEmissionFactor = async (uuid: string): Promise<EmissionsFactorInterface> => {
-    return await EmissionsFactorModel.findByPk(uuid, {raw: true});
+    return await this._db.getRepository(EmissionsFactor).findOneBy({uuid})
   };
 
   public putUtilityLookupItem = async (doc: UtilityLookupItemInterface) => {
-    await UtilityLookupItemModel.create(doc as Partial<UtilityLookupItemInterface>)
+    await this._db.getRepository(UtilityLookupItem).save(doc)
   };
 
   public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface> => {
-    return await UtilityLookupItemModel.findByPk(uuid, {raw: true});
+    return await this._db.getRepository(UtilityLookupItem).findOneBy({uuid})
   };
 
   public getAllUtilityLookupItems = async (): Promise<UtilityLookupItemInterface[]> => {
-    return await UtilityLookupItemModel.findAll({raw: true});
+    return await this._db.getRepository(UtilityLookupItem).find()
   };
 
   public countAllUtilityLookupItems = async (): Promise<number> => {
-    return await UtilityLookupItemModel.count();
+    return await this._db.getRepository(UtilityLookupItem).count()
   };
 
   public getAllFactors = async (): Promise<EmissionsFactorInterface[]> => {
-    return await EmissionsFactorModel.findAll({raw: true});
+    return await this._db.getRepository(EmissionsFactor).find()
   };
 
   public countAllFactors = async (): Promise<number> => {
-    return await EmissionsFactorModel.count();
+    return await this._db.getRepository(EmissionsFactor).count()
   };
 
   public getEmissionsFactorsByDivision = async (
@@ -201,7 +198,7 @@ export class PostgresDBService implements DbInterface {
   };
 
   public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
-    return await EmissionsFactorModel.findAll(this.makeEmissionFactorMatchWhereCondition(query));
+    return await this._db.getRepository(EmissionsFactor).find(this.makeEmissionFactorMatchWhereCondition(query))
   };
 
   public getEmissionsFactorByScope = async (scope: string): Promise<EmissionsFactorInterface[]> => {
