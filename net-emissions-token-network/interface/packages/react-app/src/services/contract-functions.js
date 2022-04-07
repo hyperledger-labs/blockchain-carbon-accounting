@@ -203,7 +203,7 @@ export async function issue(
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let issue_result;
   try {
     await signed.issue(
@@ -226,7 +226,7 @@ export async function issue(
 export async function retire(w3provider, tokenId, amount) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let retire_result;
   try {
     await signed.retire(tokenId, amount);
@@ -240,7 +240,7 @@ export async function retire(w3provider, tokenId, amount) {
 export async function transfer(w3provider, address, tokenId, amount) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let transfer_result;
   try {
     await signed.transfer(address, tokenId, amount);
@@ -254,7 +254,7 @@ export async function transfer(w3provider, address, tokenId, amount) {
 export async function registerConsumer(w3provider, address) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let registerConsumer_result;
   try {
     await signed.registerConsumer(address);
@@ -268,7 +268,7 @@ export async function registerConsumer(w3provider, address) {
 export async function unregisterConsumer(w3provider, address) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let unregisterConsumer_result;
   try {
     await signed.unregisterConsumer(address);
@@ -282,7 +282,7 @@ export async function unregisterConsumer(w3provider, address) {
 export async function registerIndustry(w3provider, address) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let registerIndustry_result;
   try {
     await signed.registerIndustry(address);
@@ -296,7 +296,7 @@ export async function registerIndustry(w3provider, address) {
 export async function registerDealer(w3provider, address, tokenTypeId) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let registerDealer_result;
   try {
     await signed.registerDealer(address, tokenTypeId);
@@ -310,7 +310,7 @@ export async function registerDealer(w3provider, address, tokenTypeId) {
 export async function unregisterDealer(w3provider, address, tokenTypeId) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let unregisterDealer_result;
   try {
     await signed.unregisterDealer(address, tokenTypeId);
@@ -356,7 +356,7 @@ export async function daoTokenBalanceOf(w3provider, account) {
 export async function delegate(w3provider, delegatee) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let delegate;
   try {
     await signed.delegate(delegatee);
@@ -420,7 +420,7 @@ export async function getProposalState(w3provider, proposalId) {
 export async function propose(w3provider, targets, values, signatures, calldatas, description) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let proposal;
   try {
     if (targets && targets.length > 1) {
@@ -495,7 +495,7 @@ export async function getDescription(w3provider, proposalId) {
 export async function castVote(w3provider, proposalId, support, votes) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let castVote;
   try {
     await signed.castVote(proposalId, support, votes);
@@ -509,7 +509,7 @@ export async function castVote(w3provider, proposalId, support, votes) {
 export async function queue(w3provider, proposalId) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let queue;
   try {
     await signed.queue(proposalId);
@@ -523,7 +523,7 @@ export async function queue(w3provider, proposalId) {
 export async function execute(w3provider, proposalId) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let execute;
   try {
     await signed.execute(proposalId);
@@ -537,7 +537,7 @@ export async function execute(w3provider, proposalId) {
 export async function cancel(w3provider, proposalId) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let cancel;
   try {
     await signed.cancel(proposalId);
@@ -551,7 +551,7 @@ export async function cancel(w3provider, proposalId) {
 export async function refund(w3provider, proposalId) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let refund;
   try {
     await signed.refund(proposalId);
@@ -588,7 +588,7 @@ export async function getProposalThreshold(w3provider) {
 export async function registerTracker(w3provider,trackee){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let register_result;
   try {
     await signed.registerTracker(trackee,);
@@ -676,7 +676,7 @@ export async function track(
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let signed = await contract.connect(signer);
+  let signed = contract.connect(signer);
   let track_result;
   try {
     await signed.track(
