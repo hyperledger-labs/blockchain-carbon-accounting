@@ -1,11 +1,11 @@
 import { Presets, SingleBar } from "cli-progress";
 import { readFile } from "xlsx";
 import { v4 as uuidv4 } from 'uuid';
-import { DbInterface } from "./db";
 import { EMISSIONS_FACTOR_TYPE } from "./utils";
 import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
 import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor";
 import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "emissions_data_chaincode/src/lib/utilityLookupItem";
+import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from "./db"
 
 
 export type ParseWorksheetOpts = {
@@ -95,7 +95,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
   return data;
 };
 
-export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: DbInterface) => {
+export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: EmissionFactorDbInterface) => {
   const supportedFiles = [
     { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
     { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
@@ -578,7 +578,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
   }
 }
 
-export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: DbInterface) => {
+export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: UtilityLookupItemDbInterface) => {
   opts.skip_rows = 1;
 
   if (opts.file == "Utility_Data_2019.xlsx") {

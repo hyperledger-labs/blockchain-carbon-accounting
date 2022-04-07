@@ -14,7 +14,7 @@ import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/c
 import { parseCommonYargsOptions } from "./config";
 import { getUomFactor } from "blockchain-carbon-accounting-data-common/uom";
 import { ActivityInterface, EMISSIONS_FACTOR_TYPE, getYearFromDate } from "blockchain-carbon-accounting-data-common/utils";
-import { DbInterface } from 'blockchain-carbon-accounting-data-common/db';
+import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from 'blockchain-carbon-accounting-data-common/db';
 
 
 type StoreRecord = UtilityLookupItemInterface | EmissionsFactorInterface;
@@ -25,7 +25,7 @@ function PromiseTimeout(delayms: number) {
   });
 }
 
-export class OrbitDBService implements DbInterface {
+export class OrbitDBService implements EmissionFactorDbInterface, UtilityLookupItemDbInterface {
   private static _db: DocumentStore<StoreRecord>;
   private static _initCalled = false;
 

@@ -4,6 +4,8 @@ import { DataSource } from "typeorm"
 import { EmissionsFactor } from "./models/emissionsFactor"
 import { UtilityLookupItem } from "./models/utilityLookupItem"
 import { Wallet } from "./models/wallet"
+import { Token } from "./models/token"
+import { Balance } from "./models/balance"
 
 
 export const initDb = async (opts: DbOpts) => {
@@ -15,7 +17,7 @@ export const initDb = async (opts: DbOpts) => {
     username: opts.dbUser,
     password: opts.dbPassword,
     database: opts.dbName,
-    entities: [EmissionsFactor, UtilityLookupItem, Wallet],
+    entities: [EmissionsFactor, UtilityLookupItem, Wallet, Balance, Token],
     synchronize: true,
     logging: false,
   })

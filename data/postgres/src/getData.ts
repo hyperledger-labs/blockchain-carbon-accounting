@@ -41,7 +41,7 @@ import type { DbOpts } from "./config"
     }
 
     try {
-      const allLookup = await db.getAllFactors()
+      const allLookup = await db.getEmissionsFactorRepo().getAllFactors()
       console.log("Test getAllFactors ...")
       console.log(" got count : ", allLookup ? allLookup.length : null)
       if (allLookup && allLookup.length) {
@@ -53,7 +53,7 @@ import type { DbOpts } from "./config"
     }
 
     try {
-      const res = await db.getCO2EmissionFactorByActivity(factor, activity)
+      const res = await db.getEmissionsFactorRepo().getCO2EmissionFactorByActivity(factor, activity)
       console.log("Test getCO2EmissionFactorByActivity ...")
       console.log(res)
     } catch (e) {
@@ -61,7 +61,7 @@ import type { DbOpts } from "./config"
     }
 
     try {
-      const res = await db.getCO2EmissionByActivity(activity)
+      const res = await db.getEmissionsFactorRepo().getCO2EmissionByActivity(activity)
       console.log("Test getCO2EmissionByActivity ...")
       console.log(res)
     } catch (e) {
@@ -72,8 +72,8 @@ import type { DbOpts } from "./config"
   .command("factors", "Query all factors from the DB", {}, async (args) => {
     const db = await init(parseCommonYargsOptions(args))
     try {
-      const count = await db.countAllFactors()
-      const allLookup = await db.getAllFactors()
+      const count = await db.getEmissionsFactorRepo().countAllFactors()
+      const allLookup = await db.getEmissionsFactorRepo().getAllFactors()
       console.log("count : ", count)
 
       if (allLookup && allLookup.length) {
@@ -132,7 +132,7 @@ import type { DbOpts } from "./config"
             text: args.text,
             activity_uom: args.uom,
           }
-        const res = await db.getEmissionsFactors(f)
+        const res = await db.getEmissionsFactorRepo().getEmissionsFactors(f)
         console.log(res)
       } catch (e) {
         console.log('Error', e)
@@ -182,7 +182,7 @@ import type { DbOpts } from "./config"
     async (args) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
-        const res = await db.getCO2EmissionByActivity({
+        const res = await db.getEmissionsFactorRepo().getCO2EmissionByActivity({
             scope: args.scope,
             level_1: args.level1,
             level_2: args.level2,

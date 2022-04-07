@@ -54,8 +54,8 @@ const progressBar = new SingleBar(
     async (argv) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting load_emissions_factors ...")
-      await loadEmissionsFactors(argv, progressBar, db)
-      const count = await db.countAllFactors()
+      await loadEmissionsFactors(argv, progressBar, db.getEmissionsFactorRepo())
+      const count = await db.getEmissionsFactorRepo().countAllFactors()
       console.log(`=== Done, we now have ${count} EmissionFactors in the DB`)
       await db.close()
     }
@@ -76,8 +76,8 @@ const progressBar = new SingleBar(
     async (argv) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting import_utility_identifiers ...")
-      await importUtilityIdentifiers(argv, progressBar, db)
-      const count = await db.countAllUtilityLookupItems()
+      await importUtilityIdentifiers(argv, progressBar, db.getUtilityLookupItemRepo())
+      const count = await db.getUtilityLookupItemRepo().countAllUtilityLookupItems()
       console.log(`=== Done, we now have ${count} UtilityLookupItems in the DB`)
       await db.close()
     }
