@@ -28,6 +28,7 @@ export class Token {
     dateCreated!: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
+    // eslint-disable-next-line
     metadata!: Object;
 
     @Column()

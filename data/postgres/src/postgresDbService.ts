@@ -1,8 +1,10 @@
 import { DataSource } from "typeorm"
 import { DbOpts, parseCommonYargsOptions } from "./config"
 import { initDb } from './models'
-import { EmissionsFactorRepo } from "./repositories/emissionsFactorRepo"
-import { UtilityLookupItemRepo } from "./repositories/utilityLookupItemRepo"
+import { BalanceRepo } from "./repositories/balance.repo"
+import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
+import { TokenRepo } from "./repositories/token.repo"
+import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 
 
 export class PostgresDBService {
@@ -47,6 +49,14 @@ export class PostgresDBService {
 
   public getUtilityLookupItemRepo() {
     return new UtilityLookupItemRepo(this._db)
+  }
+
+  public getTokenRepo() {
+    return new TokenRepo(this._db)
+  }
+
+  public getBalanceRepo() {
+    return new BalanceRepo(this._db)
   }
 }
 
