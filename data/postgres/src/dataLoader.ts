@@ -24,7 +24,7 @@ const progressBar = new SingleBar(
     return await PostgresDBService.getInstance(dbopts)
   }
 
-  const a = addCommonYargsOptions(yargs(hideBin(process.argv)))
+  addCommonYargsOptions(yargs(hideBin(process.argv)))
   .parserConfiguration({
     "dot-notation": false, // Note: this is required or yargs gets confused in ts-node with file names having a dot
   })
