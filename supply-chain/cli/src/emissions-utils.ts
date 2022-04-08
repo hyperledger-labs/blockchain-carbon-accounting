@@ -1,4 +1,5 @@
 import { BigNumber } from "bignumber.js";
+import { readFileSync } from 'fs';
 import BCGatewayConfig from "emissions_data/src/blockchain-gateway/config";
 import {
   IEthNetEmissionsTokenIssueInput,
@@ -8,6 +9,7 @@ import EthNetEmissionsTokenGateway from "emissions_data/src/blockchain-gateway/n
 import Signer from "emissions_data/src/blockchain-gateway/signer";
 import { setup } from "emissions_data/src/utils/logger";
 import { PostgresDBService } from "blockchain-carbon-accounting-data-postgres/src/postgresDbService";
+import { EmissionsRequestPayload } from "blockchain-carbon-accounting-data-postgres/src/repositories/common";
 import {
   Activity,
   ActivityResult,
@@ -418,4 +420,27 @@ export async function issue_tokens_with_issuee(
   );
   doc.token = token_res;
   return token_res;
+}
+
+export async function create_emissions_request(
+  input_data: string,
+  publickey_name: string,
+  issuee: string
+) {
+  issuee = issuee || process.env.ETH_ISSUEE_ACCT;
+  const status = 'PENDING';
+  const publickey = readFileSync(publickey_name, 'utf8');
+
+  console.log('Create Emissions Request ...');
+
+  const payload: EmissionsRequestPayload = {
+    input_data: input_data,
+    public_key: publickey,
+    public_key_name: publickey_name,
+    issuee: issuee,
+    status: status
+  }
+
+  const db = await getDBInstance();
+  await db.getEmissionsRequestRepo().insert(payload);
 }

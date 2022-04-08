@@ -6,6 +6,7 @@ import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
+import { EmissionsRequestRepo } from "./repositories/emissionsRequest.repo"
 
 
 export class PostgresDBService {
@@ -62,6 +63,10 @@ export class PostgresDBService {
 
   public getWalletRepo() {
     return new WalletRepo(this._db)
+  }
+
+  public getEmissionsRequestRepo() {
+    return new EmissionsRequestRepo(this._db)
   }
 }
 

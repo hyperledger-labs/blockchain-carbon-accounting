@@ -43,7 +43,6 @@ export interface EmissionsRequestPayload {
   public_key_name: string;
   issuee: string;
   status: string;
-
 }
 
 
