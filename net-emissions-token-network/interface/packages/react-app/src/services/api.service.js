@@ -72,6 +72,19 @@ export const unregisterUserRole = async (address, roles) => {
         if(data.status === 'success') return data;
         else return [];
     } catch(error) {
-        throw new Error("cannot get balances from api server");
+        throw new Error("cannot get response from api server");
+    }
+}
+
+export const lookupWallets = async (query) => {
+    try {
+        var params = new URLSearchParams();
+        params.append('query', query);
+        const { data } = await axios.get('/wallets', { params });
+        console.log('lookupWallets response:', data, params, query);
+        if(data.status === 'success') return data;
+        else return [];
+    } catch(error) {
+        throw new Error("cannot get wallets from api server");
     }
 }

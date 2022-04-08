@@ -6,18 +6,30 @@ export async function getWallets(req: Request, res: Response) {
     try {
         // getting query from req body
         const db = await PostgresDBService.getInstance()
-        const queryBundles: Array<QueryBundle> = req.body.queryBundles;
         const limit = req.body.limit;
         const offset = req.body.offset;
+        const query = req.body.query || req.query.query;
 
-        if(offset != undefined && limit != undefined && limit != 0) {
-            const wallets = await db.getWalletRepo().selectPaginated(offset, limit, queryBundles);
-            const totalCount = await db.getWalletRepo().countWallets(queryBundles);
+        if (query) {
+            const q = `${query}%`;
+            const wallets = await db.getWalletRepo().lookupPaginated(offset, limit, q);
+            const count = await db.getWalletRepo().countLookupWallets(q);
             return res.status(200).json({
                 status: 'success',
                 wallets,
-                count: totalCount
+                count
             });
+        } else if (req.body.queryBundles) {
+            const queryBundles: Array<QueryBundle> = req.body.queryBundles;
+            if(offset != undefined && limit != undefined && limit != 0) {
+                const wallets = await db.getWalletRepo().selectPaginated(offset, limit, queryBundles);
+                const count = await db.getWalletRepo().countWallets(queryBundles);
+                return res.status(200).json({
+                    status: 'success',
+                    wallets,
+                    count
+                });
+            }
         }
 
         return res.status(400).json({

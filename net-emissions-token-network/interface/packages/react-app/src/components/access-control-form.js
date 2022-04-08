@@ -5,6 +5,7 @@ import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, regis
 import { registerUserRole, unregisterUserRole } from "../services/api.service"
 
 import SubmissionModal from "./submission-modal";
+import WalletLookupInput from "./wallet-lookup-input";
 
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
@@ -12,7 +13,6 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
-import FormControl from 'react-bootstrap/FormControl';
 
 const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Registered Industry Dealer", "Consumer"];
 const roleCodes = ["Owner", "REC", "CEO", "AE", "REGISTERED_INDUSTRY_DEALER", "Consumer"];
@@ -79,7 +79,6 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
   function onOrganizationChange(event) { setOrganization(event.target.value); };
   function onPublicKeyChange(event) { setPublicKey(event.target.value); };
   function onPublicKeyNameChange(event) { setPublicKeyName(event.target.value); };
-  function onTheirAddressChange(event) { setTheirAddress(event.target.value); };
   function onRoleChange(event) { setRole(event.target.value); };
 
   async function handleRegister() {
@@ -184,7 +183,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         console.log('Transaction successful', result.toString());
       }
       
-      await unregisterUserRole(address, currentRoles.filter((r)=>r!=role).join(','));
+      await unregisterUserRole(address, currentRoles.filter((r)=>r!==role).join(','));
       setModalShow(true);
     }
   }
@@ -254,10 +253,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
 
       <h4>Look-up Roles</h4>
       <InputGroup className="mb-3">
-        <FormControl
-          placeholder="0x000..."
-          onChange={onTheirAddressChange}
-        />
+        <WalletLookupInput onChange={(v) => { setTheirAddress(v)}} />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
         </InputGroup.Append>
