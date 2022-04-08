@@ -25,14 +25,23 @@ const roleCodes = ["Owner", "REC", "CEO", "AE", "REGISTERED_INDUSTRY_DEALER", "C
 function RoleCodeToText(role) {
   const i = roleCodes.indexOf(role);
   if (i > -1) return roleNames[i];
+  if (role === 'REGISTERED_INDUSTRY') return "Registered Industry";
   return role;
 }
 
-function RolesCodesToLi({roles}) {
+function RolesCodesToLi({currentRoles, roles, unregister}) {
   if (!roles) return null;
   const arr = (typeof roles === 'string') ? roles.split(',') : roles
-  console.log('roles ', arr)
-  return arr.sort().map((r)=><li key={r}>{RoleCodeToText(r)}</li>)
+  return arr.sort().map((r)=><li key={r}>
+    {RoleCodeToText(r)}
+    {unregister
+      && ((currentRoles[0] === true) || ((currentRoles[1] === true || currentRoles[2] === true || currentRoles[3] === true || currentRoles[4] === true)
+        && (r === 'Consumer'))
+      )
+      && <Button variant="outline-danger" className="ml-2 my-1" size="sm" onClick={() => {unregister(r)}}>
+      Unregister
+    </Button>}
+</li>)
 }
 
 function RolesBoolsToCodes(roles) {
@@ -144,8 +153,60 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         console.log('Transaction successful', result.toString());
       }
       currentRoles.push(role);
-      await registerUserRole(address, name, organization, publicKey, publicKeyName, currentRoles.join(','));
+      const newRoles = currentRoles.join(',');
+      await registerUserRole(address, name, organization, publicKey, publicKeyName, newRoles);
       setModalShow(true);
+      if (lookupWallet && lookupWallet.address === address) {
+        // remove from the array as well
+        setLookupWallet({
+          ...lookupWallet,
+          roles: newRoles
+        })
+      }
+    }
+  }
+
+
+  async function handleSingleUnregister(wallet, role) {
+    let result = null;
+
+    switch (role) {
+      case "Consumer":
+        result = await fetchUnregisterConsumer();
+        break;
+      case "REC":
+        result = await fetchUnregisterDealer(1);
+        break;
+      case "CEO":
+        result = await fetchUnregisterDealer(2);
+        break;
+      case "AE":
+        result = await fetchUnregisterDealer(3);
+        break;
+      case "REGISTERED_INDUSTRY":
+        result = await fetchUnregisterDealer(4);
+        break;
+      case "REGISTERED_INDUSTRY_DEALER":
+        result = await fetchUnregisterDealer(4);
+        break;
+      default:
+      console.error("Can't find role");
+    }
+    if (!result || result.toString().indexOf('Success') === -1) {
+      console.error('Transaction did not succeed');
+      return;
+    } else {
+      console.log('Transaction successful', result.toString());
+    }
+    const newRoles = wallet.roles.split(',').filter((r)=>r!==role).join(',');
+    await unregisterUserRole(address, newRoles);
+    setModalShow(true);
+    if (lookupWallet && lookupWallet.address === address) {
+      // remove from the array as well
+      setLookupWallet({
+        ...lookupWallet,
+        roles: newRoles
+      })
     }
   }
 
@@ -197,8 +258,16 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         console.log('Transaction successful', result.toString());
       }
       
-      await unregisterUserRole(address, currentRoles.filter((r)=>r!==role).join(','));
+      const newRoles = currentRoles.filter((r)=>r!==role).join(',');
+      await unregisterUserRole(address, newRoles);
       setModalShow(true);
+      if (lookupWallet && lookupWallet.address === address) {
+        // remove from the array as well
+        setLookupWallet({
+          ...lookupWallet,
+          roles: newRoles
+        })
+      }
     }
   }
 
@@ -267,7 +336,10 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
 
       <h4>Look-up Roles</h4>
       <InputGroup className="mb-3">
-        <WalletLookupInput onChange={(v) => { setTheirAddress(v) }} onWalletChange={(w)=>{ setLookupWallet(w) }} />
+        <WalletLookupInput onChange={(v) => { setTheirAddress(v) }} onWalletChange={(w)=>{
+          setLookupWallet(w);
+          setAddress(w ? w.address : '');
+        }} />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
         </InputGroup.Append>
@@ -277,7 +349,9 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         <li>Address: {lookupWallet.address}</li>
         <li>Organization: {lookupWallet.organization}</li>
         <li>Roles: <ul>
-          <RolesCodesToLi roles={lookupWallet.roles}/>
+          <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles} unregister={(r) => {
+            handleSingleUnregister(lookupWallet, r)
+          }}/>
         </ul></li>
         
       </ul>}
