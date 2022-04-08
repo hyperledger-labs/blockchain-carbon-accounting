@@ -19,13 +19,14 @@ assertEnv('LEDGER_ETH_JSON_RPC_URL')
 // import synchronizer
 import { fillBalances, fillTokens, truncateTable } from './controller/synchronizer';
 
-import tokenRouter from './router/router';
+import router from './router/router';
 import { subscribeEvent } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
 // for hardhat test!
 import { synchronize } from "./middleware/sync.middle";
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
+import { trpcMiddleware } from './trpc/common';
 
 // DB connector
 const db = PostgresDBService.getInstance()
@@ -47,7 +48,8 @@ if(process.env.LEDGER_ETH_NETWORK === 'hardhat')
 
 
 // router
-app.use('/', queryProcessing, tokenRouter);
+app.use('/', queryProcessing, router);
+app.use('/trpc', trpcMiddleware);
 
 /**
  * TODOs.
