@@ -9,10 +9,10 @@ import { UtilityLookupItemInterface } from 'emissions_data_chaincode/src/lib/uti
 export class UtilityLookupItem implements UtilityLookupItemInterface {
 
   @PrimaryGeneratedColumn("uuid")
-  uuid: string
+  uuid!: string
 
   @Column()
-  class: string
+  class!: string
   @Column()
   key?: string
   @Column()

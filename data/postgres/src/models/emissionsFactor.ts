@@ -9,22 +9,22 @@ import { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emiss
 export class EmissionsFactor implements EmissionsFactorInterface {
 
   @PrimaryGeneratedColumn("uuid")
-  uuid: string
+  uuid!: string
 
   @Column()
-  class: string
+  class!: string
   @Column({nullable:true})
   key?: string
   @Column()
-  type: string
+  type!: string
   @Column()
-  scope: string
+  scope!: string
   @Column()
-  level_1: string
+  level_1!: string
   @Column()
-  level_2: string
+  level_2!: string
   @Column()
-  level_3: string
+  level_3!: string
   @Column({nullable:true})
   level_4?: string
   @Column({nullable:true})

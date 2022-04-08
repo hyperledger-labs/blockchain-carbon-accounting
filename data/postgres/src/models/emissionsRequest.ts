@@ -10,7 +10,7 @@ import {
 export class EmissionsRequest {
 
   @PrimaryGeneratedColumn("uuid")
-  uuid: string;
+  uuid!: string;
 
   @Column({nullable:false})
   input_data?: string;
@@ -28,8 +28,8 @@ export class EmissionsRequest {
   status?: string;
 
   @CreateDateColumn()
-  createdAt;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt;
+  updatedAt!: Date;
 }

@@ -9,7 +9,7 @@ import {
 export class Wallet {
 
   @PrimaryColumn()
-  address: string
+  address!: string
 
   @Column({nullable:true})
   name?: string
