@@ -20,7 +20,7 @@ export const initDb = async (opts: DbOpts) => {
     database: opts.dbName,
     entities: [EmissionsFactor, UtilityLookupItem, Wallet, Balance, Token, EmissionsRequest],
     synchronize: true,
-    logging: false,
+    logging: opts.dbVerbose,
   })
 
   // to initialize initial connection with the database, register all entities

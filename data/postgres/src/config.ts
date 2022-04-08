@@ -45,7 +45,7 @@ export const parseCommonYargsOptions = (argv: any): DbOpts => {
     dbPassword: argv['dbpassword'] || process.env.DB_PASSWORD as string,
     dbHost: argv['dbhost'] || process.env.DB_HOST as string,
     dbPort: argv['dbport'] || parseInt(process.env.DB_PORT as string || '5432'),
-    dbVerbose: argv['dbverbose'],
+    dbVerbose: argv['dbverbose'] || (process.env.DB_VERBOSE === 'Y'),
   }
   return opts
 }
