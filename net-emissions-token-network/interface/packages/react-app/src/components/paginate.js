@@ -1,5 +1,5 @@
 import React from 'react';
-import Pagination from "@material-ui/lab/Pagination";
+import Pagination from '@mui/material/Pagination';
 
 const Paginator = ({count, page, pageSize, pageChangeHandler, pageSizeHandler}) => {
     const pageSizes = [5, 10, 20, 50, 100];
