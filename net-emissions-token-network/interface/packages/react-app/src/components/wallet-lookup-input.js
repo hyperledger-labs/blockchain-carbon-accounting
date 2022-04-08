@@ -5,7 +5,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import { lookupWallets } from "../services/api.service";
 
-const WalletLookupInput = ({onChange}) => {
+const WalletLookupInput = ({onChange, onWalletChange}) => {
   
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState(null);
@@ -71,10 +71,13 @@ const WalletLookupInput = ({onChange}) => {
     filterOptions={(x) => x} 
     value={value}
     onChange={(_, newValue) => {
+      console.log('onChange', newValue)
       setOptions(newValue && options.indexOf(newValue) === -1 ? [newValue, ...options] : options);
       setValue(newValue);
+      if (onWalletChange) onWalletChange(newValue);
     }}
     onInputChange={(_, newInputValue) => {
+      console.log('onInputChange', newInputValue)
       setInputValue(newInputValue);
       if (onChange) onChange(newInputValue);
     }}

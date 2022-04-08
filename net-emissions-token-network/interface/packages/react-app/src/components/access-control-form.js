@@ -22,6 +22,19 @@ const roleCodes = ["Owner", "REC", "CEO", "AE", "REGISTERED_INDUSTRY_DEALER", "C
 //   return roles.map((v,i) => v?roleNames[i]:null).filter((v)=>v!=null);
 // }
 
+function RoleCodeToText(role) {
+  const i = roleCodes.indexOf(role);
+  if (i > -1) return roleNames[i];
+  return role;
+}
+
+function RolesCodesToLi({roles}) {
+  if (!roles) return null;
+  const arr = (typeof roles === 'string') ? roles.split(',') : roles
+  console.log('roles ', arr)
+  return arr.sort().map((r)=><li key={r}>{RoleCodeToText(r)}</li>)
+}
+
 function RolesBoolsToCodes(roles) {
   if (!roles || roles.length !== 6) return null;
   return roles.map((v,i) => v?roleCodes[i]:null).filter((v)=>v!=null);
@@ -61,6 +74,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
 
   // Fetching roles of outside address
+  const [lookupWallet, setLookupWallet] = useState({});
   const [theirAddress, setTheirAddress] = useState();
   const [theirRoles, setTheirRoles] = useState([]);
 
@@ -253,11 +267,20 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
 
       <h4>Look-up Roles</h4>
       <InputGroup className="mb-3">
-        <WalletLookupInput onChange={(v) => { setTheirAddress(v)}} />
+        <WalletLookupInput onChange={(v) => { setTheirAddress(v) }} onWalletChange={(w)=>{ setLookupWallet(w) }} />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
         </InputGroup.Append>
       </InputGroup>
+      {lookupWallet && lookupWallet.address && <ul>
+        <li>Name: {lookupWallet.name}</li>
+        <li>Address: {lookupWallet.address}</li>
+        <li>Organization: {lookupWallet.organization}</li>
+        <li>Roles: <ul>
+          <RolesCodesToLi roles={lookupWallet.roles}/>
+        </ul></li>
+        
+      </ul>}
       {fetchingTheirRoles &&
         <div className="text-center mt-3 mb-3">
           <Spinner animation="border" role="status">
