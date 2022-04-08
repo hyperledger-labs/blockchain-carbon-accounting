@@ -15,7 +15,7 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
     await this._db.getRepository(UtilityLookupItem).save(doc)
   }
 
-  public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface> => {
+  public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface | null> => {
     return await this._db.getRepository(UtilityLookupItem).findOneBy({uuid})
   }
 

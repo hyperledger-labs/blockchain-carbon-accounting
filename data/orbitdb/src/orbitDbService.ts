@@ -29,7 +29,7 @@ export class OrbitDBService implements EmissionFactorDbInterface, UtilityLookupI
   private static _db: DocumentStore<StoreRecord>;
   private static _initCalled = false;
 
-  public static getInstance = async (argv): Promise<OrbitDBService> => {
+  public static getInstance = async (argv: any): Promise<OrbitDBService> => {
     if (!OrbitDBService._db) {
       if (!OrbitDBService._initCalled) {
         await OrbitDBService.init(argv);
@@ -43,7 +43,7 @@ export class OrbitDBService implements EmissionFactorDbInterface, UtilityLookupI
     return new OrbitDBService();
   }
 
-  public static init = async (argv): Promise<void> => {
+  public static init = async (argv: any): Promise<void> => {
     OrbitDBService._initCalled = true;
     const opts = parseCommonYargsOptions(argv);
     // Create IPFS instance

@@ -3,7 +3,7 @@ import { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/uti
 
 export interface EmissionFactorDbInterface {
   putEmissionFactor: (doc: EmissionsFactorInterface) => Promise<void>
-  getEmissionFactor: (uuid: string) => Promise<EmissionsFactorInterface>
+  getEmissionFactor: (uuid: string) => Promise<EmissionsFactorInterface | null>
 }
 
 export interface UtilityLookupItemDbInterface {

@@ -1,4 +1,4 @@
-import { DataSource, SelectQueryBuilder } from "typeorm"
+import { DataSource } from "typeorm"
 import { EmissionsRequest } from "../models/emissionsRequest"
 import { EmissionsRequestPayload } from "./common"
 
@@ -20,15 +20,15 @@ export class EmissionsRequestRepo {
   }
 
   public selectAll = async (): Promise<Array<EmissionsRequest>> => {
-    const repository = this._db.getRepository(EmissionsRequest)
-    return await selectAll.find()
+    return await this._db.getRepository(EmissionsRequest).find()
   }
 
   public selectPending = async (): Promise<Array<EmissionsRequest>> => {
     try {
+      const status = 'PENDING'
       return await this._db.getRepository(EmissionsRequest)
         .createQueryBuilder('emissions_request')
-        .where("emissions_request.status = :status", {"PENDING"})
+        .where("emissions_request.status = :status", {status})
         .getMany()
     } catch (error) {
       throw new Error('cannot select pending emissions requests')

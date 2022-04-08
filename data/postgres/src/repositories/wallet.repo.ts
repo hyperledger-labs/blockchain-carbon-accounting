@@ -26,7 +26,7 @@ export class WalletRepo {
       .getMany()
   }
 
-  public selectWallet = async (address: string): Promise<Wallet | undefined> => {
+  public selectWallet = async (address: string): Promise<Wallet | null> => {
     return await this._db.getRepository(Wallet).findOneBy({address})
   }
 

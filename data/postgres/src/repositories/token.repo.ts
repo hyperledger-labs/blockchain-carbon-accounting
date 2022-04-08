@@ -27,7 +27,7 @@ export class TokenRepo {
       .getMany()
   }
 
-  public selectToken = async (tokenId: number): Promise<Token | undefined> => {
+  public selectToken = async (tokenId: number): Promise<Token | null> => {
     return await this._db.getRepository(Token).findOneBy({tokenId})
   }
 
