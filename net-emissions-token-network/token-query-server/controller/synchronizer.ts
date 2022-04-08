@@ -128,7 +128,7 @@ export const fillBalances = async (currentBlock: number) => {
                 }
 
                 // resolve conflicts
-                const balance: Balance | undefined = await db.getBalanceRepo().selectBalance(to, tokenId);
+                const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
                 if(balance != undefined) continue;
 
                 await insertNewBalance(balancePayload);
@@ -150,7 +150,7 @@ export const fillBalances = async (currentBlock: number) => {
             await db.getBalanceRepo().transferBalance(from, tokenId, amount);
 
             // 2) add available 'to' balance
-            const balance: Balance | undefined = await db.getBalanceRepo().selectBalance(to, tokenId);
+            const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
             if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,

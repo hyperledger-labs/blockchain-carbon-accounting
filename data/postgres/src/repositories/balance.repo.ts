@@ -21,7 +21,7 @@ export class BalanceRepo {
     return
   }
 
-  public selectBalance = async (issuee: string, tokenId: number): Promise<Balance | undefined> => {
+  public selectBalance = async (issuee: string, tokenId: number): Promise<Balance | null> => {
     try {
       return await this._db.getRepository(Balance)
         .createQueryBuilder('balance')
