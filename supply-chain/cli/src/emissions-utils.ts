@@ -92,7 +92,7 @@ export function get_flight_emission_factor(seat_class: string): EmissionFactor {
 
 async function getEmissionFactor(f: EmissionFactor) {
   const db = await getDBInstance();
-  const factors = await db.getEmissionsFactors(f);
+  const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
   if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
   if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
   return factors[0];
