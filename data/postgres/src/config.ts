@@ -9,7 +9,7 @@ export type DbOpts = {
   dbVerbose: boolean,
 };
 
-export const addCommonYargsOptions = (yargs) => {
+export const addCommonYargsOptions = (yargs: any) => {
   return yargs
     .option('dbname', {
       type: 'string',
@@ -38,7 +38,7 @@ export const addCommonYargsOptions = (yargs) => {
     })
 }
 
-export const parseCommonYargsOptions = (argv): DbOpts => {
+export const parseCommonYargsOptions = (argv: any): DbOpts => {
   const opts = {
     dbName: argv['dbname'] || process.env.DB_NAME as string || 'blockchain-carbon-accounting',
     dbUser: argv['dbuser'] || process.env.DB_USER as string,

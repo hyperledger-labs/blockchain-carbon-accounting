@@ -12,7 +12,7 @@ import type { DbOpts } from "./config"
     return await PostgresDBService.getInstance(dbopts)
   }
   addCommonYargsOptions(yargs(hideBin(process.argv)))
-  .command("test", "Run some test queries", {}, async (args) => {
+  .command("test", "Run some test queries", {}, async (args: any) => {
     const db = await init(parseCommonYargsOptions(args))
 
     const activity: ActivityInterface = {
@@ -69,7 +69,7 @@ import type { DbOpts } from "./config"
     }
     await db.close()
   })
-  .command("factors", "Query all factors from the DB", {}, async (args) => {
+  .command("factors", "Query all factors from the DB", {}, async (args: any) => {
     const db = await init(parseCommonYargsOptions(args))
     try {
       const count = await db.getEmissionsFactorRepo().countAllFactors()
@@ -89,7 +89,7 @@ import type { DbOpts } from "./config"
   .command(
     "factor <scope> [level1] [level2] [level3] [level4] [text] [uom]",
     "Lookup an emission factor",
-    (yargs) => {
+    (yargs: any) => {
       yargs
         .positional("scope", {
           describe: 'The activity scope, eg: "scope 1"',
@@ -120,7 +120,7 @@ import type { DbOpts } from "./config"
           type: "string",
         })
     },
-    async (args) => {
+    async (args: any) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
         const f = {
@@ -143,7 +143,7 @@ import type { DbOpts } from "./config"
   .command(
     "activity-emissions <scope> <level1> <level2> <level3> <level4> <text> <amount> [uom]",
     "Calculate the emissions for an activity",
-    (yargs) => {
+    (yargs: any) => {
       yargs
         .positional("scope", {
           describe: 'The activity scope, eg: "scope 1"',
@@ -179,7 +179,7 @@ import type { DbOpts } from "./config"
           default: "kg",
         })
     },
-    async (args) => {
+    async (args: any) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
         const res = await db.getEmissionsFactorRepo().getCO2EmissionByActivity({

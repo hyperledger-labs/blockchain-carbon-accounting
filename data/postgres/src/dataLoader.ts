@@ -31,7 +31,7 @@ const progressBar = new SingleBar(
   .command(
     "init",
     "DB init and table sync",
-    async (argv) => {
+    async (argv: any) => {
       console.log("=== Init ...")
       const db = await init(parseCommonYargsOptions(argv))
       await db.close()
@@ -41,7 +41,7 @@ const progressBar = new SingleBar(
   .command(
     "load_emissions_factors <file> [sheet]",
     "load data from XLSX file",
-    (yargs) => {
+    (yargs: any) => {
       yargs
         .positional("file", {
           describe: "XLSX file to load from",
@@ -51,7 +51,7 @@ const progressBar = new SingleBar(
           default: "Sheet1",
         });
     },
-    async (argv) => {
+    async (argv: any) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting load_emissions_factors ...")
       await loadEmissionsFactors(argv, progressBar, db.getEmissionsFactorRepo())
@@ -63,7 +63,7 @@ const progressBar = new SingleBar(
   .command(
     "load_utility_identifiers <file> [sheet]",
     "load data from XLSX file",
-    (yargs) => {
+    (yargs: any) => {
       yargs
         .positional("file", {
           describe: "XLSX file to load from",
@@ -73,7 +73,7 @@ const progressBar = new SingleBar(
           describe: "name of the worksheet to load from",
         })
     },
-    async (argv) => {
+    async (argv: any) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting import_utility_identifiers ...")
       await importUtilityIdentifiers(argv, progressBar, db.getUtilityLookupItemRepo())
