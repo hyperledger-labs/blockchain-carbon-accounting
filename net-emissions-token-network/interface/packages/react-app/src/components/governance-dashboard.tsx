@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { BigNumber } from "@ethersproject/bignumber";
-import { JsonRpcProvider } from "@ethersproject/providers";
+import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { addresses } from "@project/contracts";
-import React, { useCallback, useEffect, useState } from "react";
+import { FC, ChangeEventHandler, useCallback, useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -30,9 +30,10 @@ import {
 import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
 import ProposalCallDetailsModal from "./proposal-call-details-modal";
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
+import { Proposal } from "./static-data";
 
-function addCommas(str){
-  str += '';
+function addCommas(value: string|number){
+  let str = value+'';
   var x = str.split('.');
   var x1 = x[0];
   var x2 = x.length > 1 ? '.' + x[1] : '';
@@ -47,7 +48,14 @@ const networkNameLowercase = (addresses.network.split(" "))[0].toLowerCase(); //
 
 const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.dao.governor.address}/transactions`;
 
-export default function GovernanceDashboard({ provider, roles, signedInAddress }) {
+type GovernanceDashboardProps = {
+  provider?: Web3Provider, 
+  signedInAddress: string, 
+  roles: boolean[]
+}
+
+
+const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, signedInAddress }) => {
 
   const [queueExecuteModalShow, setQueueExecuteModalShow] = useState(false);
   const [delegateModalShow, setDelegateModalShow] = useState(false);
@@ -58,8 +66,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [daoTokenDelegates, setDaoTokenDelegates] = useState();
   const [fetchingDaoTokenBalance, setFetchingDaoTokenBalance] = useState(false);
 
-  const [proposals, setProposals] = useState([]);
-  const [childProposals, setChildProposals] = useState({});
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [childProposals, setChildProposals] = useState<Record<number, Proposal[]>>({});
   const [proposalsLength, setProposalsLength] = useState(-1);
   const [fetchingProposals, setFetchingProposals] = useState(false);
 
@@ -74,7 +82,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [proposalActionType, setProposalActionType] = useState("");
   const [proposalActionId, setProposalActionId] = useState(1);
 
-  const [votesAmount, setVotesAmount] = useState(0);
+  const [votesAmount, setVotesAmount] = useState("0");
 
   const [selectedProposalIdDetails, setSelectedProposalIdDetails] = useState(1);
 
@@ -87,10 +95,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   const [proposalThreshold, setProposalThreshold] = useState(-1);
   const [fetchingProposalThreshold, setFetchingProposalThreshold] = useState(false);
 
-  function onSkipBlocksAmountChange(event) { setSkipBlocksAmount(event.target.value); }
-  function onVotesAmountChange(event) { setVotesAmount(event.target.value);  }
+  const onSkipBlocksAmountChange: ChangeEventHandler<HTMLInputElement> = (event) => { setSkipBlocksAmount(event.target.value) }
+  const onVotesAmountChange: ChangeEventHandler<HTMLInputElement> = (event) => { setVotesAmount(event.target.value) }
 
-  async function handleSkipBlocks(blocks) {
+  async function handleSkipBlocks(blocks: number) {
     let localProvider = new JsonRpcProvider();
     if (!Number(blocks)) {
       console.error("Must enter a valid integer of blocks to skip on local EVM network.");
@@ -99,7 +107,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setIsFetchingBlocks(true);
     let newBlockNumber = blockNumber;
     for (let i = 0; i < Number(blocks); i++) {
-      await localProvider.send("evm_mine");
+      await localProvider.send("evm_mine", []);
       newBlockNumber++;
       setBlockNumber(newBlockNumber);
     }
@@ -107,20 +115,22 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setResult(`Skipped ${blocks} blocks. Please refresh in a few seconds to see the updated current block!`);
   }
 
-  const handleSkipTimestamp = useCallback(async (days) => {
+  const handleSkipTimestamp = useCallback(async (days: number) => {
     let localProvider = new JsonRpcProvider();
     let seconds = (days * 24 * 60 * 60); // 1 day
     await localProvider.send("evm_increaseTime", [seconds])
-    await localProvider.send("evm_mine");
+    await localProvider.send("evm_mine", []);
     setResult(`Added ${days} days to block timestamp. No need to refresh!`);
   }, []);
 
   const fetchDaoTokenSupply = useCallback(async () => {
+    if (!provider) return;
     let balance = await daoTokenTotalSupply(provider);
     setDaoTokenSupply(balance);
   }, [provider, signedInAddress]);
 
   const fetchDaoTokenBalance = useCallback(async () => {
+    if (!provider) return;
     let balance = await daoTokenBalanceOf(provider, signedInAddress);
     let delegatesCall = await delegates(provider, signedInAddress);
     let del = (
@@ -134,12 +144,14 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider, signedInAddress]);
 
   const fetchBlockNumber = useCallback(async () => {
+    if (!provider) return;
     let blockNum = await getBlockNumber(provider);
     setBlockNumber(blockNum);
     setFetchingBlockNumber(false);
   }, [provider]);
 
   const fetchQuorum = useCallback(async () => {
+    if (!provider) return;
     let q = await getQuorum(provider);
     if (q != null) {
       q = addCommas(q.div("1000000000"));
@@ -149,6 +161,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider]);
 
   const fetchProposalThreshold = useCallback(async () => {
+    if (!provider) return;
     let p = await getProposalThreshold(provider);
     if (p != null) {
       p = addCommas(p.div("1000000000000000000"));
@@ -158,9 +171,10 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
   }, [provider]);
 
   const fetchProposals = useCallback(async () => {
+    if (!provider) return;
     let numberOfProposals = await getProposalCount(provider);
     let p = [];
-    let cps = {};
+    let cps: Record<number, Proposal[]> = {};
 
     for (let i = numberOfProposals; i > 0; i--) {
       let i_toNumberFix;
@@ -171,6 +185,8 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       }
 
       let proposalDetails = await getProposalDetails(provider, i);
+      // on error?
+      if (typeof proposalDetails === 'string') continue;
       let parentProposal = proposalDetails.parentProposalId;
       let proposalId = proposalDetails.id;
       let proposalState = await getProposalState(provider, i);
@@ -209,7 +225,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
         (daoTokenBalance > 0)
       );
 
-      let proposal = {
+      let proposal: Proposal = {
         id: i_toNumberFix,
         realId: proposalId,
         details: {
@@ -238,7 +254,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
 
       if (parentProposal && parentProposal.toNumber() > 0) {
         // if this has a parent proposal, add it there
-        if (!cps[parentProposal]) {
+        if (!cps[parentProposal as number]) {
           cps[parentProposal] = [proposal];
         } else {
           cps[parentProposal].push(proposal);
@@ -257,19 +273,21 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     setFetchingProposals(false);
   }, [provider, daoTokenBalance, signedInAddress]);
 
-  async function vote(proposalId, support) {
+  async function vote(proposalId: number, support: boolean) {
+    if (!provider) return;
     let decimals = BigNumber.from("1000000000000000000");
     let convertedVotes = (BigNumber.from(votesAmount)).mul(decimals);
     let vote = await castVote(provider, proposalId, support, convertedVotes);
     setResult(vote);
   }
 
-  async function refundDclm8(proposalId) {
+  async function refundDclm8(proposalId: number) {
+    if (!provider) return;
     let r = await refund(provider, proposalId);
     setResult(r);
   }
 
-  function handleProposalAction(action, id) {
+  function handleProposalAction(action: string, id: number) {
     setProposalActionType(action);
     setProposalActionId(id);
     setQueueExecuteModalShow(true);
@@ -318,7 +336,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     }
   }, [provider, proposalThreshold, fetchingProposalThreshold, setFetchingProposalThreshold, fetchProposalThreshold]);
 
-  const hasCancelOrRefund = (cp) => (
+  const hasCancelOrRefund = (cp: Proposal) => (
     (
       (cp.receipt.hasVoted && (cp.details.proposer.toLowerCase() !== signedInAddress.toLowerCase()))
       || (cp.details.proposer.toLowerCase() === signedInAddress.toLowerCase()
@@ -328,7 +346,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     cp.receipt.rawRefund > 0
   )
 
-  const renderCancelOrRefund = (cp) =>
+  const renderCancelOrRefund = (cp: Proposal) =>
   { return hasCancelOrRefund(cp) &&
     <div className="text-center mx-1">
       <Button
@@ -345,19 +363,19 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     </div>
   }
 
-  const renderYouVoted = (cp) => {
+  const renderYouVoted = (cp: Proposal) => {
     return (<p className="text-center p-1 m-0">
       You voted {(cp.receipt.support) ? "FOR" : "AGAINST"} with {addCommas(cp.receipt.rawVotes)} dCLM8.
     </p>)
   }
 
-  const renderVoteCount = (votes, rawVotes, showVotes) => {
+  const renderVoteCount = (votes: number, rawVotes: number, showVotes: boolean) => {
     return showVotes ?
         <>{addCommas(votes)} votes ({addCommas(rawVotes)} dCLM8)</>
       : <>{addCommas(rawVotes)} dCLM8</>
   }
 
-  const renderVoteButtons = (cp, showVotes, showAsTotal) => {
+  const renderVoteButtons = (cp: Proposal, showVotes: boolean, showAsTotal: boolean) => {
     return (cp.isEligibleToVote || cp.state !== "Pending") &&
       <div className="my-auto col-lg-7 col-lg p-0 mr-2">
         <Row className="justify-content-between mx-1">
@@ -387,13 +405,13 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
       </div>
   }
 
-  const renderYourVote = (cp) => (hasCancelOrRefund(cp) || cp.receipt.hasVoted === true) &&
+  const renderYourVote = (cp: Proposal) => (hasCancelOrRefund(cp) || cp.receipt.hasVoted === true) &&
     <Row className="align-items-center justify-content-end mt-2">
       { renderYouVoted(cp) }
       { renderCancelOrRefund(cp) }
     </Row>
 
-  const renderMustBeActiveIfNeeded = (cp) =>(cp.state !== "Active" && cp.receipt.hasVoted !== true) &&
+  const renderMustBeActiveIfNeeded = (cp: Proposal) =>(cp.state !== "Active" && cp.receipt.hasVoted !== true) &&
     <Row className="align-items-center justify-content-end">
       <p className="p-0 m-0 mr-2 text-secondary text-right">
         <small>Must be an active proposal to vote.</small>
@@ -470,7 +488,7 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
              <InputGroup.Append>
                <Button
                  variant="primary"
-                 onClick={() => handleSkipBlocks(skipBlocksAmount)}
+                 onClick={() => handleSkipBlocks(Number(skipBlocksAmount))}
                >
                  Skip
                </Button>
@@ -651,3 +669,5 @@ export default function GovernanceDashboard({ provider, roles, signedInAddress }
     </>
   );
 }
+
+export default GovernanceDashboard;

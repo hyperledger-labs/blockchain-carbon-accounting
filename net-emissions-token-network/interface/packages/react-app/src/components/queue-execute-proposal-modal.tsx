@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState } from "react";
+import { FC, useState } from "react";
 
-import { queue, execute, cancel } from "../services/contract-functions";
+import { queue, execute, cancel, getErrorMessage } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Form from 'react-bootstrap/Form';
+import { Web3Provider } from "@ethersproject/providers";
 
 // Renders appropriate button (queue, execute, or cancel)
-function ActionButton(props) {
+function ActionButton(props: {type:string, onClick:()=>void}) {
   switch (props.type) {
     case "queue":
       return <Button variant="warning" onClick={props.onClick}>Queue</Button>;
@@ -24,7 +25,7 @@ function ActionButton(props) {
 }
 
 // Renders appropriate description
-function ActionDescription(props) {
+function ActionDescription(props: {type:string}) {
   switch (props.type) {
     case "queue":
       return <p>Queue a proposal. A proposal must have <b>succeeded</b> in order to be queued by a DAO token holder.</p>
@@ -38,21 +39,29 @@ function ActionDescription(props) {
 }
 
 // Renders appropriate title
-function ActionTitle(props) {
+function ActionTitle(props: {type:string}) {
   switch (props.type) {
     case "queue":
-      return "Queue a proposal for execution";
+      return <>"Queue a proposal for execution"</>;
     case "execute":
-      return "Execute a queued proposal";
+      return <>"Execute a queued proposal"</>;
     case "cancel":
-      return "Cancel an active proposal";
+      return <>"Cancel an active proposal"</>;
     default:
       return <></>;
   }
 }
 
+type QueueExecuteProposalModalProps = {
+  type: string
+  show: boolean
+  provider?: Web3Provider
+  id: number
+  onHide: ()=>void
 
-export default function QueueExecuteProposalModal(props) {
+}
+
+const QueueExecuteProposalModal:FC<QueueExecuteProposalModalProps> = (props) => {
 
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,6 +84,7 @@ export default function QueueExecuteProposalModal(props) {
   }
 
   async function submitQueue() {
+    if (!props.provider) return;
     setIsSubmitting(true);
     let newResult;
     try {
@@ -84,13 +94,14 @@ export default function QueueExecuteProposalModal(props) {
       );
       newResult = queueCall.toString()
     } catch (e) {
-      newResult = e.message;
+      newResult = getErrorMessage(e);
     }
     setIsSubmitting(false);
     setResult(newResult);
   }
 
   async function submitExecute() {
+    if (!props.provider) return;
     setIsSubmitting(true);
     let newResult;
     try {
@@ -100,13 +111,14 @@ export default function QueueExecuteProposalModal(props) {
       );
       newResult = executeCall.toString()
     } catch (e) {
-      newResult = e.message;
+      newResult = getErrorMessage(e);
     }
     setIsSubmitting(false);
     setResult(newResult);
   }
 
    async function submitCancel() {
+    if (!props.provider) return;
     setIsSubmitting(true);
     let newResult;
     try {
@@ -116,7 +128,7 @@ export default function QueueExecuteProposalModal(props) {
       );
       newResult = executeCall.toString()
     } catch (e) {
-      newResult = e.message;
+      newResult = getErrorMessage(e);
     }
     setIsSubmitting(false);
     setResult(newResult);
@@ -166,7 +178,6 @@ export default function QueueExecuteProposalModal(props) {
         <Button onClick={props.onHide}>Close</Button>
         <ActionButton
           type={props.type}
-          provider={props.provider}
           onClick={handleAction}
         />
 
@@ -174,3 +185,5 @@ export default function QueueExecuteProposalModal(props) {
     </Modal>
   );
 }
+
+export default QueueExecuteProposalModal;

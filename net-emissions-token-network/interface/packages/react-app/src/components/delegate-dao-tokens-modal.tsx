@@ -1,20 +1,30 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState } from "react";
+import { ChangeEventHandler, FC, useState } from "react";
 
-import { delegate } from "../services/contract-functions";
+import { delegate, getErrorMessage } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Form from 'react-bootstrap/Form';
+import { Web3Provider } from "@ethersproject/providers";
 
-export default function DelegateDaoTokensModal(props) {
+type DelegateDaoTokensModalProps = {
+  show: boolean
+  provider?: Web3Provider
+  title: string
+  balance: string
+  onHide: ()=>void
+}
+
+const DelegateDaoTokensModal: FC<DelegateDaoTokensModalProps> = (props) => {
 
   const [delegatee, setDelegatee] = useState("");
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
    async function submitDelegate() {
+    if (!props.provider) return;
     setIsSubmitting(true);
     let newResult;
     try {
@@ -24,13 +34,13 @@ export default function DelegateDaoTokensModal(props) {
       );
       newResult = delegateCall.toString()
     } catch (e) {
-      newResult = e.message;
+      newResult = getErrorMessage(e);
     }
     setIsSubmitting(false);
     setResult(newResult);
   }
 
-  function onDelegateeChange(event) { setDelegatee(event.target.value); };
+  const onDelegateeChange: ChangeEventHandler<HTMLInputElement> = (event) => { setDelegatee(event.target.value) }
 
   return (
     <Modal
@@ -84,3 +94,6 @@ export default function DelegateDaoTokensModal(props) {
     </Modal>
   );
 }
+
+
+export default DelegateDaoTokensModal;

@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { ChangeEvent, MouseEvent, FC, useState } from "react";
 import { Spinner } from 'react-bootstrap';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { BsTrash, BsPlus } from 'react-icons/bs';
-import { OPERATORS, FIELD_OPS, TOKEN_TYPES } from "./static-data";
+import { OPERATORS, FIELD_OPS, TOKEN_TYPES, Field, FieldOp } from "./static-data";
 
 /**
  * Requirements.
@@ -20,23 +20,25 @@ import { OPERATORS, FIELD_OPS, TOKEN_TYPES } from "./static-data";
  * c) validation before next
  * d) generate query bundle
  */
-
-const QueryBuilder = ({fieldList, handleQueryChanged}) => {
+type QueryBuilderProps = {
+  fieldList: Field[]
+  handleQueryChanged: (queries: string[])=>Promise<void>
+}
+const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged}) => {
 
     // start with empty one
-    const [fields, setFields] = useState([{
-        op:'',
+    const [fields, setFields] = useState<Field[]>([{
         value: ''
     }]);
     const [loading, setLoading] = useState(false);
 
-    async function removeField (e, idx) {
+    async function removeField(idx: number): Promise<void> {
         if(fields.length === 1) {
-            setFields([{name: '', op: '', value: ''}])
+            setFields([{name: '', value: ''}])
             await search(null, []);
             return;
         }
-        const filtered = fields.filter((item, i) => {
+        const filtered = fields.filter((_, i) => {
             return idx !== i;
         })
         setFields([...filtered]);
@@ -47,12 +49,12 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         setFields([...fields, {}]);
     }
 
-    function onChangeFieldName(event, key) {
+    function onChangeFieldName(event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, key: number) {
         const fieldName = event.target.value;
         const match = fieldList.find(item => item.name === fieldName);
-        if(match === undefined) return;
+        if(match === undefined || !match.type) return;
         const ops = OPERATORS[match.type];
-        const op = ops.length >= 1 ? ops[0] : '';
+        const op = ops.length >= 1 ? ops[0] : undefined;
         fields[key] = {
             name: fieldName,
             ops: ops,
@@ -63,7 +65,8 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         setFields([...fields]);
     }
 
-    function onValueChanged(e, key) {
+
+    function onValueChanged(e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, key: number) {
         let value = 0.0;
         if(fields[key].type === 'number') {
             value = Number(e.target.value);
@@ -75,29 +78,29 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
         setFields([...fields]);
     }
 
-    function onOperatorChanged(e, key) {
-        fields[key].op = e.target.value;
+    function onOperatorChanged(e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>, key: number) {
+        fields[key].op = e.target.value as FieldOp;
         setFields([...fields]);
     }
 
-    async function search(e, _fields) {
+    async function search(_: MouseEvent | null, _fields: Field[]) {
         // getting query
         if(loading) return;
         setLoading(true);
-        let queries = [];
-        _fields.map(item => {
-            if(item.value === undefined || item.op === '') return null;
+        let queries: string[] = [];
+        _fields.map((item: Field) => {
+            if (item.value === undefined || !item.op) return null;
             const op = FIELD_OPS.find(op => op.label === item.op);
             let query = '';
-            if(item.type === 'enum') {
+            if (item.type === 'enum') {
                 if(item.value === 0 || item.value === '') return null;
                 query = `${item.name},number,${item.value},eq`;
             } else if (item.type === 'number') {
-                query = `${item.name},number,${item.value},${op.value}`;
-            } else if (item.type === 'balance'){
-                query = `${item.name},number,${Number(item.value * 1000)},${op.value}`;
+                query = `${item.name},number,${item.value},${op!.value}`;
+            } else if (item.type === 'balance') {
+                query = `${item.name},number,${Number(item.value as number * 1000)},${op!.value}`;
             } else {
-                query = `${item.name},string,${item.value},${op.value}`;
+                query = `${item.name},string,${item.value},${op!.value}`;
             }
             queries.push(query);
             return queries;
@@ -153,13 +156,13 @@ const QueryBuilder = ({fieldList, handleQueryChanged}) => {
                                     placeholder="type value"
                                     value={field.value}
                                     onChange={e => onValueChanged(e, key)}
-                                    disabled={field.op === undefined || field.op === ''}
+                                    disabled={field.op === undefined || !field.op}
                                 />}
                                   
                             </Col>
                             <Col sm={1}>
                                 <Row>
-                                    <Button className="mr-1" onClick={e => removeField(e, key)} variant="outline-dark"><BsTrash /></Button>
+                                    <Button className="mr-1" onClick={_ => removeField(key)} variant="outline-dark"><BsTrash /></Button>
                                     <Button onClick={addField} variant="outline-dark"><BsPlus /></Button>
                                 </Row>
                             </Col>

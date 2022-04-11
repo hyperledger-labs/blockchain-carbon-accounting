@@ -1,14 +1,20 @@
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
+import { FC } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from "react-bootstrap/Col";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { FaCoins } from 'react-icons/fa';
 
-export default function TokenInfoModal(props) {
+type TokenInfoModalProps = {
+  show:boolean
+  token:any
+  onHide:()=>void 
+}
 
-  const castMetadata = (metadata) => {
+const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
+
+  const castMetadata = (metadata: any) => {
     if(metadata === undefined || !metadata) return <></>;
     
     if(typeof metadata === 'string') {
@@ -19,17 +25,15 @@ export default function TokenInfoModal(props) {
       }
     } 
     
-    let keys = [];
-    let values = [];
+    let keys: string[] = [];
+    let values: string[] = [];
     for (const key in metadata) {
       keys.push(key);
       values.push(metadata[key]);
     }
     
-    return keys.map((key, i) => {
-      if(keys === "" || values[i] === "") return <></>;
-      return <div key={i}><b>{key}</b> : {values[i]}</div>;
-    })
+    return <>{keys.filter((k,i)=>k&&values[i]).map((key, i) => <div key={`${key}-${i}`}><b>{key}</b> : {values[i]}</div>
+    )}</>
   };
 
   return (
@@ -134,19 +138,19 @@ export default function TokenInfoModal(props) {
             </tr>
             <tr>
               <td>Metadata</td>
-              <td className="text-monospace" style={{ wordWrap: "anywhere" }}>
+              <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
                 {castMetadata(props.token.metadata)}
               </td>
             </tr>
             <tr>
               <td>Manifest</td>
-              <td style={{ wordWrap: "anywhere" }}>
+              <td style={{ overflowWrap: "anywhere" }}>
                 {castMetadata(props.token.manifest)}
               </td>
             </tr>
             <tr>
               <td>Description</td>
-              <td style={{ wordWrap: "anywhere" }}>{props.token.description}</td>
+              <td style={{ overflowWrap: "anywhere" }}>{props.token.description}</td>
             </tr>
           </tbody>
         </table>
@@ -157,3 +161,6 @@ export default function TokenInfoModal(props) {
     </Modal>
   );
 }
+
+
+export default TokenInfoModal;

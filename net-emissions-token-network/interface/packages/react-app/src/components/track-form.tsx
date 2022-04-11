@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useCallback, useEffect, useState } from "react";
+import { Web3Provider } from "@ethersproject/providers";
+import { FC, ChangeEventHandler, useCallback, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { encodeParameters, track, registerTracker } from "../services/contract-functions";
+import { track, registerTracker } from "../services/contract-functions";
 import SubmissionModal from "./submission-modal";
 
-export default function TrackForm({ provider, registeredTracker, signedInAddress }) {
+type TrackFormProps = {
+  provider?: Web3Provider
+  registeredTracker: boolean
+}
+
+const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
 
@@ -19,85 +25,36 @@ export default function TrackForm({ provider, registeredTracker, signedInAddress
   const [inAmounts, setInAmounts] = useState("");
   const [outAmounts, setOutAmounts] = useState("");
   const [trackerIds, setTrackerIds] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [thruDate, setThruDate] = useState("");
+  const [fromDate, setFromDate] = useState<Date|null>(null);
+  const [thruDate, setThruDate] = useState<Date|null>(null);
   const [result, setResult] = useState("");
-
-
-  // Calldata
-  const [calldata, setCalldata] = useState("");
 
   // After initial onFocus for required inputs, display red outline if invalid
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  const onAddressChange = useCallback((event) => { setAddress(event.target.value); }, []);
-  const onTokenIdsChange = useCallback((event) => { setTokenIds(event.target.value); }, []);
-  const onInAmountsChange = useCallback((event) => { setInAmounts(event.target.value); }, []);
-  const onOutAmountsChange = useCallback((event) => { setOutAmounts(event.target.value); }, []);
-  const onTrackerIdsChange = useCallback((event) => { setTrackerIds(event.target.value); }, []);
-  const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
-  const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
+  const onAddressChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setAddress(event.target.value); }, []);
+  const onTokenIdsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setTokenIds(event.target.value); }, []);
+  const onInAmountsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setInAmounts(event.target.value); }, []);
+  const onOutAmountsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setOutAmounts(event.target.value); }, []);
+  const onTrackerIdsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setTrackerIds(event.target.value); }, []);
 
   function handleSubmit() {
     submit();
     setSubmissionModalShow(true);
   }
 
-  // function disableIssueButton(calldata, inAmounts, address) {
-  //   let qty = Number(inAmounts);
-  //   return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
-  // }
-
-  // update calldata on input change
-  useEffect(() => {
-    if (signedInAddress) {
-      let encodedCalldata;
-      // let qty = Number(inAmounts);
-      // qty = Math.round(inAmounts * 1000);
-
-      try {
-        encodedCalldata = encodeParameters(
-          // types of params
-          [
-            'address',
-            'address',
-            'uint256[]',
-            'uint256',
-            'uint256',
-            'uint256',
-            'string',
-            'string'
-          ],
-          // value of params
-          [
-            address,
-            signedInAddress,
-            tokenIds,
-            inAmounts,
-            outAmounts,
-            trackerIds,
-            fromDate,
-            thruDate
-          ]
-        );
-      } catch (error) {
-        encodedCalldata = "";
-      }
-      setCalldata(encodedCalldata);
-    }
-  }, [
-    address,
-    signedInAddress,
-    tokenIds,
-    inAmounts,
-    outAmounts,
-    trackerIds,
-    fromDate,
-    thruDate
-  ]);
-
   async function submit() {
+    if (!provider) return;
+    if (!fromDate) {
+      setResult("Invalid from date");
+      return;
+    }
+    if (!thruDate) {
+      setResult("Invalid thru date");
+      return;
+    }
+
     // we consider inAmounts has 3 decimals, multiply by 1000 before passing to the contract
     //let quantity_formatted;
     //quantity_formatted = Math.round(inAmounts * 1000);
@@ -106,6 +63,7 @@ export default function TrackForm({ provider, registeredTracker, signedInAddress
   }
 
   async function register() {
+    if (!provider) return;
     // we consider inAmounts has 3 decimals, multiply by 1000 before passing to the contract
     //let quantity_formatted;
     //quantity_formatted = Math.round(inAmounts * 1000);
@@ -215,11 +173,13 @@ export default function TrackForm({ provider, registeredTracker, signedInAddress
           <Form.Row>
             <Form.Group as={Col}>
               <Form.Label>From date</Form.Label>
-              <Datetime onChange={onFromDateChange}/>
+              {/* @ts-ignore : some weird thing with the types ... */}
+              <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
             </Form.Group>
             <Form.Group as={Col}>
               <Form.Label>Through date</Form.Label>
-              <Datetime onChange={onThruDateChange}/>
+              {/* @ts-ignore : some weird thing with the types ... */}
+              <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
             </Form.Group>
           </Form.Row>
           <Form.Group>
@@ -255,3 +215,6 @@ export default function TrackForm({ provider, registeredTracker, signedInAddress
     </>
   )
 }
+
+
+export default TrackForm;

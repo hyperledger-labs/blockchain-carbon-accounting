@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Web3Provider } from "@ethersproject/providers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
@@ -12,18 +12,18 @@ const INFURA_ID = "INVALID_INFURA_KEY";
 
 const NETWORK_NAME = "mainnet";
 
-function useWeb3Modal(config = {}) {
-  const [provider, setProvider] = useState();
+function useWeb3Modal(config: any = {}) {
+  const [provider, setProvider] = useState<Web3Provider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
-  const [roles, setRoles] = useState([]);
-  const [registeredTracker, setRegisteredTracker] = useState([]);
-  const [limitedMode, setLimitedMode] = useState(null);
+  const [roles, setRoles] = useState<boolean[]>([]);
+  const [registeredTracker, setRegisteredTracker] = useState(false);
+  const [limitedMode, setLimitedMode] = useState(true);
   const { autoLoad = true, infuraId = INFURA_ID, NETWORK = NETWORK_NAME } = config;
 
   // Web3Modal also supports many other wallets.
   // You can see other options at https://github.com/Web3Modal/web3modal
-  const web3Modal = new Web3Modal({
+  const web3Modal = useMemo(() => new Web3Modal({
     network: NETWORK,
     cacheProvider: true,
     providerOptions: {
@@ -34,13 +34,13 @@ function useWeb3Modal(config = {}) {
         },
       },
     },
-  });
+  }), [NETWORK, infuraId]);
 
 
   // Open wallet selection modal.
   const loadWeb3Modal = useCallback(async () => {
     const newProvider = await web3Modal.connect();
-    newProvider.on("accountsChanged", (accounts) => {
+    newProvider.on("accountsChanged", (accounts: string[]) => {
       setSignedInAddress(accounts[0]||'');
     });
 
@@ -52,7 +52,7 @@ function useWeb3Modal(config = {}) {
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
-      await web3Modal.clearCachedProvider();
+      web3Modal.clearCachedProvider();
       window.location.reload();
     },
     [web3Modal],
@@ -67,23 +67,25 @@ function useWeb3Modal(config = {}) {
   }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
 
   useEffect(() => {
-    async function fetchRoles() {
+    async function fetchRoles(provider: Web3Provider) {
       setRoles(await getRoles(provider, signedInAddress));
     };
-    async function fetchRegisteredTracker() {
+    async function fetchRegisteredTracker(provider: Web3Provider) {
       setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
     };
-    async function fetchLimitedMode() {
+    async function fetchLimitedMode(provider: Web3Provider) {
       setLimitedMode(await getLimitedMode(provider));
     }
 
-    fetchRoles();
-    fetchRegisteredTracker();
-    fetchLimitedMode();
+    if (provider) {
+      fetchRoles(provider);
+      fetchRegisteredTracker(provider);
+      fetchLimitedMode(provider);
+    }
 
   }, [provider, signedInAddress]);
 
-  return [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode];
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode};
 }
 
 export default useWeb3Modal;

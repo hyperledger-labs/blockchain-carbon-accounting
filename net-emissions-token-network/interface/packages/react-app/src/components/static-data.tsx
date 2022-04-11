@@ -1,0 +1,192 @@
+export type FieldOp = '=' | '>' | '>=' | '<' | '<=' | '!=' | 'contains'
+export type FieldOpValue = 'eq' | 'gt' | 'gte' | 'ls' | 'lte' | 'neq' | 'like'
+export type FieldType = 'string' | 'number' | 'balance' | 'enum'
+
+export type Field = {
+  ops?: string[]
+  op?: FieldOp 
+  alias?: string
+  value?: string | number
+  name?: string
+  type?: FieldType 
+}
+
+export type Wallet = {
+  name?: string
+  address?: string
+  organization?: string
+  roles?: string
+  public_key?: string
+  public_key_name?: string
+}
+
+export type Token = {
+  tokenId: number
+  tokenTypeId: number
+  tokenType?: string
+  issuee: string
+  issuer: string
+  fromDate: number|string
+  thruDate: number|string
+  dateCreated: number|string
+  // eslint-disable-next-line
+  metadata: Object
+  manifest: string
+  description: string
+  totalIssued: number|string
+  totalRetired: number|string
+  scope: number
+  type: string
+  isMyIssuedToken?: boolean
+}
+
+export type Tracker = {
+  trackerId: number
+  trackee: string
+  fromDate: string
+  thruDate: string
+  metadata: string
+  description: string
+  totalEmissions: string
+  totalAudited:string 
+  totalOut: string
+  ciAec: string
+  ciVct: string
+  sourceTrackers: {
+    trackerIds: number[]
+    trackerAmounts: any[]
+    tokenIds: number[]
+    totalOut: string[]
+    totalTracked: string[]
+  }
+}
+
+export type Balance = {
+  issuee: string
+  tokenId: number
+  available: number
+  retired: number
+  transferred: number
+  token: Token
+  tokenType?: string
+  availableBalance?: string
+  retiredBalance?: string
+  transferredBalance?: string
+}
+
+export type Proposal = {
+  id: number
+  realId: number
+  details: {
+    proposer: string
+    forVotes: number
+    againstVotes: number
+    rawForVotes: number
+    rawAgainstVotes: number
+    startBlock: number
+    endBlock: number
+  }
+  state: string
+  actions: any
+  receipt: {
+    hasVoted: boolean
+    hasVotesRefunded: boolean
+    support: boolean
+    votes: number
+    rawVotes: number
+    rawRefund: number
+    endVotesCancelPeriodBlock: number
+  }
+  description: string
+  isEligibleToVote: boolean
+}
+
+export const OPERATORS: Record<FieldType, FieldOp[]> = {
+    'string': ["=", "contains"],
+    'number': [">", "<", "="],
+    'balance': [">", "<", "="],
+    'enum': ["="]
+}
+
+export const FIELD_OPS: {label: FieldOp, value: FieldOpValue}[] = [
+    { label: "=", value: "eq" },
+    { label: ">", value: "gt" },
+    { label: ">=", value: "gte" },
+    { label: "<", value: "ls" },
+    { label: "<=", value: "lte" },
+    { label: "!=", value: "neq" },
+    { label: "contains", value: "like" },
+];
+
+export const TOKEN_TYPES = [
+    "Renewable Energy Certificate",
+    "Carbon Emissions Offset",
+    "Audited Emissions",
+    "Carbon Tracker"
+  ];
+
+export const BALANCE_FIELDS: Field[] = [
+{
+    alias: 'Token Type',
+    name: 'tokenTypeId',
+    type: 'enum'
+},
+{
+    alias: 'Balance',
+    name: 'available',
+    type: 'balance'
+},
+{
+    alias: 'Retired',
+    name: 'retired',
+    type: 'balance'
+},
+{
+    alias: 'Transferred',
+    name: 'transferred',
+    type: 'balance'
+},
+{
+    alias: 'Scope',
+    name: 'scope',
+    type: 'number'
+},
+{
+    alias: 'Type',
+    name: 'type',
+    type: 'string'
+},
+]
+
+export const TOKEN_FIELDS: Field[] = [
+{
+    alias: 'Token Type',
+    name: 'tokenTypeId',
+    type: 'enum'
+},
+{
+    alias: 'Total Issued',
+    name: 'totalIssued',
+    type: 'balance'
+},
+{
+    alias: 'Total Retired',
+    name: 'totalRetired',
+    type: 'balance'
+},
+{
+    alias: 'Transferred',
+    name: 'transferred',
+    type: 'balance'
+},
+{
+    alias: 'Scope',
+    name: 'scope',
+    type: 'number'
+},
+{
+    alias: 'Type',
+    name: 'type',
+    type: 'string'
+},
+]

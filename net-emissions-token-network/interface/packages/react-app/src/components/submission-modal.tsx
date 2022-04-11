@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
+import { FC } from "react";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
-export default function SubmissionModal(props) {
+type SubmissionModalProps = {
+  title: string
+  show: boolean
+  body: string
+  onHide: ()=>void
+}
+const SubmissionModal:FC<SubmissionModalProps> = (props) => {
 
   return (
     <Modal
@@ -34,3 +40,6 @@ export default function SubmissionModal(props) {
     </Modal>
   );
 }
+
+
+export default SubmissionModal;

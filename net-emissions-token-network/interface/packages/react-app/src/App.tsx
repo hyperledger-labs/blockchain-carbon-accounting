@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useRef } from "react";
+import React, { ElementRef, useRef } from "react";
 import { useQuery } from "@apollo/react-hooks";
 
 import Container from 'react-bootstrap/Container';
@@ -23,11 +23,11 @@ import GET_TRANSFERS from "./graphql/subgraph";
 
 function App() {
   const { loading, error, data } = useQuery(GET_TRANSFERS);
-  const [provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode] = useWeb3Modal();
+  const { provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode } = useWeb3Modal();
 
   const [location] = useLocation();
 
-  const dashboardRef = useRef();
+  const dashboardRef = useRef<ElementRef<typeof Dashboard>>(null);
 
   React.useEffect(() => {
     if (!loading && !error && data && data.transfers) {
@@ -55,7 +55,7 @@ function App() {
         {/* On dashboard page, click this link to refresh the balances */}
         {/* Else on other page, click this link to go to dashboard */}
         {(location.substring(1) === "dashboard")
-         ? <Nav.Link onClick={() => dashboardRef.current.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
+         ? <Nav.Link onClick={() => dashboardRef.current?.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
          : <Link href="/dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
         }
 
@@ -77,22 +77,22 @@ function App() {
 
         {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
         <Link href="/access-control"><Nav.Link eventKey="access-control">
-                                      {( (!limitedMode && isOwnerOrDealer) ^ (limitedMode && isOwner) )
-                                   ? "Manage roles"
-                                   : "My roles"
-                                  }
-                </Nav.Link></Link>
+          {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
+            ? "Manage roles"
+            : "My roles"
+        }
+        </Nav.Link></Link>
 
       </Nav>
 
       <Container className="my-2">
 
         <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
-              <Tab.Content animation="true">
+              <Tab.Content>
                 <Switch>
-                  <Route exact path="/"><Redirect to="/dashboard" /></Route>
+                  <Route path="/"><Redirect to="/dashboard" /></Route>
                   <Route path="/dashboard/:address?">{params=>
-                    <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} roles={roles} displayAddress={params.address} />
+                    <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
                   }</Route>
                   <Route path="/governance">
                     <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
@@ -100,9 +100,9 @@ function App() {
                   <Route path="/issue">
                     <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                   </Route>
-                  <Route path="/issuedtokens">
-                    <IssuedTokens provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
-                  </Route>
+                  <Route path="/issuedtokens/:address?">{params=>
+                    <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                  }</Route>
                   <Route path="/transfer">
                     <TransferForm provider={provider} roles={roles} />
                   </Route>
@@ -110,7 +110,7 @@ function App() {
                     <RetireForm provider={provider} roles={roles} />
                   </Route>
                   <Route path="/track">
-                    <TrackForm provider={provider} registeredTracker={registeredTracker} signedInAddress={signedInAddress}/>
+                    <TrackForm provider={provider} registeredTracker={registeredTracker}/>
                   </Route>
                   <Route path="/access-control">
                     <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />

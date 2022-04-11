@@ -1,25 +1,31 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, FC } from "react";
 import throttle from 'lodash/throttle';
 
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import { lookupWallets } from "../services/api.service";
+import { Wallet } from "./static-data";
 
-const WalletLookupInput = ({onChange, onWalletChange}) => {
+type WalletLookupInputProps = {
+  onChange: (v:string)=>void
+  onWalletChange: (w:Wallet|null)=>void
+} 
+
+const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange}) => {
   
   const [loading, setLoading] = useState(false);
-  const [value, setValue] = useState(null);
+  const [value, setValue] = useState<Wallet|string|null>(null);
   const [inputValue, setInputValue] = useState('');
-  const [options, setOptions] = useState([]);
+  const [options, setOptions] = useState<(Wallet|string)[]>([]);
 
   const fetch = useMemo(
     () => throttle(async (request, callback) => {
       // do the request
       setLoading(true);
-      const res = await lookupWallets(request.input)
+      const wallets = await lookupWallets(request.input)
       setLoading(false);
-      if (res.wallets) {
-        callback(res.wallets)
+      if (wallets) {
+        callback(wallets)
       } else {
         callback([request.input])
       }
@@ -35,9 +41,9 @@ const WalletLookupInput = ({onChange, onWalletChange}) => {
       return undefined;
     }
 
-    fetch({ input: inputValue }, (results) => {
+    fetch({ input: inputValue }, (results: (Wallet|string)[]) => {
       if (active) {
-        let newOptions= [];
+        let newOptions: (Wallet|string)[] = [];
 
         // if (value) {
         //   newOptions = [value];
@@ -67,14 +73,14 @@ const WalletLookupInput = ({onChange, onWalletChange}) => {
     renderInput={(params) => 
       <TextField {...params} label="Lookup by Address (0x0000...) or Name" />
     }
-    getOptionLabel={(option) => (typeof option === 'string') ? option : option.address}
+    getOptionLabel={(option) => (typeof option === 'string') ? option : option.address!}
     filterOptions={(x) => x} 
     value={value}
     onChange={(_, newValue) => {
       console.log('onChange', newValue)
       setOptions(newValue && options.indexOf(newValue) === -1 ? [newValue, ...options] : options);
       setValue(newValue);
-      if (onWalletChange) onWalletChange(newValue);
+      if (onWalletChange) onWalletChange(typeof newValue === 'string' ? null : newValue);
     }}
     onInputChange={(_, newInputValue) => {
       console.log('onInputChange', newInputValue)
@@ -82,7 +88,7 @@ const WalletLookupInput = ({onChange, onWalletChange}) => {
       if (onChange) onChange(newInputValue);
     }}
     renderOption={(props, option) => {
-      const name = option.name
+      const name = (typeof option === 'string') ? null : option.name 
       const addr = (typeof option === 'string') ? option : option.address
 
       return (

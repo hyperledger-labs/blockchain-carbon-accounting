@@ -1,26 +1,35 @@
 // SPDX-License-Identifier: Apache-2.0
+import { Web3Provider } from "@ethersproject/providers";
 import { addresses } from "@project/contracts";
-import React, { createRef, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
 import Spinner from 'react-bootstrap/Spinner';
-import { propose } from "../services/contract-functions";
+import { getErrorMessage, propose } from "../services/contract-functions";
 
+type CreateProposalModalProps = {
+  provider?:Web3Provider
+  show:boolean
+  title:string
+  token:number
+  calldata:string
+  description:string
+  onHide:()=>void 
+}
 
-
-
-export default function CreateProposalModal(props) {
+const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
 
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [proposalAttributes, setProposalAttributes] = useState([]);
-  const proposalAttributeRefs = useRef([]);
+  const [proposalAttributes, setProposalAttributes] = useState<{description:string}[]>([]);
+  // const proposalAttributeRefs = useRef([]);
 
   async function submit() {
+    if (!props.provider) return;
     setIsSubmitting(true);
-    let newResult;
+    let newResult: string;
     try {
 
       let args = {
@@ -28,12 +37,11 @@ export default function CreateProposalModal(props) {
         values: [ 0 ],
         signatures: [ "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)" ],
         calldata: [ props.calldata ],
-        description: description
+        description: [ description ]
       }
       if (proposalAttributes.length) {
         // except for the description, it doesn't really matter what we put here since child proposals are never executed
         // this must be an array for multi but not for single propose call
-        args.description = [args.description];
         proposalAttributes.forEach((e) => {
           args.targets.push("0x0000000000000000000000000000000000000000"); // contract to call
           args.values.push(0); // number of wei sent with call, i.e. msg.value
@@ -53,21 +61,21 @@ export default function CreateProposalModal(props) {
       newResult = proposeCall.toString()
     } catch (e) {
       console.error(e);
-      newResult = e.message;
+      newResult = getErrorMessage(e);
     }
     setIsSubmitting(false);
     setResult(newResult);
   }
 
-  const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
+  const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
 
-  const createProposalAttributes = (desc) => {
+  const createProposalAttributes = (desc: string[]) => {
     const newAttrs = [...proposalAttributes];
     desc.forEach(e => {
       newAttrs.push({description: e});
     });
     setProposalAttributes(newAttrs);
-    proposalAttributeRefs.current = newAttrs.map((_, i) => proposalAttributeRefs.current[i] ? proposalAttributeRefs.current[i] : createRef());
+    // proposalAttributeRefs.current = newAttrs.map((_, i) => proposalAttributeRefs.current[i] ? proposalAttributeRefs.current[i] : createRef());
   };
 
   useEffect(() => {
@@ -77,7 +85,7 @@ export default function CreateProposalModal(props) {
   useEffect(() => {
     // preset some attributes
     console.log("props.token", props.token);
-    if (props.token === 2 || props.token === "2") {
+    if (props.token === 2) {
       createProposalAttributes([
         "Real",
         "Additional",
@@ -87,7 +95,7 @@ export default function CreateProposalModal(props) {
       ]);
     } else {
       setProposalAttributes([]);
-      proposalAttributeRefs.current = [];
+      // proposalAttributeRefs.current = [];
     }
   }, [props.token]);
 
@@ -104,7 +112,7 @@ export default function CreateProposalModal(props) {
       </Modal.Header>
       <Modal.Body>
 
-        <p>Create a proposal to <b>issue tokens</b> from the DAO. If it passes through a vote of the DAO token holders, it can be queued and executed to issue new tokens to any registered consumer. 400,000 tokens or 4% of the DAO token supply is required to submit a proposal. Only one active proposal is allowed per user. Proposals, votes, DAO token balance, and delgates can be viewed on the Governance page.</p>
+        <p>Create a proposal to <b>issue tokens</b> from the DAO. If it passes through a vote of the DAO token holders, it can be queued and executed to issue new tokens to any registered consumer. 400,000 tokens or 4% of the DAO token supply is required to submit a proposal. Only one active proposal is allowed per user. Proposals, votes, DAO token balance, and delegates can be viewed on the Governance page.</p>
         <p><small>Be sure to double-check all form inputs before submitting! You can cancel proposals but it costs gas.</small></p>
 
         <Form>
@@ -140,3 +148,5 @@ export default function CreateProposalModal(props) {
     </Modal>
   );
 }
+
+export default CreateProposalModal;

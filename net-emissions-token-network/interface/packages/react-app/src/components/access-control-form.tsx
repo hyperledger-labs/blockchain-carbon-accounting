@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useRef } from "react";
+import { useState, useRef, ChangeEventHandler, FC } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer } from "../services/contract-functions";
 import { registerUserRole, unregisterUserRole } from "../services/api.service"
 
 import SubmissionModal from "./submission-modal";
 import WalletLookupInput from "./wallet-lookup-input";
+import {Wallet} from "./static-data";
 
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
@@ -13,6 +14,7 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
+import { Web3Provider } from "@ethersproject/providers";
 
 const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Registered Industry Dealer", "Consumer"];
 const roleCodes = ["Owner", "REC", "CEO", "AE", "REGISTERED_INDUSTRY_DEALER", "Consumer"];
@@ -22,17 +24,17 @@ const roleCodes = ["Owner", "REC", "CEO", "AE", "REGISTERED_INDUSTRY_DEALER", "C
 //   return roles.map((v,i) => v?roleNames[i]:null).filter((v)=>v!=null);
 // }
 
-function RoleCodeToText(role) {
+function RoleCodeToText(role: string) {
   const i = roleCodes.indexOf(role);
   if (i > -1) return roleNames[i];
   if (role === 'REGISTERED_INDUSTRY') return "Registered Industry";
   return role;
 }
 
-function RolesCodesToLi({currentRoles, roles, unregister}) {
+function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: boolean[], roles: string | string[], unregister?: (r:string)=>void}) {
   if (!roles) return null;
   const arr = (typeof roles === 'string') ? roles.split(',') : roles
-  return arr.sort().map((r)=><li key={r}>
+  return <>{arr.sort().map((r)=><li key={r}>
     {RoleCodeToText(r)}
     {unregister
       && ((currentRoles[0] === true) || ((currentRoles[1] === true || currentRoles[2] === true || currentRoles[3] === true || currentRoles[4] === true)
@@ -41,21 +43,21 @@ function RolesCodesToLi({currentRoles, roles, unregister}) {
       && <Button variant="outline-danger" className="ml-2 my-1" size="sm" onClick={() => {unregister(r)}}>
       Unregister
     </Button>}
-</li>)
+</li>)}</>
 }
 
-function RolesBoolsToCodes(roles) {
-  if (!roles || roles.length !== 6) return null;
+function RolesBoolsToCodes(roles: boolean[]) {
+  if (!roles || roles.length !== 6) return [];
   return roles.map((v,i) => v?roleCodes[i]:null).filter((v)=>v!=null);
 }
 
-function RolesListElements({ roles }) {
-  return roles.map((role, id) => 
+function RolesListElements({ roles }: {roles: boolean[]}) {
+  return <>{roles.map((role, id) =>  
     <div key={id}>{role && <li>{roleNames[id]}&nbsp;&nbsp;</li>}</div>
-  );
+  )}</>
 }
 
-function RolesList({ roles }) {
+function RolesList({ roles }: {roles: boolean[]}) {
   if (roles.every(r => r === false)) {
     return <p>No roles found.</p>
   }
@@ -67,10 +69,17 @@ function RolesList({ roles }) {
   );
 }
 
-export default function AccessControlForm({ provider, signedInAddress, roles, limitedMode }) {
+type AccessControlFormProps = {
+  provider?: Web3Provider
+  signedInAddress: string
+  roles: boolean[]
+  limitedMode: boolean 
+}
+
+const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddress, roles, limitedMode }) => {
 
   const [modalShow, setModalShow] = useState(false);
-  const formRef = useRef(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
@@ -83,30 +92,32 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
 
   // Fetching roles of outside address
-  const [lookupWallet, setLookupWallet] = useState({});
-  const [theirAddress, setTheirAddress] = useState();
-  const [theirRoles, setTheirRoles] = useState([]);
+  const [lookupWallet, setLookupWallet] = useState<Wallet|null>(null);
+  const [theirAddress, setTheirAddress] = useState("");
+  const [theirRoles, setTheirRoles] = useState<boolean[]>([]);
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
 
   async function fetchTheirRoles() {
-    setTheirRoles("");
+    if (!provider) return;
+    setTheirRoles([]);
     setFetchingTheirRoles(true);
     let result = await getRoles(provider, theirAddress);
     setTheirRoles(result);
     setFetchingTheirRoles(false);
   }
 
-  function onAddressChange(event) { setAddress(event.target.value); };
-  function onNameChange(event) { setName(event.target.value); };
-  function onOrganizationChange(event) { setOrganization(event.target.value); };
-  function onPublicKeyChange(event) { setPublicKey(event.target.value); };
-  function onPublicKeyNameChange(event) { setPublicKeyName(event.target.value); };
-  function onRoleChange(event) { setRole(event.target.value); };
+  const onAddressChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAddress(event.target.value); };
+  const onNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setName(event.target.value); };
+  const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (event) => { setOrganization(event.target.value); };
+  const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKey(event.target.value); };
+  const onPublicKeyNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKeyName(event.target.value); };
+  const onRoleChange: ChangeEventHandler<HTMLInputElement> = (event) => { setRole(event.target.value); };
 
   async function handleRegister() {
+    if (!provider) return;
     // validate
-    if (formRef && formRef.current.checkValidity() === false) {
+    if (formRef.current && formRef.current.checkValidity() === false) {
       setRegisterFormValidated(true);
       return;
     }
@@ -167,7 +178,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
   }
 
 
-  async function handleSingleUnregister(wallet, role) {
+  async function handleSingleUnregister(wallet: Wallet, role: string) {
     let result = null;
 
     switch (role) {
@@ -198,7 +209,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
     } else {
       console.log('Transaction successful', result.toString());
     }
-    const newRoles = wallet.roles.split(',').filter((r)=>r!==role).join(',');
+    const newRoles = wallet.roles!.split(',').filter((r)=>r!==role).join(',');
     await unregisterUserRole(address, newRoles);
     setModalShow(true);
     if (lookupWallet && lookupWallet.address === address) {
@@ -211,8 +222,9 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
   }
 
   async function handleUnregister() {
+    if (!provider) return;
     // validate
-    if (formRef && formRef.current.checkValidity() === false) {
+    if (formRef.current && formRef.current.checkValidity() === false) {
       setRegisterFormValidated(true);
       return;
     }
@@ -272,36 +284,42 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
   }
 
   async function fetchRegisterConsumer() {
+    if (!provider) return;
     let result = await registerConsumer(provider, address);
     setResult(result.toString());
     return result;
   }
 
   async function fetchUnregisterConsumer() {
+    if (!provider) return;
     let result = await unregisterConsumer(provider, address);
     setResult(result.toString());
     return result;
   }
 
   async function fetchRegisterIndustry() {
+    if (!provider) return;
     let result = await registerIndustry(provider, address);
     setResult(result.toString());
     return result;
   }
 
   async function fetchRegisterIndustrySelf() {
+    if (!provider) return;
     let result = await registerIndustry(provider, signedInAddress);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchRegisterDealer(tokenTypeId) {
+  async function fetchRegisterDealer(tokenTypeId: number) {
+    if (!provider) return;
     let result = await registerDealer(provider, address, tokenTypeId);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterDealer(tokenTypeId) {
+  async function fetchUnregisterDealer(tokenTypeId: number) {
+    if (!provider) return;
     let result = await unregisterDealer(provider, address, tokenTypeId);
     setResult(result.toString());
     return result;
@@ -336,9 +354,9 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
 
       <h4>Look-up Roles</h4>
       <InputGroup className="mb-3">
-        <WalletLookupInput onChange={(v) => { setTheirAddress(v) }} onWalletChange={(w)=>{
+        <WalletLookupInput onChange={(v: string) => { setTheirAddress(v) }} onWalletChange={(w)=>{
           setLookupWallet(w);
-          setAddress(w ? w.address : '');
+          setAddress(w ? w.address! : '');
         }} />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
@@ -349,7 +367,7 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
         <li>Address: {lookupWallet.address}</li>
         <li>Organization: {lookupWallet.organization}</li>
         <li>Roles: <ul>
-          <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles} unregister={(r) => {
+          <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles!} unregister={(r) => {
             handleSingleUnregister(lookupWallet, r)
           }}/>
         </ul></li>
@@ -505,3 +523,5 @@ export default function AccessControlForm({ provider, signedInAddress, roles, li
     </>
   );
 }
+
+export default AccessControlForm;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -10,8 +10,14 @@ import "react-datetime/css/react-datetime.css";
 import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/contract-functions";
 import CreateProposalModal from "./create-proposal-modal";
 import SubmissionModal from "./submission-modal";
+import { Web3Provider } from "@ethersproject/providers";
 
-export default function IssueForm({ provider, roles, signedInAddress, limitedMode }) {
+type KeyValuePair = {
+  key: string
+  value: string
+}
+
+export default function IssueForm({ provider, roles, signedInAddress, limitedMode }: {provider?:Web3Provider, roles:boolean[], signedInAddress:string, limitedMode:boolean}) {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -23,19 +29,19 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [address, setAddress] = useState("");
   const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [thruDate, setThruDate] = useState("");
+  const [fromDate, setFromDate] = useState<Date|null>(null);
+  const [thruDate, setThruDate] = useState<Date|null>(null);
   const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
-  const [scope, setScope] = useState(1);
+  const [scope, setScope] = useState<number|null>(null);
   const [type, setType] = useState("");
 
   const [metajson, setMetajson] = useState("");
-  const [metadata, setMetadata] = useState([]);
+  const [metadata, setMetadata] = useState<KeyValuePair[]>([]);
 
   const [manifestjson, setManifestjson] = useState("");
-  const [manifest, setManifest] = useState([]);
+  const [manifest, setManifest] = useState<KeyValuePair[]>([]);
 
   // Calldata
   const [calldata, setCalldata] = useState("");
@@ -44,31 +50,29 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  const onAddressChange = useCallback((event) => { setAddress(event.target.value); }, []);
-  const onTokenTypeIdChange = useCallback((event) => { setTokenTypeId(event.target.value); }, []);
-  const onQuantityChange = useCallback((event) => { setQuantity(event.target.value); }, []);
-  const onFromDateChange = useCallback((event) => { setFromDate(event._d); }, []);
-  const onThruDateChange = useCallback((event) => { setThruDate(event._d); }, []);
-  const onDescriptionChange = useCallback((event) => { setDescription(event.target.value); }, []);
-  const onScopeChange = useCallback((event) => { setScope(event.target.value); }, []);
-  const onTypeChange = useCallback((event) => { setType(event.target.value); }, []);
+  const onAddressChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setAddress(event.target.value); }, []);
+  const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
+  const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
+  const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
+  const onScopeChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setScope(parseInt(event.target.value)); }, []);
+  const onTypeChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setType(event.target.value); }, []);
 
   // params: key-value object list
-  const castMetadata = (pairlist) => {
-    const metaObj = {};
+  const castMetadata = (pairlist: KeyValuePair[]) => {
+    const metaObj: any = {};
     pairlist.forEach((elem) => {
       metaObj[elem.key] = elem.value;
     });
 
     // add scope and type too.
-    metaObj["scope"] = scope;
-    metaObj["type"] = type;
+    if (scope) metaObj["scope"] = scope;
+    if (type) metaObj["type"] = type;
 
     return JSON.stringify(metaObj);
   }
 
   // handle metadata field list
-  const removeField = (idx) => {
+  const removeField = (idx: number) => {
     let array = [...metadata];
     array.splice(idx, 1);
     setMetadata(array);
@@ -81,8 +85,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     setMetajson(castMetadata(metadata));
   }
 
-  const castManifest = (pairlist) => {
-    const manifestObj = {};
+  const castManifest = (pairlist: KeyValuePair[]) => {
+    const manifestObj: any = {};
     pairlist.forEach((elem) => {
       manifestObj[elem.key] = elem.value;
     });
@@ -96,7 +100,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     setManifestjson(castManifest(manifest));
   }
 
-  const removeFieldManifest = (idx) => {
+  const removeFieldManifest = (idx: number) => {
     let array = [...manifest];
     array.splice(idx, 1);
     setManifest(array);
@@ -108,7 +112,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     setSubmissionModalShow(true);
   }
 
-  function disableIssueButton(calldata, quantity, address) {
+  function disableIssueButton(calldata: string, quantity: number|string, address: string) {
     let qty = Number(quantity);
     return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
   }
@@ -117,8 +121,9 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   useEffect(() => {
     if (signedInAddress) {
       let encodedCalldata;
-      let qty = Number(quantity);
-      qty = Math.round(quantity * 1000);
+      const qty = Math.round(Number(quantity) * 1000);
+      const fromDateNum = fromDate ? fromDate.getTime()/1000 : null;
+      const thruDateNum = thruDate ? thruDate.getTime()/1000 : null;
 
       try {
         encodedCalldata = encodeParameters(
@@ -140,8 +145,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
             signedInAddress,
             tokenTypeId,
             qty,
-            Number(fromDate)/1000,
-            Number(thruDate)/1000,
+            fromDateNum,
+            thruDateNum,
             metajson,
             manifestjson,
             ("Issued by DAO. " + description)
@@ -168,7 +173,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
   useEffect(() => {
     async function fetchAdmin() {
-      setAdminAddress(await getAdmin(provider));
+      if (provider) setAdminAddress(await getAdmin(provider));
     }
     if (limitedMode === true) {
       fetchAdmin();
@@ -177,18 +182,26 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
   useEffect(() => {
     if (roles[0] || roles[1]) {
-      setTokenTypeId("1");
+      setTokenTypeId(1);
     } else if (roles[0] || roles[2]) {
-      setTokenTypeId("2");
+      setTokenTypeId(2);
     } else if (roles[0] || roles[3]) {
-      setTokenTypeId("3");
+      setTokenTypeId(3);
     }
   }, [roles]);
 
   async function submit() {
+    if (!provider) return;
+    if (!fromDate) {
+      setResult("Invalid from date");
+      return;
+    }
+    if (!thruDate) {
+      setResult("Invalid thru date");
+      return;
+    }
     // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
-    let quantity_formatted;
-    quantity_formatted = Math.round(quantity * 1000);
+    let quantity_formatted = Math.round(Number(quantity) * 1000);
     console.log(tokenTypeId)
 
     const _metadata = castMetadata(metadata);
@@ -227,7 +240,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <h2>Issue tokens</h2>
       <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered consumers.</p>
 
-      { ((!limitedMode) || (tokenTypeId === "3"))
+      { ((!limitedMode) || (tokenTypeId === 3))
         ?
         <Form.Group>
           <Form.Label>Address</Form.Label>
@@ -288,11 +301,13 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
       <Form.Row>
         <Form.Group as={Col}>
           <Form.Label>From date</Form.Label>
-          <Datetime onChange={onFromDateChange}/>
+          {/* @ts-ignore : some weird thing with the types ... */}
+          <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
         </Form.Group>
         <Form.Group as={Col}>
           <Form.Label>Through date</Form.Label>
-          <Datetime onChange={onThruDateChange}/>
+          {/* @ts-ignore : some weird thing with the types ... */}
+          <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
         </Form.Group>
       </Form.Row>
       <Form.Group>
@@ -416,7 +431,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
               disabled={
                 (calldata.length === 0) ||
                 Number(quantity) === 0 ||
-                tokenTypeId === "3"
+                tokenTypeId === 3
               }
             >
               Create a DAO proposal token
@@ -425,7 +440,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
         </Col>
 
-        { ( !limitedMode || tokenTypeId === "3" ) &&
+        { ( !limitedMode || tokenTypeId === 3 ) &&
           <Col>
             {/* Only enable issue if role is found */}
             { (roles[0] || roles[1] || roles[2] || roles[3] || roles[4])

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
+import { FC, ChangeEventHandler, useState, useEffect } from "react";
 
 import { transfer } from "../services/contract-functions";
 
@@ -7,14 +7,20 @@ import SubmissionModal from "./submission-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import { Web3Provider } from "@ethersproject/providers";
 
-export default function TransferForm({ provider, roles }) {
+type TransferFormProps = {
+  provider?: Web3Provider
+  roles: boolean[]
+}
+
+const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
 
   const [modalShow, setModalShow] = useState(false);
 
   // Form inputs
-  const [address, setAddress] = useState();
-  const [tokenId, setTokenId] = useState();
+  const [address, setAddress] = useState("");
+  const [tokenId, setTokenId] = useState(1);
   const [amount, setAmount] = useState("");
   const [result, setResult] = useState("");
 
@@ -23,9 +29,9 @@ export default function TransferForm({ provider, roles }) {
   const [initializedTokenIdInput, setInitializedTokenIdInput] = useState(false);
   const [initializedAmountInput, setInitializedAmountInput] = useState(false);
 
-  function onAddressChange(event) { setAddress(event.target.value); };
-  function onTokenIdChange(event) { setTokenId(event.target.value); };
-  function onAmountChange(event) { setAmount(event.target.value); };
+  const onAddressChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAddress(event.target.value); };
+  const onTokenIdChange: ChangeEventHandler<HTMLInputElement> = (event) => { setTokenId(parseInt(event.target.value)); };
+  const onAmountChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAmount(event.target.value); };
 
   function handleTransfer() {
     fetchTransfer();
@@ -33,8 +39,9 @@ export default function TransferForm({ provider, roles }) {
   }
 
   async function fetchTransfer() {
-    let qty = Math.round(amount * 1000);
-    let result = await transfer(provider, address, tokenId, qty);
+    if (!provider) return;
+    const qty = Math.round(Number(amount) * 1000);
+    const result = await transfer(provider, address, tokenId, qty);
     setResult(result.toString());
   }
 
@@ -49,7 +56,7 @@ export default function TransferForm({ provider, roles }) {
       setAddress(addressQueryParam);
     }
     if (tokenIdQueryParam) {
-      setTokenId(tokenIdQueryParam);
+      setTokenId(parseInt(tokenIdQueryParam));
     }
     if (quantityQueryParam) {
       setAmount(quantityQueryParam);
@@ -114,3 +121,5 @@ export default function TransferForm({ provider, roles }) {
     </>
   );
 }
+
+export default TransferForm;

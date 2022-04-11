@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 
 import { decodeParameters, TOKEN_TYPES, formatDate } from "../services/contract-functions";
 
@@ -7,18 +7,40 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 
-export default function ProposalCallDetailsModal(props) {
 
-  const [ decoded,setDecoded] = useState({});
+type ProposalCallDetailsModalProps = {
+  title: string
+  actions: any
+  show: boolean
+  onHide: ()=>void
+}
+
+type Decoded = {
+  address: string
+  proposer: string
+  tokenType: string
+  quantity: string
+  fromDate: string
+  thruDate: string
+  metadata: string
+  manifest: string
+  description: string
+}
+
+const ProposalCallDetailsModal: FC<ProposalCallDetailsModalProps> = (props) => {
+
+  const [decoded,setDecoded] = useState<Decoded|null>(null);
 
   useEffect(() => {
-    async function fetchDecodedParameters(actionNumber) {
+    async function fetchDecodedParameters(actionNumber: number) {
       let regExp = /\(([^)]+)\)/;
       console.log('*** fetchDecodedParameters', actionNumber, props.actions.signatures);
       let sigs = props.actions.signatures[actionNumber];
       if (sigs.length) {
-        let types = (regExp.exec(sigs))[1].split(",");
-        let decodedCall = await decodeParameters(types, props.actions.calldatas[actionNumber]);
+        const rx = regExp.exec(sigs);
+        if (!rx) return;
+        let types = rx[1].split(",");
+        let decodedCall = decodeParameters(types, props.actions.calldatas[actionNumber]);
         let qty = decodedCall[3].toNumber();
         qty = (qty / 1000).toFixed(3);
         setDecoded({
@@ -63,6 +85,7 @@ export default function ProposalCallDetailsModal(props) {
           </Form.Group>
           <Form.Group>
             <Form.Label>Function parameters</Form.Label>
+            {decoded && <>
             <Form.Text>Address to issue to: {decoded.address}</Form.Text>
             <Form.Text>Issuer/proposer: {decoded.proposer}</Form.Text>
             <Form.Text>Token type: {decoded.tokenType}</Form.Text>
@@ -72,6 +95,7 @@ export default function ProposalCallDetailsModal(props) {
             <Form.Text>Metadata: {decoded.metadata}</Form.Text>
             <Form.Text>Manifest: {decoded.manifest}</Form.Text>
             <Form.Text>Description: {decoded.description}</Form.Text>
+            </>}
           </Form.Group>
         </Form>
 
@@ -82,3 +106,6 @@ export default function ProposalCallDetailsModal(props) {
     </Modal>
   );
 }
+
+
+export default ProposalCallDetailsModal;

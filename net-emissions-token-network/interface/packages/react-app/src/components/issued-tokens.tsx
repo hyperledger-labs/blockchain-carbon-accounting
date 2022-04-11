@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, {
+import {
   forwardRef,
+  ForwardRefRenderFunction,
   useCallback,
   useEffect,
   useImperativeHandle,
-  useState
+  useState,
+  MouseEvent,
+  ChangeEvent
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
@@ -23,10 +26,21 @@ import TrackerInfoModal from "./tracker-info-modal";
 import { getBalances, getTokens } from '../services/api.service';
 import Paginator from "./paginate";
 import QueryBuilder from "./query-builder";
-import { BALANCE_FIELDS, TOKEN_FIELDS } from "./static-data";
+import { Balance, Token, TOKEN_FIELDS, Tracker } from "./static-data";
+import { Web3Provider } from "@ethersproject/providers";
 
+type IssuedTokensProps = {
+  provider?: Web3Provider, 
+  signedInAddress: string, 
+  displayAddress: string,
+  roles: boolean[]
+}
 
-export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
+type IssuedTokensHandle = {
+  refresh: ()=>void
+}
+
+const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensProps> = ({ provider, signedInAddress, roles, displayAddress }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
@@ -34,9 +48,9 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
   const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
-  const [myBalances, setMyBalances] = useState([]);
-  const [myIssuedTokens, setMyIssuedTokens] = useState([]);
-  const [myIssuedTrackers, setMyIssuedTrackers] = useState([]);
+  const [myBalances, setMyBalances] = useState<Balance[]>([]);
+  const [myIssuedTokens, setMyIssuedTokens] = useState<Token[]>([]);
+  const [myIssuedTrackers, setMyIssuedTrackers] = useState<Tracker[]>([]);
 
   const [fetchingTokens, setFetchingTokens] = useState(false);
   const [fetchingTrackers, setFetchingTrackers] = useState(false);
@@ -53,44 +67,30 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
   const [ page, setPage ] = useState(1);
   const [ count, setCount ] = useState(0);
   const [ pageSize, setPageSize ] = useState(20);
-  const [ query, setQuery ] = useState([]);
+  const [ query, setQuery ] = useState<string[]>([]);
 
   const [ balancePage, setBalancePage ] = useState(1);
-  const [ balanceCount, setBalanceCount ] = useState(0);
   const [ balancePageSize, setBalancePageSize ] = useState(20);
-  const [ balanceQuery, setBalanceQuery ] = useState([]);
+  const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
 
-  async function handlePageChange(event, value) {
+  async function handlePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
     await fetchTokens(value, pageSize, query);
   }
 
-  async function handlePageSizeChange(event) {
-    await fetchTokens(1, event.target.value, query);
+  async function handlePageSizeChange(event: ChangeEvent<HTMLInputElement>) {
+    await fetchTokens(1, parseInt(event.target.value), query);
   }
 
-  async function handleBalancePageChange(event, value) {
-    await fetchBalances(value, balancePageSize, balanceQuery);
-  }
-
-  async function handleBalancePageSizeChanged(event) {
-    await fetchBalances(1, event.target.value, balanceQuery);
-
-  }
-
-  async function handleQueryChanged(_query) {
+  async function handleQueryChanged(_query: string[]) {
     await fetchTokens(page, pageSize,  _query);
   }
 
-  async function handleBalanceQueryChanged(_query) {
-    await fetchBalances(balancePage, balancePageSize, _query);
-  }
-
-  function handleOpenTokenInfoModal(token) {
+  function handleOpenTokenInfoModal(token: Token) {
     setSelectedToken(token);
     setModalShow(true);
   }
 
-  function handleOpenTrackerInfoModal(tracker) {
+  function handleOpenTrackerInfoModal(tracker: Tracker) {
     setSelectedTracker(tracker);
     setModaltrackerShow(true);
     console.log(tracker)
@@ -106,14 +106,14 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
   async function handleRefresh() {
     // clear localStorage
     let localStorage = window.localStorage;
-    localStorage.setItem('token_balances', null);
+    localStorage.setItem('token_balances', '');
 
     setFetchingTokens(true);
     await fetchTokens(page, pageSize, query);
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider, address) {
+  async function fetchAddressRoles(provider: Web3Provider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);
@@ -125,10 +125,10 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
   }
 
   useEffect(() => {
-    fetchAddressRoles(provider, displayAddress);
+    if(provider) fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async (_balancePage, _balancePageSize, _balanceQuery) => {
+  const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
     let newMyBalances = [];
     // Format tokenType from tokenTypeId
     let tokenTypes = [
@@ -138,18 +138,13 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
       "Carbon Tracker"
     ];
 
-    let _balanceCount = 0;
     try {
       // get total count of balance
       const query = `issuee,string,${signedInAddress},eq`;
       const offset = (_balancePage - 1) * _balancePageSize;
 
       // this count means total number of balances
-      let {count, balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
-      
-      // this count means total pages of balances
-      _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
-
+      let {balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
 
       for (let i = 0; i < balances.length; i++) {
         const balance = balances[i];
@@ -160,10 +155,9 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
         balance.token.dateCreated = formatDate(balance.token.dateCreated);
 
         let token = {
+          ...balance,
           tokenId: balance.token.tokenId,
-          token: balance.token,
           tokenType: tokenTypes[balance.token.tokenTypeId - 1],
-          issuee: balance.issuee,
           availableBalance: (balance.available / 1000).toFixed(3),
           retiredBalance: (balance.retired / 1000).toFixed(3),
           transferredBalance: (balance.transferred / 1000).toFixed(3)
@@ -175,14 +169,13 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
     }
 
     setMyBalances(newMyBalances);
-    setBalanceCount(_balanceCount);
     setBalancePage(_balancePage);
     setBalancePageSize(_balancePageSize);
     setBalanceQuery(_balanceQuery);
     setFetchingTokens(false);
   }, [signedInAddress]);
 
-  const fetchTokens = useCallback(async (_page, _pageSize, _query) => {
+  const fetchTokens = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
 
     let newMyIssuedTokens = [];
     let newMyIssuedTrackers = [];
@@ -220,8 +213,7 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
         
         let totalIssued = "";
         try {
-          totalIssued = tokenDetails.totalIssued;
-          totalIssued = (totalIssued / 1000).toFixed(3);
+          totalIssued = (Number(tokenDetails.totalIssued) / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
           totalIssued = "";
@@ -229,18 +221,21 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
 
         let totalRetired = "";
         try {
-          totalRetired = tokenDetails.totalRetired;
-          totalRetired = (totalRetired / 1000).toFixed(3);
+          totalRetired = (Number(tokenDetails.totalRetired) / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
           totalRetired = "";
         }
 
-        let token = {
+        let token: Token = {
           tokenId: tokenDetails.tokenId,
+          scope: tokenDetails.scope,
+          type: tokenDetails.type,
+          tokenTypeId: tokenDetails.tokenTypeId,
           tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
+          dateCreated: tokenDetails.dateCreated,
           fromDate: fromDate,
           thruDate: thruDate,
           metadata: tokenDetails.metadata,
@@ -263,6 +258,7 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
 
     try {
       // First, fetch number of unique tokens
+      if(!provider) return;
       let numOfUniqueTrackers = (await getNumOfUniqueTrackers(provider)).toNumber();
       // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= numOfUniqueTrackers; i++) {
@@ -276,8 +272,7 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
 
         let totalEmissions = "";
         try {
-          totalEmissions = trackerDetails.totalEmissions.toNumber();
-          totalEmissions = (totalEmissions / 1000).toFixed(3);
+          totalEmissions = (trackerDetails.totalEmissions.toNumber() / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", trackerDetails.totalEmissions);
           totalEmissions = "";
@@ -285,8 +280,7 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
 
         let totalAudited = "";
         try {
-          totalAudited = trackerDetails.totalAudited.toNumber();
-          totalAudited = (totalAudited / 1000).toFixed(3);
+          totalAudited = (trackerDetails.totalAudited.toNumber() / 1000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
           totalAudited = "";
@@ -294,7 +288,8 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
 
         let trackerIds = await getTrackerIds(provider, i);
         console.log('--- trackerIds', trackerIds);
-        let totalOut=0;
+        let totalOutNumber=0;
+        let totalOut='';
         try {
           let tokenAmounts;
           let sourceTracker = 0;
@@ -303,27 +298,27 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
             for (let k = 0; k < tokenAmounts[2].length; k++) {
               
 
-              totalOut += ( tokenAmounts[2][k].toNumber()/ 1000);
+              totalOutNumber += ( tokenAmounts[2][k].toNumber()/ 1000);
             }
             sourceTracker = trackerIds[j];
           }
-          totalOut = totalOut.toFixed(3);
+          totalOut = totalOutNumber.toFixed(3);
         } catch (error) {
           console.warn("Cannot convert tracker totalOut to number", totalOut);
           totalOut = "";
         }
-        let ciAec = await getCarbonIntensity(provider,0,3);
+        let ciAecRes = await getCarbonIntensity(provider,0,3);
+        let ciAec = '';
         try {
-          ciAec = ciAec.toNumber();
-          ciAec = (ciAec / 1000000).toFixed(3);
+          ciAec = (ciAecRes.toNumber() / 1000000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
           ciAec = "";
         }
-        let ciVct = await getCarbonIntensity(provider,0,4);
+        let ciVctRes = await getCarbonIntensity(provider,0,4);
+        let ciVct = '';
         try {
-          ciVct = ciVct.toNumber();
-          ciVct = (ciVct / 1000000).toFixed(3);
+          ciVct = (ciVctRes.toNumber() / 1000000).toFixed(3);
         } catch (error) {
           console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
           ciVct = "";
@@ -337,7 +332,7 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
           totalOffset = "";
         }*/
 
-        let tracker = {
+        let tracker: Tracker = {
           trackerId: i,
           trackee: trackerDetails.trackee,
           fromDate: fromDate,
@@ -402,17 +397,15 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
     init();
   }, [provider, signedInAddress]);
 
-  function pointerHover(e) {
-    e.target.style.cursor = "pointer";
+  function pointerHover(e: MouseEvent<HTMLElement>) {
+    e.currentTarget.style.cursor = "pointer";
   }
 
   return (
     <>
       <TokenInfoModal
         show={modalShow}
-        provider={provider}
         token={selectedToken}
-        body="hello"
         onHide={() => {
           setModalShow(false);
           setSelectedToken({});
@@ -420,9 +413,7 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
       />
       <TrackerInfoModal
         show={modalTrackerShow}
-        provider={provider}
         tracker={selectedTracker}
-        body="hello"
         onHide={() => {
           setModaltrackerShow(false);
           setSelectedTracker({});
@@ -528,6 +519,6 @@ export const IssuedTokens = forwardRef(({ provider, signedInAddress, roles, disp
       </div>
     </>
   );
-});
+}
 
-export default IssuedTokens;
+export default forwardRef(IssuedTokens);

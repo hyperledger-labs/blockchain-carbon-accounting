@@ -1,7 +1,7 @@
-import React from 'react';
 import Pagination from '@mui/material/Pagination';
+import { ChangeEvent, ChangeEventHandler} from 'react';
 
-const Paginator = ({count, page, pageSize, pageChangeHandler, pageSizeHandler}) => {
+const Paginator = ({count, page, pageSize, pageChangeHandler, pageSizeHandler}: {count: number, page: number, pageSize: number, pageChangeHandler: (event: ChangeEvent<any>, p: number)=>{}, pageSizeHandler: ChangeEventHandler}) => {
     const pageSizes = [5, 10, 20, 50, 100];
     return (
         <div className="row">

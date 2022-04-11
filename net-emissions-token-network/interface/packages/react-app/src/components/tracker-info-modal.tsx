@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
+import { FC } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from "react-bootstrap/Col";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { FaLink } from 'react-icons/fa';
 
-export default function TrackerInfoModal(props) {
+
+type TrackerInfoModalProps = {
+  show:boolean
+  tracker:any
+  onHide:()=>void 
+}
+
+const TrackerInfoModal:FC<TrackerInfoModalProps> = (props) => {
 
   return (
     <Modal {...props} centered size="lg">
@@ -73,17 +80,17 @@ export default function TrackerInfoModal(props) {
             </tr>
             <tr>
               <td>Metadata</td>
-              <td className="text-monospace" style={{ wordWrap: "anywhere" }}>
+              <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
                 {props.tracker.metadata}
               </td>
             </tr>
             <tr>
               <td>Manifest</td>
-              <td style={{ wordWrap: "anywhere" }}>{props.tracker.manifest}</td>
+              <td style={{ overflowWrap: "anywhere" }}>{props.tracker.manifest}</td>
             </tr>
             <tr>
               <td>Description</td>
-              <td style={{ wordWrap: "anywhere" }}>{props.tracker.description}</td>
+              <td style={{ overflowWrap: "anywhere" }}>{props.tracker.description}</td>
             </tr>
           </tbody>
         </table>
@@ -94,3 +101,5 @@ export default function TrackerInfoModal(props) {
     </Modal>
   );
 }
+
+export default TrackerInfoModal;

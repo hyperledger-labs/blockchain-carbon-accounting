@@ -2,6 +2,7 @@
 import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
+import { Web3Provider } from "@ethersproject/providers";
 import { abis, addresses } from "@project/contracts";
 
 
@@ -28,27 +29,33 @@ export const TOKEN_TYPES = [
 ]
 
 /*
- *
  *  helper functions
- *
  */
-
-function catchError(error) {
-  console.error(error.message);
+export function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message
+  return String(error)
+}
+function catchError(error: unknown) {
+  const err = getErrorMessage(error);
+  console.error(err);
 
   // try to extract error message, otherwise return raw error
   let formatted_error;
 
-  if (error.message.startsWith("invalid ENS name")) {
+  if (err.startsWith("invalid ENS name")) {
     formatted_error = "Missing or invalid parameter.";
-  } else if (error.message.startsWith("invalid BigNumber string")) {
+  } else if (err.startsWith("invalid BigNumber string")) {
     formatted_error = "Invalid number parameter."
   } else {
     try {
       let errors = JSON.stringify(error).match(EXTRACT_ERROR_MESSAGE);
-      formatted_error = errors[errors.length - 1];
+      if (errors) {
+        formatted_error = errors[errors.length - 1];
+      } else {
+        formatted_error = 'Unknown error: ' + err;
+      }
     } catch (e) {
-      formatted_error = error.message;
+      formatted_error = err;
     }
   }
 
@@ -56,31 +63,36 @@ function catchError(error) {
 }
 
 // Helper function to prevent ambiguous failure message when dates aren't passed
-function convertToZeroIfBlank(num) {
-  return parseInt(num) || 0;
+function convertToZeroIfBlank(num: string | number) {
+  if (!num) return 0
+  if (typeof num === 'string') return parseInt(num)
+  return num
 }
 
-function toUnixTime(date) {
+function toUnixTime(date: Date | number) {
   // Return date if not a Date object
-  if (Object.prototype.toString.call(date) !== "[object Date]") return date;
-  return parseInt((date.getTime() / 1000).toFixed(0));
+  console.log('toUnixTime', date)
+  if (Object.prototype.toString.call(date) !== "[object Date]") return date as number;
+  console.log('toUnixTime this is a date!', date, parseInt(((date as Date).getTime() / 1000).toFixed(0)))
+  return parseInt(((date as Date).getTime() / 1000).toFixed(0));
 }
 
-export async function getBlockNumber(w3provider) {
+export async function getBlockNumber(w3provider: Web3Provider) {
   return w3provider.getBlockNumber();
 }
 
-export function encodeParameters(types, values) {
+export function encodeParameters(types: string[], values: any[]) {
   let abi = new AbiCoder();
   return abi.encode(types, values);
 }
 
-export function decodeParameters(types, values) {
+export function decodeParameters(types: string[], values: any[]) {
   let abi = new AbiCoder();
   return abi.decode(types, values);
 }
 
-export function formatDate(timestamp) {
+export function formatDate(timestamp: number|string) {
+  if (typeof timestamp === 'string') return timestamp;
   if (timestamp === 0) {
     return "None";
   } else {
@@ -94,112 +106,111 @@ export function formatDate(timestamp) {
  *
  */
 
-export async function getRoles(w3provider, address) {
+export async function getRoles(w3provider: Web3Provider, address: string) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let roles;
   try {
-    roles = await contract.getRoles(address);
+    return await contract.getRoles(address) as boolean[];
   } catch (error) {
-    roles = error.message;
     console.error('getRoles', error);
+    return []
   }
-  return roles;
 }
 
-export async function getIssuer(w3provider, tokenId) {
+export async function getIssuer(w3provider: Web3Provider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let issuer;
   try {
     issuer = await contract.getIssuer(tokenId);
   } catch (error) {
-    issuer = error.message;
+    issuer = getErrorMessage(error) 
     console.error('getIssuer', error);
   }
   return issuer;
 }
 
-export async function getTokenDetails(w3provider, tokenId) {
+export async function getTokenDetails(w3provider: Web3Provider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let details;
   try {
     details = await contract.getTokenDetails(tokenId);
   } catch (error) {
-    details = error.message;
+    details = getErrorMessage(error) 
     console.error('getTokenDetails', error);
   }
   return details;
 }
 
-export async function getNumOfUniqueTokens(w3provider) {
+export async function getNumOfUniqueTokens(w3provider: Web3Provider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let uniqueTokens;
   try {
     uniqueTokens = await contract.getNumOfUniqueTokens();
   } catch (error) {
-    uniqueTokens = error.message;
+    uniqueTokens = getErrorMessage(error) 
     console.error('getNumOfUniqueTokens', error);
   }
   return uniqueTokens;
 }
 
-export async function getAvailableRetiredAndTransferred(w3provider, address, tokenId) {
+export async function getAvailableRetiredAndTransferred(w3provider: Web3Provider, address: string, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let balances;
   try {
     balances = await contract.getAvailableRetiredAndTransferred(address, tokenId);
   } catch (error) {
-    balances = error.message;
+    balances = getErrorMessage(error) 
     console.error('getAvailableAndRetired', error);
   }
   return balances;
 }
 
-export async function getTokenType(w3provider, tokenId) {
+export async function getTokenType(w3provider: Web3Provider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let tokenType;
   try {
     tokenType = await contract.getTokenType(tokenId);
   } catch (error) {
-    tokenType = error.message;
+    tokenType = getErrorMessage(error) 
     console.error('getTokenType', error);
   }
   return tokenType;
 }
 
-export async function getLimitedMode(w3provider) {
+export async function getLimitedMode(w3provider: Web3Provider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let limitedMode;
+  let limitedMode: boolean;
   try {
     limitedMode = await contract.limitedMode();
   } catch (error) {
-    limitedMode = error.message;
+    // limitedMode = getErrorMessage(error) 
+    limitedMode = true 
     console.error('getLimitedMode', error);
   }
   return limitedMode;
 }
 
-export async function getAdmin(w3provider) {
+export async function getAdmin(w3provider: Web3Provider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let admin;
   try {
     admin = await contract.admin();
   } catch (error) {
-    admin = error.message;
+    admin = getErrorMessage(error) 
     console.error('getAdmin', error);
   }
   return admin;
 }
 
 export async function issue(
-  w3provider,
-  address,
-  tokenTypeId,
-  quantity,
-  fromDate,
-  thruDate,
-  metadata,
-  manifest,
-  description
+  w3provider: Web3Provider,
+  address: string,
+  tokenTypeId: number,
+  quantity: number,
+  fromDate: number|Date,
+  thruDate: number|Date,
+  metadata: string,
+  manifest: string,
+  description: string
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
@@ -223,7 +234,7 @@ export async function issue(
   return issue_result;
 }
 
-export async function retire(w3provider, tokenId, amount) {
+export async function retire(w3provider: Web3Provider, tokenId: number, amount: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -237,7 +248,7 @@ export async function retire(w3provider, tokenId, amount) {
   return retire_result;
 }
 
-export async function transfer(w3provider, address, tokenId, amount) {
+export async function transfer(w3provider: Web3Provider, address: string, tokenId: number, amount: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -251,7 +262,7 @@ export async function transfer(w3provider, address, tokenId, amount) {
   return transfer_result;
 }
 
-export async function registerConsumer(w3provider, address) {
+export async function registerConsumer(w3provider: Web3Provider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -265,7 +276,7 @@ export async function registerConsumer(w3provider, address) {
   return registerConsumer_result;
 }
 
-export async function unregisterConsumer(w3provider, address) {
+export async function unregisterConsumer(w3provider: Web3Provider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -279,7 +290,7 @@ export async function unregisterConsumer(w3provider, address) {
   return unregisterConsumer_result;
 }
 
-export async function registerIndustry(w3provider, address) {
+export async function registerIndustry(w3provider: Web3Provider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -293,7 +304,7 @@ export async function registerIndustry(w3provider, address) {
   return registerIndustry_result;
 }
 
-export async function registerDealer(w3provider, address, tokenTypeId) {
+export async function registerDealer(w3provider: Web3Provider, address: string, tokenTypeId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -307,7 +318,7 @@ export async function registerDealer(w3provider, address, tokenTypeId) {
   return registerDealer_result;
 }
 
-export async function unregisterDealer(w3provider, address, tokenTypeId) {
+export async function unregisterDealer(w3provider: Web3Provider, address: string, tokenTypeId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -327,7 +338,7 @@ export async function unregisterDealer(w3provider, address, tokenTypeId) {
  *
  */
 
-export async function daoTokenTotalSupply(w3provider) {
+export async function daoTokenTotalSupply(w3provider: Web3Provider) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let balance;
   try {
@@ -335,12 +346,12 @@ export async function daoTokenTotalSupply(w3provider) {
     let decimals = BigNumber.from("1000000000000000000");
     balance = fetchedBalance.div(decimals).toNumber();
   } catch (error) {
-    balance = error.message;
+    balance = getErrorMessage(error)
   }
   return balance;
 }
 
-export async function daoTokenBalanceOf(w3provider, account) {
+export async function daoTokenBalanceOf(w3provider: Web3Provider, account: string) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let balance;
   try {
@@ -348,12 +359,12 @@ export async function daoTokenBalanceOf(w3provider, account) {
     let decimals = BigNumber.from("1000000000000000000");
     balance = fetchedBalance.div(decimals).toNumber();
   } catch (error) {
-    balance = error.message;
+    balance = getErrorMessage(error) 
   }
   return balance;
 }
 
-export async function delegate(w3provider, delegatee) {
+export async function delegate(w3provider: Web3Provider, delegatee: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let signed = contract.connect(signer);
@@ -367,13 +378,13 @@ export async function delegate(w3provider, delegatee) {
   return delegate;
 }
 
-export async function delegates(w3provider, address) {
+export async function delegates(w3provider: Web3Provider, address: string) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let delegates;
   try {
     delegates = await contract.delegates(address);
   } catch (error) {
-    delegates = error.message;
+    delegates = getErrorMessage(error) 
   }
   return delegates;
 }
@@ -384,40 +395,40 @@ export async function delegates(w3provider, address) {
  *
  */
 
-export async function getProposalCount(w3provider) {
+export async function getProposalCount(w3provider: Web3Provider) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let count;
   try {
     count = await contract.proposalCount();
   } catch (error) {
-    count = error.message;
+    count = getErrorMessage(error)
   }
   return count;
 }
 
-export async function getProposalDetails(w3provider, proposalId) {
+export async function getProposalDetails(w3provider: Web3Provider, proposalId: number): Promise<any|string> {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let proposals;
   try {
     proposals = await contract.proposals(proposalId);
   } catch (error) {
-    proposals = error.message;
+    proposals = getErrorMessage(error) 
   }
   return proposals;
 }
 
-export async function getProposalState(w3provider, proposalId) {
+export async function getProposalState(w3provider: Web3Provider, proposalId: number) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let state;
   try {
     state = await contract.state(proposalId);
   } catch (error) {
-    state = error.message;
+    state = getErrorMessage(error) 
   }
   return PROPOSAL_STATES[state];
 }
 
-export async function propose(w3provider, targets, values, signatures, calldatas, description) {
+export async function propose(w3provider: Web3Provider, targets: string[], values: number[], signatures: string[], calldatas: string[], description: string[]) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -448,7 +459,7 @@ export async function propose(w3provider, targets, values, signatures, calldatas
         calldatas,
         description}
       );
-      await signed.propose(targets, values, signatures, calldatas, description);
+      await signed.propose(targets, values, signatures, calldatas, description[0]);
     }
     proposal = SUCCESS_MSG;
   } catch (error) {
@@ -459,7 +470,7 @@ export async function propose(w3provider, targets, values, signatures, calldatas
   return proposal;
 }
 
-export async function getReceipt(w3provider, proposalId, voter) {
+export async function getReceipt(w3provider: Web3Provider, proposalId: number, voter: string) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let receipt;
   try {
@@ -470,7 +481,7 @@ export async function getReceipt(w3provider, proposalId, voter) {
   return receipt;
 }
 
-export async function getActions(w3provider, proposalId) {
+export async function getActions(w3provider: Web3Provider, proposalId: number) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let actions;
   try {
@@ -481,7 +492,7 @@ export async function getActions(w3provider, proposalId) {
   return actions;
 }
 
-export async function getDescription(w3provider, proposalId) {
+export async function getDescription(w3provider: Web3Provider, proposalId: number) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let description;
   try {
@@ -492,7 +503,7 @@ export async function getDescription(w3provider, proposalId) {
   return description;
 }
 
-export async function castVote(w3provider, proposalId, support, votes) {
+export async function castVote(w3provider: Web3Provider, proposalId: number, support: boolean, votes: BigNumber) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -506,7 +517,7 @@ export async function castVote(w3provider, proposalId, support, votes) {
   return castVote;
 }
 
-export async function queue(w3provider, proposalId) {
+export async function queue(w3provider: Web3Provider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -520,7 +531,7 @@ export async function queue(w3provider, proposalId) {
   return queue;
 }
 
-export async function execute(w3provider, proposalId) {
+export async function execute(w3provider: Web3Provider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -534,7 +545,7 @@ export async function execute(w3provider, proposalId) {
   return execute;
 }
 
-export async function cancel(w3provider, proposalId) {
+export async function cancel(w3provider: Web3Provider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -548,7 +559,7 @@ export async function cancel(w3provider, proposalId) {
   return cancel;
 }
 
-export async function refund(w3provider, proposalId) {
+export async function refund(w3provider: Web3Provider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -562,30 +573,30 @@ export async function refund(w3provider, proposalId) {
   return refund;
 }
 
-export async function getQuorum(w3provider) {
+export async function getQuorum(w3provider: Web3Provider) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let quorum;
   try {
     quorum = await contract.quorumVotes();
   } catch (error) {
-    console.error(error.message);
+    catchError(error);
     quorum = null;
   }
   return quorum;
 }
 
-export async function getProposalThreshold(w3provider) {
+export async function getProposalThreshold(w3provider: Web3Provider) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let proposalThreshold;
   try {
     proposalThreshold = await contract.proposalThreshold();
   } catch (error) {
-    console.error(error.message);
+    catchError(error);
     proposalThreshold = null;
   }
   return proposalThreshold;
 }
-export async function registerTracker(w3provider,trackee){
+export async function registerTracker(w3provider: Web3Provider,trackee: string){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
@@ -599,80 +610,80 @@ export async function registerTracker(w3provider,trackee){
   return register_result;
 }
 
-export async function getNumOfUniqueTrackers(w3provider) {
+export async function getNumOfUniqueTrackers(w3provider: Web3Provider) {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let uniqueTrackers;
   try {
     uniqueTrackers = await contract.getNumOfUniqueTrackers();
   } catch (error) {
-    uniqueTrackers = error.message;
+    uniqueTrackers = getErrorMessage(error) 
   }
   return uniqueTrackers;
 }
-export async function getTrackerDetails(w3provider, trackerId) {
+export async function getTrackerDetails(w3provider: Web3Provider, trackerId: number) {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let details;
   try {
     details = await contract.getTrackerDetails(trackerId);
   } catch (error) {
-    details = error.message;
+    details = getErrorMessage(error) 
   }
   return details;
 }
-export async function getTrackerIds(w3provider, trackerId) {
+export async function getTrackerIds(w3provider: Web3Provider, trackerId: number) {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let trackerIds;
   try {
     trackerIds = await contract.getTrackerIds(trackerId);
   } catch (error) {
-    trackerIds = error.message;
+    trackerIds = getErrorMessage(error) 
   }
   return trackerIds;
 }
-export async function getCarbonIntensity(w3provider, trackerId, tokenTypeId){
+export async function getCarbonIntensity(w3provider: Web3Provider, trackerId: number, tokenTypeId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let ci;
   try {
     ci = await contract.carbonIntensity(trackerId,tokenTypeId);
   } catch (error) {
-    ci = error.message;
+    ci = getErrorMessage(error) 
   }
   return ci;
 }
 
 
-export async function getTokenAmounts(w3provider, trackerId, sourceTrackerId){
+export async function getTokenAmounts(w3provider: Web3Provider, trackerId: number, sourceTrackerId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let tokenAmounts;
   try {
     tokenAmounts = await contract.getTokenAmounts(trackerId,sourceTrackerId);
   } catch (error) {
-    tokenAmounts = error.message;
+    tokenAmounts = getErrorMessage(error)
   }
   return tokenAmounts;
 }
 
-export async function getRegisteredTracker(w3provider, signedInAddress){
+export async function getRegisteredTracker(w3provider: Web3Provider, signedInAddress: string){
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let registeredTracker;
   try {
     registeredTracker = await contract.hasRole(await contract.REGISTERED_TRACKER, signedInAddress);
   } catch (error) {
-    registeredTracker = error.message;
+    registeredTracker = getErrorMessage(error)
   }
   console.log('getRegisteredTracker: hasRole result = ' + registeredTracker);
   return true;
 }
 
 export async function track(
-  w3provider,
-  trackee,
-  tokenIds,
-  inAmounts,
-  outAmounts,
-  trackerIds,
-  fromDate,
-  thruDate
+  w3provider: Web3Provider,
+  trackee: string,
+  tokenIds: string,
+  inAmounts: string,
+  outAmounts: string,
+  trackerIds: string,
+  fromDate: Date,
+  thruDate: Date
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
@@ -697,10 +708,10 @@ export async function track(
   return track_result;
 }
 
-function convertStringToArray(params){
+function convertStringToArray(params: string){
   return params.replace(/\s/g,'').split(',').map(Number);
 }
-function convertToTons(params){
+function convertToTons(params: string){
   return convertStringToArray(params).map(function(item){ return item*1000 })
 }
 

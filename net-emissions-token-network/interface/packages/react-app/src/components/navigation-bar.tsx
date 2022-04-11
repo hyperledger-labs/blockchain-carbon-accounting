@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 
 import { addresses } from "@project/contracts";
 
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
-import Tooltip from 'react-bootstrap/Tooltip';
+import Tooltip, { TooltipProps } from 'react-bootstrap/Tooltip';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 
@@ -14,8 +14,15 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { FaRegClipboard } from 'react-icons/fa'
 import { FaGithub } from 'react-icons/fa'
+import { Web3Provider } from "@ethersproject/providers";
 
-function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
+type WalletButtonProps = {
+  provider?: Web3Provider 
+  loadWeb3Modal: ()=>void 
+  logoutOfWeb3Modal:()=>void 
+}
+
+const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal }) => {
   return (
     <Button
       variant="primary"
@@ -33,16 +40,25 @@ function WalletButton({ provider, loadWeb3Modal, logoutOfWeb3Modal }) {
   );
 }
 
-const tooltipCopiedAddress = (props) => (
-  <Tooltip {...props}>
+const tooltipCopiedAddress: FC<Partial<TooltipProps>> = (props) => (
+  <Tooltip id='copyTooltip' {...props}>
     Copied to clipboard!
   </Tooltip>
 );
 
-export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode }) {
+type NavigationBarProps = {
+  provider?: Web3Provider 
+  loadWeb3Modal: ()=>void 
+  logoutOfWeb3Modal:()=>void
+  signedInAddress?: string
+  roles: boolean[]
+  limitedMode: boolean
+}
+
+const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode }) => {
   
   const [role, setRole] = useState("");
-  const [cachedRoles, setCachedRoles] = useState([]);
+  const [cachedRoles, setCachedRoles] = useState<boolean[]>([]);
 
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
@@ -66,7 +82,7 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
     }
   }, [roles, role, signedInAddress, cachedRoles]);
 
-  function truncateAddress(addr) {
+  function truncateAddress(addr?: string) {
     if (!addr) return addr;
     let prefix = addr.substring(0,6);
     let suffix = addr.substring(addr.length - 4);
@@ -104,7 +120,8 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
               </Nav.Item>
               <Nav.Item style={{padding: ".5rem .5rem"}}>
                 <span className="text-secondary">{truncateAddress(signedInAddress)}</span>
-                <CopyToClipboard text={signedInAddress}>
+                {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+                <CopyToClipboard text={signedInAddress??''}>
                   <span className="text-secondary">
                     <OverlayTrigger
                       trigger="click"
@@ -126,3 +143,5 @@ export default function NavigationBar({ provider, loadWeb3Modal, logoutOfWeb3Mod
     </Navbar>
   )
 }
+
+export default NavigationBar;

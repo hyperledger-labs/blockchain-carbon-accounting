@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { useState, useEffect } from "react";
+import { FC, ChangeEventHandler, useState, useEffect } from "react";
 
 import { retire } from "../services/contract-functions";
 
@@ -8,13 +8,19 @@ import SubmissionModal from "./submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import "react-datetime/css/react-datetime.css";
+import { Web3Provider } from "@ethersproject/providers";
 
-export default function RetireForm({ provider, roles }) {
+type RetireFormProps = {
+  provider?: Web3Provider
+  roles: boolean[]
+}
+
+const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
 
   const [modalShow, setModalShow] = useState(false);
 
   // Form inputs
-  const [tokenId, setTokenId] = useState();
+  const [tokenId, setTokenId] = useState(1);
   const [amount, setAmount] = useState("");
   const [result, setResult] = useState("");
 
@@ -22,8 +28,8 @@ export default function RetireForm({ provider, roles }) {
   const [initializedTokenIdInput, setInitializedTokenIdInput] = useState(false);
   const [initializedAmountInput, setInitializedAmountInput] = useState(false);
 
-  function onTokenIdChange(event) { setTokenId(event.target.value); };
-  function onAmountChange(event) { setAmount(event.target.value); };
+  const onTokenIdChange: ChangeEventHandler<HTMLInputElement> = (event) => { setTokenId(parseInt(event.target.value)); };
+  const onAmountChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAmount(event.target.value); };
 
   function handleRetire() {
     fetchRetire();
@@ -31,7 +37,8 @@ export default function RetireForm({ provider, roles }) {
   }
 
   async function fetchRetire() {
-    let qty = Math.round(amount * 1000);
+    if (!provider) return;
+    let qty = Math.round(Number(amount) * 1000);
     let result = await retire(provider, tokenId, qty);
     setResult(result.toString());
   }
@@ -43,7 +50,7 @@ export default function RetireForm({ provider, roles }) {
     let quantityQueryParam = queryParams.get('quantity');
 
     if (tokenIdQueryParam) {
-      setTokenId(tokenIdQueryParam);
+      setTokenId(parseInt(tokenIdQueryParam));
     }
     if (quantityQueryParam) {
       setAmount(quantityQueryParam);
@@ -98,3 +105,6 @@ export default function RetireForm({ provider, roles }) {
     </>
   );
 }
+
+
+export default RetireForm;

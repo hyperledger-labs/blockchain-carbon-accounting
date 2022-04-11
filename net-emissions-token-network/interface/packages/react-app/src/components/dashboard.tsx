@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, {
+import {
+  ChangeEvent,
+  MouseEvent,
   forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
-  useState
+  useState,
+  ForwardRefRenderFunction
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
@@ -17,10 +20,20 @@ import TrackerInfoModal from "./tracker-info-modal";
 import { getBalances } from '../services/api.service';
 import Paginator from "./paginate";
 import QueryBuilder from "./query-builder";
-import { BALANCE_FIELDS } from "./static-data";
+import { Balance, Token, BALANCE_FIELDS } from "./static-data";
+import { Web3Provider } from "@ethersproject/providers";
 
+type DashboardProps = {
+  provider?: Web3Provider, 
+  signedInAddress: string, 
+  displayAddress: string
+}
 
-export const Dashboard = forwardRef(({ provider, signedInAddress, roles, displayAddress }, ref) => {
+type DashboardHandle = {
+  refresh: ()=>void
+}
+
+const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ provider, signedInAddress, displayAddress }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
@@ -28,41 +41,33 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
-  const [myBalances, setMyBalances] = useState([]);
+  const [myBalances, setMyBalances] = useState<Balance[]>([]);
   const [fetchingTokens, setFetchingTokens] = useState(false);
 
-  const [error, setError] = useState("");
-
-  const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
-  const isIndustry = (roles[4] === true);
-  const [displayAddressIsDealer, setDisplayAddressIsDealer] = useState(false);
-  const [displayAddressIsIndustry, setDisplayAddressIsIndustry] = useState(false);
-
-  // state vars for pagination
-  const [ page, setPage ] = useState(1);
-  const [ count, setCount ] = useState(0);
-  const [ pageSize, setPageSize ] = useState(20);
-  const [ query, setQuery ] = useState([]);
+  // const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
+  // const isIndustry = (roles[4] === true);
+  const [, setDisplayAddressIsDealer] = useState(false);
+  const [, setDisplayAddressIsIndustry] = useState(false);
 
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balanceCount, setBalanceCount ] = useState(0);
   const [ balancePageSize, setBalancePageSize ] = useState(20);
-  const [ balanceQuery, setBalanceQuery ] = useState([]);
+  const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
 
-  async function handleBalancePageChange(event, value) {
+  async function handleBalancePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
     await fetchBalances(value, balancePageSize, balanceQuery);
   }
 
-  async function handleBalancePageSizeChanged(event) {
-    await fetchBalances(1, event.target.value, balanceQuery);
+  async function handleBalancePageSizeChanged(event: ChangeEvent<HTMLInputElement>) {
+    await fetchBalances(1, parseInt(event.target.value), balanceQuery);
 
   }
 
-  async function handleBalanceQueryChanged(_query) {
+  async function handleBalanceQueryChanged(_query: string[]) {
     await fetchBalances(balancePage, balancePageSize, _query);
   }
 
-  function handleOpenTokenInfoModal(token) {
+  function handleOpenTokenInfoModal(token: Token) {
     setSelectedToken(token);
     setModalShow(true);
   }
@@ -78,13 +83,13 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   async function handleRefresh() {
     // clear localStorage
     let localStorage = window.localStorage;
-    localStorage.setItem('token_balances', null);
+    localStorage.setItem('token_balances', '');
 
     setFetchingTokens(true);
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider, address) {
+  async function fetchAddressRoles(provider: Web3Provider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);
@@ -96,11 +101,11 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
   }
 
   useEffect(() => {
-    fetchAddressRoles(provider, displayAddress);
+    if(provider) fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async (_balancePage, _balancePageSize, _balanceQuery) => {
-    let newMyBalances = [];
+  const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
+    let newMyBalances: Balance[] = [];
     // Format tokenType from tokenTypeId
     let tokenTypes = [
       "Renewable Energy Certificate",
@@ -131,6 +136,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         balance.token.dateCreated = formatDate(balance.token.dateCreated);
 
         let token = {
+          ...balance,
           tokenId: balance.token.tokenId,
           token: balance.token,
           tokenType: tokenTypes[balance.token.tokenTypeId - 1],
@@ -166,17 +172,15 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
     init();
   }, [provider, signedInAddress]);
 
-  function pointerHover(e) {
-    e.target.style.cursor = "pointer";
+  function pointerHover(e: MouseEvent<HTMLElement>) {
+    e.currentTarget.style.cursor = "pointer";
   }
 
   return (
     <>
       <TokenInfoModal
         show={modalShow}
-        provider={provider}
         token={selectedToken}
-        body="hello"
         onHide={() => {
           setModalShow(false);
           setSelectedToken({});
@@ -184,9 +188,7 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       />
       <TrackerInfoModal
         show={modalTrackerShow}
-        provider={provider}
         tracker={selectedTracker}
-        body="hello"
         onHide={() => {
           setModaltrackerShow(false);
           setSelectedTracker({});
@@ -199,8 +201,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
         :
         <p className="mb-1">View your token balances.</p>
       }
-
-      <p className="text-danger">{error}</p>
 
       <div className={fetchingTokens ? "dimmed" : ""}>
 
@@ -261,6 +261,6 @@ export const Dashboard = forwardRef(({ provider, signedInAddress, roles, display
       </div>
     </>
   );
-});
+}
 
-export default Dashboard;
+export default forwardRef(Dashboard);
