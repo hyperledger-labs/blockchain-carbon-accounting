@@ -37,7 +37,7 @@ export class WalletRepo {
     const wallet = new Wallet()
     return await repo.save({
       ...wallet,
-      ...payload
+      ...payload,
     })
   }
 
@@ -74,6 +74,17 @@ export class WalletRepo {
     } catch (error) {
       throw new Error("Cannot get wallets count.")       
     }
+  }
+
+  public ensureWalletWithRoles = async(address: string, roles: string[]) => {
+    const repo = this._db.getRepository(Wallet);
+    let wallet = await repo.findOneBy({address});
+    console.log('got wallet for address',address,wallet)
+    if (!wallet) {
+      wallet = repo.create({address});
+    }
+    wallet.roles = roles.join(',');
+    return await repo.save(wallet);
   }
 
   public truncateWallets = async () => {

@@ -17,7 +17,7 @@ assertEnv('LEDGER_ETH_JSON_RPC_URL')
 
 
 // import synchronizer
-import { fillBalances, fillTokens, truncateTable } from './controller/synchronizer';
+import { fillBalances, fillTokens, syncWallets, truncateTable } from './controller/synchronizer';
 
 import router from './router/router';
 import { subscribeEvent } from "./components/event.listener";
@@ -83,6 +83,9 @@ db.then(async () => {
 
   elapsed = Date.now() - started;
   console.log(`elapsed ${elapsed / 1000} seconds.\n`);
+
+  // sync wallet roles
+  await syncWallets(lastBlock);
 
   try {
     // for hardhat

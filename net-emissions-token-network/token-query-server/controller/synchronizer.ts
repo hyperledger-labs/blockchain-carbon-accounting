@@ -14,6 +14,63 @@ const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[]
 
 const FIRST_BLOCK = 17770812;
 
+// Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
+export const syncWallets = async (currentBlock: number) => {
+    try {
+        const events = [
+            {event: 'RegisteredConsumer', role: 'Consumer'},
+            {event: 'UnregisteredConsumer', role: 'Consumer', revoke: true},
+            {event: 'RegisteredDealer', role: 'Dealer'},
+            {event: 'UnregisteredDealer', role: 'Dealer', revoke: true},
+            {event: 'RegisteredIndustry', role: 'Industry'},
+            {event: 'UnregisteredIndustry', role: 'Industry', revoke: true},
+        ]
+        const members: Record<string, Record<string, number>> = {};
+        let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
+        let toBlock: number | string = fromBlock;
+        while(toBlock != currentBlock) {
+            if(fromBlock + 5000 > currentBlock) 
+                toBlock = currentBlock;
+            else 
+                toBlock = fromBlock + 5000; 
+            for (const {event, role, revoke} of events) {
+                const logs = await contract.getPastEvents(event, {fromBlock, toBlock});
+                for (const {returnValues, blockNumber} of logs) {
+                    const account = returnValues.account
+                    members[role] = members[role] || {};
+                    if (revoke) {
+                        // note: we check revoke after the grants
+                        if (members[role][account] && members[role][account] < blockNumber) delete members[role][account];
+                    } else {
+                        members[role][account] = blockNumber;
+                    }
+                }
+            }
+
+            if(toBlock == currentBlock) break;
+            fromBlock += 5000;
+        }
+
+        const accountsWithRoles: Record<string, string[]> = {};
+        for (const role in members) {
+            for (const account in members[role]) {
+                console.log('Account',account,'should have role',role);
+                accountsWithRoles[account] = accountsWithRoles[account] || [];
+                accountsWithRoles[account].push(role);
+            }
+        }
+
+        const db = await PostgresDBService.getInstance()
+        for (const address in accountsWithRoles) {
+            const w = await db.getWalletRepo().ensureWalletWithRoles(address, accountsWithRoles[address]);
+            console.log('saved wallet',w)
+        }
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in getMembers: ' + err)
+    }
+}
+
 // get number of unique tokens
 const getNumOfUniqueTokens = async (): Promise<number> => {
     try {
