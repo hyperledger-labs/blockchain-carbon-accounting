@@ -63,17 +63,10 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
       else if(query.op == '=') payload[query.field] = query.value as string
 
     }
-    else if (query.fieldType == 'number')
-    payload[query.field] = query.value as number
+    else if (query.fieldType == 'number') payload[query.field] = query.value as number
     else continue
 
     // make case insensitive for issuee issuer cases
-    if(!BALANCE_FIELDS.includes(query.field)) {
-      console.log(query)
-      table = 'token'
-    } else {
-      table = 'balance'
-    }
     if(query.field == 'issuee' || query.field == 'issuer') {
       builder = builder.andWhere(`LOWER(${table}.${query.field}) ${query.op} LOWER(:${query.field})`, payload)
     } else {
