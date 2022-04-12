@@ -117,12 +117,19 @@ export type RolesInfo = {
 export type Role = 'Owner' | 'Consumer' | 'REC Dealer' | 'Offset Dealer' | 'Emissions Auditor' | 'Industry' | 'Industry Dealer'
 
 export const RoleEnum = {
+  /** Owner role, aka: Admin */
   Owner: 'Owner',
+  /** Consumer role */
   Consumer: 'Consumer',
+  /** REC Dealer role, aka: REC */
   RecDealer: 'REC Dealer',
+  /** Offset Dealer role, aka: CEO */
   OffsetDealer: 'Offset Dealer',
+  /** Emissions Auditor role. aka: AE */
   EmissionsAuditor: 'Emissions Auditor',
+  /** Industry role, aka: REGISTERED_INDUSTRY */
   Industry: 'Industry',
+  /** Industry Dealer role, aka: CarbonTracker / REGISTERED_INDUSTRY_DEALER */
   IndustryDealer: 'Industry Dealer'
 } as const
 

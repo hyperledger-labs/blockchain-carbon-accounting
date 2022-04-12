@@ -22,13 +22,6 @@ const PROPOSAL_STATES = [
   "Executed",
 ];
 
-export const TOKEN_TYPES = [
-  "Renewable Energy Certificate",
-  "Carbon Emissions Offset",
-  "Audited Emissions",
-  "Carbon Tracker"
-]
-
 /*
  *  helper functions
  */

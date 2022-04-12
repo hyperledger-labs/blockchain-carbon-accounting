@@ -7,11 +7,11 @@ import Row from 'react-bootstrap/Row';
 import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/contract-functions";
+import { encodeParameters, getAdmin, issue } from "../services/contract-functions";
 import CreateProposalModal from "./create-proposal-modal";
 import SubmissionModal from "./submission-modal";
 import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo } from "./static-data";
+import { RolesInfo, TOKEN_TYPES } from "./static-data";
 import WalletLookupInput from "./wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
@@ -60,7 +60,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  const onAddressChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setAddress(event.target.value); }, []);
   const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
   const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);

@@ -133,7 +133,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           result = await fetchRegisterDealer(4);
           break;
         default:
-          console.error("Can't find role");
+          console.error("Can't find role", role);
           return;
       }
       if (!result || result.toString().indexOf('Success') === -1) {
@@ -180,7 +180,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         result = await fetchUnregisterDealer(4);
         break;
       default:
-      console.error("Can't find role");
+      console.error("Can't find role", role);
     }
     if (!result || result.toString().indexOf('Success') === -1) {
       console.error('Transaction did not succeed');
@@ -240,7 +240,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           result = await fetchUnregisterDealer(4);
           break;
         default:
-        console.error("Can't find role");
+        console.error("Can't find role", role);
       }
       if (!result || result.toString().indexOf('Success') === -1) {
         console.error('Transaction did not succeed');
@@ -400,11 +400,11 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             <Form.Group>
               <Form.Label>Role</Form.Label>
               <Form.Control as="select" onChange={onRoleChange} isInvalid={!!error_role}>
-                <option value="Consumer">Consumer</option>
-                <option value="REC">Renewable Energy Certificate (REC) Dealer</option>
-                <option value="CEO">Offset Dealer</option>
-                <option value="AE">Emissions Auditor</option>
-                <option value="REGISTERED_INDUSTRY_DEALER">Registered Industry Dealer (CarbonTracker)</option>
+                <option value={RoleEnum.Consumer}>Consumer</option>
+                <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
+                <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
+                <option value={RoleEnum.EmissionsAuditor}>Emissions Auditor</option>
+                <option value={RoleEnum.IndustryDealer}>Registered Industry Dealer (CarbonTracker)</option>
               </Form.Control>
               <Form.Control.Feedback type="invalid">
                 {error_role}
@@ -458,8 +458,8 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             <Form.Group>
               <Form.Label>Role</Form.Label>
               <Form.Control as="select" onChange={onRoleChange} isInvalid={!!error_role}>
-                <option value="Consumer">Consumer</option>
-                <option value="REGISTERED_INDUSTRY">Industry Member</option>
+                <option value={RoleEnum.Consumer}>Consumer</option>
+                <option value={RoleEnum.Industry}>Industry Member</option>
               </Form.Control>
               <Form.Control.Feedback type="invalid">
                 {error_role}

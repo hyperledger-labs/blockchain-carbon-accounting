@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { FC, useState, useEffect } from "react";
 
-import { decodeParameters, TOKEN_TYPES, formatDate } from "../services/contract-functions";
+import { decodeParameters, formatDate } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
+import { TOKEN_TYPES } from "./static-data";
 
 
 type ProposalCallDetailsModalProps = {

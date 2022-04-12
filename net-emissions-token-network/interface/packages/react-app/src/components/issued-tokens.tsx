@@ -26,7 +26,7 @@ import TrackerInfoModal from "./tracker-info-modal";
 import { getBalances, getTokens } from '../services/api.service';
 import Paginator from "./paginate";
 import QueryBuilder from "./query-builder";
-import { Balance, RolesInfo, Token, TOKEN_FIELDS, Tracker } from "./static-data";
+import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "./static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
 type IssuedTokensProps = {
@@ -130,13 +130,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
     let newMyBalances = [];
-    // Format tokenType from tokenTypeId
-    let tokenTypes = [
-      "Renewable Energy Certificate",
-      "Carbon Emissions Offset",
-      "Audited Emissions",
-      "Carbon Tracker"
-    ];
 
     try {
       // get total count of balance
@@ -157,7 +150,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         let token = {
           ...balance,
           tokenId: balance.token.tokenId,
-          tokenType: tokenTypes[balance.token.tokenTypeId - 1],
+          tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
           availableBalance: (balance.available / 1000).toFixed(3),
           retiredBalance: (balance.retired / 1000).toFixed(3),
           transferredBalance: (balance.transferred / 1000).toFixed(3)
@@ -179,14 +172,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
     let newMyIssuedTokens = [];
     let newMyIssuedTrackers = [];
-
-    // Format tokenType from tokenTypeId
-    let tokenTypes = [
-      "Renewable Energy Certificate",
-      "Carbon Emissions Offset",
-      "Audited Emissions",
-      "Carbon Tracker"
-    ];
     let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
@@ -232,7 +217,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           scope: tokenDetails.scope,
           type: tokenDetails.type,
           tokenTypeId: tokenDetails.tokenTypeId,
-          tokenType: tokenTypes[tokenDetails.tokenTypeId - 1],
+          tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
           issuer: tokenDetails.issuer,
           issuee: tokenDetails.issuee,
           dateCreated: tokenDetails.dateCreated,

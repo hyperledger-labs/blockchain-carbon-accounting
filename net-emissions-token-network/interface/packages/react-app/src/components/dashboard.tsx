@@ -20,7 +20,7 @@ import TrackerInfoModal from "./tracker-info-modal";
 import { getBalances } from '../services/api.service';
 import Paginator from "./paginate";
 import QueryBuilder from "./query-builder";
-import { Balance, Token, BALANCE_FIELDS } from "./static-data";
+import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "./static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
 type DashboardProps = {
@@ -106,13 +106,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
     let newMyBalances: Balance[] = [];
-    // Format tokenType from tokenTypeId
-    let tokenTypes = [
-      "Renewable Energy Certificate",
-      "Carbon Emissions Offset",
-      "Audited Emissions",
-      "Carbon Tracker"
-    ];
 
     let _balanceCount = 0;
     try {
@@ -139,7 +132,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           ...balance,
           tokenId: balance.token.tokenId,
           token: balance.token,
-          tokenType: tokenTypes[balance.token.tokenTypeId - 1],
+          tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
           issuee: balance.issuee,
           availableBalance: (balance.available / 1000).toFixed(3),
           retiredBalance: (balance.retired / 1000).toFixed(3),
