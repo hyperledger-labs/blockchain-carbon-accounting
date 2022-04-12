@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Web3Provider } from "@ethersproject/providers";
 import { FC, ChangeEventHandler, useCallback, useState } from "react";
+import { InputGroup } from "react-bootstrap";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -9,6 +10,7 @@ import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { track, registerTracker } from "../services/contract-functions";
 import SubmissionModal from "./submission-modal";
+import WalletLookupInput from "./wallet-lookup-input";
 
 type TrackFormProps = {
   provider?: Web3Provider
@@ -113,14 +115,16 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
           <p>Create emission profile using RECs, offsets, audited emission certificates, and voluntary carbon tracker tokens.</p>
           <Form.Group>
             <Form.Label>Address</Form.Label>
-            <Form.Control
-              type="input"
-              placeholder="0x000..."
-              value={address}
-              onChange={onAddressChange}
-              onBlur={() => setInitializedAddressInput(true)}
-              style={(address || !initializedAddressInput) ? {} : inputError}
-            />
+            <InputGroup>
+              <WalletLookupInput 
+                onChange={(v: string) => { setAddress(v) }} 
+                onWalletChange={(w)=>{
+                  setAddress(w ? w.address! : '');
+                }} 
+                onBlur={() => setInitializedAddressInput(true)}
+                style={(address || !initializedAddressInput) ? {} : inputError}
+                />
+            </InputGroup>
             <Form.Text className="text-muted">
               Must be a registered industry.
             </Form.Text>

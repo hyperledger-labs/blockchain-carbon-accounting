@@ -72,9 +72,7 @@ function convertToZeroIfBlank(num: string | number) {
 
 function toUnixTime(date: Date | number) {
   // Return date if not a Date object
-  console.log('toUnixTime', date)
   if (Object.prototype.toString.call(date) !== "[object Date]") return date as number;
-  console.log('toUnixTime this is a date!', date, parseInt(((date as Date).getTime() / 1000).toFixed(0)))
   return parseInt(((date as Date).getTime() / 1000).toFixed(0));
 }
 

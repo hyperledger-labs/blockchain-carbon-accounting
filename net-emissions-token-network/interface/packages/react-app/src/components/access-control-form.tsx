@@ -340,10 +340,12 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
       <h4>Look-up Roles</h4>
       <InputGroup className="mb-3">
-        <WalletLookupInput onChange={(v: string) => { setTheirAddress(v) }} onWalletChange={(w)=>{
-          setLookupWallet(w);
-          setAddress(w ? w.address! : '');
-        }} />
+        <WalletLookupInput 
+          onChange={(v: string) => { setTheirAddress(v) }} 
+          onWalletChange={(w)=>{
+            setLookupWallet(w);
+            setAddress(w ? w.address! : '');
+          }} />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
         </InputGroup.Append>

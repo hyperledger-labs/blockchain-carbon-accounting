@@ -9,6 +9,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "./static-data";
+import { InputGroup } from "react-bootstrap";
+import WalletLookupInput from "./wallet-lookup-input";
 
 type TransferFormProps = {
   provider?: Web3Provider
@@ -83,14 +85,16 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
       <p>Send available tokens in your possession of a particular ID (as displayed on the dashboard) to any address. Audited Emissions tokens cannot be transferred as they come automatically retired.</p>
       <Form.Group>
         <Form.Label>Address</Form.Label>
-        <Form.Control
-          type="input"
-          placeholder="0x000..."
-          value={address}
-          onChange={onAddressChange}
-          onBlur={() => setInitializedAddressInput(true)}
-          style={(address || !initializedAddressInput) ? {} : inputError}
-        />
+        <InputGroup>
+          <WalletLookupInput 
+            onChange={(v: string) => { setAddress(v) }} 
+            onWalletChange={(w)=>{
+              setAddress(w ? w.address! : '');
+            }} 
+            onBlur={() => setInitializedAddressInput(true)}
+            style={(address || !initializedAddressInput) ? {} : inputError}
+            />
+        </InputGroup>
       </Form.Group>
       <Form.Group>
         <Form.Label>Token ID</Form.Label>

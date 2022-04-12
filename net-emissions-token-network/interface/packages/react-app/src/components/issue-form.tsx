@@ -12,6 +12,8 @@ import CreateProposalModal from "./create-proposal-modal";
 import SubmissionModal from "./submission-modal";
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "./static-data";
+import WalletLookupInput from "./wallet-lookup-input";
+import { InputGroup } from "react-bootstrap";
 
 type KeyValuePair = {
   key: string
@@ -252,14 +254,16 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         ?
         <Form.Group>
           <Form.Label>Address</Form.Label>
-          <Form.Control
-            type="input"
-            placeholder="0x000..."
-            value={address}
-            onChange={onAddressChange}
-            onBlur={() => setInitializedAddressInput(true)}
-            style={(address || !initializedAddressInput) ? {} : inputError}
-          />
+          <InputGroup>
+            <WalletLookupInput 
+              onChange={(v: string) => { setAddress(v) }} 
+              onWalletChange={(w)=>{
+                setAddress(w ? w.address! : '');
+              }} 
+              onBlur={() => setInitializedAddressInput(true)}
+              style={(address || !initializedAddressInput) ? {} : inputError}
+              />
+          </InputGroup>
           <Form.Text className="text-muted">
             Must be a registered consumer or industry.
           </Form.Text>

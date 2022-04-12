@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, FC } from "react";
+import { useState, useMemo, useEffect, CSSProperties, FC, FocusEventHandler } from "react";
 import throttle from 'lodash/throttle';
 
 import Autocomplete from '@mui/material/Autocomplete';
@@ -9,9 +9,11 @@ import { Wallet } from "./static-data";
 type WalletLookupInputProps = {
   onChange: (v:string)=>void
   onWalletChange: (w:Wallet|null)=>void
+  onBlur?: FocusEventHandler
+  style?: CSSProperties
 } 
 
-const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange}) => {
+const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style}) => {
   
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState<Wallet|string|null>(null);
@@ -77,16 +79,16 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange}
     filterOptions={(x) => x} 
     value={value}
     onChange={(_, newValue) => {
-      console.log('onChange', newValue)
       setOptions(newValue && options.indexOf(newValue) === -1 ? [newValue, ...options] : options);
       setValue(newValue);
       if (onWalletChange) onWalletChange(typeof newValue === 'string' ? null : newValue);
     }}
     onInputChange={(_, newInputValue) => {
-      console.log('onInputChange', newInputValue)
       setInputValue(newInputValue);
       if (onChange) onChange(newInputValue);
     }}
+    onBlur={onBlur}
+    style={style}
     renderOption={(props, option) => {
       const name = (typeof option === 'string') ? null : option.name 
       const addr = (typeof option === 'string') ? option : option.address
