@@ -8,10 +8,11 @@ import SubmissionModal from "./submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { Web3Provider } from "@ethersproject/providers";
+import { RolesInfo } from "./static-data";
 
 type TransferFormProps = {
   provider?: Web3Provider
-  roles: boolean[]
+  roles: RolesInfo
 }
 
 const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
@@ -114,7 +115,7 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
         />
       </Form.Group>
       {/* Only enable transfers if role is found */}
-      { (roles.length === 6) && (roles.some(r => r === true))
+      { roles.hasAnyRole
         ? <Button variant="success" size="lg" block onClick={handleTransfer}>Transfer</Button>
         : <Button disabled variant="success" size="lg" block>Must be a registered user</Button>
       }

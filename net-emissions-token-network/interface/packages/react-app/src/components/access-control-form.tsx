@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useState, useRef, ChangeEventHandler, FC } from "react";
 
-import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer } from "../services/contract-functions";
+import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import { registerUserRole, unregisterUserRole } from "../services/api.service"
 
 import SubmissionModal from "./submission-modal";
 import WalletLookupInput from "./wallet-lookup-input";
-import {Wallet} from "./static-data";
+import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "./static-data";
 
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
@@ -16,55 +16,34 @@ import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
 
-const roleNames = ["Owner", "REC Dealer", "Offset Dealer", "Emissions Auditor", "Registered Industry Dealer", "Consumer"];
-const roleCodes = ["Owner", "REC", "CEO", "AE", "REGISTERED_INDUSTRY_DEALER", "Consumer"];
-
-// function RolesBoolsToNames(roles) {
-//   if (!roles || roles.length !== 6) return null;
-//   return roles.map((v,i) => v?roleNames[i]:null).filter((v)=>v!=null);
-// }
-
-function RoleCodeToText(role: string) {
-  const i = roleCodes.indexOf(role);
-  if (i > -1) return roleNames[i];
-  if (role === 'REGISTERED_INDUSTRY') return "Registered Industry";
-  return role;
-}
-
-function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: boolean[], roles: string | string[], unregister?: (r:string)=>void}) {
+function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
   if (!roles) return null;
-  const arr = (typeof roles === 'string') ? roles.split(',') : roles
+  const arr: Role[] = Array.isArray(roles) ? roles : roles.split(',') as Role[]
   return <>{arr.sort().map((r)=><li key={r}>
-    {RoleCodeToText(r)}
+    {r}
     {unregister
-      && ((currentRoles[0] === true) || ((currentRoles[1] === true || currentRoles[2] === true || currentRoles[3] === true || currentRoles[4] === true)
-        && (r === 'Consumer'))
-      )
+      && ((currentRoles.isAdmin) || ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) && (r === 'Consumer')))
       && <Button variant="outline-danger" className="ml-2 my-1" size="sm" onClick={() => {unregister(r)}}>
       Unregister
     </Button>}
 </li>)}</>
 }
 
-function RolesBoolsToCodes(roles: boolean[]) {
-  if (!roles || roles.length !== 6) return [];
-  return roles.map((v,i) => v?roleCodes[i]:null).filter((v)=>v!=null);
-}
-
-function RolesListElements({ roles }: {roles: boolean[]}) {
+function RolesListElements({ roles }: {roles: Role[]}) {
   return <>{roles.map((role, id) =>  
-    <div key={id}>{role && <li>{roleNames[id]}&nbsp;&nbsp;</li>}</div>
+    <div key={id}>{role && <li>{role}&nbsp;&nbsp;</li>}</div>
   )}</>
 }
 
-function RolesList({ roles }: {roles: boolean[]}) {
-  if (roles.every(r => r === false)) {
+function RolesList({ roles }: {roles: RolesInfo}) {
+  const r = rolesInfoToArray(roles);
+  if (!r) {
     return <p>No roles found.</p>
   }
 
   return (
     <ul>
-      <RolesListElements roles={roles}/>
+      <RolesListElements roles={r}/>
     </ul>
   );
 }
@@ -72,7 +51,7 @@ function RolesList({ roles }: {roles: boolean[]}) {
 type AccessControlFormProps = {
   provider?: Web3Provider
   signedInAddress: string
-  roles: boolean[]
+  roles: RolesInfo
   limitedMode: boolean 
 }
 
@@ -86,7 +65,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [organization, setOrganization] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [publicKeyName, setPublicKeyName] = useState("");
-  const [role, setRole] = useState("Consumer");
+  const [role, setRole] = useState<Role>("Consumer");
   const [result, setResult] = useState("");
   const [error_role, setRoleError] = useState("");
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
@@ -94,13 +73,13 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   // Fetching roles of outside address
   const [lookupWallet, setLookupWallet] = useState<Wallet|null>(null);
   const [theirAddress, setTheirAddress] = useState("");
-  const [theirRoles, setTheirRoles] = useState<boolean[]>([]);
+  const [theirRoles, setTheirRoles] = useState<RolesInfo>({});
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
 
   async function fetchTheirRoles() {
     if (!provider) return;
-    setTheirRoles([]);
+    setTheirRoles({});
     setFetchingTheirRoles(true);
     let result = await getRoles(provider, theirAddress);
     setTheirRoles(result);
@@ -112,7 +91,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (event) => { setOrganization(event.target.value); };
   const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKey(event.target.value); };
   const onPublicKeyNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKeyName(event.target.value); };
-  const onRoleChange: ChangeEventHandler<HTMLInputElement> = (event) => { setRole(event.target.value); };
+  const onRoleChange: ChangeEventHandler<HTMLInputElement> = (event) => { setRole(event.target.value as Role); };
 
   async function handleRegister() {
     if (!provider) return;
@@ -124,7 +103,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
     setRegisterFormValidated(false);
     // save wallet info
-    const currentRoles = RolesBoolsToCodes(await getRoles(provider, address));
+    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
     if (currentRoles.indexOf(role) > -1) {
       console.error('Wallet ' + address + ' already has role ' + role);
       setRoleError('That address already has this role.');
@@ -135,22 +114,22 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
       let result = null;
       switch (role) {
-        case "Consumer":
+        case RoleEnum.Consumer:
           result = await fetchRegisterConsumer();
           break;
-        case "REC":
+        case RoleEnum.RecDealer:
           result = await fetchRegisterDealer(1);
           break;
-        case "CEO":
+        case RoleEnum.OffsetDealer:
           result = await fetchRegisterDealer(2);
           break;
-        case "AE":
+        case RoleEnum.EmissionsAuditor:
           result = await fetchRegisterDealer(3);
           break;
-        case "REGISTERED_INDUSTRY":
+        case RoleEnum.Industry:
           result = await fetchRegisterIndustry();
           break;
-        case "REGISTERED_INDUSTRY_DEALER":
+        case RoleEnum.IndustryDealer:
           result = await fetchRegisterDealer(4);
           break;
         default:
@@ -178,26 +157,26 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   }
 
 
-  async function handleSingleUnregister(wallet: Wallet, role: string) {
+  async function handleSingleUnregister(wallet: Wallet, role: Role) {
     let result = null;
 
     switch (role) {
       case "Consumer":
         result = await fetchUnregisterConsumer();
         break;
-      case "REC":
+      case RoleEnum.RecDealer:
         result = await fetchUnregisterDealer(1);
         break;
-      case "CEO":
+      case RoleEnum.OffsetDealer:
         result = await fetchUnregisterDealer(2);
         break;
-      case "AE":
+      case RoleEnum.EmissionsAuditor:
         result = await fetchUnregisterDealer(3);
         break;
-      case "REGISTERED_INDUSTRY":
-        result = await fetchUnregisterDealer(4);
+      case RoleEnum.Industry:
+        result = await fetchUnregisterIndustry();
         break;
-      case "REGISTERED_INDUSTRY_DEALER":
+      case RoleEnum.IndustryDealer:
         result = await fetchUnregisterDealer(4);
         break;
       default:
@@ -231,7 +210,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
     setRegisterFormValidated(false);
     // save wallet info
-    const currentRoles = RolesBoolsToCodes(await getRoles(provider, address));
+    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
     if (currentRoles.indexOf(role) === -1) {
       console.error('Wallet ' + address + ' does not have role ' + role, currentRoles);
       setRoleError('That address does not have this role.');
@@ -242,22 +221,22 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       let result = null;
 
       switch (role) {
-        case "Consumer":
+        case RoleEnum.Consumer:
           result = await fetchUnregisterConsumer();
           break;
-        case "REC":
+        case RoleEnum.RecDealer:
           result = await fetchUnregisterDealer(1);
           break;
-        case "CEO":
+        case RoleEnum.OffsetDealer:
           result = await fetchUnregisterDealer(2);
           break;
-        case "AE":
+        case RoleEnum.EmissionsAuditor:
           result = await fetchUnregisterDealer(3);
           break;
-        case "REGISTERED_INDUSTRY":
-          result = await fetchUnregisterDealer(4);
+        case RoleEnum.Industry:
+          result = await fetchUnregisterIndustry();
           break;
-        case "REGISTERED_INDUSTRY_DEALER":
+        case RoleEnum.IndustryDealer:
           result = await fetchUnregisterDealer(4);
           break;
         default:
@@ -304,6 +283,13 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     return result;
   }
 
+  async function fetchUnregisterIndustry() {
+    if (!provider) return;
+    let result = await unregisterIndustry(provider, address);
+    setResult(result.toString());
+    return result;
+  }
+
   async function fetchRegisterIndustrySelf() {
     if (!provider) return;
     let result = await registerIndustry(provider, signedInAddress);
@@ -341,7 +327,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {signedInAddress &&
         <>
           <h4>My Roles</h4>
-          {roles.length === 6
+          {roles
            ? <RolesList roles={roles}/>
            : <div className="text-center mt-3 mb-3">
                <Spinner animation="border" role="status">
@@ -367,7 +353,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         <li>Address: {lookupWallet.address}</li>
         <li>Organization: {lookupWallet.organization}</li>
         <li>Roles: <ul>
-          <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles!} unregister={(r) => {
+          <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles} unregister={(r) => {
             handleSingleUnregister(lookupWallet, r)
           }}/>
         </ul></li>
@@ -380,12 +366,12 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           </Spinner>
         </div>
       }
-      {theirRoles.length === 6 &&
+      {theirRoles &&
         <RolesList roles={theirRoles}/>
       }
 
       {/* Only display registration/unregistration tokens if owner or dealer */}
-      {( (roles[0] === true)) &&
+      {roles?.isAdmin &&
         <>
           <h4>Register/unregister dealers and consumers</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
@@ -440,7 +426,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-    {( (!limitedMode) && (roles[0] === false && (roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true))) &&
+    {( (!limitedMode) && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole))) &&
      <>
           <h4>Register/unregister consumer or industry member</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
@@ -495,7 +481,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
     }
 
-    {(roles[0] === false && roles[4] === false) &&
+    {(!roles.isAdmin && roles.isIndustry) &&
      <>
           <h4>Register my account as industry</h4>
           <Form.Group>

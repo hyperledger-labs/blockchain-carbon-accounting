@@ -14,17 +14,22 @@ const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[]
 
 const FIRST_BLOCK = 17770812;
 
-// Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
+/* Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
+ * Note for the dealer events the actual role depends on the token.
+ * Instead of relying on the event we just use them to collect the addresses of the accounts,
+ * then use getRoles to get the final roles from the contract.
+ */
 export const syncWallets = async (currentBlock: number) => {
     try {
         const events = [
             {event: 'RegisteredConsumer', role: 'Consumer'},
-            {event: 'UnregisteredConsumer', role: 'Consumer', revoke: true},
+            {event: 'UnregisteredConsumer', role: 'Consumer'},
             {event: 'RegisteredDealer', role: 'Dealer'},
-            {event: 'UnregisteredDealer', role: 'Dealer', revoke: true},
+            {event: 'UnregisteredDealer', role: 'Dealer'},
             {event: 'RegisteredIndustry', role: 'Industry'},
-            {event: 'UnregisteredIndustry', role: 'Industry', revoke: true},
-        ]
+            {event: 'UnregisteredIndustry', role: 'Industry'},
+        ];
+        const accountAddresses: Record<string, boolean> = {};
         const members: Record<string, Record<string, number>> = {};
         let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
         let toBlock: number | string = fromBlock;
@@ -33,17 +38,11 @@ export const syncWallets = async (currentBlock: number) => {
                 toBlock = currentBlock;
             else 
                 toBlock = fromBlock + 5000; 
-            for (const {event, role, revoke} of events) {
+            for (const {event} of events) {
                 const logs = await contract.getPastEvents(event, {fromBlock, toBlock});
-                for (const {returnValues, blockNumber} of logs) {
+                for (const {returnValues} of logs) {
                     const account = returnValues.account
-                    members[role] = members[role] || {};
-                    if (revoke) {
-                        // note: we check revoke after the grants
-                        if (members[role][account] && members[role][account] < blockNumber) delete members[role][account];
-                    } else {
-                        members[role][account] = blockNumber;
-                    }
+                    accountAddresses[account] = true
                 }
             }
 
@@ -60,16 +59,38 @@ export const syncWallets = async (currentBlock: number) => {
             }
         }
 
-        const db = await PostgresDBService.getInstance()
-        for (const address in accountsWithRoles) {
-            const w = await db.getWalletRepo().ensureWalletWithRoles(address, accountsWithRoles[address]);
-            console.log('saved wallet',w)
+        for (const address in accountAddresses) {
+            await syncWalletRoles(address);
         }
     } catch (err) {
         console.error(err)
         throw new Error('Error in getMembers: ' + err)
     }
 }
+
+const syncWalletRoles = async (address: string) => {
+    try {
+        const db = await PostgresDBService.getInstance()
+        console.log("getting roles for ", address);
+        const rolesInfo = await contract.methods.getRoles(address).call();
+        console.log("roles for ", address, rolesInfo);
+        const roles = [];
+        if (rolesInfo.isAdmin) roles.push('Admin');
+        if (rolesInfo.isConsumer) roles.push('Consumer');
+        if (rolesInfo.isRecDealer) roles.push('REC Dealer');
+        if (rolesInfo.isCeoDealer) roles.push('Offset Dealer');
+        if (rolesInfo.isAeDealer) roles.push('Emission Auditor');
+        if (rolesInfo.isIndustry) roles.push('Industry');
+        if (rolesInfo.isIndustryDealer) roles.push('Industry Dealer');
+
+        const w = await db.getWalletRepo().ensureWalletWithRoles(address, roles);
+        console.log('saved wallet',w)
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in getNumOfUniqueTokens: ' + err)
+    }
+}
+
 
 // get number of unique tokens
 const getNumOfUniqueTokens = async (): Promise<number> => {

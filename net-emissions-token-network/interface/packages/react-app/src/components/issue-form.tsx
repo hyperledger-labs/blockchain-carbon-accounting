@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -11,13 +11,21 @@ import { encodeParameters, getAdmin, issue, TOKEN_TYPES } from "../services/cont
 import CreateProposalModal from "./create-proposal-modal";
 import SubmissionModal from "./submission-modal";
 import { Web3Provider } from "@ethersproject/providers";
+import { RolesInfo } from "./static-data";
 
 type KeyValuePair = {
   key: string
   value: string
 }
 
-export default function IssueForm({ provider, roles, signedInAddress, limitedMode }: {provider?:Web3Provider, roles:boolean[], signedInAddress:string, limitedMode:boolean}) {
+type IssueFormProps = {
+  provider?: Web3Provider, 
+  signedInAddress: string, 
+  roles: RolesInfo,
+  limitedMode: boolean
+}
+
+const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -181,11 +189,11 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
   }, [limitedMode, provider]);
 
   useEffect(() => {
-    if (roles[0] || roles[1]) {
+    if (roles.isAdmin || roles.isRecDealer) {
       setTokenTypeId(1);
-    } else if (roles[0] || roles[2]) {
+    } else if (roles.isAdmin || roles.isCeoDealer) {
       setTokenTypeId(2);
-    } else if (roles[0] || roles[3]) {
+    } else if (roles.isAdmin || roles.isAeDealer) {
       setTokenTypeId(3);
     }
   }, [roles]);
@@ -216,7 +224,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     borderColor: '#dc3545'
   };
 
-  return (roles[0] || roles[1] || roles[2] || roles[3] || roles[4]) ? (
+  return roles.hasAnyRole ? (
     <>
 
       <CreateProposalModal
@@ -277,10 +285,10 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         <Form.Label>Token Type</Form.Label>
         <Form.Control as="select" onChange={onTokenTypeIdChange}>
           <option value={0}>{}</option>
-          {(roles[0] || roles[1]) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
-          {(roles[0] || roles[2]) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
-          {(roles[0] || roles[3]) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
-          {(roles[0] || roles[4]) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
+          {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
+          {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
+          {(roles.isAdmin || roles.isAeDealer) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
+          {(roles.isAdmin || roles.isIndustry) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
         </Form.Control>
       </Form.Group>
       <Form.Group>
@@ -412,7 +420,7 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
         <Col>
 
           {/* if in limited mode, require dealer role (except AE & CarbonTacker) to make a DAO proposal */}
-          { (limitedMode && (!roles[0] && !roles[1] && !roles[2] && !roles[4]))
+          { (limitedMode && (!roles.isAdmin && !roles.isRecDealer && !roles.isCeoDealer && !roles.isIndustry))
             ?
             <Button
               variant="success"
@@ -442,8 +450,8 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
 
         { ( !limitedMode || tokenTypeId === 3 ) &&
           <Col>
-            {/* Only enable issue if role is found */}
-            { (roles[0] || roles[1] || roles[2] || roles[3] || roles[4])
+            {/* Only enable issue if any role is found */}
+            { roles.hasAnyRole
               ?
                 <Button
                   variant="primary"
@@ -467,3 +475,5 @@ export default function IssueForm({ provider, roles, signedInAddress, limitedMod
     <p>You must be a registered dealer to issue tokens.</p>
   );
 }
+
+export default IssueForm;

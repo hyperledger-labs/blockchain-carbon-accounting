@@ -95,8 +95,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       setDisplayAddressIsIndustry(false);
     } else {
       const dRoles = await getRoles(provider, address);
-      setDisplayAddressIsDealer((dRoles[0] === true || dRoles[1] === true || dRoles[2] === true || dRoles[3] === true || dRoles[4] === true));
-      setDisplayAddressIsIndustry((dRoles[4] === true));
+      setDisplayAddressIsDealer(!!dRoles.hasDealerRole);
+      setDisplayAddressIsIndustry(!!dRoles.hasIndustryRole);
     }
   }
 

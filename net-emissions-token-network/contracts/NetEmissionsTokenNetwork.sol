@@ -627,19 +627,31 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     function isRegisteredDealerOrConsumer(address account) private view returns (bool) {
         return (isDealerRegistered(account) || isConsumerRegistered(account));
     }
+    
+    struct RolesInfo {
+      bool isAdmin;
+      bool isConsumer;
+      bool isRecDealer;
+      bool isCeoDealer;
+      bool isAeDealer;
+      bool isIndustry;
+      bool isIndustryDealer;
+    }
 
     /**
      * @dev Helper function for returning tuple of bools of role membership
      * @param account address to check roles
      */
-    function getRoles(address account) external view returns (bool, bool, bool, bool, bool, bool) {
-        bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, account);
-        bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
-        bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, account);
-        bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, account);
-        bool isIndustry = hasRole(REGISTERED_INDUSTRY, account);
-        bool isConsumer = hasRole(REGISTERED_CONSUMER, account);
-        return (isAdmin, isRecDealer, isCeoDealer, isAeDealer, isIndustry, isConsumer);
+    function getRoles(address account) external view returns (RolesInfo memory) {
+        RolesInfo memory roles;
+        roles.isAdmin = hasRole(DEFAULT_ADMIN_ROLE, account);
+        roles.isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
+        roles.isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, account);
+        roles.isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, account);
+        roles.isIndustry = hasRole(REGISTERED_INDUSTRY, account);
+        roles.isConsumer = hasRole(REGISTERED_CONSUMER, account);
+        roles.isIndustryDealer = hasRole(REGISTERED_INDUSTRY_DEALER, account);
+        return roles;
     }
 
     /**

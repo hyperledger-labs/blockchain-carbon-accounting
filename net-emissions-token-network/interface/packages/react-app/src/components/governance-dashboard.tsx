@@ -30,7 +30,7 @@ import {
 import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
 import ProposalCallDetailsModal from "./proposal-call-details-modal";
 import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
-import { Proposal } from "./static-data";
+import { Proposal, RolesInfo } from "./static-data";
 
 function addCommas(value: string|number){
   let str = value+'';
@@ -51,9 +51,8 @@ const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.
 type GovernanceDashboardProps = {
   provider?: Web3Provider, 
   signedInAddress: string, 
-  roles: boolean[]
+  roles: RolesInfo
 }
-
 
 const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, signedInAddress }) => {
 
@@ -295,9 +294,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
 
 
   useEffect(() => {
-    if (provider && !hasRole && Array.isArray(roles)) {
-      setHasRole(roles.some(e => e));
-    }
+    setHasRole(provider !== undefined && !!roles.hasAnyRole);
     fetchDaoTokenSupply();
   }, [provider, hasRole, roles, setHasRole, fetchDaoTokenSupply]);
 

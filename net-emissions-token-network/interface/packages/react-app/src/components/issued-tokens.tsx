@@ -26,14 +26,14 @@ import TrackerInfoModal from "./tracker-info-modal";
 import { getBalances, getTokens } from '../services/api.service';
 import Paginator from "./paginate";
 import QueryBuilder from "./query-builder";
-import { Balance, Token, TOKEN_FIELDS, Tracker } from "./static-data";
+import { Balance, RolesInfo, Token, TOKEN_FIELDS, Tracker } from "./static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
 type IssuedTokensProps = {
   provider?: Web3Provider, 
   signedInAddress: string, 
   displayAddress: string,
-  roles: boolean[]
+  roles: RolesInfo
 }
 
 type IssuedTokensHandle = {
@@ -58,8 +58,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
   const [error, setError] = useState("");
 
-  const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
-  const isIndustry = (roles[4] === true);
+  const isDealer = roles.hasDealerRole;
+  const isIndustry = roles.hasIndustryRole;
   const [displayAddressIsDealer, setDisplayAddressIsDealer] = useState(false);
   const [displayAddressIsIndustry, setDisplayAddressIsIndustry] = useState(false);
 
@@ -119,8 +119,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       setDisplayAddressIsIndustry(false);
     } else {
       const dRoles = await getRoles(provider, address);
-      setDisplayAddressIsDealer((dRoles[0] === true || dRoles[1] === true || dRoles[2] === true || dRoles[3] === true || dRoles[4] === true));
-      setDisplayAddressIsIndustry((dRoles[4] === true));
+      setDisplayAddressIsDealer(!!dRoles.hasDealerRole);
+      setDisplayAddressIsIndustry(!!dRoles.hasIndustryRole);
     }
   }
 

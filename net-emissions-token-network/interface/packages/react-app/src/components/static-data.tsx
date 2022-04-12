@@ -101,6 +101,44 @@ export type Proposal = {
   isEligibleToVote: boolean
 }
 
+export type RolesInfo = {
+  isAdmin?: boolean
+  isConsumer?: boolean
+  isRecDealer?: boolean
+  isCeoDealer?: boolean
+  isAeDealer?: boolean
+  isIndustry?: boolean
+  isIndustryDealer?: boolean
+  hasAnyRole?: boolean
+  hasIndustryRole?: boolean
+  hasDealerRole?: boolean
+}
+
+export type Role = 'Owner' | 'Consumer' | 'REC Dealer' | 'Offset Dealer' | 'Emissions Auditor' | 'Industry' | 'Industry Dealer'
+
+export const RoleEnum = {
+  Owner: 'Owner',
+  Consumer: 'Consumer',
+  RecDealer: 'REC Dealer',
+  OffsetDealer: 'Offset Dealer',
+  EmissionsAuditor: 'Emissions Auditor',
+  Industry: 'Industry',
+  IndustryDealer: 'Industry Dealer'
+} as const
+
+export const rolesInfoToArray = (roles: RolesInfo|null): Role[] => {
+  const res: Role[] = [];
+  if (!roles) return res;
+  if (roles.isAdmin) res.push(RoleEnum.Owner);
+  if (roles.isConsumer) res.push(RoleEnum.Consumer);
+  if (roles.isRecDealer) res.push(RoleEnum.RecDealer);
+  if (roles.isCeoDealer) res.push(RoleEnum.OffsetDealer);
+  if (roles.isAeDealer) res.push(RoleEnum.EmissionsAuditor);
+  if (roles.isIndustry) res.push(RoleEnum.Industry);
+  if (roles.isIndustryDealer) res.push(RoleEnum.IndustryDealer);
+  return res;
+}
+
 export const OPERATORS: Record<FieldType, FieldOp[]> = {
     'string': ["=", "contains"],
     'number': [">", "<", "="],

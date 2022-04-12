@@ -9,10 +9,11 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import "react-datetime/css/react-datetime.css";
 import { Web3Provider } from "@ethersproject/providers";
+import { RolesInfo } from "./static-data";
 
 type RetireFormProps = {
   provider?: Web3Provider
-  roles: boolean[]
+  roles: RolesInfo
 }
 
 const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
@@ -98,7 +99,7 @@ const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
       </Form.Group>
 
       {/* Only enable retires if role is found */}
-      { (roles.length === 6) && (roles.some(r => r === true))
+      { roles.hasAnyRole
         ? <Button variant="danger" size="lg" block onClick={handleRetire}>Retire</Button>
         : <Button disabled variant="danger" size="lg" block>Must be a registered user</Button>
       }

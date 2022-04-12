@@ -5,6 +5,7 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
 import { getRoles, getRegisteredTracker, getLimitedMode } from "../services/contract-functions";
+import { RolesInfo } from "../components/static-data";
 
 // Enter a valid infura key here to avoid being rate limited
 // You can get a key for free at https://infura.io/register
@@ -16,7 +17,7 @@ function useWeb3Modal(config: any = {}) {
   const [provider, setProvider] = useState<Web3Provider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
-  const [roles, setRoles] = useState<boolean[]>([]);
+  const [roles, setRoles] = useState<RolesInfo>({});
   const [registeredTracker, setRegisteredTracker] = useState(false);
   const [limitedMode, setLimitedMode] = useState(true);
   const { autoLoad = true, infuraId = INFURA_ID, NETWORK = NETWORK_NAME } = config;

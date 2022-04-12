@@ -4,6 +4,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
 import { Web3Provider } from "@ethersproject/providers";
 import { abis, addresses } from "@project/contracts";
+import { RolesInfo } from "../components/static-data";
 
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
@@ -109,10 +110,16 @@ export function formatDate(timestamp: number|string) {
 export async function getRoles(w3provider: Web3Provider, address: string) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   try {
-    return await contract.getRoles(address) as boolean[];
+    const r = await contract.getRoles(address) as RolesInfo;
+    // note: the returned value is not extensible, so copy the values here
+    const roles = {...r}
+    if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasAnyRole = true;
+    if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasDealerRole = true;
+    if (roles.isIndustryDealer || roles.isIndustry) roles.hasIndustryRole = true;
+    return roles;
   } catch (error) {
     console.error('getRoles', error);
-    return []
+    return {}
   }
 }
 
@@ -297,6 +304,20 @@ export async function registerIndustry(w3provider: Web3Provider, address: string
   let registerIndustry_result;
   try {
     await signed.registerIndustry(address);
+    registerIndustry_result = SUCCESS_MSG;
+  } catch (error) {
+    registerIndustry_result = catchError(error);
+  }
+  return registerIndustry_result;
+}
+
+export async function unregisterIndustry(w3provider: Web3Provider, address: string) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let signed = contract.connect(signer);
+  let registerIndustry_result;
+  try {
+    await signed.unregisterIndustry(address);
     registerIndustry_result = SUCCESS_MSG;
   } catch (error) {
     registerIndustry_result = catchError(error);

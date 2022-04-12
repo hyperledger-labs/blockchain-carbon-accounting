@@ -35,8 +35,8 @@ function App() {
     }
   }, [loading, error, data]);
 
-  const isOwner = (roles[0] === true);
-  const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
+  const isOwner = roles.isAdmin;
+  const isDealer = roles.hasDealerRole;
   const isOwnerOrDealer = (isOwner || isDealer);
 
   return (

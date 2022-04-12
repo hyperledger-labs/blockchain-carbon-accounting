@@ -15,6 +15,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FaRegClipboard } from 'react-icons/fa'
 import { FaGithub } from 'react-icons/fa'
 import { Web3Provider } from "@ethersproject/providers";
+import { RolesInfo } from "./static-data";
 
 type WalletButtonProps = {
   provider?: Web3Provider 
@@ -51,29 +52,31 @@ type NavigationBarProps = {
   loadWeb3Modal: ()=>void 
   logoutOfWeb3Modal:()=>void
   signedInAddress?: string
-  roles: boolean[]
+  roles: RolesInfo
   limitedMode: boolean
 }
 
 const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode }) => {
   
   const [role, setRole] = useState("");
-  const [cachedRoles, setCachedRoles] = useState<boolean[]>([]);
+  const [cachedRoles, setCachedRoles] = useState<RolesInfo>({});
 
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
-    if (roles.length === 6 && (role === "" || cachedRoles !== roles)) {
-      if (roles[0] === true) {
+    if (roles && (role === "" || cachedRoles !== roles)) {
+      if (roles.isAdmin) {
         setRole("Admin (superuser)");
-      } else if (roles[1] === true) {
+      } else if (roles.isRecDealer) {
         setRole("REC Dealer");
-      } else if (roles[2] === true) {
+      } else if (roles.isCeoDealer) {
         setRole("Offset Dealer")
-      } else if (roles[3] === true) {
+      } else if (roles.isAeDealer) {
         setRole("Emissions Auditor");
-      } else if (roles[4] === true) {
+      } else if (roles.isIndustry) {
         setRole("Industry");
-      } else if (roles[5] === true) {
+      } else if (roles.isIndustryDealer) {
+        setRole("Industry Dealer");
+      } else if (roles.isConsumer) {
         setRole("Consumer");
       } else {
         setRole("Unregistered");
