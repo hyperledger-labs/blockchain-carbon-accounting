@@ -696,6 +696,23 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     }
 
     /**
+     * @dev msg.sender can unvolunteer themselves as registered industry
+     * or other registered dealer can unregister Industry
+     */
+    function unregisterIndustry(address account) external
+    {
+        if(msg.sender != account){
+            // only dealer can register industry
+            _onlyDealer();
+        }
+        if (limitedMode) {
+            require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "CLM8::unregisterIndustry(limited): only admin can unregister industries");
+        }
+        revokeRole(REGISTERED_INDUSTRY, account);
+        emit UnregisteredIndustry(account);
+    }
+
+    /**
      * @dev returns true if Consumer's account is registered for the given token
      * @param account address of the consumer
      */
