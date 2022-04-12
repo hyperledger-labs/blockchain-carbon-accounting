@@ -411,18 +411,9 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
               </Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
-              <Row>
-                <Col>
-                  <Button variant="success" size="lg" block onClick={handleRegister}>
-                    Register
-                  </Button>
-                </Col>
-                <Col>
-                  <Button variant="danger" size="lg" block onClick={handleUnregister}>
-                    Unregister
-                  </Button>
-                </Col>
-              </Row>
+              <Button variant="success" size="lg" block onClick={handleRegister}>
+                Register
+              </Button>
             </Form.Group>
           </Form>
         </>
@@ -466,18 +457,9 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
               </Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
-              <Row>
-                <Col>
-                  <Button variant="success" size="lg" block onClick={handleRegister}>
-                    Register
-                  </Button>
-                </Col>
-                <Col>
-                  <Button variant="danger" size="lg" block onClick={handleUnregister}>
-                    Unregister
-                  </Button>
-                </Col>
-              </Row>
+              <Button variant="success" size="lg" block onClick={handleRegister}>
+                Register
+              </Button>
             </Form.Group>
           </Form>
         </>
