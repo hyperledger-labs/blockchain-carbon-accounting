@@ -2,7 +2,7 @@
 import { useState, useRef, ChangeEventHandler, FC } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
-import { registerUserRole, unregisterUserRole } from "../services/api.service"
+import { lookupWallets, registerUserRole, unregisterUserRole } from "../services/api.service"
 
 import SubmissionModal from "./submission-modal";
 import WalletLookupInput from "./wallet-lookup-input";
@@ -81,8 +81,17 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     if (!provider) return;
     setTheirRoles({});
     setFetchingTheirRoles(true);
-    let result = await getRoles(provider, theirAddress);
-    setTheirRoles(result);
+    if (lookupWallet && lookupWallet.address) {
+      const wallets = await lookupWallets(lookupWallet.address);
+      if (wallets && wallets.length === 1) {
+        setLookupWallet(wallets[0]);
+        setAddress(wallets[0].address || '');
+      }
+    } else {
+      let result = await getRoles(provider, theirAddress);
+      setAddress(theirAddress);
+      setTheirRoles(result);
+    }
     setFetchingTheirRoles(false);
   }
 
@@ -341,8 +350,13 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       <h4>Look-up Roles</h4>
       <InputGroup className="mb-3">
         <WalletLookupInput 
-          onChange={(v: string) => { setTheirAddress(v) }} 
+          onChange={(v: string) => {
+            console.log('onChange:',v)
+            setTheirAddress(v);
+          }} 
           onWalletChange={(w)=>{
+            console.log('onWalletChange:',w)
+            setTheirRoles({});
             setLookupWallet(w);
             setAddress(w ? w.address! : '');
           }} />
