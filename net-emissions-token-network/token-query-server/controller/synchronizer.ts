@@ -86,7 +86,7 @@ export const syncWallets = async (currentBlock: number) => {
     }
 }
 
-const syncWalletRoles = async (address: string, data?: Partial<Wallet>) => {
+export const syncWalletRoles = async (address: string, data?: Partial<Wallet>) => {
     try {
         const db = await PostgresDBService.getInstance()
         console.log("getting roles for ", address);
