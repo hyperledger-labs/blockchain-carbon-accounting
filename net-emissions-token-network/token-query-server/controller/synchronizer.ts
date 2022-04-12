@@ -15,7 +15,8 @@ const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[]
 
 const FIRST_BLOCK = 17770812;
 
-// setup wallets from hardhat base on the default test roles
+// setup wallets from hardhat name them based on the setTestAccountRoles
+// roles should be auto set based on the blockchain data
 const SEED_WALLETS: Record<string, Partial<Wallet>> = (process.env.LEDGER_ETH_NETWORK === 'hardhat') ? {
   '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266': {name: 'super user (Account 0)', organization: 'Test Hardhat'},
   '0x70997970C51812dc3A010C7d01b50e0d17dc79C8': {name: 'REC Dealer 1', organization: 'Test Hardhat'},

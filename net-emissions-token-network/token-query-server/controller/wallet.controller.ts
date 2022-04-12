@@ -48,7 +48,8 @@ export async function getWallets(req: Request, res: Response) {
 export async function insertNewWallet(req: Request, res: Response) {
     try {
         const db = await PostgresDBService.getInstance()
-        const wallet = await db.getWalletRepo().insertWallet(req.body);
+        // use mergeWallet to either create or just update based on non-empty values given
+        const wallet = await db.getWalletRepo().mergeWallet(req.body);
         return res.status(200).json({
             status: 'success',
             wallet,

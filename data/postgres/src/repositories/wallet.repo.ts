@@ -32,11 +32,28 @@ export class WalletRepo {
     return await this._db.getRepository(Wallet).findOneBy({address})
   }
 
-  public insertWallet = async (payload: Partial<Wallet>): Promise<Wallet> => {
+  public mergeWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
     const repo = this._db.getRepository(Wallet)
-    const wallet = new Wallet()
+    const wallet = await repo.findOneBy({address: payload.address})
+    if (!wallet) {
+      return await repo.save({
+        ...payload,
+      })
+    } else {
+      // only update non empty new values
+      const toMerge = Object.fromEntries(
+        Object.entries(payload).filter(([,v]) => !!v)
+      )
+      return await repo.save({
+        ...wallet,
+        ...toMerge
+      })
+    }
+  }
+
+  public insertWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
+    const repo = this._db.getRepository(Wallet)
     return await repo.save({
-      ...wallet,
       ...payload,
     })
   }
