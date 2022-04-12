@@ -76,7 +76,7 @@ export class WalletRepo {
     }
   }
 
-  public ensureWalletWithRoles = async(address: string, roles: string[]) => {
+  public ensureWalletWithRoles = async(address: string, roles: string[], data?: Partial<Wallet>) => {
     const repo = this._db.getRepository(Wallet);
     let wallet = await repo.findOneBy({address});
     console.log('got wallet for address',address,wallet)
@@ -84,6 +84,9 @@ export class WalletRepo {
       wallet = repo.create({address});
     }
     wallet.roles = roles.join(',');
+    if (data) {
+      wallet = Object.assign(wallet, data);
+    }
     return await repo.save(wallet);
   }
 

@@ -6,6 +6,7 @@ import { TokenPayload, BalancePayload } from 'blockchain-accounting-data-postgre
 import { insertNewBalance } from "./balance.controller";
 import { Balance } from "blockchain-accounting-data-postgres/src/models/balance";
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
+import { Wallet } from "blockchain-accounting-data-postgres/src/models/wallet";
 
 const BURN = '0x0000000000000000000000000000000000000000';
 
@@ -13,6 +14,22 @@ const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
 const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
 
 const FIRST_BLOCK = 17770812;
+
+// setup wallets from hardhat base on the default test roles
+const SEED_WALLETS: Record<string, Partial<Wallet>> = (process.env.LEDGER_ETH_NETWORK === 'hardhat') ? {
+  '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266': {name: 'super user (Account 0)', organization: 'Test Hardhat'},
+  '0x70997970C51812dc3A010C7d01b50e0d17dc79C8': {name: 'REC Dealer 1', organization: 'Test Hardhat'},
+  '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC': {name: 'Emissions Auditor 1', organization: 'Test Hardhat'},
+  '0x90F79bf6EB2c4f870365E785982E1f101E93b906': {name: 'Offset Dealer 1', organization: 'Test Hardhat'},
+  '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65': {name: 'Emissions Auditor 2', organization: 'Test Hardhat'},
+  '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199': {name: 'Consumer 1', organization: 'Test Hardhat'},
+  '0xdD2FD4581271e230360230F9337D5c0430Bf44C0': {name: 'Consumer 2', organization: 'Test Hardhat'},
+  '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc': {name: 'Emissions Auditor 3', organization: 'Test Hardhat'},
+  '0x976EA74026E726554dB657fA54763abd0C3a0aa9': {name: 'Emissions Auditor 4', organization: 'Test Hardhat'},
+  '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955': {name: 'Offset Dealer 2', organization: 'Test Hardhat'},
+  '0xcd3B766CCDd6AE721141F452C550Ca635964ce71': {name: 'Industry 1', organization: 'Test Hardhat'},
+  '0x2546BcD3c84621e976D8185a91A922aE77ECEc30': {name: 'Industry 2', organization: 'Test Hardhat'},
+} : {}
 
 /* Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
  * Note for the dealer events the actual role depends on the token.
@@ -60,7 +77,7 @@ export const syncWallets = async (currentBlock: number) => {
         }
 
         for (const address in accountAddresses) {
-            await syncWalletRoles(address);
+            await syncWalletRoles(address, SEED_WALLETS[address]);
         }
     } catch (err) {
         console.error(err)
@@ -68,7 +85,7 @@ export const syncWallets = async (currentBlock: number) => {
     }
 }
 
-const syncWalletRoles = async (address: string) => {
+const syncWalletRoles = async (address: string, data?: Partial<Wallet>) => {
     try {
         const db = await PostgresDBService.getInstance()
         console.log("getting roles for ", address);
@@ -83,7 +100,7 @@ const syncWalletRoles = async (address: string) => {
         if (rolesInfo.isIndustry) roles.push('Industry');
         if (rolesInfo.isIndustryDealer) roles.push('Industry Dealer');
 
-        const w = await db.getWalletRepo().ensureWalletWithRoles(address, roles);
+        const w = await db.getWalletRepo().ensureWalletWithRoles(address, roles, data);
         console.log('saved wallet',w)
     } catch (err) {
         console.error(err)
