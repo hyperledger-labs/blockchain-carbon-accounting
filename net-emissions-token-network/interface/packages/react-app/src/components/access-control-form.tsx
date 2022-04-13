@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
-import { lookupWallets, registerUserRole, unregisterUserRole } from "../services/api.service"
+import { lookupWallets, registerUserRole, postSignedMessage, unregisterUserRole } from "../services/api.service"
 
 import SubmissionModal from "./submission-modal";
 import WalletLookupInput from "./wallet-lookup-input";
@@ -15,6 +15,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
+import { Alert } from "react-bootstrap";
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
   if (!roles) return null;
@@ -68,6 +69,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [role, setRole] = useState<Role>("Consumer");
   const [result, setResult] = useState("");
   const [error_role, setRoleError] = useState("");
+  const [error_lookup, setLookupError] = useState("");
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
 
   // Fetching roles of outside address
@@ -77,23 +79,40 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
 
-  async function fetchTheirRoles() {
-    if (!provider) return;
-    setTheirRoles({});
-    setFetchingTheirRoles(true);
-    if (lookupWallet && lookupWallet.address) {
-      const wallets = await lookupWallets(lookupWallet.address);
-      if (wallets && wallets.length === 1) {
-        setLookupWallet(wallets[0]);
-        setAddress(wallets[0].address || '');
+  // called on the Lookup button click
+  const lookupWalletRoles = useCallback(async () => {
+    if ((lookupWallet && lookupWallet.address) || provider) {
+      if (theirRoles.hasAnyRole) setTheirRoles({});
+      setFetchingTheirRoles(true);
+      setLookupError('');
+      if (lookupWallet && lookupWallet.address) {
+        const wallets = await lookupWallets(lookupWallet.address);
+        if (wallets && wallets.length === 1) {
+          setLookupWallet(wallets[0]);
+          setAddress(wallets[0].address || '');
+        } else {
+          setLookupError(`Account ${lookupWallet.address} not found.`);
+        }
+      } else {
+        if (provider) {
+          let result = await getRoles(provider, theirAddress);
+          if (!result.hasAnyRole) setLookupError(`Account ${theirAddress} not found.`);
+          setAddress(theirAddress);
+          setTheirRoles(result);
+        }
       }
-    } else {
-      let result = await getRoles(provider, theirAddress);
-      setAddress(theirAddress);
-      setTheirRoles(result);
+      setFetchingTheirRoles(false);
     }
-    setFetchingTheirRoles(false);
-  }
+  }, [lookupWallet, provider, theirAddress, theirRoles])
+
+
+  const onWalletChange = useCallback((w:Wallet|null)=>{
+    console.log('onWalletChange:',w)
+    setLookupError('');
+    setTheirRoles({});
+    setLookupWallet(w);
+    setAddress(w ? w.address! : '');
+  }, [])
 
   const onAddressChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAddress(event.target.value); };
   const onNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setName(event.target.value); };
@@ -101,6 +120,20 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKey(event.target.value); };
   const onPublicKeyNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKeyName(event.target.value); };
   const onRoleChange: ChangeEventHandler<HTMLInputElement> = (event) => { setRole(event.target.value as Role); };
+
+  async function handlePostSignedMessage() {
+    if (!provider) return;
+    const payload = {
+      address,
+      name,
+      organization,
+      public_key: publicKey,
+      public_key_name: publicKeyName
+    }
+    const message = JSON.stringify(payload)
+    const signature = await provider.getSigner().signMessage(message)
+    await postSignedMessage(message, signature);
+  }
 
   async function handleRegister() {
     if (!provider) return;
@@ -209,68 +242,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     }
   }
 
-  async function handleUnregister() {
-    if (!provider) return;
-    // validate
-    if (formRef.current && formRef.current.checkValidity() === false) {
-      setRegisterFormValidated(true);
-      return;
-    }
-
-    setRegisterFormValidated(false);
-    // save wallet info
-    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
-    if (currentRoles.indexOf(role) === -1) {
-      console.error('Wallet ' + address + ' does not have role ' + role, currentRoles);
-      setRoleError('That address does not have this role.');
-      return;
-    } else {
-      setRoleError('');
-      console.log('Current roles includes role', currentRoles, role);
-      let result = null;
-
-      switch (role) {
-        case RoleEnum.Consumer:
-          result = await fetchUnregisterConsumer();
-          break;
-        case RoleEnum.RecDealer:
-          result = await fetchUnregisterDealer(1);
-          break;
-        case RoleEnum.OffsetDealer:
-          result = await fetchUnregisterDealer(2);
-          break;
-        case RoleEnum.EmissionsAuditor:
-          result = await fetchUnregisterDealer(3);
-          break;
-        case RoleEnum.Industry:
-          result = await fetchUnregisterIndustry();
-          break;
-        case RoleEnum.IndustryDealer:
-          result = await fetchUnregisterDealer(4);
-          break;
-        default:
-        console.error("Can't find role", role);
-      }
-      if (!result || result.toString().indexOf('Success') === -1) {
-        console.error('Transaction did not succeed');
-        return;
-      } else {
-        console.log('Transaction successful', result.toString());
-      }
-      
-      const newRoles = currentRoles.filter((r)=>r!==role).join(',');
-      await unregisterUserRole(address, newRoles);
-      setModalShow(true);
-      if (lookupWallet && lookupWallet.address === address) {
-        // remove from the array as well
-        setLookupWallet({
-          ...lookupWallet,
-          roles: newRoles
-        })
-      }
-    }
-  }
-
   async function fetchRegisterConsumer() {
     if (!provider) return;
     let result = await registerConsumer(provider, address);
@@ -354,16 +325,15 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             console.log('onChange:',v)
             setTheirAddress(v);
           }} 
-          onWalletChange={(w)=>{
-            console.log('onWalletChange:',w)
-            setTheirRoles({});
-            setLookupWallet(w);
-            setAddress(w ? w.address! : '');
-          }} />
+          onWalletChange={onWalletChange} />
         <InputGroup.Append>
-          <Button variant="outline-secondary" onClick={fetchTheirRoles}>Look-up</Button>
+          <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
         </InputGroup.Append>
       </InputGroup>
+      {error_lookup &&
+      <Alert variant="danger" onClose={() => setLookupError('')} dismissible>
+        {error_lookup}
+      </Alert>}
       {lookupWallet && lookupWallet.address && <ul>
         <li>Name: {lookupWallet.name}</li>
         <li>Address: {lookupWallet.address}</li>
@@ -429,6 +399,11 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
                 Register
               </Button>
             </Form.Group>
+            {/* <Form.Group> */}
+            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*     Update User Info */}
+            {/*   </Button> */}
+            {/* </Form.Group> */}
           </Form>
         </>
       }
@@ -475,6 +450,11 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
                 Register
               </Button>
             </Form.Group>
+            {/* <Form.Group> */}
+            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*     Update User Info */}
+            {/*   </Button> */}
+            {/* </Form.Group> */}
           </Form>
         </>
     }

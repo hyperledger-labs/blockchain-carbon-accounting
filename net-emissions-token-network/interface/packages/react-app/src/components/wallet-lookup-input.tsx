@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, CSSProperties, FC, FocusEventHandler } from "react";
+import { useState, useMemo, useEffect, CSSProperties, FC, FocusEventHandler, useCallback } from "react";
 import throttle from 'lodash/throttle';
 
 import Autocomplete from '@mui/material/Autocomplete';
@@ -14,11 +14,33 @@ type WalletLookupInputProps = {
 } 
 
 const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style}) => {
+
   
   const [loading, setLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [value, setValue] = useState<Wallet|string|null>(null);
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<(Wallet|string)[]>([]);
+
+  const updateValue = useCallback((newValue: string|Wallet|null)=>{
+    // make value stable:
+    if (value === newValue) return
+    if (value && newValue && typeof value !== 'string' && typeof newValue !== 'string' && value.address === newValue.address) return
+    setValue(newValue);
+    if (onWalletChange) onWalletChange(typeof newValue === 'string' ? null : newValue);
+  }, [value, onWalletChange])
+
+  const onWalletsFetched = useCallback((wallets: (Wallet|string|null)[], input: string) => {
+    if (wallets.length === 1) {
+      const wallet = wallets[0]
+      if (wallet && typeof wallet !== 'string' && wallet.address === input) {
+        updateValue(wallet)
+        setIsOpen(false)
+        return
+      }
+    }
+    setIsOpen(true)
+  }, [updateValue])
 
   const fetch = useMemo(
     () => throttle(async (request, callback) => {
@@ -28,12 +50,14 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange,
       setLoading(false);
       if (wallets) {
         callback(wallets)
+        onWalletsFetched(wallets, request.input)
       } else {
         callback([request.input])
       }
     }, 200),
-    []
+    [onWalletsFetched]
   );
+
 
   useEffect(() => {
     let active = true;
@@ -68,6 +92,7 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange,
   return <Autocomplete 
     freeSolo
     selectOnFocus
+    open={isOpen}
     id="combo-box-demo"
     options={options}
     loading={loading}
@@ -80,11 +105,21 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange,
     value={value}
     onChange={(_, newValue) => {
       setOptions(newValue && options.indexOf(newValue) === -1 ? [newValue, ...options] : options);
-      setValue(newValue);
-      if (onWalletChange) onWalletChange(typeof newValue === 'string' ? null : newValue);
+      updateValue(newValue);
     }}
     onInputChange={(_, newInputValue) => {
       setInputValue(newInputValue);
+      if (value) {
+        if (typeof value === 'string') {
+          if (value !== newInputValue) {
+            updateValue(newInputValue);
+          }
+        } else {
+          if (value.address !== newInputValue) {
+            updateValue(newInputValue);
+          }
+        }
+      }
       if (onChange) onChange(newInputValue);
     }}
     onBlur={onBlur}
