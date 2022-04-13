@@ -24,8 +24,15 @@ export class EmissionsRequestRepo {
   }
 
   public selectPending = async (): Promise<Array<EmissionsRequest>> => {
+    return await this.selectByStatus('PENDING')
+  }
+
+  public selectCreated = async (): Promise<Array<EmissionsRequest>> => {
+    return await this.selectByStatus('CREATED')
+  }
+
+  public selectByStatus = async (status: string): Promise<Array<EmissionsRequest>> => {
     try {
-      const status = 'PENDING'
       return await this._db.getRepository(EmissionsRequest)
         .createQueryBuilder('emissions_request')
         .where("emissions_request.status = :status", {status})
