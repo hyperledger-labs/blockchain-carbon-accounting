@@ -41,6 +41,22 @@ export const getBalances = async (offset: number, limit: number, query: string[]
     }
 }
 
+export const postSignedMessage = async (message: string, signature: string) => {
+    try {
+        var params = {
+            message,
+            signature
+        };
+        const { data } = await axios.post('/signedMessage', params);
+        console.log('postSignedMessage response:', data);
+        if(data.status === 'success') return data;
+        else return [];
+    } catch(error) {
+        console.error(error)
+        throw new Error("cannot get postSignedMessage from api server");
+    }
+}
+
 export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string) => {
     try {
         var params = {
@@ -56,7 +72,7 @@ export const registerUserRole = async (address: string, name: string, organizati
         if(data.status === 'success') return data;
         else return [];
     } catch(error) {
-        throw new Error("cannot get balances from api server");
+        throw new Error("cannot get response from api server");
     }
 }
 

@@ -86,11 +86,15 @@ export const syncWallets = async (currentBlock: number) => {
     }
 }
 
+export const getRoles = async (address: string) => {
+  return await contract.methods.getRoles(address).call();
+}
+
 export const syncWalletRoles = async (address: string, data?: Partial<Wallet>) => {
     try {
         const db = await PostgresDBService.getInstance()
         console.log("getting roles for ", address);
-        const rolesInfo = await contract.methods.getRoles(address).call();
+        const rolesInfo = await getRoles(address);
         console.log("roles for ", address, rolesInfo);
         const roles = [];
         if (rolesInfo.isAdmin) roles.push('Admin');
@@ -107,6 +111,11 @@ export const syncWalletRoles = async (address: string, data?: Partial<Wallet>) =
         console.error(err)
         throw new Error('Error in getNumOfUniqueTokens: ' + err)
     }
+}
+
+
+export const checkSignedMessage = (message: string, signature: string) => {
+  return web3.eth.accounts.recover(message, signature)
 }
 
 
