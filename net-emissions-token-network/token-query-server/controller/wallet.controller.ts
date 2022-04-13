@@ -1,6 +1,7 @@
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { QueryBundle } from 'blockchain-accounting-data-postgres/src/repositories/common';
+import { ethers } from 'ethers';
 
 export async function getWallets(req: Request, res: Response) {
     try {
@@ -49,7 +50,12 @@ export async function insertNewWallet(req: Request, res: Response) {
     try {
         const db = await PostgresDBService.getInstance()
         // use mergeWallet to either create or just update based on non-empty values given
-        const wallet = await db.getWalletRepo().mergeWallet(req.body);
+        // make sure the address is in the proper checksum format
+        const address = ethers.utils.getAddress(req.body.address);
+        const wallet = await db.getWalletRepo().mergeWallet({
+            ...req.body,
+            address
+        });
         return res.status(200).json({
             status: 'success',
             wallet,

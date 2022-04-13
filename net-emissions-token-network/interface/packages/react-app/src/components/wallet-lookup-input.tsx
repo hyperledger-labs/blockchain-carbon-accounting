@@ -33,7 +33,7 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange,
   const onWalletsFetched = useCallback((wallets: (Wallet|string|null)[], input: string) => {
     if (wallets.length === 1) {
       const wallet = wallets[0]
-      if (wallet && typeof wallet !== 'string' && wallet.address === input) {
+      if (wallet && typeof wallet !== 'string' && wallet.address?.toLowerCase() === input.toLowerCase()) {
         updateValue(wallet)
         setIsOpen(false)
         return

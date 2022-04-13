@@ -74,7 +74,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   // Fetching roles of outside address
   const [lookupWallet, setLookupWallet] = useState<Wallet|null>(null);
-  const [theirAddress, setTheirAddress] = useState("");
   const [theirRoles, setTheirRoles] = useState<RolesInfo>({});
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
@@ -95,17 +94,18 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         }
       } else {
         if (provider) {
-          let result = await getRoles(provider, theirAddress);
-          if (!result.hasAnyRole) setLookupError(`Account ${theirAddress} not found.`);
-          setAddress(theirAddress);
+          let result = await getRoles(provider, address);
+          if (!result.hasAnyRole) setLookupError(`Account ${address} not found.`);
+          setAddress(address);
           setTheirRoles(result);
         }
       }
       setFetchingTheirRoles(false);
     }
-  }, [lookupWallet, provider, theirAddress, theirRoles])
+  }, [lookupWallet, provider, address, theirRoles])
 
 
+  // when the looked up wallet is set by the lookup
   const onWalletChange = useCallback((w:Wallet|null)=>{
     console.log('onWalletChange:',w)
     setLookupError('');
@@ -113,8 +113,11 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     setLookupWallet(w);
     setAddress(w ? w.address! : '');
   }, [])
+  const onLookupInputChange = useCallback((v: string) => {
+    console.log('onLookupInputChange:',v)
+    setAddress(v);
+  }, [])
 
-  const onAddressChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAddress(event.target.value); };
   const onNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setName(event.target.value); };
   const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (event) => { setOrganization(event.target.value); };
   const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKey(event.target.value); };
@@ -186,15 +189,11 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       }
       currentRoles.push(role);
       const newRoles = currentRoles.join(',');
-      await registerUserRole(address, name, organization, publicKey, publicKeyName, newRoles);
+      const newWallet = await registerUserRole(address, name, organization, publicKey, publicKeyName, newRoles);
       setModalShow(true);
-      if (lookupWallet && lookupWallet.address === address) {
-        // remove from the array as well
-        setLookupWallet({
-          ...lookupWallet,
-          roles: newRoles
-        })
-      }
+      setLookupWallet({
+        ...newWallet
+      })
     }
   }
 
@@ -291,6 +290,28 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     return result;
   }
 
+  const hasAssignRolePermissions = (roles.isAdmin || (!limitedMode && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole))))
+
+  const rolesThatCanBeAssigned = []
+
+  if (hasAssignRolePermissions) {
+    // only show roles not already assigned
+    const roleArr = (lookupWallet && lookupWallet.roles) ? lookupWallet.roles.split(',') : []
+    if (!roleArr.includes(RoleEnum.Consumer)) rolesThatCanBeAssigned.push({value: RoleEnum.Consumer, label: 'Consumer'})
+    if (!roleArr.includes(RoleEnum.Industry)) rolesThatCanBeAssigned.push({value: RoleEnum.Industry, label: 'Industry Member'})
+    if (roles.isAdmin) {
+      if (!roleArr.includes(RoleEnum.RecDealer)) rolesThatCanBeAssigned.push({value: RoleEnum.RecDealer, label: 'Renewable Energy Certificate (REC) Dealer'})
+      if (!roleArr.includes(RoleEnum.OffsetDealer)) rolesThatCanBeAssigned.push({value: RoleEnum.OffsetDealer, label: 'Offset Dealer'})
+      if (!roleArr.includes(RoleEnum.EmissionsAuditor)) rolesThatCanBeAssigned.push({value: RoleEnum.EmissionsAuditor, label: 'Emissions Auditor'})
+      if (!roleArr.includes(RoleEnum.IndustryDealer)) rolesThatCanBeAssigned.push({value: RoleEnum.IndustryDealer, label: 'Registered Industry Dealer (CarbonTracker)'})
+    }
+    if (!rolesThatCanBeAssigned.find((r)=>r.value===role)) {
+      if (rolesThatCanBeAssigned.length > 0) {
+        setRole(rolesThatCanBeAssigned[0].value)
+      }
+    }
+  }
+
   return (
     <>
 
@@ -318,13 +339,10 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-      <h4>Look-up Roles</h4>
+      <h4>Look-up User Wallet or New Address</h4>
       <InputGroup className="mb-3">
         <WalletLookupInput 
-          onChange={(v: string) => {
-            console.log('onChange:',v)
-            setTheirAddress(v);
-          }} 
+          onChange={onLookupInputChange} 
           onWalletChange={onWalletChange} />
         <InputGroup.Append>
           <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
@@ -356,10 +374,40 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         <RolesList roles={theirRoles}/>
       }
 
-      {/* Only display registration/unregistration tokens if owner or dealer */}
-      {roles?.isAdmin &&
+      {/* For existing wallet, display roles to add if owner has permissions for the roles. */}
+      {lookupWallet && hasAssignRolePermissions && <>
+          <h4>Add Role</h4>
+          <Form ref={formRef} noValidate validated={registerFormValidated}>
+            <Form.Group>
+              {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 ? 
+                <Form.Control as="select" onChange={onRoleChange} isInvalid={!!error_role}>
+                  {rolesThatCanBeAssigned.map((r,i) =>
+                    <option key={i} value={r.value}>{r.label}</option>
+                  )}
+                </Form.Control> 
+                :
+              <p>You cannot assign any more role to this user.</p>
+              }
+              <Form.Control.Feedback type="invalid">
+                {error_role}
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group>
+              <Button variant="success" size="lg" block onClick={handleRegister}>
+                Add Role
+              </Button>
+            </Form.Group>
+            {/* <Form.Group> */}
+            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*     Update User Info */}
+            {/*   </Button> */}
+            {/* </Form.Group> */}
+          </Form>
+        </>}
+      {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
+      {!lookupWallet && hasAssignRolePermissions &&
         <>
-          <h4>Register/unregister dealers and consumers</h4>
+          <h4>Register new user wallet</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
             <Form.Group>
               <Form.Label>Name</Form.Label>
@@ -368,10 +416,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             <Form.Group>
               <Form.Label>Organization</Form.Label>
               <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Address</Form.Label>
-              <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
             </Form.Group>
             <Form.Group>
               <Form.Label>Public Key Name</Form.Label>
@@ -383,13 +427,20 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             </Form.Group>
             <Form.Group>
               <Form.Label>Role</Form.Label>
-              <Form.Control as="select" onChange={onRoleChange} isInvalid={!!error_role}>
-                <option value={RoleEnum.Consumer}>Consumer</option>
-                <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
-                <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
-                <option value={RoleEnum.EmissionsAuditor}>Emissions Auditor</option>
-                <option value={RoleEnum.IndustryDealer}>Registered Industry Dealer (CarbonTracker)</option>
-              </Form.Control>
+              {(roles?.isAdmin) ? 
+                <Form.Control as="select" value={role} onChange={onRoleChange} isInvalid={!!error_role}>
+                  <option value={RoleEnum.Consumer}>Consumer</option>
+                  <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
+                  <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
+                  <option value={RoleEnum.EmissionsAuditor}>Emissions Auditor</option>
+                  <option value={RoleEnum.IndustryDealer}>Registered Industry Dealer (CarbonTracker)</option>
+                </Form.Control> 
+                :
+                <Form.Control as="select" value={role} onChange={onRoleChange} isInvalid={!!error_role}>
+                  <option value={RoleEnum.Consumer}>Consumer</option>
+                  <option value={RoleEnum.Industry}>Industry Member</option>
+                </Form.Control>
+              }
               <Form.Control.Feedback type="invalid">
                 {error_role}
               </Form.Control.Feedback>
@@ -407,57 +458,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           </Form>
         </>
       }
-
-    {( (!limitedMode) && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole))) &&
-     <>
-          <h4>Register/unregister consumer or industry member</h4>
-          <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group>
-              <Form.Label>Name</Form.Label>
-              <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Organization</Form.Label>
-              <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Address</Form.Label>
-              <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} required />
-              <Form.Control.Feedback type="invalid">
-                Please enter a valid wallet address.
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Public Key Name</Form.Label>
-              <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} />
-            <Form.Group>
-            </Form.Group>
-              <Form.Label>Public Key</Form.Label>
-              <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Role</Form.Label>
-              <Form.Control as="select" onChange={onRoleChange} isInvalid={!!error_role}>
-                <option value={RoleEnum.Consumer}>Consumer</option>
-                <option value={RoleEnum.Industry}>Industry Member</option>
-              </Form.Control>
-              <Form.Control.Feedback type="invalid">
-                {error_role}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group>
-              <Button variant="success" size="lg" block onClick={handleRegister}>
-                Register
-              </Button>
-            </Form.Group>
-            {/* <Form.Group> */}
-            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
-            {/*     Update User Info */}
-            {/*   </Button> */}
-            {/* </Form.Group> */}
-          </Form>
-        </>
-    }
 
     {(!roles.isAdmin && roles.isIndustry) &&
      <>

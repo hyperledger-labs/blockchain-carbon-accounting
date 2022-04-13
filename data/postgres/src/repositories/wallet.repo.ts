@@ -34,7 +34,9 @@ export class WalletRepo {
 
   public mergeWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
     const repo = this._db.getRepository(Wallet)
-    const wallet = await repo.findOneBy({address: payload.address})
+    // lookup case-insensitive, case is used as a checksums only
+    const wallet = await this.findWalletByAddress(payload.address)
+    console.log('mergeWallet found', wallet)
     if (!wallet) {
       return await repo.save({
         ...payload,
@@ -44,6 +46,8 @@ export class WalletRepo {
       const toMerge = Object.fromEntries(
         Object.entries(payload).filter(([,v]) => !!v)
       )
+      // never update the address
+      toMerge.address = wallet.address
       return await repo.save({
         ...wallet,
         ...toMerge
@@ -53,6 +57,7 @@ export class WalletRepo {
 
   public insertWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
     const repo = this._db.getRepository(Wallet)
+    console.log('insertWallet ', payload)
     return await repo.save({
       ...payload,
     })
@@ -66,6 +71,13 @@ export class WalletRepo {
     } catch (error) {
       throw new Error("Cannot get wallets count.")       
     }
+  }
+
+  private findWalletByAddress = async (address: string) => {
+    return await this._db.getRepository(Wallet)
+      .createQueryBuilder(ALIAS) 
+      .where(`LOWER(${ALIAS}.address) LIKE LOWER(:address)`, {address})
+      .getOne()
   }
 
   private makeLookupQuery = (query: string) => {
@@ -94,17 +106,7 @@ export class WalletRepo {
   }
 
   public ensureWalletWithRoles = async(address: string, roles: string[], data?: Partial<Wallet>) => {
-    const repo = this._db.getRepository(Wallet);
-    let wallet = await repo.findOneBy({address});
-    console.log('got wallet for address',address,wallet)
-    if (!wallet) {
-      wallet = repo.create({address});
-    }
-    wallet.roles = roles.join(',');
-    if (data) {
-      wallet = Object.assign(wallet, data);
-    }
-    return await repo.save(wallet);
+    return await this.mergeWallet({...data, address, roles: roles.join(',') });
   }
 
   public truncateWallets = async () => {

@@ -57,7 +57,7 @@ export const postSignedMessage = async (message: string, signature: string) => {
     }
 }
 
-export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string) => {
+export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {
     try {
         var params = {
             address,
@@ -69,8 +69,8 @@ export const registerUserRole = async (address: string, name: string, organizati
         };
         const { data } = await axios.post('/wallets', params);
         console.log('registerUserRole response:', data);
-        if(data.status === 'success') return data;
-        else return [];
+        if(data.status === 'success') return data.wallet;
+        else return null;
     } catch(error) {
         throw new Error("cannot get response from api server");
     }
@@ -85,7 +85,7 @@ export const unregisterUserRole = async (address: string, roles: string) => {
         const { data } = await axios.post('/wallets', params);
         console.log('unregisterUserRole response:', data);
         if(data.status === 'success') return data;
-        else return [];
+        else return {};
     } catch(error) {
         throw new Error("cannot get response from api server");
     }
