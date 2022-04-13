@@ -79,5 +79,11 @@ export const FIELDS = {
     "type": STRING_FIELD,
     "retired": NUMERIC_FIELD,
     "available": NUMERIC_FIELD,
-    "transferred": NUMERIC_FIELD
+    "transferred": NUMERIC_FIELD,
+    "address": STRING_FIELD,
+    "name": STRING_FIELD,
+    "organization": STRING_FIELD,
+    "public_key": STRING_FIELD,
+    "public_key_name": STRING_FIELD,
+    "roles": STRING_FIELD
 };
