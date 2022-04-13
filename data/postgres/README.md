@@ -10,6 +10,8 @@ Install the dependencies in the parent folder (`data`):
 npm install
 ```
 
+Copy the `.env.SAMPLE` into `.env` if you need any custom DB connection configuration.
+
 Download the emissions factors in flat file for automatic processing format from the [UK Government Greenhouse Gas Reporting: Conversion factors 2021](https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021)
 
 Load the data with the `dataLoader` script:

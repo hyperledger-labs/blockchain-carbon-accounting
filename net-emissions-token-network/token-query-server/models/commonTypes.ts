@@ -13,39 +13,6 @@ export interface CreatedToken {
     totalRetired: number;
 }
 
-export interface TokenPayload {
-    tokenId: number;
-    tokenTypeId: number;
-    issuee: string;
-    issuer: string;
-    fromDate: number;
-    thruDate: number;
-    dateCreated: number;
-    metadata: Object;
-    manifest: string;
-    description: string;
-    totalIssued: number;
-    totalRetired: number;
-    scope: number;
-    type: string;
-}
-
-export interface BalancePayload {
-    issuee: string;
-    tokenId: number;
-    available: number;
-    retired: number;
-    transferred: number;
-}
-
-export type QueryBundle = {
-    field: string,
-    fieldType: string,
-    value: number | string,
-    op: string,
-}
-
-
 export type FIELD = {
     fieldType: string;
     op: Array<string>;
@@ -73,27 +40,6 @@ export const OP_MAP: IOP_MAP = {
     'like': 'like',
     'ls': '<',
     'gt': '>',
-}
-
-export interface StringPayload {
-    [key: string] : string | number
-}
-
-export type QueryPayload = {
-    tokenId? : number,
-    tokenTypeId? : number,
-    issuer? : string,
-    issuee? : string,
-    fromDate? : number,
-    thruDate? : number,
-    dateCreated? : number,
-    metadata? : string,
-    manifest? : string,
-    desc? : string,
-    totalIssued? : number,
-    totalRetired? : number,
-    scope? : number,
-    type? : string
 }
 
 export type IFIELDS = {
@@ -133,5 +79,11 @@ export const FIELDS = {
     "type": STRING_FIELD,
     "retired": NUMERIC_FIELD,
     "available": NUMERIC_FIELD,
-    "transferred": NUMERIC_FIELD
+    "transferred": NUMERIC_FIELD,
+    "address": STRING_FIELD,
+    "name": STRING_FIELD,
+    "organization": STRING_FIELD,
+    "public_key": STRING_FIELD,
+    "public_key_name": STRING_FIELD,
+    "roles": STRING_FIELD
 };

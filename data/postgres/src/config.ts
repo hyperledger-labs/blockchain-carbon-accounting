@@ -1,18 +1,15 @@
-import { Dialect } from 'sequelize'
 const dbName = process.env.DB_NAME as string || 'blockchain-carbon-accounting'
-const dbDialect = 'postgres'
 
 export type DbOpts = {
   dbName: string, 
   dbUser: string, 
   dbPassword: string,
   dbHost: string,
-  dbDialect: Dialect,
+  dbPort: number,
   dbVerbose: boolean,
-  dbClear: boolean
 };
 
-export const addCommonYargsOptions = (yargs) => {
+export const addCommonYargsOptions = (yargs: any) => {
   return yargs
     .option('dbname', {
       type: 'string',
@@ -31,25 +28,24 @@ export const addCommonYargsOptions = (yargs) => {
       type: 'string',
       description: 'The postgres host to use.',
     })
+    .option('dbport', {
+      type: 'number',
+      description: 'The postgres port to use.',
+    })
     .option('dbverbose', {
       type: 'boolean',
       description: 'Set this flag to show the DB debug output.',
     })
-    .option('dbclear', {
-      type: 'boolean',
-      description: 'Set this flag to recreate the tables of the DB, you will lose all previous data.',
-    })
 }
 
-export const parseCommonYargsOptions = (argv): DbOpts => {
+export const parseCommonYargsOptions = (argv: any): DbOpts => {
   const opts = {
     dbName: argv['dbname'] || process.env.DB_NAME as string || 'blockchain-carbon-accounting',
     dbUser: argv['dbuser'] || process.env.DB_USER as string,
     dbPassword: argv['dbpassword'] || process.env.DB_PASSWORD as string,
     dbHost: argv['dbhost'] || process.env.DB_HOST as string,
-    dbDialect: dbDialect as Dialect,
-    dbVerbose: argv['dbverbose'],
-    dbClear: argv['dbclear']
+    dbPort: argv['dbport'] || parseInt(process.env.DB_PORT as string || '5432'),
+    dbVerbose: argv['dbverbose'] || (process.env.DB_VERBOSE === 'Y'),
   }
   return opts
 }

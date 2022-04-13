@@ -25,19 +25,23 @@ const progressBar = new SingleBar(
   }
 
   addCommonYargsOptions(yargs(hideBin(process.argv)))
+  .parserConfiguration({
+    "dot-notation": false, // Note: this is required or yargs gets confused in ts-node with file names having a dot
+  })
   .command(
     "init",
     "DB init and table sync",
-    async (argv) => {
-      const db = await init(parseCommonYargsOptions(argv))
+    async (argv: any) => {
       console.log("=== Init ...")
+      const db = await init(parseCommonYargsOptions(argv))
       await db.close()
+      console.log("=== Done")
     }
   )
   .command(
     "load_emissions_factors <file> [sheet]",
     "load data from XLSX file",
-    (yargs) => {
+    (yargs: any) => {
       yargs
         .positional("file", {
           describe: "XLSX file to load from",
@@ -47,11 +51,11 @@ const progressBar = new SingleBar(
           default: "Sheet1",
         });
     },
-    async (argv) => {
+    async (argv: any) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting load_emissions_factors ...")
-      await loadEmissionsFactors(argv, progressBar, db)
-      const count = await db.countAllFactors()
+      await loadEmissionsFactors(argv, progressBar, db.getEmissionsFactorRepo())
+      const count = await db.getEmissionsFactorRepo().countAllFactors()
       console.log(`=== Done, we now have ${count} EmissionFactors in the DB`)
       await db.close()
     }
@@ -59,7 +63,7 @@ const progressBar = new SingleBar(
   .command(
     "load_utility_identifiers <file> [sheet]",
     "load data from XLSX file",
-    (yargs) => {
+    (yargs: any) => {
       yargs
         .positional("file", {
           describe: "XLSX file to load from",
@@ -69,11 +73,11 @@ const progressBar = new SingleBar(
           describe: "name of the worksheet to load from",
         })
     },
-    async (argv) => {
+    async (argv: any) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting import_utility_identifiers ...")
-      await importUtilityIdentifiers(argv, progressBar, db)
-      const count = await db.countAllUtilityLookupItems()
+      await importUtilityIdentifiers(argv, progressBar, db.getUtilityLookupItemRepo())
+      const count = await db.getUtilityLookupItemRepo().countAllUtilityLookupItems()
       console.log(`=== Done, we now have ${count} UtilityLookupItems in the DB`)
       await db.close()
     }

@@ -21,7 +21,7 @@
     "hardhat-deploy": "^0.11.4",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
     "hardhat-gas-reporter": "1.0.8",
-    "prettier": "^2.6.1",
+    "prettier": "^2.6.2",
     "prettier-plugin-solidity": "1.0.0-beta.19",
     "solidity-coverage": "0.7.20"
   },

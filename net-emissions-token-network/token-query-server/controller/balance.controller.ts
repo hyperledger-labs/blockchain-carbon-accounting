@@ -1,17 +1,17 @@
 import { Response, Request } from 'express';
-import { QueryBundle, BalancePayload } from "../models/commonTypes";
-import { insert, selectPaginated, count } from '../repositories/balance.repo';
-import { InsertResult } from 'typeorm';
+import { BalancePayload, QueryBundle } from 'blockchain-accounting-data-postgres/src/repositories/common'
+import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 
 export async function getBalances(req: Request, res: Response) {
     try {
-        let queryBundles: Array<QueryBundle> = req.body.queryBundles;
+        const db = await PostgresDBService.getInstance()
+        const queryBundles: Array<QueryBundle> = req.body.queryBundles;
         const offset = req.body.offset;
         const limit = req.body.limit;
 
         if(offset != undefined && limit != undefined && limit != 0) {
-            const balances = await selectPaginated(offset, limit, queryBundles);
-            const totalCount = await count(queryBundles);
+            const balances = await db.getBalanceRepo().selectPaginated(offset, limit, queryBundles);
+            const totalCount = await db.getBalanceRepo().count(queryBundles);
             return res.status(200).json({
                 status: 'success',
                 balances,
@@ -23,6 +23,7 @@ export async function getBalances(req: Request, res: Response) {
             error: 'Bad query request'
         });
     } catch (error) {
+        console.error(error)
         return res.status(500).json({
             status: 'failed',
             error
@@ -30,19 +31,22 @@ export async function getBalances(req: Request, res: Response) {
     }
 }
 
-export async function insertNewBalance(balance: BalancePayload): Promise<InsertResult> {
-    return insert(balance);
+export async function insertNewBalance(balance: BalancePayload): Promise<void> {
+    const db = await PostgresDBService.getInstance()
+    return db.getBalanceRepo().insert(balance);
 }
 
 export async function getNumOfBalances(req: Request, res: Response) {
     try {
-        let queryBundles: Array<QueryBundle> = req.body.queryBundles;
-        const numOfBalances = await count(queryBundles);
+        const db = await PostgresDBService.getInstance()
+        const queryBundles: Array<QueryBundle> = req.body.queryBundles;
+        const numOfBalances = await db.getBalanceRepo().count(queryBundles);
         return res.status(200).json({
             status: 'success',
             count: numOfBalances
         });
     } catch (error) {
+        console.error(error)
         return res.status(500).json({
             status: 'failed',
             error

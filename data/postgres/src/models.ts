@@ -1,123 +1,31 @@
-import { Sequelize, Model, DataTypes } from 'sequelize'
-import { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor'
-import { UtilityLookupItemInterface } from 'emissions_data_chaincode/src/lib/utilityLookupItem'
+import "reflect-metadata"
 import { DbOpts } from './config'
+import { DataSource } from "typeorm"
+import { EmissionsFactor } from "./models/emissionsFactor"
+import { UtilityLookupItem } from "./models/utilityLookupItem"
+import { Wallet } from "./models/wallet"
+import { Token } from "./models/token"
+import { Balance } from "./models/balance"
+import { EmissionsRequest } from "./models/emissionsRequest"
 
-export class EmissionsFactorModel extends Model implements EmissionsFactorInterface {
-  uuid: string
-  class: string
-  key?: string
-  type: string
-  scope: string
-  level_1: string
-  level_2: string
-  level_3: string
-  level_4?: string
-  text?: string
-  year?: string
-  country?: string
-  division_type?: string
-  division_id?: string
-  division_name?: string
-  activity_uom?: string
-  net_generation?: string
-  net_generation_uom?: string
-  co2_equivalent_emissions?: string
-  co2_equivalent_emissions_uom?: string
-  source?: string
-  non_renewables?: string
-  renewables?: string
-  percent_of_renewables?: string
-}
 
-export class UtilityLookupItemModel extends Model implements UtilityLookupItemInterface {
-  uuid: string;
-  class: string;
-  key?: string;
-  year?: string;
-  utility_number?: string;
-  utility_name?: string;
-  country?: string;
-  state_province?: string;
-  division_type?: string;
-  division_id?: string; 
-}
+export const initDb = async (opts: DbOpts) => {
 
-export class WalletModel extends Model {
-  address: string;
-  name: string;
-  organization: string;
-  publickey: string;
-  publickey_name: string;
-  roles: string;
-}
+  const AppDataSource = new DataSource({
+    type: "postgres",
+    host: opts.dbHost,
+    port: opts.dbPort,
+    username: opts.dbUser,
+    password: opts.dbPassword,
+    database: opts.dbName,
+    entities: [EmissionsFactor, UtilityLookupItem, Wallet, Balance, Token, EmissionsRequest],
+    synchronize: true,
+    logging: opts.dbVerbose,
+  })
 
-export const initModels = async (connection: Sequelize, opts?: DbOpts) => {
-
-  EmissionsFactorModel.init({
-    uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false, primaryKey: true, }, 
-    class: { type: DataTypes.STRING, allowNull: false },
-    key: { type: DataTypes.STRING }, 
-    type: { type: DataTypes.STRING, allowNull: false }, 
-    scope: { type: DataTypes.STRING, allowNull: false }, 
-    level_1: { type: DataTypes.STRING, allowNull: false }, 
-    level_2: { type: DataTypes.STRING, allowNull: false }, 
-    level_3: { type: DataTypes.STRING, allowNull: false }, 
-    level_4: { type: DataTypes.STRING }, 
-    text: { type: DataTypes.STRING }, 
-    year: { type: DataTypes.STRING }, 
-    country: { type: DataTypes.STRING }, 
-    division_type: { type: DataTypes.STRING }, 
-    division_id: { type: DataTypes.STRING }, 
-    division_name: { type: DataTypes.STRING }, 
-    activity_uom: { type: DataTypes.STRING }, 
-    net_generation: { type: DataTypes.STRING }, 
-    net_generation_uom: { type: DataTypes.STRING }, 
-    co2_equivalent_emissions: { type: DataTypes.STRING }, 
-    co2_equivalent_emissions_uom: { type: DataTypes.STRING }, 
-    source: { type: DataTypes.STRING }, 
-    non_renewables: { type: DataTypes.STRING }, 
-    renewables: { type: DataTypes.STRING }, 
-    percent_of_renewables: { type: DataTypes.STRING }, 
-  }, {
-      sequelize: connection,
-      timestamps: false,
-    })
-
-  UtilityLookupItemModel.init({
-    uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false, primaryKey: true, }, 
-    class: { type: DataTypes.STRING, allowNull: false },
-    key: { type: DataTypes.STRING }, 
-    year: { type: DataTypes.STRING }, 
-    utility_number: { type: DataTypes.STRING }, 
-    utility_name: { type: DataTypes.STRING }, 
-    country: { type: DataTypes.STRING }, 
-    state_province: { type: DataTypes.STRING }, 
-    division_type: { type: DataTypes.STRING }, 
-    division_id: { type: DataTypes.STRING }, 
-  }, {
-      sequelize: connection,
-      timestamps: false,
-    })
-
-  WalletModel.init({
-    address: { type: DataTypes.STRING, allowNull: false, primaryKey: true },
-    name: { type: DataTypes.STRING },
-    organization: { type: DataTypes.STRING },
-    publickey: { type: DataTypes.STRING },
-    publickey_name: { type: DataTypes.STRING },
-    roles: { type: DataTypes.STRING },
-  }, {
-      sequelize: connection,
-      timestamps: false
-    })
-
-  // sync will create the tables as needed
-  if (opts?.dbClear) {
-    console.log('Clearing DB and recreating tables...')
-  }
-  await EmissionsFactorModel.sync({alter: true, force: opts?.dbClear})
-  await UtilityLookupItemModel.sync({alter: true, force: opts?.dbClear})
-  await WalletModel.sync({alter: true, force: opts?.dbClear})
+  // to initialize initial connection with the database, register all entities
+  // and "synchronize" database schema, call "initialize()" method of a newly created database
+  // once in your application bootstrap
+  return await AppDataSource.initialize()
 }
 
