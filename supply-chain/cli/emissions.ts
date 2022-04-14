@@ -103,8 +103,8 @@ type OutputActivity = {
   error?: string
 };
 
-async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
-  const token_res = await issue_tokens(g, activity_type, publicKeys, mode);
+async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], input_data: string, mode = null) {
+  const token_res = await issue_tokens(g, activity_type, publicKeys, queue, input_data, mode);
   // add each activity to output array
   for (const a of g.content) {
     const out: OutputActivity = { id: a.activity.id };
@@ -152,41 +152,38 @@ if (fetchObjectPath) {
     throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
   }
 
-  if (queue) {
-    create_emissions_request(data, publicKeys[0], null);
-  } else {
-    process_activities(data.activities).then(async (activities)=>{
-      // group the resulting emissions per activity type, and for shipment type group by mode:
-      const grouped_by_type = group_processed_activities(activities);
-      if (pretend) {
-        return grouped_by_type;
-      }
-      // now we can emit the tokens for each group and prepare the relevant data for final output
-      const output_array: OutputActivity[] = [];
-      for (const t in grouped_by_type) {
-        if (t === 'shipment') {
-          const group = grouped_by_type[t] as GroupedResults;
-          for (const mode in group) {
-            const doc = group[mode] as GroupedResult;
-            await process_group(output_array, doc, t, publicKeys, mode);
-          }
-        } else {
-          const doc = grouped_by_type[t] as GroupedResult;
-          await process_group(output_array, doc, t, publicKeys);
+  process_activities(data.activities).then(async (activities)=>{
+    // group the resulting emissions per activity type, and for shipment type group by mode:
+    const grouped_by_type = group_processed_activities(activities);
+    if (pretend) {
+      return grouped_by_type;
+    }
+    // now we can emit the tokens for each group and prepare the relevant data for final output
+    const output_array: OutputActivity[] = [];
+    for (const t in grouped_by_type) {
+      if (t === 'shipment') {
+        const group = grouped_by_type[t] as GroupedResults;
+        for (const mode in group) {
+          const doc = group[mode] as GroupedResult;
+          await process_group(output_array, doc, t, publicKeys, data, mode);
         }
+      } else {
+        const doc = grouped_by_type[t] as GroupedResult;
+        await process_group(output_array, doc, t, publicKeys, data);
       }
-      // add back any errors we filtered before to the output
-      grouped_by_type.errors = activities.filter(a=>a.error);
-      if (verbose) return grouped_by_type;
-      // short form output: return an Array of objects with {id, tokenId, error }
-      for (const a of activities.filter(a=>a.error)) {
-        output_array.push({id: a.activity.id, error: a.error});
-      }
-      return output_array;
-    }).then((output)=>{
-      console.log(JSON.stringify(output, null, 4));
-        process.exit(0)
-    });
-  }
+    }
+    // add back any errors we filtered before to the output
+    grouped_by_type.errors = activities.filter(a=>a.error);
+    if (verbose) return grouped_by_type;
+    // short form output: return an Array of objects with {id, tokenId, error }
+    for (const a of activities.filter(a=>a.error)) {
+      output_array.push({id: a.activity.id, error: a.error});
+    }
+    return output_array;
+  }).then((output)=>{
+    console.log(JSON.stringify(output, null, 4));
+      process.exit(0)
+  });
+
 }
 

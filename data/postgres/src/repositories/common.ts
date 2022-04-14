@@ -43,6 +43,12 @@ export interface EmissionsRequestPayload {
   public_key_name: string;
   issuee: string;
   status: string;
+  token_from_date: Date;
+  token_thru_date: Date;
+  token_total_emissions: number;
+  token_metadata: string;
+  token_manifest: string;
+  token_description: string;
 }
 
 

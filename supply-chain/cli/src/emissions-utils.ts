@@ -189,11 +189,9 @@ export async function issue_emissions_tokens_with_issuee(
     address: process.env.ETH_ISSUER_ACCT,
     private: process.env.ETH_ISSUER_PRIVATE_KEY,
   };
-  const manifest = {
-    "Public Key": publicKey,
-    "Location": `ipfs://${ipfs_path}`,
-    "SHA256": hash
-  };
+
+  const manifest = create_manifest(publicKey, ipfs_path, hash);
+
   const input: IEthNetEmissionsTokenIssueInput = {
     addressToIssue: issuee,
     quantity: tokens.toNumber(),
@@ -348,6 +346,8 @@ export async function issue_tokens(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
+  queue: boolean,
+  input_data: string,
   mode = null
 ) {
   const content = JSON.stringify(doc);
@@ -368,18 +368,33 @@ export async function issue_tokens(
     metadata['Mode'] = mode;
   }
 
-  const token_res = await issue_emissions_tokens(
-    activity_type,
-    doc.from_date,
-    doc.thru_date,
-    total_emissions,
-    JSON.stringify(metadata),
-    `${h.value}`,
-    ipfs_res.path,
-    publicKeys[0]
-  );
-  doc.token = token_res;
-  return token_res;
+  if (queue) {
+    await create_emissions_request(
+      activity_type,
+      doc.from_date,
+      doc.thru_date,
+      total_emissions,
+      JSON.stringify(metadata),
+      `${h.value}`,
+      ipfs_res.path,
+      input_data,
+      publicKeys[0],
+      null);
+    return {"tokenId": "queued"};
+  } else {
+    const token_res = await issue_emissions_tokens(
+      activity_type,
+      doc.from_date,
+      doc.thru_date,
+      total_emissions,
+      JSON.stringify(metadata),
+      `${h.value}`,
+      ipfs_res.path,
+      publicKeys[0]
+    );
+    doc.token = token_res;
+    return token_res;
+  }
 }
 
 export async function issue_tokens_with_issuee(
@@ -423,24 +438,51 @@ export async function issue_tokens_with_issuee(
 }
 
 export async function create_emissions_request(
+  activity_type: string,
+  from_date: Date,
+  thru_date: Date,
+  total_emissions: number,
+  metadata: string,
+  hash: string,
+  ipfs_path: string,
   input_data: string,
   publickey_name: string,
   issuee: string
 ) {
   issuee = issuee || process.env.ETH_ISSUEE_ACCT;
-  const status = 'PENDING';
+  const status = 'CREATED';
   const publickey = readFileSync(publickey_name, 'utf8');
 
   console.log('Create Emissions Request ...');
+
+  const f_date = from_date || new Date();
+  const t_date = thru_date || new Date();
+  const tokens = new BigNumber(Math.round(total_emissions));
+
+  const manifest = create_manifest(publickey_name, ipfs_path, hash);
 
   const payload: EmissionsRequestPayload = {
     input_data: input_data,
     public_key: publickey,
     public_key_name: publickey_name,
     issuee: issuee,
-    status: status
+    status: status,
+    token_from_date: f_date,
+    token_thru_date: t_date,
+    token_total_emissions: tokens.toNumber(),
+    token_metadata: metadata,
+    token_manifest: JSON.stringify(manifest),
+    token_description: `Emissions from ${activity_type}`
   }
 
   const db = await getDBInstance();
   await db.getEmissionsRequestRepo().insert(payload);
+}
+
+function create_manifest(publickey_name: string, ipfs_path: string, hash: string) {
+  return {
+    "Public Key": publickey_name,
+    "Location": `ipfs://${ipfs_path}`,
+    "SHA256": hash
+  };
 }
