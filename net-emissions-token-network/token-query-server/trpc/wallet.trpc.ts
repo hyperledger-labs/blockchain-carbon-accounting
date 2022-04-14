@@ -11,6 +11,11 @@ export const zQueryBundles = z.array(z.object({
 }))
 
 
+const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
+    message: "Address must be a valid Ethereum address",
+})
+
+
 function handleError(method: string, error: unknown) {
     console.error(`Error in ${method} method`, error)
     throw new trpc.TRPCError({
@@ -77,8 +82,8 @@ export const walletRouter = trpc
 })
 .mutation('register', {
     input: z.object({
-        address: z.string(),
-        name: z.string().min(5),
+        address: validAddress,
+        name: z.string().optional(),
         organization: z.string().optional(),
         public_key: z.string().optional(),
         public_key_name: z.string().optional(),
@@ -102,7 +107,7 @@ export const walletRouter = trpc
 })
 .mutation('registerRoles', {
     input: z.object({
-        address: z.string(),
+        address: validAddress,
         roles: z.array(z.string()),
     }),
     async resolve({ input, ctx }) {
@@ -121,7 +126,7 @@ export const walletRouter = trpc
 })
 .mutation('unregisterRoles', {
     input: z.object({
-        address: z.string(),
+        address: validAddress,
         roles: z.array(z.string()),
     }),
     async resolve({ input, ctx }) {

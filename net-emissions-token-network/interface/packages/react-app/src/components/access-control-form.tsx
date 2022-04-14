@@ -17,6 +17,7 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
 import { Alert } from "react-bootstrap";
 import { trpcClient } from "../services/trpc";
+import { TRPCClientError } from "@trpc/client";
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
   if (!roles) return null;
@@ -79,6 +80,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [theirRoles, setTheirRoles] = useState<RolesInfo>({});
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
+  const [zodErrors, setZodErrors] = useState<any>(null);
 
   // called on the Lookup button click
   const lookupWalletRoles = useCallback(async () => {
@@ -113,28 +115,38 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     }
   }, [lookupWallet, provider, address, theirRoles])
 
+  const clearAllFormMessages = useCallback(()=>{
+    setZodErrors(null)
+    setLookupError('')
+    setLookupMessage('')
+    setRoleError('')
+  }, [])
+
+
+  const clearFormFields = useCallback(() => {
+    setName('')
+    setOrganization('')
+    setPublicKey('')
+    setPublicKeyName('')
+    clearAllFormMessages()
+  }, [clearAllFormMessages])
 
   // when the looked up wallet is set by the lookup
   const onWalletChange = useCallback((w:Wallet|null)=>{
     console.log('onWalletChange:',w)
-    setLookupError('');
+    clearAllFormMessages()
     setTheirRoles({});
     setLookupWallet(w);
     setAddress(w ? w.address! : '');
-    setRoleError('')
-    setLookupError('')
-    setLookupMessage('')
-  }, [])
+  }, [clearAllFormMessages])
   const onLookupInputChange = useCallback((v: string) => {
     console.log('onLookupInputChange:',v)
     setAddress(v);
     if (!v) {
       setLookupWallet(null);
-      setRoleError('')
-      setLookupError('')
-      setLookupMessage('')
+      clearAllFormMessages()
     }
-  }, [])
+  }, [clearAllFormMessages])
 
   const onNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setName(event.target.value); };
   const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (event) => { setOrganization(event.target.value); };
@@ -231,6 +243,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   async function handleRegister() {
     if (!provider) return;
+    clearAllFormMessages()
     // validate
     if (formRef.current && formRef.current.checkValidity() === false) {
       setRegisterFormValidated(true);
@@ -245,7 +258,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       setRoleError('That address already has this role.');
       return;
     } else {
-      setRoleError('');
       console.log('Current roles not include role', currentRoles, role);
 
       const error = await registerRoleInContract(provider, address, role)
@@ -258,15 +270,22 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       try {
         const register = await trpcClient.mutation('wallet.register', {address, name, organization, public_key: publicKey, public_key_name: publicKeyName, roles: currentRoles})
         setLookupWallet(register?.wallet || null)
-        setLookupError('')
         // reset the form values
-        setName('')
-        setOrganization('')
-        setPublicKey('')
-        setPublicKeyName('')
+        clearFormFields()
       } catch (error) {
         console.error('trpc error;', error)
-        setLookupError('An error occurred while registering the wallet.')
+        let errorSet = false
+        if (error instanceof TRPCClientError && error?.data?.zodError) {
+          const zodError = error.data.zodError
+          setZodErrors(zodError);
+          // handle address errors into lookupError
+          if (zodError.fieldErrors?.address?.length > 0) {
+            const addressError = zodError.fieldErrors?.address?.join("\n")
+            setLookupError(addressError)
+            errorSet = true
+          }
+        }
+        if (!errorSet) setLookupError('An error occurred while registering the wallet.')
       }
       if (role !== RoleEnum.None) setModalShow(true);
     }
@@ -464,9 +483,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
                 :
               <p>You cannot assign any more role to this user.</p>
               }
-              <Form.Control.Feedback type="invalid">
-                {roleError}
-              </Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{roleError}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
               <Button variant="success" size="lg" block onClick={handleSingleRegister}>
@@ -487,19 +504,23 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           <Form ref={formRef} noValidate validated={registerFormValidated}>
             <Form.Group>
               <Form.Label>Name</Form.Label>
-              <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} />
+              <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} isInvalid={zodErrors?.fieldErrors?.name?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.name?.length > 0 && zodErrors?.fieldErrors?.name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
               <Form.Label>Organization</Form.Label>
-              <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} />
+              <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} isInvalid={zodErrors?.fieldErrors?.organization?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.organization?.length > 0 && zodErrors?.fieldErrors?.organization.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
               <Form.Label>Public Key Name</Form.Label>
-              <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} />
+              <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} isInvalid={zodErrors?.fieldErrors?.public_key_name?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key_name?.length > 0 && zodErrors?.fieldErrors?.public_key_name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             <Form.Group>
             </Form.Group>
               <Form.Label>Public Key</Form.Label>
-              <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} />
+              <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} isInvalid={zodErrors?.fieldErrors?.public_key?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key?.length > 0 && zodErrors?.fieldErrors?.public_key.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
               <Form.Label>Role</Form.Label>
@@ -519,9 +540,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
                   <option value={RoleEnum.Industry}>Industry Member</option>
                 </Form.Control>
               }
-              <Form.Control.Feedback type="invalid">
-                {roleError}
-              </Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{roleError}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group>
               <Button variant="success" size="lg" block onClick={handleRegister}>

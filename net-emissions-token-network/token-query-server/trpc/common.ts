@@ -1,6 +1,7 @@
 import * as trpc from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
+import { ZodError } from 'zod';
 import { balanceRouter } from './balance.trpc'
 import { walletRouter } from './wallet.trpc';
 
@@ -11,7 +12,21 @@ const createContext = async () => ({
 export type TrpcContext = trpc.inferAsyncReturnType<typeof createContext>;
 
 const createRouter = () => {
-  return trpc.router<TrpcContext>();
+    // this adds the zodError to the response which can then be
+    // analyzed for input errors
+    return trpc.router<TrpcContext>().formatError(({ shape, error }) => {
+        return {
+            ...shape,
+            data: {
+                ...shape.data,
+                zodError:
+                error.code === 'BAD_REQUEST' &&
+                    error.cause instanceof ZodError
+                    ? error.cause.flatten()
+                    : null,
+            }
+        }
+    })
 }
 
 const appRouter = createRouter()
