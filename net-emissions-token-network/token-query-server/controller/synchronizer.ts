@@ -39,6 +39,12 @@ const SEED_WALLETS: Record<string, Partial<Wallet>> = (process.env.LEDGER_ETH_NE
  */
 export const syncWallets = async (currentBlock: number) => {
     try {
+        // cleanup roles on Hardhat first
+        if (process.env.LEDGER_ETH_NETWORK === 'hardhat') {
+            const db = await PostgresDBService.getInstance()
+            await db.getWalletRepo().clearWalletsRoles()
+        }
+
         const events = [
             {event: 'RegisteredConsumer', role: 'Consumer'},
             {event: 'UnregisteredConsumer', role: 'Consumer'},
