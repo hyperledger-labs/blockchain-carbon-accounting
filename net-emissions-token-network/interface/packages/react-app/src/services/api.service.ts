@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Balance, Token, Wallet } from '../components/static-data';
 
-const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "http://localhost:8000";
 axios.defaults.baseURL = BASE_URL;
 
 export const getTokens = async (offset: number, limit: number, query: string[]): Promise<{count:number, tokens:Token[], status:string}> => {

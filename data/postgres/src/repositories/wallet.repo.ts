@@ -73,7 +73,8 @@ export class WalletRepo {
     }
   }
 
-  private findWalletByAddress = async (address: string) => {
+  /** Returns the wallet by given address value, case-insensitive. */
+  public findWalletByAddress = async (address: string) => {
     return await this._db.getRepository(Wallet)
       .createQueryBuilder(ALIAS) 
       .where(`LOWER(${ALIAS}.address) LIKE LOWER(:address)`, {address})
@@ -105,8 +106,39 @@ export class WalletRepo {
     }
   }
 
+  /** Update or create the Wallet with given address to have the given roles exactly.  */
   public ensureWalletWithRoles = async(address: string, roles: string[], data?: Partial<Wallet>) => {
     return await this.mergeWallet({...data, address, roles: roles.join(',') });
+  }
+
+  /** Update or create the Wallet with given address to have at least the given roles.  */
+  public ensureWalletHasRoles = async(address: string, roles: string[]) => {
+    const wallet = await this.findWalletByAddress(address)
+    if (!wallet || !wallet.roles) {
+      return await this._db.getRepository(Wallet).save({address, roles: roles.join(',') })
+    } else {
+      const rolesArr = wallet.roles.split(',')
+      for (const r of roles) {
+        if (rolesArr.indexOf(r) === -1) {
+          rolesArr.push(r)
+        }
+      }
+      wallet.roles = rolesArr.join(',')
+      return await this._db.getRepository(Wallet).save(wallet)
+    }
+  }
+
+  /** Update or create the Wallet with given address to NOT have the given roles.  */
+  public ensureWalletHasNotRoles = async(address: string, roles: string[]) => {
+    const wallet = await this.findWalletByAddress(address)
+    if (!wallet || !wallet.roles) {
+      return await this._db.getRepository(Wallet).save({address})
+    } else {
+      // remove all roles that were given
+      const rolesArr = wallet.roles.split(',').filter((r)=>roles.indexOf(r)===-1)
+      wallet.roles = rolesArr.join(',')
+      return await this._db.getRepository(Wallet).save(wallet)
+    }
   }
 
   public truncateWallets = async () => {
