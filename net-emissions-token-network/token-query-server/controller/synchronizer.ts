@@ -142,7 +142,14 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
         // restructure 
         const _metadata = token.metadata as string;
-        const metaObj = JSON.parse(_metadata);
+        // eslint-disable-next-line
+        let metaObj: any = {}
+        try {
+          metaObj = JSON.parse(_metadata);
+        } catch (error) {
+          console.error('Invalid JSON in token metadata:', _metadata);
+          metaObj = {}
+        }
 
         // extract scope and type
         let scope = null, type = null;
