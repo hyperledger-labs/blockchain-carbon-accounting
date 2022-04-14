@@ -206,7 +206,7 @@ export const fillTokens = async (): Promise<number> => {
             await db.getTokenRepo().insertToken(token);
         }
     }
-    console.log(`${numOfIssuedTokens - numOfSavedTokens} tokens are stored into database.`);
+    console.log(`${numOfIssuedTokens - numOfSavedTokens} new tokens of ${numOfIssuedTokens} are stored into database.`);
     return await web3.eth.getBlockNumber();
 }
 
