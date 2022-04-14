@@ -41,4 +41,23 @@ export class EmissionsRequestRepo {
       throw new Error('cannot select pending emissions requests')
     }
   }
+
+  public updateToPending = async (uuid: string, emission_auditor: string, input_data_ipfs_hash: string) => {
+    let status = 'PENDING';
+    try {
+      await this._db.getRepository(EmissionsRequest)
+      .createQueryBuilder('emissions_request')
+      .update(EmissionsRequest)
+      .set({
+        emission_auditor: () =>  `'${emission_auditor}'`,
+        input_data_ipfs_hash: () => `'${input_data_ipfs_hash}'`,
+        status: () => `'${status}'`
+      })
+      .where("uuid = :uuid", {uuid: uuid})
+      .execute()
+    } catch (error) {
+      console.log(error);
+      throw new Error(`Cannot update emissions request ${uuid} status to ${status}`)
+    }
+  }
 }

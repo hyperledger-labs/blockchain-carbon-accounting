@@ -27,6 +27,7 @@ import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
+import { getEmissionsAuditors } from './token-query-utils';
 import * as carrier_emission_factors from "../data/carrier_service_mapping.json"
 import * as flight_emission_factors from "../data/flight_service_mapping.json"
 
@@ -485,4 +486,56 @@ function create_manifest(publickey_name: string, ipfs_path: string, hash: string
     "Location": `ipfs://${ipfs_path}`,
     "SHA256": hash
   };
+}
+
+function get_auditor(auditors) {
+  if (auditors && auditors.length > 0) {
+    if (auditors.length == 1) {
+      return auditors[0];
+    } else {
+      const idx = Math.floor(Math.random() * auditors.length);
+      return auditors[idx];
+    }
+  }
+
+  return null;
+}
+
+export async function process_emissions_requests() {
+  const db = await getDBInstance();
+  const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
+  if (emissions_requests && emissions_requests.length > 0) {
+      const auditors = await getEmissionsAuditors();
+      if (auditors && auditors.length > 0) {
+        // get auditors with public keys
+        let active_auditors = [];
+        for (const a in auditors) {
+          if (auditors[a].public_key) {
+            active_auditors.push(auditors[a]);
+          }
+        }
+        if (active_auditors.length > 0) {
+          // process from created to pending
+          for (const e in emissions_requests) {
+              const er = emissions_requests[e];
+              console.log("Process emission request: ", er.uuid);
+              const auditor = get_auditor(active_auditors);
+              if (auditor) {
+                console.log('Randomly selected auditor: ', auditor.address);
+                // encode input_data and post it into ipfs
+                const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
+                await db.getEmissionsRequestRepo().updateToPending(er.uuid, auditor.address, ipfs_res.path);
+              } else {
+                console.log('Cannot select auditor.');
+              }
+          }
+        } else {
+          console.log('There are no auditors with public key.');
+        }
+      } else {
+         console.log('There are no auditors.');
+      }
+  } else {
+      console.log('There are no emissions requests to process.');
+  }
 }
