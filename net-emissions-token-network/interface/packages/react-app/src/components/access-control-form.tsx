@@ -598,7 +598,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-    {(!roles.isAdmin && roles.isIndustry) &&
+    {(!roles.isAdmin && !roles.isIndustry) &&
      <>
           <h4 className="mt-4">Register my account as industry</h4>
           <Form.Group>
