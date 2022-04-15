@@ -5,7 +5,7 @@ import {
 } from 'typeorm';
 
 /**
- * primary key: issee address & token id
+ * primary key: issuee address & token id
  * data: 1) available 2) retired
  */
 

@@ -1,4 +1,4 @@
-import { SelectQueryBuilder } from "typeorm"
+import { EntityTarget, SelectQueryBuilder } from "typeorm"
 
 export interface BalancePayload {
   issuee: string
@@ -52,10 +52,8 @@ export interface EmissionsRequestPayload {
 }
 
 
-const BALANCE_FIELDS = ['issuee', 'tokenId', 'available', 'retired', 'transferred']
-
 // eslint-disable-next-line
-export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
+export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>, entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
   const len = queries.length
   for (let i = 0; i < len; i++) {
     const query: QueryBundle = queries[i]
@@ -72,12 +70,37 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
     else if (query.fieldType == 'number') payload[query.field] = query.value as number
     else continue
 
-    // make case insensitive for issuee issuer cases
-    if(query.field == 'issuee' || query.field == 'issuer') {
-      builder = builder.andWhere(`LOWER(${table}.${query.field}) ${query.op} LOWER(:${query.field})`, payload)
+    // check which entity alias should be used
+    let alias = null;
+    // Entities should be given when the query uses a JOIN, for example when querying
+    // Balance and Token via: leftJoinAndMapOne('balance.token', Token, 'token', 'token.tokenId = balance.tokenId')
+    // this should be given [Balance, Token]
+    if (entities) {
+      for (const entity of entities) {
+        const md = builder.connection.getMetadata(entity)
+        if (md.hasColumnWithPropertyPath(query.field)) {
+          console.log('found field',query.field,'in entity',md.name);
+          alias = md.name;
+          break;
+        }
+      }
+      if (!alias) {
+        console.log('No entity found for column', query.field, ' ?? using default ', table);
+        alias = table;
+      }
     } else {
-      builder = builder.andWhere(`${table}.${query.field} ${query.op} :${query.field}`, payload)
+      alias = table;
     }
+    alias = alias.toLowerCase();
+
+    // make case insensitive for issuee issuer cases
+    let cond = '';
+    if(query.field == 'issuee' || query.field == 'issuer') {
+      cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
+    } else {
+      cond = `${alias}.${query.field} ${query.op} :${query.field}`
+    }
+    builder = builder.andWhere(cond, payload)
 
   }
   return builder

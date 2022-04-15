@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
@@ -11,13 +11,14 @@ import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "./static-data
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
-import { Alert } from "react-bootstrap";
+import { Accordion, AccordionContext, Alert, OverlayTrigger, Tooltip, useAccordionButton } from "react-bootstrap";
 import { trpcClient } from "../services/trpc";
 import { TRPCClientError } from "@trpc/client";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { FaRegClipboard } from "react-icons/fa";
+
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
   if (!roles) return null;
@@ -26,7 +27,7 @@ function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesI
     {r}
     {unregister
       && ((currentRoles.isAdmin) || ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) && (r === 'Consumer')))
-      && <Button variant="outline-danger" className="ml-2 my-1" size="sm" onClick={() => {unregister(r)}}>
+      && <Button variant="outline-danger" className="ms-2 my-1" size="sm" onClick={() => {unregister(r)}}>
       Unregister
     </Button>}
 </li>)}</>
@@ -48,6 +49,22 @@ function RolesList({ roles }: {roles: RolesInfo}) {
     <ul>
       <RolesListElements roles={r}/>
     </ul>
+  );
+}
+
+function CustomToggle({ children, eventKey }: {children:ReactNode, eventKey:string}) {
+  const currentEventKey = useContext(AccordionContext);
+  const decoratedOnClick = useAccordionButton(eventKey);
+  const isCurrentEventKey = currentEventKey === eventKey;
+
+  return (
+    <div>
+      <span className="me-3">{children}</span>
+      {isCurrentEventKey ? 
+        <Button onClick={decoratedOnClick} size="sm" variant="outline-secondary">Hide</Button> 
+        : <Button onClick={decoratedOnClick} size="sm" variant="outline-primary">Show</Button>
+      }
+    </div>
   );
 }
 
@@ -152,7 +169,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (event) => { setOrganization(event.target.value); };
   const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKey(event.target.value); };
   const onPublicKeyNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKeyName(event.target.value); };
-  const onRoleChange: ChangeEventHandler<HTMLInputElement> = (event) => { setRole(event.target.value as Role); };
+  const onRoleChange: ChangeEventHandler<HTMLSelectElement> = (event) => { setRole(event.target.value as Role); };
 
   async function handlePostSignedMessage() {
     if (!provider) return;
@@ -436,9 +453,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         <WalletLookupInput 
           onChange={onLookupInputChange} 
           onWalletChange={onWalletChange} />
-        <InputGroup.Append>
-          <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
-        </InputGroup.Append>
+        <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
       </InputGroup>
       {lookupError &&
       <Alert variant="danger" onClose={() => setLookupError('')} dismissible>
@@ -448,7 +463,34 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {lookupWallet && lookupWallet.address && <ul>
         <li>Name: {lookupWallet.name}</li>
         <li>Address: {lookupWallet.address}</li>
-        <li>Organization: {lookupWallet.organization}</li>
+        {lookupWallet.organization && <li>Organization: {lookupWallet.organization}</li>}
+        {lookupWallet.public_key_name && <li>Public Key Name: {lookupWallet.public_key_name}</li>}
+        {lookupWallet.public_key && <li>
+          <Accordion defaultActiveKey="0">
+            <CustomToggle eventKey="0">
+              Public Key:
+              {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+              <CopyToClipboard text={lookupWallet.public_key_name}>
+                <span className="text-secondary">
+                  <OverlayTrigger
+                    trigger="click"
+                    placement="bottom"
+                    rootClose={true}
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={<Tooltip id='copied-pubkey-tooltip'>Copied to clipboard!</Tooltip>}
+                  >
+                    <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                  </OverlayTrigger>
+                </span>
+              </CopyToClipboard>
+            </CustomToggle>
+
+            <Accordion.Collapse eventKey="0">
+              <pre>{lookupWallet.public_key}</pre>
+            </Accordion.Collapse>
+          </Accordion>
+        </li>
+        }
         {lookupWallet.roles ? 
         <li>Roles: <ul>
           <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles} unregister={(r) => {
@@ -461,7 +503,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {fetchingTheirRoles &&
         <div className="text-center mt-3 mb-3">
           <Spinner animation="border" role="status">
-            <span className="sr-only">Loading...</span>
+            <span className="visually-hidden">Loading...</span>
           </Spinner>
         </div>
       }
@@ -473,25 +515,25 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {lookupWallet && hasAssignRolePermissions && <>
           <h4>Add Role</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="rolesInput">
               {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 ? 
-                <Form.Control as="select" onChange={onRoleChange} isInvalid={!!roleError}>
+                <Form.Select onChange={onRoleChange} isInvalid={!!roleError}>
                   {rolesThatCanBeAssigned.map((r,i) =>
                     <option key={i} value={r.value}>{r.label}</option>
                   )}
-                </Form.Control> 
+                </Form.Select> 
                 :
               <p>You cannot assign any more role to this user.</p>
               }
               <Form.Control.Feedback type="invalid">{roleError}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
-              <Button variant="success" size="lg" block onClick={handleSingleRegister}>
+            <Form.Group className="d-grid gap-2 mt-3">
+              <Button variant="success" size="lg" onClick={handleSingleRegister}>
                 Add Role
               </Button>
             </Form.Group>
             {/* <Form.Group> */}
-            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*   <Button variant="success" size="lg" onClick={handlePostSignedMessage}> */}
             {/*     Update User Info */}
             {/*   </Button> */}
             {/* </Form.Group> */}
@@ -502,53 +544,53 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         <>
           <h4>Register new user wallet</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="nameInput">
               <Form.Label>Name</Form.Label>
               <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} isInvalid={zodErrors?.fieldErrors?.name?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.name?.length > 0 && zodErrors?.fieldErrors?.name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="organizationInput">
               <Form.Label>Organization</Form.Label>
               <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} isInvalid={zodErrors?.fieldErrors?.organization?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.organization?.length > 0 && zodErrors?.fieldErrors?.organization.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="publicKeyNameInput">
               <Form.Label>Public Key Name</Form.Label>
               <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} isInvalid={zodErrors?.fieldErrors?.public_key_name?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key_name?.length > 0 && zodErrors?.fieldErrors?.public_key_name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
-            <Form.Group>
             </Form.Group>
+            <Form.Group className="mb-3" controlId="publicKeyInput">
               <Form.Label>Public Key</Form.Label>
               <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} isInvalid={zodErrors?.fieldErrors?.public_key?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key?.length > 0 && zodErrors?.fieldErrors?.public_key.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="RoleInput">
               <Form.Label>Role</Form.Label>
               {(roles?.isAdmin) ? 
-                <Form.Control as="select" value={role} onChange={onRoleChange} isInvalid={!!roleError}>
+                <Form.Select value={role} onChange={onRoleChange} isInvalid={!!roleError}>
                   <option value={RoleEnum.None}>None</option>
                   <option value={RoleEnum.Consumer}>Consumer</option>
                   <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
                   <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
                   <option value={RoleEnum.EmissionsAuditor}>Emissions Auditor</option>
                   <option value={RoleEnum.IndustryDealer}>Registered Industry Dealer (CarbonTracker)</option>
-                </Form.Control> 
+                </Form.Select> 
                 :
-                <Form.Control as="select" value={role} onChange={onRoleChange} isInvalid={!!roleError}>
+                <Form.Select value={role} onChange={onRoleChange} isInvalid={!!roleError}>
                   <option value={RoleEnum.None}>None</option>
                   <option value={RoleEnum.Consumer}>Consumer</option>
                   <option value={RoleEnum.Industry}>Industry Member</option>
-                </Form.Control>
+                </Form.Select>
               }
               <Form.Control.Feedback type="invalid">{roleError}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
-              <Button variant="success" size="lg" block onClick={handleRegister}>
+            <Form.Group className="d-grid gap-2 mt-3">
+              <Button variant="success" size="lg" onClick={handleRegister}>
                 Register
               </Button>
             </Form.Group>
             {/* <Form.Group> */}
-            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*   <Button variant="success" size="lg" onClick={handlePostSignedMessage}> */}
             {/*     Update User Info */}
             {/*   </Button> */}
             {/* </Form.Group> */}
@@ -556,26 +598,22 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-    {(!roles.isAdmin && roles.isIndustry) &&
+    {(!roles.isAdmin && !roles.isIndustry) &&
      <>
-          <h4>Register my account as industry</h4>
+          <h4 className="mt-4">Register my account as industry</h4>
           <Form.Group>
             {/*<Form.Label>Address</Form.Label>*/}
             <Form.Control type="input" disabled hidden value={signedInAddress}/>
           </Form.Group>
           <Form.Group>
             {/*<Form.Label>Role</Form.Label>*/}
-            <Form.Control as="select" disabled hidden>
-            </Form.Control>
+            <Form.Select disabled hidden>
+            </Form.Select>
           </Form.Group>
-          <Form.Group>
-            <Row>
-              <Col>
-                <Button variant="success" size="lg" block onClick={() => { if(provider) fetchRegisterIndustry(provider, signedInAddress)}}>
-                  Register
-                </Button>
-              </Col>
-            </Row>
+          <Form.Group className="d-grid gap-2 mt-3">
+            <Button variant="success" size="lg" onClick={() => { if(provider) fetchRegisterIndustry(provider, signedInAddress)}}>
+              Register
+            </Button>
           </Form.Group>
         </>
     }
@@ -585,3 +623,4 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 }
 
 export default AccessControlForm;
+

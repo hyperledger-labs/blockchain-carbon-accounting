@@ -60,10 +60,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
+  const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
   const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
-  const onScopeChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setScope(parseInt(event.target.value)); }, []);
+  const onScopeChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setScope(parseInt(event.target.value)); }, []);
   const onTypeChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setType(event.target.value); }, []);
 
   // params: key-value object list
@@ -251,7 +251,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
       { ((!limitedMode) || (tokenTypeId === 3))
         ?
-        <Form.Group>
+        <Form.Group className="mb-3" controlId="addressInput">
           <Form.Label>Address</Form.Label>
           <InputGroup>
             <WalletLookupInput 
@@ -268,7 +268,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           </Form.Text>
         </Form.Group>
         :
-        <Form.Group>
+        <Form.Group className="mb-3" controlId="addressInput">
           <Form.Label>Address</Form.Label>
           <Form.Control
             type="input"
@@ -284,17 +284,17 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       }
 
 
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="tokenTypeInput">
         <Form.Label>Token Type</Form.Label>
-        <Form.Control as="select" onChange={onTokenTypeIdChange}>
+        <Form.Select onChange={onTokenTypeIdChange}>
           <option value={0}>{}</option>
           {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
           {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
           {(roles.isAdmin || roles.isAeDealer) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
           {(roles.isAdmin || roles.isIndustry) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
-        </Form.Control>
+        </Form.Select>
       </Form.Group>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="quantityInput">
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
@@ -309,76 +309,89 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           Must not contain more than three decimal values.
         </Form.Text>
       </Form.Group>
-      <Form.Row>
-        <Form.Group as={Col}>
+      <Row>
+        <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
           <Form.Label>From date</Form.Label>
           {/* @ts-ignore : some weird thing with the types ... */}
           <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
         </Form.Group>
-        <Form.Group as={Col}>
+        <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
           <Form.Label>Through date</Form.Label>
           {/* @ts-ignore : some weird thing with the types ... */}
           <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
         </Form.Group>
-      </Form.Row>
-      <Form.Group>
+      </Row>
+      <Form.Group className="mb-3" controlId="descriptionInput">
         <Form.Label>Description</Form.Label>
         <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
       </Form.Group>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="metadataInput">
         <Form.Label>Metadata</Form.Label>
         <Row>
-          <Col sm={3}>
+          <Col md={3}>
             <Row className="mb-3">
-              <Form.Label column sm={3}>
-                Scope
-              </Form.Label>
-              <Col sm={6}>
-              <Form.Control as="select" onChange={onScopeChange}>
-                <option value={0}>{}</option>
-                <option value={1}>1</option>
-                <option value={2}>2</option>
-                <option value={3}>3</option>
-              </Form.Control>
+              <Form.Label column md={3}>Scope</Form.Label>
+              <Col md={9}>
+                <Form.Select onChange={onScopeChange}>
+                  <option value={0}>{}</option>
+                  <option value={1}>1</option>
+                  <option value={2}>2</option>
+                  <option value={3}>3</option>
+                </Form.Select>
               </Col>
             </Row>
           </Col>
-          <Col sm={6}>
+          <Col md={7}>
             <Row className="mb-3">
-              <Form.Label column sm={1}>
-                Type
-              </Form.Label>
-              <Col sm={8}>
+              <Form.Label column md={2}>Type</Form.Label>
+              <Col md={10}>
                 <Form.Control type="text" placeholder="Type" onChange={onTypeChange} />
               </Col>
-              <Col>
-                <Button variant="outline-dark" onClick={addField}><BsPlus /></Button>
+            </Row>
+          </Col>
+          <Col md={2}>
+            <Row className="mb-3 g-0 gx-2">
+              <Col className="col-md-auto col-6">
+                <Button className="w-100" variant="outline-dark" onClick={addField}><BsPlus /></Button>
               </Col>
+              <div className="col"></div>
             </Row>
           </Col>
         </Row>
         <Form.Group>
           {metadata.map((field, key) => 
-            <Row key={key} className="mt-2">
-              <Col>
+            <Row key={key}>
+              <Col md={3}>
                 <Form.Control 
                   type="input" 
+                  placeholder="Key"
                   value={field.key} 
                   onChange={e => { metadata[key].key = e.target.value; setMetadata([...metadata]); }}
                 />
               </Col>
-              <Col>
-                <Form.Control 
-                  type="input" 
-                  value={field.value} 
-                  onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
-                />
+              <Col md={7}>
+                <Row className="mb-3">
+                  <Form.Label column md={2}>
+                  </Form.Label>
+                  <Col md={10}>
+                    <Form.Control 
+                      type="input" 
+                      value={field.value} 
+                      placeholder="Value"
+                      onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
+                      />
+                  </Col>
+                </Row>
               </Col>
-              <div>
-                <Button variant="outline-dark" onClick={addField}><BsPlus /></Button>
-              </div>
-              <Col>
-                <Button variant="outline-dark" onClick={() => removeField(key)}><BsTrash /></Button>
+              <Col md={2}>
+                <Row className="mb-3 g-0 gx-2">
+                  <Col className="col-md-auto col-6">
+                    <Button className="w-100" variant="outline-dark" onClick={addField}><BsPlus /></Button>
+                  </Col>
+                  <Col className="col-md-auto col-6">
+                    <Button className="w-100" variant="outline-dark" onClick={() => removeField(key)}><BsTrash /></Button>
+                  </Col>
+                </Row>
               </Col>
             </Row>
           )}
@@ -393,25 +406,33 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         <Form.Group>
           {manifest.map((field, key) =>
             <Row key={key} className="mt-2">
-              <Col>
+              <Col md={3}>
                 <Form.Control
+                  className="mb-3"
                   type="input"
                   value={field.key}
+                  placeholder="Key"
                   onChange={e => { manifest[key].key = e.target.value; setManifest([...manifest]); }}
                 />
               </Col>
-              <Col>
+              <Col md={7}>
                 <Form.Control
+                  className="mb-3"
                   type="input"
                   value={field.value}
+                  placeholder="Value"
                   onChange={e => { manifest[key].value = e.target.value; setManifest([...manifest]); }}
                 />
               </Col>
-              <div>
-                <Button variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
-              </div>
-              <Col>
-                <Button variant="outline-dark" onClick={() => removeFieldManifest(key)}><BsTrash /></Button>
+              <Col md={2}>
+                <Row className="mb-3 g-0 gx-2">
+                  <Col className="col-md-auto col-6">
+                    <Button className="w-100" variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
+                  </Col>
+                  <Col className="col-md-auto col-6">
+                    <Button className="w-100" variant="outline-dark" onClick={() => removeFieldManifest(key)}><BsTrash /></Button>
+                  </Col>
+                </Row>
               </Col>
             </Row>
           )}
@@ -428,7 +449,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             <Button
               variant="success"
               size="lg"
-              block
+              className="w-100"
               disabled={true}
             >
               Must be a registered dealer
@@ -437,7 +458,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             <Button
               variant="success"
               size="lg"
-              block
+              className="w-100"
               onClick={() => setCreateModalShow(true)}
               disabled={
                 (calldata.length === 0) ||
@@ -459,14 +480,14 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                 <Button
                   variant="primary"
                   size="lg"
-                  block
+                  className="w-100"
                   onClick={handleSubmit}
                   disabled={disableIssueButton(calldata, quantity, address)}
                 >
                   Issue
                 </Button>
               :
-                <Button variant="primary" size="lg" block disabled>Must be a registered dealer</Button>
+                <Button variant="primary" size="lg" disabled>Must be a registered dealer</Button>
             }
           </Col>
         }

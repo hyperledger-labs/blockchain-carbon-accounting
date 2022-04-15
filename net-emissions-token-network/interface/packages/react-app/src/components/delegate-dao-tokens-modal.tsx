@@ -70,7 +70,7 @@ const DelegateDaoTokensModal: FC<DelegateDaoTokensModalProps> = (props) => {
         { (isSubmitting) &&
           <div className="text-center mt-3">
             <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
+              <span className="visually-hidden">Loading...</span>
             </Spinner>
           </div>
         }
