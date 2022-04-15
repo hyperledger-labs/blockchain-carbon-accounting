@@ -75,7 +75,7 @@ const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
 
       <h2>Retire tokens</h2>
       <p>Retire some or all tokens in your possession of a particular ID (as displayed on the dashboard). Audited Emissions tokens cannot be retired as they come retired on issuance.</p>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="tokenInput">
         <Form.Label>Token ID</Form.Label>
         <Form.Control
           type="input"
@@ -86,7 +86,7 @@ const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
           style={(tokenId || !initializedTokenIdInput) ? {} : inputError}
         />
       </Form.Group>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="quantityInput">
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
@@ -100,8 +100,8 @@ const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
 
       {/* Only enable retires if role is found */}
       { roles.hasAnyRole
-        ? <Button variant="danger" size="lg" block onClick={handleRetire}>Retire</Button>
-        : <Button disabled variant="danger" size="lg" block>Must be a registered user</Button>
+        ? <Button className="w-100" variant="danger" size="lg" onClick={handleRetire}>Retire</Button>
+        : <Button className="w-100" disabled variant="danger" size="lg">Must be a registered user</Button>
       }
     </>
   );

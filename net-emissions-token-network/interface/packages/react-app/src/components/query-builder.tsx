@@ -117,19 +117,18 @@ const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged}) =>
                 return (
                     <Form.Group key={key}>
                         <Row>
-                            <Col md={3}>
-                                <Form.Control as="select" onChange={e => onChangeFieldName(e, key)} value={field.name}>
+                            <Col md={4} className="mb-2">
+                                <Form.Select onChange={e => onChangeFieldName(e, key)} value={field.name}>
                                     <option value={0}>{}</option>
                                     {fieldList !== undefined && fieldList.map((item, i) => {
                                         return (
                                             <option value={item.name} key={i}>{item.alias}</option>
                                         )
                                     })}
-                                </Form.Control>   
+                                </Form.Select>   
                             </Col>
-                            <Col md={2}>
-                                <Form.Control 
-                                    as="select" 
+                            <Col md={2} className="mb-2">
+                                <Form.Select 
                                     onChange={e => onOperatorChanged(e, key)}
                                     value={field.op}
                                 >
@@ -139,18 +138,18 @@ const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged}) =>
                                             <option value={item} key={i}>{item}</option>
                                         )
                                     })}
-                                </Form.Control>   
+                                </Form.Select>   
                             </Col>
-                            <Col md={3}>
+                            <Col md={4} className="mb-2">
                                 {field.type === 'enum' ? 
-                                <Form.Control as="select" onChange={e => onValueChanged(e, key)} value={field.value}>
+                                <Form.Select onChange={e => onValueChanged(e, key)} value={field.value}>
                                     <option value={0}>{}</option>
                                     {TOKEN_TYPES.map((item, i) => {
                                         return (
                                             <option value={i+1} key={i}>{item}</option>
                                         )
                                     })}
-                                </Form.Control> :                                 
+                                </Form.Select> :                                 
                                 <Form.Control 
                                     type="input"
                                     placeholder="type value"
@@ -160,10 +159,10 @@ const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged}) =>
                                 />}
                                   
                             </Col>
-                            <Col sm={1}>
+                            <Col md={2} className="mb-2">
                                 <Row>
-                                    <Button className="mr-1" onClick={_ => removeField(key)} variant="outline-dark"><BsTrash /></Button>
-                                    <Button onClick={addField} variant="outline-dark"><BsPlus /></Button>
+                                    <Button className="col me-2" onClick={_ => removeField(key)} variant="outline-dark"><BsTrash /></Button>
+                                    <Button className="col" onClick={addField} variant="outline-dark"><BsPlus /></Button>
                                 </Row>
                             </Col>
                         </Row>

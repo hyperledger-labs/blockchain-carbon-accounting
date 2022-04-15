@@ -6,7 +6,6 @@ import { addresses } from "@project/contracts";
 import Button from 'react-bootstrap/Button';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
-import Tooltip, { TooltipProps } from 'react-bootstrap/Tooltip';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
 
@@ -16,6 +15,7 @@ import { FaRegClipboard } from 'react-icons/fa'
 import { FaGithub } from 'react-icons/fa'
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "./static-data";
+import { Tooltip } from "react-bootstrap";
 
 type WalletButtonProps = {
   provider?: Web3Provider 
@@ -27,7 +27,7 @@ const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfW
   return (
     <Button
       variant="primary"
-      className="ml-1"
+      className="ms-1"
       onClick={() => {
         if (!provider) {
           loadWeb3Modal();
@@ -41,11 +41,6 @@ const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfW
   );
 }
 
-const tooltipCopiedAddress: FC<Partial<TooltipProps>> = (props) => (
-  <Tooltip id='copyTooltip' {...props}>
-    Copied to clipboard!
-  </Tooltip>
-);
 
 type NavigationBarProps = {
   provider?: Web3Provider 
@@ -97,7 +92,7 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
       <Navbar.Brand>Net Emissions Token Network</Navbar.Brand>
       <Navbar.Toggle />
       <Navbar.Collapse >
-        <Nav className="mr-auto">
+        <Nav className="me-auto">
           <Nav.Link href="https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/net-emissions-token-network"><FaGithub/></Nav.Link>
         </Nav>
         <Nav>
@@ -131,7 +126,7 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
                       placement="bottom"
                       rootClose={true}
                       delay={{ show: 250, hide: 400 }}
-                      overlay={tooltipCopiedAddress}
+                      overlay={<Tooltip id='copied-address-tooltip'>Copied to clipboard!</Tooltip>}
                     >
                       <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
                     </OverlayTrigger>

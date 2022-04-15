@@ -42,7 +42,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
         <Modal.Title>Token Details</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Row className="mt-2 mb-4 mr-3">
+        <Row className="mt-2 mb-4 me-3">
           {/* Available and retired balances */}
           {props.token.isMyIssuedToken ?
             <Col className="col-5 offset-1 text-right">

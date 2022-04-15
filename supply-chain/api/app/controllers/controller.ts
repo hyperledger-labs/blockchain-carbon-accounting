@@ -3,7 +3,13 @@ import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
 // import from supply chain
-import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from 'supply-chain-cli/src/emissions-utils';
+import { GroupedResult,
+  GroupedResults,
+  process_activities,
+  group_processed_activities,
+  issue_tokens_with_issuee,
+  decline_emissions_request
+} from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
     id: string,
@@ -117,4 +123,11 @@ export function issueToken(req: Request, res: Response) {
     });
 }
 
-  
+export async function declineEmissionsRequest(req: Request, res: Response) {
+    try {
+      await decline_emissions_request(req.params.uuid);
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+    return res.status(200).json({success: '1'});
+}

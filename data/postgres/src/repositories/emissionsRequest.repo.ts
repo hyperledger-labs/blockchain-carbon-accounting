@@ -24,8 +24,15 @@ export class EmissionsRequestRepo {
   }
 
   public selectPending = async (): Promise<Array<EmissionsRequest>> => {
+    return await this.selectByStatus('PENDING')
+  }
+
+  public selectCreated = async (): Promise<Array<EmissionsRequest>> => {
+    return await this.selectByStatus('CREATED')
+  }
+
+  public selectByStatus = async (status: string): Promise<Array<EmissionsRequest>> => {
     try {
-      const status = 'PENDING'
       return await this._db.getRepository(EmissionsRequest)
         .createQueryBuilder('emissions_request')
         .where("emissions_request.status = :status", {status})
@@ -33,5 +40,52 @@ export class EmissionsRequestRepo {
     } catch (error) {
       throw new Error('cannot select pending emissions requests')
     }
+  }
+
+  public updateToPending = async (uuid: string, emissionAuditor: string, inputDataIpfsHash: string) => {
+    let status = 'PENDING';
+    try {
+      await this._db.getRepository(EmissionsRequest)
+      .createQueryBuilder('emissions_request')
+      .update(EmissionsRequest)
+      .set({
+        emission_auditor: () =>  `'${emissionAuditor}'`,
+        input_data_ipfs_hash: () => `'${inputDataIpfsHash}'`,
+        status: () => `'${status}'`
+      })
+      .where("uuid = :uuid", {uuid: uuid})
+      .execute()
+    } catch (error) {
+      console.log(error);
+      throw new Error(`Cannot update emissions request ${uuid} status to ${status}`)
+    }
+  }
+
+  public updateStatus = async (uuid: string, status: string) => {
+    try {
+      await this._db.getRepository(EmissionsRequest)
+      .createQueryBuilder('emissions_request')
+      .update(EmissionsRequest)
+      .set({
+        status: () => `'${status}'`
+      })
+      .where("uuid = :uuid", {uuid: uuid})
+      .execute()
+    } catch (error) {
+      console.log(error);
+      throw new Error(`Cannot update emissions request ${uuid} status to ${status}`)
+    }
+  }
+
+  public updateToDeclined = async (uuid: string) => {
+    await this.updateStatus(uuid, 'DECLINED')
+  }
+
+  public updateToIssued = async (uuid: string) => {
+    await this.updateStatus(uuid, 'ISSUED')
+  }
+
+  public selectEmissionsRequest = async (uuid: string): Promise<EmissionsRequest | null> => {
+    return await this._db.getRepository(EmissionsRequest).findOneBy({uuid})
   }
 }
