@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
@@ -15,9 +15,12 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
-import { Alert } from "react-bootstrap";
+import { Accordion, AccordionContext, Alert, OverlayTrigger, Tooltip, useAccordionToggle } from "react-bootstrap";
 import { trpcClient } from "../services/trpc";
 import { TRPCClientError } from "@trpc/client";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { FaRegClipboard } from "react-icons/fa";
+
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
   if (!roles) return null;
@@ -48,6 +51,22 @@ function RolesList({ roles }: {roles: RolesInfo}) {
     <ul>
       <RolesListElements roles={r}/>
     </ul>
+  );
+}
+
+function CustomToggle({ children, eventKey }: {children:ReactNode, eventKey:string}) {
+  const currentEventKey = useContext(AccordionContext);
+  const decoratedOnClick = useAccordionToggle(eventKey);
+  const isCurrentEventKey = currentEventKey === eventKey;
+
+  return (
+    <div>
+      <span className="mr-3">{children}</span>
+      {isCurrentEventKey ? 
+        <Button onClick={decoratedOnClick} size="sm" variant="outline-secondary">Hide</Button> 
+        : <Button onClick={decoratedOnClick} size="sm" variant="outline-primary">Show</Button>
+      }
+    </div>
   );
 }
 
@@ -448,7 +467,34 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {lookupWallet && lookupWallet.address && <ul>
         <li>Name: {lookupWallet.name}</li>
         <li>Address: {lookupWallet.address}</li>
-        <li>Organization: {lookupWallet.organization}</li>
+        {lookupWallet.organization && <li>Organization: {lookupWallet.organization}</li>}
+        {lookupWallet.public_key_name && <li>Public Key Name: {lookupWallet.public_key_name}</li>}
+        {lookupWallet.public_key && <li>
+          <Accordion defaultActiveKey="0">
+            <CustomToggle eventKey="0">
+              Public Key:
+              {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+              <CopyToClipboard text={lookupWallet.public_key_name}>
+                <span className="text-secondary">
+                  <OverlayTrigger
+                    trigger="click"
+                    placement="bottom"
+                    rootClose={true}
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={<Tooltip id='copied-pubkey-tooltip'>Copied to clipboard!</Tooltip>}
+                  >
+                    <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                  </OverlayTrigger>
+                </span>
+              </CopyToClipboard>
+            </CustomToggle>
+
+            <Accordion.Collapse eventKey="0">
+              <pre>{lookupWallet.public_key}</pre>
+            </Accordion.Collapse>
+          </Accordion>
+        </li>
+        }
         {lookupWallet.roles ? 
         <li>Roles: <ul>
           <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles} unregister={(r) => {
@@ -585,3 +631,4 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 }
 
 export default AccessControlForm;
+
