@@ -93,7 +93,7 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange,
 
       return (
         <li {...props}>
-          {name && <b className="pr-2">{name}</b>}
+          {name && <b className="pe-2">{name}</b>}
           {addr}
         </li>
       );

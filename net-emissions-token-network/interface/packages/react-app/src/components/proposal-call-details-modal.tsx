@@ -82,21 +82,23 @@ const ProposalCallDetailsModal: FC<ProposalCallDetailsModalProps> = (props) => {
           {/* </Form.Group> */}
           <Form.Group>
             <Form.Label>Function signature</Form.Label>
-            <Form.Text>{props.actions.signatures}</Form.Text>
+            <p className="text-muted">{props.actions.signatures}</p>
           </Form.Group>
           <Form.Group>
-            <Form.Label>Function parameters</Form.Label>
-            {decoded && <>
-            <Form.Text>Address to issue to: {decoded.address}</Form.Text>
-            <Form.Text>Issuer/proposer: {decoded.proposer}</Form.Text>
-            <Form.Text>Token type: {decoded.tokenType}</Form.Text>
-            <Form.Text>Quantity of tokens: {decoded.quantity}</Form.Text>
-            <Form.Text>From date: {decoded.fromDate}</Form.Text>
-            <Form.Text>Through date: {decoded.thruDate}</Form.Text>
-            <Form.Text>Metadata: {decoded.metadata}</Form.Text>
-            <Form.Text>Manifest: {decoded.manifest}</Form.Text>
-            <Form.Text>Description: {decoded.description}</Form.Text>
-            </>}
+            <p>Function parameters</p>
+            <div className="text-muted">
+              {decoded && <>
+                <p>Address to issue to: {decoded.address}</p>
+                <p>Issuer/proposer: {decoded.proposer}</p>
+                <p>Token type: {decoded.tokenType}</p>
+                <p>Quantity of tokens: {decoded.quantity}</p>
+                <p>From date: {decoded.fromDate}</p>
+                <p>Through date: {decoded.thruDate}</p>
+                <p>Metadata: {decoded.metadata}</p>
+                <p>Manifest: {decoded.manifest}</p>
+                <p>Description: {decoded.description}</p>
+                </>}
+            </div>
           </Form.Group>
         </Form>
 

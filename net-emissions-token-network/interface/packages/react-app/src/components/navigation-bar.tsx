@@ -27,7 +27,7 @@ const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfW
   return (
     <Button
       variant="primary"
-      className="ml-1"
+      className="ms-1"
       onClick={() => {
         if (!provider) {
           loadWeb3Modal();
@@ -92,7 +92,7 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
       <Navbar.Brand>Net Emissions Token Network</Navbar.Brand>
       <Navbar.Toggle />
       <Navbar.Collapse >
-        <Nav className="mr-auto">
+        <Nav className="me-auto">
           <Nav.Link href="https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/net-emissions-token-network"><FaGithub/></Nav.Link>
         </Nav>
         <Nav>

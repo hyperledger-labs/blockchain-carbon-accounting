@@ -412,7 +412,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         {fetchingTokens && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
+              <span className="visually-hidden">Loading...</span>
             </Spinner>
           </div>
         )}

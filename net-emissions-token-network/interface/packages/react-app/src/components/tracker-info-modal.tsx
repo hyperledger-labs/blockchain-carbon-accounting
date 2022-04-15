@@ -21,7 +21,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = (props) => {
         <Modal.Title>Tracker Details</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Row className="mt-2 mb-4 mr-3">
+        <Row className="mt-2 mb-4 me-3">
           {/* tracker ID, icon, and type */}
           <Col className="col-3">
             <Row className="text-center">
