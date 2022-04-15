@@ -50,9 +50,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
     struct CarbonTokenDetails {
         uint256 tokenId;
         uint8 tokenTypeId;
-        address issuedBy;
-        address issuedFrom;
-        address issuedTo;
+        address issuer;
+        address issuee;
         uint256 fromDate;
         uint256 thruDate;
         uint256 dateCreated;
@@ -82,9 +81,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 retiredBalance,
         uint256 tokenId,
         uint8 tokenTypeId,
-        address indexed issuedBy,
-        address indexed issuedFrom,
-        address indexed issuedTo,
+        address indexed issuer,
+        address indexed issuee,
         uint256 fromDate,
         uint256 thruDate,
         uint256 dateCreated,
@@ -241,8 +239,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
     function issue(
-        address issuedFrom,
-        address issuedTo,
+        address issuee,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -252,9 +249,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         string memory description
     ) public onlyDealer {
         return _issue(
-            msg.sender, // issuedBy
-            issuedFrom,
-            issuedTo,
+            issuee,
+            msg.sender,
             tokenTypeId,
             quantity,
             fromDate,
@@ -271,9 +267,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
      * or by admin if limited mode is set to false
      */
     function issueOnBehalf(
-        address issuedBy,
-        address issuedFrom,
-        address issuedTo,
+        address issuee,
+        address issuer,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -289,9 +284,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         );
 
         return _issue(
-            issuedBy,
-            issuedFrom,
-            issuedTo,
+            issuee,
+            issuer,
             tokenTypeId,
             quantity,
             fromDate,
@@ -303,9 +297,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
     }
 
     function _issue(
-        address _issuedBy,
-        address _issuedFrom,
-        address _issuedTo,
+        address _issuee,
+        address _issuer,
         uint8 _tokenTypeId,
         uint256 _quantity,
         uint256 _fromDate,
@@ -327,49 +320,33 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
                     "CLM8::_issue(limited): msg.sender not timelock"
                 );
                 require(
-                    hasRole(DEFAULT_ADMIN_ROLE, _issuedTo),
+                    hasRole(DEFAULT_ADMIN_ROLE, _issuee),
                     "CLM8::_issue(limited): issuee not admin"
                 );
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedBy) || hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
-                    "CLM8::_issue(limited): proposer not a registered dealer"
-                );
-                require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedFrom) || hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
+                    hasRole(REGISTERED_REC_DEALER, _issuer) || hasRole(REGISTERED_OFFSET_DEALER, _issuer),
                     "CLM8::_issue(limited): proposer not a registered dealer"
                 );
             } else if (_tokenTypeId == 3) {
                 require(
-                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
                     "CLM8::_issue(limited): issuer not a registered emissions auditor"
                 );
-                // require(
-                //     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedFrom),
-                //     "CLM8::_issue(limited): issuer not a registered emissions auditor"
-                // );
             }
         } else {
             if (_tokenTypeId == 1) {
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedFrom),
-                    "CLM8::_issue: issuer not a registered REC dealer"
-                );
-                require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedBy),
+                    hasRole(REGISTERED_REC_DEALER, _issuer),
                     "CLM8::_issue: issuer not a registered REC dealer"
                 );
             } else if (_tokenTypeId == 2) {
                 require(
-                    hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
-                    "CLM8::_issue: issuer not a registered offset dealer"
-                );
-                require(
-                    hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
+                    hasRole(REGISTERED_OFFSET_DEALER, _issuer),
                     "CLM8::_issue: issuer not a registered offset dealer"
                 );
             } else if (_tokenTypeId == 3) {
                 require(
-                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
                     "CLM8::_issue: issuer not a registered emissions auditor"
                 );
             }
@@ -383,9 +360,8 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
 
         tokenInfo.tokenId = _numOfUniqueTokens.current();
         tokenInfo.tokenTypeId = _tokenTypeId;
-        tokenInfo.issuedBy = _issuedBy;
-        tokenInfo.issuedFrom = _issuedFrom;
-        tokenInfo.issuedTo = _issuedTo;
+        tokenInfo.issuee = _issuee;
+        tokenInfo.issuer = _issuer;
         tokenInfo.fromDate = _fromDate;
         tokenInfo.thruDate = _thruDate;
         tokenInfo.dateCreated = block.timestamp;
@@ -395,22 +371,21 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         tokenInfo.totalIssued = _quantity;
         tokenInfo.totalRetired = uint256(0);
 
-        super._mint(_issuedTo, _numOfUniqueTokens.current(), _quantity, "");
+        super._mint(_issuee, _numOfUniqueTokens.current(), _quantity, "");
 
         // retire audited emissions on mint
         if (_tokenTypeId == 3) {
-            _retire(tokenInfo.issuedTo, tokenInfo.tokenId, _quantity);
+            _retire(tokenInfo.issuee, tokenInfo.tokenId, _quantity);
         }
 
         // emit event with all token details and balances
         emit TokenCreated(
             _quantity,
-            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuedTo],
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee],
             tokenInfo.tokenId,
             tokenInfo.tokenTypeId,
-            tokenInfo.issuedBy,
-            tokenInfo.issuedFrom,
-            tokenInfo.issuedTo,
+            tokenInfo.issuer,
+            tokenInfo.issuee,
             tokenInfo.fromDate,
             tokenInfo.thruDate,
             tokenInfo.dateCreated,
@@ -654,7 +629,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         view
         returns (address)
     {
-        return _tokenDetails[tokenId].issuedFrom;
+        return _tokenDetails[tokenId].issuer;
     }
 
     /**
