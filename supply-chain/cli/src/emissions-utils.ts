@@ -173,14 +173,29 @@ export async function issue_emissions_tokens_with_issuee(
     logger_setup = true;
   }
   const tokens = new BigNumber(Math.round(total_emissions));
-  const bcConfig = new BCGatewayConfig();
-  const ethConnector = await bcConfig.ethConnector();
-  const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
   const fd = Math.floor(f_date.getTime() / 1000);
   const td = Math.floor(t_date.getTime() / 1000);
+  const manifest = create_manifest(publicKey, ipfs_path, hash);
+  const description = `Emissions from ${activity_type}`;
 
+  return await gateway_issue_token(issuee, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
+}
+
+async function gateway_issue_token(
+  addressToIssue: string,
+  quantity: number,
+  fromDate: number,
+  thruDate: number,
+  manifest: string,
+  metadata: string,
+  description: string
+) {
+
+  const bcConfig = new BCGatewayConfig();
+  const ethConnector = await bcConfig.ethConnector();
+  const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
   const gateway = new EthNetEmissionsTokenGateway({
     contractStoreKeychain: ethConnector.contractStoreKeychain,
     ethClient: ethConnector.connector,
@@ -191,16 +206,14 @@ export async function issue_emissions_tokens_with_issuee(
     private: process.env.ETH_ISSUER_PRIVATE_KEY,
   };
 
-  const manifest = create_manifest(publicKey, ipfs_path, hash);
-
   const input: IEthNetEmissionsTokenIssueInput = {
-    addressToIssue: issuee,
-    quantity: tokens.toNumber(),
-    fromDate: fd,
-    thruDate: td,
-    manifest: JSON.stringify(manifest),
+    addressToIssue: addressToIssue,
+    quantity: quantity,
+    fromDate: fromDate,
+    thruDate: thruDate,
+    manifest: manifest,
     metadata: metadata,
-    description: `Emissions from ${activity_type}`,
+    description: description
   };
   try {
     const token = await gateway.issue(caller, input);
@@ -537,5 +550,20 @@ export async function process_emissions_requests() {
       }
   } else {
       console.log('There are no emissions requests to process.');
+  }
+}
+
+export async function decline_emissions_request(uuid: string) {
+  const db = await getDBInstance();
+  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+  if (emissions_request) {
+    // check status is correct
+    if (emissions_request.status == 'PENDING') {
+        await db.getEmissionsRequestRepo().updateToDeclined(uuid);
+    } else {
+        throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+    }
+  } else {
+    throw new Error(`Cannot get emissions request ${uuid}`);
   }
 }
