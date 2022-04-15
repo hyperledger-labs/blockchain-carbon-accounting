@@ -57,8 +57,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     struct CarbonTokenDetails {
         uint256 tokenId;
         uint8 tokenTypeId;
-        address issuer;
-        address issuee;
+        address issuedBy;
+        address issuedFrom;
+        address issuedTo;
         uint256 fromDate;
         uint256 thruDate;
         uint256 dateCreated;
@@ -68,7 +69,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 totalIssued;
         uint256 totalRetired;
     }
-
 
     // Counts number of unique token IDs (auto-incrementing)
     CountersUpgradeable.Counter private _numOfUniqueTokens;
@@ -87,8 +87,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 retiredBalance,
         uint256 tokenId,
         uint8 tokenTypeId,
-        address indexed issuer,
-        address indexed issuee,
+        address indexed issuedBy,
+        address indexed issuedFrom,
+        address indexed issuedTo,
         uint256 fromDate,
         uint256 thruDate,
         uint256 dateCreated,
@@ -333,7 +334,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
     function issue(
-        address issuee,
+        address issuedFrom,
+        address issuedTo,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -343,8 +345,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         string memory description
     ) public onlyDealer {
         return _issue(
-            issuee,
-            msg.sender,
+            msg.sender, // issuedBy
+            issuedFrom,
+            issuedTo,
             tokenTypeId,
             quantity,
             fromDate,
@@ -361,8 +364,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * or by admin if limited mode is set to false
      */
     function issueOnBehalf(
-        address issuee,
-        address issuer,
+        address issuedBy,
+        address issuedFrom,
+        address issuedTo,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -378,8 +382,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         );
 
         return _issue(
-            issuee,
-            issuer,
+            issuedBy,
+            issuedFrom,
+            issuedTo,
             tokenTypeId,
             quantity,
             fromDate,
@@ -391,8 +396,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     }
 
     function _issue(
-        address _issuee,
-        address _issuer,
+        address _issuedBy,
+        address _issuedFrom,
+        address _issuedTo,
         uint8 _tokenTypeId,
         uint256 _quantity,
         uint256 _fromDate,
@@ -414,45 +420,69 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
                     "CLM8::_issue(limited): msg.sender not timelock"
                 );
                 require(
-                    hasRole(DEFAULT_ADMIN_ROLE, _issuee),
+                    hasRole(DEFAULT_ADMIN_ROLE, _issuedTo),
                     "CLM8::_issue(limited): issuee not admin"
                 );
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuer) || hasRole(REGISTERED_OFFSET_DEALER, _issuer),
+                    hasRole(REGISTERED_REC_DEALER, _issuedFrom) || hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
+                    "CLM8::_issue(limited): proposer not a registered dealer"
+                );
+                require(
+                    hasRole(REGISTERED_REC_DEALER, _issuedBy) || hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue(limited): proposer not a registered dealer"
                 );
             } else if (_tokenTypeId == 3) {
                 require(
-                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedFrom),
+                    "CLM8::_issue(limited): issuer not a registered emissions auditor"
+                );
+                require(
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
                     "CLM8::_issue(limited): issuer not a registered emissions auditor"
                 );
             }
         } else {
             if (_tokenTypeId == 1) {
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuer),
+                    hasRole(REGISTERED_REC_DEALER, _issuedFrom),
+                    "CLM8::_issue: issuer not a registered REC dealer"
+                );
+                require(
+                    hasRole(REGISTERED_REC_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered REC dealer"
                 );
             } else if (_tokenTypeId == 2) {
                 require(
-                    hasRole(REGISTERED_OFFSET_DEALER, _issuer),
+                    hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
+                    "CLM8::_issue: issuer not a registered offset dealer"
+                );
+                require(
+                    hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered offset dealer"
                 );
             } else if (_tokenTypeId == 3) {
                 require(
-                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
                     "CLM8::_issue: issuer not a registered emissions auditor"
                 );
+                // require(
+                //     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
+                //     "CLM8::_issue: issuer not a registered emissions auditor"
+                // );
             }
         }
         // TO-DO: Define limited mode for tokenTypeId 4?
         if (_tokenTypeId == 4) {
             require(
-                hasRole(REGISTERED_INDUSTRY, _issuer),
+                hasRole(REGISTERED_INDUSTRY, _issuedFrom),
                 "CLM8::_issue: issuer not a registered industry"
             );
             require(
-                msg.sender == _issuee,
+                hasRole(REGISTERED_INDUSTRY, _issuedBy),
+                "CLM8::_issue: issuer not a registered industry"
+            );
+            require(
+                msg.sender == _issuedBy,
                 "CLM8::_issue: registered industry can only issue carbon to itself"
             );
         } 
@@ -465,8 +495,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
 
         tokenInfo.tokenId = _numOfUniqueTokens.current();
         tokenInfo.tokenTypeId = _tokenTypeId;
-        tokenInfo.issuee = _issuee;
-        tokenInfo.issuer = _issuer;
+        tokenInfo.issuedBy = _issuedBy;
+        tokenInfo.issuedFrom = _issuedFrom;
+        tokenInfo.issuedTo = _issuedTo;
         tokenInfo.fromDate = _fromDate;
         tokenInfo.thruDate = _thruDate;
         tokenInfo.dateCreated = block.timestamp;
@@ -476,21 +507,22 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         tokenInfo.totalIssued = _quantity;
         tokenInfo.totalRetired = uint256(0);
 
-        super._mint(_issuee, _numOfUniqueTokens.current(), _quantity, "");
+        super._mint(_issuedTo, _numOfUniqueTokens.current(), _quantity, "");
 
         // retire audited emissions on mint
         if (_tokenTypeId == 3) {
-            _retire(tokenInfo.issuee, tokenInfo.tokenId, _quantity);
+            _retire(tokenInfo.issuedTo, tokenInfo.tokenId, _quantity);
         }
 
         // emit event with all token details and balances
         emit TokenCreated(
             _quantity,
-            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuee],
+            _retiredBalances[tokenInfo.tokenId][tokenInfo.issuedTo],
             tokenInfo.tokenId,
             tokenInfo.tokenTypeId,
-            tokenInfo.issuer,
-            tokenInfo.issuee,
+            tokenInfo.issuedBy,
+            tokenInfo.issuedFrom,
+            tokenInfo.issuedTo,
             tokenInfo.fromDate,
             tokenInfo.thruDate,
             tokenInfo.dateCreated,
@@ -828,7 +860,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         view
         returns (address)
     {
-        return _tokenDetails[tokenId].issuer;
+        return _tokenDetails[tokenId].issuedFrom;
     }
 
     /**
