@@ -1,4 +1,6 @@
 import { SelectQueryBuilder } from "typeorm"
+import { Balance } from "../models/balance";
+import { Token } from "../models/token";
 
 export interface BalancePayload {
   issuee: string
@@ -52,8 +54,6 @@ export interface EmissionsRequestPayload {
 }
 
 
-const BALANCE_FIELDS = ['issuee', 'tokenId', 'available', 'retired', 'transferred']
-
 // eslint-disable-next-line
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>) : SelectQueryBuilder<any> {
   const len = queries.length
@@ -72,11 +72,32 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
     else if (query.fieldType == 'number') payload[query.field] = query.value as number
     else continue
 
+    // check which entity alis should be used
+    let alias = null;
+    const entities = [Balance, Token];
+    if (entities) {
+      for (const entity of entities) {
+        const md = builder.connection.getMetadata(entity)
+        if (md.hasColumnWithPropertyPath(query.field)) {
+          console.log('Found ', query.field, ' for entity', md.name)
+          alias = md.name;
+          break;
+        }
+      }
+      if (!alias) {
+        console.log('No entity found for column', query.field, ' ?? using default ', table);
+        alias = table;
+      }
+    } else {
+      alias = table;
+    }
+    alias = alias.toLowerCase();
+
     // make case insensitive for issuee issuer cases
     if(query.field == 'issuee' || query.field == 'issuer') {
-      builder = builder.andWhere(`LOWER(${table}.${query.field}) ${query.op} LOWER(:${query.field})`, payload)
+      builder = builder.andWhere(`LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`, payload)
     } else {
-      builder = builder.andWhere(`${table}.${query.field} ${query.op} :${query.field}`, payload)
+      builder = builder.andWhere(`${alias}.${query.field} ${query.op} :${query.field}`, payload)
     }
 
   }
