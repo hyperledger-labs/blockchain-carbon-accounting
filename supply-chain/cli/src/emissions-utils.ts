@@ -219,6 +219,7 @@ async function gateway_issue_token(
     const token = await gateway.issue(caller, input);
     return token;
   } catch (error) {
+    console.log("gateway_issue_token, error", error)
     new Error(error);
   }
 }
@@ -501,7 +502,7 @@ function create_manifest(publickey_name: string, ipfs_path: string, hash: string
   };
 }
 
-function get_auditor(auditors) {
+function get_random_auditor(auditors) {
   if (auditors && auditors.length > 0) {
     if (auditors.length == 1) {
       return auditors[0];
@@ -532,7 +533,7 @@ export async function process_emissions_requests() {
           for (const e in emissions_requests) {
               const er = emissions_requests[e];
               console.log("Process emission request: ", er.uuid);
-              const auditor = get_auditor(active_auditors);
+              const auditor = get_random_auditor(active_auditors);
               if (auditor) {
                 console.log('Randomly selected auditor: ', auditor.address);
                 // encode input_data and post it into ipfs
@@ -567,3 +568,44 @@ export async function decline_emissions_request(uuid: string) {
     throw new Error(`Cannot get emissions request ${uuid}`);
   }
 }
+
+export async function issue_emissions_request(uuid: string) {
+  if (!logger_setup) {
+    setup(LOG_LEVEL, LOG_LEVEL);
+    logger_setup = true;
+  }
+  const db = await getDBInstance();
+  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+  if (emissions_request) {
+    // check status is correct
+    if (emissions_request.status == 'PENDING') {
+      const fd = Math.floor(emissions_request.token_from_date.getTime() / 1000);
+      const td = Math.floor(emissions_request.token_thru_date.getTime() / 1000);
+      const token = await gateway_issue_token(
+        emissions_request.issuee,
+        emissions_request.token_total_emissions,
+        fd,
+        td,
+        emissions_request.token_manifest,
+        emissions_request.token_metadata,
+        emissions_request.token_description
+      );
+      if (token) {
+        await db.getEmissionsRequestRepo().updateToIssued(uuid);
+        return token;
+      } else {
+        throw new Error(`Cannot issue a token for emissions request ${uuid}`);
+      }
+    } else {
+      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+    }
+  } else {
+    throw new Error(`Cannot get emissions request ${uuid}`);
+  }
+}
+
+export async function get_auditor_emissions_requests(auditor: string) {
+  const db = await getDBInstance();
+  return await db.getEmissionsRequestRepo().selectByEmissionAuditor(auditor);
+}
+

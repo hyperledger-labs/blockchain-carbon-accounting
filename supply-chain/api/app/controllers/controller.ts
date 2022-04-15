@@ -8,7 +8,9 @@ import { GroupedResult,
   process_activities,
   group_processed_activities,
   issue_tokens_with_issuee,
-  decline_emissions_request
+  decline_emissions_request,
+  issue_emissions_request,
+  get_auditor_emissions_requests
 } from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
@@ -130,4 +132,22 @@ export async function declineEmissionsRequest(req: Request, res: Response) {
       return res.status(500).json({ error: error.message || error });
     }
     return res.status(200).json({success: '1'});
+}
+
+export async function issueEmissionsRequest(req: Request, res: Response) {
+    try {
+      await issue_emissions_request(req.params.uuid);
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+    return res.status(200).json({success: '1'});
+}
+
+export async function getEmissionsRequests(req: Request, res: Response) {
+    try {
+      const emissionsRequests = await get_auditor_emissions_requests(req.params.auditor);
+      return res.status(200).json({success: '1', items: emissionsRequests});
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
 }

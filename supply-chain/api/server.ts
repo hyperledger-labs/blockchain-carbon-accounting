@@ -16,6 +16,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.post('/issue', keyRouter);
 
 app.delete('/emissionsrequest/:uuid', keyRouter);
+app.put('/emissionsrequest/:uuid', keyRouter);
+app.get('/emissionsrequests/:auditor', keyRouter);
 
 app.listen(PORT, () => {
     console.log(`Server is listening on ${PORT}`);

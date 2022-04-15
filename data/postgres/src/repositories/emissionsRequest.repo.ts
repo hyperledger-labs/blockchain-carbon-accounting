@@ -42,6 +42,19 @@ export class EmissionsRequestRepo {
     }
   }
 
+  public selectByEmissionAuditor = async (emissionAuditor: string): Promise<Array<EmissionsRequest>> => {
+    let status = 'PENDING';
+    try {
+      return await this._db.getRepository(EmissionsRequest)
+        .createQueryBuilder('emissions_request')
+        .where("emissions_request.emission_auditor = :emissionAuditor", {emissionAuditor})
+        .andWhere("emissions_request.status = :status", {status})
+        .getMany()
+    } catch (error) {
+      throw new Error('cannot select auditor emissions requests')
+    }
+  }
+
   public updateToPending = async (uuid: string, emissionAuditor: string, inputDataIpfsHash: string) => {
     let status = 'PENDING';
     try {
