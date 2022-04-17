@@ -11,8 +11,8 @@ type OutputActivity = {
     error?: string
 };
 
-async function process_group(issuee: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
-    const token_res = await issue_tokens_with_issuee(issuee, g, activity_type, publicKeys, mode);
+async function process_group(issueFrom: string, issueTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
+    const token_res = await issue_tokens_with_issuee(issueFrom, issueTo, g, activity_type, publicKeys, mode);
     // add each activity to output array
     for (const a of g.content) {
         const out: OutputActivity = { id: a.activity.id };
@@ -27,10 +27,20 @@ export function issueToken(req: Request, res: Response) {
 
     const verbose = req.body.verbose;
     const pretend = req.body.pretend;
-    const issuee = req.body.issuee;
+    const issueFrom = req.body.issueFrom;
+    const issueTo = req.body.issueTo;
 
-    console.log(`Start request, issue to ${issuee} verbose? ${verbose} pretend? ${pretend}`)
-    if(!pretend && issuee == undefined) {
+    console.log(`Start request, issue to ${issueTo} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issueTo == undefined) {
+        console.log('== 400 No issuee.')
+        return res.status(400).json({
+            status: "failed",
+            msg: "Issuee was not given."
+        });
+    }
+
+    console.log(`issue from ${issueFrom} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issueFrom == undefined) {
         console.log('== 400 No issuee.')
         return res.status(400).json({
             status: "failed",
@@ -85,11 +95,11 @@ export function issueToken(req: Request, res: Response) {
                 const group = grouped_by_type[t] as GroupedResults;
                 for (const mode in group) {
                     const doc = group[mode] as GroupedResult;
-                    await process_group(issuee, output_array, doc, t, pubKeys, mode);
+                    await process_group(issueFrom, issueTo, output_array, doc, t, pubKeys, mode);
                 }
             } else {
                 const doc = grouped_by_type[t] as GroupedResult;
-                await process_group(issuee, output_array, doc, t, pubKeys);
+                await process_group(issueFrom, issueTo, output_array, doc, t, pubKeys);
             }
         }
         // add back any errors we filtered before to the output

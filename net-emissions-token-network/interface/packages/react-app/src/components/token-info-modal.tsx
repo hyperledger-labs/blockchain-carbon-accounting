@@ -121,12 +121,16 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
           </thead>
           <tbody>
             <tr>
-              <td>Issuer</td>
-              <td className="text-monospace">{props.token.issuer}</td>
+              <td>Issued By</td>
+              <td className="text-monospace">{props.token.issuedBy}</td>
             </tr>
             <tr>
-              <td>Issuee</td>
-              <td className="text-monospace">{props.token.issuee}</td>
+              <td>Issued From</td>
+              <td className="text-monospace">{props.token.issuedFrom}</td>
+            </tr>
+            <tr>
+              <td>Issued To</td>
+              <td className="text-monospace">{props.token.issuedTo}</td>
             </tr>
             <tr>
               <td>From date</td>

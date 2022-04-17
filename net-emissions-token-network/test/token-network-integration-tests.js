@@ -45,6 +45,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1, 
         consumer1,
         allTokenTypeId[0],
         quantity,
@@ -61,6 +62,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithDealerTwo = await contract
         .connect(await ethers.getSigner(dealer2))
         .issue(
+          dealer1,
           consumer1,
           allTokenTypeId[0],
           quantity,
@@ -80,6 +82,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithConsumer = await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
+          dealer1,
           consumer1,
           allTokenTypeId[0],
           quantity,
@@ -164,6 +167,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issueTwo = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[0],
         quantity,
@@ -224,6 +228,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -240,6 +245,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithDealerTwo = await contract
         .connect(await ethers.getSigner(dealer2))
         .issue(
+          dealer2,
           consumer1,
           allTokenTypeId[1],
           quantity,
@@ -259,6 +265,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithConsumer = await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
+          dealer1,
           consumer1,
           allTokenTypeId[1],
           quantity,
@@ -343,6 +350,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issueTwo = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -356,6 +364,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issueThree = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -416,6 +425,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[2],
         quantity,
@@ -432,6 +442,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithDealerTwo = await contract
         .connect(await ethers.getSigner(dealer2))
         .issue(
+          dealer2,
           consumer1,
           allTokenTypeId[2],
           quantity,
@@ -451,6 +462,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithConsumer = await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
+          dealer2,
           consumer1,
           allTokenTypeId[2],
           quantity,
@@ -494,6 +506,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issueTwo = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[2],
         quantity,
@@ -507,6 +520,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     let issueThree = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer2,
         consumer1,
         allTokenTypeId[2],
         quantity,
@@ -573,6 +587,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       .connect(await ethers.getSigner(industry1))
       .issue(
         industry1,
+        industry1,
         allTokenTypeId[3],
         quantity,
         fromDate,
@@ -590,6 +605,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         .connect(await ethers.getSigner(consumer1))
         .issue(
           industry1,
+          industry1,
           allTokenTypeId[3],
           quantity,
           fromDate,
@@ -606,6 +622,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithIndustryTwo = await contract
         .connect(await ethers.getSigner(industry2))
         .issue(
+          industry2,
           industry1,
           allTokenTypeId[3],
           quantity,
@@ -625,6 +642,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
       let issueWithAe = await contract
         .connect(await ethers.getSigner(dealer1))
         .issue(
+          dealer1,
           dealer1,
           allTokenTypeId[3],
           quantity,

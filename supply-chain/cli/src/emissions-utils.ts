@@ -95,6 +95,7 @@ export function get_flight_emission_factor(seat_class: string): EmissionFactor {
 async function getEmissionFactor(f: EmissionFactor) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
+  console.log(factors);
   if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
   if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
   return factors[0];
@@ -147,7 +148,8 @@ export async function issue_emissions_tokens(
     activity_type,
     from_date,
     thru_date,
-    process.env.ETH_ISSUEE_ACCT || "",
+    process.env.ETH_ISSUE_FROM_ACCT || "",
+    process.env.ETH_ISSUE_TO_ACCT || "",
     total_emissions,
     metadata,
     hash,
@@ -160,7 +162,8 @@ export async function issue_emissions_tokens_with_issuee(
   activity_type: string,
   from_date: Date,
   thru_date: Date,
-  issuee: string,
+  issueFrom: string,
+  issueTo: string,
   total_emissions: number,
   metadata: string,
   hash: string,
@@ -186,14 +189,15 @@ export async function issue_emissions_tokens_with_issuee(
     signer: signer,
   });
   const caller: IEthTxCaller = {
-    address: process.env.ETH_ISSUER_ACCT,
-    private: process.env.ETH_ISSUER_PRIVATE_KEY,
+    address: process.env.ETH_ISSUE_BY_ACCT,
+    private: process.env.ETH_ISSUE_BY_PRIVATE_KEY,
   };
 
   const manifest = create_manifest(publicKey, ipfs_path, hash);
 
   const input: IEthNetEmissionsTokenIssueInput = {
-    addressToIssue: issuee,
+    issueFrom: issueFrom,
+    issueTo: issueTo,
     quantity: tokens.toNumber(),
     fromDate: fd,
     thruDate: td,
@@ -398,7 +402,8 @@ export async function issue_tokens(
 }
 
 export async function issue_tokens_with_issuee(
-  issuee: string,
+  issueFrom: string,
+  issueTo: string,
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
@@ -426,7 +431,8 @@ export async function issue_tokens_with_issuee(
     activity_type,
     doc.from_date,
     doc.thru_date,
-    issuee,
+    issueFrom,
+    issueTo,
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
@@ -449,7 +455,7 @@ export async function create_emissions_request(
   publickey_name: string,
   issuee: string
 ) {
-  issuee = issuee || process.env.ETH_ISSUEE_ACCT;
+  issuee = issuee || process.env.ETH_ISSUE_TO_ACCT;
   const status = 'CREATED';
   const publickey = readFileSync(publickey_name, 'utf8');
 

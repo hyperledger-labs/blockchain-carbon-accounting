@@ -22,8 +22,9 @@ export interface StringPayload {
 export interface TokenPayload {
   tokenId: number;
   tokenTypeId: number;
-  issuee: string;
-  issuer: string;
+  issuedBy: string;
+  issuedFrom: string;
+  issuedTo: string;
   fromDate: number;
   thruDate: number;
   dateCreated: number;

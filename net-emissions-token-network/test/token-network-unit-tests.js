@@ -43,6 +43,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       await contract
         .connect(await ethers.getSigner(dealer1))
         .issue(
+          dealer1,
           consumer1,
           "5",
           quantity,
@@ -62,6 +63,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -76,6 +78,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue2 = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[2],
         quantity,
@@ -245,6 +248,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -265,8 +269,9 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     await contract.getTokenDetails(tokenId).then((response) => {
       expect(response.tokenId.toNumber()).to.equal(tokenId);
-      expect(response.issuer).to.equal(dealer1);
-      expect(response.issuee).to.equal(consumer1);
+      expect(response.issuedBy).to.equal(dealer1);
+      expect(response.issuedFrom).to.equal(dealer1);
+      expect(response.issuedTo).to.equal(consumer1);
       expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
       expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
       expect(response.thruDate.toNumber()).to.equal(Number(thruDate));
@@ -321,6 +326,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -435,6 +441,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[2],
         quantity,
@@ -494,6 +501,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -596,6 +604,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -669,6 +678,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let error = null;
     try {
       await contract.connect(await ethers.getSigner(deployer)).issue(
+        deployer,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -689,6 +699,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     error = null;
     try {
       await contract.connect(await ethers.getSigner(dealer2)).issue(
+        dealer2,
         deployer,
         allTokenTypeId[1],
         quantity,
@@ -708,6 +719,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // temporarily turn off limited mode and issue tokens to owner (to simulate issuing with DAO)
     await contract.connect(await ethers.getSigner(deployer)).setLimitedMode(false);
     await contract.connect(await ethers.getSigner(deployer)).issue(
+      deployer,
       deployer,
       allTokenTypeId[1],
       quantity,
@@ -738,6 +750,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // issue audited emissions token from dealer
     await contract.connect(await ethers.getSigner(dealer1)).issue(
+      dealer1,
       consumer1,
       allTokenTypeId[2],
       quantity,
@@ -780,6 +793,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // issue token on first contract
     await instance.connect(await ethers.getSigner(deployer)).issue(
+      deployer,
       deployer,
       allTokenTypeId[0],
       quantity,

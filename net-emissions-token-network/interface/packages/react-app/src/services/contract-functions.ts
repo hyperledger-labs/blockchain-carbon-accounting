@@ -201,7 +201,8 @@ export async function getAdmin(w3provider: Web3Provider) {
 
 export async function issue(
   w3provider: Web3Provider,
-  address: string,
+  issueFrom: string,
+  issueTo: string,
   tokenTypeId: number,
   quantity: number,
   fromDate: number|Date,
@@ -216,7 +217,8 @@ export async function issue(
   let issue_result;
   try {
     await signed.issue(
-      address,
+      issueFrom,
+      issueTo,
       tokenTypeId,
       quantity,
       convertToZeroIfBlank(toUnixTime(fromDate)),

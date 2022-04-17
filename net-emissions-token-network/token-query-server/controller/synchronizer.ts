@@ -57,6 +57,7 @@ export const syncWallets = async (currentBlock: number) => {
             else 
                 toBlock = fromBlock + 5000; 
             for (const {event} of events) {
+                console.log("event: ", event);
                 const logs = await contract.getPastEvents(event, {fromBlock, toBlock});
                 for (const {returnValues} of logs) {
                     const account = returnValues.account
@@ -133,6 +134,7 @@ const getNumOfUniqueTokens = async (): Promise<number> => {
 async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
     try {
         const token: CreatedToken = await contract.methods.getTokenDetails(tokenId).call();
+        console.log(token);
 
         // restructure 
         const _metadata = token.metadata as string;

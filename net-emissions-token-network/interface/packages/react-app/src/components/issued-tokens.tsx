@@ -218,8 +218,9 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           type: tokenDetails.type,
           tokenTypeId: tokenDetails.tokenTypeId,
           tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
-          issuer: tokenDetails.issuer,
-          issuee: tokenDetails.issuee,
+          issuedFrom: tokenDetails.issuedFrom,
+          issuedBy: tokenDetails.issuedBy,
+          issuedTo: tokenDetails.issuedTo,
           dateCreated: tokenDetails.dateCreated,
           fromDate: fromDate,
           thruDate: thruDate,
@@ -230,7 +231,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           totalRetired: totalRetired,
         };
 
-        if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
+        if (token.issuedFrom.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
           token.isMyIssuedToken = true;
         }

@@ -37,6 +37,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
   // Form inputs
   const [address, setAddress] = useState("");
+  const [issueFrom, setIssueFrom] = useState('');
+  
   const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
   const [fromDate, setFromDate] = useState<Date|null>(null);
@@ -216,7 +218,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
 
-    let result = await issue(provider, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
+    let result = await issue(provider, issueFrom, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     setResult(result.toString());
   }
 
@@ -249,10 +251,27 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       <h2>Issue tokens</h2>
       <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered consumers.</p>
 
+      <Form.Group>
+          <Form.Label>Issue From Address</Form.Label>
+          <InputGroup>
+            <WalletLookupInput 
+              onChange={(v: string) => { setIssueFrom(v) }} 
+              onWalletChange={(w)=>{
+                setIssueFrom(w ? w.address! : '');
+              }} 
+              onBlur={() => setInitializedAddressInput(true)}
+              style={(issueFrom || !initializedAddressInput) ? {} : inputError}
+              />
+          </InputGroup>
+          <Form.Text className="text-muted">
+            Must be a registered dealer.
+          </Form.Text>
+        </Form.Group>
+
       { ((!limitedMode) || (tokenTypeId === 3))
         ?
         <Form.Group>
-          <Form.Label>Address</Form.Label>
+          <Form.Label>Issue To Address</Form.Label>
           <InputGroup>
             <WalletLookupInput 
               onChange={(v: string) => { setAddress(v) }} 
