@@ -466,7 +466,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         {lookupWallet.organization && <li>Organization: {lookupWallet.organization}</li>}
         {lookupWallet.public_key_name && <li>Public Key Name: {lookupWallet.public_key_name}</li>}
         {lookupWallet.public_key && <li>
-          <Accordion defaultActiveKey="0">
+          <Accordion>
             <CustomToggle eventKey="0">
               Public Key:
               {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
