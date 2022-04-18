@@ -1,7 +1,7 @@
 import { EntityTarget, SelectQueryBuilder } from "typeorm"
 
 export interface BalancePayload {
-  issuee: string
+  issuedTo: string
   tokenId: number
   available: number
   retired: number

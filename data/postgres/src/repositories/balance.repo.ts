@@ -80,7 +80,7 @@ export class BalanceRepo {
         transferred: () => `balance."transferred" + ${amount}`
       })
       .where("tokenId = :tokenId", {tokenId})
-      .andWhere('LOWER(issuee) = LOWER(:issuedTo)', {issuedTo})
+      .andWhere('LOWER(issuedTo) = LOWER(:issuedTo)', {issuedTo})
       .execute()
     } catch (error) {
       throw new Error(`Cannot deduct ${tokenId} available balance ${amount} from ${issuedTo}`)

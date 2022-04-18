@@ -241,7 +241,7 @@ export const fillBalances = async (currentBlock: number) => {
             if(from == BURN) {
                 const balancePayload: BalancePayload = {
                     tokenId,
-                    issuee: to,
+                    issuedTo: to,
                     available: Number(amount),
                     retired: 0,
                     transferred: 0
@@ -274,7 +274,7 @@ export const fillBalances = async (currentBlock: number) => {
             if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,
-                    issuee: to,
+                    issuedTo: to,
                     available: Number(amount),
                     retired: 0,
                     transferred: 0

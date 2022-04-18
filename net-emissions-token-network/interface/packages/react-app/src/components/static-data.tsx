@@ -63,7 +63,7 @@ export type Tracker = {
 }
 
 export type Balance = {
-  issuee: string
+  issuedTo: string
   tokenId: number
   available: number
   retired: number

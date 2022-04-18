@@ -133,7 +133,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           tokenId: balance.token.tokenId,
           token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
-          issuee: balance.issuee,
+          issuedTo: balance.issuedTo,
           availableBalance: (balance.available / 1000).toFixed(3),
           retiredBalance: (balance.retired / 1000).toFixed(3),
           transferredBalance: (balance.transferred / 1000).toFixed(3)
