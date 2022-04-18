@@ -215,7 +215,7 @@ async function gateway_issue_token(
     quantity: quantity,
     fromDate: fromDate,
     thruDate: thruDate,
-    manifest: JSON.stringify(manifest),
+    manifest: manifest,
     metadata: metadata,
     description: description
   };
