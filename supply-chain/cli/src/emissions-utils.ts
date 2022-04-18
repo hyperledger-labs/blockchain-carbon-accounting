@@ -9,7 +9,6 @@ import EthNetEmissionsTokenGateway from "emissions_data/src/blockchain-gateway/n
 import Signer from "emissions_data/src/blockchain-gateway/signer";
 import { setup } from "emissions_data/src/utils/logger";
 import { PostgresDBService } from "blockchain-carbon-accounting-data-postgres/src/postgresDbService";
-import { EmissionsRequestPayload } from "blockchain-carbon-accounting-data-postgres/src/repositories/common";
 import {
   Activity,
   ActivityResult,

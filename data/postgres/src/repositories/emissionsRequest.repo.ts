@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm"
 import { EmissionsRequest } from "../models/emissionsRequest"
-import { EmissionsRequestPayload } from "./common"
+import { type EmissionsRequestPayload } from "./common"
 
 export class EmissionsRequestRepo {
 

@@ -1,4 +1,5 @@
 import { EntityTarget, SelectQueryBuilder } from "typeorm"
+import { EmissionsRequest } from "../models/emissionsRequest";
 
 export interface BalancePayload {
   issuedTo: string
@@ -38,20 +39,7 @@ export interface TokenPayload {
   type: string;
 }
 
-export interface EmissionsRequestPayload {
-  input_data: string;
-  public_key: string;
-  public_key_name: string;
-  issuee: string;
-  status: string;
-  token_from_date: Date;
-  token_thru_date: Date;
-  token_total_emissions: number;
-  token_metadata: string;
-  token_manifest: string;
-  token_description: string;
-}
-
+export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
 
 // eslint-disable-next-line
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>, entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
