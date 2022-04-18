@@ -96,7 +96,6 @@ export function get_flight_emission_factor(seat_class: string): EmissionFactor {
 async function getEmissionFactor(f: EmissionFactor) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
-  console.log(factors);
   if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
   if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
   return factors[0];
@@ -399,6 +398,7 @@ export async function issue_tokens(
       ipfs_res.path,
       input_data,
       publicKeys[0],
+      null,
       null);
     return {"tokenId": "queued"};
   } else {
@@ -469,9 +469,11 @@ export async function create_emissions_request(
   ipfs_path: string,
   input_data: string,
   publickey_name: string,
-  issuee: string
+  issuee_from: string,
+  issuee_to: string
 ) {
-  issuee = issuee || process.env.ETH_ISSUE_TO_ACCT;
+  issuee_from = issuee_from || process.env.ETH_ISSUE_FROM_ACCT;
+  issuee_to = issuee_to || process.env.ETH_ISSUE_TO_ACCT;
   const status = 'CREATED';
   const publickey = readFileSync(publickey_name, 'utf8');
 
@@ -488,7 +490,8 @@ export async function create_emissions_request(
     input_data: input_data,
     public_key: publickey,
     public_key_name: publickey_name,
-    issuedTo: issuee,
+    issued_from: issuee_from,
+    issued_to: issuee_to,
     status: status,
     token_from_date: f_date,
     token_thru_date: t_date,
@@ -582,8 +585,8 @@ export async function issue_emissions_request(uuid: string) {
       const fd = Math.floor(emissions_request.token_from_date.getTime() / 1000);
       const td = Math.floor(emissions_request.token_thru_date.getTime() / 1000);
       const token = await gateway_issue_token(
-        emissions_request.issuedFrom,
-        emissions_request.issuedTo,
+        emissions_request.issued_from,
+        emissions_request.issued_to,
         emissions_request.token_total_emissions,
         fd,
         td,

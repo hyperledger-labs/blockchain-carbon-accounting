@@ -22,10 +22,10 @@ export class EmissionsRequest {
   public_key_name!: string;
 
   @Column({nullable: false})
-  issuedFrom!: string;
+  issued_from!: string;
 
   @Column({nullable: false})
-  issuedTo!: string;
+  issued_to!: string;
 
   @Column({nullable: false})
   status!: string;
