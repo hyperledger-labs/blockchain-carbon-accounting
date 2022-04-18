@@ -488,7 +488,7 @@ export async function create_emissions_request(
     input_data: input_data,
     public_key: publickey,
     public_key_name: publickey_name,
-    issuee: issuee,
+    issuedTo: issuee,
     status: status,
     token_from_date: f_date,
     token_thru_date: t_date,
