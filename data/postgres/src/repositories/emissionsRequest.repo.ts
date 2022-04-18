@@ -43,7 +43,7 @@ export class EmissionsRequestRepo {
   }
 
   public selectByEmissionAuditor = async (emissionAuditor: string): Promise<Array<EmissionsRequest>> => {
-    let status = 'PENDING';
+    const status = 'PENDING';
     try {
       return await this._db.getRepository(EmissionsRequest)
         .createQueryBuilder('emissions_request')
@@ -56,7 +56,7 @@ export class EmissionsRequestRepo {
   }
 
   public updateToPending = async (uuid: string, emissionAuditor: string, inputDataIpfsHash: string) => {
-    let status = 'PENDING';
+    const status = 'PENDING';
     try {
       await this._db.getRepository(EmissionsRequest)
       .createQueryBuilder('emissions_request')
