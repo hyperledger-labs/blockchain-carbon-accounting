@@ -484,7 +484,8 @@ export async function create_emissions_request(
 
   const manifest = create_manifest(publickey_name, ipfs_path, hash);
 
-  const payload: EmissionsRequestPayload = {
+  const db = await getDBInstance();
+  await db.getEmissionsRequestRepo().insert({
     input_data: input_data,
     public_key: publickey,
     public_key_name: publickey_name,
@@ -496,10 +497,7 @@ export async function create_emissions_request(
     token_metadata: metadata,
     token_manifest: JSON.stringify(manifest),
     token_description: `Emissions from ${activity_type}`
-  }
-
-  const db = await getDBInstance();
-  await db.getEmissionsRequestRepo().insert(payload);
+  });
 }
 
 function create_manifest(publickey_name: string, ipfs_path: string, hash: string) {
