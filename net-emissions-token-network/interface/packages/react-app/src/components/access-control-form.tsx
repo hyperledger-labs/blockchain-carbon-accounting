@@ -449,7 +449,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-      <h4>Look-up User Wallet or New Address</h4>
+      <h4>Find or Set Up a User</h4>
       <InputGroup className="mb-3">
         <WalletLookupInput 
           onChange={onLookupInputChange} 

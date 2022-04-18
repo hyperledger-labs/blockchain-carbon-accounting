@@ -61,7 +61,7 @@ const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange,
     loading={lookupQuery.isLoading}
     sx={{ backgroundColor: 'white', flex: '1 1 auto', width: '1%', minWidth: 0 }}
     renderInput={(params) => 
-      <TextField {...params} label="Lookup by Address (0x0000...) or Name" />
+      <TextField {...params} label="Enter Address (0x0000...) or Name" />
     }
     getOptionLabel={(option) => (typeof option === 'string') ? option : option.address!}
     filterOptions={(x) => x} 
