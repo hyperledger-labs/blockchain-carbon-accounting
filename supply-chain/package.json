@@ -14,7 +14,9 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "cors": "^2.8.5",
+    "typeorm": "^0.3.5"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",

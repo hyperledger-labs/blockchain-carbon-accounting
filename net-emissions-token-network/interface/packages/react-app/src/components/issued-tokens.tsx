@@ -24,6 +24,7 @@ import {
 import TokenInfoModal from "./token-info-modal";
 import TrackerInfoModal from "./tracker-info-modal";
 import { getBalances, getTokens } from '../services/api.service';
+import { countAuditorEmissionsRequests } from '../services/supply-chain-api';
 import Paginator from "./paginate";
 import QueryBuilder from "./query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "./static-data";
@@ -55,6 +56,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   const [fetchingTokens, setFetchingTokens] = useState(false);
   const [fetchingTrackers, setFetchingTrackers] = useState(false);
 
+  const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
 
   const [error, setError] = useState("");
 
@@ -379,6 +381,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           await fetchTokens(page, pageSize, query);
           await fetchBalances(balancePage, balancePageSize, balanceQuery);
         }
+        let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
+        setEmissionsRequestsCount(_emissionsRequestsCount);
     } }
     init();
   }, [provider, signedInAddress]);
@@ -423,6 +427,10 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
             <h2>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued <Button variant="outline-dark" href="/issue">Issue</Button> </h2>
+            {(emissionsRequestsCount) ?
+              <p className="mb-1">You have {emissionsRequestsCount} pending emissions audits.</p>
+              : null
+            }
             <QueryBuilder 
               fieldList={TOKEN_FIELDS}
               handleQueryChanged={handleQueryChanged}
