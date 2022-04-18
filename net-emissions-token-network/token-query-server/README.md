@@ -1,10 +1,12 @@
-# API Server for searching for tokens by fields and json metadata of token
+# Database Layer and API Server 
 
-## preliminary
+This component contains a postgresql database layer and API server for searching for tokens and wallets.  It can be used to search for tokens by fields and json metadata of token and for wallets to get the user's identities, which are not published on the blockchain but may be known to the operator the dApp.
 
-* Issue some tokens by `emissions.js` or `dapp`. 
-* For synchronizing, we need moralis api_key.
-### Getting Moralis API KEY
+## Setting Up
+
+Copy the file `.env.SAMPLE` to `.env` and fill in your database information.
+
+To synchronize with public networks, we will need an API from Moralis:
 
 * Sign up [Moralis](https://moralis.io/)
 * Go to admin page and select `Speedy Nodes` tab.
@@ -18,11 +20,20 @@ Run `npm install`.
 
 Run `npm run dev`.
 
+If you are using Hardhat local development mode and have used the `npx hardhat setTestAccountRoles` to set up some test wallets with roles, then you can load them into the database with
+
+`psql blockchain-carbon-accounting < seedHardhatDemoWallets.sql `
+
 # Usage
 
-Base URL `http://127.0.0.1:8000`
+* Issue some tokens by `emissions.js` or from the Issue Tokens screen. 
+* Go to the Dashboard or Issue Tokens screens, and you'll be able to search for your tokens.  This search uses the database.
+* Go to the Manage Roles screen, search for a wallet or a name, and you'll be able to see the wallet and its roles.  The search and the identities are both from the database.
 
-## Get Tokens 
+## API Server
+
+The api server can be accessed at  `http://127.0.0.1:8000`.  To use it, for example to get Tokens data:
+
 GET `/tokens`
 ```
 {
