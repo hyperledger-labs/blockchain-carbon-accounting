@@ -30,6 +30,7 @@ import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { getEmissionsAuditors } from './token-query-utils';
 import * as carrier_emission_factors from "../data/carrier_service_mapping.json"
 import * as flight_emission_factors from "../data/flight_service_mapping.json"
+import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -509,7 +510,7 @@ function create_manifest(publickey_name: string, ipfs_path: string, hash: string
   };
 }
 
-function get_random_auditor(auditors) {
+function get_random_auditor(auditors: Wallet[]) {
   if (auditors && auditors.length > 0) {
     if (auditors.length == 1) {
       return auditors[0];
@@ -529,12 +530,7 @@ export async function process_emissions_requests() {
       const auditors = await getEmissionsAuditors();
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
-        const active_auditors = [];
-        for (const a in auditors) {
-          if (auditors[a].public_key) {
-            active_auditors.push(auditors[a]);
-          }
-        }
+        const active_auditors = auditors.filter((w) => !!w.public_key);
         if (active_auditors.length > 0) {
           // process from created to pending
           for (const e in emissions_requests) {
