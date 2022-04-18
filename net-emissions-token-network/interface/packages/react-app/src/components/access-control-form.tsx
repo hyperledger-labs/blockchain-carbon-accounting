@@ -53,9 +53,10 @@ function RolesList({ roles }: {roles: RolesInfo}) {
 }
 
 function CustomToggle({ children, eventKey }: {children:ReactNode, eventKey:string}) {
-  const currentEventKey = useContext(AccordionContext);
+  const { activeEventKey } = useContext(AccordionContext);
   const decoratedOnClick = useAccordionButton(eventKey);
-  const isCurrentEventKey = currentEventKey === eventKey;
+  console.log('CustomToggle', eventKey, activeEventKey)
+  const isCurrentEventKey = activeEventKey === eventKey;
 
   return (
     <div>
