@@ -114,14 +114,14 @@ export async function getRoles(w3provider: Web3Provider, address: string) {
   }
 }
 
-export async function getIssuer(w3provider: Web3Provider, tokenId: number) {
+export async function getIssuedBy(w3provider: Web3Provider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let issuer;
   try {
-    issuer = await contract.getIssuer(tokenId);
+    issuer = await contract.getIssuedBy(tokenId);
   } catch (error) {
     issuer = getErrorMessage(error) 
-    console.error('getIssuer', error);
+    console.error('getIssuedBy', error);
   }
   return issuer;
 }

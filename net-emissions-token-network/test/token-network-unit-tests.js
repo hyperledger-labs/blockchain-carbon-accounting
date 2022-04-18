@@ -282,7 +282,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
       expect(response.totalRetired).to.equal(0);
     });
 
-    await contract.getIssuer(tokenId).then((response) => {
+    await contract.getIssuedBy(tokenId).then((response) => {
       expect(response).to.equal(dealer1);
     });
 
@@ -297,7 +297,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     // try to get issuer of token that does not exist
     try {
-      await contract.connect(await ethers.getSigner(consumer1)).getIssuer(100);
+      await contract.connect(await ethers.getSigner(consumer1)).getIssuedBy(100);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("tokenId does not exist")

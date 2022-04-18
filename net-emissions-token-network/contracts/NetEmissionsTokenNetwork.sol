@@ -425,18 +425,10 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
                     "CLM8::_issue(limited): issuee not admin"
                 );
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedFrom) || hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
-                    "CLM8::_issue(limited): proposer not a registered dealer"
-                );
-                require(
                     hasRole(REGISTERED_REC_DEALER, _issuedBy) || hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue(limited): proposer not a registered dealer"
                 );
             } else if (_tokenTypeId == 3) {
-                require(
-                    hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedFrom),
-                    "CLM8::_issue(limited): issuer not a registered emissions auditor"
-                );
                 require(
                     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
                     "CLM8::_issue(limited): issuer not a registered emissions auditor"
@@ -445,18 +437,10 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         } else {
             if (_tokenTypeId == 1) {
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedFrom),
-                    "CLM8::_issue: issuer not a registered REC dealer"
-                );
-                require(
                     hasRole(REGISTERED_REC_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered REC dealer"
                 );
             } else if (_tokenTypeId == 2) {
-                require(
-                    hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
-                    "CLM8::_issue: issuer not a registered offset dealer"
-                );
                 require(
                     hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered offset dealer"
@@ -474,10 +458,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         }
         // TO-DO: Define limited mode for tokenTypeId 4?
         if (_tokenTypeId == 4) {
-            require(
-                hasRole(REGISTERED_INDUSTRY, _issuedFrom),
-                "CLM8::_issue: issuer not a registered industry"
-            );
             require(
                 hasRole(REGISTERED_INDUSTRY, _issuedBy),
                 "CLM8::_issue: issuer not a registered industry"
@@ -856,12 +836,12 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     /**
      * @dev returns issuer of a given tokenId
      */
-    function getIssuer(uint256 tokenId)
+    function getIssuedBy(uint256 tokenId)
         external
         view
         returns (address)
     {
-        return _tokenDetails[tokenId].issuedFrom;
+        return _tokenDetails[tokenId].issuedBy;
     }
 
     /**
