@@ -3,7 +3,8 @@ import multer from 'multer';
 import { issueToken,
   declineEmissionsRequest,
   issueEmissionsRequest,
-  getEmissionsRequests
+  getEmissionsRequests,
+  countEmissionsRequests
 } from '../controllers/controller';
 
 const router: Router = express.Router();
@@ -22,5 +23,6 @@ router
 router.delete('/emissionsrequest/:uuid', declineEmissionsRequest);
 router.put('/emissionsrequest/:uuid', issueEmissionsRequest);
 router.get('/emissionsrequests/:auditor', getEmissionsRequests);
+router.get('/emissionsrequests/:auditor/:op', countEmissionsRequests);
 
 export { router };

@@ -18,6 +18,7 @@ app.post('/issue', keyRouter);
 app.delete('/emissionsrequest/:uuid', keyRouter);
 app.put('/emissionsrequest/:uuid', keyRouter);
 app.get('/emissionsrequests/:auditor', keyRouter);
+app.get('/emissionsrequests/:auditor/:op', keyRouter);
 
 app.listen(PORT, () => {
     console.log(`Server is listening on ${PORT}`);

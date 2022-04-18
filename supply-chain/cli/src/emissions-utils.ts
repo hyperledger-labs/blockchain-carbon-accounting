@@ -613,3 +613,8 @@ export async function get_auditor_emissions_requests(auditor: string) {
   return await db.getEmissionsRequestRepo().selectByEmissionAuditor(auditor);
 }
 
+export async function count_auditor_emissions_requests(auditor: string) {
+  const db = await getDBInstance();
+  return await db.getEmissionsRequestRepo().countByEmissionAuditor(auditor);
+}
+
