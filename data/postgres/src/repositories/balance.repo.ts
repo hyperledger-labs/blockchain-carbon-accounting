@@ -21,12 +21,12 @@ export class BalanceRepo {
     return
   }
 
-  public selectBalance = async (issuee: string, tokenId: number): Promise<Balance | null> => {
+  public selectBalance = async (issuedTo: string, tokenId: number): Promise<Balance | null> => {
     try {
       return await this._db.getRepository(Balance)
         .createQueryBuilder('balance')
         .where("balance.tokenId = :tokenId", {tokenId})
-        .andWhere('LOWER(balance.issuee) = LOWER(:issuee)', {issuee})
+        .andWhere('LOWER(balance.issuedTo) = LOWER(:issuedTo)', {issuedTo})
         .getOne()
     } catch (error) {
       throw new Error('cannot select one')
@@ -36,7 +36,7 @@ export class BalanceRepo {
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>) : Promise<Array<Balance>> => {
     try {
       let selectBuilder: SelectQueryBuilder<Balance> = this._db.getRepository(Balance).createQueryBuilder('balance')
-      selectBuilder = buildQueries('balance', selectBuilder, bundles)
+      selectBuilder = buildQueries('balance', selectBuilder, bundles, [Balance, Token])
       return selectBuilder    
         .limit(limit)
         .offset(offset)
@@ -56,21 +56,21 @@ export class BalanceRepo {
     .execute()
   }
 
-  public addAvailableBalance = async (issuee: string, tokenId: number, amount: number) => {
+  public addAvailableBalance = async (issuedTo: string, tokenId: number, amount: number) => {
     try {
       await this._db.getRepository(Balance)
       .createQueryBuilder('balance')
       .update(Balance)
       .set({available: () => `balance."available" + ${amount}`})
       .where("tokenId = :tokenId", {tokenId})
-      .andWhere('LOWER(issuee) = LOWER(:issuee)', {issuee})
+      .andWhere('LOWER(issuedTo) = LOWER(:issuedTo)', {issuedTo})
       .execute()
     } catch (error) {
-      throw new Error(`Cannot add ${tokenId} available balance ${amount} to ${issuee}`)
+      throw new Error(`Cannot add ${tokenId} available balance ${amount} to ${issuedTo}`)
     }
   }
 
-  public transferBalance = async (issuee: string, tokenId: number, amount: number) => {
+  public transferBalance = async (issuedTo: string, tokenId: number, amount: number) => {
     try {
       await this._db.getRepository(Balance)
       .createQueryBuilder('balance')
@@ -80,14 +80,14 @@ export class BalanceRepo {
         transferred: () => `balance."transferred" + ${amount}`
       })
       .where("tokenId = :tokenId", {tokenId})
-      .andWhere('LOWER(issuee) = LOWER(:issuee)', {issuee})
+      .andWhere('LOWER(issuee) = LOWER(:issuedTo)', {issuedTo})
       .execute()
     } catch (error) {
-      throw new Error(`Cannot deduct ${tokenId} available balance ${amount} from ${issuee}`)
+      throw new Error(`Cannot deduct ${tokenId} available balance ${amount} from ${issuedTo}`)
     }
   }
 
-  public retireBalance = async (issuee: string, tokenId: number, amount: number) => {
+  public retireBalance = async (issuedTo: string, tokenId: number, amount: number) => {
     try {
       await this._db.getRepository(Balance)
       .createQueryBuilder('balance')
@@ -97,17 +97,17 @@ export class BalanceRepo {
         retired: () => `balance."retired" + ${amount}`
       })
       .where("tokenId = :tokenId", {tokenId})
-      .andWhere('LOWER(issuee) = LOWER(:issuee)', {issuee})
+      .andWhere('LOWER(issuedTo) = LOWER(:issuedTo)', {issuedTo})
       .execute()
     } catch (error) {
-      throw new Error(`Cannot add ${tokenId} retired balance ${amount} to ${issuee}`)
+      throw new Error(`Cannot add ${tokenId} retired balance ${amount} to ${issuedTo}`)
     }
   }
 
   public count = (bundles: Array<QueryBundle>): Promise<number> => {
     try {
       let selectBuilder: SelectQueryBuilder<Balance> = this._db.getRepository(Balance).createQueryBuilder("balance")
-      selectBuilder = buildQueries('balance', selectBuilder, bundles)
+      selectBuilder = buildQueries('balance', selectBuilder, bundles, [Balance, Token])
       return selectBuilder
         .leftJoinAndMapOne('balance.token', Token, 'token', 'token.tokenId = balance.tokenId')
         .getCount()

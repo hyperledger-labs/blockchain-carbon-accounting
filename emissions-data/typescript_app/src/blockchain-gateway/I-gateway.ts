@@ -182,8 +182,8 @@ export interface IEthTxCaller {
 }
 
 export interface IEthNetEmissionsTokenIssueInput {
-    issueFrom: string;
-    issueTo: string;
+    issuedFrom: string;
+    issuedTo: string;
     quantity: number;
     fromDate: number;
     thruDate: number;
@@ -195,8 +195,8 @@ export interface IEthNetEmissionsTokenIssueInput {
 export interface IEthNetEmissionsTokenIssueOutput {
     tokenId: string;
     tokenTypeId: string;
-    issueFrom: string;
-    issueTo: string;
+    issuedFrom: string;
+    issuedTo: string;
     fromDate: string;
     thruDate: string;
     dateCreated: string;

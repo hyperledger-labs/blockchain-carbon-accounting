@@ -3,9 +3,15 @@ import * as crypto from "crypto";
 import { readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 
-export function encryptRSA(toEncrypt: string, pubkeyPath: string) {
+export function encryptRSAKeyFileName(toEncrypt: string, pubkeyPath: string) {
   const absolutePath = resolve(pubkeyPath)
   const publicKey = readFileSync(absolutePath, 'utf8')
+  const buffer = Buffer.from(toEncrypt, 'utf8')
+  const encrypted = crypto.publicEncrypt(publicKey, buffer)
+  return encrypted.toString('base64')
+}
+
+export function encryptRSA(toEncrypt: string, publicKey: string) {
   const buffer = Buffer.from(toEncrypt, 'utf8')
   const encrypted = crypto.publicEncrypt(publicKey, buffer)
   return encrypted.toString('base64')

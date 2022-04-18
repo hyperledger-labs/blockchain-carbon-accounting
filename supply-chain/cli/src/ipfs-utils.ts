@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 import { create } from 'ipfs-http-client';
-import { encryptRSA, decryptRSA, encryptAES, decryptAES } from './crypto-utils';
+import { encryptRSAKeyFileName, encryptRSA, decryptRSA, encryptAES, decryptAES } from './crypto-utils';
 
 export async function downloadFileEncrypted(ipfspath: string, pk: string) {
   try {
@@ -70,7 +70,7 @@ export async function downloadFileEncryptedWithoutPk(ipfspath: string) {
 
 }
 
-export async function uploadFileEncrypted(plain_content: string, pubkeys: string[]) {
+export async function uploadFileEncrypted(plain_content: string, pubkeys: string[], pubkeysContent = false) {
   try {
     const ipfs_client = create({url: process.env.IPFS_URL});
     const buff = Buffer.from(plain_content, 'utf8');
@@ -82,8 +82,13 @@ export async function uploadFileEncrypted(plain_content: string, pubkeys: string
     countBuff.writeUInt8(pubkeys.length);
     buffArr.push(countBuff);
     for (const pubkey of pubkeys) {
-      const ekey = encryptRSA(key, pubkey); // 32 chars -> 684 chars
-      buffArr.push(Buffer.from(ekey, 'utf8'));
+      if (pubkeysContent) {
+        const ekey = encryptRSA(key, pubkey); // 32 chars -> 684 chars
+        buffArr.push(Buffer.from(ekey, 'utf8'));
+      } else {
+        const ekey = encryptRSAKeyFileName(key, pubkey); // 32 chars -> 684 chars
+        buffArr.push(Buffer.from(ekey, 'utf8'));
+      }
     }
     const ebuff = encryptAES(buff, key, iv);
     buffArr.push(Buffer.from(iv, 'utf8'));     // char length: 16

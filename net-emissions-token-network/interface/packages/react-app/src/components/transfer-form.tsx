@@ -32,7 +32,6 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
   const [initializedTokenIdInput, setInitializedTokenIdInput] = useState(false);
   const [initializedAmountInput, setInitializedAmountInput] = useState(false);
 
-  const onAddressChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAddress(event.target.value); };
   const onTokenIdChange: ChangeEventHandler<HTMLInputElement> = (event) => { setTokenId(parseInt(event.target.value)); };
   const onAmountChange: ChangeEventHandler<HTMLInputElement> = (event) => { setAmount(event.target.value); };
 
@@ -83,7 +82,7 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
 
       <h2>Transfer tokens</h2>
       <p>Send available tokens in your possession of a particular ID (as displayed on the dashboard) to any address. Audited Emissions tokens cannot be transferred as they come automatically retired.</p>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="addressInput">
         <Form.Label>Address</Form.Label>
         <InputGroup>
           <WalletLookupInput 
@@ -96,7 +95,7 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
             />
         </InputGroup>
       </Form.Group>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="tokenInput">
         <Form.Label>Token ID</Form.Label>
         <Form.Control
           type="input"
@@ -107,7 +106,7 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
           style={(tokenId || !initializedTokenIdInput) ? {} : inputError}
         />
       </Form.Group>
-      <Form.Group>
+      <Form.Group className="mb-3" controlId="quantityInput">
         <Form.Label>Quantity</Form.Label>
         <Form.Control
           type="input"
@@ -120,8 +119,8 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
       </Form.Group>
       {/* Only enable transfers if role is found */}
       { roles.hasAnyRole
-        ? <Button variant="success" size="lg" block onClick={handleTransfer}>Transfer</Button>
-        : <Button disabled variant="success" size="lg" block>Must be a registered user</Button>
+        ? <Button className="w-100" variant="success" size="lg" onClick={handleTransfer}>Transfer</Button>
+        : <Button className="w-100" disabled variant="success" size="lg">Must be a registered user</Button>
       }
     </>
   );

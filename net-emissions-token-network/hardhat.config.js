@@ -106,6 +106,62 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
   });
+task("issueTestTokens", "Create some test issued tokens")
+  .addParam("contract", "The CLM8 contract")
+  .addParam("count", "Number of token to issue in each loop")
+  .setAction(async taskArgs => {
+    const { dealer7, dealer1, dealer2, consumer1, consumer2 } = await getNamedAccounts();
+
+    const n = parseInt(taskArgs.count);
+    if (n < 1) {
+      console.error('Number of token should be greater than 0')
+      return;
+    }
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    for (let i = 1; i<n+1; i++) {
+      const qty = i * 100;
+      await contract
+      .connect(await ethers.getSigner(dealer1))
+      .issue(
+        consumer1,
+        1,
+        qty,
+        "1607463809",
+        "1607463809",
+        "",
+        "",
+        "Test token description " + i
+      );
+      console.log("Account " + consumer1 + " received " + qty + " tokens from " + dealer1);
+      await contract
+      .connect(await ethers.getSigner(dealer7))
+      .issue(
+        consumer2,
+        2,
+        qty,
+        "1607463809",
+        "1607463809",
+        "",
+        "",
+        "Test token description " + i
+      );
+      console.log("Account " + consumer2 + " received " + qty + " tokens from " + dealer7);
+      await contract
+      .connect(await ethers.getSigner(dealer2))
+      .issue(
+        consumer2,
+        3,
+        qty,
+        "1607463809",
+        "1607463809",
+        "",
+        "",
+        "Test token description " + i
+      );
+      console.log("Account " + consumer1 + " received " + qty + " tokens from " + dealer2);
+    }
+  });
 task("createTestProposal", "Create a test proposal using the default account roles for testing")
   .addParam("governor", "The Governor contract")
   .addParam("contract", "The CLM8 contract")

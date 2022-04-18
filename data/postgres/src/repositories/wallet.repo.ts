@@ -13,12 +13,16 @@ export class WalletRepo {
     this._db = dbConnection
   }
 
+  public getRepository() {
+    return this._db.getRepository(Wallet);
+  }
+
   public selectAll = async (): Promise<Array<Wallet>> => {
-    return await this._db.getRepository(Wallet).find()
+    return await this.getRepository().find()
   }
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<Wallet>> => {
-    let selectBuilder: SelectQueryBuilder<Wallet> = this._db.getRepository(Wallet).createQueryBuilder(ALIAS)
+    let selectBuilder: SelectQueryBuilder<Wallet> = this.getRepository().createQueryBuilder(ALIAS)
     selectBuilder = buildQueries(ALIAS, selectBuilder, bundles)
     return await selectBuilder
       .limit(limit)
@@ -29,11 +33,11 @@ export class WalletRepo {
   }
 
   public selectWallet = async (address: string): Promise<Wallet | null> => {
-    return await this._db.getRepository(Wallet).findOneBy({address})
+    return await this.getRepository().findOneBy({address})
   }
 
   public mergeWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
-    const repo = this._db.getRepository(Wallet)
+    const repo = this.getRepository()
     // lookup case-insensitive, case is used as a checksums only
     const wallet = await this.findWalletByAddress(payload.address)
     console.log('mergeWallet found', wallet)
@@ -56,16 +60,15 @@ export class WalletRepo {
   }
 
   public insertWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
-    const repo = this._db.getRepository(Wallet)
     console.log('insertWallet ', payload)
-    return await repo.save({
+    return await this.getRepository().save({
       ...payload,
     })
   }
 
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
-      let selectBuilder: SelectQueryBuilder<Wallet> = this._db.getRepository(Wallet).createQueryBuilder(ALIAS)
+      let selectBuilder: SelectQueryBuilder<Wallet> = this.getRepository().createQueryBuilder(ALIAS)
       selectBuilder = buildQueries(ALIAS, selectBuilder, bundles)
       return selectBuilder.getCount()
     } catch (error) {
@@ -73,15 +76,16 @@ export class WalletRepo {
     }
   }
 
-  private findWalletByAddress = async (address: string) => {
-    return await this._db.getRepository(Wallet)
+  /** Returns the wallet by given address value, case-insensitive. */
+  public findWalletByAddress = async (address: string) => {
+    return await this.getRepository()
       .createQueryBuilder(ALIAS) 
       .where(`LOWER(${ALIAS}.address) LIKE LOWER(:address)`, {address})
       .getOne()
   }
 
   private makeLookupQuery = (query: string) => {
-    return this._db.getRepository(Wallet)
+    return this.getRepository()
       .createQueryBuilder(ALIAS) 
       .where(`LOWER(${ALIAS}.address) LIKE LOWER(:query)`, {query})
       .orWhere(`LOWER(${ALIAS}.name) LIKE LOWER(:query)`, {query})
@@ -105,15 +109,50 @@ export class WalletRepo {
     }
   }
 
+  /** Update or create the Wallet with given address to have the given roles exactly.  */
   public ensureWalletWithRoles = async(address: string, roles: string[], data?: Partial<Wallet>) => {
     return await this.mergeWallet({...data, address, roles: roles.join(',') });
   }
 
+  /** Update or create the Wallet with given address to have at least the given roles.  */
+  public ensureWalletHasRoles = async(address: string, roles: string[]) => {
+    const wallet = await this.findWalletByAddress(address)
+    if (!wallet || !wallet.roles) {
+      return await this.getRepository().save({address, roles: roles.join(',') })
+    } else {
+      const rolesArr = wallet.roles.split(',')
+      for (const r of roles) {
+        if (rolesArr.indexOf(r) === -1) {
+          rolesArr.push(r)
+        }
+      }
+      wallet.roles = rolesArr.join(',')
+      return await this.getRepository().save(wallet)
+    }
+  }
+
+  /** Update or create the Wallet with given address to NOT have the given roles.  */
+  public ensureWalletHasNotRoles = async(address: string, roles: string[]) => {
+    const wallet = await this.findWalletByAddress(address)
+    if (!wallet || !wallet.roles) {
+      return await this.getRepository().save({address})
+    } else {
+      // remove all roles that were given
+      const rolesArr = wallet.roles.split(',').filter((r)=>roles.indexOf(r)===-1)
+      wallet.roles = rolesArr.join(',')
+      return await this.getRepository().save(wallet)
+    }
+  }
+
   public truncateWallets = async () => {
-    await this._db.getRepository(Wallet)
+    await this.getRepository()
     .createQueryBuilder(ALIAS)
     .delete()
     .execute()
+  }
+
+  public clearWalletsRoles = async () => {
+    await this.getRepository().update({}, {roles: ''});
   }
 }
 

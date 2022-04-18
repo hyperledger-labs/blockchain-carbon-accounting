@@ -115,9 +115,11 @@ export type RolesInfo = {
   hasDealerRole?: boolean
 }
 
-export type Role = 'Owner' | 'Consumer' | 'REC Dealer' | 'Offset Dealer' | 'Emissions Auditor' | 'Industry' | 'Industry Dealer'
+export type Role = 'None' | 'Owner' | 'Consumer' | 'REC Dealer' | 'Offset Dealer' | 'Emissions Auditor' | 'Industry' | 'Industry Dealer'
 
 export const RoleEnum = {
+  /** Empty role */
+  None: 'None',
   /** Owner role, aka: Admin */
   Owner: 'Owner',
   /** Consumer role */
