@@ -115,7 +115,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             setAddress(lookup?.wallets[0].address || '');
           } else {
             setLookupWallet(null)
-            setLookupMessage(`Account ${lookupWallet.address} not found. Would you like to add it?`);
+            setLookupMessage(`Account ${lookupWallet.address} not found.  Use the form below to add it.`);
           }
         } catch (error) {
           console.error('trpc error: ', error)
@@ -124,7 +124,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         if (provider) {
           let result = await getRoles(provider, address);
           if (lookupWallet) setLookupWallet(null)
-          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found. Would you like to add it?`);
+          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found. Use the form below to add it.`);
           setAddress(address);
           setTheirRoles(result);
         }
@@ -543,33 +543,28 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
       {!lookupWallet && hasAssignRolePermissions &&
         <>
-          <h4>Register new user wallet</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
             <Form.Group className="mb-3" controlId="nameInput">
-              <Form.Label>Name</Form.Label>
               <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} isInvalid={zodErrors?.fieldErrors?.name?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.name?.length > 0 && zodErrors?.fieldErrors?.name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="organizationInput">
-              <Form.Label>Organization</Form.Label>
               <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} isInvalid={zodErrors?.fieldErrors?.organization?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.organization?.length > 0 && zodErrors?.fieldErrors?.organization.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="publicKeyNameInput">
-              <Form.Label>Public Key Name</Form.Label>
               <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} isInvalid={zodErrors?.fieldErrors?.public_key_name?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key_name?.length > 0 && zodErrors?.fieldErrors?.public_key_name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="publicKeyInput">
-              <Form.Label>Public Key</Form.Label>
               <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} isInvalid={zodErrors?.fieldErrors?.public_key?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key?.length > 0 && zodErrors?.fieldErrors?.public_key.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="RoleInput">
-              <Form.Label>Role</Form.Label>
               {(roles?.isAdmin) ? 
                 <Form.Select value={role} onChange={onRoleChange} isInvalid={!!roleError}>
-                  <option value={RoleEnum.None}>None</option>
+                  <option value={RoleEnum.None}>Choose a Role:</option>
+                  <option value=''>-----</option>
                   <option value={RoleEnum.Consumer}>Consumer</option>
                   <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
                   <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
