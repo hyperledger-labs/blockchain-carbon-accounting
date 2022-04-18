@@ -35,7 +35,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
 
   const sheet_name_list = workbook.SheetNames;
 
-  let data = [];
+  let data: any[] = [];
   for (const sheet of sheet_name_list) {
     opts.verbose && console.log("Worksheet: ", sheet);
     if (opts.sheet && sheet != opts.sheet) {

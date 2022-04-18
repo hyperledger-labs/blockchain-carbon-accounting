@@ -83,20 +83,20 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
       {(!registeredTracker) ?
         <div className="mt-4">{registeredTracker}
           <h4>Register tracker</h4>
-          <Form.Group>
+          <Form.Group className="mb-3" controlId="addressInput">
             <Form.Label>Address</Form.Label>
             <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
           </Form.Group>
-          <Form.Group>
+          <Form.Group className="mb-3" controlId="roleInput">
             <Form.Label>Role</Form.Label>
-            <Form.Control as="select" disabled>
+            <Form.Select disabled>
               <option value="REGISTERED_TRACKER">Registered Tracker</option>
-            </Form.Control>
+            </Form.Select>
           </Form.Group>
           <Form.Group>
             <Row>
               <Col>
-                <Button variant="success" size="lg" block onClick={register}>
+                <Button className="w-100" variant="success" size="lg" onClick={register}>
                   Register
                 </Button>
               </Col>
@@ -113,7 +113,7 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
           />
           <h2>Track</h2>
           <p>Create emission profile using RECs, offsets, audited emission certificates, and voluntary carbon tracker tokens.</p>
-          <Form.Group>
+          <Form.Group className="mb-3" controlId="addressInput">
             <Form.Label>Address</Form.Label>
             <InputGroup>
               <WalletLookupInput 
@@ -129,8 +129,8 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
               Must be a registered industry.
             </Form.Text>
           </Form.Group>
-          <Form.Group>
-            <Form.Label>token IDs</Form.Label>
+          <Form.Group className="mb-3" controlId="tokenInput">
+            <Form.Label>Token IDs</Form.Label>
             <Form.Control
               type="input"
               placeholder="1,2,..."
@@ -144,8 +144,8 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
               Must be expressed as integer kg.
             </Form.Text>
           </Form.Group>
-          <Form.Group>
-            <Form.Label>retired Amounts</Form.Label>
+          <Form.Group className="mb-3" controlId="retiredAmountsInput">
+            <Form.Label>Retired Amounts</Form.Label>
             <Form.Control
               type="input"
               placeholder="1,2,..."
@@ -159,8 +159,8 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
               Must be expressed as integer kgs.
             </Form.Text>
           </Form.Group>
-          <Form.Group>
-            <Form.Label>transferred Amounts</Form.Label>
+          <Form.Group className="mb-3" controlId="transferredAmountsInput">
+            <Form.Label>Transferred Amounts</Form.Label>
             <Form.Control
               type="input"
               placeholder="1,2,..."
@@ -174,19 +174,19 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
               Must be expressed as integer kgs.
             </Form.Text>
           </Form.Group>
-          <Form.Row>
-            <Form.Group as={Col}>
+          <Row>
+            <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
               <Form.Label>From date</Form.Label>
               {/* @ts-ignore : some weird thing with the types ... */}
               <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
             </Form.Group>
-            <Form.Group as={Col}>
+            <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
               <Form.Label>Through date</Form.Label>
               {/* @ts-ignore : some weird thing with the types ... */}
               <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
             </Form.Group>
-          </Form.Row>
-          <Form.Group>
+          </Row>
+          <Form.Group className="mb-3" controlId="trackerIdsInput">
             <Form.Label>Tracker IDs</Form.Label>
             <Form.Control
               type="input"
@@ -204,9 +204,9 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
           <Row className="mt-4">
             <Col>
               <Button
+                className="w-100"
                 variant="primary"
                 size="lg"
-                block
                 onClick={handleSubmit}
                 //disabled={disableIssueButton(calldata, quantity, address)}
               >

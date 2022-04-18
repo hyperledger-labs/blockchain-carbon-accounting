@@ -24,7 +24,7 @@ import { subscribeEvent } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
 // for hardhat test!
-import { synchronize } from "./middleware/sync.middle";
+import { synchronizeTokens } from "./middleware/sync.middle";
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { trpcMiddleware } from './trpc/common';
 
@@ -43,8 +43,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 // for hardhat test sync
-if(process.env.LEDGER_ETH_NETWORK === 'hardhat')
-    app.use(synchronize);
+if(process.env.LEDGER_ETH_NETWORK === 'hardhat') {
+    app.use('/tokens', synchronizeTokens);
+    app.use('/balances', synchronizeTokens);
+}
 
 
 // router

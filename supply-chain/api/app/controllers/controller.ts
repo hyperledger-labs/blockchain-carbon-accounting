@@ -3,7 +3,15 @@ import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
 // import from supply chain
-import { GroupedResult, GroupedResults, process_activities, group_processed_activities, issue_tokens_with_issuee } from 'supply-chain-cli/src/emissions-utils';
+import { GroupedResult,
+  GroupedResults,
+  process_activities,
+  group_processed_activities,
+  issue_tokens_with_issuee,
+  decline_emissions_request,
+  issue_emissions_request,
+  get_auditor_emissions_requests
+} from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
     id: string,
@@ -11,8 +19,8 @@ type OutputActivity = {
     error?: string
 };
 
-async function process_group(issueFrom: string, issueTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
-    const token_res = await issue_tokens_with_issuee(issueFrom, issueTo, g, activity_type, publicKeys, mode);
+async function process_group(issuedFrom: string, issuedTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
+    const token_res = await issue_tokens_with_issuee(issuedFrom, issuedTo, g, activity_type, publicKeys, mode);
     // add each activity to output array
     for (const a of g.content) {
         const out: OutputActivity = { id: a.activity.id };
@@ -27,11 +35,11 @@ export function issueToken(req: Request, res: Response) {
 
     const verbose = req.body.verbose;
     const pretend = req.body.pretend;
-    const issueFrom = req.body.issueFrom;
-    const issueTo = req.body.issueTo;
+    const issuedFrom = req.body.issuedFrom;
+    const issuedTo = req.body.issuedTo;
 
-    console.log(`Start request, issue to ${issueTo} verbose? ${verbose} pretend? ${pretend}`)
-    if(!pretend && issueTo == undefined) {
+    console.log(`Start request, issue to ${issuedTo} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issuedTo == undefined) {
         console.log('== 400 No issuee.')
         return res.status(400).json({
             status: "failed",
@@ -39,8 +47,8 @@ export function issueToken(req: Request, res: Response) {
         });
     }
 
-    console.log(`issue from ${issueFrom} verbose? ${verbose} pretend? ${pretend}`)
-    if(!pretend && issueFrom == undefined) {
+    console.log(`issue from ${issuedFrom} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issuedFrom == undefined) {
         console.log('== 400 No issuee.')
         return res.status(400).json({
             status: "failed",
@@ -95,11 +103,11 @@ export function issueToken(req: Request, res: Response) {
                 const group = grouped_by_type[t] as GroupedResults;
                 for (const mode in group) {
                     const doc = group[mode] as GroupedResult;
-                    await process_group(issueFrom, issueTo, output_array, doc, t, pubKeys, mode);
+                    await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys, mode);
                 }
             } else {
                 const doc = grouped_by_type[t] as GroupedResult;
-                await process_group(issueFrom, issueTo, output_array, doc, t, pubKeys);
+                await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys);
             }
         }
         // add back any errors we filtered before to the output
@@ -127,4 +135,29 @@ export function issueToken(req: Request, res: Response) {
     });
 }
 
-  
+export async function declineEmissionsRequest(req: Request, res: Response) {
+    try {
+      await decline_emissions_request(req.params.uuid);
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+    return res.status(200).json({success: '1'});
+}
+
+export async function issueEmissionsRequest(req: Request, res: Response) {
+    try {
+      await issue_emissions_request(req.params.uuid);
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+    return res.status(200).json({success: '1'});
+}
+
+export async function getEmissionsRequests(req: Request, res: Response) {
+    try {
+      const emissionsRequests = await get_auditor_emissions_requests(req.params.auditor);
+      return res.status(200).json({success: '1', items: emissionsRequests});
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+}

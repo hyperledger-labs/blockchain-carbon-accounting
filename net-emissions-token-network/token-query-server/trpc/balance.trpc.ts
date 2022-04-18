@@ -11,7 +11,7 @@ export const zQueryBundles = z.array(z.object({
 
 export const balanceRouter = trpc
 .router<TrpcContext>()
-.query('countBalances', {
+.query('count', {
     input: z.object({
         bundles: zQueryBundles.default([]),
     }).default({}),
@@ -30,7 +30,7 @@ export const balanceRouter = trpc
         }
     },
 })
-.query('getBalances', {
+.query('list', {
     input: z.object({
         bundles: zQueryBundles.default([]),
         offset: z.number().gte(0).default(0),

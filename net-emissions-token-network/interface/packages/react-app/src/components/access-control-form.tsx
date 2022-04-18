@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
-import { lookupWallets, registerUserRole, postSignedMessage, unregisterUserRole } from "../services/api.service"
+import {  postSignedMessage } from "../services/api.service"
 
 import SubmissionModal from "./submission-modal";
 import WalletLookupInput from "./wallet-lookup-input";
@@ -11,11 +11,14 @@ import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "./static-data
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
-import { Alert } from "react-bootstrap";
+import { Accordion, AccordionContext, Alert, OverlayTrigger, Tooltip, useAccordionButton } from "react-bootstrap";
+import { trpcClient } from "../services/trpc";
+import { TRPCClientError } from "@trpc/client";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import { FaRegClipboard } from "react-icons/fa";
+
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
   if (!roles) return null;
@@ -24,7 +27,7 @@ function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesI
     {r}
     {unregister
       && ((currentRoles.isAdmin) || ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) && (r === 'Consumer')))
-      && <Button variant="outline-danger" className="ml-2 my-1" size="sm" onClick={() => {unregister(r)}}>
+      && <Button variant="outline-danger" className="ms-2 my-1" size="sm" onClick={() => {unregister(r)}}>
       Unregister
     </Button>}
 </li>)}</>
@@ -49,6 +52,22 @@ function RolesList({ roles }: {roles: RolesInfo}) {
   );
 }
 
+function CustomToggle({ children, eventKey }: {children:ReactNode, eventKey:string}) {
+  const currentEventKey = useContext(AccordionContext);
+  const decoratedOnClick = useAccordionButton(eventKey);
+  const isCurrentEventKey = currentEventKey === eventKey;
+
+  return (
+    <div>
+      <span className="me-3">{children}</span>
+      {isCurrentEventKey ? 
+        <Button onClick={decoratedOnClick} size="sm" variant="outline-secondary">Hide</Button> 
+        : <Button onClick={decoratedOnClick} size="sm" variant="outline-primary">Show</Button>
+      }
+    </div>
+  );
+}
+
 type AccessControlFormProps = {
   provider?: Web3Provider
   signedInAddress: string
@@ -66,10 +85,11 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [organization, setOrganization] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [publicKeyName, setPublicKeyName] = useState("");
-  const [role, setRole] = useState<Role>("Consumer");
+  const [role, setRole] = useState<Role>("None");
   const [result, setResult] = useState("");
-  const [error_role, setRoleError] = useState("");
-  const [error_lookup, setLookupError] = useState("");
+  const [roleError, setRoleError] = useState("");
+  const [lookupError, setLookupError] = useState("");
+  const [lookupMessage, setLookupMessage] = useState("");
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
 
   // Fetching roles of outside address
@@ -77,6 +97,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [theirRoles, setTheirRoles] = useState<RolesInfo>({});
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
+  const [zodErrors, setZodErrors] = useState<any>(null);
 
   // called on the Lookup button click
   const lookupWalletRoles = useCallback(async () => {
@@ -84,18 +105,25 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       if (theirRoles.hasAnyRole) setTheirRoles({});
       setFetchingTheirRoles(true);
       setLookupError('');
+      setLookupMessage('');
       if (lookupWallet && lookupWallet.address) {
-        const wallets = await lookupWallets(lookupWallet.address);
-        if (wallets && wallets.length === 1) {
-          setLookupWallet(wallets[0]);
-          setAddress(wallets[0].address || '');
-        } else {
-          setLookupError(`Account ${lookupWallet.address} not found.`);
+        try { 
+          const lookup = await trpcClient.query('wallet.lookup', { query: lookupWallet.address});
+          if (lookup?.wallets && lookup?.wallets.length === 1) {
+            setLookupWallet(lookup?.wallets[0]);
+            setAddress(lookup?.wallets[0].address || '');
+          } else {
+            setLookupWallet(null)
+            setLookupMessage(`Account ${lookupWallet.address} not found. Would you like to add it?`);
+          }
+        } catch (error) {
+          console.error('trpc error: ', error)
         }
-      } else {
+      } else if (address) {
         if (provider) {
           let result = await getRoles(provider, address);
-          if (!result.hasAnyRole) setLookupError(`Account ${address} not found.`);
+          if (lookupWallet) setLookupWallet(null)
+          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found. Would you like to add it?`);
           setAddress(address);
           setTheirRoles(result);
         }
@@ -104,25 +132,44 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     }
   }, [lookupWallet, provider, address, theirRoles])
 
+  const clearAllFormMessages = useCallback(()=>{
+    setZodErrors(null)
+    setLookupError('')
+    setLookupMessage('')
+    setRoleError('')
+  }, [])
+
+
+  const clearFormFields = useCallback(() => {
+    setName('')
+    setOrganization('')
+    setPublicKey('')
+    setPublicKeyName('')
+    clearAllFormMessages()
+  }, [clearAllFormMessages])
 
   // when the looked up wallet is set by the lookup
   const onWalletChange = useCallback((w:Wallet|null)=>{
     console.log('onWalletChange:',w)
-    setLookupError('');
+    clearAllFormMessages()
     setTheirRoles({});
     setLookupWallet(w);
     setAddress(w ? w.address! : '');
-  }, [])
+  }, [clearAllFormMessages])
   const onLookupInputChange = useCallback((v: string) => {
     console.log('onLookupInputChange:',v)
     setAddress(v);
-  }, [])
+    if (!v) {
+      setLookupWallet(null);
+      clearAllFormMessages()
+    }
+  }, [clearAllFormMessages])
 
   const onNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setName(event.target.value); };
   const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (event) => { setOrganization(event.target.value); };
   const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKey(event.target.value); };
   const onPublicKeyNameChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPublicKeyName(event.target.value); };
-  const onRoleChange: ChangeEventHandler<HTMLInputElement> = (event) => { setRole(event.target.value as Role); };
+  const onRoleChange: ChangeEventHandler<HTMLSelectElement> = (event) => { setRole(event.target.value as Role); };
 
   async function handlePostSignedMessage() {
     if (!provider) return;
@@ -138,7 +185,130 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     await postSignedMessage(message, signature);
   }
 
+  const registerRoleInContract = useCallback(async (provider: Web3Provider, address: string, role: Role) => {
+    let result = null;
+    switch (role) {
+      case RoleEnum.None:
+        return null;
+      case RoleEnum.Consumer:
+        result = await fetchRegisterConsumer(provider, address);
+        break;
+      case RoleEnum.RecDealer:
+        result = await fetchRegisterDealer(provider, address, 1);
+        break;
+      case RoleEnum.OffsetDealer:
+        result = await fetchRegisterDealer(provider, address, 2);
+        break;
+      case RoleEnum.EmissionsAuditor:
+        result = await fetchRegisterDealer(provider, address, 3);
+        break;
+      case RoleEnum.Industry:
+        result = await fetchRegisterIndustry(provider, address);
+        break;
+      case RoleEnum.IndustryDealer:
+        result = await fetchRegisterDealer(provider, address, 4);
+        break;
+      default:
+        const err = `Invalid role was given: ${role}`
+        console.error(err);
+        return err;
+    }
+    if (!result || result.toString().indexOf('Success') === -1) {
+      console.error('Transaction did not succeed', result);
+      return 'The transaction could not be sent to the blockchain: ' + result;
+    } else {
+      console.log('Transaction successful', result.toString());
+      return null;
+    }
+  }, [])
+
+  const unregisterRoleInContract = useCallback(async (provider: Web3Provider, address: string, role: Role) => {
+    let result = null;
+
+    switch (role) {
+      case RoleEnum.Consumer:
+        result = await fetchUnregisterConsumer(provider, address);
+        break;
+      case RoleEnum.RecDealer:
+        result = await fetchUnregisterDealer(provider, address, 1);
+        break;
+      case RoleEnum.OffsetDealer:
+        result = await fetchUnregisterDealer(provider, address, 2);
+        break;
+      case RoleEnum.EmissionsAuditor:
+        result = await fetchUnregisterDealer(provider, address, 3);
+        break;
+      case RoleEnum.Industry:
+        result = await fetchUnregisterIndustry(provider, address);
+        break;
+      case RoleEnum.IndustryDealer:
+        result = await fetchUnregisterDealer(provider, address, 4);
+        break;
+      default:
+        const err = `Invalid role was given: ${role}`
+        console.error(err);
+        return err;
+    }
+    if (!result || result.toString().indexOf('Success') === -1) {
+      console.error('Transaction did not succeed');
+      return 'The transaction could not be sent to the blockchain: ' + result;
+    } else {
+      console.log('Transaction successful', result.toString());
+      return null;
+    }
+  }, [])
+
   async function handleRegister() {
+    if (!provider) return;
+    clearAllFormMessages()
+    // validate
+    if (formRef.current && formRef.current.checkValidity() === false) {
+      setRegisterFormValidated(true);
+      return;
+    }
+
+    setRegisterFormValidated(false);
+    // save wallet info
+    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
+    if (currentRoles.indexOf(role) > -1) {
+      console.error('Wallet ' + address + ' already has role ' + role);
+      setRoleError('That address already has this role.');
+      return;
+    } else {
+      console.log('Current roles not include role', currentRoles, role);
+
+      const error = await registerRoleInContract(provider, address, role)
+      if (error) {
+        setRoleError(error);
+        return;
+      }
+
+      if (role !== RoleEnum.None) currentRoles.push(role);
+      try {
+        const register = await trpcClient.mutation('wallet.register', {address, name, organization, public_key: publicKey, public_key_name: publicKeyName, roles: currentRoles})
+        setLookupWallet(register?.wallet || null)
+        // reset the form values
+        clearFormFields()
+      } catch (error) {
+        console.error('trpc error;', error)
+        let errorSet = false
+        if (error instanceof TRPCClientError && error?.data?.zodError) {
+          const zodError = error.data.zodError
+          setZodErrors(zodError);
+          // handle address errors into lookupError
+          if (zodError.fieldErrors?.address?.length > 0) {
+            const addressError = zodError.fieldErrors?.address?.join("\n")
+            setLookupError(addressError)
+            errorSet = true
+          }
+        }
+        if (!errorSet) setLookupError('An error occurred while registering the wallet.')
+      }
+      if (role !== RoleEnum.None) setModalShow(true);
+    }
+  }
+
+  async function handleSingleRegister() {
     if (!provider) return;
     // validate
     if (formRef.current && formRef.current.checkValidity() === false) {
@@ -157,134 +327,72 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       setRoleError('');
       console.log('Current roles not include role', currentRoles, role);
 
-      let result = null;
-      switch (role) {
-        case RoleEnum.Consumer:
-          result = await fetchRegisterConsumer();
-          break;
-        case RoleEnum.RecDealer:
-          result = await fetchRegisterDealer(1);
-          break;
-        case RoleEnum.OffsetDealer:
-          result = await fetchRegisterDealer(2);
-          break;
-        case RoleEnum.EmissionsAuditor:
-          result = await fetchRegisterDealer(3);
-          break;
-        case RoleEnum.Industry:
-          result = await fetchRegisterIndustry();
-          break;
-        case RoleEnum.IndustryDealer:
-          result = await fetchRegisterDealer(4);
-          break;
-        default:
-          console.error("Can't find role", role);
-          return;
-      }
-      if (!result || result.toString().indexOf('Success') === -1) {
-        console.error('Transaction did not succeed');
+      const error = await registerRoleInContract(provider, address, role)
+      if (error) {
+        setRoleError(error);
         return;
-      } else {
-        console.log('Transaction successful', result.toString());
       }
-      currentRoles.push(role);
-      const newRoles = currentRoles.join(',');
-      const newWallet = await registerUserRole(address, name, organization, publicKey, publicKeyName, newRoles);
+      try {
+        const register = await trpcClient.mutation('wallet.registerRoles', {address, roles: [role]})
+        setLookupWallet(register?.wallet || null)
+        setLookupError('')
+      } catch (error) {
+        console.error('trpc error;', error)
+        setLookupError('An error occurred while registering the wallet role.')
+      }
       setModalShow(true);
-      setLookupWallet({
-        ...newWallet
-      })
     }
   }
-
 
   async function handleSingleUnregister(wallet: Wallet, role: Role) {
-    let result = null;
-
-    switch (role) {
-      case "Consumer":
-        result = await fetchUnregisterConsumer();
-        break;
-      case RoleEnum.RecDealer:
-        result = await fetchUnregisterDealer(1);
-        break;
-      case RoleEnum.OffsetDealer:
-        result = await fetchUnregisterDealer(2);
-        break;
-      case RoleEnum.EmissionsAuditor:
-        result = await fetchUnregisterDealer(3);
-        break;
-      case RoleEnum.Industry:
-        result = await fetchUnregisterIndustry();
-        break;
-      case RoleEnum.IndustryDealer:
-        result = await fetchUnregisterDealer(4);
-        break;
-      default:
-      console.error("Can't find role", role);
-    }
-    if (!result || result.toString().indexOf('Success') === -1) {
-      console.error('Transaction did not succeed');
+    if (!provider) return;
+    const error = await unregisterRoleInContract(provider, wallet.address!, role);
+    if (error) {
+      setLookupError(error);
       return;
-    } else {
-      console.log('Transaction successful', result.toString());
     }
-    const newRoles = wallet.roles!.split(',').filter((r)=>r!==role).join(',');
-    await unregisterUserRole(address, newRoles);
+    try {
+      const unregister = await trpcClient.mutation('wallet.unregisterRoles', {address: wallet.address!, roles: [role]})
+      setLookupWallet(unregister?.wallet || null)
+      setLookupError('')
+    } catch (error) {
+      console.error('trpc error;', error)
+      setLookupError('An error occurred while unregistering the wallet role.')
+    }
     setModalShow(true);
-    if (lookupWallet && lookupWallet.address === address) {
-      // remove from the array as well
-      setLookupWallet({
-        ...lookupWallet,
-        roles: newRoles
-      })
-    }
   }
 
-  async function fetchRegisterConsumer() {
-    if (!provider) return;
+  async function fetchRegisterConsumer(provider: Web3Provider, address: string) {
     let result = await registerConsumer(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterConsumer() {
-    if (!provider) return;
+  async function fetchUnregisterConsumer(provider: Web3Provider, address: string) {
     let result = await unregisterConsumer(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchRegisterIndustry() {
-    if (!provider) return;
+  async function fetchRegisterIndustry(provider: Web3Provider, address: string) {
     let result = await registerIndustry(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterIndustry() {
-    if (!provider) return;
+  async function fetchUnregisterIndustry(provider: Web3Provider, address: string) {
     let result = await unregisterIndustry(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchRegisterIndustrySelf() {
-    if (!provider) return;
-    let result = await registerIndustry(provider, signedInAddress);
-    setResult(result.toString());
-    return result;
-  }
-
-  async function fetchRegisterDealer(tokenTypeId: number) {
-    if (!provider) return;
+  async function fetchRegisterDealer(provider: Web3Provider, address: string, tokenTypeId: number) {
     let result = await registerDealer(provider, address, tokenTypeId);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterDealer(tokenTypeId: number) {
-    if (!provider) return;
+  async function fetchUnregisterDealer(provider: Web3Provider, address: string, tokenTypeId: number) {
     let result = await unregisterDealer(provider, address, tokenTypeId);
     setResult(result.toString());
     return result;
@@ -297,6 +405,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   if (hasAssignRolePermissions) {
     // only show roles not already assigned
     const roleArr = (lookupWallet && lookupWallet.roles) ? lookupWallet.roles.split(',') : []
+    if (!lookupWallet) rolesThatCanBeAssigned.push({value: RoleEnum.None, label: 'None'})
     if (!roleArr.includes(RoleEnum.Consumer)) rolesThatCanBeAssigned.push({value: RoleEnum.Consumer, label: 'Consumer'})
     if (!roleArr.includes(RoleEnum.Industry)) rolesThatCanBeAssigned.push({value: RoleEnum.Industry, label: 'Industry Member'})
     if (roles.isAdmin) {
@@ -344,29 +453,57 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         <WalletLookupInput 
           onChange={onLookupInputChange} 
           onWalletChange={onWalletChange} />
-        <InputGroup.Append>
-          <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
-        </InputGroup.Append>
+        <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
       </InputGroup>
-      {error_lookup &&
+      {lookupError &&
       <Alert variant="danger" onClose={() => setLookupError('')} dismissible>
-        {error_lookup}
+        {lookupError}
       </Alert>}
+      {lookupMessage && <p>{lookupMessage}</p>}
       {lookupWallet && lookupWallet.address && <ul>
         <li>Name: {lookupWallet.name}</li>
         <li>Address: {lookupWallet.address}</li>
-        <li>Organization: {lookupWallet.organization}</li>
+        {lookupWallet.organization && <li>Organization: {lookupWallet.organization}</li>}
+        {lookupWallet.public_key_name && <li>Public Key Name: {lookupWallet.public_key_name}</li>}
+        {lookupWallet.public_key && <li>
+          <Accordion defaultActiveKey="0">
+            <CustomToggle eventKey="0">
+              Public Key:
+              {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+              <CopyToClipboard text={lookupWallet.public_key_name}>
+                <span className="text-secondary">
+                  <OverlayTrigger
+                    trigger="click"
+                    placement="bottom"
+                    rootClose={true}
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={<Tooltip id='copied-pubkey-tooltip'>Copied to clipboard!</Tooltip>}
+                  >
+                    <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                  </OverlayTrigger>
+                </span>
+              </CopyToClipboard>
+            </CustomToggle>
+
+            <Accordion.Collapse eventKey="0">
+              <pre>{lookupWallet.public_key}</pre>
+            </Accordion.Collapse>
+          </Accordion>
+        </li>
+        }
+        {lookupWallet.roles ? 
         <li>Roles: <ul>
           <RolesCodesToLi currentRoles={roles} roles={lookupWallet.roles} unregister={(r) => {
             handleSingleUnregister(lookupWallet, r)
           }}/>
         </ul></li>
+        : <li>No roles found.</li>}
         
       </ul>}
       {fetchingTheirRoles &&
         <div className="text-center mt-3 mb-3">
           <Spinner animation="border" role="status">
-            <span className="sr-only">Loading...</span>
+            <span className="visually-hidden">Loading...</span>
           </Spinner>
         </div>
       }
@@ -378,27 +515,25 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       {lookupWallet && hasAssignRolePermissions && <>
           <h4>Add Role</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="rolesInput">
               {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 ? 
-                <Form.Control as="select" onChange={onRoleChange} isInvalid={!!error_role}>
+                <Form.Select onChange={onRoleChange} isInvalid={!!roleError}>
                   {rolesThatCanBeAssigned.map((r,i) =>
                     <option key={i} value={r.value}>{r.label}</option>
                   )}
-                </Form.Control> 
+                </Form.Select> 
                 :
               <p>You cannot assign any more role to this user.</p>
               }
-              <Form.Control.Feedback type="invalid">
-                {error_role}
-              </Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{roleError}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
-              <Button variant="success" size="lg" block onClick={handleRegister}>
+            <Form.Group className="d-grid gap-2 mt-3">
+              <Button variant="success" size="lg" onClick={handleSingleRegister}>
                 Add Role
               </Button>
             </Form.Group>
             {/* <Form.Group> */}
-            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*   <Button variant="success" size="lg" onClick={handlePostSignedMessage}> */}
             {/*     Update User Info */}
             {/*   </Button> */}
             {/* </Form.Group> */}
@@ -409,49 +544,53 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         <>
           <h4>Register new user wallet</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="nameInput">
               <Form.Label>Name</Form.Label>
-              <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} />
+              <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} isInvalid={zodErrors?.fieldErrors?.name?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.name?.length > 0 && zodErrors?.fieldErrors?.name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="organizationInput">
               <Form.Label>Organization</Form.Label>
-              <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} />
+              <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} isInvalid={zodErrors?.fieldErrors?.organization?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.organization?.length > 0 && zodErrors?.fieldErrors?.organization.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="publicKeyNameInput">
               <Form.Label>Public Key Name</Form.Label>
-              <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} />
-            <Form.Group>
+              <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} isInvalid={zodErrors?.fieldErrors?.public_key_name?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key_name?.length > 0 && zodErrors?.fieldErrors?.public_key_name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
+            <Form.Group className="mb-3" controlId="publicKeyInput">
               <Form.Label>Public Key</Form.Label>
-              <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} />
+              <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} isInvalid={zodErrors?.fieldErrors?.public_key?.length > 0}/>
+              <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key?.length > 0 && zodErrors?.fieldErrors?.public_key.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
+            <Form.Group className="mb-3" controlId="RoleInput">
               <Form.Label>Role</Form.Label>
               {(roles?.isAdmin) ? 
-                <Form.Control as="select" value={role} onChange={onRoleChange} isInvalid={!!error_role}>
+                <Form.Select value={role} onChange={onRoleChange} isInvalid={!!roleError}>
+                  <option value={RoleEnum.None}>None</option>
                   <option value={RoleEnum.Consumer}>Consumer</option>
                   <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
                   <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
                   <option value={RoleEnum.EmissionsAuditor}>Emissions Auditor</option>
                   <option value={RoleEnum.IndustryDealer}>Registered Industry Dealer (CarbonTracker)</option>
-                </Form.Control> 
+                </Form.Select> 
                 :
-                <Form.Control as="select" value={role} onChange={onRoleChange} isInvalid={!!error_role}>
+                <Form.Select value={role} onChange={onRoleChange} isInvalid={!!roleError}>
+                  <option value={RoleEnum.None}>None</option>
                   <option value={RoleEnum.Consumer}>Consumer</option>
                   <option value={RoleEnum.Industry}>Industry Member</option>
-                </Form.Control>
+                </Form.Select>
               }
-              <Form.Control.Feedback type="invalid">
-                {error_role}
-              </Form.Control.Feedback>
+              <Form.Control.Feedback type="invalid">{roleError}</Form.Control.Feedback>
             </Form.Group>
-            <Form.Group>
-              <Button variant="success" size="lg" block onClick={handleRegister}>
+            <Form.Group className="d-grid gap-2 mt-3">
+              <Button variant="success" size="lg" onClick={handleRegister}>
                 Register
               </Button>
             </Form.Group>
             {/* <Form.Group> */}
-            {/*   <Button variant="success" size="lg" block onClick={handlePostSignedMessage}> */}
+            {/*   <Button variant="success" size="lg" onClick={handlePostSignedMessage}> */}
             {/*     Update User Info */}
             {/*   </Button> */}
             {/* </Form.Group> */}
@@ -459,33 +598,29 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-    {(!roles.isAdmin && roles.isIndustry) &&
+    {(!roles.isAdmin && !roles.isIndustry) &&
      <>
-          <h4>Register my account as industry</h4>
+          <h4 className="mt-4">Register my account as industry</h4>
           <Form.Group>
             {/*<Form.Label>Address</Form.Label>*/}
             <Form.Control type="input" disabled hidden value={signedInAddress}/>
           </Form.Group>
           <Form.Group>
             {/*<Form.Label>Role</Form.Label>*/}
-            <Form.Control as="select" disabled hidden>
-            </Form.Control>
+            <Form.Select disabled hidden>
+            </Form.Select>
           </Form.Group>
-          <Form.Group>
-            <Row>
-              <Col>
-                <Button variant="success" size="lg" block onClick={fetchRegisterIndustrySelf}>
-                  Register
-                </Button>
-              </Col>
-            </Row>
+          <Form.Group className="d-grid gap-2 mt-3">
+            <Button variant="success" size="lg" onClick={() => { if(provider) fetchRegisterIndustry(provider, signedInAddress)}}>
+              Register
+            </Button>
           </Form.Group>
         </>
     }
-
 
     </>
   );
 }
 
 export default AccessControlForm;
+

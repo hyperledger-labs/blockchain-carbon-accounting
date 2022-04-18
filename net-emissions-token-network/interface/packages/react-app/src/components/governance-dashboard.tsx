@@ -374,7 +374,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
 
   const renderVoteButtons = (cp: Proposal, showVotes: boolean, showAsTotal: boolean) => {
     return (cp.isEligibleToVote || cp.state !== "Pending") &&
-      <div className="my-auto col-lg-7 col-lg p-0 mr-2">
+      <div className="my-auto col-lg-7 col-lg p-0 me-2">
         <Row className="justify-content-between mx-1">
           <div className="text-success">{showAsTotal?"Total":""} For: {renderVoteCount(cp.details.forVotes, cp.details.rawForVotes, showVotes)}</div>
           <div className="text-danger">{showAsTotal?"Total":""} Against: {renderVoteCount(cp.details.againstVotes, cp.details.rawAgainstVotes, showVotes)}</div>
@@ -385,18 +385,14 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
             placeholder="dCLM8 to vote.."
             onChange={onVotesAmountChange}
           />
-          <InputGroup.Append>
-            <Button
-              variant="success"
-              onClick={() => vote(cp.id, true)}
-            >Vote for</Button>
-          </InputGroup.Append>
-          <InputGroup.Append>
-            <Button
-              variant="danger"
-              onClick={() => vote(cp.id, false)}
-            >Vote against</Button>
-          </InputGroup.Append>
+          <Button
+            variant="success"
+            onClick={() => vote(cp.id, true)}
+          >Vote for</Button>
+          <Button
+            variant="danger"
+            onClick={() => vote(cp.id, false)}
+          >Vote against</Button>
         </InputGroup>
         }
       </div>
@@ -410,7 +406,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
 
   const renderMustBeActiveIfNeeded = (cp: Proposal) =>(cp.state !== "Active" && cp.receipt.hasVoted !== true) &&
     <Row className="align-items-center justify-content-end">
-      <p className="p-0 m-0 mr-2 text-secondary text-right">
+      <p className="p-0 m-0 me-2 text-secondary text-right">
         <small>Must be an active proposal to vote.</small>
       </p>
     </Row>
@@ -461,13 +457,12 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
       }
 
       <div className="d-flex justify-content-start align-items-center">
-        <div className="pr-2">
+        <div className="pe-2">
           <Button
-            block
             size="sm"
             onClick={ ()=>{ setDelegateModalShow(true) }}
             disabled={(daoTokenBalance <= 0)}
-            className="text-nowrap mr-2"
+            className="text-nowrap me-2"
             variant="primary"
           >
             Delegate DAO tokens
@@ -475,21 +470,19 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
           <small className="text-muted">Current delegatee: {daoTokenDelegates}</small>
         </div>
         { (networkNameLowercase === "hardhat") &&
-          <div className="ml-auto">
+          <div className="ms-auto">
 
             <InputGroup size="sm" className="mb-1">
              <FormControl
                placeholder="Advance blocks..."
                onChange={onSkipBlocksAmountChange}
              />
-             <InputGroup.Append>
-               <Button
-                 variant="primary"
-                 onClick={() => handleSkipBlocks(Number(skipBlocksAmount))}
-               >
-                 Skip
-               </Button>
-             </InputGroup.Append>
+             <Button
+               variant="primary"
+               onClick={() => handleSkipBlocks(Number(skipBlocksAmount))}
+             >
+               Skip
+             </Button>
            </InputGroup>
 
            <InputGroup size="sm" className="mb-1">
@@ -497,17 +490,15 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
                placeholder="Skip to block..."
                onChange={onSkipBlocksAmountChange}
              />
-             <InputGroup.Append>
-               <Button
-                 variant="primary"
-                 onClick={() => handleSkipBlocks(Number(skipBlocksAmount) - Number(blockNumber))}
-               >
-                 Skip
-               </Button>
-             </InputGroup.Append>
+             <Button
+               variant="primary"
+               onClick={() => handleSkipBlocks(Number(skipBlocksAmount) - Number(blockNumber))}
+             >
+               Skip
+             </Button>
             </InputGroup>
 
-            <Button block size="sm" variant="secondary" onClick={ () => handleSkipTimestamp(2)  }>Add 2 days to block timestamp</Button>
+            <Button size="sm" variant="secondary" onClick={ () => handleSkipTimestamp(2)  }>Add 2 days to block timestamp</Button>
 
           </div>
         }
@@ -540,7 +531,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
       {(fetchingProposals) &&
         <div className="text-center my-4">
           <Spinner animation="border" role="status">
-            <span className="sr-only">Loading...</span>
+            <span className="visually-hidden">Loading...</span>
           </Spinner>
         </div>
       }
@@ -551,13 +542,13 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
         {(proposals !== []) &&
          proposals.map((proposal, key) => (
             <Card key={key} className="m-2 col-12 pt-2">
-              <Card.Body className="px-0 pr-2 px-md-3 pr-md-4">
+              <Card.Body className="px-0 pe-2 px-md-3 pe-md-4">
                 {/* proposal header */}
                 <Row>
 
                   <Col>
                     <h5 style={{'display': 'inline-block'}}>
-                      <span className="mr-3">Proposal #{proposal.id}</span>
+                      <span className="me-3">Proposal #{proposal.id}</span>
                       <Button
                         size="sm"
                         variant="secondary"
@@ -577,7 +568,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
                         size="sm"
                         onClick={ () => handleProposalAction("cancel", proposal.id) }
                         disabled={(daoTokenBalance <= 0)}
-                        className="text-nowrap ml-1 my-1"
+                        className="text-nowrap ms-1 my-1"
                         variant="danger"
                       >
                         Cancel
@@ -589,7 +580,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
                         size="sm"
                         onClick={ () => handleProposalAction("queue", proposal.id) }
                         disabled={(daoTokenBalance <= 0)}
-                        className="text-nowrap ml-2 my-1"
+                        className="text-nowrap ms-2 my-1"
                         variant="warning"
                       >
                         Queue
@@ -601,7 +592,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
                         size="sm"
                         onClick={ () => handleProposalAction("execute", proposal.id) }
                         disabled={(daoTokenBalance <= 0)}
-                        className="text-nowrap ml-2 my-1"
+                        className="text-nowrap ms-2 my-1"
                         variant="success"
                       >
                         Execute
@@ -613,7 +604,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
 
                 {/* proposal state and voting period */}
                 <Card.Text className="text-primary">
-                  <b>{proposal.state}</b> <i className="text-secondary ml-3">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i>
+                  <b>{proposal.state}</b> <i className="text-secondary ms-3">Voting starts on block {proposal.details.startBlock} and ends on {proposal.details.endBlock}.</i>
                 </Card.Text>
                 <Card.Text>
                     <small>Proposer: {proposal.details.proposer}</small>

@@ -7,7 +7,8 @@ import {
   group_processed_activities,
   issue_tokens,
   process_activities,
-  create_emissions_request
+  create_emissions_request,
+  process_emissions_requests
 } from './src/emissions-utils';
 import { downloadFileEncrypted } from './src/ipfs-utils';
 
@@ -23,6 +24,7 @@ function print_usage() {
   console.log('  -fetch objectpath: fetch the ipfs://<objectpath> object, if -pk is given will decrypt the file with it.');
   console.log('  -verify: when fetching from IPFS, outputs the hash.');
   console.log('  -queue: create EmissionsRequest instead of issuing the token');
+  console.log('  -processrequests: process EmissionsRequests, get and randomly assign emission auditors');
   console.log('  -v or --verbose to switch to a more verbose output format.');
   console.log('  -h or --help displays this message.');
   console.log('');
@@ -39,6 +41,7 @@ let pretend = false;
 let verbose = false;
 let verify = false;
 let queue = false;
+let processrequests = false;
 const generatedKeypairs: string[] = [];
 
 // parse arguments
@@ -90,6 +93,8 @@ for (let i=0; i<args.length; i++) {
     process.exit();
   } else if (a === '-queue') {
     queue = true;
+  } else if (a === '-processrequests') {
+    processrequests = true;
   } else {
     console.error(`Unrecognized argument ${a}`);
     print_usage();
@@ -132,58 +137,61 @@ if (fetchObjectPath) {
     console.log(result);
   });
 } else {
-  if (!source) {
-    if(!generatedKeypairs.length) {
-      console.error('No input file given to process.');
-      print_usage();
-    } else {
-      console.log('Keypairs generated: ');
-      for (const k of generatedKeypairs) {
-        console.log(`  ${k}-public.pem and ${k}-private.pem`);
-      }
-    }
-    process.exit();
-  }
-  // the input JSON coming from STDIN or from a filename given as parameter
-  const data_raw = readFileSync(source, 'utf8');
-  const data = JSON.parse(data_raw);
-
-  if (!publicKeys.length && !pretend) {
-    throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
-  }
-
-  process_activities(data.activities).then(async (activities)=>{
-    // group the resulting emissions per activity type, and for shipment type group by mode:
-    const grouped_by_type = group_processed_activities(activities);
-    if (pretend) {
-      return grouped_by_type;
-    }
-    // now we can emit the tokens for each group and prepare the relevant data for final output
-    const output_array: OutputActivity[] = [];
-    for (const t in grouped_by_type) {
-      if (t === 'shipment') {
-        const group = grouped_by_type[t] as GroupedResults;
-        for (const mode in group) {
-          const doc = group[mode] as GroupedResult;
-          await process_group(output_array, doc, t, publicKeys, data, mode);
-        }
+  if (processrequests) {
+    process_emissions_requests();
+  } else {
+    if (!source) {
+      if(!generatedKeypairs.length) {
+        console.error('No input file given to process.');
+        print_usage();
       } else {
-        const doc = grouped_by_type[t] as GroupedResult;
-        await process_group(output_array, doc, t, publicKeys, data);
+        console.log('Keypairs generated: ');
+        for (const k of generatedKeypairs) {
+          console.log(`  ${k}-public.pem and ${k}-private.pem`);
+        }
       }
+      process.exit();
     }
-    // add back any errors we filtered before to the output
-    grouped_by_type.errors = activities.filter(a=>a.error);
-    if (verbose) return grouped_by_type;
-    // short form output: return an Array of objects with {id, tokenId, error }
-    for (const a of activities.filter(a=>a.error)) {
-      output_array.push({id: a.activity.id, error: a.error});
-    }
-    return output_array;
-  }).then((output)=>{
-    console.log(JSON.stringify(output, null, 4));
-      process.exit(0)
-  });
+    // the input JSON coming from STDIN or from a filename given as parameter
+    const data_raw = readFileSync(source, 'utf8');
+    const data = JSON.parse(data_raw);
 
+    if (!publicKeys.length && !pretend) {
+      throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
+    }
+
+    process_activities(data.activities).then(async (activities)=>{
+      // group the resulting emissions per activity type, and for shipment type group by mode:
+      const grouped_by_type = group_processed_activities(activities);
+      if (pretend) {
+        return grouped_by_type;
+      }
+      // now we can emit the tokens for each group and prepare the relevant data for final output
+      const output_array: OutputActivity[] = [];
+      for (const t in grouped_by_type) {
+        if (t === 'shipment') {
+          const group = grouped_by_type[t] as GroupedResults;
+          for (const mode in group) {
+            const doc = group[mode] as GroupedResult;
+            await process_group(output_array, doc, t, publicKeys, data, mode);
+          }
+        } else {
+          const doc = grouped_by_type[t] as GroupedResult;
+          await process_group(output_array, doc, t, publicKeys, data);
+        }
+      }
+      // add back any errors we filtered before to the output
+      grouped_by_type.errors = activities.filter(a=>a.error);
+      if (verbose) return grouped_by_type;
+      // short form output: return an Array of objects with {id, tokenId, error }
+      for (const a of activities.filter(a=>a.error)) {
+        output_array.push({id: a.activity.id, error: a.error});
+      }
+      return output_array;
+    }).then((output)=>{
+      console.log(JSON.stringify(output, null, 4));
+        process.exit(0)
+    });
+  }
 }
 

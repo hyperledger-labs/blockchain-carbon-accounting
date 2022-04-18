@@ -110,7 +110,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     let _balanceCount = 0;
     try {
       // get total count of balance
-      const query = `issuee,string,${signedInAddress},eq`;
+      const query = `issuedTo,string,${signedInAddress},eq`;
       const offset = (_balancePage - 1) * _balancePageSize;
 
       // this count means total number of balances
@@ -200,7 +200,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         {fetchingTokens && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
+              <span className="visually-hidden">Loading...</span>
             </Spinner>
           </div>
         )}

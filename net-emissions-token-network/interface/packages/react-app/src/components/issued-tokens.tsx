@@ -133,7 +133,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
     try {
       // get total count of balance
-      const query = `issuee,string,${signedInAddress},eq`;
+      const query = `issuedTo,string,${signedInAddress},eq`;
       const offset = (_balancePage - 1) * _balancePageSize;
 
       // this count means total number of balances
@@ -175,7 +175,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
-      const query = `issuer,string,${signedInAddress},eq`;
+      const query = `issuedFrom,string,${signedInAddress},eq`;
       const offset = (_page - 1) * _pageSize;
 
       // this count means total number of issued tokens
@@ -413,7 +413,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         {fetchingTokens && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
-              <span className="sr-only">Loading...</span>
+              <span className="visually-hidden">Loading...</span>
             </Spinner>
           </div>
         )}
