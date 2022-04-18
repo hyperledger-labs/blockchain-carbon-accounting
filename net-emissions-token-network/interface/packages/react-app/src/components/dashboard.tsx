@@ -110,7 +110,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     let _balanceCount = 0;
     try {
       // get total count of balance
-      const query = `issuee,string,${signedInAddress},eq`;
+      const query = `issuedTo,string,${signedInAddress},eq`;
       const offset = (_balancePage - 1) * _balancePageSize;
 
       // this count means total number of balances
@@ -133,7 +133,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           tokenId: balance.token.tokenId,
           token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
-          issuee: balance.issuee,
+          issuedTo: balance.issuedTo,
           availableBalance: (balance.available / 1000).toFixed(3),
           retiredBalance: (balance.retired / 1000).toFixed(3),
           transferredBalance: (balance.transferred / 1000).toFixed(3)

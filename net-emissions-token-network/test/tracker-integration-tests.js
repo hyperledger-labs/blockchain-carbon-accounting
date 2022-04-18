@@ -60,6 +60,7 @@ describe("Carbon Tracker - Integration tests", function() {
       .connect(await ethers.getSigner(industry1))
       .issue(
         industry1,
+        industry1,
         allTokenTypeId[3],
         quantity,
         fromDate,
@@ -139,6 +140,7 @@ describe("Carbon Tracker - Integration tests", function() {
       .connect(await ethers.getSigner(industry1))
       .issue(
         industry1,
+        industry1,
         allTokenTypeId[3],
         quantity,
         fromDate,
@@ -184,6 +186,7 @@ describe("Carbon Tracker - Integration tests", function() {
     let issueThree = await contract
       .connect(await ethers.getSigner(industry2))
       .issue(
+        industry2,
         industry2,
         allTokenTypeId[3],
         quantity,
@@ -255,6 +258,7 @@ describe("Carbon Tracker - Integration tests", function() {
     let issueAe = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         industry1,
         allTokenTypeId[2],
         quantity,
@@ -276,6 +280,7 @@ describe("Carbon Tracker - Integration tests", function() {
     issueAe = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         industry2,
         allTokenTypeId[2],
         1,
@@ -462,6 +467,7 @@ describe("Carbon Tracker - Integration tests", function() {
     issueAe = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         industry1,
         allTokenTypeId[2],
         1,

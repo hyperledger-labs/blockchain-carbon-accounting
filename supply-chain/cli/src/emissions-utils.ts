@@ -9,7 +9,6 @@ import EthNetEmissionsTokenGateway from "emissions_data/src/blockchain-gateway/n
 import Signer from "emissions_data/src/blockchain-gateway/signer";
 import { setup } from "emissions_data/src/utils/logger";
 import { PostgresDBService } from "blockchain-carbon-accounting-data-postgres/src/postgresDbService";
-import { EmissionsRequestPayload } from "blockchain-carbon-accounting-data-postgres/src/repositories/common";
 import {
   Activity,
   ActivityResult,
@@ -30,6 +29,7 @@ import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { getEmissionsAuditors } from './token-query-utils';
 import * as carrier_emission_factors from "../data/carrier_service_mapping.json"
 import * as flight_emission_factors from "../data/flight_service_mapping.json"
+import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -148,7 +148,8 @@ export async function issue_emissions_tokens(
     activity_type,
     from_date,
     thru_date,
-    process.env.ETH_ISSUEE_ACCT || "",
+    process.env.ETH_ISSUE_FROM_ACCT || "",
+    process.env.ETH_ISSUE_TO_ACCT || "",
     total_emissions,
     metadata,
     hash,
@@ -161,7 +162,8 @@ export async function issue_emissions_tokens_with_issuee(
   activity_type: string,
   from_date: Date,
   thru_date: Date,
-  issuee: string,
+  issuedFrom: string,
+  issuedTo: string,
   total_emissions: number,
   metadata: string,
   hash: string,
@@ -180,11 +182,12 @@ export async function issue_emissions_tokens_with_issuee(
   const manifest = create_manifest(publicKey, ipfs_path, hash);
   const description = `Emissions from ${activity_type}`;
 
-  return await gateway_issue_token(issuee, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
+  return await gateway_issue_token(issuedFrom, issuedTo, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
 }
 
 async function gateway_issue_token(
-  addressToIssue: string,
+  issuedFrom: string,
+  issuedTo: string,
   quantity: number,
   fromDate: number,
   thruDate: number,
@@ -202,12 +205,13 @@ async function gateway_issue_token(
     signer: signer,
   });
   const caller: IEthTxCaller = {
-    address: process.env.ETH_ISSUER_ACCT,
-    private: process.env.ETH_ISSUER_PRIVATE_KEY,
+    address: process.env.ETH_ISSUE_BY_ACCT,
+    private: process.env.ETH_ISSUE_BY_PRIVATE_KEY,
   };
 
   const input: IEthNetEmissionsTokenIssueInput = {
-    addressToIssue: addressToIssue,
+    issuedFrom: issuedFrom,
+    issuedTo: issuedTo,
     quantity: quantity,
     fromDate: fromDate,
     thruDate: thruDate,
@@ -219,6 +223,7 @@ async function gateway_issue_token(
     const token = await gateway.issue(caller, input);
     return token;
   } catch (error) {
+    console.log("gateway_issue_token, error", error)
     new Error(error);
   }
 }
@@ -393,6 +398,7 @@ export async function issue_tokens(
       ipfs_res.path,
       input_data,
       publicKeys[0],
+      null,
       null);
     return {"tokenId": "queued"};
   } else {
@@ -412,7 +418,8 @@ export async function issue_tokens(
 }
 
 export async function issue_tokens_with_issuee(
-  issuee: string,
+  issuedFrom: string,
+  issuedTo: string,
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
@@ -440,7 +447,8 @@ export async function issue_tokens_with_issuee(
     activity_type,
     doc.from_date,
     doc.thru_date,
-    issuee,
+    issuedFrom,
+    issuedTo,
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
@@ -461,9 +469,11 @@ export async function create_emissions_request(
   ipfs_path: string,
   input_data: string,
   publickey_name: string,
-  issuee: string
+  issuee_from: string,
+  issuee_to: string
 ) {
-  issuee = issuee || process.env.ETH_ISSUEE_ACCT;
+  issuee_from = issuee_from || process.env.ETH_ISSUE_FROM_ACCT;
+  issuee_to = issuee_to || process.env.ETH_ISSUE_TO_ACCT;
   const status = 'CREATED';
   const publickey = readFileSync(publickey_name, 'utf8');
 
@@ -475,11 +485,13 @@ export async function create_emissions_request(
 
   const manifest = create_manifest(publickey_name, ipfs_path, hash);
 
-  const payload: EmissionsRequestPayload = {
+  const db = await getDBInstance();
+  await db.getEmissionsRequestRepo().insert({
     input_data: input_data,
     public_key: publickey,
     public_key_name: publickey_name,
-    issuee: issuee,
+    issued_from: issuee_from,
+    issued_to: issuee_to,
     status: status,
     token_from_date: f_date,
     token_thru_date: t_date,
@@ -487,10 +499,7 @@ export async function create_emissions_request(
     token_metadata: metadata,
     token_manifest: JSON.stringify(manifest),
     token_description: `Emissions from ${activity_type}`
-  }
-
-  const db = await getDBInstance();
-  await db.getEmissionsRequestRepo().insert(payload);
+  });
 }
 
 function create_manifest(publickey_name: string, ipfs_path: string, hash: string) {
@@ -501,7 +510,7 @@ function create_manifest(publickey_name: string, ipfs_path: string, hash: string
   };
 }
 
-function get_auditor(auditors) {
+function get_random_auditor(auditors: Wallet[]) {
   if (auditors && auditors.length > 0) {
     if (auditors.length == 1) {
       return auditors[0];
@@ -521,18 +530,13 @@ export async function process_emissions_requests() {
       const auditors = await getEmissionsAuditors();
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
-        let active_auditors = [];
-        for (const a in auditors) {
-          if (auditors[a].public_key) {
-            active_auditors.push(auditors[a]);
-          }
-        }
+        const active_auditors = auditors.filter((w) => !!w.public_key);
         if (active_auditors.length > 0) {
           // process from created to pending
           for (const e in emissions_requests) {
               const er = emissions_requests[e];
               console.log("Process emission request: ", er.uuid);
-              const auditor = get_auditor(active_auditors);
+              const auditor = get_random_auditor(active_auditors);
               if (auditor) {
                 console.log('Randomly selected auditor: ', auditor.address);
                 // encode input_data and post it into ipfs
@@ -567,3 +571,50 @@ export async function decline_emissions_request(uuid: string) {
     throw new Error(`Cannot get emissions request ${uuid}`);
   }
 }
+
+export async function issue_emissions_request(uuid: string) {
+  if (!logger_setup) {
+    setup(LOG_LEVEL, LOG_LEVEL);
+    logger_setup = true;
+  }
+  const db = await getDBInstance();
+  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+  if (emissions_request) {
+    // check status is correct
+    if (emissions_request.status == 'PENDING') {
+      const fd = Math.floor(emissions_request.token_from_date.getTime() / 1000);
+      const td = Math.floor(emissions_request.token_thru_date.getTime() / 1000);
+      const token = await gateway_issue_token(
+        emissions_request.issued_from,
+        emissions_request.issued_to,
+        emissions_request.token_total_emissions,
+        fd,
+        td,
+        emissions_request.token_manifest,
+        emissions_request.token_metadata,
+        emissions_request.token_description
+      );
+      if (token) {
+        await db.getEmissionsRequestRepo().updateToIssued(uuid);
+        return token;
+      } else {
+        throw new Error(`Cannot issue a token for emissions request ${uuid}`);
+      }
+    } else {
+      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+    }
+  } else {
+    throw new Error(`Cannot get emissions request ${uuid}`);
+  }
+}
+
+export async function get_auditor_emissions_requests(auditor: string) {
+  const db = await getDBInstance();
+  return await db.getEmissionsRequestRepo().selectByEmissionAuditor(auditor);
+}
+
+export async function count_auditor_emissions_requests(auditor: string) {
+  const db = await getDBInstance();
+  return await db.getEmissionsRequestRepo().countByEmissionAuditor(auditor);
+}
+

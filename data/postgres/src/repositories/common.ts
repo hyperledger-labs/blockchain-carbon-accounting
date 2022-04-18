@@ -1,7 +1,8 @@
 import { EntityTarget, SelectQueryBuilder } from "typeorm"
+import { EmissionsRequest } from "../models/emissionsRequest";
 
 export interface BalancePayload {
-  issuee: string
+  issuedTo: string
   tokenId: number
   available: number
   retired: number
@@ -22,8 +23,9 @@ export interface StringPayload {
 export interface TokenPayload {
   tokenId: number;
   tokenTypeId: number;
-  issuee: string;
-  issuer: string;
+  issuedBy: string;
+  issuedFrom: string;
+  issuedTo: string;
   fromDate: number;
   thruDate: number;
   dateCreated: number;
@@ -37,20 +39,7 @@ export interface TokenPayload {
   type: string;
 }
 
-export interface EmissionsRequestPayload {
-  input_data: string;
-  public_key: string;
-  public_key_name: string;
-  issuee: string;
-  status: string;
-  token_from_date: Date;
-  token_thru_date: Date;
-  token_total_emissions: number;
-  token_metadata: string;
-  token_manifest: string;
-  token_description: string;
-}
-
+export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
 
 // eslint-disable-next-line
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>, entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
@@ -95,7 +84,7 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
 
     // make case insensitive for issuee issuer cases
     let cond = '';
-    if(query.field == 'issuee' || query.field == 'issuer') {
+    if(query.field == 'issuedTo' || query.field == 'issuedFrom') {
       cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
     } else {
       cond = `${alias}.${query.field} ${query.op} :${query.field}`

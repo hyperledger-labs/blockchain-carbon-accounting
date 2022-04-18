@@ -884,7 +884,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "issuee",
+        "name": "issuedFrom",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "issuedTo",
         "type": "address"
       },
       {

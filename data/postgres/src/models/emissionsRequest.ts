@@ -13,19 +13,22 @@ export class EmissionsRequest {
   uuid!: string;
 
   @Column({nullable: false})
-  input_data?: string;
+  input_data!: string;
 
   @Column({nullable: false})
-  public_key?: string;
+  public_key!: string;
 
   @Column({nullable: false})
-  public_key_name?: string;
+  public_key_name!: string;
 
   @Column({nullable: false})
-  issuee?: string;
+  issued_from!: string;
 
   @Column({nullable: false})
-  status?: string;
+  issued_to!: string;
+
+  @Column({nullable: false})
+  status!: string;
 
   @Column({type: 'timestamp', nullable: true})
   token_from_date?: Date;

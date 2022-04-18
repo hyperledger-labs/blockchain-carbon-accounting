@@ -1,8 +1,9 @@
 export interface CreatedToken {
     tokenId: number;
     tokenTypeId: number;
-    issuee: string;
-    issuer: string;
+    issuedBy: string;
+    issuedFrom: string;
+    issuedTo: string;
     fromDate: number;
     thruDate: number;
     dateCreated: number;
@@ -45,8 +46,9 @@ export const OP_MAP: IOP_MAP = {
 export type IFIELDS = {
     "tokenId"? : FIELD,
     "tokenTypeId"? : FIELD,
-    "issuer"? : FIELD,
-    "issuee"? : FIELD,
+    "issueBy"? : FIELD,
+    "issuedFrom"? : FIELD,
+    "issuedTo"? : FIELD,
     "fromDate"? : FIELD,
     "thruDate"? : FIELD,
     "dateCreated"? : FIELD,
@@ -65,8 +67,9 @@ export type IFIELDS = {
 export const FIELDS = {
     "tokenId" : STRING_FIELD,
     "tokenTypeId": NUMERIC_FIELD,
-    "issuer": STRING_FIELD,
-    "issuee": STRING_FIELD,
+    "issueBy": STRING_FIELD,
+    "issuedFrom": STRING_FIELD,
+    "issuedTo": STRING_FIELD,
     "fromDate": NUMERIC_FIELD,
     "thruDate": NUMERIC_FIELD,
     "dateCreated": NUMERIC_FIELD,

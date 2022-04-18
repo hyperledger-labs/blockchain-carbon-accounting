@@ -8,7 +8,10 @@ import { GroupedResult,
   process_activities,
   group_processed_activities,
   issue_tokens_with_issuee,
-  decline_emissions_request
+  decline_emissions_request,
+  issue_emissions_request,
+  get_auditor_emissions_requests,
+  count_auditor_emissions_requests
 } from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
@@ -17,8 +20,8 @@ type OutputActivity = {
     error?: string
 };
 
-async function process_group(issuee: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
-    const token_res = await issue_tokens_with_issuee(issuee, g, activity_type, publicKeys, mode);
+async function process_group(issuedFrom: string, issuedTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
+    const token_res = await issue_tokens_with_issuee(issuedFrom, issuedTo, g, activity_type, publicKeys, mode);
     // add each activity to output array
     for (const a of g.content) {
         const out: OutputActivity = { id: a.activity.id };
@@ -33,10 +36,20 @@ export function issueToken(req: Request, res: Response) {
 
     const verbose = req.body.verbose;
     const pretend = req.body.pretend;
-    const issuee = req.body.issuee;
+    const issuedFrom = req.body.issuedFrom;
+    const issuedTo = req.body.issuedTo;
 
-    console.log(`Start request, issue to ${issuee} verbose? ${verbose} pretend? ${pretend}`)
-    if(!pretend && issuee == undefined) {
+    console.log(`Start request, issue to ${issuedTo} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issuedTo == undefined) {
+        console.log('== 400 No issuee.')
+        return res.status(400).json({
+            status: "failed",
+            msg: "Issuee was not given."
+        });
+    }
+
+    console.log(`issue from ${issuedFrom} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issuedFrom == undefined) {
         console.log('== 400 No issuee.')
         return res.status(400).json({
             status: "failed",
@@ -91,11 +104,11 @@ export function issueToken(req: Request, res: Response) {
                 const group = grouped_by_type[t] as GroupedResults;
                 for (const mode in group) {
                     const doc = group[mode] as GroupedResult;
-                    await process_group(issuee, output_array, doc, t, pubKeys, mode);
+                    await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys, mode);
                 }
             } else {
                 const doc = grouped_by_type[t] as GroupedResult;
-                await process_group(issuee, output_array, doc, t, pubKeys);
+                await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys);
             }
         }
         // add back any errors we filtered before to the output
@@ -130,4 +143,35 @@ export async function declineEmissionsRequest(req: Request, res: Response) {
       return res.status(500).json({ error: error.message || error });
     }
     return res.status(200).json({success: '1'});
+}
+
+export async function issueEmissionsRequest(req: Request, res: Response) {
+    try {
+      await issue_emissions_request(req.params.uuid);
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+    return res.status(200).json({success: '1'});
+}
+
+export async function getEmissionsRequests(req: Request, res: Response) {
+    try {
+      const emissionsRequests = await get_auditor_emissions_requests(req.params.auditor);
+      return res.status(200).json({success: '1', items: emissionsRequests});
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
+    }
+}
+
+export async function countEmissionsRequests(req: Request, res: Response) {
+    if (req.params.op == 'count') {
+        try {
+          const count = await count_auditor_emissions_requests(req.params.auditor);
+          return res.status(200).json({success: '1', count: count});
+        } catch (error) {
+          return res.status(500).json({ error: error.message || error });
+        }
+    } else {
+        return res.status(200).json({error: 'Wrong operation'});
+    }
 }

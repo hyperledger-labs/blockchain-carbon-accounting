@@ -69,7 +69,8 @@ exports.getProposalIdFromProposalTransactionReceipt = function (receipt) {
 exports.createProposal = async function (params) {
   // set-up parameters for proposal external contract call
   let proposalCallParams = {
-    account: params.deployer,
+    accountBy: params.deployer,
+    accountFrom: params.deployer,
     proposer: params.proposer,
     tokenTypeId: params.tokenTypeId || 1,
     quantity: 300,
@@ -85,12 +86,13 @@ exports.createProposal = async function (params) {
     targets: [params.netEmissionsTokenNetwork.address], // contract to call
     values: [0], // number of wei sent with call, i.e. msg.value
     signatures: [
-      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",
+      "issueOnBehalf(address,address,address,uint8,uint256,uint256,uint256,string,string,string)",
     ], // function in contract to call
     calldatas: [
       exports.encodeParameters(
         // types of params
         [
+          "address",
           "address",
           "address",
           "uint8",
@@ -103,7 +105,8 @@ exports.createProposal = async function (params) {
         ],
         // value of params
         [
-          proposalCallParams.account,
+          proposalCallParams.accountBy,
+          proposalCallParams.accountFrom,
           proposalCallParams.proposer,
           proposalCallParams.tokenTypeId,
           proposalCallParams.quantity,
@@ -173,7 +176,8 @@ exports.createMultiAttributeProposal = async function (params) {
 
   // set-up parameters for proposal external contract call
   let proposalCallParams = {
-    account: params.deployer,
+    accountBy: params.deployer,
+    accountFrom: params.deployer,
     proposer: params.proposer,
     tokenTypeId: 1,
     quantity: 300,
@@ -188,13 +192,14 @@ exports.createMultiAttributeProposal = async function (params) {
   let proposalParent = {
     targets: params.netEmissionsTokenNetwork.address, // contract to call
     values: 0, // number of wei sent with call, i.e. msg.value
-    signatures: "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)", // function in contract to call
+    signatures: "issueOnBehalf(address,address,address,uint8,uint256,uint256,uint256,string,string,string)", // function in contract to call
     calldatas: exports.encodeParameters(
       // types of params
-      ['address','address','uint8','uint256','uint256','uint256','string','string','string'],
+      ['address','address','address','uint8','uint256','uint256','uint256','string','string','string'],
       // value of params
       [
-        proposalCallParams.account,
+        proposalCallParams.accountBy,
+        proposalCallParams.accountFrom,
         proposalCallParams.proposer,
         proposalCallParams.tokenTypeId,
         proposalCallParams.quantity,

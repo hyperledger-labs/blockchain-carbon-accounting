@@ -124,6 +124,7 @@ task("issueTestTokens", "Create some test issued tokens")
       await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
+        dealer1,
         consumer1,
         1,
         qty,
@@ -137,6 +138,7 @@ task("issueTestTokens", "Create some test issued tokens")
       await contract
       .connect(await ethers.getSigner(dealer7))
       .issue(
+        dealer7,
         consumer2,
         2,
         qty,
@@ -150,6 +152,7 @@ task("issueTestTokens", "Create some test issued tokens")
       await contract
       .connect(await ethers.getSigner(dealer2))
       .issue(
+        dealer2,
         consumer2,
         3,
         qty,

@@ -13,10 +13,13 @@ export class Token {
     tokenTypeId!: number;
 
     @Column()
-    issuee!: string;
+    issuedBy!: string;
 
     @Column()
-    issuer!: string;
+    issuedFrom!: string;
+
+    @Column()
+    issuedTo!: string;
 
     @Column({nullable: true})
     fromDate!: number;

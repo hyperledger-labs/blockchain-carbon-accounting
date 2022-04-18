@@ -15,6 +15,14 @@ export type ParseWorksheetOpts = {
   skip_rows?: number
 };
 
+function getStateNameMapping(key: keyof typeof STATE_NAME_MAPPING) {
+  return STATE_NAME_MAPPING[key];
+}
+
+function getCountryMapping(key: keyof typeof COUNTRY_MAPPINGS) {
+  return COUNTRY_MAPPINGS[key]
+}
+
 export const parseWorksheet = (opts: ParseWorksheetOpts) => {
   const bar = new SingleBar(
     {
@@ -35,7 +43,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
 
   const sheet_name_list = workbook.SheetNames;
 
-  let data = [];
+  let data: any[] = [];
   for (const sheet of sheet_name_list) {
     opts.verbose && console.log("Worksheet: ", sheet);
     if (opts.sheet && sheet != opts.sheet) {
@@ -44,7 +52,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
     }
 
     const worksheet = workbook.Sheets[sheet];
-    const headers = {};
+    const headers: Record<string, string> = {};
     let header_row = 1;
     if (opts.skip_rows && opts.skip_rows >= header_row) {
       header_row = opts.skip_rows + 1;
@@ -201,7 +209,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         country: "USA",
         division_type: "STATE",
         division_id: row["State abbreviation"],
-        division_name: STATE_NAME_MAPPING[row["State abbreviation"]].toString(),
+        division_name: getStateNameMapping(row["State abbreviation"]),
         net_generation: row["State annual net generation (MWh)"],
         net_generation_uom: "MWH",
         co2_equivalent_emissions:
@@ -351,7 +359,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         country: "USA",
         division_type: "STATE",
         division_id: row["State abbreviation"],
-        division_name: STATE_NAME_MAPPING[row["State abbreviation"]],
+        division_name: getStateNameMapping(row["State abbreviation"]),
         net_generation: "" + row["State annual net generation (MWh)"],
         net_generation_uom: "MWH",
         co2_equivalent_emissions:
@@ -442,7 +450,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       // skip rows unrelated to electricity
       if (row["Market_Sector"] !== "Electricity") continue;
 
-      const countryName = COUNTRY_MAPPINGS[row["CountryShort"]];
+      const countryName = getCountryMapping(row["CountryShort"]);
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: uuidv4(),
@@ -492,7 +500,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       // get country long name and abbreviation from long name
       const countryLong = row["Member State:text"].replace(" ", "_");
       const countryShort = Object.keys(COUNTRY_MAPPINGS).find(
-        (key) => COUNTRY_MAPPINGS[key] === countryLong
+        (key) => getCountryMapping(key as keyof typeof COUNTRY_MAPPINGS) === countryLong
       );
 
       // skip if country name not found

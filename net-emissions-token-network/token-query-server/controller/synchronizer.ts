@@ -15,23 +15,6 @@ const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[]
 
 const FIRST_BLOCK = 17770812;
 
-// setup wallets from hardhat name them based on the setTestAccountRoles
-// roles should be auto set based on the blockchain data
-const SEED_WALLETS: Record<string, Partial<Wallet>> = (process.env.LEDGER_ETH_NETWORK === 'hardhat') ? {
-  '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266': {name: 'super user (Account 0)', organization: 'Test Hardhat'},
-  '0x70997970C51812dc3A010C7d01b50e0d17dc79C8': {name: 'REC Dealer 1', organization: 'Test Hardhat'},
-  '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC': {name: 'Emissions Auditor 1', organization: 'Test Hardhat'},
-  '0x90F79bf6EB2c4f870365E785982E1f101E93b906': {name: 'Offset Dealer 1', organization: 'Test Hardhat'},
-  '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65': {name: 'Emissions Auditor 2', organization: 'Test Hardhat'},
-  '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199': {name: 'Consumer 1', organization: 'Test Hardhat'},
-  '0xdD2FD4581271e230360230F9337D5c0430Bf44C0': {name: 'Consumer 2', organization: 'Test Hardhat'},
-  '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc': {name: 'Emissions Auditor 3', organization: 'Test Hardhat'},
-  '0x976EA74026E726554dB657fA54763abd0C3a0aa9': {name: 'Emissions Auditor 4', organization: 'Test Hardhat'},
-  '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955': {name: 'Offset Dealer 2', organization: 'Test Hardhat'},
-  '0xcd3B766CCDd6AE721141F452C550Ca635964ce71': {name: 'Industry 1', organization: 'Test Hardhat'},
-  '0x2546BcD3c84621e976D8185a91A922aE77ECEc30': {name: 'Industry 2', organization: 'Test Hardhat'},
-} : {}
-
 /* Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
  * Note for the dealer events the actual role depends on the token.
  * Instead of relying on the event we just use them to collect the addresses of the accounts,
@@ -63,6 +46,7 @@ export const syncWallets = async (currentBlock: number) => {
             else 
                 toBlock = fromBlock + 5000; 
             for (const {event} of events) {
+                console.log("event: ", event);
                 const logs = await contract.getPastEvents(event, {fromBlock, toBlock});
                 for (const {returnValues} of logs) {
                     const account = returnValues.account
@@ -84,7 +68,7 @@ export const syncWallets = async (currentBlock: number) => {
         }
 
         for (const address in accountAddresses) {
-            await syncWalletRoles(address, SEED_WALLETS[address]);
+            await syncWalletRoles(address);
         }
     } catch (err) {
         console.error(err)
@@ -139,6 +123,7 @@ const getNumOfUniqueTokens = async (): Promise<number> => {
 async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
     try {
         const token: CreatedToken = await contract.methods.getTokenDetails(tokenId).call();
+        console.log(token);
 
         // restructure 
         const _metadata = token.metadata as string;
@@ -239,7 +224,7 @@ export const fillBalances = async (currentBlock: number) => {
             if(from == BURN) {
                 const balancePayload: BalancePayload = {
                     tokenId,
-                    issuee: to,
+                    issuedTo: to,
                     available: Number(amount),
                     retired: 0,
                     transferred: 0
@@ -272,7 +257,7 @@ export const fillBalances = async (currentBlock: number) => {
             if(balance == undefined) {
                 const balancePayload: BalancePayload = {
                     tokenId,
-                    issuee: to,
+                    issuedTo: to,
                     available: Number(amount),
                     retired: 0,
                     transferred: 0

@@ -42,7 +42,8 @@ describe('EthNetEmissionsTokenGateway', () => {
 
         it('should issue emission token', async () => {
             const input: IEthNetEmissionsTokenIssueInput = {
-                addressToIssue: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
+                issuedFrom: caller.address,
+                issuedTo: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
                 quantity: 100,
                 fromDate: 454545,
                 thruDate: 45454,
@@ -62,7 +63,8 @@ describe('EthNetEmissionsTokenGateway', () => {
         it('throws', async () => {
             try {
                 await gateway.issue(caller, {
-                    addressToIssue: '0x7invalid',
+                    issuedFrom: caller.address,
+                    issuedTo: '0x7invalid',
                     quantity: 100,
                     fromDate: 454545,
                     thruDate: 45454,
@@ -98,7 +100,8 @@ describe('EthNetEmissionsTokenGateway', () => {
         };
         it('should issue emission token', async () => {
             const input: IEthNetEmissionsTokenIssueInput = {
-                addressToIssue: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
+                issuedFrom: caller.address,
+                issuedTo: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
                 quantity: 100,
                 fromDate: 454545,
                 thruDate: 45454,
@@ -118,7 +121,8 @@ describe('EthNetEmissionsTokenGateway', () => {
         it('throws', async () => {
             try {
                 await gateway.issue(caller, {
-                    addressToIssue: '0x7invalid',
+                    issuedFrom: caller.address,
+                    issuedTo: '0x7invalid',
                     quantity: 100,
                     fromDate: 454545,
                     thruDate: 45454,

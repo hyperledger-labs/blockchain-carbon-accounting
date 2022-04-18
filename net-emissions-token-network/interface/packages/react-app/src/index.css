@@ -29,7 +29,6 @@ body {
 }
 
 .nav-link:hover {
-  border: 0 !important;
   color: white !important;
 }
 

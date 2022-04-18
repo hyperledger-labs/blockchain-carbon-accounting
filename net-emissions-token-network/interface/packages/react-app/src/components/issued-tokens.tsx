@@ -133,7 +133,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
     try {
       // get total count of balance
-      const query = `issuee,string,${signedInAddress},eq`;
+      const query = `issuedTo,string,${signedInAddress},eq`;
       const offset = (_balancePage - 1) * _balancePageSize;
 
       // this count means total number of balances
@@ -175,7 +175,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
-      const query = `issuer,string,${signedInAddress},eq`;
+      const query = `issuedFrom,string,${signedInAddress},eq`;
       const offset = (_page - 1) * _pageSize;
 
       // this count means total number of issued tokens
@@ -218,8 +218,9 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           type: tokenDetails.type,
           tokenTypeId: tokenDetails.tokenTypeId,
           tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
-          issuer: tokenDetails.issuer,
-          issuee: tokenDetails.issuee,
+          issuedFrom: tokenDetails.issuedFrom,
+          issuedBy: tokenDetails.issuedBy,
+          issuedTo: tokenDetails.issuedTo,
           dateCreated: tokenDetails.dateCreated,
           fromDate: fromDate,
           thruDate: thruDate,
@@ -230,7 +231,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           totalRetired: totalRetired,
         };
 
-        if (token.issuer.toLowerCase() === signedInAddress.toLowerCase()) {
+        if (token.issuedFrom.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTokens.push(token);
           token.isMyIssuedToken = true;
         }

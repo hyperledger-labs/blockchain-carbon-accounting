@@ -13,7 +13,7 @@ import {
 export class Balance {
     
     @PrimaryColumn()
-    issuee!: string;
+    issuedTo!: string;
 
     @PrimaryColumn()
     tokenId!: number;

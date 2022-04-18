@@ -24,8 +24,9 @@ export type Token = {
   tokenId: number
   tokenTypeId: number
   tokenType?: string
-  issuee: string
-  issuer: string
+  issuedBy: string
+  issuedFrom: string
+  issuedTo: string
   fromDate: number|string
   thruDate: number|string
   dateCreated: number|string
@@ -62,7 +63,7 @@ export type Tracker = {
 }
 
 export type Balance = {
-  issuee: string
+  issuedTo: string
   tokenId: number
   available: number
   retired: number

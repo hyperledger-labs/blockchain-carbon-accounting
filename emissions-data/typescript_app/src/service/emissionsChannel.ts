@@ -133,7 +133,8 @@ export default class EmissionsChannelService {
             keyName: input.query.userId,
         };
         const partyId = input.body.partyId;
-        const addressToIssue = input.body.addressToIssue;
+        const issuedTo = input.body.issuedTo;
+        const issuedFrom = input.body.issuedFrom;
         const toAuditString = input.body.emissionsRecordsToAudit as string;
         const txID = input.body.txID;
         const emissionsRecordsToAudit = toAuditString.toString().split(',');
@@ -195,7 +196,8 @@ export default class EmissionsChannelService {
                 const description = 'Audited Utility Emissions';
 
                 const token = await this.opts.netEmissionsContractGateway.issue(ethCaller, {
-                    addressToIssue: addressToIssue,
+                    issuedFrom: issuedFrom,
+                    issuedTo: issuedTo,
                     quantity: metadata.quantity,
                     fromDate: metadata.fromDate,
                     thruDate: metadata.thruDate,
