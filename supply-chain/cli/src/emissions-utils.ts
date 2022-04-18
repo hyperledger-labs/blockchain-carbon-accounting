@@ -529,7 +529,7 @@ export async function process_emissions_requests() {
       const auditors = await getEmissionsAuditors();
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
-        let active_auditors = [];
+        const active_auditors = [];
         for (const a in auditors) {
           if (auditors[a].public_key) {
             active_auditors.push(auditors[a]);
