@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext, useMemo, ElementRef } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
 
-import SubmissionModal from "./submission-modal";
-import WalletLookupInput from "./wallet-lookup-input";
-import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "./static-data";
+import SubmissionModal from "../components/submission-modal";
+import WalletLookupInput from "../components/wallet-lookup-input";
+import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "../components/static-data";
 
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
@@ -80,6 +80,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   const [modalShow, setModalShow] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const lookupRef = useRef<ElementRef<typeof WalletLookupInput>>(null);
 
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
@@ -92,6 +93,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [lookupError, setLookupError] = useState("");
   const [lookupMessage, setLookupMessage] = useState("");
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   // Fetching roles of outside address
   const [lookupWallet, setLookupWallet] = useState<Wallet|null>(null);
@@ -100,13 +102,19 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
   const [zodErrors, setZodErrors] = useState<any>(null);
 
+  const hasAssignRolePermissions = useMemo(()=>
+      (roles.isAdmin || (!limitedMode && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole)))
+    ), [limitedMode, roles])
+
   // called on the Lookup button click
   const lookupWalletRoles = useCallback(async () => {
+    if (lookupRef.current) lookupRef.current.close()
     if ((lookupWallet && lookupWallet.address) || provider) {
       if (theirRoles.hasAnyRole) setTheirRoles({});
       setFetchingTheirRoles(true);
       setLookupError('');
       setLookupMessage('');
+      setShowAddUserForm(false);
       if (lookupWallet && lookupWallet.address) {
         try { 
           const lookup = await trpcClient.query('wallet.lookup', { query: lookupWallet.address});
@@ -115,7 +123,8 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             setAddress(lookup?.wallets[0].address || '');
           } else {
             setLookupWallet(null)
-            setLookupMessage(`Account ${lookupWallet.address} not found.  Use the form below to add it.`);
+            setLookupMessage(`Account ${lookupWallet.address} not found.${hasAssignRolePermissions ? ' Use the form below to add it.' : ''}`);
+            if (hasAssignRolePermissions) setShowAddUserForm(true);
           }
         } catch (error) {
           console.error('trpc error: ', error)
@@ -124,14 +133,15 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         if (provider) {
           let result = await getRoles(provider, address);
           if (lookupWallet) setLookupWallet(null)
-          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found. Use the form below to add it.`);
+          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found.${hasAssignRolePermissions ? ' Use the form below to add it.' : ''}`);
+            if (hasAssignRolePermissions) setShowAddUserForm(true);
           setAddress(address);
           setTheirRoles(result);
         }
       }
       setFetchingTheirRoles(false);
     }
-  }, [lookupWallet, provider, address, theirRoles])
+  }, [lookupWallet, provider, address, theirRoles, hasAssignRolePermissions])
 
   const clearAllFormMessages = useCallback(()=>{
     setZodErrors(null)
@@ -156,6 +166,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     setTheirRoles({});
     setLookupWallet(w);
     setAddress(w ? w.address! : '');
+    if (!w || !w.address) setShowAddUserForm(false)
   }, [clearAllFormMessages])
   const onLookupInputChange = useCallback((v: string) => {
     console.log('onLookupInputChange:',v)
@@ -163,6 +174,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     if (!v) {
       setLookupWallet(null);
       clearAllFormMessages()
+      setShowAddUserForm(false);
     }
   }, [clearAllFormMessages])
 
@@ -399,7 +411,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     return result;
   }
 
-  const hasAssignRolePermissions = (roles.isAdmin || (!limitedMode && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole))))
 
   const rolesThatCanBeAssigned = []
 
@@ -452,6 +463,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       <h4>Find or Set Up a User</h4>
       <InputGroup className="mb-3">
         <WalletLookupInput 
+          ref={lookupRef}
           onChange={onLookupInputChange} 
           onWalletChange={onWalletChange} />
         <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
@@ -541,7 +553,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           </Form>
         </>}
       {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
-      {!lookupWallet && hasAssignRolePermissions &&
+      {!lookupWallet && hasAssignRolePermissions && showAddUserForm &&
         <>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
             <Form.Group className="mb-3" controlId="nameInput">

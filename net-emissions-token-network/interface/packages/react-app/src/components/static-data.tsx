@@ -115,6 +115,26 @@ export type RolesInfo = {
   hasDealerRole?: boolean
 }
 
+export type EmissionsRequest = {
+  uuid: string
+  input_data: string
+  public_key: string
+  public_key_name: string
+  issued_from: string
+  issued_to: string
+  status: string
+  token_from_date?: Date
+  token_thru_date?: Date
+  token_total_emissions: number
+  token_metadata?: string
+  token_manifest?: string
+  token_description?: string
+  emission_auditor?: string
+  input_data_ipfs_hash?: string
+  created_at: Date
+  updated_at: Date
+}
+
 export type Role = 'None' | 'Owner' | 'Consumer' | 'REC Dealer' | 'Offset Dealer' | 'Emissions Auditor' | 'Industry' | 'Industry Dealer'
 
 export const RoleEnum = {

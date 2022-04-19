@@ -8,11 +8,11 @@ import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { encodeParameters, getAdmin, issue } from "../services/contract-functions";
-import CreateProposalModal from "./create-proposal-modal";
-import SubmissionModal from "./submission-modal";
+import CreateProposalModal from "../components/create-proposal-modal";
+import SubmissionModal from "../components/submission-modal";
 import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES } from "./static-data";
-import WalletLookupInput from "./wallet-lookup-input";
+import { RolesInfo, TOKEN_TYPES } from "../components/static-data";
+import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
 type KeyValuePair = {
@@ -225,6 +225,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+  // consumer do not have access to this page
+  if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
 
   return roles.hasAnyRole ? (
     <>

@@ -13,7 +13,6 @@ import {
   Activity,
   ActivityResult,
   Distance,
-  EmissionFactor,
   Emissions,
   FlightActivity,
   is_shipment_activity,
@@ -26,10 +25,8 @@ import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
-import { getEmissionsAuditors } from './token-query-utils';
-import * as carrier_emission_factors from "../data/carrier_service_mapping.json"
-import * as flight_emission_factors from "../data/flight_service_mapping.json"
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
+import { ActivityEmissionsFactorLookup } from "blockchain-carbon-accounting-data-postgres/src/models/activityEmissionsFactorLookup";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -77,23 +74,25 @@ export function distance_in_km(distance: Distance): number {
   throw new Error(`Distance UOM ${distance.unit} not supported`);
 }
 
-export function get_freight_emission_factor(mode: string): EmissionFactor {
-  const f = carrier_emission_factors[mode];
+export async function get_freight_emission_factor(mode: string) {
+  const db = await getDBInstance();
+  const f = await db.getActivityEmissionsFactorLookupRepo().getActivityEmissionsFactorLookup('carrier', mode);
   if (!f) {
     throw new Error(`Distance mode ${mode} not supported`);
   }
   return f;
 }
 
-export function get_flight_emission_factor(seat_class: string): EmissionFactor {
-  const f = flight_emission_factors[seat_class];
+export async function get_flight_emission_factor(seat_class: string) {
+  const db = await getDBInstance();
+  const f = await db.getActivityEmissionsFactorLookupRepo().getActivityEmissionsFactorLookup('flight', seat_class);
   if (!f) {
     throw new Error(`Flight class ${seat_class} not supported`);
   }
   return f;
 }
 
-async function getEmissionFactor(f: EmissionFactor) {
+async function getEmissionFactor(f: ActivityEmissionsFactorLookup) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
   if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
@@ -108,7 +107,7 @@ export async function calc_flight_emissions(
 ): Promise<Emissions> {
   const distance_km = distance_in_km(distance);
   // lookup the factor for different class
-  const f = get_flight_emission_factor(seat_class);
+  const f = await get_flight_emission_factor(seat_class);
   // assume the factor uom is in passenger.km here
   if (f.activity_uom !== 'passenger.km') {
     throw new Error(`Expected flight emission factor uom to be passenger.km but got ${f.activity_uom}`);
@@ -125,7 +124,7 @@ export async function calc_freight_emissions(
 ): Promise<Emissions> {
   const distance_km = distance_in_km(distance);
   // lookup factor for different 'mode'
-  const f = get_freight_emission_factor(distance.mode);
+  const f = await get_freight_emission_factor(distance.mode);
   // most uom should be in tonne.km here
   const convert = get_convert_kg_for_uom(f.activity_uom);
   const factor = await getEmissionFactor(f);
@@ -477,8 +476,6 @@ export async function create_emissions_request(
   const status = 'CREATED';
   const publickey = readFileSync(publickey_name, 'utf8');
 
-  console.log('Create Emissions Request ...');
-
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
   const tokens = new BigNumber(Math.round(total_emissions));
@@ -527,7 +524,8 @@ export async function process_emissions_requests() {
   const db = await getDBInstance();
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
   if (emissions_requests && emissions_requests.length > 0) {
-      const auditors = await getEmissionsAuditors();
+      const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
+      console.log('found auditors:', auditors);
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
         const active_auditors = auditors.filter((w) => !!w.public_key);
@@ -616,5 +614,10 @@ export async function get_auditor_emissions_requests(auditor: string) {
 export async function count_auditor_emissions_requests(auditor: string) {
   const db = await getDBInstance();
   return await db.getEmissionsRequestRepo().countByEmissionAuditor(auditor);
+}
+
+export async function get_auditor_emissions_request(uuid: string) {
+  const db = await getDBInstance();
+  return await await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
 }
 

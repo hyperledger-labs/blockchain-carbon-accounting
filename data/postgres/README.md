@@ -12,6 +12,11 @@ npm install
 
 Copy the `.env.SAMPLE` into `.env` if you need any custom DB connection configuration.
 
+
+## Load Data
+
+### Emissions Factors
+
 Download the emissions factors in flat file for automatic processing format from the [UK Government Greenhouse Gas Reporting: Conversion factors 2021](https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021)
 
 Load the data with the `dataLoader` script:
@@ -19,8 +24,18 @@ Load the data with the `dataLoader` script:
 npm run dataLoader load_emissions_factors conversion-factors-2021-flat-file-automatic-processing.xls
 ```
 
-Test the results:
+### Other Seed Data
+
+Load the rest of the seed data:
 ```
+psql blockchain-carbon-accounting < seeds/*
+```
+
+
+## Test
+
+Test the results:
+
 The script `getData` can be used to query the database specific rows of the database, like this:
 ```
 npm run getData activity-emissions 'scope 1' 'REFRIGERANT & OTHER' 'KYOTO PROTOCOL - STANDARD' 'PERFLUOROBUTANE (PFC-3-1-10)' '' '' 12 'kg'

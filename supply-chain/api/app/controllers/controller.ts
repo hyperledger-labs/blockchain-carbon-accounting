@@ -11,7 +11,8 @@ import { GroupedResult,
   decline_emissions_request,
   issue_emissions_request,
   get_auditor_emissions_requests,
-  count_auditor_emissions_requests
+  count_auditor_emissions_requests,
+  get_auditor_emissions_request
 } from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
@@ -173,5 +174,14 @@ export async function countEmissionsRequests(req: Request, res: Response) {
         }
     } else {
         return res.status(200).json({error: 'Wrong operation'});
+    }
+}
+
+export async function getEmissionsRequest(req: Request, res: Response) {
+    try {
+      const emissionsRequest = await get_auditor_emissions_request(req.params.uuid);
+      return res.status(200).json({success: '1', item: emissionsRequest});
+    } catch (error) {
+      return res.status(500).json({ error: error.message || error });
     }
 }

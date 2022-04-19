@@ -27,10 +27,10 @@ import {
   getReceipt,
   refund
 } from "../services/contract-functions";
-import DelegateDaoTokensModal from "./delegate-dao-tokens-modal";
-import ProposalCallDetailsModal from "./proposal-call-details-modal";
-import QueueExecuteProposalModal from "./queue-execute-proposal-modal";
-import { Proposal, RolesInfo } from "./static-data";
+import DelegateDaoTokensModal from "../components/delegate-dao-tokens-modal";
+import ProposalCallDetailsModal from "../components/proposal-call-details-modal";
+import QueueExecuteProposalModal from "../components/queue-execute-proposal-modal";
+import { Proposal, RolesInfo } from "../components/static-data";
 
 function addCommas(value: string|number){
   let str = value+'';

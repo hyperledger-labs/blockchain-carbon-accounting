@@ -23,6 +23,7 @@ app.post('/issue', keyRouter);
 
 app.delete('/emissionsrequest/:uuid', keyRouter);
 app.put('/emissionsrequest/:uuid', keyRouter);
+app.get('/emissionsrequest/:uuid', keyRouter);
 app.get('/emissionsrequests/:auditor', keyRouter);
 app.get('/emissionsrequests/:auditor/:op', keyRouter);
 

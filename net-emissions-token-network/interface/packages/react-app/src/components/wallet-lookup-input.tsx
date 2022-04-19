@@ -1,4 +1,4 @@
-import { useState, useEffect, CSSProperties, FC, FocusEventHandler, useCallback } from "react";
+import { useState, useEffect, CSSProperties, FC, FocusEventHandler, useCallback, forwardRef, useImperativeHandle, ForwardRefRenderFunction } from "react";
 import Autocomplete from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import { Wallet } from "./static-data";
@@ -9,15 +9,26 @@ type WalletLookupInputProps = {
   onWalletChange: (w:Wallet|null)=>void
   onBlur?: FocusEventHandler
   style?: CSSProperties
-} 
+}
 
-const WalletLookupInput:FC<WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style}) => {
+type WalletLookupInputHandle = {
+  close: ()=>void
+}
+
+const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style}, ref) => {
 
   const [isOpen, setIsOpen] = useState(true);
   const [value, setValue] = useState<Wallet|string|null>(null);
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<(Wallet|string)[]>([]);
   const searchText = useDebounce(inputValue, 250);
+
+  // Allows the parent component to close the suggestion dropdown
+  useImperativeHandle(ref, () => ({
+    close() {
+      setIsOpen(false);
+    }
+  }));
 
   const updateValue = useCallback((newValue: string|Wallet|null)=>{
     // make value stable:
@@ -122,5 +133,5 @@ function useDebounce<T>(value: T, delay: number) {
   return debouncedValue;
 }
 
-export default WalletLookupInput;
+export default forwardRef(WalletLookupInput);
 

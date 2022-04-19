@@ -3,14 +3,14 @@ import { FC, ChangeEventHandler, useState, useEffect } from "react";
 
 import { transfer } from "../services/contract-functions";
 
-import SubmissionModal from "./submission-modal";
+import SubmissionModal from "../components/submission-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo } from "./static-data";
+import { RolesInfo } from "../components/static-data";
 import { InputGroup } from "react-bootstrap";
-import WalletLookupInput from "./wallet-lookup-input";
+import WalletLookupInput from "../components/wallet-lookup-input";
 
 type TransferFormProps = {
   provider?: Web3Provider
