@@ -3,13 +3,13 @@ import { FC, ChangeEventHandler, useState, useEffect } from "react";
 
 import { retire } from "../services/contract-functions";
 
-import SubmissionModal from "./submission-modal";
+import SubmissionModal from "../components/submission-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import "react-datetime/css/react-datetime.css";
 import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo } from "./static-data";
+import { RolesInfo } from "../components/static-data";
 
 type RetireFormProps = {
   provider?: Web3Provider

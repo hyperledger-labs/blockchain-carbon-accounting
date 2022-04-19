@@ -15,13 +15,13 @@ import {
   formatDate,
   getRoles
 } from "../services/contract-functions";
-import TokenInfoModal from "./token-info-modal";
-import TrackerInfoModal from "./tracker-info-modal";
+import TokenInfoModal from "../components/token-info-modal";
+import TrackerInfoModal from "../components/tracker-info-modal";
 import { getBalances } from '../services/api.service';
 import { countAuditorEmissionsRequests } from '../services/supply-chain-api';
-import Paginator from "./paginate";
-import QueryBuilder from "./query-builder";
-import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "./static-data";
+import Paginator from "../components/paginate";
+import QueryBuilder from "../components/query-builder";
+import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
 type DashboardProps = {

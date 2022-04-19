@@ -7,14 +7,14 @@ import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 
 import NavigationBar from "./components/navigation-bar";
-import Dashboard from "./components/dashboard";
-import IssuedTokens from "./components/issued-tokens";
-import IssueForm from "./components/issue-form";
-import TrackForm from "./components/track-form";
-import TransferForm from "./components/transfer-form";
-import RetireForm from "./components/retire-form";
-import AccessControlForm from "./components/access-control-form";
-import GovernanceDashboard from "./components/governance-dashboard";
+import Dashboard from "./pages/dashboard";
+import IssuedTokens from "./pages/issued-tokens";
+import IssueForm from "./pages/issue-form";
+import TrackForm from "./pages/track-form";
+import TransferForm from "./pages/transfer-form";
+import RetireForm from "./pages/retire-form";
+import AccessControlForm from "./pages/access-control-form";
+import GovernanceDashboard from "./pages/governance-dashboard";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect, useLocation } from "wouter"

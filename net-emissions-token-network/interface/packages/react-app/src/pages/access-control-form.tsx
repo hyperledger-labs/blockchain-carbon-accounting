@@ -4,9 +4,9 @@ import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useCo
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
 
-import SubmissionModal from "./submission-modal";
-import WalletLookupInput from "./wallet-lookup-input";
-import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "./static-data";
+import SubmissionModal from "../components/submission-modal";
+import WalletLookupInput from "../components/wallet-lookup-input";
+import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "../components/static-data";
 
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';

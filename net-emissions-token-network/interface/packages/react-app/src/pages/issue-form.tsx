@@ -8,11 +8,11 @@ import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { encodeParameters, getAdmin, issue } from "../services/contract-functions";
-import CreateProposalModal from "./create-proposal-modal";
-import SubmissionModal from "./submission-modal";
+import CreateProposalModal from "../components/create-proposal-modal";
+import SubmissionModal from "../components/submission-modal";
 import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES } from "./static-data";
-import WalletLookupInput from "./wallet-lookup-input";
+import { RolesInfo, TOKEN_TYPES } from "../components/static-data";
+import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
 type KeyValuePair = {
