@@ -227,6 +227,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     borderColor: '#dc3545'
   };
 
+  // consumer do not have access to this page
+  if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
+
   return roles.hasAnyRole ? (
     <>
 
