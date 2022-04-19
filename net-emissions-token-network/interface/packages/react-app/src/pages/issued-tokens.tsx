@@ -428,7 +428,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           <div className="mt-4">
             <h2>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued <Button variant="outline-dark" href="/issue">Issue</Button> </h2>
             {(emissionsRequestsCount) ?
-              <p className="mb-1">You have {emissionsRequestsCount} pending emissions audits.</p>
+              <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
               : null
             }
             <QueryBuilder 

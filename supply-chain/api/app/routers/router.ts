@@ -4,7 +4,8 @@ import { issueToken,
   declineEmissionsRequest,
   issueEmissionsRequest,
   getEmissionsRequests,
-  countEmissionsRequests
+  countEmissionsRequests,
+  getEmissionsRequest
 } from '../controllers/controller';
 
 const router: Router = express.Router();
@@ -22,6 +23,7 @@ router
 
 router.delete('/emissionsrequest/:uuid', declineEmissionsRequest);
 router.put('/emissionsrequest/:uuid', issueEmissionsRequest);
+router.get('/emissionsrequest/:uuid', getEmissionsRequest);
 router.get('/emissionsrequests/:auditor', getEmissionsRequests);
 router.get('/emissionsrequests/:auditor/:op', countEmissionsRequests);
 

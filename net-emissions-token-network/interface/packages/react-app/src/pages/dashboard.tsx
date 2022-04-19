@@ -201,7 +201,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         <p className="mb-1">View your token balances.</p>
       }
       {(emissionsRequestsCount) ?
-        <p className="mb-1">You have {emissionsRequestsCount} pending emissions audits.</p>
+        <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
         : null
       }
       <div className={fetchingTokens ? "dimmed" : ""}>

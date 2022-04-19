@@ -9,6 +9,8 @@ import Tab from 'react-bootstrap/Tab';
 import NavigationBar from "./components/navigation-bar";
 import Dashboard from "./pages/dashboard";
 import IssuedTokens from "./pages/issued-tokens";
+import EmissionsRequests from "./pages/emissions-requests";
+import PendingEmissions from "./pages/pending-emissions";
 import IssueForm from "./pages/issue-form";
 import TrackForm from "./pages/track-form";
 import TransferForm from "./pages/transfer-form";
@@ -116,6 +118,12 @@ const App:FC = () => {
                 </Route>
                 <Route path="/issuedtokens/:address?">{params=>
                   <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                }</Route>
+                <Route path="/emissionsrequests">
+                  <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
+                </Route>
+                <Route path="/pendingemissions/:uuid">{params=>
+                  <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} />
                 }</Route>
                 <Route path="/transfer">
                   <TransferForm provider={provider} roles={roles} />

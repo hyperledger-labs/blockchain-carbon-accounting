@@ -616,3 +616,8 @@ export async function count_auditor_emissions_requests(auditor: string) {
   return await db.getEmissionsRequestRepo().countByEmissionAuditor(auditor);
 }
 
+export async function get_auditor_emissions_request(uuid: string) {
+  const db = await getDBInstance();
+  return await await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+}
+
