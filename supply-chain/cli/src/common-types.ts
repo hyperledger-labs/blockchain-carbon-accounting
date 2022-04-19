@@ -13,15 +13,6 @@ export type AddressObject = {
   state_province?: string,
   zip_code?: string,
 };
-export type EmissionFactor = {
-    scope: string,
-    level_1: string,
-    level_2: string,
-    level_3: string,
-    level_4?: string,
-    text?: string,
-    activity_uom: string,
-}
 export type Emissions = {
     amount: ValueAndUnit,
     factor: EmissionsFactorInterface 
