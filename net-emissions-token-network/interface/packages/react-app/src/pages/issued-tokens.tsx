@@ -193,7 +193,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       for (let i = 1; i <= _pageSize; i++) {
         let tokenDetails = tokens[i-1];
         if (!tokenDetails) continue;
-        console.log('--- tokenDetails', tokenDetails);
 
         let fromDate = formatDate(tokenDetails.fromDate);
         let thruDate = formatDate(tokenDetails.thruDate);
@@ -233,10 +232,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           totalRetired: totalRetired,
         };
 
-        if (token.issuedFrom.toLowerCase() === signedInAddress.toLowerCase()) {
-          newMyIssuedTokens.push(token);
-          token.isMyIssuedToken = true;
-        }
+        newMyIssuedTokens.push(token);
+        token.isMyIssuedToken = true;
       }
 
     } catch (error) {

@@ -253,7 +253,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       <h2>Issue tokens</h2>
       <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered consumers.</p>
 
-      <Form.Group>
+      <Form.Group className="mb-3">
           <Form.Label>Issue From Address</Form.Label>
           <InputGroup>
             <WalletLookupInput 
@@ -269,7 +269,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
       { ((!limitedMode) || (tokenTypeId === 3))
         ?
-        <Form.Group>
+        <Form.Group className="mb-3">
           <Form.Label>Issue To Address</Form.Label>
           <InputGroup>
             <WalletLookupInput 
