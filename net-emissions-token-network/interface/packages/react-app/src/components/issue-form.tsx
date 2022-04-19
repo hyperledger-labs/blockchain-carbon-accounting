@@ -213,7 +213,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     }
     // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
     let quantity_formatted = Math.round(Number(quantity) * 1000);
-    console.log(tokenTypeId)
 
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
@@ -263,9 +262,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
               style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
               />
           </InputGroup>
-          <Form.Text className="text-muted">
-            Must be a registered dealer.
-          </Form.Text>
         </Form.Group>
 
       { ((!limitedMode) || (tokenTypeId === 3))

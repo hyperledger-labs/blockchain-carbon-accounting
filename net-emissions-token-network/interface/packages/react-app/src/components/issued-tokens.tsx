@@ -177,7 +177,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
-      const query = `issuedFrom,string,${signedInAddress},eq`;
+      const query = `issuedBy,string,${signedInAddress},eq`;
       const offset = (_page - 1) * _pageSize;
 
       // this count means total number of issued tokens
