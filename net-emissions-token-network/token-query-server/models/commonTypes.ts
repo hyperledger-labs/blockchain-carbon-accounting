@@ -46,7 +46,7 @@ export const OP_MAP: IOP_MAP = {
 export type IFIELDS = {
     "tokenId"? : FIELD,
     "tokenTypeId"? : FIELD,
-    "issueBy"? : FIELD,
+    "issuedBy"? : FIELD,
     "issuedFrom"? : FIELD,
     "issuedTo"? : FIELD,
     "fromDate"? : FIELD,
@@ -67,7 +67,7 @@ export type IFIELDS = {
 export const FIELDS = {
     "tokenId" : STRING_FIELD,
     "tokenTypeId": NUMERIC_FIELD,
-    "issueBy": STRING_FIELD,
+    "issuedBy": STRING_FIELD,
     "issuedFrom": STRING_FIELD,
     "issuedTo": STRING_FIELD,
     "fromDate": NUMERIC_FIELD,

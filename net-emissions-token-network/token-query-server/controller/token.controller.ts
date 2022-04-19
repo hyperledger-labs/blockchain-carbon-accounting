@@ -11,6 +11,7 @@ export async function getTokens(req: Request, res: Response) {
         const offset = req.body.offset;
 
         if(offset != undefined && limit != undefined && limit != 0) {
+            console.log(queryBundles);
             const tokens = await db.getTokenRepo().selectPaginated(offset, limit, queryBundles);
             const totalCount = await db.getTokenRepo().countTokens(queryBundles);
             return res.status(200).json({
