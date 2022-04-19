@@ -15,6 +15,7 @@ import TransferForm from "./pages/transfer-form";
 import RetireForm from "./pages/retire-form";
 import AccessControlForm from "./pages/access-control-form";
 import GovernanceDashboard from "./pages/governance-dashboard";
+import RequestAudit from "./pages/request-audit";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect, useLocation } from "wouter"
@@ -70,6 +71,10 @@ const App:FC = () => {
             <Link href="/issuedtokens"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
             : null
         }
+          {roles.isConsumer ? 
+            <Link href="/requestAudit"><Nav.Link eventKey="requestAudit">Request audit</Nav.Link></Link>
+            : null
+        }
 
           {((limitedMode && isOwner) || !limitedMode) &&
             <Link href="/transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
@@ -105,6 +110,9 @@ const App:FC = () => {
                 </Route>
                 <Route path="/issue">
                   <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
+                </Route>
+                <Route path="/requestAudit">
+                  <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                 </Route>
                 <Route path="/issuedtokens/:address?">{params=>
                   <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
