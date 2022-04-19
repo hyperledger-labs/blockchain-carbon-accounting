@@ -704,16 +704,16 @@ export class NetEmissionsTokenNetwork extends ethereum.SmartContract {
     );
   }
 
-  getIssuer(tokenId: BigInt): Address {
-    let result = super.call("getIssuer", "getIssuer(uint256):(address)", [
+  getIssuedBy(tokenId: BigInt): Address {
+    let result = super.call("getIssuedBy", "getIssuedBy(uint256):(address)", [
       ethereum.Value.fromUnsignedBigInt(tokenId)
     ]);
 
     return result[0].toAddress();
   }
 
-  try_getIssuer(tokenId: BigInt): ethereum.CallResult<Address> {
-    let result = super.tryCall("getIssuer", "getIssuer(uint256):(address)", [
+  try_getIssuedBy(tokenId: BigInt): ethereum.CallResult<Address> {
+    let result = super.tryCall("getIssuedBy", "getIssuedBy(uint256):(address)", [
       ethereum.Value.fromUnsignedBigInt(tokenId)
     ]);
     if (result.reverted) {

@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext, useMemo, ElementRef } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
 
-import SubmissionModal from "./submission-modal";
-import WalletLookupInput from "./wallet-lookup-input";
-import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "./static-data";
+import SubmissionModal from "../components/submission-modal";
+import WalletLookupInput from "../components/wallet-lookup-input";
+import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "../components/static-data";
 
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
@@ -80,6 +80,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   const [modalShow, setModalShow] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const lookupRef = useRef<ElementRef<typeof WalletLookupInput>>(null);
 
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
@@ -92,6 +93,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [lookupError, setLookupError] = useState("");
   const [lookupMessage, setLookupMessage] = useState("");
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   // Fetching roles of outside address
   const [lookupWallet, setLookupWallet] = useState<Wallet|null>(null);
@@ -100,13 +102,19 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
   const [zodErrors, setZodErrors] = useState<any>(null);
 
+  const hasAssignRolePermissions = useMemo(()=>
+      (roles.isAdmin || (!limitedMode && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole)))
+    ), [limitedMode, roles])
+
   // called on the Lookup button click
   const lookupWalletRoles = useCallback(async () => {
+    if (lookupRef.current) lookupRef.current.close()
     if ((lookupWallet && lookupWallet.address) || provider) {
       if (theirRoles.hasAnyRole) setTheirRoles({});
       setFetchingTheirRoles(true);
       setLookupError('');
       setLookupMessage('');
+      setShowAddUserForm(false);
       if (lookupWallet && lookupWallet.address) {
         try { 
           const lookup = await trpcClient.query('wallet.lookup', { query: lookupWallet.address});
@@ -115,7 +123,8 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             setAddress(lookup?.wallets[0].address || '');
           } else {
             setLookupWallet(null)
-            setLookupMessage(`Account ${lookupWallet.address} not found. Would you like to add it?`);
+            setLookupMessage(`Account ${lookupWallet.address} not found.${hasAssignRolePermissions ? ' Use the form below to add it.' : ''}`);
+            if (hasAssignRolePermissions) setShowAddUserForm(true);
           }
         } catch (error) {
           console.error('trpc error: ', error)
@@ -124,14 +133,15 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         if (provider) {
           let result = await getRoles(provider, address);
           if (lookupWallet) setLookupWallet(null)
-          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found. Would you like to add it?`);
+          if (!result.hasAnyRole) setLookupMessage(`Account ${address} not found.${hasAssignRolePermissions ? ' Use the form below to add it.' : ''}`);
+            if (hasAssignRolePermissions) setShowAddUserForm(true);
           setAddress(address);
           setTheirRoles(result);
         }
       }
       setFetchingTheirRoles(false);
     }
-  }, [lookupWallet, provider, address, theirRoles])
+  }, [lookupWallet, provider, address, theirRoles, hasAssignRolePermissions])
 
   const clearAllFormMessages = useCallback(()=>{
     setZodErrors(null)
@@ -156,6 +166,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     setTheirRoles({});
     setLookupWallet(w);
     setAddress(w ? w.address! : '');
+    if (!w || !w.address) setShowAddUserForm(false)
   }, [clearAllFormMessages])
   const onLookupInputChange = useCallback((v: string) => {
     console.log('onLookupInputChange:',v)
@@ -163,6 +174,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     if (!v) {
       setLookupWallet(null);
       clearAllFormMessages()
+      setShowAddUserForm(false);
     }
   }, [clearAllFormMessages])
 
@@ -399,7 +411,6 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     return result;
   }
 
-  const hasAssignRolePermissions = (roles.isAdmin || (!limitedMode && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole))))
 
   const rolesThatCanBeAssigned = []
 
@@ -449,9 +460,10 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-      <h4>Look-up User Wallet or New Address</h4>
+      <h4>Find or Set Up a User</h4>
       <InputGroup className="mb-3">
         <WalletLookupInput 
+          ref={lookupRef}
           onChange={onLookupInputChange} 
           onWalletChange={onWalletChange} />
         <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
@@ -541,35 +553,30 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
           </Form>
         </>}
       {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
-      {!lookupWallet && hasAssignRolePermissions &&
+      {!lookupWallet && hasAssignRolePermissions && showAddUserForm &&
         <>
-          <h4>Register new user wallet</h4>
           <Form ref={formRef} noValidate validated={registerFormValidated}>
             <Form.Group className="mb-3" controlId="nameInput">
-              <Form.Label>Name</Form.Label>
               <Form.Control type="input" placeholder="User name" value={name} onChange={onNameChange} isInvalid={zodErrors?.fieldErrors?.name?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.name?.length > 0 && zodErrors?.fieldErrors?.name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="organizationInput">
-              <Form.Label>Organization</Form.Label>
               <Form.Control type="input" placeholder="User organization" value={organization} onChange={onOrganizationChange} isInvalid={zodErrors?.fieldErrors?.organization?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.organization?.length > 0 && zodErrors?.fieldErrors?.organization.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="publicKeyNameInput">
-              <Form.Label>Public Key Name</Form.Label>
               <Form.Control type="input" placeholder="User public key name" value={publicKeyName} onChange={onPublicKeyNameChange} isInvalid={zodErrors?.fieldErrors?.public_key_name?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key_name?.length > 0 && zodErrors?.fieldErrors?.public_key_name.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="publicKeyInput">
-              <Form.Label>Public Key</Form.Label>
               <Form.Control as="textarea" placeholder="User public key" value={publicKey} onChange={onPublicKeyChange} isInvalid={zodErrors?.fieldErrors?.public_key?.length > 0}/>
               <Form.Control.Feedback type="invalid">{zodErrors?.fieldErrors?.public_key?.length > 0 && zodErrors?.fieldErrors?.public_key.map((e:string,i:number)=><span key={i}>{e}</span>)}</Form.Control.Feedback>
             </Form.Group>
             <Form.Group className="mb-3" controlId="RoleInput">
-              <Form.Label>Role</Form.Label>
               {(roles?.isAdmin) ? 
                 <Form.Select value={role} onChange={onRoleChange} isInvalid={!!roleError}>
-                  <option value={RoleEnum.None}>None</option>
+                  <option value={RoleEnum.None}>Choose a Role:</option>
+                  <option value=''>-----</option>
                   <option value={RoleEnum.Consumer}>Consumer</option>
                   <option value={RoleEnum.RecDealer}>Renewable Energy Certificate (REC) Dealer</option>
                   <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>

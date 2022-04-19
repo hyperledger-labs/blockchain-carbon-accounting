@@ -9,8 +9,8 @@ import Row from 'react-bootstrap/Row';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { track, registerTracker } from "../services/contract-functions";
-import SubmissionModal from "./submission-modal";
-import WalletLookupInput from "./wallet-lookup-input";
+import SubmissionModal from "../components/submission-modal";
+import WalletLookupInput from "../components/wallet-lookup-input";
 
 type TrackFormProps = {
   provider?: Web3Provider

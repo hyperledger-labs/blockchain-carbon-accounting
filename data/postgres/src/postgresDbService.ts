@@ -7,6 +7,7 @@ import { TokenRepo } from "./repositories/token.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
 import { EmissionsRequestRepo } from "./repositories/emissionsRequest.repo"
+import { ActivityEmissionsFactorLookupRepo } from "./repositories/activityEmissionsFactorLookup.repo"
 
 
 export class PostgresDBService {
@@ -43,6 +44,10 @@ export class PostgresDBService {
   public async close() {
     await this._db.destroy()
     PostgresDBService._instance = null
+  }
+
+  public getActivityEmissionsFactorLookupRepo() {
+    return new ActivityEmissionsFactorLookupRepo(this._db)
   }
 
   public getEmissionsFactorRepo() {

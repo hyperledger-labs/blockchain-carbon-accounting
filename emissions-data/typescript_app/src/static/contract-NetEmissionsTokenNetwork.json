@@ -55,6 +55,19 @@
     "inputs": [
       {
         "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "RegisteredIndustry",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -155,13 +168,19 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "issuer",
+        "name": "issuedBy",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "issuee",
+        "name": "issuedFrom",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "issuedTo",
         "type": "address"
       },
       {
@@ -349,6 +368,19 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "UnregisteredIndustry",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "DEFAULT_ADMIN_ROLE",
     "outputs": [
@@ -402,6 +434,32 @@
   },
   {
     "inputs": [],
+    "name": "REGISTERED_INDUSTRY",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "REGISTERED_INDUSTRY_DEALER",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "REGISTERED_OFFSET_DEALER",
     "outputs": [
       {
@@ -421,6 +479,25 @@
         "internalType": "bytes32",
         "name": "",
         "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "entity",
+        "type": "address"
+      }
+    ],
+    "name": "_consumerOrDealer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -519,12 +596,46 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      },
+      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       }
     ],
-    "name": "getIssuer",
+    "name": "getAvailableRetiredAndTransferred",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getIssuedBy",
     "outputs": [
       {
         "internalType": "address",
@@ -538,6 +649,30 @@
   {
     "inputs": [],
     "name": "getNumOfUniqueTokens",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "getRetiredBalances",
     "outputs": [
       {
         "internalType": "uint256",
@@ -570,49 +705,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "getRoleMember",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "role",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getRoleMemberCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "address",
         "name": "account",
         "type": "address"
@@ -621,29 +713,46 @@
     "name": "getRoles",
     "outputs": [
       {
-        "internalType": "bool",
+        "components": [
+          {
+            "internalType": "bool",
+            "name": "isAdmin",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isConsumer",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isRecDealer",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isCeoDealer",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isAeDealer",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isIndustry",
+            "type": "bool"
+          },
+          {
+            "internalType": "bool",
+            "name": "isIndustryDealer",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct NetEmissionsTokenNetwork.RolesInfo",
         "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -673,12 +782,17 @@
           },
           {
             "internalType": "address",
-            "name": "issuer",
+            "name": "issuedBy",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "issuee",
+            "name": "issuedFrom",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "issuedTo",
             "type": "address"
           },
           {
@@ -710,6 +824,16 @@
             "internalType": "string",
             "name": "description",
             "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalIssued",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalRetired",
+            "type": "uint256"
           }
         ],
         "internalType": "struct NetEmissionsTokenNetwork.CarbonTokenDetails",
@@ -758,6 +882,83 @@
         "internalType": "string",
         "name": "",
         "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTokenTypeId",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_ids",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "_amounts",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "getTransferHash",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "getTransferredBalances",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -832,6 +1033,25 @@
       }
     ],
     "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "auditor",
+        "type": "address"
+      }
+    ],
+    "name": "isAuditor",
     "outputs": [
       {
         "internalType": "bool",
@@ -937,12 +1157,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "issuee",
+        "name": "issuedBy",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "issuer",
+        "name": "issuedFrom",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "issuedTo",
         "type": "address"
       },
       {
@@ -1049,6 +1274,19 @@
       }
     ],
     "name": "registerDealer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "registerIndustry",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1293,6 +1531,19 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "unregisterIndustry",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
@@ -1307,6 +1558,35 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "msgHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "name": "verifySignature",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "pure",
     "type": "function"
   }
 ]

@@ -47,7 +47,7 @@ export class EmissionsRequestRepo {
     try {
       return await this._db.getRepository(EmissionsRequest)
         .createQueryBuilder('emissions_request')
-        .where("emissions_request.emission_auditor = :emissionAuditor", {emissionAuditor})
+        .where("LOWER(emissions_request.emission_auditor) = LOWER(:emissionAuditor)", {emissionAuditor})
         .andWhere("emissions_request.status = :status", {status})
         .getMany()
     } catch (error) {
@@ -60,7 +60,7 @@ export class EmissionsRequestRepo {
     try {
       return await this._db.getRepository(EmissionsRequest)
         .createQueryBuilder('emissions_request')
-        .where("emissions_request.emission_auditor = :emissionAuditor", {emissionAuditor})
+        .where("LOWER(emissions_request.emission_auditor) = LOWER(:emissionAuditor)", {emissionAuditor})
         .andWhere("emissions_request.status = :status", {status})
         .getCount()
     } catch (error) {

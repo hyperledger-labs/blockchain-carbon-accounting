@@ -64,7 +64,7 @@ import { Holder, Token, TokenBalance } from "../generated/schema"
   // - contract.balanceOf(...)
   // - contract.balanceOfBatch(...)
   // - contract.getAvailableAndRetired(...)
-  // - contract.getIssuer(...)
+  // - contract.getIssuedBy(...)
   // - contract.getNumOfUniqueTokens(...)
   // - contract.getRoleAdmin(...)
   // - contract.getRoleMember(...)

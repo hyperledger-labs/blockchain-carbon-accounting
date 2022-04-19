@@ -334,10 +334,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
                     hasRole(REGISTERED_REC_DEALER, _issuedBy) || hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue(limited): proposer not a registered dealer"
                 );
-                require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedFrom) || hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
-                    "CLM8::_issue(limited): proposer not a registered dealer"
-                );
             } else if (_tokenTypeId == 3) {
                 require(
                     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
@@ -351,18 +347,10 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         } else {
             if (_tokenTypeId == 1) {
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedFrom),
-                    "CLM8::_issue: issuer not a registered REC dealer"
-                );
-                require(
                     hasRole(REGISTERED_REC_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered REC dealer"
                 );
             } else if (_tokenTypeId == 2) {
-                require(
-                    hasRole(REGISTERED_OFFSET_DEALER, _issuedFrom),
-                    "CLM8::_issue: issuer not a registered offset dealer"
-                );
                 require(
                     hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered offset dealer"
@@ -649,12 +637,12 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
     /**
      * @dev returns issuer of a given tokenId
      */
-    function getIssuer(uint256 tokenId)
+    function getIssuedBy(uint256 tokenId)
         external
         view
         returns (address)
     {
-        return _tokenDetails[tokenId].issuedFrom;
+        return _tokenDetails[tokenId].issuedBy;
     }
 
     /**

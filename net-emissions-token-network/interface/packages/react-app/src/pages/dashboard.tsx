@@ -15,12 +15,13 @@ import {
   formatDate,
   getRoles
 } from "../services/contract-functions";
-import TokenInfoModal from "./token-info-modal";
-import TrackerInfoModal from "./tracker-info-modal";
+import TokenInfoModal from "../components/token-info-modal";
+import TrackerInfoModal from "../components/tracker-info-modal";
 import { getBalances } from '../services/api.service';
-import Paginator from "./paginate";
-import QueryBuilder from "./query-builder";
-import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "./static-data";
+import { countAuditorEmissionsRequests } from '../services/supply-chain-api';
+import Paginator from "../components/paginate";
+import QueryBuilder from "../components/query-builder";
+import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
 type DashboardProps = {
@@ -53,6 +54,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   const [ balanceCount, setBalanceCount ] = useState(0);
   const [ balancePageSize, setBalancePageSize ] = useState(20);
   const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
+
+  const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
 
   async function handleBalancePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
     await fetchBalances(value, balancePageSize, balanceQuery);
@@ -161,6 +164,9 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           setFetchingTokens(true);
           await fetchBalances(balancePage, balancePageSize, balanceQuery);
         }
+        let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
+        setEmissionsRequestsCount(_emissionsRequestsCount);
+
     } }
     init();
   }, [provider, signedInAddress]);
@@ -194,7 +200,10 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         :
         <p className="mb-1">View your token balances.</p>
       }
-
+      {(emissionsRequestsCount) ?
+        <p className="mb-1">You have {emissionsRequestsCount} pending emissions audits.</p>
+        : null
+      }
       <div className={fetchingTokens ? "dimmed" : ""}>
 
         {fetchingTokens && (

@@ -2,12 +2,12 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
-    "txHash": "0x548eb4c2a2a98f3d9df4405d5a64e5cfce0b7bfeb4958d1dbf244d7de4d993d4"
+    "txHash": "0x06d2a18355bfd773651e9e45c9457c2a915206890db8977d31d7d043cfc71b84"
   },
   "proxies": [
     {
       "address": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
-      "txHash": "0xd16d2b26202381e7fda01e5e5dbfb04e5ce50af47109d84d8467d30786911c4f",
+      "txHash": "0xccacdc137171cb1c9984cc40ae1c7d7036eb31826f30507f5b2db0696eee86af",
       "kind": "transparent"
     }
   ],
@@ -290,9 +290,9 @@
         }
       }
     },
-    "42f9eeee6d0f891673969b2a4f65ba11a0ad6015c001ad4fc646db58abd1202d": {
+    "5ba599cf0442d2e606f03650bbd979f7e86329f9298280739602fc0b96af356f": {
       "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0x81a8df6712477e40553d41f5a459030d424277cc7e1831db12c3a89466758e1f",
+      "txHash": "0xb843ac604eae3ed12704bb3aab0db180a85f08497e11cd949a269c9ca00f4692",
       "layout": {
         "storage": [
           {
@@ -405,7 +405,7 @@
             "slot": "203",
             "type": "t_struct(Counter)3114_storage",
             "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:74"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:75"
           },
           {
             "label": "_tokenDetails",
@@ -413,7 +413,7 @@
             "slot": "204",
             "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6723_storage)",
             "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:77"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:78"
           },
           {
             "label": "_retiredBalances",
@@ -421,7 +421,7 @@
             "slot": "205",
             "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
             "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:78"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:79"
           },
           {
             "label": "_transferredBalances",
@@ -429,7 +429,7 @@
             "slot": "206",
             "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
             "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:79"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:80"
           },
           {
             "label": "carbonTransferNonce",
@@ -437,7 +437,7 @@
             "slot": "207",
             "type": "t_mapping(t_address,t_mapping(t_address,t_uint32))",
             "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:82"
+            "src": "contracts/NetEmissionsTokenNetwork.sol:83"
           }
         ],
         "types": {
@@ -630,9 +630,9 @@
         }
       }
     },
-    "3fb83b339d68036e5a7f11259ca4ce908cc466bc408dec61f8d5fcf05373a5c8": {
+    "b934b53904371795ec6324be1a28f09a2b81616a31cbce3c748a5d1e42dd96f9": {
       "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
-      "txHash": "0xe375b135208e94087c05185c5d67575208da9ecc98aa4dfd4090e08c2e74ade4",
+      "txHash": "0xa60797be7a414e8b07c7dd41b7f6e4ffc72d17cae488d126b83defa50fee6c01",
       "layout": {
         "storage": [
           {
@@ -751,7 +751,7 @@
             "label": "_tokenDetails",
             "offset": 0,
             "slot": "204",
-            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8706_storage)",
+            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8661_storage)",
             "contract": "NetEmissionsTokenNetworkV2",
             "src": "contracts/NetEmissionsTokenNetworkV2.sol:70"
           },
@@ -841,7 +841,7 @@
             "label": "mapping(uint256 => mapping(address => uint256))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8706_storage)": {
+          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8661_storage)": {
             "label": "mapping(uint256 => struct NetEmissionsTokenNetworkV2.CarbonTokenDetails)",
             "numberOfBytes": "32"
           },
@@ -849,7 +849,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CarbonTokenDetails)8706_storage": {
+          "t_struct(CarbonTokenDetails)8661_storage": {
             "label": "struct NetEmissionsTokenNetworkV2.CarbonTokenDetails",
             "members": [
               {

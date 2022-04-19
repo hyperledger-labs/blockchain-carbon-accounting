@@ -123,7 +123,6 @@ const getNumOfUniqueTokens = async (): Promise<number> => {
 async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
     try {
         const token: CreatedToken = await contract.methods.getTokenDetails(tokenId).call();
-        console.log(token);
 
         // restructure 
         const _metadata = token.metadata as string;
@@ -181,13 +180,14 @@ export const fillTokens = async (): Promise<number> => {
 
     // get number tokens from network
     const numOfIssuedTokens = await getNumOfUniqueTokens();
-
+    console.log(numOfIssuedTokens);
     // getting tokens from network
     // save to database
     if(numOfIssuedTokens > numOfSavedTokens) {
         for (let i = numOfSavedTokens + 1; i <= numOfIssuedTokens; i++) {
             // getting token details and store
             const token: TokenPayload = await getTokenDetails(i);
+            console.log(token);
             await db.getTokenRepo().insertToken(token);
         }
     }
@@ -216,6 +216,7 @@ export const fillBalances = async (currentBlock: number) => {
         for (let i = 0; i < len; i++) {
             
             const singleTransfer = singleTransfers[i].returnValues;
+            console.log(singleTransfer);
             const tokenId: number = singleTransfer.id;
             const from: string = singleTransfer.from;
             const to: string = singleTransfer.to;
