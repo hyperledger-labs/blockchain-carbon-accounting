@@ -36,6 +36,15 @@ export class WalletRepo {
     return await this.getRepository().findOneBy({address})
   }
 
+  public getAuditorsWithPublicKey = async (): Promise<Wallet[]> => {
+    return await this.getRepository()
+      .createQueryBuilder(ALIAS)
+      .where(`${ALIAS}.public_key IS NOT NULL`)
+      .andWhere(`${ALIAS}.public_key != ''`)
+      .andWhere(`LOWER(${ALIAS}.public_key) LIKE LOWER(:role)`, { role: '%Emission Auditor%'})
+      .getMany()
+  }
+
   public mergeWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
     const repo = this.getRepository()
     // lookup case-insensitive, case is used as a checksums only

@@ -25,7 +25,6 @@ import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
-import { getEmissionsAuditors } from './token-query-utils';
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { ActivityEmissionsFactorLookup } from "blockchain-carbon-accounting-data-postgres/src/models/activityEmissionsFactorLookup";
 
@@ -477,8 +476,6 @@ export async function create_emissions_request(
   const status = 'CREATED';
   const publickey = readFileSync(publickey_name, 'utf8');
 
-  console.log('Create Emissions Request ...');
-
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
   const tokens = new BigNumber(Math.round(total_emissions));
@@ -527,7 +524,8 @@ export async function process_emissions_requests() {
   const db = await getDBInstance();
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
   if (emissions_requests && emissions_requests.length > 0) {
-      const auditors = await getEmissionsAuditors();
+      const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
+      console.log('found auditors:', auditors);
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
         const active_auditors = auditors.filter((w) => !!w.public_key);
