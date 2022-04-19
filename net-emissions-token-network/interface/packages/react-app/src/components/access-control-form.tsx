@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext, useMemo } from "react";
+import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext, useMemo, ElementRef } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
@@ -80,6 +80,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   const [modalShow, setModalShow] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const lookupRef = useRef<ElementRef<typeof WalletLookupInput>>(null);
 
   const [address, setAddress] = useState("");
   const [name, setName] = useState("");
@@ -107,6 +108,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   // called on the Lookup button click
   const lookupWalletRoles = useCallback(async () => {
+    if (lookupRef.current) lookupRef.current.close()
     if ((lookupWallet && lookupWallet.address) || provider) {
       if (theirRoles.hasAnyRole) setTheirRoles({});
       setFetchingTheirRoles(true);
@@ -461,6 +463,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       <h4>Find or Set Up a User</h4>
       <InputGroup className="mb-3">
         <WalletLookupInput 
+          ref={lookupRef}
           onChange={onLookupInputChange} 
           onWalletChange={onWalletChange} />
         <Button variant="outline-secondary" onClick={lookupWalletRoles}>Look-up</Button>
