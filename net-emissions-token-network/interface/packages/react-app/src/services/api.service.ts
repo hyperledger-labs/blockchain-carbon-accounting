@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Balance, Token, Wallet, EmissionsRequest } from '../components/static-data';
+import { EmissionsFactorForm } from '../pages/request-audit';
 
 export const BASE_URL = "http://localhost:8000";
 axios.defaults.baseURL = BASE_URL;
@@ -108,7 +109,7 @@ export const countAuditorEmissionsRequests = async (auditor: string): Promise<nu
     try {
         const url = BASE_URL + '/emissionsrequests/' + auditor + '/count';
         const { data } = await axios.get(url, {});
-        if(data.success) return data.count;
+        if (data.status === 'success') return data.count
         else return 0;
     } catch(error) {
         throw new Error("cannot count auditor emissions requests");
@@ -119,7 +120,7 @@ export const getAuditorEmissionsRequests = async (auditor: string): Promise<Emis
     try {
         const url = BASE_URL + '/emissionsrequests/' + auditor;
         const { data } = await axios.get(url, {});
-        if(data.success) return data.items;
+        if (data.status === 'success') return data.items
         else return [];
     } catch(error) {
         throw new Error("cannot get auditor emissions requests");
@@ -130,7 +131,7 @@ export const getAuditorEmissionsRequest = async (uuid: string): Promise<Emission
     try {
         const url = BASE_URL + '/emissionsrequest/' + uuid;
         const { data } = await axios.get(url, {});
-        if(data.success) {
+        if (data.status === 'success') {
           return data.item;
         } else {
           throw new Error("cannot get auditor emissions requests");
@@ -144,13 +145,32 @@ export const declineEmissionsRequest = async (uuid: string) => {
     try {
         const url = BASE_URL + '/emissionsrequest/' + uuid;
         const { data } = await axios.delete(url, {});
-        if(data.success) {
+        if (data.status === 'success') {
           return data;
         } else {
           throw new Error("cannot decline emissions request");
         };
     } catch(error) {
         throw new Error("cannot decline emissions request");
+    }
+}
+
+export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File) => {
+    try {
+        const url = BASE_URL + '/emissionsrequest/';
+        const formData = new FormData();
+        for (const k in form) {
+            formData.append(k, form[k as keyof EmissionsFactorForm]);
+        }
+        formData.append("supportingDocument", supportingDocument);
+        const { data } = await axios.post(url, formData);
+        if (data.status === 'success') {
+          return data;
+        } else {
+          throw new Error("cannot create emissions request");
+        };
+    } catch(error) {
+        throw new Error("cannot create emissions request");
     }
 }
 

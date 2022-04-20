@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FC, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
 import { FormInputRow, FormSelectRow } from "../components/forms-util";
+import { createEmissionsRequest } from "../services/api.service";
 
 type RequestAuditProps = {
   provider?: Web3Provider, 
@@ -14,7 +15,7 @@ type RequestAuditProps = {
   limitedMode: boolean
 }
 
-type EmissionsFactorForm = {
+export type EmissionsFactorForm = {
   activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
   ups_tracking: string
   shipment_mode: 'air' | 'ground' | 'sea' | ''
@@ -369,7 +370,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
     <>
       <h2>Request audit</h2>
       <Form
-        onSubmit={e=>{
+        onSubmit={async(e)=>{
           const form = e.currentTarget
           let valid = true
           if (form.checkValidity() === false || formNotReady) {
@@ -377,10 +378,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
             e.stopPropagation()
             valid = false
           }
-
+          // mark the form to render validation errors
           setValidated(true)
           if (valid) {
             console.log('Form valid, submit with', emForm, supportingDoc)
+            await createEmissionsRequest(emForm, supportingDoc!)
           } else {
             console.log('Form invalid, check errors:', formErrors)
           }

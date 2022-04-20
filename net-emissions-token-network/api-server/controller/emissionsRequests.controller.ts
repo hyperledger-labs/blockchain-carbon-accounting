@@ -72,3 +72,31 @@ export async function getEmissionsRequest(req: Request, res: Response) {
   }
 }
 
+export async function postEmissionsRequest(req: Request, res: Response) {
+  try {
+    console.log('postEmissionsRequest...')
+    console.log('postEmissionsRequest checking files?', req.files)
+    if (!req.files || !req.files.supportingDocument) {
+      return res.send(400).json({ status: 'failed', error: 'No supporting document uploaded!' })
+    }
+    let supportingDocument = req.files.supportingDocument;
+    console.log('postEmissionsRequest checking file', supportingDocument)
+    if (Array.isArray(supportingDocument)) {
+      if (supportingDocument.length !== 1) {
+        return res.send(400).json({ status: 'failed', error: 'Can only upload one supporting document!' })
+      }
+      supportingDocument = supportingDocument[0];
+    }
+    console.log('postEmissionsRequest moving to upload folder...')
+    supportingDocument.mv('./upload/' + supportingDocument.name);
+
+    const item = req.body;
+    console.log('postEmissionsRequest rest of the body?...', item)
+
+
+    return res.status(200).json({ status: 'success', item });
+  } catch (error) {
+    return res.status(500).json({ status: 'failed', error });
+  }
+}
+
