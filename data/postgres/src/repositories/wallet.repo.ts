@@ -41,7 +41,7 @@ export class WalletRepo {
       .createQueryBuilder(ALIAS)
       .where(`${ALIAS}.public_key IS NOT NULL`)
       .andWhere(`${ALIAS}.public_key != ''`)
-      .andWhere(`LOWER(${ALIAS}.public_key) LIKE LOWER(:role)`, { role: '%Emission Auditor%'})
+      .andWhere(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, { role: '%Emission Auditor%'})
       .getMany()
   }
 

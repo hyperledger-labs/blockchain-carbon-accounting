@@ -2,13 +2,17 @@ import axios from 'axios';
 
 export const BASE_URL = "http://localhost:5000";
 
-export const countAuditorEmissionsRequests = async (auditor: string): Promise<number> => {
+
+export const issueEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequests/' + auditor + '/count';
-        const { data } = await axios.get(url, {});
-        if(data.success) return data.count;
-        else return 0;
+        const url = BASE_URL + '/emissionsrequest/' + uuid;
+        const { data } = await axios.put(url, {});
+        if (data && data.status === 'success') {
+          return data;
+        } else {
+          throw new Error("cannot issue emissions request");
+        };
     } catch(error) {
-        throw new Error("cannot count auditor emissions requests");
+        throw new Error("cannot issue emissions request");
     }
 }

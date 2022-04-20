@@ -17,8 +17,7 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "../components/token-info-modal";
 import TrackerInfoModal from "../components/tracker-info-modal";
-import { getBalances } from '../services/api.service';
-import { countAuditorEmissionsRequests } from '../services/supply-chain-api';
+import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
@@ -201,7 +200,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         <p className="mb-1">View your token balances.</p>
       }
       {(emissionsRequestsCount) ?
-        <p className="mb-1">You have {emissionsRequestsCount} pending emissions audits.</p>
+        <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
         : null
       }
       <div className={fetchingTokens ? "dimmed" : ""}>

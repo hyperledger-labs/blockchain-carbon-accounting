@@ -157,6 +157,38 @@ export async function issue_emissions_tokens(
   );
 }
 
+export async function issue_emissions_request(uuid: string) {
+  const db = await getDBInstance();
+  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+  if (emissions_request) {
+    // check status is correct
+    if (emissions_request.status == 'PENDING') {
+      const fd = Math.floor(emissions_request.token_from_date.getTime() / 1000);
+      const td = Math.floor(emissions_request.token_thru_date.getTime() / 1000);
+      const token = await gateway_issue_token(
+        emissions_request.issued_from,
+        emissions_request.issued_to,
+        emissions_request.token_total_emissions,
+        fd,
+        td,
+        emissions_request.token_manifest,
+        emissions_request.token_metadata,
+        emissions_request.token_description
+      );
+      if (token) {
+        await db.getEmissionsRequestRepo().updateToIssued(uuid);
+        return token;
+      } else {
+        throw new Error(`Cannot issue a token for emissions request ${uuid}`);
+      }
+    } else {
+      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+    }
+  } else {
+    throw new Error(`Cannot get emissions request ${uuid}`);
+  }
+}
+
 export async function issue_emissions_tokens_with_issuee(
   activity_type: string,
   from_date: Date,
@@ -169,10 +201,6 @@ export async function issue_emissions_tokens_with_issuee(
   ipfs_path: string,
   publicKey: string
 ) {
-  if (!logger_setup) {
-    setup(LOG_LEVEL, LOG_LEVEL);
-    logger_setup = true;
-  }
   const tokens = new BigNumber(Math.round(total_emissions));
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
@@ -195,6 +223,10 @@ async function gateway_issue_token(
   description: string
 ) {
 
+  if (!logger_setup) {
+    setup(LOG_LEVEL, LOG_LEVEL);
+    logger_setup = true;
+  }
   const bcConfig = new BCGatewayConfig();
   const ethConnector = await bcConfig.ethConnector();
   const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
@@ -525,7 +557,6 @@ export async function process_emissions_requests() {
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
   if (emissions_requests && emissions_requests.length > 0) {
       const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
-      console.log('found auditors:', auditors);
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
         const active_auditors = auditors.filter((w) => !!w.public_key);
@@ -553,66 +584,5 @@ export async function process_emissions_requests() {
   } else {
       console.log('There are no emissions requests to process.');
   }
-}
-
-export async function decline_emissions_request(uuid: string) {
-  const db = await getDBInstance();
-  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
-  if (emissions_request) {
-    // check status is correct
-    if (emissions_request.status == 'PENDING') {
-        await db.getEmissionsRequestRepo().updateToDeclined(uuid);
-    } else {
-        throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
-    }
-  } else {
-    throw new Error(`Cannot get emissions request ${uuid}`);
-  }
-}
-
-export async function issue_emissions_request(uuid: string) {
-  if (!logger_setup) {
-    setup(LOG_LEVEL, LOG_LEVEL);
-    logger_setup = true;
-  }
-  const db = await getDBInstance();
-  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
-  if (emissions_request) {
-    // check status is correct
-    if (emissions_request.status == 'PENDING') {
-      const fd = Math.floor(emissions_request.token_from_date.getTime() / 1000);
-      const td = Math.floor(emissions_request.token_thru_date.getTime() / 1000);
-      const token = await gateway_issue_token(
-        emissions_request.issued_from,
-        emissions_request.issued_to,
-        emissions_request.token_total_emissions,
-        fd,
-        td,
-        emissions_request.token_manifest,
-        emissions_request.token_metadata,
-        emissions_request.token_description
-      );
-      if (token) {
-        await db.getEmissionsRequestRepo().updateToIssued(uuid);
-        return token;
-      } else {
-        throw new Error(`Cannot issue a token for emissions request ${uuid}`);
-      }
-    } else {
-      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
-    }
-  } else {
-    throw new Error(`Cannot get emissions request ${uuid}`);
-  }
-}
-
-export async function get_auditor_emissions_requests(auditor: string) {
-  const db = await getDBInstance();
-  return await db.getEmissionsRequestRepo().selectByEmissionAuditor(auditor);
-}
-
-export async function count_auditor_emissions_requests(auditor: string) {
-  const db = await getDBInstance();
-  return await db.getEmissionsRequestRepo().countByEmissionAuditor(auditor);
 }
 

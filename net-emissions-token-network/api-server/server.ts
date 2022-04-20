@@ -1,4 +1,5 @@
 import express, { Application } from 'express';
+import fileUpload from 'express-fileupload';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -41,6 +42,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+// enable files upload
+app.use(fileUpload({
+    createParentPath: true
+}));
 
 // for hardhat test sync
 if(process.env.LEDGER_ETH_NETWORK === 'hardhat') {

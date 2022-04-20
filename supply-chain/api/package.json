@@ -2,7 +2,7 @@
   "name": "supply-chain-api",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "server.ts",
   "scripts": {
     "start": "ts-node server.ts",
     "dev": "nodemon server.ts",
@@ -12,18 +12,20 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^17.0.23",
-    "@typescript-eslint/eslint-plugin": "^5.17.0",
-    "@typescript-eslint/parser": "^5.17.0",
+    "@types/node": "^17.0.25",
+    "@typescript-eslint/eslint-plugin": "^5.20.0",
+    "@typescript-eslint/parser": "^5.20.0",
     "eslint": "^8.12.0",
     "typescript": "^4.6.3",
     "@types/express": "^4.17.13",
     "@types/multer": "^1.4.7",
     "nodemon": "^2.0.15",
-    "ts-node": "^10.7.0"
+    "ts-node": "^10.7.0",
+    "@types/cors": "^2.8.12"
   },
   "dependencies": {
     "supply-chain-cli": "1.0.0",
+    "cors": "^2.8.5",
     "axios": "^0.26.1",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
