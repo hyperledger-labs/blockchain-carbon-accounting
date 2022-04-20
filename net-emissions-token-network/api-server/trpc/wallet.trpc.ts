@@ -1,7 +1,7 @@
 import * as trpc from '@trpc/server'
 import { ethers } from 'ethers';
 import { z } from 'zod'
-import { TrpcContext } from './common';
+import { handleError, TrpcContext } from './common';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -15,16 +15,6 @@ const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
     message: "Address must be a valid Ethereum address",
 })
 
-
-function handleError(method: string, error: unknown) {
-    console.error(`Error in ${method} method`, error)
-    throw new trpc.TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'An unexpected error occurred, please try again later.',
-        // optional: pass the oroginal error to retain stack trace
-        cause: error,
-    });
-}
 
 export const walletRouter = trpc
 .router<TrpcContext>()
