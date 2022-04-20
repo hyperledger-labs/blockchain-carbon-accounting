@@ -21,9 +21,11 @@ From the `net-emissions-token-network/interface` directory, run
 yarn install
 ```
 
-## Token Query Server
+## Api Server
 
-The token query server synchronizes the blockchain network with a PostgreSQL database so that the UI could search and query the tokens and create dashboards.  See [token-query-server README](../token-query-server/README.md) on how to configure and start it. 
+The api server provides all the endpoints for the dApp client.
+It also synchronizes the blockchain network with a PostgreSQL database so that the UI could search and query the tokens and create dashboards.
+See [api-server README](../api-server/README.md) on how to configure and start it. 
 
 ## With Hardhat Network local testnet
 
