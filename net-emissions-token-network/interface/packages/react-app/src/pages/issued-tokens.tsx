@@ -433,7 +433,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
             <h2>
-              Tokens &nbsp;
+              Tokens
               <IssuedTypeSwitch 
                 changed={onIssudTypeChanged}
                 h={(displayAddress? 'They' : 'You')}

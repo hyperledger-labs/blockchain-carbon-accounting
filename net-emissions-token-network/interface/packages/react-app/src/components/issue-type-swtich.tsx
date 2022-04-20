@@ -29,7 +29,8 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
     const [ loading, setLoading ] = useState(false);
 
     const onIssueTypeChanged = async (e: any) => {
-        const value = e.currentTarget.value
+        console.log(e);
+        const value = e.value
         if(issuedType === value) return;
         setIssuedType(value);
         setLoading(true);
@@ -38,16 +39,18 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
     }
 
     return (
-        <ButtonGroup>
+        <>
         {ISSUED_TYPES.map((i: ISSUED_TYPE , key: any) => 
-            (<ToggleButton
+            (<a
                 className='mr-2'
                 key={key}
-                id={`issue_type-${key}`}
-                type="radio"
-                value={i.value}
-                variant={(issuedType !== i.value) ? 'link' : 'light'}
-                onChange={(e) => onIssueTypeChanged(e)}
+                style={(issuedType !== i.value) ? 
+                    {textDecoration: 'underline'} : 
+                    {textDecoration: 'none', color: '#333333'}
+                }
+                onClick={(e) => {
+                    onIssueTypeChanged(i)
+                }}
             >
                 {loading && issuedType === i.value ? 
                     <Spinner 
@@ -59,9 +62,9 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
                         aria-hidden="true"
                     /> : <></>
                 }&nbsp;{i.label}&nbsp;{h}
-            </ToggleButton>)
+            </a>)
         )}
-        </ButtonGroup>
+        </>
     )
 }
 
