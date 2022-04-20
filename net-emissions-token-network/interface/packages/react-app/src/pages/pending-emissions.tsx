@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { EmissionsRequest } from '../components/static-data';
-import { getAuditorEmissionsRequest,
-  declineEmissionsRequest,
-  issueEmissionsRequest
-} from '../services/supply-chain-api';
+import { getAuditorEmissionsRequest, declineEmissionsRequest } from '../services/api.service';
+import { issueEmissionsRequest } from '../services/supply-chain-api';
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
