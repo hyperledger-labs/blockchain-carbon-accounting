@@ -35,6 +35,16 @@ Run by giving a JSON file of activities to process and one or more public key fo
 npm run cli -- -pubk user1-public.pem [-pubk user2-public.pem] -f input.json
 ```
 
+To create emissions requests instead of issue token with given input.json run:
+```
+npm run cli -- -pubk user1-public.pem -f input.json -queue
+```
+
+To randomly assign emission auditors for new emissions requests run:
+```
+npm run cli -- -processrequests
+```
+
 To get a more complete output use the `-verbose` flag, this will output the grouped activities by type, while shipments
 are further grouped by shipping mode.
 ```
