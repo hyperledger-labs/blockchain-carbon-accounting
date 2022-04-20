@@ -557,7 +557,6 @@ export async function process_emissions_requests() {
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
   if (emissions_requests && emissions_requests.length > 0) {
       const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
-      console.log('found auditors:', auditors);
       if (auditors && auditors.length > 0) {
         // get auditors with public keys
         const active_auditors = auditors.filter((w) => !!w.public_key);
