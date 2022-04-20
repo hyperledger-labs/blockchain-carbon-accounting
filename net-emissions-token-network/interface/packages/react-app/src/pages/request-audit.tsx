@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, useState, PropsWithChildren, useCallback } from "react";
+import { FC, useState, PropsWithChildren } from "react";
 import { Breadcrumb, Button, Col, FloatingLabel, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
@@ -89,7 +89,7 @@ type FormSelectRowProps<T extends GenericForm> = FormInpuRowProps<T> & {
   values: {
     value: string
     label: string
-  }[]
+  }[] | string[]
 }
 
 const FormInputRow = <T extends GenericForm,>({ form, setForm, field, label, placeholder, type, min, max }:PropsWithChildren<FormInpuRowProps<T>>) => {
@@ -113,7 +113,7 @@ const FormSelectRow = <T extends GenericForm,>({ form, setForm, field, label, pl
       onChange={e=>{ setForm({...form, [field]: e.currentTarget.value })}}
     >
       <option value="">{placeholder || `Select ${label}`}</option>
-      {values.map((o,i)=>
+      {values.map((o,i)=> typeof o === 'string' ? <option key={i} value={o}>{o}</option> :
         <option key={i} value={o.value}>{o.label}</option>
       )}
     </Form.Select> 
@@ -138,10 +138,34 @@ const EmissionsFactorListItem: FC<{
 }> = ({emissionsFactor, href, setForm, form}) => {
   return <Breadcrumb as="div" listProps={{className: 'mb-0'}}>
     {/* <Breadcrumb.Item>{o.scope}</Breadcrumb.Item> */}
-    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({...form, level_1: emissionsFactor.level_1})}}>{emissionsFactor.level_1}</Breadcrumb.Item>
-    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({...form, level_2: emissionsFactor.level_2})}}>{emissionsFactor.level_2}</Breadcrumb.Item>
-    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({...form, level_3: emissionsFactor.level_3})}}>{emissionsFactor.level_3}</Breadcrumb.Item>
-    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({...form, level_4: emissionsFactor.level_4||''})}}>{emissionsFactor.level_4}</Breadcrumb.Item>
+    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({
+      ...form,
+      level_1: emissionsFactor.level_1,
+      level_2:'',
+      level_3:'',
+      level_4:''
+    })}}>{emissionsFactor.level_1}</Breadcrumb.Item>
+    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({
+      ...form,
+      level_1: emissionsFactor.level_1,
+      level_2: emissionsFactor.level_2,
+      level_3:'',
+      level_4:''
+    })}}>{emissionsFactor.level_2}</Breadcrumb.Item>
+    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({
+      ...form,
+      level_1: emissionsFactor.level_1,
+      level_2: emissionsFactor.level_2,
+      level_3: emissionsFactor.level_3, 
+      level_4:''
+    })}}>{emissionsFactor.level_3}</Breadcrumb.Item>
+    <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({
+      ...form,
+      level_1: emissionsFactor.level_1,
+      level_2: emissionsFactor.level_2,
+      level_3: emissionsFactor.level_3, 
+      level_4: emissionsFactor.level_4||''
+    })}}>{emissionsFactor.level_4}</Breadcrumb.Item>
     <Breadcrumb.Item active>{emissionsFactor.text} <b>{Number(emissionsFactor.co2_equivalent_emissions).toFixed(5)} {emissionsFactor.co2_equivalent_emissions_uom}</b> per <b>{emissionsFactor.activity_uom}</b></Breadcrumb.Item>
   </Breadcrumb>
 }
@@ -190,12 +214,39 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
   const [emissionsFactor, setEmissionsFactor] = useState<EmissionsFactorInterface|null>(null)
 
+  const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {
+    scope: 'Scope 3',
+  }], {
+    enabled: emForm.activity_type === 'emissions_factor',
+  })
+  const level2sQuery = trpc.useQuery(['emissionsFactors.getLevel2s', {
+    scope: 'Scope 3',
+    level_1: emForm.level_1
+  }], {
+    enabled: emForm.activity_type === 'emissions_factor' && !!emForm.level_1,
+  })
+  const level3sQuery = trpc.useQuery(['emissionsFactors.getLevel3s', {
+    scope: 'Scope 3',
+    level_1: emForm.level_1,
+    level_2: emForm.level_2
+  }], {
+    enabled: emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2,
+  })
+  const level4sQuery = trpc.useQuery(['emissionsFactors.getLevel4s', {
+    scope: 'Scope 3',
+    level_1: emForm.level_1,
+    level_2: emForm.level_2,
+    level_3: emForm.level_3
+  }], {
+    enabled: emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2 && !!emForm.level_3,
+  })
+
   const lookupQuery = trpc.useQuery(['emissionsFactors.lookup', {
     scope: 'Scope 3',
-    level_1: emForm.level_1+'%',
-    level_2: emForm.level_2+'%',
-    level_3: emForm.level_3+'%',
-    level_4: emForm.level_4+'%',
+    level_1: emForm.level_1,
+    level_2: emForm.level_2,
+    level_3: emForm.level_3,
+    level_4: emForm.level_4,
   }], {
     enabled: !!emForm.level_1 && emForm.level_1.length > 0,
   })
@@ -288,10 +339,18 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
 
             </> : <>
               <h3 id="lookupForm">Choose an emissions factor</h3>
-              <FormInputRow form={emForm} setForm={setEmForm} field="level_1" label="Level 1"/>
-              <FormInputRow form={emForm} setForm={setEmForm} field="level_2" label="Level 2"/>
-              <FormInputRow form={emForm} setForm={setEmForm} field="level_3" label="Level 3"/>
-              <FormInputRow form={emForm} setForm={setEmForm} field="level_4" label="Level 4"/>
+              {level1sQuery.data && 
+                <FormSelectRow form={emForm} setForm={setEmForm} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}/>
+              }
+              {emForm.level_1 && level2sQuery.data && 
+                <FormSelectRow form={emForm} setForm={setEmForm} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}/>
+              }
+              {emForm.level_1 && emForm.level_2 && level3sQuery.data && 
+                <FormSelectRow form={emForm} setForm={setEmForm} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}/>
+              }
+              {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && 
+                <FormSelectRow form={emForm} setForm={setEmForm} field="level_4" label="Level 4" values={level4sQuery.data.emissionsFactors}/>
+              }
               {lookupQuery.data ?
                 <ListGroup className="mb-3" variant="flush">
                   {lookupQuery.data.emissionsFactors.map((o)=>

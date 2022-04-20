@@ -150,6 +150,51 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     return utilityFactors[0]
   }
 
+  public getEmissionsFactorsLevel1s = async (query: Pick<EmissionsFactorInterface, 'scope'>): Promise<string[]> => {
+    const res = await this._db.getRepository(EmissionsFactor)
+      .createQueryBuilder()
+      .select('EmissionsFactor.level_1')
+      .where(query)
+      .distinct(true)
+      .orderBy({ level_1: 'ASC' })
+      .getRawMany()
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
+    return res.map(e=>e.EmissionsFactor_level_1)
+  }
+  public getEmissionsFactorsLevel2s = async (query: Pick<EmissionsFactorInterface, 'scope' | 'level_1'>): Promise<string[]> => {
+    const res = await this._db.getRepository(EmissionsFactor)
+      .createQueryBuilder()
+      .select('EmissionsFactor.level_2')
+      .where(query)
+      .distinct(true)
+      .orderBy({ level_2: 'ASC' })
+      .getRawMany()
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
+    return res.map(e=>e.EmissionsFactor_level_2)
+  }
+  public getEmissionsFactorsLevel3s = async (query: Pick<EmissionsFactorInterface, 'scope' | 'level_1' | 'level_2'>): Promise<string[]> => {
+    const res = await this._db.getRepository(EmissionsFactor)
+      .createQueryBuilder()
+      .select('EmissionsFactor.level_3')
+      .where(query)
+      .distinct(true)
+      .orderBy({ level_3: 'ASC' })
+      .getRawMany()
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
+    return res.map(e=>e.EmissionsFactor_level_3)
+  }
+  public getEmissionsFactorsLevel4s = async (query: Pick<EmissionsFactorInterface, 'scope' | 'level_1' | 'level_2' | 'level_3'>): Promise<string[]> => {
+    const res = await this._db.getRepository(EmissionsFactor)
+      .createQueryBuilder()
+      .select('EmissionsFactor.level_4')
+      .where(query)
+      .distinct(true)
+      .orderBy({ level_4: 'ASC' })
+      .getRawMany()
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
+    return res.map(e=>e.EmissionsFactor_level_4)
+  }
+
   public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
     return await this._db.getRepository(EmissionsFactor).find(this.makeEmissionFactorMatchWhereCondition(query))
   }
