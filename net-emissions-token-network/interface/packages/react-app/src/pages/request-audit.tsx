@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, useState, PropsWithChildren } from "react";
-import { Breadcrumb, Button, Col, FloatingLabel, Form, ListGroup, Row, Spinner } from "react-bootstrap";
+import { FC, useState } from "react";
+import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
+import { FormInputRow, FormSelectRow } from "../components/forms-util";
 
 type RequestAuditProps = {
   provider?: Web3Provider, 
   signedInAddress: string, 
   roles: RolesInfo,
   limitedMode: boolean
-}
-
-type GenericForm = {
-  [P in string]: string
 }
 
 type EmissionsFactorForm = {
@@ -73,52 +70,6 @@ const defaultEmissionsFactorForm: EmissionsFactorForm = {
   emissions_factor_uuid: '',
 } as const;
 
-
-type FormInpuRowProps<T extends GenericForm> = {
-  form: T,
-  setForm: React.Dispatch<React.SetStateAction<T>>,
-  field: keyof T & string,
-  label: string
-  type?: 'input' | 'number'
-  min?: number,
-  max?: number,
-  placeholder?: string
-};
-
-type FormSelectRowProps<T extends GenericForm> = FormInpuRowProps<T> & {
-  values: {
-    value: string
-    label: string
-  }[] | string[]
-}
-
-const FormInputRow = <T extends GenericForm,>({ form, setForm, field, label, placeholder, type, min, max }:PropsWithChildren<FormInpuRowProps<T>>) => {
-  return <FloatingLabel className="mb-3" controlId={field} label={label}>
-    <Form.Control
-      type={type||"input"}
-      min={min}
-      max={max}
-      placeholder={placeholder||label}
-      value={form[field] as string}
-      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value })}}
-      onFocus={e=>e.currentTarget.select()}
-      />
-  </FloatingLabel>
-}
-
-const FormSelectRow = <T extends GenericForm,>({ form, setForm, field, label, placeholder, values }:PropsWithChildren<FormSelectRowProps<T>>) => {
-  return <FloatingLabel className="mb-3" controlId={field} label={label}>
-    <Form.Select aria-label={label}
-      value={form[field] as string}
-      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value })}}
-    >
-      <option value="">{placeholder || `Select ${label}`}</option>
-      {values.map((o,i)=> typeof o === 'string' ? <option key={i} value={o}>{o}</option> :
-        <option key={i} value={o.value}>{o.label}</option>
-      )}
-    </Form.Select> 
-  </FloatingLabel>
-}
 
 const EmissionsFactor: FC<{emissionsFactor: EmissionsFactorInterface}> = ({emissionsFactor}) => {
   return <Breadcrumb as="div" listProps={{className: 'mb-0'}}>
@@ -375,7 +326,16 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
 
           </>}
 
-        <Button className="w-100" variant="success" size="lg" onClick={_=>{ console.log('Submit request for audit with ', emForm) }}>Submit Request</Button>
+        <Form.Group controlId="formFile" className="mb-3">
+          <Form.Label>Supporting Document</Form.Label>
+          <Form.Control type="file" />
+        </Form.Group>
+
+        <Button 
+          className="w-100"
+          variant="success"
+          size="lg"
+          onClick={_=>{ console.log('Submit request for audit with ', emForm) }}>Submit Request</Button>
         </>}
 
       </>
