@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import { EmissionsRequest } from '../components/static-data';
-import { getAuditorEmissionsRequest,
-  declineEmissionsRequest,
-  issueEmissionsRequest
-} from '../services/supply-chain-api';
+import { getAuditorEmissionsRequest, declineEmissionsRequest } from '../services/api.service';
+import { issueEmissionsRequest } from '../services/supply-chain-api';
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
@@ -49,7 +46,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         let result = await declineEmissionsRequest(selectedPendingEmissions.uuid);
-        if (result && result.success) {
+        if (result && result.status === 'success') {
           setError("");
           window.location.replace('/emissionsrequests');
         } else {
@@ -68,7 +65,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         let result = await issueEmissionsRequest(selectedPendingEmissions.uuid);
-        if (result && result.success) {
+        if (result && result.status === 'success') {
           setError("");
           window.location.replace('/issuedtokens');
         } else {
@@ -136,6 +133,10 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           <tr>
             <td>Thru date</td>
             <td>{selectedPendingEmissions.token_thru_date}</td>
+          </tr>
+          <tr>
+            <td>Emissions</td>
+            <td>{selectedPendingEmissions.token_total_emissions}</td>
           </tr>
           <tr>
             <td>Metadata</td>

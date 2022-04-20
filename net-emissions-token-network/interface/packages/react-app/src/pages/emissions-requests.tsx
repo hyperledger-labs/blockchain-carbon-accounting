@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import {
-  ChangeEvent,
   MouseEvent,
   forwardRef,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useState,
   ForwardRefRenderFunction
 } from "react";
-import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
-import { countAuditorEmissionsRequests, getAuditorEmissionsRequests } from '../services/supply-chain-api';
+import { countAuditorEmissionsRequests, getAuditorEmissionsRequests } from '../services/api.service';
 import { EmissionsRequest } from '../components/static-data';
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";

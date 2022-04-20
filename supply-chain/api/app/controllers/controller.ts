@@ -8,11 +8,7 @@ import { GroupedResult,
   process_activities,
   group_processed_activities,
   issue_tokens_with_issuee,
-  decline_emissions_request,
   issue_emissions_request,
-  get_auditor_emissions_requests,
-  count_auditor_emissions_requests,
-  get_auditor_emissions_request
 } from 'supply-chain-cli/src/emissions-utils';
 
 type OutputActivity = {
@@ -137,51 +133,12 @@ export function issueToken(req: Request, res: Response) {
     });
 }
 
-export async function declineEmissionsRequest(req: Request, res: Response) {
-    try {
-      await decline_emissions_request(req.params.uuid);
-    } catch (error) {
-      return res.status(500).json({ error: error.message || error });
-    }
-    return res.status(200).json({success: '1'});
-}
-
 export async function issueEmissionsRequest(req: Request, res: Response) {
-    try {
-      await issue_emissions_request(req.params.uuid);
-    } catch (error) {
-      return res.status(500).json({ error: error.message || error });
-    }
-    return res.status(200).json({success: '1'});
+  try {
+    await issue_emissions_request(req.params.uuid);
+  } catch (error) {
+    return res.status(500).json({ status: 'failed', error });
+  }
+  return res.status(200).json({ status: 'success' });
 }
 
-export async function getEmissionsRequests(req: Request, res: Response) {
-    try {
-      const emissionsRequests = await get_auditor_emissions_requests(req.params.auditor);
-      return res.status(200).json({success: '1', items: emissionsRequests});
-    } catch (error) {
-      return res.status(500).json({ error: error.message || error });
-    }
-}
-
-export async function countEmissionsRequests(req: Request, res: Response) {
-    if (req.params.op == 'count') {
-        try {
-          const count = await count_auditor_emissions_requests(req.params.auditor);
-          return res.status(200).json({success: '1', count: count});
-        } catch (error) {
-          return res.status(500).json({ error: error.message || error });
-        }
-    } else {
-        return res.status(200).json({error: 'Wrong operation'});
-    }
-}
-
-export async function getEmissionsRequest(req: Request, res: Response) {
-    try {
-      const emissionsRequest = await get_auditor_emissions_request(req.params.uuid);
-      return res.status(200).json({success: '1', item: emissionsRequest});
-    } catch (error) {
-      return res.status(500).json({ error: error.message || error });
-    }
-}

@@ -17,8 +17,7 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "../components/token-info-modal";
 import TrackerInfoModal from "../components/tracker-info-modal";
-import { getBalances } from '../services/api.service';
-import { countAuditorEmissionsRequests } from '../services/supply-chain-api';
+import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";

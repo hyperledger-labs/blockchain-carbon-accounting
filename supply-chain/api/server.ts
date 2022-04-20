@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config({path: '../.env'});
 
 // import router
-import { router as keyRouter } from './app/routers/router';
+import { router } from './app/routers/router';
 
 const app: Application = express();
 const PORT: number | string = process.env.REST_API_PORT || 5000;
@@ -19,13 +19,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.post('/issue', keyRouter);
-
-app.delete('/emissionsrequest/:uuid', keyRouter);
-app.put('/emissionsrequest/:uuid', keyRouter);
-app.get('/emissionsrequest/:uuid', keyRouter);
-app.get('/emissionsrequests/:auditor', keyRouter);
-app.get('/emissionsrequests/:auditor/:op', keyRouter);
+app.use('/', router);
 
 app.listen(PORT, () => {
     console.log(`Server is listening on ${PORT}`);

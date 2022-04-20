@@ -1,12 +1,6 @@
 import express, { Router } from 'express';
 import multer from 'multer';
-import { issueToken,
-  declineEmissionsRequest,
-  issueEmissionsRequest,
-  getEmissionsRequests,
-  countEmissionsRequests,
-  getEmissionsRequest
-} from '../controllers/controller';
+import { issueEmissionsRequest, issueToken } from '../controllers/controller';
 
 const router: Router = express.Router();
 const upload = multer({dest: './keys'});
@@ -21,10 +15,6 @@ router
         }
     ]), issueToken);
 
-router.delete('/emissionsrequest/:uuid', declineEmissionsRequest);
 router.put('/emissionsrequest/:uuid', issueEmissionsRequest);
-router.get('/emissionsrequest/:uuid', getEmissionsRequest);
-router.get('/emissionsrequests/:auditor', getEmissionsRequests);
-router.get('/emissionsrequests/:auditor/:op', countEmissionsRequests);
 
 export { router };

@@ -3,6 +3,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { ZodError } from 'zod';
 import { balanceRouter } from './balance.trpc'
+import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { walletRouter } from './wallet.trpc';
 
 // created for each request, here set the DB connector
@@ -32,6 +33,7 @@ const createRouter = () => {
 const appRouter = createRouter()
   .merge('balance.', balanceRouter)
   .merge('wallet.', walletRouter)
+  .merge('emissionsFactors.', emissionsFactorsRouter)
 
 export type AppRouter = typeof appRouter
 
@@ -39,4 +41,14 @@ export const trpcMiddleware = trpcExpress.createExpressMiddleware({
     router: appRouter,
     createContext,
   })
+
+export function handleError(method: string, error: unknown) {
+    console.error(`Error in ${method} method`, error)
+    throw new trpc.TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'An unexpected error occurred, please try again later.',
+        // optional: pass the oroginal error to retain stack trace
+        cause: error,
+    });
+}
 
