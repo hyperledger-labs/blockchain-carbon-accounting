@@ -29,6 +29,7 @@ import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
+import IssuedTypeSwitch from '../components/issue-type-swtich';
 
 type IssuedTokensProps = {
   provider?: Web3Provider, 
@@ -40,6 +41,9 @@ type IssuedTokensProps = {
 type IssuedTokensHandle = {
   refresh: ()=>void
 }
+
+let issuedType = 'issuedBy';
+
 
 const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensProps> = ({ provider, signedInAddress, roles, displayAddress }, ref) => {
   // Modal display and token it is set to
@@ -74,6 +78,12 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balancePageSize, setBalancePageSize ] = useState(20);
   const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
+
+  // issue type : default issuedBy
+  const onIssudTypeChanged = async (type: string) => {
+    issuedType = type;
+    await fetchTokens(page, pageSize, query);
+  }
 
   async function handlePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
     await fetchTokens(value, pageSize, query);
@@ -177,7 +187,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
-      const query = `issuedBy,string,${signedInAddress},eq`;
+      const query = `${issuedType},string,${signedInAddress},eq`;
       const offset = (_page - 1) * _pageSize;
 
       // this count means total number of issued tokens
@@ -423,7 +433,20 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         {/* Only display issued tokens if owner or dealer */}
         {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
-            <h2>Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued <Button variant="outline-dark" href="/issue">Issue</Button> </h2>
+            <h2>
+              Tokens &nbsp;
+              <IssuedTypeSwitch 
+                changed={onIssudTypeChanged}
+                h={(displayAddress? 'They' : 'You')}
+              />
+              &nbsp;
+              <Button 
+                variant="outline-dark" 
+                href="/issue">
+                Issue
+              </Button> 
+            </h2>
+            
             {(emissionsRequestsCount) ?
               <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
               : null

@@ -107,7 +107,6 @@ export async function getRoles(w3provider: Web3Provider, address: string) {
     if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasAnyRole = true;
     if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasDealerRole = true;
     if (roles.isIndustryDealer || roles.isIndustry) roles.hasIndustryRole = true;
-    console.log(roles);
     return roles;
   } catch (error) {
     console.error('getRoles', error);

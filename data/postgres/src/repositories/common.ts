@@ -84,7 +84,7 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
 
     // make case insensitive for issuee issuer cases
     let cond = '';
-    if(query.field == 'issuedTo' || query.field == 'issuedBy') {
+    if(query.field == 'issuedTo' || query.field == 'issuedBy' || query.field == 'issuedFrom') {
       cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
     } else {
       cond = `${alias}.${query.field} ${query.op} :${query.field}`
