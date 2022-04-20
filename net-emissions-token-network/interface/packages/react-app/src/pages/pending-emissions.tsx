@@ -46,7 +46,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         let result = await declineEmissionsRequest(selectedPendingEmissions.uuid);
-        if (result && result.success) {
+        if (result && result.status === 'success') {
           setError("");
           window.location.replace('/emissionsrequests');
         } else {
@@ -65,7 +65,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         let result = await issueEmissionsRequest(selectedPendingEmissions.uuid);
-        if (result && result.success) {
+        if (result && result.status === 'success') {
           setError("");
           window.location.replace('/issuedtokens');
         } else {
@@ -133,6 +133,10 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           <tr>
             <td>Thru date</td>
             <td>{selectedPendingEmissions.token_thru_date}</td>
+          </tr>
+          <tr>
+            <td>Emissions</td>
+            <td>{selectedPendingEmissions.token_total_emissions}</td>
           </tr>
           <tr>
             <td>Metadata</td>

@@ -7,7 +7,7 @@ export const issueEmissionsRequest = async (uuid: string) => {
     try {
         const url = BASE_URL + '/emissionsrequest/' + uuid;
         const { data } = await axios.put(url, {});
-        if(data.success) {
+        if (data && data.status === 'success') {
           return data;
         } else {
           throw new Error("cannot issue emissions request");
