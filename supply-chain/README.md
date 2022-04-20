@@ -1,5 +1,9 @@
 `# Supply Chain Emissions Application
 
+## WARNING
+
+'''The demo public/private keys in this directory should not be used for any real encryption, since they are all publicly known.''' 
+
 ## Installing
 
 Following the steps from [data/postgres](../data/postgres/README.md) to install the emissions factors database.
@@ -76,3 +80,4 @@ To start the API server:
 ```
 npm run api
 ```
+
