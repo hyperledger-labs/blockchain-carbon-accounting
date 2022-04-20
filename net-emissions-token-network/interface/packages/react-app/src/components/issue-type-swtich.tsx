@@ -15,11 +15,11 @@ type ISSUED_TYPE = {
 
 const ISSUED_TYPES: Array<ISSUED_TYPE> = [
     {
-        label: 'issued by',
+        label: 'Issued By',
         value: 'issuedBy'
     }, 
     {
-        label: 'issued from',
+        label: 'Issued From',
         value: 'issuedFrom'
     }, 
 ];
@@ -29,8 +29,7 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
     const [ loading, setLoading ] = useState(false);
 
     const onIssueTypeChanged = async (e: any) => {
-        console.log(e);
-        const value = e.value
+        const value = e.currentTarget.value
         if(issuedType === value) return;
         setIssuedType(value);
         setLoading(true);
@@ -41,16 +40,14 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
     return (
         <>
         {ISSUED_TYPES.map((i: ISSUED_TYPE , key: any) => 
-            (<a
-                className='mr-2'
+            (<ToggleButton
+                className='mb-3'
                 key={key}
-                style={(issuedType !== i.value) ? 
-                    {textDecoration: 'underline', cursor: "pointer"} : 
-                    {textDecoration: 'none', color: '#333333'}
-                }
-                onClick={(e) => {
-                    onIssueTypeChanged(i)
-                }}
+                id={`issue_type-${key}`}
+                type="radio"
+                value={i.value}
+                variant={(issuedType !== i.value) ? 'link' : 'light'}
+                onChange={(e) => onIssueTypeChanged(e)}
             >
                 {loading && issuedType === i.value ? 
                     <Spinner 
@@ -62,7 +59,7 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
                         aria-hidden="true"
                     /> : <></>
                 }&nbsp;{i.label}&nbsp;{h}
-            </a>)
+            </ToggleButton>)
         )}
         </>
     )
