@@ -194,7 +194,7 @@ const EmissionsFactorUomInputs: FC<{
     </Row>
     else if (luom === 'km' || luom === 'miles') return <Row key={i}>
       <Col>
-        <FormInputRow form={form} setForm={setForm} field="distance" type="number" min={0} label={`Weight in ${form.distance_uom}`}/>
+        <FormInputRow form={form} setForm={setForm} field="distance" type="number" min={0} label={`Distance in ${form.distance_uom}`}/>
       </Col>
       <Col>
         <FormSelectRow form={form} setForm={setForm} field="distance_uom" label="Distance UOM" values={[
@@ -217,20 +217,20 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {
     scope: 'Scope 3',
   }], {
-    enabled: emForm.activity_type === 'emissions_factor',
+    enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
   })
   const level2sQuery = trpc.useQuery(['emissionsFactors.getLevel2s', {
     scope: 'Scope 3',
     level_1: emForm.level_1
   }], {
-    enabled: emForm.activity_type === 'emissions_factor' && !!emForm.level_1,
+    enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1,
   })
   const level3sQuery = trpc.useQuery(['emissionsFactors.getLevel3s', {
     scope: 'Scope 3',
     level_1: emForm.level_1,
     level_2: emForm.level_2
   }], {
-    enabled: emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2,
+    enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2,
   })
   const level4sQuery = trpc.useQuery(['emissionsFactors.getLevel4s', {
     scope: 'Scope 3',
@@ -238,7 +238,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
     level_2: emForm.level_2,
     level_3: emForm.level_3
   }], {
-    enabled: emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2 && !!emForm.level_3,
+    enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2 && !!emForm.level_3,
   })
 
   const lookupQuery = trpc.useQuery(['emissionsFactors.lookup', {
@@ -248,7 +248,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
     level_3: emForm.level_3,
     level_4: emForm.level_4,
   }], {
-    enabled: !!emForm.level_1 && emForm.level_1.length > 0,
+    enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && emForm.level_1.length > 0,
   })
 
   const selectEmissionsFactor = (factor: EmissionsFactorInterface|null) => {
