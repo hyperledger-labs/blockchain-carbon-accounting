@@ -45,7 +45,7 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
                 className='mr-2'
                 key={key}
                 style={(issuedType !== i.value) ? 
-                    {textDecoration: 'underline'} : 
+                    {textDecoration: 'underline', cursor: "pointer"} : 
                     {textDecoration: 'none', color: '#333333'}
                 }
                 onClick={(e) => {

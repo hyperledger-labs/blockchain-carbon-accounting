@@ -432,7 +432,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         {/* Only display issued tokens if owner or dealer */}
         {((!displayAddress && isDealer) || (displayAddress && displayAddressIsDealer)) &&
           <div className="mt-4">
-            <h2>
+            <h5>
               Tokens
               <IssuedTypeSwitch 
                 changed={onIssudTypeChanged}
@@ -444,7 +444,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                 href="/issue">
                 Issue
               </Button> 
-            </h2>
+            </h5>
             
             {(emissionsRequestsCount) ?
               <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
