@@ -15,11 +15,11 @@ type ISSUED_TYPE = {
 
 const ISSUED_TYPES: Array<ISSUED_TYPE> = [
     {
-        label: 'Issued By',
+        label: 'issued by',
         value: 'issuedBy'
     }, 
     {
-        label: 'Issued From',
+        label: 'issued from',
         value: 'issuedFrom'
     }, 
 ];

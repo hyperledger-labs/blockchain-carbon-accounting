@@ -436,7 +436,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
               Tokens
               <IssuedTypeSwitch 
                 changed={onIssudTypeChanged}
-                h={(displayAddress? 'They' : 'You')}
+                h={(displayAddress? 'them' : 'you')}
               />
               &nbsp;
               <Button 
