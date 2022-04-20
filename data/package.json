@@ -17,5 +17,8 @@
   "workspaces": [
     "common",
     "postgres"
-  ]
+  ],
+  "devDependencies": {
+    "ts-node": "^10.7.0"
+  }
 }
