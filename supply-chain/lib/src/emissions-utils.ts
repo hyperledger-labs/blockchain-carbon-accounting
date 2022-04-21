@@ -12,7 +12,6 @@ import { PostgresDBService } from "blockchain-carbon-accounting-data-postgres/sr
 import {
   Activity,
   ActivityResult,
-  ActivityType,
   Distance,
   Emissions,
   FlightActivity,
@@ -21,7 +20,6 @@ import {
   MetadataType,
   ProcessedActivity,
   ShipmentActivity,
-  ShippingMode,
   ValueAndUnit,
 } from "./common-types";
 import { hash_content } from "./crypto-utils";

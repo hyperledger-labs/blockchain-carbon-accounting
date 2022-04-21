@@ -1,3 +1,4 @@
+// @ts-ignore 
 import upsAPI from 'ups-nodejs-sdk';
 import { UpsAPI, UpsResponse } from './ups-types';
 import { Output, Path } from './common-types';

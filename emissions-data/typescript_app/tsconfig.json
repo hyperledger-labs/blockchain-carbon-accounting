@@ -3,6 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "pretty": true,
+    "strict": true,
     "sourceMap": true,
     "target": "es6",
     "allowJs": true,

@@ -36,7 +36,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
             return value.type === 'event' && value.name === 'TokenCreated';
         });
         Checks.truthy(tokenCreatedABI, `EthNetEmissionsTokenGateway tokenCreated event abi`);
-        this.EventTokenCreatedInput = tokenCreatedABI.inputs;
+        this.EventTokenCreatedInput = tokenCreatedABI!.inputs;
     }
 
     async registerConsumer(
@@ -57,7 +57,8 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
                 keychainId: this.opts.contractStoreKeychain,
             });
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to invoke issue method : ${error.message}`, 409);
+            const errMsg = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to invoke issue method : ${errMsg}`, 409);
         }
         return { address: input.address };
     }
@@ -91,10 +92,12 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
                 keychainId: this.opts.contractStoreKeychain,
             });
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to invoke issue method : ${error.message}`, 409);
+            const errMsg = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to invoke issue method : ${errMsg}`, 409);
         }
 
-        const txReceipt = result.out.transactionReceipt;
+        // There is no 'out' on invokeContractV1Response .. does this even work?
+        const txReceipt = (result as any).out.transactionReceipt;
         // TODO move decode logic to cactus xdai connector
         ledgerLogger.debug(`${fnTag} decoding ethereum response`);
         const logData = txReceipt.logs[2];

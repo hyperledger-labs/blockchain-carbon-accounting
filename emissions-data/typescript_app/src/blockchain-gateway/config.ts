@@ -43,7 +43,7 @@ export default class BCGatewayConfig {
             this.pluginRegistry.add(
                 new PluginKeychainVault({
                     endpoint: process.env.VAULT_ENDPOINT,
-                    token: process.env.VAULT_TOKEN,
+                    token: process.env.VAULT_TOKEN || '',
                     kvSecretsMountPath: process.env.VAULT_KV_MOUNT_PATH + '/data/',
                     apiVersion: 'v1',
                     keychainId: this.certStoreID,
@@ -71,43 +71,45 @@ export default class BCGatewayConfig {
 
         {
             // read ccp config
-            const ccpPath = process.env.LEDGER_FABRIC_CCP;
+            const ccpPath = process.env.LEDGER_FABRIC_CCP || '';
             Checks.nonBlankString(ccpPath, `${fnTag} LEDGER_FABRIC_CCP`);
             opts.connectionProfile = JSON.parse(readFileSync(ccpPath).toString('utf-8'));
         }
 
-        const signingTypes = process.env.LEDGER_FABRIC_TX_SIGNER_TYPES.split(' ') || ['vault'];
+        const signingTypes = (process.env.LEDGER_FABRIC_TX_SIGNER_TYPES || '').split(' ') || [
+            'vault',
+        ];
         for (const signingType of signingTypes) {
             if (signingType === 'vault') {
                 // configure vault signing
-                const endpoint = process.env.VAULT_ENDPOINT;
+                const endpoint = process.env.VAULT_ENDPOINT || '';
                 Checks.nonBlankString(endpoint, `${fnTag} VAULT_ENDPOINT`);
                 // configure vault signing
-                const mount = process.env.LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT;
+                const mount = process.env.LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT || '';
                 Checks.nonBlankString(mount, `${fnTag} LEDGER_FABRIC_TX_SIGNER_VAULT_MOUNT`);
                 opts.vaultConfig = {
                     endpoint: endpoint,
                     transitEngineMountPath: '/' + mount,
                 };
-                opts.supportedIdentity.push(FabricSigningCredentialType.VaultX509);
+                opts.supportedIdentity?.push(FabricSigningCredentialType.VaultX509);
             } else if (signingType === 'web-socket') {
                 // configure ws signing
-                const endpoint = process.env.WS_IDENTITY_ENDPOINT;
+                const endpoint = process.env.WS_IDENTITY_ENDPOINT || '';
                 Checks.nonBlankString(endpoint, `${fnTag} WS_IDENTITY_ENDPOINT`);
-                const pathPrefix = process.env.WS_IDENTITY_PATH_PREFIX;
+                const pathPrefix = process.env.WS_IDENTITY_PATH_PREFIX || '';
                 Checks.nonBlankString(pathPrefix, `${fnTag} WS_IDENTITY_PATH_PREFIX`);
                 opts.webSocketConfig = {
                     endpoint,
                     pathPrefix,
                 };
-                opts.supportedIdentity.push(FabricSigningCredentialType.WsX509);
+                opts.supportedIdentity?.push(FabricSigningCredentialType.WsX509);
             }
         }
 
-        const caID = process.env.LEDGER_FABRIC_ORG_CA;
+        const caID = process.env.LEDGER_FABRIC_ORG_CA || '';
         Checks.nonBlankString(caID, `${fnTag} process.env.LEDGER_FABRIC_ORG_CA`);
 
-        const orgMSP = process.env.LEDGER_FABRIC_ORG_MSP;
+        const orgMSP = process.env.LEDGER_FABRIC_ORG_MSP || '';
         Checks.nonBlankString(orgMSP, `${fnTag} process.env.LEDGER_FABRIC_ORG_MSP`);
 
         return {
@@ -119,7 +121,7 @@ export default class BCGatewayConfig {
 
     async ethConnector(): Promise<IEthConnector> {
         const fnTag = `${this.className}.ethConnector()`;
-        const endpoint = process.env.LEDGER_ETH_JSON_RPC_URL;
+        const endpoint = process.env.LEDGER_ETH_JSON_RPC_URL || '';
         {
             Checks.nonBlankString(endpoint, `${fnTag} LEDGER_ETH_JSON_RPC_URL`);
         }
@@ -130,8 +132,8 @@ export default class BCGatewayConfig {
         };
 
         // store contract
-        const network = process.env.LEDGER_ETH_NETWORK;
-        const ccAddress = process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS;
+        const network = process.env.LEDGER_ETH_NETWORK || '';
+        const ccAddress = process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS || '';
         {
             Checks.nonBlankString(ccAddress, `${fnTag} LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS`);
         }
