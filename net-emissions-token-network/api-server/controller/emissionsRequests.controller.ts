@@ -125,13 +125,13 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     console.log('postEmissionsRequest...')
     // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
-      return res.send(400).json({ status: 'failed', error: 'No supporting document uploaded!' })
+      return res.status(400).json({ status: 'failed', error: 'No supporting document uploaded!' })
     }
     let supportingDocument = req.files.supportingDocument;
     console.log('postEmissionsRequest checking file', supportingDocument)
     if (Array.isArray(supportingDocument)) {
       if (supportingDocument.length !== 1) {
-        return res.send(400).json({ status: 'failed', error: 'Can only upload one supporting document!' })
+        return res.status(400).json({ status: 'failed', error: 'Can only upload one supporting document!' })
       }
       supportingDocument = supportingDocument[0];
     }
@@ -143,7 +143,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     // we also do some validation here
     const activity = getActivity(req.body)
     if (!activity) {
-      return res.send(400).json({ status: 'failed', error: 'Bad activity inputs!' })
+      return res.status(400).json({ status: 'failed', error: 'Bad activity inputs!' })
     }
     const result = await process_activity(activity);
     console.log('Processed activity:', result)

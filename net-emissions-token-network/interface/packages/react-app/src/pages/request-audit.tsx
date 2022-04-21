@@ -178,6 +178,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
   function resetForm() {
+    setValidated(false)
     setEmForm(defaultEmissionsFactorForm)
     setSupportingDoc(null)
     setTopError('')
