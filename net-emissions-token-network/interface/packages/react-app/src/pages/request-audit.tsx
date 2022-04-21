@@ -7,7 +7,6 @@ import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
 import { FormAddressRow, FormInputRow, FormSelectRow } from "../components/forms-util";
 import { createEmissionsRequest } from "../services/api.service";
-import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 
 type RequestAuditProps = {
   provider?: Web3Provider, 
