@@ -30,7 +30,6 @@ import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
-import { ActivityEmissionsFactorLookup } from "blockchain-carbon-accounting-data-postgres/src/models/activityEmissionsFactorLookup";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
 
 let logger_setup = false;
@@ -87,7 +86,7 @@ export function distance_in_km(distance: Distance): number {
 
 export function distance_in_km2(distance: number, unit?: string): number {
   if (!unit || unit === "km") return distance;
-  if (unit === "mi") return distance* 1.60934;
+  if (unit === "mi" || unit === "miles") return distance* 1.60934;
   // not recognized
   throw new Error(`Distance UOM ${unit} not supported`);
 }
@@ -116,7 +115,7 @@ export async function get_flight_emission_factor(seat_class: string) {
   return f;
 }
 
-async function getEmissionFactor(f: ActivityEmissionsFactorLookup) {
+async function getEmissionFactor(f: Partial<EmissionsFactorInterface>) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
   if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
@@ -331,10 +330,16 @@ export async function process_emissions_factor(
 ): Promise<ActivityResult> {
 
   const db = await getDBInstance();
-  const emissions_factor_uuid = a.emissions_factor_uuid
-  const factor = await db.getEmissionsFactorRepo().getEmissionFactor(emissions_factor_uuid);
+  // support a lookup by given uuid or by levels/scope/text
+  const factor = a.emissions_factor_uuid ?
+    await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid)
+    : await getEmissionFactor(a);
   if (!factor) {
-    throw new Error(`Emissions factor [${emissions_factor_uuid}] not found`)
+    if (a.emissions_factor_uuid) {
+      throw new Error(`Emissions factor [${a.emissions_factor_uuid}] not found`)
+    } else {
+      throw new Error(`Emissions factor for [${a}] not found`)
+    }
   }
   if (!factor.co2_equivalent_emissions || !factor.co2_equivalent_emissions_uom) {
     throw new Error(`Found emissions factor does not have a co2_equivalent_emissions ${factor.uuid}`);

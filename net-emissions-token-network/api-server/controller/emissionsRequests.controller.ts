@@ -161,11 +161,6 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     }
     const result = await process_activity(activity);
     console.log('Processed activity:', result)
-
-
-    console.log('postEmissionsRequest rest of the body?...', result)
-
-
     return res.status(200).json({ status: 'success', result });
   } catch (error) {
     console.error('postEmissionsRequest error: ', error);

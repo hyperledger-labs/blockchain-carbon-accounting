@@ -87,6 +87,37 @@
         "country": "Portugal",
         "city": "Lisbon"
       }
+    },
+    {
+      "id": "7",
+      "type": "emissions_factor",
+      "from_date": "2021-02-02T08:13:28.311Z",
+      "thru_date": "2021-02-02T09:32:23.172Z",
+      "carrier": "Air France",
+      "flight_number": "AF666",
+      "class": "business",
+      "distance": "4000",
+      "distance_uom": "miles",
+      "number_of_passengers": "2",
+      "scope": "Scope 3",
+      "level_1": "BUSINESS TRAVEL- AIR",
+      "level_2": "FLIGHTS",
+      "level_3": "INTERNATIONAL, TO/FROM NON-UK",
+      "level_4": "BUSINESS CLASS",
+      "text": "With RF"
+    },
+    {
+      "id": "8",
+      "type": "emissions_factor",
+      "from_date": "2021-02-02T08:13:28.311Z",
+      "thru_date": "2021-02-02T09:32:23.172Z",
+      "distance": "124",
+      "distance_uom": "km",
+      "number_of_passengers": "2",
+      "scope": "Scope 3",
+      "level_1": "BUSINESS TRAVEL- SEA",
+      "level_2": "FERRY",
+      "level_3": "FOOT PASSENGER"
     }
   ]
 }

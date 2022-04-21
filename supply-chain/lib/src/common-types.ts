@@ -37,7 +37,13 @@ export type Flight = {
   class?: string,
 };
 export type Hybrid = {
-  emissions_factor_uuid: string,
+  emissions_factor_uuid?: string,
+  scope?: string,
+  level_1?: string,
+  level_2?: string,
+  level_3?: string,
+  level_4?: string,
+  text?: string,
   distance?: number,
   distance_uom?: string,
   weight?: number,
