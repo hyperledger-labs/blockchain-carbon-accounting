@@ -2,6 +2,7 @@ import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { process_activity } from 'supply-chain-lib/src/emissions-utils' 
 import { Activity } from 'supply-chain-lib/src/common-types';
+import { ApplicationError } from '../utils/errors';
 
 export async function decline_emissions_request(uuid: string) {
   const db = await PostgresDBService.getInstance()
@@ -75,12 +76,12 @@ export async function getEmissionsRequest(req: Request, res: Response) {
 }
 
 
-function getActivityType(body: any): 'shipment'|'flight'|null {
+function getActivityType(body: any): 'shipment'|'flight' {
   if (body.activity_type === 'shipment' || body.activity_type === 'flight') return body.activity_type
-  return null
+  throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
-function getActivity(body: any): Activity|null {
+function getActivity(body: any): Activity {
   const activity_type = getActivityType(body)
 
   if (activity_type === 'shipment') {
@@ -117,7 +118,7 @@ function getActivity(body: any): Activity|null {
       }
     }
   }
-  return null
+  throw new ApplicationError(`Unsupported activity type.` , 400)
 }
 
 export async function postEmissionsRequest(req: Request, res: Response) {
@@ -125,7 +126,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     console.log('postEmissionsRequest...')
     // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
-      return res.status(400).json({ status: 'failed', error: 'No supporting document uploaded!' })
+      return res.status(400).json({ status: 'failed', error: 'No supporting document was uploaded!' })
     }
     let supportingDocument = req.files.supportingDocument;
     console.log('postEmissionsRequest checking file', supportingDocument)
@@ -154,6 +155,10 @@ export async function postEmissionsRequest(req: Request, res: Response) {
 
     return res.status(200).json({ status: 'success', result });
   } catch (error) {
+    console.error('postEmissionsRequest error: ', error);
+    if (error instanceof ApplicationError) {
+      return res.status(error.status).json({ status: 'failed', error })
+    }
     return res.status(500).json({ status: 'failed', error });
   }
 }
