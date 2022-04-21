@@ -76,8 +76,8 @@ export async function getEmissionsRequest(req: Request, res: Response) {
 }
 
 
-function getActivityType(body: any): 'shipment'|'flight' {
-  if (body.activity_type === 'shipment' || body.activity_type === 'flight') return body.activity_type
+function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor' {
+  if (body.activity_type === 'shipment' || body.activity_type === 'flight' || body.activity_type === 'emissions_factor') return body.activity_type
   throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
@@ -116,6 +116,19 @@ function getActivity(body: any): Activity {
       to: {
         address: body.destination_address
       }
+    }
+  } else if (activity_type === 'emissions_factor') {
+    return {
+      id: '1',
+      type: activity_type,
+      emissions_factor_uuid: body.emissions_factor_uuid,
+      number_of_passengers: Number(body.num_passengers),
+      weight: Number(body.weight),
+      weight_uom: body.weight_uom,
+      distance: Number(body.distance),
+      distance_uom: body.distance_uom,
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
     }
   }
   throw new ApplicationError(`Unsupported activity type.` , 400)

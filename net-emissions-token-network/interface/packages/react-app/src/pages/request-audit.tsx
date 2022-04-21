@@ -479,13 +479,13 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             variant="primary"
             size="lg"
             onClick={_=>{resetForm()}}
-          >Reset</Button>
+          >Reset Form</Button>
 
           {topError && <ErrorAlert error={topError} />}
 
           {topSuccess && <SuccessAlert title="Request Submitted Successfully">
-            <p>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</p>
-            <p>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</p>
+            <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
+            <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
           </SuccessAlert>}
 
           <Button 

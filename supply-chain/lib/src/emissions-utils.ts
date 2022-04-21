@@ -16,11 +16,14 @@ import {
   Emissions,
   FlightActivity,
   is_shipment_activity,
-  is_shipment_flight,
+  is_flight_activity,
   MetadataType,
   ProcessedActivity,
   ShipmentActivity,
   ValueAndUnit,
+  is_emissions_factor_activity,
+  EmissionsFactorActivity,
+  ShippingMode,
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
@@ -28,6 +31,7 @@ import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { ActivityEmissionsFactorLookup } from "blockchain-carbon-accounting-data-postgres/src/models/activityEmissionsFactorLookup";
+import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -37,6 +41,15 @@ async function getDBInstance() {
   if (_db) return _db;
   _db = await PostgresDBService.getInstance();
   return _db;
+}
+
+export function weight_in_uom(weight: number, uom: string, to_uom: string) {
+  const w1 = weight_in_kg(weight, uom)
+  const w2 = weight_in_kg(1, to_uom)
+  //eg: 1 g is 0.001 kg 
+  //eg: 1 tonne is 1000 kg
+  //eg: so 1g is 1*0.001/1000 tonne
+  return w1 / w2;
 }
 
 export function weight_in_kg(weight?: number, uom?: string) {
@@ -69,10 +82,20 @@ function get_convert_kg_for_uom(uom: string): number {
 }
 
 export function distance_in_km(distance: Distance): number {
-  if (!distance.unit || distance.unit === "km") return distance.value;
-  if (distance.unit === "mi") return distance.value * 1.60934;
+  return distance_in_km2(distance.value, distance.unit);
+}
+
+export function distance_in_km2(distance: number, unit?: string): number {
+  if (!unit || unit === "km") return distance;
+  if (unit === "mi") return distance* 1.60934;
   // not recognized
-  throw new Error(`Distance UOM ${distance.unit} not supported`);
+  throw new Error(`Distance UOM ${unit} not supported`);
+}
+
+export function distance_in_uom(distance: number, uom: string, to_uom: string) {
+  const d1 = distance_in_km2(distance, uom)
+  const d2 = distance_in_km2(1, to_uom)
+  return d1 / d2;
 }
 
 export async function get_freight_emission_factor(mode: string) {
@@ -303,6 +326,83 @@ export async function process_flight(
   return { distance, flight: { number_of_passengers, class: seat_class }, emissions };
 }
 
+export async function process_emissions_factor(
+  a: EmissionsFactorActivity 
+): Promise<ActivityResult> {
+
+  const db = await getDBInstance();
+  const emissions_factor_uuid = a.emissions_factor_uuid
+  const factor = await db.getEmissionsFactorRepo().getEmissionFactor(emissions_factor_uuid);
+  if (!factor) {
+    throw new Error(`Emissions factor [${emissions_factor_uuid}] not found`)
+  }
+  if (!factor.co2_equivalent_emissions || !factor.co2_equivalent_emissions_uom) {
+    throw new Error(`Found emissions factor does not have a co2_equivalent_emissions ${factor.uuid}`);
+  }
+  if (!factor.activity_uom) {
+    throw new Error(`Found emissions factor does not have an activity_uom ${factor.uuid}`);
+  }
+  // figure out which UOMs are needed:
+  const luoms = factor.activity_uom.toLowerCase().split('.')
+  let amount = Number(factor.co2_equivalent_emissions);
+  // normalize the outputs
+  let distance_km = 0;
+  let weight_kg = 0;
+  for (const uom of luoms) {
+    if (uom === 'passenger') {
+      if (!a.number_of_passengers) {
+        throw new Error(`This emissions factor requires a number_of_passengers input`);
+      }
+      amount *= a.number_of_passengers;
+    } else if (uom === 'kg' || uom === 'tonne' || uom === 'lbs') {
+      if (!a.weight || !a.weight_uom) {
+        throw new Error(`This emissions factor requires a weight and weight_uom inputs`);
+      }
+      amount *= weight_in_uom(a.weight, a.weight_uom, uom)
+      weight_kg = weight_in_kg(a.weight, a.weight_uom)
+    } else if (uom === 'km' || uom === 'miles' || uom === 'mi') {
+      if (!a.distance || !a.distance_uom) {
+        throw new Error(`This emissions factor requires a distance and distance_uom inputs`);
+      }
+      amount *= distance_in_uom(a.distance, a.distance_uom, uom)
+      distance_km = distance_in_km2(a.distance, a.distance_uom)
+    } else {
+      if (!a.activity_amount || !a.activity_uom) {
+        throw new Error(`This emissions factor requires an activity_amount and activity_uom inputs`);
+      }
+      amount *= a.activity_amount
+    }
+  }
+  const emissions: Emissions = {
+    amount: {
+      value: amount,
+      unit: factor.co2_equivalent_emissions_uom
+    },
+    factor
+  }
+  const distance: Distance = {
+    mode: 'air',
+    unit: 'km',
+    value: distance_km,
+  }
+  if (a.number_of_passengers) {
+    const flight = {
+      number_of_passengers: a.number_of_passengers,
+      class: a.class,
+    }
+    return { distance, flight, emissions };
+  } else {
+    // handle other cases
+    // the mode should be from factor levels
+    distance.mode = get_mode_from_factor(factor)
+    const weight = {
+      value: weight_kg,
+      unit: 'kg',
+    }
+    return { distance, weight, emissions };
+  }
+}
+
 export async function process_activity(activity: Activity) {
   // all activity must have an ID
   if (!activity.id) {
@@ -310,10 +410,12 @@ export async function process_activity(activity: Activity) {
   }
   if (is_shipment_activity(activity)) {
     return await process_shipment(activity);
-  } else if (is_shipment_flight(activity)) {
+  } else if (is_flight_activity(activity)) {
     return await process_flight(activity);
+  } else if (is_emissions_factor_activity(activity)) {
+    return await process_emissions_factor(activity);
   } else {
-    throw new Error("activity not recognized");
+    throw new Error('activity not recognized');
   }
 }
 
@@ -599,3 +701,16 @@ export async function process_emissions_requests() {
   }
 }
 
+export function get_mode_from_factor(factor: EmissionsFactorInterface): ShippingMode {
+  const levels = [factor.level_1, factor.level_2, factor.level_3, factor.level_4]
+  for (const l of levels) {
+    if (!l) continue
+    const ll = l.toLowerCase()
+    if (ll.includes('air')) return 'air'
+    if (ll.includes('ship')) return 'sea'
+    if (ll.includes('sea')) return 'sea'
+    if (ll.includes('rail')) return 'rail'
+    if (ll.includes('truck')) return 'ground'
+  }
+  return 'ground'
+}
