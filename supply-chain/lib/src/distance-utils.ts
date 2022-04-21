@@ -1,7 +1,8 @@
 import { Client, LatLngLiteral, UnitSystem } from "@googlemaps/google-maps-services-js";
 import { Address, Distance, is_address_object, ShippingMode } from './common-types';
 
-export function get_gclient() {
+export function get_gclient(client?: Client) {
+  if (client) return client;
   return new Client({});
 }
 
@@ -30,8 +31,8 @@ export function calc_coord_distance(o: LatLngLiteral, d: LatLngLiteral) {
 function get_address_string(address: Address): string {
   if (is_address_object(address)) { 
     const fields = [];
-    for (const p in address) {
-      fields.push(address[p]);
+    for (const [,val] of Object.entries(address)) {
+      fields.push(val);
     }
     return fields.join(' ');
   } else {
@@ -39,14 +40,14 @@ function get_address_string(address: Address): string {
   }
 }
 
-export async function calc_ground_distance(origin: Address, dest: Address, client: Client = null): Promise<Distance> {
+export async function calc_ground_distance(origin: Address, dest: Address, client?: Client): Promise<Distance> {
 
-  if (!client) client = get_gclient();
+  const gclient = get_gclient(client);
   const o = get_address_string(origin);
   const d = get_address_string(dest);
 
   return new Promise((resolve, reject) => {
-    client.distancematrix({
+    gclient.distancematrix({
       params: {
         origins: [o],
         destinations: [d],
@@ -85,14 +86,14 @@ export async function calc_ground_distance(origin: Address, dest: Address, clien
   });
 }
 
-export async function calc_direct_distance(origin: Address, dest: Address, mode: ShippingMode, client: Client = null): Promise<Distance> {
+export async function calc_direct_distance(origin: Address, dest: Address, mode: ShippingMode, client?: Client): Promise<Distance> {
 
-  if (!client) client = get_gclient();
+  const gclient = get_gclient(client);
   const o = get_address_string(origin);
   const d = get_address_string(dest);
 
   return new Promise((resolve, reject) => {
-    client.geocode({
+    gclient.geocode({
       params: {
         address: o,
         key: process.env.GOOGLE_KEY || ''
@@ -102,7 +103,7 @@ export async function calc_direct_distance(origin: Address, dest: Address, mode:
           return reject(`No geocode results for address [${o}]`);
         }
         const origin_r = results.data.results[0].geometry.location;
-        client.geocode({
+        gclient.geocode({
           params: {
             address: d,
             key: process.env.GOOGLE_KEY || ''

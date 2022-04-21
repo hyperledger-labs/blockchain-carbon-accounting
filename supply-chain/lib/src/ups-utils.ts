@@ -4,7 +4,7 @@ import { Output, Path } from './common-types';
 import { calc_distance } from './distance-utils';
 import { calc_freight_emissions } from './emissions-utils';
 
-function get_path(res: UpsResponse): Path {
+function get_path(res: UpsResponse): Path|undefined {
   const shipment = res.Shipment;
   if (shipment && shipment.ShipTo && shipment.ShipTo.Address) {
     const pack = shipment.Package;
@@ -16,11 +16,11 @@ function get_path(res: UpsResponse): Path {
       if (a && a.ActivityLocation && a.ActivityLocation.Address && b && b.ActivityLocation && b.ActivityLocation.Address) {
         const o = a.ActivityLocation.Address;
         const d = b.ActivityLocation.Address;
-        for (const p in o) {
-          origin.push(o[p]);
+        for (const [,v] of Object.entries(o)) {
+          origin.push(v);
         }
-        for (const p in d) {
-          dest.push(d[p]);
+        for (const [,v] of Object.entries(d)) {
+          dest.push(v);
         }
         if (dest && origin) {
           return { from: origin.join(' '), to: dest.join(' ') };
@@ -28,7 +28,6 @@ function get_path(res: UpsResponse): Path {
       }
     }
   }
-  return null;
 }
 
 function is_ground(res: UpsResponse) {
@@ -41,7 +40,7 @@ function is_ground(res: UpsResponse) {
 }
 
 // wrap UPS api call into a promise
-const ups_track = (ups:UpsAPI, trackingNumber: string) => new Promise((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err, res) => {
+const ups_track = (ups:UpsAPI, trackingNumber: string) => new Promise<UpsResponse>((resolve, reject) => ups.track(trackingNumber, {latest: false}, (err, res) => {
   if (err) reject(err);
   else resolve(res);
 }));

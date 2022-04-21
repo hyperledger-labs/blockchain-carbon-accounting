@@ -21,6 +21,7 @@ export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {
   coords?: LatLngLiteral
 };
+export type ActivityType = 'shipment' | 'flight';
 export type ShippingMode = 'air' | 'ground' | 'sea' | 'rail';
 export type Distance = {
   origin: AddressAndCoordinates,
@@ -48,7 +49,7 @@ export type Path = {
 };
 type ActivityBase = Path & {
   id: string,
-  type: 'shipment' | 'flight',
+  type: ActivityType,
   from_date?: Date,
   thru_date?: Date,
 };
@@ -77,6 +78,13 @@ export type Output = {
   emissions?: Emissions,
 };
 
+export type MetadataType = {
+  "Total emissions": number,
+  "UOM": string,
+  "Scope": number,
+  "Type": string
+  "Mode"?: string
+}
 
 export function is_shipment_activity(a: Activity): a is ShipmentActivity {
   return a.type === 'shipment';
