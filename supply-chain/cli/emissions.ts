@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { readFileSync } from 'fs'
-import { generateKeyPair, hash_content } from './src/crypto-utils';
+import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import {
   GroupedResult,
   GroupedResults,
@@ -9,8 +9,8 @@ import {
   process_activities,
   create_emissions_request,
   process_emissions_requests
-} from './src/emissions-utils';
-import { downloadFileEncrypted } from './src/ipfs-utils';
+} from 'supply-chain-lib/src/emissions-utils';
+import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 
 // common config
 dotenv.config();

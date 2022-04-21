@@ -27,6 +27,7 @@
   },
   "workspaces": [
     "cli",
+    "lib",
     "api"
   ]
 }
