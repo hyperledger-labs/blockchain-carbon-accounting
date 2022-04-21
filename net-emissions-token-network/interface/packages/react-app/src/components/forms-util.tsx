@@ -1,12 +1,13 @@
 import { PropsWithChildren } from "react";
 import { FloatingLabel, Form } from "react-bootstrap";
+import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 
 
 type GenericForm = {
   [P in string]: string
 }
 
-type FormInpuRowProps<T extends GenericForm, T2 extends Partial<T>> = {
+type FormInputRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   form: T,
   setForm: React.Dispatch<React.SetStateAction<T>>,
   field: keyof T & string,
@@ -20,14 +21,43 @@ type FormInpuRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   errors?: T2
 };
 
-type FormSelectRowProps<T extends GenericForm, T2 extends Partial<T>> = FormInpuRowProps<T,T2> & {
+type FormAddressRowProps<T extends GenericForm, T2 extends Partial<T>> = {
+  form: T,
+  setForm: React.Dispatch<React.SetStateAction<T>>,
+  field: keyof T & string,
+  label: string
+  required?: boolean,
+  errors?: T2,
+  types?: string[]
+};
+
+type FormSelectRowProps<T extends GenericForm, T2 extends Partial<T>> = FormInputRowProps<T,T2> & {
   values: {
     value: string
     label: string
   }[] | string[]
 }
 
-export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, errors }:PropsWithChildren<FormInpuRowProps<T,T2>>) => {
+export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, required, errors, types }:PropsWithChildren<FormAddressRowProps<T,T2>>) => {
+  return <Form.Group className="mb-3" controlId={field}>
+    <GooglePlacesAutocomplete 
+      apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+      autocompletionRequest={{types}}
+      selectProps={{
+        className: (errors && errors[field]) ? "is-invalid" : "",
+        required,
+        placeholder: label,
+        defaultInputValue: form[field],
+        onChange: (e:any)=>{console.log(e); setForm({...form, [field]: e?.label || '' })},
+      }}
+      />
+    <Form.Control.Feedback type="invalid">
+      {(errors && errors[field]) || "This value is required"}
+    </Form.Control.Feedback>
+  </Form.Group>
+}
+
+export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, errors }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Control
       type={type||"input"}
