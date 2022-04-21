@@ -44,7 +44,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 // enable files upload
 app.use(fileUpload({
-    createParentPath: true
+  createParentPath: true,
+  useTempFiles : true,
+  safeFileNames: true,
+  preserveExtension: true,
+  tempFileDir : '/tmp/'
 }));
 
 // for hardhat test sync

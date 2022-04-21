@@ -7,7 +7,7 @@
     "start": "nodemon server.ts",
     "dev": "nodemon server.ts",
     "build": "tsc -p",
-    "postinstall": "npm --prefix ../../data install"
+    "postinstall": "npm --prefix ../../data install && npm --prefix ../../supply-chain install"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +15,7 @@
   "dependencies": {
     "@trpc/server": "^9.22.0",
     "blockchain-accounting-data-postgres": "file:../../data/postgres",
+    "supply-chain-lib": "file:../../supply-chain/lib",
     "chalk": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",

@@ -1,5 +1,7 @@
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
+import { process_activity } from 'supply-chain-lib/src/emissions-utils' 
+import { Activity } from 'supply-chain-lib/src/common-types';
 
 export async function decline_emissions_request(uuid: string) {
   const db = await PostgresDBService.getInstance()
@@ -72,10 +74,56 @@ export async function getEmissionsRequest(req: Request, res: Response) {
   }
 }
 
+
+function getActivityType(body: any): 'shipment'|'flight'|null {
+  if (body.activity_type === 'shipment' || body.activity_type === 'flight') return body.activity_type
+  return null
+}
+
+function getActivity(body: any): Activity|null {
+  const activity_type = getActivityType(body)
+
+  if (activity_type === 'shipment') {
+    // make a shipment activity
+    return {
+      id: '1',
+      type: activity_type,
+      carrier: body.ups_tracking?'ups':(body.carrier||'unknown'),
+      tracking: body.ups_tracking || body.tracking_number || 'unknown',
+      mode: body.shipment_mode,
+      weight: Number(body.weight),
+      weight_uom: body.weight_uom,
+      from: {
+        address: body.from_address
+      },
+      to: {
+        address: body.destination_address
+      }
+    }
+  } else if (activity_type === 'flight') {
+    // make a flight activity
+    return {
+      id: '1',
+      type: activity_type,
+      flight_number: body.flight_number||'unknown',
+      carrier: body.flight_carrier||'unknown',
+      class: body.flight_service_level,
+      number_of_passengers: Number(body.num_passengers),
+      from: {
+        address: body.from_address
+      },
+      to: {
+        address: body.destination_address
+      }
+    }
+  }
+  return null
+}
+
 export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
-    console.log('postEmissionsRequest checking files?', req.files)
+    // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
       return res.send(400).json({ status: 'failed', error: 'No supporting document uploaded!' })
     }
@@ -87,14 +135,24 @@ export async function postEmissionsRequest(req: Request, res: Response) {
       }
       supportingDocument = supportingDocument[0];
     }
-    console.log('postEmissionsRequest moving to upload folder...')
-    supportingDocument.mv('./upload/' + supportingDocument.name);
+    // do something with it ?
+    // console.log('postEmissionsRequest moving to upload folder...')
+    // supportingDocument.mv('./upload/' + supportingDocument.name);
 
-    const item = req.body;
-    console.log('postEmissionsRequest rest of the body?...', item)
+    // build an Activity object to pass to supply-chain processActivity
+    // we also do some validation here
+    const activity = getActivity(req.body)
+    if (!activity) {
+      return res.send(400).json({ status: 'failed', error: 'Bad activity inputs!' })
+    }
+    const result = await process_activity(activity);
+    console.log('Processed activity:', result)
 
 
-    return res.status(200).json({ status: 'success', item });
+    console.log('postEmissionsRequest rest of the body?...', result)
+
+
+    return res.status(200).json({ status: 'success', result });
   } catch (error) {
     return res.status(500).json({ status: 'failed', error });
   }

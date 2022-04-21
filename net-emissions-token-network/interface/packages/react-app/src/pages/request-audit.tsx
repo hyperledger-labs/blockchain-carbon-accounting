@@ -7,6 +7,8 @@ import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
 import { FormAddressRow, FormInputRow, FormSelectRow } from "../components/forms-util";
 import { createEmissionsRequest } from "../services/api.service";
+import ErrorAlert from "../components/error-alert";
+import SuccessAlert from "../components/success-alert";
 
 type RequestAuditProps = {
   provider?: Web3Provider, 
@@ -159,7 +161,17 @@ const EmissionsFactorUomInputs: FC<{
     else return <FormInputRow key={i} form={form} setForm={setForm} field="activity_amount" type="number" min={0} step="any" label={uom} required errors={errors}/>
  
   })}</>
+}
 
+type SuccessResultType = {
+  distance: {
+    unit: string,
+    value: number
+  }
+  emissions: {
+    unit: string,
+    value: number
+  }
 }
 
 const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
@@ -168,11 +180,16 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   function resetForm() {
     setEmForm(defaultEmissionsFactorForm)
     setSupportingDoc(null)
+    setTopError('')
+    setTopSuccess(null)
   }
   const [emissionsFactor, setEmissionsFactor] = useState<EmissionsFactorInterface|null>(null)
   const [supportingDoc, setSupportingDoc] = useState<File|null>(null)
   const [validated, setValidated] = useState(false)
   const [formErrors, setFormErrors] = useState<EmissionsFactorFormErrors>({})
+  const [topError, setTopError] = useState('')
+  const [topSuccess, setTopSuccess] = useState<SuccessResultType|null>(null)
+  const [loading, setLoading] = useState(false);
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {
     scope: 'Scope 3',
@@ -315,18 +332,32 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       <h2>Request audit</h2>
       <Form
         onSubmit={async(e)=>{
+          setLoading(true)
+          // always stop the event as we handle all in this function
+          e.preventDefault()
+          e.stopPropagation()
           const form = e.currentTarget
           let valid = true
           if (form.checkValidity() === false || formNotReady) {
-            e.preventDefault()
-            e.stopPropagation()
             valid = false
           }
           // mark the form to render validation errors
           setValidated(true)
+          setTopError('')
+          setTopSuccess(null)
           if (valid) {
             console.log('Form valid, submit with', emForm, supportingDoc)
-            await createEmissionsRequest(emForm, supportingDoc!)
+            try {
+              const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress)
+              console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
+              setTopSuccess({distance: res?.result?.distance, emissions: res?.result?.emissions?.amount})
+            } catch (err) {
+              console.warn('Form error ', err)
+              setTopError(err instanceof Error ? err.message : String(err))
+            } finally {
+              setLoading(false)
+            }
+            // resetForm()
           } else {
             console.log('Form invalid, check errors:', formErrors)
           }
@@ -447,14 +478,34 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             variant="primary"
             size="lg"
             onClick={_=>{resetForm()}}
-            >Reset</Button>
+          >Reset</Button>
+
+          {topError && <ErrorAlert error={topError} />}
+
+          {topSuccess && <SuccessAlert title="Request Submitted Successfully">
+            <p>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</p>
+            <p>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</p>
+          </SuccessAlert>}
+
           <Button 
             className="w-100"
             variant="success"
             size="lg"
-            // disabled={formNotReady}
+            disabled={formNotReady || loading}
             type="submit"
-            >Submit Request</Button>
+            >
+            {loading ? 
+              <Spinner 
+                animation="border" 
+                className="me-2"
+                size="sm"   
+                as="span"
+                role="status"
+                aria-hidden="true"
+                /> : <></>
+          }
+            Submit Request
+          </Button>
           </>}
       </Form>
       </>

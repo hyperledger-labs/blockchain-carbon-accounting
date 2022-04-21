@@ -67,3 +67,8 @@ code {
 .label-button {
     margin-left: 20px;
 }
+
+
+.pre-wrap {
+  white-space: pre-wrap;
+}

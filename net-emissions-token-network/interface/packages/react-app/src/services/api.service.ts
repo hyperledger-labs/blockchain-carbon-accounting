@@ -148,14 +148,14 @@ export const declineEmissionsRequest = async (uuid: string) => {
         if (data.status === 'success') {
           return data;
         } else {
-          throw new Error("cannot decline emissions request");
+          throw new Error("Cannot decline emissions request");
         };
     } catch(error) {
-        throw new Error("cannot decline emissions request");
+        throw new Error("Cannot decline emissions request");
     }
 }
 
-export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File) => {
+export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string) => {
     try {
         const url = BASE_URL + '/emissionsrequest/';
         const formData = new FormData();
@@ -163,14 +163,19 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
             formData.append(k, form[k as keyof EmissionsFactorForm]);
         }
         formData.append("supportingDocument", supportingDocument);
+        formData.append("signedInAddress", signedInAddress);
         const { data } = await axios.post(url, formData);
         if (data.status === 'success') {
-          return data;
+            return data;
         } else {
-          throw new Error("cannot create emissions request");
+            console.warn('Response was:', data)
+            throw new Error("Cannot create emissions request");
         };
     } catch(error) {
-        throw new Error("cannot create emissions request");
+        console.error('Axios error:', error)
+        const response = (error as any).response
+        console.error('Axios error has data:', response)
+        throw new Error("Cannot create emissions request" + (response?.data?.error ? `:\n ${JSON.stringify(response.data.error,null,2)}` : ''));
     }
 }
 
