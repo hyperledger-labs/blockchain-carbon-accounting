@@ -18,7 +18,8 @@ type FormInputRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   step?: number | 'any',
   placeholder?: string,
   required?: boolean,
-  errors?: T2
+  errors?: T2,
+  onChange?: (value: string)=>void
 };
 
 type FormAddressRowProps<T extends GenericForm, T2 extends Partial<T>> = {
@@ -29,6 +30,8 @@ type FormAddressRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   required?: boolean,
   errors?: T2,
   types?: string[]
+  showValidation?: boolean
+  onChange?: (value: string)=>void
 };
 
 type FormSelectRowProps<T extends GenericForm, T2 extends Partial<T>> = FormInputRowProps<T,T2> & {
@@ -38,7 +41,7 @@ type FormSelectRowProps<T extends GenericForm, T2 extends Partial<T>> = FormInpu
   }[] | string[]
 }
 
-export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, required, errors, types }:PropsWithChildren<FormAddressRowProps<T,T2>>) => {
+export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, required, errors, types, showValidation, onChange }:PropsWithChildren<FormAddressRowProps<T,T2>>) => {
   return <Form.Group className="mb-3" controlId={field}>
     <GooglePlacesAutocomplete 
       apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
@@ -48,16 +51,16 @@ export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ 
         required,
         placeholder: label,
         defaultInputValue: form[field],
-        onChange: (e:any)=>{console.log(e); setForm({...form, [field]: e?.label || '' })},
+        onChange: (e:any)=>{setForm({...form, [field]: e?.label || '' }); if (onChange) onChange(e?.label)},
       }}
       />
-    <Form.Control.Feedback type="invalid">
+    {showValidation && <Form.Control.Feedback type="invalid">
       {(errors && errors[field]) || "This value is required"}
-    </Form.Control.Feedback>
+    </Form.Control.Feedback>}
   </Form.Group>
 }
 
-export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, errors }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
+export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Control
       type={type||"input"}
@@ -66,7 +69,7 @@ export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ fo
       step={step}
       placeholder={placeholder||label}
       value={form[field] as string}
-      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value })}}
+      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value }); if (onChange) onChange(e.currentTarget.value); }}
       onFocus={e=>e.currentTarget.select()}
       required={required}
       />
@@ -76,11 +79,11 @@ export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ fo
   </FloatingLabel>
 }
 
-export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, values, required, errors }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
+export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, values, required, errors, onChange }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Select aria-label={label}
       value={form[field] as string}
-      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value })}}
+      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value }); if (onChange) onChange(e.currentTarget.value); }}
       required={required}
     >
       <option value="">{placeholder || `Select ${label}`}</option>

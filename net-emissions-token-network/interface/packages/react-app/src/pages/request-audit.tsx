@@ -333,7 +333,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       <h2>Request audit</h2>
       <Form
         onSubmit={async(e)=>{
-          setLoading(true)
           // always stop the event as we handle all in this function
           e.preventDefault()
           e.stopPropagation()
@@ -347,6 +346,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           setTopError('')
           setTopSuccess(null)
           if (valid) {
+            setLoading(true)
             console.log('Form valid, submit with', emForm, supportingDoc)
             try {
               const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress)
@@ -369,7 +369,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           {value:'flight', label:'Flight'},
           {value:'shipment', label:'Shipment'},
           {value:'emissions_factor', label:'Emissions Factor'}
-        ]}/>
+        ]} onChange={_=>{ setValidated(false) }}/>
 
         {!!emForm.activity_type && <>
           {emForm.activity_type === 'shipment' && <>
@@ -395,9 +395,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
                 </Col>
               </Row>
               <h4>From</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="From Address" required/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required showValidation={validated}/>
               <h4>Destination</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required showValidation={validated}/>
               </>}
             </>}
 
@@ -413,9 +413,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             ]}/>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required/>
             <h4>From</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required showValidation={validated}/>
             <h4>Destination</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required showValidation={validated}/>
             </>}
 
 
@@ -492,7 +492,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             className="w-100"
             variant="success"
             size="lg"
-            disabled={formNotReady || loading}
+            disabled={loading}
+            onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
             type="submit"
             >
             {loading ? 
