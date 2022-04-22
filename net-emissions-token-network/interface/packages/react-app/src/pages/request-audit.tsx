@@ -483,40 +483,36 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Button 
-            className="w-100 mb-2"
-            variant="primary"
-            size="lg"
-            onClick={_=>{resetForm()}}
-          >Reset Form</Button>
-
           {topError && <ErrorAlert error={topError} />}
 
-          {topSuccess && <SuccessAlert title="Request Submitted Successfully">
-            <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
-            <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
-          </SuccessAlert>}
+          {topSuccess ?
+            <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
+              <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
+              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
+            </SuccessAlert>
+            : 
 
-          <Button 
-            className="w-100"
-            variant="success"
-            size="lg"
-            disabled={loading}
-            onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
-            type="submit"
+            <Button 
+              className="w-100"
+              variant="success"
+              size="lg"
+              disabled={loading}
+              onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
+              type="submit"
             >
-            {loading ? 
-              <Spinner 
-                animation="border" 
-                className="me-2"
-                size="sm"   
-                as="span"
-                role="status"
-                aria-hidden="true"
-                /> : <></>
-          }
-            Submit Request
-          </Button>
+              {loading ? 
+                <Spinner 
+                  animation="border" 
+                  className="me-2"
+                  size="sm"   
+                  as="span"
+                  role="status"
+                  aria-hidden="true"
+                  /> : <></>
+            }
+              Submit Request
+            </Button>
+        }
           </>}
       </Form>
       </>

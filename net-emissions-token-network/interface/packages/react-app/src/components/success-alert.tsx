@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { Alert, Button } from "react-bootstrap";
 
-const SuccessAlert: FC<{title: string}> = ({title, children}) => {
+const SuccessAlert: FC<{title: string, onDismiss?: ()=>void}> = ({title, onDismiss, children}) => {
   const [show, setShow] = useState(true);
 
   useEffect(()=>{
@@ -15,7 +15,7 @@ const SuccessAlert: FC<{title: string}> = ({title, children}) => {
         {children}
         <hr />
         <div className="d-flex justify-content-end">
-          <Button onClick={() => setShow(false)} variant="outline-success">
+          <Button onClick={() => { setShow(false); if (onDismiss) onDismiss();}} variant="outline-success">
             Dismiss
           </Button>
         </div>
