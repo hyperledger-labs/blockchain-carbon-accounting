@@ -157,7 +157,7 @@ if (fetchObjectPath) {
     const data_raw = readFileSync(source, 'utf8');
     const data = JSON.parse(data_raw);
 
-    if (!publicKeys.length && !pretend) {
+    if (!publicKeys.length && !pretend && !queue) {
       throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
     }
 

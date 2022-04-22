@@ -16,10 +16,13 @@ export class EmissionsRequest {
   input_data!: string;
 
   @Column({nullable: false})
-  public_key!: string;
+  input_content!: string;
 
-  @Column({nullable: false})
-  public_key_name!: string;
+  @Column({nullable: true})
+  public_key?: string;
+
+  @Column({nullable: true})
+  public_key_name?: string;
 
   @Column({nullable: false})
   issued_from!: string;
