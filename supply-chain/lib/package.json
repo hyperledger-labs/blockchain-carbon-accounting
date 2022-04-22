@@ -1,8 +1,7 @@
 {
-  "name": "supply-chain-cli",
+  "name": "supply-chain-lib",
   "version": "1.0.0",
   "description": "",
-  "main": "emissions.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts",
@@ -18,6 +17,13 @@
     "typescript": "^4.6.3"
   },
   "dependencies": {
-    "supply-chain-lib": "*"
+    "@googlemaps/google-maps-services-js": "^3.3.13",
+    "bignumber.js": "^9.0.2",
+    "ipfs-http-client": "^56.0.1",
+    "ups-nodejs-sdk": "^1.0.0",
+    "axios": "^0.26.1",
+    "blockchain-carbon-accounting-data-postgres": "file:../../data/postgres",
+    "emissions_data": "file:../../emissions-data/typescript_app",
+    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript"
   }
 }

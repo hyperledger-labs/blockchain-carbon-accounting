@@ -21,10 +21,11 @@ export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {
   coords?: LatLngLiteral
 };
+export type ActivityType = 'shipment' | 'flight' | 'emissions_factor';
 export type ShippingMode = 'air' | 'ground' | 'sea' | 'rail';
 export type Distance = {
-  origin: AddressAndCoordinates,
-  destination: AddressAndCoordinates,
+  origin?: AddressAndCoordinates,
+  destination?: AddressAndCoordinates,
   value: number,
   unit: string,
   mode: ShippingMode
@@ -34,6 +35,21 @@ export type Flight = {
   number_of_passengers?: number,
   carrier?: string,
   class?: string,
+};
+export type Hybrid = {
+  emissions_factor_uuid?: string,
+  scope?: string,
+  level_1?: string,
+  level_2?: string,
+  level_3?: string,
+  level_4?: string,
+  text?: string,
+  distance?: number,
+  distance_uom?: string,
+  weight?: number,
+  weight_uom?: string,
+  activity_amount?: number,
+  activity_uom?: string,
 };
 export type Shipment = {
   carrier: string,
@@ -46,15 +62,17 @@ export type Path = {
   from: Address,
   to: Address,
 };
-type ActivityBase = Path & {
+type ActivityCommon = {
   id: string,
-  type: 'shipment' | 'flight',
+  type: ActivityType,
   from_date?: Date,
   thru_date?: Date,
 };
+type ActivityBase = Path & ActivityCommon
 export type ShipmentActivity = ActivityBase & Shipment;
 export type FlightActivity = ActivityBase & Flight;
-export type Activity = ShipmentActivity | FlightActivity;
+export type EmissionsFactorActivity = ActivityCommon & (Partial<Flight> & Hybrid);
+export type Activity = ShipmentActivity | FlightActivity | EmissionsFactorActivity;
 export type ActivityResult = {
   distance?: Distance,
   weight?: ValueAndUnit,
@@ -77,18 +95,34 @@ export type Output = {
   emissions?: Emissions,
 };
 
+export type MetadataType = {
+  "Total emissions": number,
+  "UOM": string,
+  "Scope": number,
+  "Type": string
+  "Mode"?: string
+}
 
 export function is_shipment_activity(a: Activity): a is ShipmentActivity {
   return a.type === 'shipment';
 }
 
-export function is_shipment_flight(a: Activity): a is ShipmentActivity {
+export function is_flight_activity(a: Activity): a is FlightActivity {
   return a.type === 'flight';
+}
+
+export function is_emissions_factor_activity(a: Activity): a is EmissionsFactorActivity {
+  return a.type === 'emissions_factor';
 }
 
 export function is_address_object(a: Address): a is AddressObject {
   return typeof a !== 'string';
 }
 
-
+export function address_to_address_object(a: Address): AddressObject {
+  if (is_address_object(a)) return a;
+  return {
+    address: a
+  }
+}
 

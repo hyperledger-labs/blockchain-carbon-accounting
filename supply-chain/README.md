@@ -41,7 +41,7 @@ npm run cli -- -pubk user1-public.pem [-pubk user2-public.pem] -f input.json
 
 To create emissions requests instead of issue token with given input.json run:
 ```
-npm run cli -- -pubk user1-public.pem -f input.json -queue
+npm run cli -- -f input.json -queue
 ```
 
 To randomly assign emission auditors for new emissions requests run:

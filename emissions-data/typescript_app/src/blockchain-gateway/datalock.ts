@@ -41,7 +41,8 @@ export class DataLockGateway implements IDataLockGateway {
             ledgerLogger.debug(`${fnTag} resp : %o`, resp.functionOutput);
             return JSON.parse(resp.functionOutput);
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to get tx details : ${error.message}`, 409);
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to get tx details : ${m}`, 409);
         }
     }
 
@@ -62,7 +63,8 @@ export class DataLockGateway implements IDataLockGateway {
             ledgerLogger.debug(`${fnTag} resp : %o`, resp.functionOutput);
             return JSON.parse(resp.functionOutput);
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to start tx : ${error.message}`, 409);
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to start tx : ${m}`, 409);
         }
     }
 
@@ -81,7 +83,8 @@ export class DataLockGateway implements IDataLockGateway {
                 params: [txID],
             });
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to end tx : ${error.message}`, 409);
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to end tx : ${m}`, 409);
         }
     }
 
@@ -105,7 +108,8 @@ export class DataLockGateway implements IDataLockGateway {
             ledgerLogger.debug(`${fnTag} resp : %o`, resp.functionOutput);
             return JSON.parse(resp.functionOutput);
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to update tx stage : ${error.message}`, 409);
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to update tx stage : ${m}`, 409);
         }
     }
 }

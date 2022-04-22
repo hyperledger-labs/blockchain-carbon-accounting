@@ -5,6 +5,22 @@ import { EmissionsFactorForm } from '../pages/request-audit';
 export const BASE_URL = "http://localhost:8000";
 axios.defaults.baseURL = BASE_URL;
 
+function handleError(error: unknown, prefix: string) {
+    const response = (error as any).response
+    console.error('Axios error has data?:', response?.data)
+    let errMsg = prefix
+    if (response?.data?.error) {
+        const rde = response.data.error
+        if (rde.name === 'ApplicationError' || rde.message) {
+            errMsg += ': ' + rde.message
+        } else {
+            errMsg += `:\n ${JSON.stringify(response.data.error,null,2)}`
+
+        }
+    }
+    return errMsg;
+}
+
 export const getTokens = async (offset: number, limit: number, query: string[]): Promise<{count:number, tokens:Token[], status:string}> => {
     try {
         var params = new URLSearchParams();
@@ -20,7 +36,7 @@ export const getTokens = async (offset: number, limit: number, query: string[]):
             return {count:0, tokens:[], status:'error'};
         }
     } catch (error) {
-        throw new Error("cannot get count from api server");
+        throw new Error(handleError(error, "Cannot get tokens"))
     }
 }
 
@@ -38,7 +54,7 @@ export const getBalances = async (offset: number, limit: number, query: string[]
         if(data.status === 'success') return data;
         else return {count: 0, balances: []};
     } catch(error) {
-        throw new Error("cannot get balances from api server");
+        throw new Error(handleError(error, "Cannot get balances"))
     }
 }
 
@@ -53,8 +69,7 @@ export const postSignedMessage = async (message: string, signature: string) => {
         if(data.status === 'success') return data;
         else return [];
     } catch(error) {
-        console.error(error)
-        throw new Error("cannot get postSignedMessage from api server");
+        throw new Error(handleError(error, "Cannot post the signed message"))
     }
 }
 
@@ -73,7 +88,7 @@ export const registerUserRole = async (address: string, name: string, organizati
         if(data.status === 'success') return data.wallet;
         else return null;
     } catch(error) {
-        throw new Error("cannot get response from api server");
+        throw new Error(handleError(error, "Cannot register user role"))
     }
 }
 
@@ -88,7 +103,7 @@ export const unregisterUserRole = async (address: string, roles: string) => {
         if(data.status === 'success') return data;
         else return {};
     } catch(error) {
-        throw new Error("cannot get response from api server");
+       throw new Error(handleError(error, "Cannot unregister user role"))
     }
 }
 
@@ -101,7 +116,7 @@ export const lookupWallets = async (query: string): Promise<Wallet[]> => {
         if(data.status === 'success') return data.wallets;
         else return [];
     } catch(error) {
-        throw new Error("cannot get wallets from api server");
+        throw new Error(handleError(error, "Cannot get wallets"))
     }
 }
 
@@ -112,7 +127,7 @@ export const countAuditorEmissionsRequests = async (auditor: string): Promise<nu
         if (data.status === 'success') return data.count
         else return 0;
     } catch(error) {
-        throw new Error("cannot count auditor emissions requests");
+        throw new Error(handleError(error, "Cannot count auditor emissions requests"))
     }
 }
 
@@ -123,7 +138,7 @@ export const getAuditorEmissionsRequests = async (auditor: string): Promise<Emis
         if (data.status === 'success') return data.items
         else return [];
     } catch(error) {
-        throw new Error("cannot get auditor emissions requests");
+        throw new Error(handleError(error, "Cannot get auditor emissions requests"))
     }
 }
 
@@ -134,10 +149,10 @@ export const getAuditorEmissionsRequest = async (uuid: string): Promise<Emission
         if (data.status === 'success') {
           return data.item;
         } else {
-          throw new Error("cannot get auditor emissions requests");
+          throw new Error("Cannot get auditor emissions request");
         };
     } catch(error) {
-        throw new Error("cannot get auditor emissions requests");
+        throw new Error(handleError(error, "Cannot get auditor emissions request"))
     }
 }
 
@@ -148,14 +163,14 @@ export const declineEmissionsRequest = async (uuid: string) => {
         if (data.status === 'success') {
           return data;
         } else {
-          throw new Error("cannot decline emissions request");
+          throw new Error("Cannot decline emissions request");
         };
     } catch(error) {
-        throw new Error("cannot decline emissions request");
+        throw new Error(handleError(error, "Cannot decline emissions request"))
     }
 }
 
-export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File) => {
+export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string) => {
     try {
         const url = BASE_URL + '/emissionsrequest/';
         const formData = new FormData();
@@ -163,14 +178,16 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
             formData.append(k, form[k as keyof EmissionsFactorForm]);
         }
         formData.append("supportingDocument", supportingDocument);
+        formData.append("signedInAddress", signedInAddress);
         const { data } = await axios.post(url, formData);
         if (data.status === 'success') {
-          return data;
+            return data;
         } else {
-          throw new Error("cannot create emissions request");
+            console.warn('Response was:', data)
+            throw new Error("Cannot create emissions request");
         };
     } catch(error) {
-        throw new Error("cannot create emissions request");
+        throw new Error(handleError(error, "Cannot create emissions request"))
     }
 }
 

@@ -7,6 +7,7 @@ import {
     IEmissionsDataEmissionMetadata,
     IEmissionsDataGateway,
     IEthNetEmissionsTokenGateway,
+    IEthNetEmissionsTokenIssueOutput,
     IEthTxCaller,
     IFabricTxCaller,
     ITxDetails,
@@ -35,6 +36,14 @@ interface IRecordAuditedEmissionsTokenResponse {
     metadata: string;
     manifest: string;
     description: string;
+}
+
+interface TokenMetadata {
+    metadata: IEmissionsDataEmissionMetadata;
+    manifest: string;
+    quantity: number;
+    fromDate: number;
+    thruDate: number;
 }
 
 export default class EmissionsChannelService {
@@ -98,7 +107,8 @@ export default class EmissionsChannelService {
                     md5sum.update(input.file);
                     md5 = md5sum.digest('hex');
                 } catch (error) {
-                    throw new ClientError(error.message, 409);
+                    const m = error instanceof Error ? error.message : String(error);
+                    throw new ClientError(m, 409);
                 }
             }
 
@@ -118,7 +128,9 @@ export default class EmissionsChannelService {
         }
     }
 
-    async recordAuditedEmissionsToken(input: Input): Promise<IRecordAuditedEmissionsTokenResponse> {
+    async recordAuditedEmissionsToken(
+        input: Input,
+    ): Promise<IRecordAuditedEmissionsTokenResponse | undefined> {
         const fnTag = `${this.className}.recordAuditedEmissionsToken()`;
         this.__validateUserID(input);
         this.__validateRecordAuditedEmissionsToken(input);
@@ -146,13 +158,15 @@ export default class EmissionsChannelService {
             appLogger.debug(`${fnTag} failed to start processing for txID = ${txID} : %o`, error);
             throw error;
         }
-        let err: ClientError = null;
+        let err: ClientError | undefined = undefined;
         const emissionCCName = 'emissions';
+        let token: IEthNetEmissionsTokenIssueOutput | undefined = undefined;
+        let metadata: TokenMetadata | undefined = undefined;
 
         try {
             appLogger.debug(`${fnTag} current stage name = ${tx.current_stage}`);
-            let records: IEmissionsDataEmission[];
-            let validUUIDs: string[];
+            let records: IEmissionsDataEmission[] | undefined = undefined;
+            let validUUIDs: string[] = [];
             if (tx.current_stage === '') {
                 appLogger.debug(`${fnTag} executing first stage::LOCK_UUIDS`);
                 // first stage
@@ -170,15 +184,17 @@ export default class EmissionsChannelService {
                     Buffer.from(resp.data_locks[emissionCCName], 'base64').toString(),
                 );
                 validUUIDs = [];
-                for (const record of records) {
-                    validUUIDs.push(record.uuid);
+                if (records) {
+                    for (const record of records) {
+                        validUUIDs.push(record.uuid);
+                    }
                 }
             }
 
-            let tokenId: string;
+            let tokenId = '';
             if (tx.current_stage === '' || tx.current_stage === 'GetValidEmissions') {
                 appLogger.debug(`${fnTag} executing second stage::MINT_TOKEN`);
-                if (records == null) {
+                if (records === undefined) {
                     records = [];
                     validUUIDs = JSON.parse(
                         Buffer.from(
@@ -192,10 +208,10 @@ export default class EmissionsChannelService {
                         );
                     }
                 }
-                const metadata = await this.tokenMetadata(records);
+                metadata = await this.tokenMetadata(records);
                 const description = 'Audited Utility Emissions';
 
-                const token = await this.opts.netEmissionsContractGateway.issue(ethCaller, {
+                token = await this.opts.netEmissionsContractGateway.issue(ethCaller, {
                     issuedFrom: issuedFrom,
                     issuedTo: issuedTo,
                     quantity: metadata.quantity,
@@ -242,7 +258,12 @@ export default class EmissionsChannelService {
                 });
             }
         } catch (error) {
-            err = error;
+            if (error instanceof ClientError) {
+                err = error;
+            } else {
+                const m = error instanceof Error ? error.message : String(error);
+                err = new ClientError(m, 409);
+            }
         }
 
         appLogger.debug(`${fnTag} end processing for txID = ${txID}`);
@@ -257,7 +278,17 @@ export default class EmissionsChannelService {
             appLogger.debug(`${fnTag} failed with error : %o`, err);
             throw err;
         }
-        return null;
+        if (token && metadata) {
+            return {
+                tokenId: token.tokenId,
+                quantity: metadata.quantity,
+                fromDate: metadata.fromDate,
+                thruDate: metadata.thruDate,
+                metadata: token.metadata,
+                manifest: token.manifest,
+                description: token.description,
+            };
+        }
     }
 
     async getEmissionsData(input: Input): Promise<IEmissionsDataEmission> {
@@ -269,7 +300,10 @@ export default class EmissionsChannelService {
             vaultToken: input.header.vault_token as string,
             webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
-        const uuid = input.params.uuid;
+        const uuid = input.params?.uuid;
+        if (!uuid) {
+            throw new Error(`${fnTag} error : no input params uuid`);
+        }
         try {
             const record = await this.opts.EmissionsGateway.getEmissionData(fabricCaller, uuid);
             await this.emissionsRecordChecksum(record);
@@ -289,8 +323,14 @@ export default class EmissionsChannelService {
             vaultToken: input.header.vault_token as string,
             webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
-        const utilityId = input.params.utilityId;
-        const partyId = input.params.partyId;
+        const utilityId = input.params?.utilityId;
+        if (!utilityId) {
+            throw new Error(`${fnTag} error : no input params utilityId`);
+        }
+        const partyId = input.params?.partyId;
+        if (!partyId) {
+            throw new Error(`${fnTag} error : no input params partyId`);
+        }
         try {
             const records = await this.opts.EmissionsGateway.getEmissionsRecords(fabricCaller, {
                 utilityId: utilityId,
@@ -315,8 +355,14 @@ export default class EmissionsChannelService {
             vaultToken: input.header.vault_token as string,
             webSocketKey: input.header.web_socket_key as IWebSocketKey,
         };
-        const fromDate = input.params.fromDate;
-        const thruDate = input.params.thruDate;
+        const fromDate = input.params?.fromDate;
+        if (!fromDate) {
+            throw new Error(`${fnTag} error : no input params fromDate`);
+        }
+        const thruDate = input.params?.thruDate;
+        if (!thruDate) {
+            throw new Error(`${fnTag} error : no input params thruDate`);
+        }
         try {
             const records = await this.opts.EmissionsGateway.getAllEmissionsDataByDateRange(
                 fabricCaller,
@@ -362,13 +408,7 @@ export default class EmissionsChannelService {
         }
     }
 
-    private async tokenMetadata(records: IEmissionsDataEmission[]): Promise<{
-        metadata: IEmissionsDataEmissionMetadata;
-        manifest: string;
-        quantity: number;
-        fromDate: number;
-        thruDate: number;
-    }> {
+    private async tokenMetadata(records: IEmissionsDataEmission[]): Promise<TokenMetadata> {
         const metadata: IEmissionsDataEmissionMetadata = {
             org: this.opts.orgName,
             type: 'Utility Emissions',

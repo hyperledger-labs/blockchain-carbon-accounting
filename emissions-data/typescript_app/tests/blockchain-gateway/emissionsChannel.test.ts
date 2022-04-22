@@ -32,7 +32,7 @@ describe('EmissionsDataGateway', () => {
     describe('web-socket', () => {
         tests('web-socket');
     });
-    function tests(caller) {
+    function tests(caller: string) {
         const signer = new Signer('vault web-socket', 'inMemoryKeychain', 'plain');
         const org = bcConfig.fabricConnector();
         const EmissionsGateway = new EmissionsDataGateway({

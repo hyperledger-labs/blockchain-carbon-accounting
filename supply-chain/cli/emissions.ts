@@ -1,16 +1,15 @@
 import * as dotenv from 'dotenv';
 import { readFileSync } from 'fs'
-import { generateKeyPair, hash_content } from './src/crypto-utils';
+import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import {
   GroupedResult,
   GroupedResults,
   group_processed_activities,
   issue_tokens,
   process_activities,
-  create_emissions_request,
   process_emissions_requests
-} from './src/emissions-utils';
-import { downloadFileEncrypted } from './src/ipfs-utils';
+} from 'supply-chain-lib/src/emissions-utils';
+import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 
 // common config
 dotenv.config();
@@ -33,10 +32,10 @@ function print_usage() {
 }
 
 const args = process.argv.splice( /ts-node/.test(process.argv[0]) || /node$/.test(process.argv[0]) ? 2 : 1 );
-let source: string = null;
+let source: string|undefined = undefined;
 const publicKeys: string[] = [];
-let privateKey: string = null;
-let fetchObjectPath: string = null;
+let privateKey: string|undefined = undefined;
+let fetchObjectPath: string|undefined = undefined;
 let pretend = false;
 let verbose = false;
 let verify = false;
@@ -108,7 +107,7 @@ type OutputActivity = {
   error?: string
 };
 
-async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], input_data: string, mode = null) {
+async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], input_data: string, mode?: string) {
   const token_res = await issue_tokens(g, activity_type, publicKeys, queue, input_data, mode);
   // add each activity to output array
   for (const a of g.content) {
@@ -127,14 +126,16 @@ if (fetchObjectPath) {
   }
 
   downloadFileEncrypted(fetchObjectPath, privateKey).then((res) => {
-    const result = res.toString('utf8');
-    if (verify) {
-      const h = hash_content(result);
-      console.log(`HASH: ${h.type}:${h.value}`);
-      console.log('');
-      console.log('=====from IPFS =======')
+    if (res) {
+      const result = res.toString('utf8');
+      if (verify) {
+        const h = hash_content(result);
+        console.log(`HASH: ${h.type}:${h.value}`);
+        console.log('');
+        console.log('=====from IPFS =======')
+      }
+      console.log(result);
     }
-    console.log(result);
   });
 } else {
   if (processrequests) {
@@ -156,7 +157,7 @@ if (fetchObjectPath) {
     const data_raw = readFileSync(source, 'utf8');
     const data = JSON.parse(data_raw);
 
-    if (!publicKeys.length && !pretend) {
+    if (!publicKeys.length && !pretend && !queue) {
       throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
     }
 

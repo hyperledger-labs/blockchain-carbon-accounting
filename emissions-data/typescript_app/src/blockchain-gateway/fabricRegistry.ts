@@ -34,10 +34,12 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
             });
             ledgerLogger.debug(`${fnTag} client enrolled with fabric-ca`);
         } catch (error) {
-            if (error?.errors && error.errors[0] && error.errors[0].code === 20) {
+            const errors = (error as any)?.errors;
+            if (errors && errors[0] && errors[0].code === 20) {
                 throw new ClientError(`${fnTag} invalid enrollmentSecret`, 403);
             }
-            throw new ClientError(`${fnTag} failed to enroll : ${error.message}`, 409);
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to enroll : ${m}`, 409);
         }
     }
 
@@ -65,7 +67,8 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
                 enrollmentSecret: secret,
             };
         } catch (error) {
-            throw new ClientError(`${fnTag} failed to register : ${error.message}`, 409);
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to register : ${m}`, 409);
         }
     }
 }

@@ -29,7 +29,7 @@ describe('EthNetEmissionsTokenGateway', () => {
                 signer: signer,
             });
         });
-        const caller: IEthTxCaller = {
+        const caller: Required<Pick<IEthTxCaller, 'address' | 'private'>> = {
             address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
             private: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
         };
@@ -94,7 +94,7 @@ describe('EthNetEmissionsTokenGateway', () => {
                 signer: signer,
             });
         });
-        const caller: IEthTxCaller = {
+        const caller: Required<Pick<IEthTxCaller, 'address' | 'keyName'>> = {
             address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
             keyName: 'admin',
         };

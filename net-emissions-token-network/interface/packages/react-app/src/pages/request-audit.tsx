@@ -5,8 +5,10 @@ import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
-import { FormInputRow, FormSelectRow } from "../components/forms-util";
+import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { createEmissionsRequest } from "../services/api.service";
+import ErrorAlert from "../components/error-alert";
+import SuccessAlert from "../components/success-alert";
 
 type RequestAuditProps = {
   provider?: Web3Provider, 
@@ -16,6 +18,7 @@ type RequestAuditProps = {
 }
 
 export type EmissionsFactorForm = {
+  issued_from: string,
   activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
   ups_tracking: string
   shipment_mode: 'air' | 'ground' | 'sea' | ''
@@ -28,13 +31,7 @@ export type EmissionsFactorForm = {
   flight_carrier: string
   flight_service_level: 'Economy Class' | 'Premium Economy Class' | 'Business Class' | 'First Class' | ''
   num_passengers: string
-  from_country: string
-  from_state_province: string
-  from_city: string
   from_address: string
-  destination_country: string
-  destination_state_province: string
-  destination_city: string
   destination_address: string
   level_1: string
   level_2: string
@@ -44,6 +41,7 @@ export type EmissionsFactorForm = {
 }
 
 const defaultEmissionsFactorForm: EmissionsFactorForm = {
+  issued_from: '',
   activity_type: '',
   ups_tracking: '',
   shipment_mode: '',
@@ -56,13 +54,7 @@ const defaultEmissionsFactorForm: EmissionsFactorForm = {
   flight_carrier: '',
   flight_service_level: '',
   num_passengers: '1',
-  from_country: '',
-  from_state_province: '',
-  from_city: '',
   from_address: '',
-  destination_country: '',
-  destination_state_province: '',
-  destination_city: '',
   destination_address: '',
   level_1: '',
   level_2: '',
@@ -171,16 +163,36 @@ const EmissionsFactorUomInputs: FC<{
     else return <FormInputRow key={i} form={form} setForm={setForm} field="activity_amount" type="number" min={0} step="any" label={uom} required errors={errors}/>
  
   })}</>
-
 }
 
-const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress, limitedMode }) => {
+type SuccessResultType = {
+  distance: {
+    unit: string,
+    value: number
+  }
+  emissions: {
+    unit: string,
+    value: number
+  }
+}
+
+const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
+  function resetForm() {
+    setValidated(false)
+    setEmForm(defaultEmissionsFactorForm)
+    setSupportingDoc(null)
+    setTopError('')
+    setTopSuccess(null)
+  }
   const [emissionsFactor, setEmissionsFactor] = useState<EmissionsFactorInterface|null>(null)
   const [supportingDoc, setSupportingDoc] = useState<File|null>(null)
   const [validated, setValidated] = useState(false)
   const [formErrors, setFormErrors] = useState<EmissionsFactorFormErrors>({})
+  const [topError, setTopError] = useState('')
+  const [topSuccess, setTopSuccess] = useState<SuccessResultType|null>(null)
+  const [loading, setLoading] = useState(false);
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {
     scope: 'Scope 3',
@@ -237,6 +249,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
     }
+    if (!emForm.issued_from ) {
+      // required value
+      errors.issued_from = 'A wallet to issue from is required';
+      errors.hasErrors = true
+    }
     if (!emForm.activity_type) {
       errors.hasErrors = true
     } else if (emForm.activity_type === 'shipment') {
@@ -252,35 +269,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
           errors.hasErrors = true
         }
         // need proper origin
-        if (!emForm.from_country) {
-          errors.from_country = 'A valid from country is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.from_city) {
-          errors.from_city = 'A valid origin from is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.from_state_province) {
-          errors.from_state_province = 'A valid from state / province is required'
-          errors.hasErrors = true
-        }
         if (!emForm.from_address) {
           errors.from_address = 'A valid from address is required'
           errors.hasErrors = true
         }
         // need proper destination
-        if (!emForm.destination_country) {
-          errors.destination_country = 'A valid destination country is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.destination_city) {
-          errors.destination_city = 'A valid destination country is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.destination_state_province) {
-          errors.destination_state_province = 'A valid destination state / province is required'
-          errors.hasErrors = true
-        }
         if (!emForm.destination_address) {
           errors.destination_address = 'A valid destination address is required'
           errors.hasErrors = true
@@ -294,37 +287,13 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
           errors.hasErrors = true
         }
         // need proper origin
-        if (!emForm.from_country) {
-          errors.from_country = 'A valid from country is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.from_city) {
-          errors.from_city = 'A valid origin from is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.from_state_province) {
-          errors.from_state_province = 'A valid from state / province is required'
-          errors.hasErrors = true
-        }
         if (!emForm.from_address) {
-          errors.from_address = 'A valid from address is required'
+          errors.from_address = 'A valid from airport is required'
           errors.hasErrors = true
         }
         // need proper destination
-        if (!emForm.destination_country) {
-          errors.destination_country = 'A valid destination country is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.destination_city) {
-          errors.destination_city = 'A valid destination country is required'
-          errors.hasErrors = true
-        }
-        if (!emForm.destination_state_province) {
-          errors.destination_state_province = 'A valid destination state / province is required'
-          errors.hasErrors = true
-        }
         if (!emForm.destination_address) {
-          errors.destination_address = 'A valid destination address is required'
+          errors.destination_address = 'A valid destination airport is required'
           errors.hasErrors = true
         }
     } else if (emForm.activity_type === 'emissions_factor') {
@@ -371,29 +340,45 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
       <h2>Request audit</h2>
       <Form
         onSubmit={async(e)=>{
+          // always stop the event as we handle all in this function
+          e.preventDefault()
+          e.stopPropagation()
           const form = e.currentTarget
           let valid = true
           if (form.checkValidity() === false || formNotReady) {
-            e.preventDefault()
-            e.stopPropagation()
             valid = false
           }
           // mark the form to render validation errors
           setValidated(true)
+          setTopError('')
+          setTopSuccess(null)
           if (valid) {
+            setLoading(true)
             console.log('Form valid, submit with', emForm, supportingDoc)
-            await createEmissionsRequest(emForm, supportingDoc!)
+            try {
+              const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress)
+              console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
+              setTopSuccess({distance: res?.result?.distance, emissions: res?.result?.emissions?.amount})
+            } catch (err) {
+              console.warn('Form error ', err)
+              setTopError(err instanceof Error ? err.message : String(err))
+            } finally {
+              setLoading(false)
+            }
+            // resetForm()
           } else {
             console.log('Form invalid, check errors:', formErrors)
           }
         }}
         noValidate validated={validated}>
+        
+        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} />
 
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
           {value:'flight', label:'Flight'},
           {value:'shipment', label:'Shipment'},
           {value:'emissions_factor', label:'Emissions Factor'}
-        ]}/>
+        ]} onChange={_=>{ setValidated(false) }}/>
 
         {!!emForm.activity_type && <>
           {emForm.activity_type === 'shipment' && <>
@@ -419,15 +404,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
                 </Col>
               </Row>
               <h4>From</h4>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_country" label="Country" required/>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_state_province" label="State / Province" required/>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_city" label="City" required/>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="Address" required/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required showValidation={validated}/>
               <h4>Destination</h4>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_country" label="Country" required/>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_state_province" label="State / Province" required/>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_city" label="City" required/>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Address" required/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required showValidation={validated}/>
               </>}
             </>}
 
@@ -443,15 +422,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
             ]}/>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required/>
             <h4>From</h4>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_country" label="Country" required/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_state_province" label="State / Province" required/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_city" label="City" required/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="Address" required/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required showValidation={validated}/>
             <h4>Destination</h4>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_country" label="Country" required/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_state_province" label="State / Province" required/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_city" label="City" required/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Address" required/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required showValidation={validated}/>
             </>}
 
 
@@ -510,13 +483,36 @@ const RequestAudit: FC<RequestAuditProps> = ({ provider, roles, signedInAddress,
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Button 
-            className="w-100"
-            variant="success"
-            size="lg"
-            // disabled={formNotReady}
-            type="submit"
-            >Submit Request</Button>
+          {topError && <ErrorAlert error={topError} />}
+
+          {topSuccess ?
+            <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
+              <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
+              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
+            </SuccessAlert>
+            : 
+
+            <Button 
+              className="w-100"
+              variant="success"
+              size="lg"
+              disabled={loading}
+              onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
+              type="submit"
+            >
+              {loading ? 
+                <Spinner 
+                  animation="border" 
+                  className="me-2"
+                  size="sm"   
+                  as="span"
+                  role="status"
+                  aria-hidden="true"
+                  /> : <></>
+            }
+              Submit Request
+            </Button>
+        }
           </>}
       </Form>
       </>

@@ -11,7 +11,7 @@ export default class AWSS3 {
                 s3ForcePathStyle: true,
                 accessKeyId: 'S3RVER',
                 secretAccessKey: 'S3RVER',
-                endpoint: new Endpoint(process.env.DEV_S3_ADDRESS),
+                endpoint: new Endpoint(process.env.DEV_S3_ADDRESS || ''),
                 s3BucketEndpoint: true,
             });
         } else {

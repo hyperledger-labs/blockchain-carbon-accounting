@@ -48,7 +48,12 @@ export interface EmissionsFactorInterface {
 export class EmissionsFactor extends State {
     factor: EmissionsFactorInterface;
     constructor(_factor: EmissionsFactorInterface) {
-        super([_factor.uuid, _factor.year, _factor.division_type, _factor.division_id]);
+        super([
+            _factor.uuid,
+            _factor.year || '',
+            _factor.division_type || '',
+            _factor.division_id || '',
+        ]);
         this.factor = _factor;
         this.factor.class = EMISSIONS_FACTOR_CLASS_IDENTIFER;
         this.factor.key = this.getKey();
@@ -134,21 +139,21 @@ export class EmissionsFactorState extends WorldState<EmissionsFactorInterface> {
         thruDate: string,
     ): Promise<EmissionsFactor> {
         const hasStateData = lookup.state_province !== '';
-        const isNercRegion = lookup.divisions.division_type.toLowerCase() === 'nerc_region';
+        const isNercRegion = lookup.divisions?.division_type.toLowerCase() === 'nerc_region';
         const isNonUSCountry =
-            lookup.divisions.division_type.toLowerCase() === 'country' &&
-            lookup.divisions.division_id.toLowerCase() !== 'usa';
+            lookup.divisions?.division_type.toLowerCase() === 'country' &&
+            lookup.divisions?.division_id.toLowerCase() !== 'usa';
         let divisionID: string;
         let divisionType: string;
-        let year: number;
+        let year: number | undefined = undefined;
         if (hasStateData) {
-            divisionID = lookup.state_province;
+            divisionID = lookup.state_province || '';
             divisionType = 'STATE';
         } else if (isNercRegion) {
-            divisionID = lookup.divisions.division_id;
-            divisionType = lookup.divisions.division_type;
+            divisionID = lookup.divisions?.division_id || '';
+            divisionType = lookup.divisions?.division_type || '';
         } else if (isNonUSCountry) {
-            divisionID = lookup.divisions.division_id;
+            divisionID = lookup.divisions?.division_id || '';
             divisionType = 'Country';
         } else {
             divisionID = 'USA';

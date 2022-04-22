@@ -15,7 +15,7 @@ export async function setup(): Promise<void> {
     const bcConfig = new BCGatewayConfig();
 
     const signer = new Signer(
-        process.env.LEDGER_FABRIC_TX_SIGNER_TYPES,
+        process.env.LEDGER_FABRIC_TX_SIGNER_TYPES || '',
         bcConfig.certStoreID,
         process.env.LEDGER_ETH_TX_SIGNER || 'plain',
         bcConfig.pluginRegistry.findOneByKeychainId(bcConfig.certStoreID),
@@ -53,8 +53,8 @@ export async function setup(): Promise<void> {
         EmissionsGateway: EmissionsGateway,
         netEmissionsContractGateway: netEmissionsContractGateway,
         datalockGateway: datalockGateway,
-        ethContractAddress: process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS,
+        ethContractAddress: process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS || '',
         s3: s3,
-        orgName: process.env.LEDGER_FABRIC_ORG_MSP,
+        orgName: process.env.LEDGER_FABRIC_ORG_MSP || '',
     });
 }

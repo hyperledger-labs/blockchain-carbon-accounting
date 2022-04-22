@@ -27,7 +27,7 @@ export abstract class WorldState<T> extends State {
     }
 
     protected async addState(id: string, asset: T): Promise<void> {
-        let error: Error;
+        let error: Error | undefined = undefined;
         try {
             await this.getState(id);
         } catch (err) {

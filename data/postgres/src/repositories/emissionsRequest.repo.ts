@@ -68,7 +68,14 @@ export class EmissionsRequestRepo {
     }
   }
 
-  public updateToPending = async (uuid: string, emissionAuditor: string, inputDataIpfsHash: string) => {
+  public updateToPending = async (
+      uuid: string,
+      emissionAuditor: string,
+      inputDataIpfsHash: string,
+      publicKey: string,
+      publicKeyName: string | undefined,
+      tokenManifest: string
+    ) => {
     const status = 'PENDING';
     try {
       await this._db.getRepository(EmissionsRequest)
@@ -77,6 +84,9 @@ export class EmissionsRequestRepo {
       .set({
         emission_auditor: () =>  `'${emissionAuditor}'`,
         input_data_ipfs_hash: () => `'${inputDataIpfsHash}'`,
+        public_key: () => `'${publicKey}'`,
+        public_key_name: () => `'${publicKeyName}'`,
+        token_manifest: () => `'${tokenManifest}'`,
         status: () => `'${status}'`
       })
       .where("uuid = :uuid", {uuid: uuid})

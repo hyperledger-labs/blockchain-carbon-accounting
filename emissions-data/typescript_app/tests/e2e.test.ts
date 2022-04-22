@@ -37,7 +37,7 @@ describe('E2E-ws', async () => {
         keyName: uuid4(),
     });
 
-    tests('web_socket_key', null);
+    tests('web_socket_key', '');
 
     it('should create a web-socket session ID', (done) => {
         chai.request(v1Base)
@@ -48,7 +48,7 @@ describe('E2E-ws', async () => {
                 userId: wsWalletAdmin.keyName,
             })
             .send({})
-            .end(async (error, response) => {
+            .end(async (_, response) => {
                 try {
                     console.log(response);
                     const url = response.body.url;
@@ -64,7 +64,7 @@ describe('E2E-ws', async () => {
     });
 });
 
-function tests(headerKey, headerValue) {
+function tests(headerKey: string, headerValue: string) {
     if (headerKey === 'web_socket_key') {
         let webSocketKey;
         before(async () => {
@@ -79,7 +79,7 @@ function tests(headerKey, headerValue) {
             .set('content-type', 'application/x-www-form-urlencoded')
             .set(headerKey, headerValue)
             .send({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' })
-            .end(async (error, response) => {
+            .end(async (_, response) => {
                 try {
                     response.status.should.be.eq(201);
                     done();
@@ -99,7 +99,7 @@ function tests(headerKey, headerValue) {
                 userId: userId,
             })
             .send({ enrollmentID: clientID, affiliation: 'auditor1.department1' })
-            .end(async (error, response) => {
+            .end(async (_, response) => {
                 try {
                     response.status.should.be.eq(201);
                     done();
@@ -126,7 +126,7 @@ function tests(headerKey, headerValue) {
                 energyUseAmount: 100,
                 energyUseUom: 'kWh',
             })
-            .end(async (error, response) => {
+            .end(async (_, response) => {
                 try {
                     response.status.should.be.eq(201);
                     const resp = response.body;
@@ -155,7 +155,7 @@ function tests(headerKey, headerValue) {
                 emissionsRecordsToAudit: uuid,
                 txID: uuid4(),
             })
-            .end(async (error, response) => {
+            .end(async (_, response) => {
                 try {
                     response.status.should.be.eq(200);
                     done();

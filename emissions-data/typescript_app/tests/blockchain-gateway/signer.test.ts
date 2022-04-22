@@ -39,7 +39,7 @@ describe('Signer', () => {
     });
 
     it('throws if web-socket or vault API keys are not provided', () => {
-        const hlfSupport = process.env.LEDGER_FABRIC_TX_SIGNER_TYPES;
+        const hlfSupport = process.env.LEDGER_FABRIC_TX_SIGNER_TYPES || '';
         const s = new Signer(hlfSupport, 'certstore', 'plain');
         try {
             s.fabric({
@@ -66,10 +66,18 @@ describe('Signer', () => {
         });
         signer.keychainId.should.eq('certstore');
         signer.keychainRef.should.eq(userId);
-        signer.type.should.eq(FabricSigningCredentialType.VaultX509);
-        signer.vaultTransitKey.should.not.be.undefined;
-        signer.vaultTransitKey.keyName.should.eq(userId);
-        signer.vaultTransitKey.token.should.eq(token);
+        chai.expect(signer.type).not.be.undefined;
+        chai.expect(signer.type).exist;
+        if (signer.type) {
+            signer.type.should.eq(FabricSigningCredentialType.VaultX509);
+        }
+        chai.expect(signer.vaultTransitKey).not.be.undefined;
+        chai.expect(signer.vaultTransitKey).exist;
+        if (signer.vaultTransitKey) {
+            signer.vaultTransitKey.should.not.be.undefined;
+            signer.vaultTransitKey.keyName.should.eq(userId);
+            signer.vaultTransitKey.token.should.eq(token);
+        }
     });
 
     const sessionId = randomBytes(8).toString('hex');
@@ -86,10 +94,18 @@ describe('Signer', () => {
         });
         signer.keychainId.should.eq('certstore');
         signer.keychainRef.should.eq(userId);
-        signer.type.should.eq(FabricSigningCredentialType.WsX509);
-        signer.webSocketKey.should.not.be.undefined;
-        signer.webSocketKey.sessionId.should.eq(sessionId);
-        signer.webSocketKey.signature.should.eq(signature);
+        chai.expect(signer.type).not.be.undefined;
+        chai.expect(signer.type).exist;
+        if (signer.type) {
+            signer.type.should.eq(FabricSigningCredentialType.WsX509);
+        }
+        chai.expect(signer.webSocketKey).not.be.undefined;
+        chai.expect(signer.webSocketKey).exist;
+        if (signer.webSocketKey) {
+            signer.webSocketKey.should.not.be.undefined;
+            signer.webSocketKey.sessionId.should.eq(sessionId);
+            signer.webSocketKey.signature.should.eq(signature);
+        }
     });
 
     it('throws if ws session id is not provided', () => {
