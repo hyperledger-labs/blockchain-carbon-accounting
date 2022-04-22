@@ -1,6 +1,7 @@
 import { PropsWithChildren } from "react";
-import { FloatingLabel, Form } from "react-bootstrap";
+import { FloatingLabel, Form, InputGroup } from "react-bootstrap";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import WalletLookupInput from "../components/wallet-lookup-input";
 
 
 type GenericForm = {
@@ -19,6 +20,16 @@ type FormInputRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   placeholder?: string,
   required?: boolean,
   errors?: T2,
+  onChange?: (value: string)=>void
+};
+
+type FormWalletRowProps<T extends GenericForm, T2 extends Partial<T>> = {
+  form: T,
+  setForm: React.Dispatch<React.SetStateAction<T>>,
+  field: keyof T & string,
+  label: string
+  errors?: T2,
+  showValidation?: boolean
   onChange?: (value: string)=>void
 };
 
@@ -97,3 +108,31 @@ export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ f
   </FloatingLabel>
 }
 
+const inputErrorStyles = {
+  borderColor: 'rgb(220, 53, 69)'
+}
+
+export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, errors, showValidation, onChange }:PropsWithChildren<FormWalletRowProps<T,T2>>) => {
+  return <Form.Group className="mb-3">
+    <Form.Label>{label}</Form.Label>
+    <InputGroup className={(showValidation && errors && errors[field]) ? 'is-invalid' : ''}>
+      <WalletLookupInput
+        value={form[field]}
+        onChange={(v: string) => { setForm({...form, [field]: v}); if (onChange) onChange(v); }} 
+        onWalletChange={(w)=>{
+          const v = w ? w.address! : ''
+          setForm({...form, [field]: v})
+          if (onChange) onChange(v)
+        }} 
+        // onBlur={() => setInitializedAddressInput(true)}
+        sx={(showValidation && errors && errors[field]) ? {
+          '& .MuiOutlinedInput-notchedOutline': inputErrorStyles
+        } : {}
+      }
+        />
+    </InputGroup>
+    {showValidation && <Form.Control.Feedback type="invalid">
+      {(errors && errors[field]) || "This value is required"}
+    </Form.Control.Feedback>}
+  </Form.Group>
+}

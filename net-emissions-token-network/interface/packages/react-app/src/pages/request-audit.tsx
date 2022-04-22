@@ -5,7 +5,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
-import { FormAddressRow, FormInputRow, FormSelectRow } from "../components/forms-util";
+import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
@@ -18,6 +18,7 @@ type RequestAuditProps = {
 }
 
 export type EmissionsFactorForm = {
+  issued_from: string,
   activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
   ups_tracking: string
   shipment_mode: 'air' | 'ground' | 'sea' | ''
@@ -40,6 +41,7 @@ export type EmissionsFactorForm = {
 }
 
 const defaultEmissionsFactorForm: EmissionsFactorForm = {
+  issued_from: '',
   activity_type: '',
   ups_tracking: '',
   shipment_mode: '',
@@ -247,6 +249,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
     }
+    if (!emForm.issued_from ) {
+      // required value
+      errors.issued_from = 'A wallet to issue from is required';
+      errors.hasErrors = true
+    }
     if (!emForm.activity_type) {
       errors.hasErrors = true
     } else if (emForm.activity_type === 'shipment') {
@@ -364,6 +371,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           }
         }}
         noValidate validated={validated}>
+        
+        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} />
 
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
           {value:'flight', label:'Flight'},
