@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
-import { create_emissions_request, GroupedResult, issue_tokens, make_emissions_metadata, process_activity } from 'supply-chain-lib/src/emissions-utils' 
+import { GroupedResult, issue_tokens, process_activity } from 'supply-chain-lib/src/emissions-utils' 
 import { Activity } from 'supply-chain-lib/src/common-types';
 import { ApplicationError } from '../utils/errors';
 
@@ -210,7 +210,8 @@ unBhCxmS0/TCgl9LSIbNk96Uo2AwZPjPeNt+H1/LOQrfa5HuIFwGrVkCAwEAAQ==
       undefined,
       issued_from,
       issued_to,
-      true // the pubkey is given inline instead of being a file name
+      true, // the pubkey is given inline instead of being a file name,
+      supportingDocument.data
     );
     console.log('Queued request:', queue_result)
 

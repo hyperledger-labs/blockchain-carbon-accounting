@@ -538,13 +538,15 @@ export async function issue_tokens(
   mode?: string,
   issued_from?: string,
   issued_to?: string,
-  pubkeysContent = false
+  pubkeysContent = false,
+  supporting_document?: Buffer
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
   const h = hash_content(content);
   // save into IPFS
   const ipfs_res = await uploadFileEncrypted(content, publicKeys, pubkeysContent);
+  const sd_ipfs_res = supporting_document ? await uploadFileEncrypted(supporting_document, publicKeys, pubkeysContent) : undefined;
   // issue tokens
 
   const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
@@ -562,7 +564,8 @@ export async function issue_tokens(
       publicKeys[0],
       issued_from,
       issued_to,
-      pubkeysContent
+      pubkeysContent,
+      sd_ipfs_res ? sd_ipfs_res.path : undefined 
     );
     return {"tokenId": "queued"};
   } else {
@@ -625,7 +628,8 @@ export async function create_emissions_request(
   publickey_name: string,
   issuee_from?: string,
   issuee_to?: string,
-  pubkey_content = false
+  pubkey_content = false,
+  supporting_document_ipfs_path?: string
 ) {
   issuee_from = issuee_from || process.env.ETH_ISSUE_FROM_ACCT as string;
   issuee_to = issuee_to || process.env.ETH_ISSUE_TO_ACCT as string;
@@ -636,7 +640,7 @@ export async function create_emissions_request(
   const t_date = thru_date || new Date();
   const tokens = new BigNumber(Math.round(total_emissions));
 
-  const manifest = create_manifest(publickey_name, ipfs_path, hash);
+  const manifest = create_manifest(publickey_name, ipfs_path, hash, supporting_document_ipfs_path);
 
   const db = await getDBInstance();
   await db.getEmissionsRequestRepo().insert({
@@ -655,8 +659,15 @@ export async function create_emissions_request(
   });
 }
 
-function create_manifest(publickey_name: string, ipfs_path: string, hash: string) {
-  return {
+function create_manifest(publickey_name: string, ipfs_path: string, hash: string, supporting_document_ipfs_path?: string) {
+  return supporting_document_ipfs_path ? {
+    "Public Key": publickey_name,
+    "Location": `ipfs://${ipfs_path}`,
+    "SHA256": hash,
+    "Supporting Document Location": `ipfs://${supporting_document_ipfs_path}`
+  }
+ :
+  {
     "Public Key": publickey_name,
     "Location": `ipfs://${ipfs_path}`,
     "SHA256": hash
