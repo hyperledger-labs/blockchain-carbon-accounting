@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { WsIdentityClient } from 'ws-identity-client';
+import ClientError from '../errors/clientError';
 import { fabricConnector } from '../service/service';
 
 export async function webSocket(req: Request, res: Response): Promise<void> {
@@ -29,8 +30,15 @@ export async function webSocket(req: Request, res: Response): Promise<void> {
             url,
         });
     } catch (error) {
-        res.status(error.status).json({
-            msg: error.message,
-        });
+        if (error instanceof ClientError) {
+            res.status(error.status).json({
+                msg: error.message,
+            });
+        } else {
+            const msg = error instanceof Error ? error.message : String(error);
+            res.status(500).json({
+                msg,
+            });
+        }
     }
 }

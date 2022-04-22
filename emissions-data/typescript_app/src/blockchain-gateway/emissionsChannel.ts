@@ -58,10 +58,8 @@ export default class EmissionsDataGateway implements IEmissionsDataGateway {
             const json = JSON.parse(resp.functionOutput);
             return this.__toEmissionRecord(json);
         } catch (error) {
-            throw new ClientError(
-                `${fnTag} failed to record emissions record : ${error.message}`,
-                409,
-            );
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to record emissions record : ${m}`, 409);
         }
     }
     async updateEmissionsMintedToken(
@@ -85,10 +83,8 @@ export default class EmissionsDataGateway implements IEmissionsDataGateway {
                 `${fnTag} minted emissions records successfully updated : ${resp.functionOutput}`,
             );
         } catch (error) {
-            throw new ClientError(
-                `${fnTag} failed to update minted emissions records : ${error.message}`,
-                409,
-            );
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to update minted emissions records : ${m}`, 409);
         }
     }
     async getEmissionData(caller: IFabricTxCaller, uuid: string): Promise<IEmissionsDataEmission> {
@@ -109,10 +105,8 @@ export default class EmissionsDataGateway implements IEmissionsDataGateway {
             const json = JSON.parse(resp.functionOutput);
             return this.__toEmissionRecord(json);
         } catch (error) {
-            throw new ClientError(
-                `${fnTag} failed to record emissions record : ${error.message}`,
-                409,
-            );
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to record emissions record : ${m}`, 409);
         }
     }
 
@@ -141,10 +135,8 @@ export default class EmissionsDataGateway implements IEmissionsDataGateway {
             }
             return out;
         } catch (error) {
-            throw new ClientError(
-                `${fnTag} failed to fetch emissions records : ${error.message}`,
-                409,
-            );
+            const m = error instanceof Error ? error.message : String(error);
+            throw new ClientError(`${fnTag} failed to fetch emissions records : ${m}`, 409);
         }
     }
 
@@ -173,8 +165,9 @@ export default class EmissionsDataGateway implements IEmissionsDataGateway {
             }
             return out;
         } catch (error) {
+            const m = error instanceof Error ? error.message : String(error);
             throw new ClientError(
-                `${fnTag} failed fetch emissions record by date range: ${error.message}`,
+                `${fnTag} failed fetch emissions record by date range: ${m}`,
                 409,
             );
         }
