@@ -48,7 +48,12 @@ export interface EmissionsFactorInterface {
 export class EmissionsFactor extends State {
     factor: EmissionsFactorInterface;
     constructor(_factor: EmissionsFactorInterface) {
-        super([_factor.uuid, _factor.year || '', _factor.division_type || '', _factor.division_id || '']);
+        super([
+            _factor.uuid,
+            _factor.year || '',
+            _factor.division_type || '',
+            _factor.division_id || '',
+        ]);
         this.factor = _factor;
         this.factor.class = EMISSIONS_FACTOR_CLASS_IDENTIFER;
         this.factor.key = this.getKey();
