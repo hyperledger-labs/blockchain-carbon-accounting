@@ -514,31 +514,40 @@ export type GroupedResults = {
   [key:string]: GroupedResult | GroupedResults | ProcessedActivity[];
 };
 
+export function make_emissions_metadata(total_emissions: number, activity_type: string, mode?: string) {
+  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
+
+  const metadata: MetadataType = {
+    "Total emissions": total_emissions_rounded,
+    "UOM": "kgCO2e",
+    "Scope": 3,
+    "Type": activity_type
+  }
+  if (mode) {
+    metadata['Mode'] = mode;
+  }
+  return metadata;
+}
+
 export async function issue_tokens(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
   queue: boolean,
   input_data: string,
-  mode:string|null = null
+  mode?: string,
+  issued_from?: string,
+  issued_to?: string,
+  pubkeysContent = false
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  const ipfs_res = await uploadFileEncrypted(content, publicKeys, pubkeysContent);
   // issue tokens
-  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
-  
-  const metadata: MetadataType = {
-      "Total emissions": total_emissions_rounded,
-      "UOM": "kgCO2e",
-      "Scope": 3,
-      "Type": activity_type
-    }
-  if (mode) {
-    metadata['Mode'] = mode;
-  }
+
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
   if (queue) {
     await create_emissions_request(
@@ -550,7 +559,11 @@ export async function issue_tokens(
       `${h.value}`,
       ipfs_res.path,
       input_data,
-      publicKeys[0]);
+      publicKeys[0],
+      issued_from,
+      issued_to,
+      pubkeysContent
+    );
     return {"tokenId": "queued"};
   } else {
     const token_res = await issue_emissions_tokens(
@@ -582,17 +595,7 @@ export async function issue_tokens_with_issuee(
   // save into IPFS
   const ipfs_res = await uploadFileEncrypted(content, publicKeys);
   // issue tokens
-  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
-  
-  const metadata: MetadataType = {
-    "Total emissions": total_emissions_rounded,
-    "UOM": "kgCO2e",
-    "Scope": 3,
-    "Type": activity_type
-  }
-  if(mode) {
-    metadata['Mode'] = mode;
-  }
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
   const token_res = await issue_emissions_tokens_with_issuee(
     activity_type,
@@ -621,12 +624,13 @@ export async function create_emissions_request(
   input_data: string,
   publickey_name: string,
   issuee_from?: string,
-  issuee_to?: string
+  issuee_to?: string,
+  pubkey_content = false
 ) {
   issuee_from = issuee_from || process.env.ETH_ISSUE_FROM_ACCT as string;
   issuee_to = issuee_to || process.env.ETH_ISSUE_TO_ACCT as string;
   const status = 'CREATED';
-  const publickey = readFileSync(publickey_name, 'utf8');
+  const publickey = pubkey_content ? publickey_name : readFileSync(publickey_name, 'utf8');
 
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
@@ -638,7 +642,7 @@ export async function create_emissions_request(
   await db.getEmissionsRequestRepo().insert({
     input_data: input_data,
     public_key: publickey,
-    public_key_name: publickey_name,
+    public_key_name: pubkey_content ? 'inline' : publickey_name,
     issued_from: issuee_from,
     issued_to: issuee_to,
     status: status,
