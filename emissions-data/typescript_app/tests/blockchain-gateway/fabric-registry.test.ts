@@ -11,6 +11,7 @@ import asPromise from 'chai-as-promised';
 import ClientError from '../../src/errors/clientError';
 import { randomBytes } from 'crypto';
 import { setupWebSocket } from '../setup-ws';
+import { IWebSocketKey } from '../../src/blockchain-gateway/I-gateway';
 
 chai.use(asPromise);
 
@@ -112,7 +113,7 @@ describe('fabric-registry', () => {
             caId: fabricConnector.caID,
             orgMSP: fabricConnector.orgMSP,
         });
-        let webSocketKey;
+        let webSocketKey: IWebSocketKey;
         it('should enroll admin', async () => {
             webSocketKey = await setupWebSocket('admin');
             await fabricRegistry.enroll(
