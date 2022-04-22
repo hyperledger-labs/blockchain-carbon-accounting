@@ -10,7 +10,7 @@ export default class App {
     private readonly app: Express = express();
     private readonly PORT: number;
     constructor() {
-        this.PORT = +process.env.APP_PORT || 9000;
+        this.PORT = +process.env.APP_PORT! || 9000;
         this.app.use(json());
         this.app.use(urlencoded({ extended: true }));
         const upload = multer();

@@ -13,7 +13,7 @@ const BURN = '0x0000000000000000000000000000000000000000';
 const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
 const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
 
-const FIRST_BLOCK = 17770812;
+const FIRST_BLOCK = 18656095;
 
 /* Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
  * Note for the dealer events the actual role depends on the token.

@@ -56,7 +56,7 @@ export default class BCGatewayConfig {
     fabricConnector(): IFabricOrgConnector {
         const fnTag = `${this.className}.fabricConnector()`;
         const opts: IPluginLedgerConnectorFabricOptions = {
-            connectionProfile: undefined,
+            connectionProfile: undefined!,
             pluginRegistry: this.pluginRegistry,
             cliContainerEnv: {},
             instanceId: uuid4(),
@@ -145,6 +145,7 @@ export default class BCGatewayConfig {
             abi: abi,
             networks: networks,
         };
+
         const contractName = 'NetEmissionsTokenNetwork';
         await this.pluginRegistry
             .findOneByKeychainId(this.inMemoryKeychainID)
