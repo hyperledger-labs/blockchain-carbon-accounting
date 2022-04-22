@@ -7,8 +7,7 @@ import { GroupedResult,
   GroupedResults,
   process_activities,
   group_processed_activities,
-  issue_tokens_with_issuee,
-  issue_emissions_request,
+  issue_tokens_with_issuee
 } from 'supply-chain-lib/src/emissions-utils';
 
 type OutputActivity = {
@@ -131,14 +130,5 @@ export function issueToken(req: Request, res: Response) {
         console.log('== 500 Error:', error)
         return res.status(500).json(error);
     });
-}
-
-export async function issueEmissionsRequest(req: Request, res: Response) {
-  try {
-    await issue_emissions_request(req.params.uuid);
-  } catch (error) {
-    return res.status(500).json({ status: 'failed', error });
-  }
-  return res.status(200).json({ status: 'success' });
 }
 

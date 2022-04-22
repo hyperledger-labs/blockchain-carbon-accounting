@@ -19,6 +19,21 @@ export async function decline_emissions_request(uuid: string) {
   }
 }
 
+export async function issue_emissions_request(uuid: string) {
+  const db = await PostgresDBService.getInstance()
+  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+  if (emissions_request) {
+    // check status is correct
+    if (emissions_request.status == 'PENDING') {
+      await db.getEmissionsRequestRepo().updateToIssued(uuid);
+    } else {
+      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+    }
+  } else {
+    throw new Error(`Cannot get emissions request ${uuid}`);
+  }
+}
+
 
 export async function get_auditor_emissions_requests(auditor: string) {
   const db = await PostgresDBService.getInstance()
@@ -38,6 +53,15 @@ export async function get_auditor_emissions_request(uuid: string) {
 export async function declineEmissionsRequest(req: Request, res: Response) {
   try {
     await decline_emissions_request(req.params.uuid);
+  } catch (error) {
+    return res.status(500).json({ status: 'failed', error });
+  }
+  return res.status(200).json({ status: 'success' });
+}
+
+export async function issueEmissionsRequest(req: Request, res: Response) {
+  try {
+    await issue_emissions_request(req.params.uuid);
   } catch (error) {
     return res.status(500).json({ status: 'failed', error });
   }
