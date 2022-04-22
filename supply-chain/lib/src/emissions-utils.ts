@@ -574,7 +574,7 @@ export async function issue_tokens_with_issuee(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
-  mode = null
+  mode?: string
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;

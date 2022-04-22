@@ -9,7 +9,7 @@ import { GroupedResult,
   group_processed_activities,
   issue_tokens_with_issuee,
   issue_emissions_request,
-} from 'supply-chain-cli/src/emissions-utils';
+} from 'supply-chain-lib/src/emissions-utils';
 
 type OutputActivity = {
     id: string,
@@ -17,7 +17,7 @@ type OutputActivity = {
     error?: string
 };
 
-async function process_group(issuedFrom: string, issuedTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode = null) {
+async function process_group(issuedFrom: string, issuedTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
     const token_res = await issue_tokens_with_issuee(issuedFrom, issuedTo, g, activity_type, publicKeys, mode);
     // add each activity to output array
     for (const a of g.content) {
@@ -55,10 +55,10 @@ export function issueToken(req: Request, res: Response) {
     }
 
     // user can upload multiple files, those are the input file and the keys
-    const files = req.files;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     console.log('== files?', files)
     const pubKeys: string[] = [];
-    let data = undefined;
+    let data: any = undefined;
     for (const group in files) {
         if (Object.prototype.hasOwnProperty.call(files, group)) {
             const fileGroup: Express.Multer.File[] = files[group]; 
@@ -80,7 +80,7 @@ export function issueToken(req: Request, res: Response) {
             msg: "There was no public key file given."
         });
     }
-    if (data == undefined || data.activities == undefined) {
+    if (!data || !data.activities) {
         console.log('== 400 No activities.')
         return res.status(400).json({
             status: "failed",

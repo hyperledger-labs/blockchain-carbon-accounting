@@ -24,7 +24,7 @@
     "@types/cors": "^2.8.12"
   },
   "dependencies": {
-    "supply-chain-cli": "1.0.0",
+    "supply-chain-lib": "1.0.0",
     "cors": "^2.8.5",
     "axios": "^0.26.1",
     "dotenv": "^16.0.0",
