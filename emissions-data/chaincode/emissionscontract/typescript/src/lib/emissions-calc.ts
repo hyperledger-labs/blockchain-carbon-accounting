@@ -23,7 +23,10 @@ const UOM_FACTORS: { [key: string]: number } = {
     gt: 1000000000000.0,
 };
 
-export const getUomFactor = (uom: string): number => {
+export const getUomFactor = (uom?: string): number => {
+    if (!uom) {
+        throw new Error(`${ErrUnknownUOM} : undefined uom`);
+    }
     const factor = UOM_FACTORS[uom.toLowerCase()];
     if (!factor) {
         throw new Error(`${ErrUnknownUOM} : ${uom} is not a valid uom`);
@@ -63,11 +66,11 @@ export const getCO2EmissionFactor = (
     let nonrenewableEnergyUseAmount: number;
 
     // calculate emissions using percent_of_renewables if found
-    if (factor.percent_of_renewables.length !== 0) {
+    if (factor.percent_of_renewables?.length !== 0) {
         emissionsUOM = 'g';
-        const co2EquivalentEmissionsUOM = factor.co2_equivalent_emissions_uom.split('/');
-        if (co2EquivalentEmissionsUOM.length === 0) {
-            console.error('co2_equivalent_emissions_uom not found in factor');
+        const co2EquivalentEmissionsUOM = factor.co2_equivalent_emissions_uom?.split('/');
+        if (!co2EquivalentEmissionsUOM) {
+            throw new Error('co2_equivalent_emissions_uom not found in factor');
         }
         emissionsValue =
             (Number(factor.co2_equivalent_emissions) *

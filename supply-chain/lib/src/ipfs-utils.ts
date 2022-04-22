@@ -70,10 +70,10 @@ export async function downloadFileEncryptedWithoutPk(ipfspath: string) {
 
 }
 
-export async function uploadFileEncrypted(plain_content: string, pubkeys: string[], pubkeysContent = false) {
+export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false) {
   try {
     const ipfs_client = create({url: process.env.IPFS_URL});
-    const buff = Buffer.from(plain_content, 'utf8');
+    const buff = plain_content instanceof Buffer ? plain_content : Buffer.from(plain_content, 'utf8');
     const key = crypto.randomBytes(16).toString('hex'); // 16 bytes -> 32 chars
     const iv = crypto.randomBytes(8).toString('hex');   // 8 bytes -> 16 chars
     const buffArr = [];

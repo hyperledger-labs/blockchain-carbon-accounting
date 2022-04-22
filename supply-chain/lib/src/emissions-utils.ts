@@ -235,7 +235,7 @@ export async function issue_emissions_tokens_with_issuee(
   const t_date = thru_date || new Date();
   const fd = Math.floor(f_date.getTime() / 1000);
   const td = Math.floor(t_date.getTime() / 1000);
-  const manifest = create_manifest(publicKey, ipfs_path, hash);
+  const manifest = create_manifest(publicKey, ipfs_path, hash, undefined);
   const description = `Emissions from ${activity_type}`;
 
   return await gateway_issue_token(issuedFrom, issuedTo, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
@@ -514,31 +514,36 @@ export type GroupedResults = {
   [key:string]: GroupedResult | GroupedResults | ProcessedActivity[];
 };
 
+export function make_emissions_metadata(total_emissions: number, activity_type: string, mode?: string) {
+  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
+
+  const metadata: MetadataType = {
+    "Total emissions": total_emissions_rounded,
+    "UOM": "kgCO2e",
+    "Scope": 3,
+    "Type": activity_type
+  }
+  if (mode) {
+    metadata['Mode'] = mode;
+  }
+  return metadata;
+}
+
 export async function issue_tokens(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
   queue: boolean,
   input_data: string,
-  mode:string|null = null
+  mode?: string,
+  issued_from?: string,
+  issued_to?: string,
+  pubkeysContent = false,
+  supporting_document?: Buffer
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
-  const h = hash_content(content);
-  // save into IPFS
-  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
-  // issue tokens
-  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
-  
-  const metadata: MetadataType = {
-      "Total emissions": total_emissions_rounded,
-      "UOM": "kgCO2e",
-      "Scope": 3,
-      "Type": activity_type
-    }
-  if (mode) {
-    metadata['Mode'] = mode;
-  }
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
   if (queue) {
     await create_emissions_request(
@@ -547,12 +552,14 @@ export async function issue_tokens(
       doc.thru_date||new Date(),
       total_emissions,
       JSON.stringify(metadata),
-      `${h.value}`,
-      ipfs_res.path,
       input_data,
-      publicKeys[0]);
+      content);
     return {"tokenId": "queued"};
   } else {
+    const h = hash_content(content);
+    // save into IPFS
+    const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+
     const token_res = await issue_emissions_tokens(
       activity_type,
       doc.from_date||new Date(),
@@ -574,7 +581,7 @@ export async function issue_tokens_with_issuee(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
-  mode = null
+  mode?: string
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
@@ -582,17 +589,7 @@ export async function issue_tokens_with_issuee(
   // save into IPFS
   const ipfs_res = await uploadFileEncrypted(content, publicKeys);
   // issue tokens
-  const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
-  
-  const metadata: MetadataType = {
-    "Total emissions": total_emissions_rounded,
-    "UOM": "kgCO2e",
-    "Scope": 3,
-    "Type": activity_type
-  }
-  if(mode) {
-    metadata['Mode'] = mode;
-  }
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
   const token_res = await issue_emissions_tokens_with_issuee(
     activity_type,
@@ -616,29 +613,24 @@ export async function create_emissions_request(
   thru_date: Date,
   total_emissions: number,
   metadata: string,
-  hash: string,
-  ipfs_path: string,
   input_data: string,
-  publickey_name: string,
+  input_content: string,
   issuee_from?: string,
-  issuee_to?: string
+  issuee_to?: string,
+  pubkey_content = false,
+  supporting_document_ipfs_path?: string
 ) {
   issuee_from = issuee_from || process.env.ETH_ISSUE_FROM_ACCT as string;
   issuee_to = issuee_to || process.env.ETH_ISSUE_TO_ACCT as string;
   const status = 'CREATED';
-  const publickey = readFileSync(publickey_name, 'utf8');
-
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
   const tokens = new BigNumber(Math.round(total_emissions));
 
-  const manifest = create_manifest(publickey_name, ipfs_path, hash);
-
   const db = await getDBInstance();
   await db.getEmissionsRequestRepo().insert({
     input_data: input_data,
-    public_key: publickey,
-    public_key_name: publickey_name,
+    input_content: input_content,
     issued_from: issuee_from,
     issued_to: issuee_to,
     status: status,
@@ -646,13 +638,19 @@ export async function create_emissions_request(
     token_thru_date: t_date,
     token_total_emissions: tokens.toNumber(),
     token_metadata: metadata,
-    token_manifest: JSON.stringify(manifest),
     token_description: `Emissions from ${activity_type}`
   });
 }
 
-function create_manifest(publickey_name: string, ipfs_path: string, hash: string) {
-  return {
+function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_path?: string) {
+  return supporting_document_ipfs_path ? {
+    "Public Key": publickey_name,
+    "Location": `ipfs://${ipfs_path}`,
+    "SHA256": hash,
+    "Supporting Document Location": `ipfs://${supporting_document_ipfs_path}`
+  }
+ :
+  {
     "Public Key": publickey_name,
     "Location": `ipfs://${ipfs_path}`,
     "SHA256": hash
@@ -690,7 +688,19 @@ export async function process_emissions_requests() {
                 console.log('Randomly selected auditor: ', auditor.address);
                 // encode input_data and post it into ipfs
                 const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
-                await db.getEmissionsRequestRepo().updateToPending(er.uuid, auditor.address, ipfs_res.path);
+
+                const h = hash_content(er.input_content);
+                const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+                const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, undefined);
+
+                await db.getEmissionsRequestRepo().updateToPending(
+                  er.uuid,
+                  auditor.address,
+                  ipfs_res.path,
+                  auditor.public_key,
+                  auditor.public_key_name,
+                  JSON.stringify(manifest)
+                  );
               } else {
                 console.log('Cannot select auditor.');
               }

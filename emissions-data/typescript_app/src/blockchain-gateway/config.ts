@@ -55,8 +55,13 @@ export default class BCGatewayConfig {
     }
     fabricConnector(): IFabricOrgConnector {
         const fnTag = `${this.className}.fabricConnector()`;
+
+        // read ccp config
+        const ccpPath = process.env.LEDGER_FABRIC_CCP || '';
+        Checks.nonBlankString(ccpPath, `${fnTag} LEDGER_FABRIC_CCP`);
+        const connectionProfile = JSON.parse(readFileSync(ccpPath).toString('utf-8'));
         const opts: IPluginLedgerConnectorFabricOptions = {
-            connectionProfile: undefined!,
+            connectionProfile,
             pluginRegistry: this.pluginRegistry,
             cliContainerEnv: {},
             instanceId: uuid4(),
@@ -68,13 +73,6 @@ export default class BCGatewayConfig {
             },
             supportedIdentity: [FabricSigningCredentialType.X509], // for testing
         };
-
-        {
-            // read ccp config
-            const ccpPath = process.env.LEDGER_FABRIC_CCP || '';
-            Checks.nonBlankString(ccpPath, `${fnTag} LEDGER_FABRIC_CCP`);
-            opts.connectionProfile = JSON.parse(readFileSync(ccpPath).toString('utf-8'));
-        }
 
         const signingTypes = (process.env.LEDGER_FABRIC_TX_SIGNER_TYPES || '').split(' ') || [
             'vault',

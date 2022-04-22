@@ -5,7 +5,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
-import { FormAddressRow, FormInputRow, FormSelectRow } from "../components/forms-util";
+import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
@@ -18,6 +18,7 @@ type RequestAuditProps = {
 }
 
 export type EmissionsFactorForm = {
+  issued_from: string,
   activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
   ups_tracking: string
   shipment_mode: 'air' | 'ground' | 'sea' | ''
@@ -40,6 +41,7 @@ export type EmissionsFactorForm = {
 }
 
 const defaultEmissionsFactorForm: EmissionsFactorForm = {
+  issued_from: '',
   activity_type: '',
   ups_tracking: '',
   shipment_mode: '',
@@ -247,6 +249,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
     }
+    if (!emForm.issued_from ) {
+      // required value
+      errors.issued_from = 'A wallet to issue from is required';
+      errors.hasErrors = true
+    }
     if (!emForm.activity_type) {
       errors.hasErrors = true
     } else if (emForm.activity_type === 'shipment') {
@@ -333,7 +340,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       <h2>Request audit</h2>
       <Form
         onSubmit={async(e)=>{
-          setLoading(true)
           // always stop the event as we handle all in this function
           e.preventDefault()
           e.stopPropagation()
@@ -347,6 +353,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           setTopError('')
           setTopSuccess(null)
           if (valid) {
+            setLoading(true)
             console.log('Form valid, submit with', emForm, supportingDoc)
             try {
               const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress)
@@ -364,12 +371,14 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           }
         }}
         noValidate validated={validated}>
+        
+        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} />
 
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
           {value:'flight', label:'Flight'},
           {value:'shipment', label:'Shipment'},
           {value:'emissions_factor', label:'Emissions Factor'}
-        ]}/>
+        ]} onChange={_=>{ setValidated(false) }}/>
 
         {!!emForm.activity_type && <>
           {emForm.activity_type === 'shipment' && <>
@@ -395,9 +404,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
                 </Col>
               </Row>
               <h4>From</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="From Address" required/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required showValidation={validated}/>
               <h4>Destination</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required showValidation={validated}/>
               </>}
             </>}
 
@@ -413,9 +422,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             ]}/>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required/>
             <h4>From</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required showValidation={validated}/>
             <h4>Destination</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required showValidation={validated}/>
             </>}
 
 
@@ -474,39 +483,36 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          <Button 
-            className="w-100 mb-2"
-            variant="primary"
-            size="lg"
-            onClick={_=>{resetForm()}}
-          >Reset Form</Button>
-
           {topError && <ErrorAlert error={topError} />}
 
-          {topSuccess && <SuccessAlert title="Request Submitted Successfully">
-            <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
-            <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
-          </SuccessAlert>}
+          {topSuccess ?
+            <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
+              <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
+              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
+            </SuccessAlert>
+            : 
 
-          <Button 
-            className="w-100"
-            variant="success"
-            size="lg"
-            disabled={formNotReady || loading}
-            type="submit"
+            <Button 
+              className="w-100"
+              variant="success"
+              size="lg"
+              disabled={loading}
+              onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
+              type="submit"
             >
-            {loading ? 
-              <Spinner 
-                animation="border" 
-                className="me-2"
-                size="sm"   
-                as="span"
-                role="status"
-                aria-hidden="true"
-                /> : <></>
-          }
-            Submit Request
-          </Button>
+              {loading ? 
+                <Spinner 
+                  animation="border" 
+                  className="me-2"
+                  size="sm"   
+                  as="span"
+                  role="status"
+                  aria-hidden="true"
+                  /> : <></>
+            }
+              Submit Request
+            </Button>
+        }
           </>}
       </Form>
       </>

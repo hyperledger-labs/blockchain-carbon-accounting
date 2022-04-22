@@ -170,6 +170,20 @@ export const declineEmissionsRequest = async (uuid: string) => {
     }
 }
 
+export const issueEmissionsRequest = async (uuid: string) => {
+    try {
+        const url = BASE_URL + '/emissionsrequest/' + uuid;
+        const { data } = await axios.put(url, {});
+        if (data && data.status === 'success') {
+          return data;
+        } else {
+          throw new Error("cannot issue emissions request");
+        };
+    } catch(error) {
+        throw new Error("cannot issue emissions request");
+    }
+}
+
 export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string) => {
     try {
         const url = BASE_URL + '/emissionsrequest/';

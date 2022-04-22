@@ -191,8 +191,8 @@ import type { DbOpts } from "./config"
             text: args.text,
             activity_uom: args.uom,
             activity: args.amount,
-            tonnesShipped: args.uom?.startsWith('tonne') ? 1 : null,
-            passengers: args.uom?.startsWith('passenger') ? 1 : null,
+            tonnesShipped: args.uom?.startsWith('tonne') ? 1 : undefined,
+            passengers: args.uom?.startsWith('passenger') ? 1 : undefined,
           })
  
         console.log(res)

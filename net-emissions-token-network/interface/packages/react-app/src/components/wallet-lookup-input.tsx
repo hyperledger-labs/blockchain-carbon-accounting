@@ -1,27 +1,35 @@
-import { useState, useEffect, CSSProperties, FC, FocusEventHandler, useCallback, forwardRef, useImperativeHandle, ForwardRefRenderFunction } from "react";
-import Autocomplete from '@mui/material/Autocomplete';
+import { useState, useEffect, CSSProperties, FocusEventHandler, useCallback, forwardRef, useImperativeHandle, ForwardRefRenderFunction } from "react";
+import Autocomplete, { AutocompleteClasses } from '@mui/material/Autocomplete';
 import TextField from '@mui/material/TextField';
 import { Wallet } from "./static-data";
 import { trpc } from "../services/trpc";
+import { SxProps, Theme } from "@mui/material";
 
 type WalletLookupInputProps = {
+  value?: string,
   onChange: (v:string)=>void
   onWalletChange: (w:Wallet|null)=>void
   onBlur?: FocusEventHandler
   style?: CSSProperties
+  classes?: Partial<AutocompleteClasses>
+  sx?: SxProps<Theme>
 }
-
 type WalletLookupInputHandle = {
   close: ()=>void
 }
 
-const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style}, ref) => {
+const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style, classes, sx, value: valueprop}, ref) => {
 
   const [isOpen, setIsOpen] = useState(true);
-  const [value, setValue] = useState<Wallet|string|null>(null);
+  const [value, setValue] = useState<Wallet|string|null>(valueprop??null);
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<(Wallet|string)[]>([]);
   const searchText = useDebounce(inputValue, 250);
+
+  // need to sync prop change
+  if (value !== valueprop) {
+    setValue(valueprop??null)
+  }
 
   // Allows the parent component to close the suggestion dropdown
   useImperativeHandle(ref, () => ({
@@ -70,7 +78,7 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     id="combo-box-demo"
     options={options}
     loading={lookupQuery.isLoading}
-    sx={{ backgroundColor: 'white', flex: '1 1 auto', width: '1%', minWidth: 0 }}
+    sx={{ backgroundColor: 'white', flex: '1 1 auto', width: '1%', minWidth: 0, ...sx }}
     renderInput={(params) => 
       <TextField {...params} label="Enter Address (0x0000...) or Name" />
     }
@@ -98,6 +106,7 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     }}
     onBlur={onBlur}
     style={style}
+    classes={classes}
     renderOption={(props, option) => {
       const name = (typeof option === 'string') ? null : option.name 
       const addr = (typeof option === 'string') ? option : option.address
