@@ -24,8 +24,8 @@ export class EmissionsRequest {
   @Column({nullable: true})
   public_key_name?: string;
 
-  @Column({nullable: false})
-  issued_from!: string;
+  @Column({nullable: true})
+  issued_from?: string;
 
   @Column({nullable: false})
   issued_to!: string;

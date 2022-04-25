@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
-import { GroupedResult, issue_tokens, process_activity } from 'supply-chain-lib/src/emissions-utils' 
+import { GroupedResult, process_activity, queue_issue_tokens } from 'supply-chain-lib/src/emissions-utils' 
 import { Activity } from 'supply-chain-lib/src/common-types';
 import { ApplicationError } from '../utils/errors';
 
@@ -187,21 +187,6 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     }
     const issued_from = req.body.issued_from;
 
-    // TODO: this is also required, use a dummy value for now
-    const public_key = `-----BEGIN RSA PUBLIC KEY-----
-MIICCgKCAgEAuW+kKey05FvD5fSsuLQ5+Oo20af49IpayOHjjjE6XXKF13gQDi09
-SCO75UpkCtM1sa+dSWOIMb286a0+Qwu7ALGTyWsr4KOGt8XUchyTcOIyQ9bnJIO6
-qOZIp8qvktnGJ3K2cX6x9pIrZ75sxt53kJkheBJpBK+7xnurW8NLEgBeRjH9yfKP
-XI2ouFk7tnN4RC7YgXg1lKK/KARU+c9owZw+V45Gzm+GCsDT4oVnZdCWPNduZKcI
-yvbexUIIcj0Sd1pOKWOxPwch6SfS+3DagqrUE08xPlmKJF6XZAMP1Ad3uTi1UNq9
-DHO/4SzmI5NQdd012c3l6Xjca67slZlpPczcMUm2qW/9FeYJNsbjK6bpvjKwZFmh
-yv2d6PjxxMNU58Ebqp1pkxFv4YbTVZccthYTZKMltQXA5ucsJOXQpakWeQL6M1p+
-dKjIlaqN9RQ/GOfz/K4/jCs5DEjMG5cpfON81/0N2hJMYEiyWNJpqr68/v98tbym
-jRnv4Bp9oCPe6rOFc36ovQVhNN9wNCYe5rYrDH1jYqtFpqa2/xi+Oin0YnWjhyC7
-9sjDjQmCfPXcBdBEBfsMq+/yCZHrvL4M9JQNvLKmjjxRGsWLvTVPQBZWZI5VqfbX
-unBhCxmS0/TCgl9LSIbNk96Uo2AwZPjPeNt+H1/LOQrfa5HuIFwGrVkCAwEAAQ==
------END RSA PUBLIC KEY-----`;
-
     // build an Activity object to pass to supply-chain processActivity
     // we also do some validation here
     const activity = getActivity(req.body)
@@ -222,20 +207,16 @@ unBhCxmS0/TCgl9LSIbNk96Uo2AwZPjPeNt+H1/LOQrfa5HuIFwGrVkCAwEAAQ==
         result
       }],
     }
-    const queue_result = await issue_tokens(
+    const queue_result = await queue_issue_tokens(
       group,
-      activity_type, 
-      [public_key], 
-      true, // queue
+      activity_type,
       JSON.stringify({
         issued_from,
         ...activity
-      }), 
-      undefined,
+      }),
+      undefined, // mode
       issued_from,
       issued_to,
-      true, // the pubkey is given inline instead of being a file name,
-      supportingDocument.data
     );
     console.log('Queued request:', queue_result)
 
