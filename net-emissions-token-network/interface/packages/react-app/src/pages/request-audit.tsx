@@ -249,11 +249,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
     }
-    if (!emForm.issued_from ) {
-      // required value
-      errors.issued_from = 'A wallet to issue from is required';
-      errors.hasErrors = true
-    }
     if (!emForm.activity_type) {
       errors.hasErrors = true
     } else if (emForm.activity_type === 'shipment') {

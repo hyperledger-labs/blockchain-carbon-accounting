@@ -182,9 +182,6 @@ export async function postEmissionsRequest(req: Request, res: Response) {
       return res.status(400).json({ status: 'failed', error: 'No address to issue to was given!' })
     }
     const issued_to = req.body.issued_to || req.body.signedInAddress;
-    if (!req.body.issued_from) {
-      return res.status(400).json({ status: 'failed', error: 'No address to issue from was given!' })
-    }
     const issued_from = req.body.issued_from;
 
     // build an Activity object to pass to supply-chain processActivity
