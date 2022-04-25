@@ -8,6 +8,7 @@ import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
 import { EmissionsRequestRepo } from "./repositories/emissionsRequest.repo"
 import { ActivityEmissionsFactorLookupRepo } from "./repositories/activityEmissionsFactorLookup.repo"
+import { FileRepo } from "./repositories/file.repo"
 
 
 export class PostgresDBService {
@@ -28,7 +29,6 @@ export class PostgresDBService {
 
     // get default options
     if (!opts) opts = parseCommonYargsOptions({})
-    
     try {
       const db = await initDb(opts)
       return new PostgresDBService(db)
@@ -68,6 +68,10 @@ export class PostgresDBService {
 
   public getWalletRepo() {
     return new WalletRepo(this._db)
+  }
+
+  public getFileRepo() {
+    return new FileRepo(this._db)
   }
 
   public getEmissionsRequestRepo() {

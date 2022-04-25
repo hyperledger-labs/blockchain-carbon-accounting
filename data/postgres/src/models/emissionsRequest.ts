@@ -3,8 +3,13 @@ import {
     PrimaryGeneratedColumn,
     Column,
     CreateDateColumn,
-    UpdateDateColumn
+    UpdateDateColumn,
+    OneToMany,
+    ManyToOne,
+    OneToOne,
+    JoinColumn
 } from 'typeorm';
+import { UploadedFile } from './uploadedFile';
 
 @Entity()
 export class EmissionsRequest {
@@ -57,9 +62,35 @@ export class EmissionsRequest {
   @Column({nullable: true})
   input_data_ipfs_hash?: string;
 
+  @OneToMany(() => EmissionsRequestSupportingDocument, doc => doc.emissions_request)
+  supporting_documents?: EmissionsRequestSupportingDocument[];
+
   @CreateDateColumn()
   created_at!: Date;
 
   @UpdateDateColumn()
   updated_at!: Date;
 }
+
+@Entity()
+export class EmissionsRequestSupportingDocument {
+
+  @PrimaryGeneratedColumn("uuid")
+  uuid!: string;
+
+  @ManyToOne(() => EmissionsRequest)
+  emissions_request!: EmissionsRequest;
+
+  @OneToOne(() => UploadedFile)
+  @JoinColumn()
+  file!: UploadedFile;
+
+  @CreateDateColumn()
+  created_at!: Date;
+
+  @UpdateDateColumn()
+  updated_at!: Date;
+}
+
+
+

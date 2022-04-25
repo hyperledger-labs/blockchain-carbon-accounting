@@ -575,7 +575,7 @@ export async function queue_issue_tokens(
   const total_emissions = doc.total_emissions.value;
   const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
-  await create_emissions_request(
+  const request = await create_emissions_request(
     activity_type,
     doc.from_date||new Date(),
     doc.thru_date||new Date(),
@@ -585,7 +585,7 @@ export async function queue_issue_tokens(
     content,
     issued_from,
     issued_to);
-  return {"tokenId": "queued"};
+  return {"tokenId": "queued", request };
 }
 
 export async function issue_tokens_with_issuee(
@@ -639,7 +639,7 @@ export async function create_emissions_request(
   const tokens = new BigNumber(Math.round(total_emissions));
 
   const db = await getDBInstance();
-  await db.getEmissionsRequestRepo().insert({
+  const em_request = await db.getEmissionsRequestRepo().insert({
     input_data: input_data,
     input_content: input_content,
     issued_from: issuee_from,
@@ -651,6 +651,7 @@ export async function create_emissions_request(
     token_metadata: metadata,
     token_description: `Emissions from ${activity_type}`
   });
+  return em_request
 }
 
 function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_path?: string) {

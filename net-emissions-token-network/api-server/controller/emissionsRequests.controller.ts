@@ -162,6 +162,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
     console.log('postEmissionsRequest request is', req.body)
+    const db = await PostgresDBService.getInstance()
     // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
       return res.status(400).json({ status: 'failed', error: 'No supporting document was uploaded!' })
@@ -174,9 +175,6 @@ export async function postEmissionsRequest(req: Request, res: Response) {
       }
       supportingDocument = supportingDocument[0];
     }
-    // do something with it ?
-    // console.log('postEmissionsRequest moving to upload folder...')
-    // supportingDocument.mv('./upload/' + supportingDocument.name);
 
     if (!req.body.issued_to && !req.body.signedInAddress) {
       return res.status(400).json({ status: 'failed', error: 'No address to issue to was given!' })
@@ -216,6 +214,22 @@ export async function postEmissionsRequest(req: Request, res: Response) {
       issued_to,
     );
     console.log('Queued request:', queue_result)
+
+    // associate the uploaded file
+    const emissions_request_id = queue_result.request.uuid;
+    const uploaded_file = await db.getFileRepo().insert({
+      name: supportingDocument.name,
+      size: supportingDocument.size
+    })
+    const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(emissions_request_id)
+    if (!emissions_request) {
+      return res.status(400).json({ status: 'failed', error: 'Unexpected error retrieving the emissions request!' })
+    }
+    await db.getEmissionsRequestRepo().addSupportingDocument(emissions_request, uploaded_file)
+
+    // do something with it ?
+    console.log(`postEmissionsRequest moving to upload folder as ${uploaded_file.uuid} ...`)
+    supportingDocument.mv('./upload/' + uploaded_file.uuid);
 
     return res.status(200).json({ status: 'success', queue_result, result });
   } catch (error) {

@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm"
-import { EmissionsRequest } from "../models/emissionsRequest"
+import { EmissionsRequest, EmissionsRequestSupportingDocument } from "../models/emissionsRequest"
+import { UploadedFile } from "../models/uploadedFile"
 import { type EmissionsRequestPayload } from "./common"
 
 export class EmissionsRequestRepo {
@@ -123,5 +124,15 @@ export class EmissionsRequestRepo {
 
   public selectEmissionsRequest = async (uuid: string): Promise<EmissionsRequest | null> => {
     return await this._db.getRepository(EmissionsRequest).findOneBy({uuid})
+  }
+
+  public addSupportingDocument = async (emissions_request: EmissionsRequest, file: UploadedFile) => {
+    const repo = this._db.getRepository(EmissionsRequestSupportingDocument)
+    const supporting_doc = repo
+      .create({
+      file,
+      emissions_request
+    })
+    return await repo.save(supporting_doc)
   }
 }
