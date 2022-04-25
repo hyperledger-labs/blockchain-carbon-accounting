@@ -44,7 +44,11 @@ To create emissions requests instead of issue token with given input.json run:
 npm run cli -- -f input.json -queue
 ```
 
-To randomly assign emission auditors for new emissions requests run:
+To randomly assign emission auditors for new emissions requests, first make sure that you have run `setTestAccountRoles` (see [Net Emissions Contracts Docs](../net-emissions-token-network/docs/using-the-contracts.md ).) 
+
+Then load the emissions auditors with `seedHardhatDemoWallets.sql` from [Net Emissions Contract API Server](../net-emissions-token-network/api-server/README.md) 
+
+Finally run:
 ```
 npm run cli -- -processrequests
 ```

@@ -249,11 +249,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
     }
-    if (!emForm.issued_from ) {
-      // required value
-      errors.issued_from = 'A wallet to issue from is required';
-      errors.hasErrors = true
-    }
     if (!emForm.activity_type) {
       errors.hasErrors = true
     } else if (emForm.activity_type === 'shipment') {
@@ -488,7 +483,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           {topSuccess ?
             <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
               <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
-              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}</div>
+              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}CO2e</div>
             </SuccessAlert>
             : 
 

@@ -143,6 +143,7 @@ export default class BCGatewayConfig {
             abi: abi,
             networks: networks,
         };
+
         const contractName = 'NetEmissionsTokenNetwork';
         await this.pluginRegistry
             .findOneByKeychainId(this.inMemoryKeychainID)

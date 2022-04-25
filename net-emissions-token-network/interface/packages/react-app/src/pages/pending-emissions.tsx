@@ -4,8 +4,8 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import { EmissionsRequest } from '../components/static-data';
-import { getAuditorEmissionsRequest, declineEmissionsRequest } from '../services/api.service';
-import { issueEmissionsRequest } from '../services/supply-chain-api';
+import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
+import { issue } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
@@ -27,7 +27,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
       try {
         metadata = JSON.parse(metadata);
       } catch (err) {
-        console.error('Could not parse JSON from ', metadata);
+        console.error('Cannot parse JSON from ', metadata);
       }
     } 
     
@@ -50,11 +50,11 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           setError("");
           window.location.replace('/emissionsrequests');
         } else {
-          setError("Could not decline emissions request.");
+          setError("Cannot decline emissions request.");
         }
       } catch (error) {
         console.log(error);
-        setError("Could not decline emissions request.");
+        setError("Cannot decline emissions request.");
       }
     } else {
       setError("Empty current pending emission request.");
@@ -62,18 +62,63 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
   }
 
   async function handleIssue() {
-    if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
+    if (provider && selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
-        let result = await issueEmissionsRequest(selectedPendingEmissions.uuid);
-        if (result && result.status === 'success') {
-          setError("");
-          window.location.replace('/issuedtokens');
-        } else {
-          setError("Could not issue emissions request.");
+        const tokenTypeId = 3;
+        if (!selectedPendingEmissions.token_from_date) {
+          setError("Empty token from date.");
+          return;
         }
+        if (!selectedPendingEmissions.token_thru_date) {
+          setError("Empty token thru date.");
+          return;
+        }
+        if (!selectedPendingEmissions.token_metadata) {
+          setError("Empty token metadata.");
+          return;
+        }
+        if (!selectedPendingEmissions.token_manifest) {
+          setError("Empty token manifest.");
+          return;
+        }
+        if (!selectedPendingEmissions.token_description) {
+          setError("Empty token description.");
+          return;
+        }
+
+        // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
+        let quantity_formatted = Math.round(selectedPendingEmissions.token_total_emissions * 1000) / 1000;
+
+        let result = await issue(provider,
+          selectedPendingEmissions.issued_from,
+          selectedPendingEmissions.issued_to,
+          tokenTypeId,
+          quantity_formatted,
+          selectedPendingEmissions.token_from_date,
+          selectedPendingEmissions.token_thru_date,
+          selectedPendingEmissions.token_metadata,
+          selectedPendingEmissions.token_manifest,
+          selectedPendingEmissions.token_description);
+
+        console.log("handleIssue", result.toString());
+        if (result) {
+          let res = result = result.toString();
+          if (res.toLowerCase().includes("success")) {
+            let result = await issueEmissionsRequest(selectedPendingEmissions.uuid);
+            if (result && result.status === 'success') {
+              setError("");
+              window.location.replace('/issuedtokens');
+            } else {
+              setError("Cannot update emissions request status.");
+            }
+          } else {
+            setError("Cannot issue emissions request.");
+          }
+        }
+
       } catch (error) {
         console.log(error);
-        setError("Could not issue emissions request.");
+        setError("Cannot issue emissions request.");
       }
     } else {
       setError("Empty current pending emission request.");
@@ -101,7 +146,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
       }
     } catch (error) {
       console.log(error);
-      setError("Could not get emissions request.");
+      setError("Cannot get emissions request.");
     }
   }, [provider, signedInAddress]);
 

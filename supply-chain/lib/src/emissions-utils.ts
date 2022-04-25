@@ -170,14 +170,16 @@ export async function issue_emissions_tokens(
   metadata: string,
   hash: string,
   ipfs_path: string,
-  publicKey: string
+  publicKey: string,
+  issued_from?: string,
+  issued_to?: string,
 ) {
   return await issue_emissions_tokens_with_issuee(
     activity_type,
     from_date,
     thru_date,
-    process.env.ETH_ISSUE_FROM_ACCT || "",
-    process.env.ETH_ISSUE_TO_ACCT || "",
+    issued_from || process.env.ETH_ISSUE_FROM_ACCT || "",
+    issued_to || process.env.ETH_ISSUE_TO_ACCT || "",
     total_emissions,
     metadata,
     hash,
@@ -189,32 +191,32 @@ export async function issue_emissions_tokens(
 export async function issue_emissions_request(uuid: string) {
   const db = await getDBInstance();
   const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
-  if (emissions_request) {
-    // check status is correct
-    if (emissions_request.status == 'PENDING') {
-      const fd = emissions_request.token_from_date?Math.floor(emissions_request.token_from_date.getTime() / 1000):0;
-      const td = emissions_request.token_thru_date?Math.floor(emissions_request.token_thru_date.getTime() / 1000):0;
-      const token = await gateway_issue_token(
-        emissions_request.issued_from,
-        emissions_request.issued_to,
-        emissions_request.token_total_emissions,
-        fd,
-        td,
-        emissions_request.token_manifest||'',
-        emissions_request.token_metadata||'',
-        emissions_request.token_description||''
-      );
-      if (token) {
-        await db.getEmissionsRequestRepo().updateToIssued(uuid);
-        return token;
-      } else {
-        throw new Error(`Cannot issue a token for emissions request ${uuid}`);
-      }
-    } else {
-      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
-    }
-  } else {
+  if (!emissions_request) {
     throw new Error(`Cannot get emissions request ${uuid}`);
+  }
+  // check status is correct
+  if (emissions_request.status !== 'PENDING') {
+    throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+  }
+  if (!emissions_request.issued_from) {
+    throw new Error(`Emissions request does not have an issued_from set`);
+  }
+  const fd = emissions_request.token_from_date?Math.floor(emissions_request.token_from_date.getTime() / 1000):0;
+  const td = emissions_request.token_thru_date?Math.floor(emissions_request.token_thru_date.getTime() / 1000):0;
+  const token = await gateway_issue_token(
+    emissions_request.issued_from,
+    emissions_request.issued_to,
+    emissions_request.token_total_emissions,
+    fd,
+    td,
+    emissions_request.token_manifest||'',
+    emissions_request.token_metadata||'',
+    emissions_request.token_description||''
+  );
+  if (token) {
+    return await db.getEmissionsRequestRepo().updateToIssued(uuid);
+  } else {
+    throw new Error(`Cannot issue a token for emissions request ${uuid}`);
   }
 }
 
@@ -533,46 +535,57 @@ export async function issue_tokens(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
-  queue: boolean,
-  input_data: string,
   mode?: string,
   issued_from?: string,
   issued_to?: string,
-  pubkeysContent = false,
-  supporting_document?: Buffer
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
   const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
-  if (queue) {
-    await create_emissions_request(
-      activity_type,
-      doc.from_date||new Date(),
-      doc.thru_date||new Date(),
-      total_emissions,
-      JSON.stringify(metadata),
-      input_data,
-      content);
-    return {"tokenId": "queued"};
-  } else {
-    const h = hash_content(content);
-    // save into IPFS
-    const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  const h = hash_content(content);
+  // save into IPFS
+  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
 
-    const token_res = await issue_emissions_tokens(
-      activity_type,
-      doc.from_date||new Date(),
-      doc.thru_date||new Date(),
-      total_emissions,
-      JSON.stringify(metadata),
-      `${h.value}`,
-      ipfs_res.path,
-      publicKeys[0]
-    );
-    doc.token = token_res;
-    return token_res;
-  }
+  const token_res = await issue_emissions_tokens(
+    activity_type,
+    doc.from_date||new Date(),
+    doc.thru_date||new Date(),
+    total_emissions,
+    JSON.stringify(metadata),
+    `${h.value}`,
+    ipfs_res.path,
+    publicKeys[0],
+    issued_from,
+    issued_to
+  );
+  doc.token = token_res;
+  return token_res;
+}
+
+export async function queue_issue_tokens(
+  doc: GroupedResult,
+  activity_type: string,
+  input_data: string,
+  mode?: string,
+  issued_from?: string,
+  issued_to?: string,
+) {
+  const content = JSON.stringify(doc);
+  const total_emissions = doc.total_emissions.value;
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
+
+  const request = await create_emissions_request(
+    activity_type,
+    doc.from_date||new Date(),
+    doc.thru_date||new Date(),
+    total_emissions,
+    JSON.stringify(metadata),
+    input_data,
+    content,
+    issued_from,
+    issued_to);
+  return {"tokenId": "queued", request };
 }
 
 export async function issue_tokens_with_issuee(
@@ -617,8 +630,6 @@ export async function create_emissions_request(
   input_content: string,
   issuee_from?: string,
   issuee_to?: string,
-  pubkey_content = false,
-  supporting_document_ipfs_path?: string
 ) {
   issuee_from = issuee_from || process.env.ETH_ISSUE_FROM_ACCT as string;
   issuee_to = issuee_to || process.env.ETH_ISSUE_TO_ACCT as string;
@@ -628,7 +639,7 @@ export async function create_emissions_request(
   const tokens = new BigNumber(Math.round(total_emissions));
 
   const db = await getDBInstance();
-  await db.getEmissionsRequestRepo().insert({
+  const em_request = await db.getEmissionsRequestRepo().insert({
     input_data: input_data,
     input_content: input_content,
     issued_from: issuee_from,
@@ -640,6 +651,7 @@ export async function create_emissions_request(
     token_metadata: metadata,
     token_description: `Emissions from ${activity_type}`
   });
+  return em_request
 }
 
 function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_path?: string) {

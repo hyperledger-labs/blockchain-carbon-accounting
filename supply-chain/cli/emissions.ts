@@ -7,7 +7,8 @@ import {
   group_processed_activities,
   issue_tokens,
   process_activities,
-  process_emissions_requests
+  process_emissions_requests,
+  queue_issue_tokens
 } from 'supply-chain-lib/src/emissions-utils';
 import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 
@@ -108,7 +109,9 @@ type OutputActivity = {
 };
 
 async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], input_data: string, mode?: string) {
-  const token_res = await issue_tokens(g, activity_type, publicKeys, queue, input_data, mode);
+  const token_res = queue ? 
+    await queue_issue_tokens(g, activity_type, input_data, mode) :
+    await issue_tokens(g, activity_type, publicKeys, mode);
   // add each activity to output array
   for (const a of g.content) {
     const out: OutputActivity = { id: a.activity.id };

@@ -6,7 +6,8 @@ import { UtilityLookupItem } from "./models/utilityLookupItem"
 import { Wallet } from "./models/wallet"
 import { Token } from "./models/token"
 import { Balance } from "./models/balance"
-import { EmissionsRequest } from "./models/emissionsRequest"
+import { EmissionsRequest, EmissionsRequestSupportingDocument } from "./models/emissionsRequest"
+import { UploadedFile } from "./models/uploadedFile"
 import { ActivityEmissionsFactorLookup } from "./models/activityEmissionsFactorLookup"
 
 
@@ -19,7 +20,17 @@ export const initDb = async (opts: DbOpts) => {
     username: opts.dbUser,
     password: opts.dbPassword,
     database: opts.dbName,
-    entities: [EmissionsFactor, UtilityLookupItem, Wallet, Balance, Token, EmissionsRequest, ActivityEmissionsFactorLookup],
+    entities: [
+      EmissionsFactor,
+      UtilityLookupItem,
+      Wallet,
+      Balance,
+      Token,
+      EmissionsRequest,
+      EmissionsRequestSupportingDocument,
+      ActivityEmissionsFactorLookup,
+      UploadedFile
+    ],
     synchronize: true,
     logging: opts.dbVerbose,
   })

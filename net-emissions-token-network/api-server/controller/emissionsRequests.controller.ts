@@ -1,6 +1,6 @@
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
-import { GroupedResult, issue_tokens, process_activity } from 'supply-chain-lib/src/emissions-utils' 
+import { GroupedResult, process_activity, queue_issue_tokens } from 'supply-chain-lib/src/emissions-utils' 
 import { Activity } from 'supply-chain-lib/src/common-types';
 import { ApplicationError } from '../utils/errors';
 
@@ -11,6 +11,21 @@ export async function decline_emissions_request(uuid: string) {
     // check status is correct
     if (emissions_request.status == 'PENDING') {
       await db.getEmissionsRequestRepo().updateToDeclined(uuid);
+    } else {
+      throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
+    }
+  } else {
+    throw new Error(`Cannot get emissions request ${uuid}`);
+  }
+}
+
+export async function issue_emissions_request(uuid: string) {
+  const db = await PostgresDBService.getInstance()
+  const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(uuid);
+  if (emissions_request) {
+    // check status is correct
+    if (emissions_request.status == 'PENDING') {
+      await db.getEmissionsRequestRepo().updateToIssued(uuid);
     } else {
       throw new Error(`Emissions request status is ${emissions_request.status}, expected PENDING`);
     }
@@ -38,6 +53,15 @@ export async function get_auditor_emissions_request(uuid: string) {
 export async function declineEmissionsRequest(req: Request, res: Response) {
   try {
     await decline_emissions_request(req.params.uuid);
+  } catch (error) {
+    return res.status(500).json({ status: 'failed', error });
+  }
+  return res.status(200).json({ status: 'success' });
+}
+
+export async function issueEmissionsRequest(req: Request, res: Response) {
+  try {
+    await issue_emissions_request(req.params.uuid);
   } catch (error) {
     return res.status(500).json({ status: 'failed', error });
   }
@@ -138,6 +162,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
     console.log('postEmissionsRequest request is', req.body)
+    const db = await PostgresDBService.getInstance()
     // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
       return res.status(400).json({ status: 'failed', error: 'No supporting document was uploaded!' })
@@ -150,33 +175,12 @@ export async function postEmissionsRequest(req: Request, res: Response) {
       }
       supportingDocument = supportingDocument[0];
     }
-    // do something with it ?
-    // console.log('postEmissionsRequest moving to upload folder...')
-    // supportingDocument.mv('./upload/' + supportingDocument.name);
 
     if (!req.body.issued_to && !req.body.signedInAddress) {
       return res.status(400).json({ status: 'failed', error: 'No address to issue to was given!' })
     }
     const issued_to = req.body.issued_to || req.body.signedInAddress;
-    if (!req.body.issued_from) {
-      return res.status(400).json({ status: 'failed', error: 'No address to issue from was given!' })
-    }
     const issued_from = req.body.issued_from;
-
-    // TODO: this is also required, use a dummy value for now
-    const public_key = `-----BEGIN RSA PUBLIC KEY-----
-MIICCgKCAgEAuW+kKey05FvD5fSsuLQ5+Oo20af49IpayOHjjjE6XXKF13gQDi09
-SCO75UpkCtM1sa+dSWOIMb286a0+Qwu7ALGTyWsr4KOGt8XUchyTcOIyQ9bnJIO6
-qOZIp8qvktnGJ3K2cX6x9pIrZ75sxt53kJkheBJpBK+7xnurW8NLEgBeRjH9yfKP
-XI2ouFk7tnN4RC7YgXg1lKK/KARU+c9owZw+V45Gzm+GCsDT4oVnZdCWPNduZKcI
-yvbexUIIcj0Sd1pOKWOxPwch6SfS+3DagqrUE08xPlmKJF6XZAMP1Ad3uTi1UNq9
-DHO/4SzmI5NQdd012c3l6Xjca67slZlpPczcMUm2qW/9FeYJNsbjK6bpvjKwZFmh
-yv2d6PjxxMNU58Ebqp1pkxFv4YbTVZccthYTZKMltQXA5ucsJOXQpakWeQL6M1p+
-dKjIlaqN9RQ/GOfz/K4/jCs5DEjMG5cpfON81/0N2hJMYEiyWNJpqr68/v98tbym
-jRnv4Bp9oCPe6rOFc36ovQVhNN9wNCYe5rYrDH1jYqtFpqa2/xi+Oin0YnWjhyC7
-9sjDjQmCfPXcBdBEBfsMq+/yCZHrvL4M9JQNvLKmjjxRGsWLvTVPQBZWZI5VqfbX
-unBhCxmS0/TCgl9LSIbNk96Uo2AwZPjPeNt+H1/LOQrfa5HuIFwGrVkCAwEAAQ==
------END RSA PUBLIC KEY-----`;
 
     // build an Activity object to pass to supply-chain processActivity
     // we also do some validation here
@@ -198,22 +202,34 @@ unBhCxmS0/TCgl9LSIbNk96Uo2AwZPjPeNt+H1/LOQrfa5HuIFwGrVkCAwEAAQ==
         result
       }],
     }
-    const queue_result = await issue_tokens(
+    const queue_result = await queue_issue_tokens(
       group,
-      activity_type, 
-      [public_key], 
-      true, // queue
+      activity_type,
       JSON.stringify({
         issued_from,
         ...activity
-      }), 
-      undefined,
+      }),
+      undefined, // mode
       issued_from,
       issued_to,
-      true, // the pubkey is given inline instead of being a file name,
-      supportingDocument.data
     );
     console.log('Queued request:', queue_result)
+
+    // associate the uploaded file
+    const emissions_request_id = queue_result.request.uuid;
+    const uploaded_file = await db.getFileRepo().insert({
+      name: supportingDocument.name,
+      size: supportingDocument.size
+    })
+    const emissions_request = await db.getEmissionsRequestRepo().selectEmissionsRequest(emissions_request_id)
+    if (!emissions_request) {
+      return res.status(400).json({ status: 'failed', error: 'Unexpected error retrieving the emissions request!' })
+    }
+    await db.getEmissionsRequestRepo().addSupportingDocument(emissions_request, uploaded_file)
+
+    // do something with it ?
+    console.log(`postEmissionsRequest moving to upload folder as ${uploaded_file.uuid} ...`)
+    supportingDocument.mv('./upload/' + uploaded_file.uuid);
 
     return res.status(200).json({ status: 'success', queue_result, result });
   } catch (error) {

@@ -99,17 +99,17 @@ const networksAndAddresses = {
   bsctestnet: {
     network: "Binance Testnet",
     tokenNetwork: {
-      address: "0xc691F38362180210435199a368Aa6d9BE30906F7", // deployed 2022-03-22
+      address: "0xE513F642D8A2f266c61e95C75A7DaB922faB2E7C", // deployed 2022-04-22
     },
     carbonTracker: {
-      address: "0xb2579688CE533FC53ACca66F2Bb722b52849dA62", // deployed 2022-03-22
+      address: "0x5018c5a5779611b23100eA8a86fdDDD54f805B3C", // deployed 2022-04-22
     },
     dao: {
       governor: {
-        address: "0xD69c082D0a1557bf7Fef1d2a87f82bBdB966a9ee", // deployed 2022-03-22
+        address: "0x698843A281847b41d064FB71576995Ce3A6ab7Dc", // deployed 2022-04-22
       },
       daoToken: {
-        address: "0x8247A355Bad841CeD06B8617eBffEC47A0Cb64FF", // deployed 2022-03-22
+        address: "0x1AB72EC128921dE4F7f119b14b17797940BD984d", // deployed 2022-04-22
       }
     }
   },
