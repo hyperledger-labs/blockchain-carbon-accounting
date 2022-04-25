@@ -27,7 +27,7 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
   const searchText = useDebounce(inputValue, 250);
 
   // need to sync prop change
-  if (value !== valueprop) {
+  if (valueprop !== undefined && value !== valueprop) {
     setValue(valueprop??null)
   }
 
