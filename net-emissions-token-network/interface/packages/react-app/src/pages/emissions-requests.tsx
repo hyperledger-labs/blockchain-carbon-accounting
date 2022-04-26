@@ -12,6 +12,7 @@ import { countAuditorEmissionsRequests, getAuditorEmissionsRequests } from '../s
 import { EmissionsRequest } from '../components/static-data';
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
+import { useLocation } from "wouter";
 
 type EmissionsRequestsProps = {
   provider?: Web3Provider, 
@@ -27,6 +28,7 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
   const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
   const [ pendingEmissions, setPendingEmissions ] = useState<EmissionsRequest[]>([]);
   const [error, setError] = useState("");
+  const [location, setLocation] = useLocation();
 
   useEffect(() => {
     const init = async () => {
@@ -44,7 +46,7 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
   };
   
   function handleOpenPendingEmissions(emissions: EmissionsRequest) {
-    window.location.replace('/pendingemissions/' + emissions.uuid);
+    setLocation('/pendingemissions/' + emissions.uuid);
   };
   
   const fetchEmissionsRequests = useCallback(async (auditorAddress: string) => {
