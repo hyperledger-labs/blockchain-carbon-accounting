@@ -41,6 +41,11 @@ async function getDBInstance() {
   return _db;
 }
 
+function emissions_in_kg_to_tokens(emissions: number) {
+  return new BigNumber(Math.round(emissions));
+}
+
+
 export function weight_in_uom(weight: number, uom: string, to_uom: string) {
   const w1 = weight_in_kg(weight, uom)
   const w2 = weight_in_kg(1, to_uom)
@@ -170,7 +175,7 @@ export async function issue_emissions_tokens(
   activity_type: string,
   from_date: Date,
   thru_date: Date,
-  total_emissions: number,
+  total_emissions_in_kg: number,
   metadata: string,
   hash: string,
   ipfs_path: string,
@@ -184,7 +189,7 @@ export async function issue_emissions_tokens(
     thru_date,
     issued_from || process.env.ETH_ISSUE_FROM_ACCT || "",
     issued_to || process.env.ETH_ISSUE_TO_ACCT || "",
-    total_emissions,
+    total_emissions_in_kg,
     metadata,
     hash,
     ipfs_path,
@@ -230,13 +235,13 @@ export async function issue_emissions_tokens_with_issuee(
   thru_date: Date,
   issuedFrom: string,
   issuedTo: string,
-  total_emissions: number,
+  total_emissions_in_kg: number,
   metadata: string,
   hash: string,
   ipfs_path: string,
   publicKey: string
 ) {
-  const tokens = new BigNumber(Math.round(total_emissions));
+  const tokens = emissions_in_kg_to_tokens(total_emissions_in_kg);
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
   const fd = Math.floor(f_date.getTime() / 1000);
@@ -250,7 +255,7 @@ export async function issue_emissions_tokens_with_issuee(
 async function gateway_issue_token(
   issuedFrom: string,
   issuedTo: string,
-  quantity: number,
+  quantity_of_tokens: number,
   fromDate: number,
   thruDate: number,
   manifest: string,
@@ -278,7 +283,7 @@ async function gateway_issue_token(
   const input: IEthNetEmissionsTokenIssueInput = {
     issuedFrom: issuedFrom,
     issuedTo: issuedTo,
-    quantity: quantity,
+    quantity: quantity_of_tokens,
     fromDate: fromDate,
     thruDate: thruDate,
     manifest: manifest,
@@ -634,7 +639,7 @@ export async function create_emissions_request(
   activity_type: string,
   from_date: Date,
   thru_date: Date,
-  total_emissions: number,
+  total_emissions_in_kg: number,
   metadata: string,
   input_data: string,
   input_content: string,
@@ -646,7 +651,7 @@ export async function create_emissions_request(
   const status = 'CREATED';
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
-  const tokens = new BigNumber(Math.round(total_emissions));
+  const tokens = emissions_in_kg_to_tokens(total_emissions_in_kg);
 
   const db = await getDBInstance();
   const em_request = await db.getEmissionsRequestRepo().insert({
