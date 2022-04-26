@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { Alert, Button } from "react-bootstrap";
 
-const ErrorAlert: FC<{error: string}> = ({error}) => {
+const ErrorAlert: FC<{error: string, dismissLabel?: string}> = ({error, dismissLabel}) => {
   const [show, setShow] = useState(true);
 
   useEffect(()=>{
@@ -18,7 +18,7 @@ const ErrorAlert: FC<{error: string}> = ({error}) => {
         <hr />
         <div className="d-flex justify-content-end">
           <Button onClick={() => setShow(false)} variant="outline-danger">
-            Dismiss
+           {dismissLabel || 'Clear'} 
           </Button>
         </div>
       </Alert>
