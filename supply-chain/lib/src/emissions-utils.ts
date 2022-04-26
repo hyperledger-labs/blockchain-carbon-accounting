@@ -140,8 +140,13 @@ export async function calc_flight_emissions(
     throw new Error(`Found factor does not have a co2_equivalent_emissions ${factor.uuid}`);
   }
   const emissions = passengers * distance_km * parseFloat(factor.co2_equivalent_emissions);
-  // assume all factors produce kgCO2e
-  return { amount: { value: emissions, unit: "kgCO2e" }, factor };
+  // convert all factors into kgCO2e based on co2_equivalent_emissions_uom
+  let uom = factor.co2_equivalent_emissions_uom
+  if (uom) {
+    // remove co2e from the weight uom if present
+    uom = uom.toLowerCase().replace(/co2.*/, '')
+  }
+  return { amount: { value: weight_in_kg(emissions, uom), unit: "kgCO2e" }, factor };
 }
 
 export async function calc_freight_emissions(
@@ -380,10 +385,16 @@ export async function process_emissions_factor(
       amount *= a.activity_amount
     }
   }
+  // convert all factors into kgCO2e based on co2_equivalent_emissions_uom
+  let uom = factor.co2_equivalent_emissions_uom
+  if (uom) {
+    // remove co2e from the weight uom if present
+    uom = uom.toLowerCase().replace(/co2.*/, '')
+  }
   const emissions: Emissions = {
     amount: {
-      value: amount,
-      unit: factor.co2_equivalent_emissions_uom
+      value: weight_in_kg(amount, uom),
+      unit: "kgCO2e"
     },
     factor
   }
