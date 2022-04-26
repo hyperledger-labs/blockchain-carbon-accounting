@@ -42,7 +42,7 @@ async function getDBInstance() {
 }
 
 export function emissions_in_kg_to_tokens(emissions: number) {
-  return new BigNumber(Math.round(emissions));
+  return new BigNumber(Math.round(emissions * 1000));
 }
 
 export function weight_in_uom(weight: number, uom: string, to_uom: string) {
