@@ -486,7 +486,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           {topSuccess ?
             <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
               <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
-              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}CO2e</div>
+              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
             </SuccessAlert>
             : 
 
