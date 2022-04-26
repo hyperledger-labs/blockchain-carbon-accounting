@@ -474,6 +474,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
                       aria-hidden="true"
                       />
                   </div>}
+                {validated && formErrors && formErrors.emissions_factor_uuid && <>
+                  <span className="is-invalid"></span>
+                  <Form.Control.Feedback type="invalid">
+                    {(formErrors && formErrors.emissions_factor_uuid) || "This value is required"}
+                  </Form.Control.Feedback></>}
                 </>}
 
             </>}
