@@ -699,46 +699,41 @@ function get_random_auditor(auditors: Wallet[]) {
 export async function process_emissions_requests() {
   const db = await getDBInstance();
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
-  if (emissions_requests && emissions_requests.length > 0) {
-      const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
-      if (auditors && auditors.length > 0) {
-        // get auditors with public keys
-        const active_auditors = auditors.filter((w) => !!w.public_key);
-        if (active_auditors.length > 0) {
-          // process from created to pending
-          for (const e in emissions_requests) {
-              const er = emissions_requests[e];
-              console.log("Process emission request: ", er.uuid);
-              const auditor = get_random_auditor(active_auditors);
-              if (auditor && auditor.public_key) {
-                console.log('Randomly selected auditor: ', auditor.address);
-                // encode input_data and post it into ipfs
-                const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
+  if (!emissions_requests || !emissions_requests.length) {
+    console.log('There are no emissions requests to process.');
+    return;
+  }
+  const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
+  if (!auditors || !auditors.length) {
+    console.log('There are no auditors with public key.');
+    return;
+  }
+  console.log('Found auditors', auditors);
+  // process from created to pending
+  for (const e in emissions_requests) {
+    const er = emissions_requests[e];
+    console.log("Process emission request: ", er.uuid);
+    const auditor = get_random_auditor(auditors);
+    if (!auditor || !auditor.public_key) {
+      console.log('Cannot select an auditor with public key.');
+      return;
+    }
+    console.log('Randomly selected auditor: ', auditor.address);
+    // encode input_data and post it into ipfs
+    const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
 
-                const h = hash_content(er.input_content);
-                const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
-                const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, undefined);
+    const h = hash_content(er.input_content);
+    const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, undefined);
 
-                await db.getEmissionsRequestRepo().updateToPending(
-                  er.uuid,
-                  auditor.address,
-                  ipfs_res.path,
-                  auditor.public_key,
-                  auditor.public_key_name,
-                  JSON.stringify(manifest)
-                  );
-              } else {
-                console.log('Cannot select auditor.');
-              }
-          }
-        } else {
-          console.log('There are no auditors with public key.');
-        }
-      } else {
-         console.log('There are no auditors.');
-      }
-  } else {
-      console.log('There are no emissions requests to process.');
+    await db.getEmissionsRequestRepo().updateToPending(
+      er.uuid,
+      auditor.address,
+      ipfs_res.path,
+      auditor.public_key,
+      auditor.public_key_name,
+      JSON.stringify(manifest)
+    );
   }
 }
 
