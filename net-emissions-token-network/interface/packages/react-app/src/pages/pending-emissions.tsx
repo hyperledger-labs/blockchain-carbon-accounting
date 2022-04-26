@@ -138,7 +138,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     try {
       let newEmissionsRequest = await getAuditorEmissionsRequest(uuid);
       if (newEmissionsRequest && newEmissionsRequest.emission_auditor && signedInAddress
-          && newEmissionsRequest.emission_auditor.toLowerCase() == signedInAddress.toLowerCase()) {
+          && newEmissionsRequest.emission_auditor.toLowerCase() === signedInAddress.toLowerCase()) {
         setSelectedPendingEmissions(newEmissionsRequest);
         setError("");
       } else {
