@@ -17,11 +17,14 @@ type RequestAuditProps = {
   limitedMode: boolean
 }
 
+
+type ShipmentMode = 'air' | 'ground' | 'sea' | '';
+
 export type EmissionsFactorForm = {
   issued_from: string,
   activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
   ups_tracking: string
-  shipment_mode: 'air' | 'ground' | 'sea' | ''
+  shipment_mode: ShipmentMode
   weight: string
   weight_uom: 'kg' | 'lbs'
   distance: string
@@ -366,7 +369,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           }
         }}
         noValidate validated={validated}>
-        
+
         <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} />
 
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
@@ -382,7 +385,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
               {value:'air', label:'Air'},
               {value:'ground', label:'Ground'},
               {value:'sea', label:'Sea'}
-            ]}/>
+            ]} onChange={(val)=>{ if(val) setEmForm({...emForm, ups_tracking: '', shipment_mode: val as ShipmentMode});  }}/>
             {!emForm.shipment_mode && <>
               <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="ups_tracking" label="UPS Tracking Number" required/>
               </>}
