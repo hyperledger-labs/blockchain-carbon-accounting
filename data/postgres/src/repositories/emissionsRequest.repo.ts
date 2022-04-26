@@ -127,11 +127,6 @@ export class EmissionsRequestRepo {
   }
 
   public selectSupportingDocuments = async (emissions_request: EmissionsRequest) => {
-    // return await this._db.getRepository(EmissionsRequestSupportingDocument)
-    //   .createQueryBuilder()
-    //   .relation(EmissionsRequest, "supporting_documents")
-    //   .of(emissions_request)
-    //   .loadMany()
     return await this._db.getRepository(EmissionsRequestSupportingDocument)
       .createQueryBuilder("doc")
       .leftJoinAndSelect("doc.file", "uploaded_file")
