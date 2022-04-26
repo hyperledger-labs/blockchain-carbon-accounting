@@ -126,6 +126,18 @@ export class EmissionsRequestRepo {
     return await this._db.getRepository(EmissionsRequest).findOneBy({uuid})
   }
 
+  public selectSupportingDocuments = async (emissions_request: EmissionsRequest) => {
+    // return await this._db.getRepository(EmissionsRequestSupportingDocument)
+    //   .createQueryBuilder()
+    //   .relation(EmissionsRequest, "supporting_documents")
+    //   .of(emissions_request)
+    //   .loadMany()
+    return await this._db.getRepository(EmissionsRequestSupportingDocument)
+      .createQueryBuilder("doc")
+      .leftJoinAndSelect("doc.file", "uploaded_file")
+      .where({emissions_request})
+      .getMany()
+  }
   public addSupportingDocument = async (emissions_request: EmissionsRequest, file: UploadedFile) => {
     const repo = this._db.getRepository(EmissionsRequestSupportingDocument)
     const supporting_doc = repo

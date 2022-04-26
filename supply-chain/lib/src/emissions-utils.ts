@@ -30,6 +30,7 @@ import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
+import { readFileSync } from "fs";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -668,12 +669,12 @@ export async function create_emissions_request(
   return em_request
 }
 
-function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_path?: string) {
-  return supporting_document_ipfs_path ? {
+function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_paths?: string[]) {
+  return supporting_document_ipfs_paths ? {
     "Public Key": publickey_name,
     "Location": `ipfs://${ipfs_path}`,
     "SHA256": hash,
-    "Supporting Document Location": `ipfs://${supporting_document_ipfs_path}`
+    "Supporting Documents Location": supporting_document_ipfs_paths.map(p=>`ipfs://${p}`)
   }
  :
   {
@@ -708,11 +709,11 @@ export async function process_emissions_requests() {
     console.log('There are no auditors with public key.');
     return;
   }
-  console.log('Found auditors', auditors);
+  console.log('Found auditors', auditors.map(w=>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
   // process from created to pending
   for (const e in emissions_requests) {
     const er = emissions_requests[e];
-    console.log("Process emission request: ", er.uuid);
+    console.log("Processing emission request: ", er.uuid);
     const auditor = get_random_auditor(auditors);
     if (!auditor || !auditor.public_key) {
       console.log('Cannot select an auditor with public key.');
@@ -721,10 +722,18 @@ export async function process_emissions_requests() {
     console.log('Randomly selected auditor: ', auditor.address);
     // encode input_data and post it into ipfs
     const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
-
-    const h = hash_content(er.input_content);
+    // check if we have a supporting Document for it
+    const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
+    const supporting_docs_ipfs_paths: string[] = [];
+    for (const doc of docs) {
+      const filename = (process.env.DOC_UPLOAD_PATH || './upload/') + doc.file.uuid;
+      const data = readFileSync(filename);
+      const d_ipfs_res = await uploadFileEncrypted(data, [auditor.public_key], true);
+      supporting_docs_ipfs_paths.push(d_ipfs_res.path);
+    }
     const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
-    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, undefined);
+    const h = hash_content(er.input_content);
+    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, supporting_docs_ipfs_paths);
 
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,

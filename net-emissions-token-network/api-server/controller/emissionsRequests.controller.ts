@@ -229,7 +229,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
 
     // do something with it ?
     console.log(`postEmissionsRequest moving to upload folder as ${uploaded_file.uuid} ...`)
-    supportingDocument.mv('./upload/' + uploaded_file.uuid);
+    supportingDocument.mv((process.env.DOC_UPLOAD_PATH || './upload/') + uploaded_file.uuid);
 
     return res.status(200).json({ status: 'success', queue_result, result });
   } catch (error) {

@@ -142,6 +142,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         setSelectedPendingEmissions(newEmissionsRequest);
         setError("");
       } else {
+        console.warn('Wrong emission_auditor ?', newEmissionsRequest, signedInAddress)
         setError("Wrong emission auditor address.");
       }
     } catch (error) {
