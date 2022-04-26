@@ -41,10 +41,9 @@ async function getDBInstance() {
   return _db;
 }
 
-function emissions_in_kg_to_tokens(emissions: number) {
+export function emissions_in_kg_to_tokens(emissions: number) {
   return new BigNumber(Math.round(emissions));
 }
-
 
 export function weight_in_uom(weight: number, uom: string, to_uom: string) {
   const w1 = weight_in_kg(weight, uom)
@@ -84,11 +83,11 @@ function get_convert_kg_for_uom(uom: string): number {
   throw new Error(`Weight UOM ${uom} not supported`);
 }
 
-export function distance_in_km(distance: Distance): number {
-  return distance_in_km2(distance.value, distance.unit);
+export function distance_object_in_km(distance: Distance): number {
+  return distance_in_km(distance.value, distance.unit);
 }
 
-export function distance_in_km2(distance: number, unit?: string): number {
+export function distance_in_km(distance: number, unit?: string): number {
   if (!unit || unit === "km") return distance;
   if (unit === "mi" || unit === "miles") return distance* 1.60934;
   // not recognized
@@ -96,8 +95,8 @@ export function distance_in_km2(distance: number, unit?: string): number {
 }
 
 export function distance_in_uom(distance: number, uom: string, to_uom: string) {
-  const d1 = distance_in_km2(distance, uom)
-  const d2 = distance_in_km2(1, to_uom)
+  const d1 = distance_in_km(distance, uom)
+  const d2 = distance_in_km(1, to_uom)
   return d1 / d2;
 }
 
@@ -132,7 +131,7 @@ export async function calc_flight_emissions(
   seat_class: string,
   distance: Distance
 ): Promise<Emissions> {
-  const distance_km = distance_in_km(distance);
+  const distance_km = distance_object_in_km(distance);
   // lookup the factor for different class
   const f = await get_flight_emission_factor(seat_class);
   // assume the factor uom is in passenger.km here
@@ -157,7 +156,7 @@ export async function calc_freight_emissions(
   weight_kg: number,
   distance: Distance
 ): Promise<Emissions> {
-  const distance_km = distance_in_km(distance);
+  const distance_km = distance_object_in_km(distance);
   // lookup factor for different 'mode'
   const f = await get_freight_emission_factor(distance.mode);
   // most uom should be in tonne.km here
@@ -381,7 +380,7 @@ export async function process_emissions_factor(
         throw new Error(`This emissions factor requires a distance and distance_uom inputs`);
       }
       amount *= distance_in_uom(a.distance, a.distance_uom, uom)
-      distance_km = distance_in_km2(a.distance, a.distance_uom)
+      distance_km = distance_in_km(a.distance, a.distance_uom)
     } else {
       if (!a.activity_amount || !a.activity_uom) {
         throw new Error(`This emissions factor requires an activity_amount and activity_uom inputs`);
