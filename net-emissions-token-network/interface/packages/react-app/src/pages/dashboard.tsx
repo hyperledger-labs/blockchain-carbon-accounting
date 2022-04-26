@@ -20,7 +20,7 @@ import TrackerInfoModal from "../components/tracker-info-modal";
 import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
-import { Balance, Token, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
+import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 
 type DashboardProps = {
@@ -68,12 +68,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   async function handleBalanceQueryChanged(_query: string[]) {
     await fetchBalances(balancePage, balancePageSize, _query);
   }
-
-  function handleOpenTokenInfoModal(token: Token) {
-    setSelectedToken(token);
-    setModalShow(true);
-  }
-
 
   // Allows the parent component to refresh balances on clicking the Dashboard button in the navigation
   useImperativeHandle(ref, () => ({
@@ -143,7 +137,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         newMyBalances.push(token);
       }
     } catch (error) {
-      
+      console.error(error);
     }
 
     setMyBalances(newMyBalances);
@@ -235,7 +229,14 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                   myBalances.map((balance) => (
                     <tr
                       key={balance.token.tokenId}
-                      onClick={() => handleOpenTokenInfoModal(balance.token)}
+                      onClick={() => {
+                        setSelectedToken({
+                          ...balance.token,
+                          availableBalance: balance.availableBalance,
+                          retiredBalance: balance.retiredBalance
+                        });
+                        setModalShow(true);
+                      }}
                       onMouseOver={pointerHover}
                       className={`${(Number(balance.availableBalance) <= 0) ? "table-secondary" : ""}`}
                     >

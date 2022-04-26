@@ -16,7 +16,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
 
   const castMetadata = (metadata: any) => {
     if(metadata === undefined || !metadata) return <></>;
-    
+
     if(typeof metadata === 'string') {
       try {
         metadata = JSON.parse(metadata);
@@ -24,14 +24,14 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
         console.error('Could not parse JSON from ', metadata);
       }
     } 
-    
+
     let keys: string[] = [];
     let values: string[] = [];
     for (const key in metadata) {
       keys.push(key);
       values.push(metadata[key]);
     }
-    
+
     return <>{keys.filter((k,i)=>k&&values[i]).map((key, i) => <div key={`${key}-${i}`}><b>{key}</b> : {values[i]}</div>
     )}</>
   };
@@ -92,7 +92,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
                 <Button
                   variant="success"
                   href={`/transfer?tokenId=${props.token.tokenId}`}
-                  disabled={Number(props.token.availableBalance) <= 0}
+                  disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
                 >
                   Transfer
                 </Button>
@@ -103,7 +103,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
                 <Button
                   variant="danger"
                   href={`/retire?tokenId=${props.token.tokenId}`}
-                  disabled={Number(props.token.availableBalance) <= 0}
+                  disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
                 >
                   Retire
                 </Button>
