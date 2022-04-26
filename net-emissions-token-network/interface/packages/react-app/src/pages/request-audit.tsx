@@ -435,16 +435,19 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
               </> : <>
                 <h3 id="lookupForm">Choose an emissions factor</h3>
-                {level1sQuery.data && 
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}/>
+                {level1sQuery.data &&
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}
+                    onChange={(val)=>{setEmForm({...emForm, level_1:val, level_2:'', level_3: '', level_4: ''})}}/>
               }
-                {emForm.level_1 && level2sQuery.data && 
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}/>
+                {emForm.level_1 && level2sQuery.data &&
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}
+                    onChange={(val)=>{setEmForm({...emForm, level_2:val, level_3: '', level_4: ''})}}/>
               }
-                {emForm.level_1 && emForm.level_2 && level3sQuery.data && 
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}/>
+                {emForm.level_1 && emForm.level_2 && level3sQuery.data &&
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}
+                    onChange={(val)=>{setEmForm({...emForm, level_3:val, level_4: ''})}}/>
               }
-                {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && 
+                {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && level4sQuery.data.emissionsFactors.length > 1 &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_4" label="Level 4" values={level4sQuery.data.emissionsFactors}/>
               }
                 {lookupQuery.data ?
