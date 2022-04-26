@@ -1,5 +1,4 @@
 import { BigNumber } from "bignumber.js";
-import { readFileSync } from 'fs';
 import BCGatewayConfig from "emissions_data/src/blockchain-gateway/config";
 import {
   IEthNetEmissionsTokenIssueInput,
