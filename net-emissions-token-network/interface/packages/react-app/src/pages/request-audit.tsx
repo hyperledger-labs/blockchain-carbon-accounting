@@ -338,6 +338,10 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       <h2>Request audit</h2>
       <Form
         onSubmit={async(e)=>{
+          // autoselect emissionsFactor when drilled down to only one choice if this mode was selected
+          if (emForm.activity_type === 'emissions_factor' && !emForm.emissions_factor_uuid && lookupQuery.data?.emissionsFactors.length === 1) {
+            selectEmissionsFactor(lookupQuery.data.emissionsFactors[0])
+          }
           // always stop the event as we handle all in this function
           e.preventDefault()
           e.stopPropagation()
