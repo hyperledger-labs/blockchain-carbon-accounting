@@ -28,6 +28,7 @@ import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 import IssuedTypeSwitch from '../components/issue-type-swtich';
+import DisplayTokenAmount from "../components/display-token-amount";
 
 type IssuedTokensProps = {
   provider?: Web3Provider, 
@@ -443,8 +444,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
                       <td>{token.description}</td>
-                      <td>{token.totalIssued}</td>
-                      <td>{token.totalRetired}</td>
+                      <td><DisplayTokenAmount amount={token.totalIssued}/></td>
+                      <td><DisplayTokenAmount amount={token.totalRetired}/></td>
                     </tr>
                   ))}
               </tbody>
@@ -488,9 +489,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                       <td>{tracker.description}</td>
                       <td>{tracker.totalEmissions}</td>
                       <td>{tracker.totalAudited}</td>
-                      {/* <th>Total Output</th>
-                          <th>Outputs Tracked</th>*/}
-
                     </tr>
                   ))}
               </tbody>
