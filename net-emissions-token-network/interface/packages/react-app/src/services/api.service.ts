@@ -1,8 +1,10 @@
 import axios from 'axios';
-import { Balance, Token, Wallet, EmissionsRequest } from '../components/static-data';
+import { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
+import { Token, Wallet, EmissionsRequest } from '../components/static-data';
 import { EmissionsFactorForm } from '../pages/request-audit';
+import { BASE_URL } from './api.config';
+import { trpcClient } from './trpc'
 
-export const BASE_URL = "http://localhost:8000";
 axios.defaults.baseURL = BASE_URL;
 
 function handleError(error: unknown, prefix: string) {
@@ -19,6 +21,21 @@ function handleError(error: unknown, prefix: string) {
         }
     }
     return errMsg;
+}
+
+
+function buildBundlesFromQueries(query: string[]) {
+    let bundles: QueryBundle[] = []
+    query.forEach(elem => {
+        const elems = elem.split(',')
+        bundles.push({
+            field: elems[0],
+            fieldType: elems[1],
+            value: elems[2],
+            op: elems[3],
+        })
+    });
+    return bundles
 }
 
 export const getTokens = async (offset: number, limit: number, query: string[]): Promise<{count:number, tokens:Token[], status:string}> => {
@@ -40,19 +57,18 @@ export const getTokens = async (offset: number, limit: number, query: string[]):
     }
 }
 
-export const getBalances = async (offset: number, limit: number, query: string[]): Promise<{count: number, balances: Balance[]}> => {
+export const getBalances = async (offset: number, limit: number, query: string[]) => {
     try {
-        var params = new URLSearchParams();
-        params.append('offset', offset.toString());
-        params.append('limit', limit.toString());
-        query.forEach(elem => {
-            params.append('bundles', elem);
-        });
-        const { data } = await axios.get('/balances', {
-            params
-        });
-        if(data.status === 'success') return data;
-        else return {count: 0, balances: []};
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getBalances:', offset, limit, bundles)
+        const list = await trpcClient.query('balance.list', {offset, limit, bundles})
+        console.info('getBalances result:', list)
+        if (list.status === 'success' && list.balances) {
+            return { count: list.count, balances: list.balances }
+        } else {
+            if (list.status !== 'success') console.error('getBalances error:', list.error)
+            return {count: 0, balances: []};
+        }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get balances"))
     }
