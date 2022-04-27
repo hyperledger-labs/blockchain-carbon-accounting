@@ -168,7 +168,7 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 export const truncateTable = async () => {
     const db = await PostgresDBService.getInstance()
     await db.getTokenRepo().truncateTokens();
-    await db.getBalanceRepo().truncateBalances();
+    // truncate balances is also done by truncate tokens
     console.log('--- Tables has been cleared. ----\n')
 }
 
