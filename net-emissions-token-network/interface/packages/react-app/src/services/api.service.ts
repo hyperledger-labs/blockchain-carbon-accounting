@@ -9,7 +9,7 @@ axios.defaults.baseURL = BASE_URL;
 
 function handleError(error: unknown, prefix: string) {
     const response = (error as any).response
-    console.error('Axios error has data?:', response?.data)
+    console.error('Error response has data?:', response?.data)
     let errMsg = prefix
     if (response?.data?.error) {
         const rde = response.data.error
@@ -163,7 +163,7 @@ export const getAuditorEmissionsRequest = async (uuid: string) => {
           return data.item;
         } else {
           throw new Error("Cannot get auditor emissions request");
-        };
+        }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get auditor emissions request"))
     }
@@ -171,13 +171,12 @@ export const getAuditorEmissionsRequest = async (uuid: string) => {
 
 export const declineEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequest/' + uuid;
-        const { data } = await axios.delete(url, {});
+        const data = await trpcClient.mutation('emissionsRequests.decline', {uuid})
         if (data.status === 'success') {
           return data;
         } else {
           throw new Error("Cannot decline emissions request");
-        };
+        }
     } catch(error) {
         throw new Error(handleError(error, "Cannot decline emissions request"))
     }
@@ -185,15 +184,14 @@ export const declineEmissionsRequest = async (uuid: string) => {
 
 export const issueEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequest/' + uuid;
-        const { data } = await axios.put(url, {});
+        const data = await trpcClient.mutation('emissionsRequests.issue', {uuid})
         if (data && data.status === 'success') {
           return data;
         } else {
-          throw new Error("cannot issue emissions request");
-        };
+          throw new Error("Cannot issue emissions request");
+        }
     } catch(error) {
-        throw new Error("cannot issue emissions request");
+        throw new Error(handleError(error, "Cannot issue emissions request"))
     }
 }
 
