@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
-import { Token, Wallet } from '../components/static-data';
-import { EmissionsFactorForm } from '../pages/request-audit';
+import type { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
+import type { Token, Wallet } from '../components/static-data';
+import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
 
@@ -204,7 +204,11 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         }
         formData.append("supportingDocument", supportingDocument);
         formData.append("signedInAddress", signedInAddress);
-        const { data } = await axios.post(url, formData);
+        const resp = await fetch(url, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await resp.json();
         if (data.status === 'success') {
             return data;
         } else {
