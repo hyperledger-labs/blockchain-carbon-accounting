@@ -161,7 +161,6 @@ function getActivity(body: any): Activity {
 export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
-    console.log('postEmissionsRequest request is', req.body)
     const db = await PostgresDBService.getInstance()
     // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
