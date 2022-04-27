@@ -720,8 +720,6 @@ export async function process_emissions_requests() {
       return;
     }
     console.log('Randomly selected auditor: ', auditor.address);
-    // encode input_data and post it into ipfs
-    const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
     // check if we have a supporting Document for it
     const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
     const supporting_docs_ipfs_paths: string[] = [];
@@ -729,11 +727,21 @@ export async function process_emissions_requests() {
       const filename = (process.env.DOC_UPLOAD_PATH || './upload/') + doc.file.uuid;
       const data = readFileSync(filename);
       const d_ipfs_res = await uploadFileEncrypted(data, [auditor.public_key], true);
+      const h_doc = hash_content(data);
       supporting_docs_ipfs_paths.push(d_ipfs_res.path);
+      console.log(`document [${doc.file.name}]: IPFS ${d_ipfs_res.path}, Hash: ${h_doc.value}`)
     }
+    // encode input_data and post it into ipfs
+    const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
+    const h_res = hash_content(er.input_data);
+    console.log(`input_data: IPFS ${ipfs_res.path}, Hash: ${h_res.value}`)
+
+    // encode input_content and post it into ipfs
     const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
-    const h = hash_content(er.input_content);
-    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, supporting_docs_ipfs_paths);
+    const h_content = hash_content(er.input_content);
+    console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
+
+    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h_content.value}`, supporting_docs_ipfs_paths);
 
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,
