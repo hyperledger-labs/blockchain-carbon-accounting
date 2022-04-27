@@ -581,7 +581,6 @@ export async function issue_tokens(
 export async function queue_issue_tokens(
   doc: GroupedResult,
   activity_type: string,
-  input_data: string,
   mode?: string,
   issued_from?: string,
   issued_to?: string,
@@ -596,7 +595,6 @@ export async function queue_issue_tokens(
     doc.thru_date||new Date(),
     total_emissions,
     JSON.stringify(metadata),
-    input_data,
     content,
     issued_from,
     issued_to);
@@ -641,7 +639,6 @@ export async function create_emissions_request(
   thru_date: Date,
   total_emissions_in_kg: number,
   metadata: string,
-  input_data: string,
   input_content: string,
   issuee_from?: string,
   issuee_to?: string,
@@ -655,7 +652,6 @@ export async function create_emissions_request(
 
   const db = await getDBInstance();
   const em_request = await db.getEmissionsRequestRepo().insert({
-    input_data: input_data,
     input_content: input_content,
     issued_from: issuee_from,
     issued_to: issuee_to,
@@ -739,16 +735,9 @@ export async function process_emissions_requests() {
       manifest.SHA256 = h_doc.value;
     }
 
-    // encode input_data and post it into ipfs
-    // TODO: do we actually need that or should we just use input_content?
-    const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
-    const h_res = hash_content(er.input_data);
-    console.log(`input_data: IPFS ${ipfs_res.path}, Hash: ${h_res.value}`)
-
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,
       auditor.address,
-      ipfs_res.path,
       auditor.public_key,
       auditor.public_key_name,
       JSON.stringify(manifest)

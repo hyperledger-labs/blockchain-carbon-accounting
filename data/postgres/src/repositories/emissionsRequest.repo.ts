@@ -72,7 +72,6 @@ export class EmissionsRequestRepo {
   public updateToPending = async (
       uuid: string,
       emissionAuditor: string,
-      inputDataIpfsHash: string,
       publicKey: string,
       publicKeyName: string | undefined,
       tokenManifest: string
@@ -84,7 +83,6 @@ export class EmissionsRequestRepo {
       .update(EmissionsRequest)
       .set({
         emission_auditor: () =>  `'${emissionAuditor}'`,
-        input_data_ipfs_hash: () => `'${inputDataIpfsHash}'`,
         public_key: () => `'${publicKey}'`,
         public_key_name: () => `'${publicKeyName}'`,
         token_manifest: () => `'${tokenManifest}'`,

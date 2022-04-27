@@ -204,10 +204,6 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     const queue_result = await queue_issue_tokens(
       group,
       activity_type,
-      JSON.stringify({
-        issued_from,
-        ...activity
-      }),
       undefined, // mode
       issued_from,
       issued_to,

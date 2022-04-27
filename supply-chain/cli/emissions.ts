@@ -108,9 +108,9 @@ type OutputActivity = {
   error?: string
 };
 
-async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], input_data: string, mode?: string) {
+async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
   const token_res = queue ? 
-    await queue_issue_tokens(g, activity_type, input_data, mode) :
+    await queue_issue_tokens(g, activity_type, mode) :
     await issue_tokens(g, activity_type, publicKeys, mode);
   // add each activity to output array
   for (const a of g.content) {
@@ -177,11 +177,11 @@ if (fetchObjectPath) {
           const group = grouped_by_type[t] as GroupedResults;
           for (const mode in group) {
             const doc = group[mode] as GroupedResult;
-            await process_group(output_array, doc, t, publicKeys, data, mode);
+            await process_group(output_array, doc, t, publicKeys, mode);
           }
         } else {
           const doc = grouped_by_type[t] as GroupedResult;
-          await process_group(output_array, doc, t, publicKeys, data);
+          await process_group(output_array, doc, t, publicKeys);
         }
       }
       // add back any errors we filtered before to the output
