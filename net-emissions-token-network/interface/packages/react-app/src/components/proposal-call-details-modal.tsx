@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import { FC, useState, useEffect } from "react";
 
-import { decodeParameters, decodeDate } from "../services/contract-functions";
+import { decodeParameters } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { TOKEN_TYPES } from "./static-data";
+import DisplayDate from "./display-date";
+import DisplayTokenAmount from "./display-token-amount";
+import DisplayJSON from "./display-json";
 
 
 type ProposalCallDetailsModalProps = {
@@ -48,8 +51,8 @@ const ProposalCallDetailsModal: FC<ProposalCallDetailsModalProps> = (props) => {
           proposer: decodedCall[1],
           tokenType: TOKEN_TYPES[decodedCall[2]-1],
           quantity: qty,
-          fromDate: decodeDate(decodedCall[4].toNumber()),
-          thruDate: decodeDate(decodedCall[5].toNumber()),
+          fromDate: decodedCall[4].toNumber(),
+          thruDate: decodedCall[5].toNumber(),
           metadata: decodedCall[7],
           manifest: decodedCall[8],
           description: decodedCall[9],
@@ -90,11 +93,11 @@ const ProposalCallDetailsModal: FC<ProposalCallDetailsModalProps> = (props) => {
                 <p>Address to issue to: {decoded.address}</p>
                 <p>Issuer/proposer: {decoded.proposer}</p>
                 <p>Token type: {decoded.tokenType}</p>
-                <p>Quantity of tokens: {decoded.quantity}</p>
-                <p>From date: {decoded.fromDate}</p>
-                <p>Through date: {decoded.thruDate}</p>
-                <p>Metadata: {decoded.metadata}</p>
-                <p>Manifest: {decoded.manifest}</p>
+                <p>Quantity of tokens: <DisplayTokenAmount amount={decoded.quantity}/></p>
+                <p>From date: <DisplayDate date={decoded.fromDate}/></p>
+                <p>Through date: <DisplayDate date={decoded.thruDate}/></p>
+                <p>Metadata: <DisplayJSON json={decoded.metadata}/></p>
+                <p>Manifest: <DisplayJSON json={decoded.manifest}/></p>
                 <p>Description: {decoded.description}</p>
                 </>}
             </div>
