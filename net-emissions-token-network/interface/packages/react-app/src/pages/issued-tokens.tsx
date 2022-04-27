@@ -27,7 +27,7 @@ import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
-import IssuedTypeSwitch from '../components/issue-type-swtich';
+import IssuedTypeSwitch from '../components/issue-type-switch';
 import DisplayTokenAmount from "../components/display-token-amount";
 
 type IssuedTokensProps = {
