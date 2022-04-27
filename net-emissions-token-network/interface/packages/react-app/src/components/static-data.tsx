@@ -27,15 +27,15 @@ export type Token = {
   issuedBy: string
   issuedFrom: string
   issuedTo: string
-  fromDate: number|string
-  thruDate: number|string
-  dateCreated: number|string
+  fromDate?: number
+  thruDate?: number
+  dateCreated?: number
   // eslint-disable-next-line
   metadata: Object
   manifest: string
   description: string
-  totalIssued: number|string
-  totalRetired: number|string
+  totalIssued?: number
+  totalRetired?: number
   scope: number
   type: string
   isMyIssuedToken?: boolean
@@ -44,8 +44,8 @@ export type Token = {
 export type Tracker = {
   trackerId: number
   trackee: string
-  fromDate: string
-  thruDate: string
+  fromDate?: number
+  thruDate?: number
   metadata: string
   description: string
   totalEmissions: string
@@ -70,9 +70,9 @@ export type Balance = {
   transferred: number
   token: Token
   tokenType?: string
-  availableBalance?: string
-  retiredBalance?: string
-  transferredBalance?: string
+  availableBalance?: number
+  retiredBalance?: number
+  transferredBalance?: number
 }
 
 export type Proposal = {

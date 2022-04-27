@@ -83,12 +83,11 @@ export function decodeParameters(types: string[], values: any[]) {
   return abi.decode(types, values);
 }
 
-export function formatDate(timestamp: number|string) {
-  if (typeof timestamp === 'string') return timestamp;
-  if (timestamp === 0) {
-    return "None";
+export function decodeDate(timestamp?: number) {
+  if (!timestamp) {
+    return undefined;
   } else {
-    return (new Date(timestamp * 1000)).toLocaleString();
+    return new Date(timestamp * 1000);
   }
 }
 

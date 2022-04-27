@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { FC, useState, useEffect } from "react";
 
-import { decodeParameters, formatDate } from "../services/contract-functions";
+import { decodeParameters, decodeDate } from "../services/contract-functions";
 
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
@@ -20,9 +20,9 @@ type Decoded = {
   address: string
   proposer: string
   tokenType: string
-  quantity: string
-  fromDate: string
-  thruDate: string
+  quantity: number
+  fromDate?: Date
+  thruDate?: Date
   metadata: string
   manifest: string
   description: string
@@ -43,14 +43,13 @@ const ProposalCallDetailsModal: FC<ProposalCallDetailsModalProps> = (props) => {
         let types = rx[1].split(",");
         let decodedCall = decodeParameters(types, props.actions.calldatas[actionNumber]);
         let qty = decodedCall[3].toNumber();
-        qty = (qty / 1000).toFixed(3);
         setDecoded({
           address: decodedCall[0],
           proposer: decodedCall[1],
           tokenType: TOKEN_TYPES[decodedCall[2]-1],
           quantity: qty,
-          fromDate: formatDate(decodedCall[4].toNumber()),
-          thruDate: formatDate(decodedCall[5].toNumber()),
+          fromDate: decodeDate(decodedCall[4].toNumber()),
+          thruDate: decodeDate(decodedCall[5].toNumber()),
           metadata: decodedCall[7],
           manifest: decodedCall[8],
           description: decodedCall[9],

@@ -11,17 +11,15 @@ import {
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
-import {
-  formatDate,
-  getRoles
-} from "../services/contract-functions";
-import TokenInfoModal from "../components/token-info-modal";
+import { getRoles } from "../services/contract-functions";
+import TokenInfoModal, { TokenInfo } from "../components/token-info-modal";
 import TrackerInfoModal from "../components/tracker-info-modal";
 import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
+import DisplayTokenAmount from "../components/display-token-amount";
 
 type DashboardProps = {
   provider?: Web3Provider, 
@@ -37,7 +35,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
-  const [selectedToken, setSelectedToken] = useState({});
+  const [selectedToken, setSelectedToken] = useState<TokenInfo>({});
   const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
@@ -111,7 +109,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
       // this count means total number of balances
       let {count, balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
-      
+      console.log('balances?', balances);
       // this count means total pages of balances
       _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
 
@@ -119,20 +117,15 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       for (let i = 0; i < balances.length; i++) {
         const balance = balances[i];
 
-        // cast time from long to date
-        balance.token.fromDate = formatDate(balance.token.fromDate);
-        balance.token.thruDate = formatDate(balance.token.thruDate);
-        balance.token.dateCreated = formatDate(balance.token.dateCreated);
-
         let token = {
           ...balance,
           tokenId: balance.token.tokenId,
           token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
           issuedTo: balance.issuedTo,
-          availableBalance: (balance.available / 1000).toFixed(3),
-          retiredBalance: (balance.retired / 1000).toFixed(3),
-          transferredBalance: (balance.transferred / 1000).toFixed(3)
+          availableBalance: balance.available,
+          retiredBalance: balance.retired,
+          transferredBalance: balance.transferred
         }
         newMyBalances.push(token);
       }
@@ -210,7 +203,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         {(signedInAddress) &&
           <div className="mb-4">
             <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
-            <QueryBuilder 
+            <QueryBuilder
               fieldList={BALANCE_FIELDS}
               handleQueryChanged={handleBalanceQueryChanged}
             />
@@ -242,9 +235,9 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                     >
                       <td>{balance.token.tokenId}</td>
                       <td>{balance.tokenType}</td>
-                      <td>{balance.availableBalance}</td>
-                      <td>{balance.retiredBalance}</td>
-                      <td>{balance.transferredBalance}</td>
+                      <td><DisplayTokenAmount amount={balance.availableBalance}/></td>
+                      <td><DisplayTokenAmount amount={balance.retiredBalance}/></td>
+                      <td><DisplayTokenAmount amount={balance.transferredBalance}/></td>
                     </tr>
                   ))}
               </tbody>
