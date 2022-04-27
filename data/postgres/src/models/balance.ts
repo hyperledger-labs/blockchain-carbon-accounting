@@ -1,8 +1,11 @@
 import {
     Entity,
     PrimaryColumn,
-    Column
+    Column,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
+import { Token } from './token';
 
 /**
  * primary key: issuee address & token id
@@ -11,12 +14,16 @@ import {
 
 @Entity()
 export class Balance {
-    
+
     @PrimaryColumn()
     issuedTo!: string;
 
     @PrimaryColumn()
     tokenId!: number;
+
+    @ManyToOne(() => Token)
+    @JoinColumn({name: 'tokenId'})
+    token!: Token;
 
     @Column()
     available!: number;
