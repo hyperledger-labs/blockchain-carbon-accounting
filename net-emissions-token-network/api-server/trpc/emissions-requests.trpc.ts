@@ -1,6 +1,6 @@
 import * as trpc from '@trpc/server'
 import { z } from 'zod'
-import { count_auditor_emissions_requests, get_auditor_emissions_request, get_auditor_emissions_requests } from '../controller/emissionsRequests.controller';
+import { count_auditor_emissions_requests, decline_emissions_request, get_auditor_emissions_request, get_auditor_emissions_requests, issue_emissions_request } from '../controller/emissionsRequests.controller';
 import { TrpcContext } from './common';
 
 export const zQueryBundles = z.array(z.object({
@@ -48,6 +48,34 @@ export const emissionsRequestsRouter = trpc
         try {
             const item = await get_auditor_emissions_request(input.uuid);
             return { status: 'success', item }
+        } catch (error) {
+            console.error(error)
+            return { status: 'failed', error }
+        }
+    },
+})
+.mutation('decline', {
+    input: z.object({
+        uuid: z.string(),
+    }),
+    async resolve({ input }) {
+        try {
+            await decline_emissions_request(input.uuid);
+            return { status: 'success' }
+        } catch (error) {
+            console.error(error)
+            return { status: 'failed', error }
+        }
+    },
+})
+.mutation('issue', {
+    input: z.object({
+        uuid: z.string(),
+    }),
+    async resolve({ input }) {
+        try {
+            await issue_emissions_request(input.uuid);
+            return { status: 'success' }
         } catch (error) {
             console.error(error)
             return { status: 'failed', error }
