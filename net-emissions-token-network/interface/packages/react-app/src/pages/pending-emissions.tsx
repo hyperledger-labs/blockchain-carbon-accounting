@@ -3,11 +3,14 @@ import { FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
-import { EmissionsRequest } from '../components/static-data';
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import { issue } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
+import DisplayJSON from "../components/display-json";
+import DisplayDate from "../components/display-date";
+import DisplayTokenAmount from "../components/display-token-amount";
+import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
 
 type PendingEmissionsProps = {
   provider?: Web3Provider,
@@ -19,28 +22,6 @@ type PendingEmissionsProps = {
 const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid }) => {
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
-
-  const castMetadata = (metadata: any) => {
-    if(metadata === undefined || !metadata) return <></>;
-    
-    if(typeof metadata === 'string') {
-      try {
-        metadata = JSON.parse(metadata);
-      } catch (err) {
-        console.error('Cannot parse JSON from ', metadata);
-      }
-    } 
-    
-    let keys: string[] = [];
-    let values: string[] = [];
-    for (const key in metadata) {
-      keys.push(key);
-      values.push(metadata[key]);
-    }
-    
-    return <>{keys.filter((k,i)=>k&&values[i]).map((key, i) => <div key={`${key}-${i}`}><b>{key}</b> : {values[i]}</div>
-    )}</>
-  };
 
   async function handleDecline() {
     if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
@@ -65,6 +46,10 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     if (provider && selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         const tokenTypeId = 3;
+        if (!selectedPendingEmissions.issued_from) {
+          setError("Empty issued from.");
+          return;
+        }
         if (!selectedPendingEmissions.token_from_date) {
           setError("Empty token from date.");
           return;
@@ -174,26 +159,26 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           </tr>
           <tr>
             <td>From date</td>
-            <td>{selectedPendingEmissions.token_from_date}</td>
+            <td><DisplayDate date={selectedPendingEmissions.token_from_date}/></td>
           </tr>
           <tr>
             <td>Thru date</td>
-            <td>{selectedPendingEmissions.token_thru_date}</td>
+            <td><DisplayDate date={selectedPendingEmissions.token_thru_date}/></td>
           </tr>
           <tr>
             <td>Emissions</td>
-            <td>{selectedPendingEmissions.token_total_emissions}</td>
+            <td><DisplayTokenAmount amount={selectedPendingEmissions.token_total_emissions}/></td>
           </tr>
           <tr>
             <td>Metadata</td>
             <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
-              {castMetadata(selectedPendingEmissions.token_metadata)}
+              <DisplayJSON json={selectedPendingEmissions.token_metadata}/>
             </td>
           </tr>
           <tr>
             <td>Manifest</td>
             <td style={{ overflowWrap: "anywhere" }}>
-              {castMetadata(selectedPendingEmissions.token_manifest)}
+              <DisplayJSON json={selectedPendingEmissions.token_manifest}/>
             </td>
           </tr>
           <tr>

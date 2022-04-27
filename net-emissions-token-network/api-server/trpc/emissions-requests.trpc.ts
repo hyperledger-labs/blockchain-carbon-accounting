@@ -1,0 +1,61 @@
+import * as trpc from '@trpc/server'
+import { z } from 'zod'
+import { count_auditor_emissions_requests, get_auditor_emissions_request, get_auditor_emissions_requests } from '../controller/emissionsRequests.controller';
+import { TrpcContext } from './common';
+
+export const zQueryBundles = z.array(z.object({
+    field: z.string(),
+    fieldType: z.string(),
+    value: z.string().or(z.number()),
+    op: z.string(),
+}))
+
+export const emissionsRequestsRouter = trpc
+.router<TrpcContext>()
+.query('count', {
+    input: z.object({
+        auditor: z.string(),
+    }),
+    async resolve({ input }) {
+        try {
+            const count = await count_auditor_emissions_requests(input.auditor);
+            return { status: 'success', count }
+        } catch (error) {
+            console.error(error)
+            return { status: 'failed', error }
+        }
+    },
+})
+.query('list', {
+    input: z.object({
+        auditor: z.string(),
+    }),
+    async resolve({ input }) {
+        try {
+            const items = await get_auditor_emissions_requests(input.auditor);
+            return { status: 'success', items }
+        } catch (error) {
+            console.error(error)
+            return { status: 'failed', error }
+        }
+    },
+})
+.query('getById', {
+    input: z.object({
+        uuid: z.string(),
+    }),
+    async resolve({ input }) {
+        try {
+            const item = await get_auditor_emissions_request(input.uuid);
+            return { status: 'success', item }
+        } catch (error) {
+            console.error(error)
+            return { status: 'failed', error }
+        }
+    },
+})
+
+// export type definition of API
+export type EmissionsRequestsRouter = typeof emissionsRequestsRouter
+
+

@@ -13,7 +13,6 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
 import {
-  decodeDate,
   getNumOfUniqueTrackers,
   getRoles,
   getTrackerDetails,

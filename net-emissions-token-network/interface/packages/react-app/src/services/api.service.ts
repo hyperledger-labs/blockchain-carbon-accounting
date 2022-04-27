@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
-import { Token, Wallet, EmissionsRequest } from '../components/static-data';
+import { Token, Wallet } from '../components/static-data';
 import { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
@@ -138,31 +138,28 @@ export const lookupWallets = async (query: string): Promise<Wallet[]> => {
 
 export const countAuditorEmissionsRequests = async (auditor: string): Promise<number> => {
     try {
-        const url = BASE_URL + '/emissionsrequests/' + auditor + '/count';
-        const { data } = await axios.get(url, {});
-        if (data.status === 'success') return data.count
+        const data = await trpcClient.query('emissionsRequests.count', {auditor})
+        if (data.status === 'success' && data.count) return data.count
         else return 0;
     } catch(error) {
         throw new Error(handleError(error, "Cannot count auditor emissions requests"))
     }
 }
 
-export const getAuditorEmissionsRequests = async (auditor: string): Promise<EmissionsRequest[]> => {
+export const getAuditorEmissionsRequests = async (auditor: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequests/' + auditor;
-        const { data } = await axios.get(url, {});
-        if (data.status === 'success') return data.items
+        const data = await trpcClient.query('emissionsRequests.list', {auditor})
+        if (data.status === 'success' && data.items) return data.items
         else return [];
     } catch(error) {
         throw new Error(handleError(error, "Cannot get auditor emissions requests"))
     }
 }
 
-export const getAuditorEmissionsRequest = async (uuid: string): Promise<EmissionsRequest> => {
+export const getAuditorEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequest/' + uuid;
-        const { data } = await axios.get(url, {});
-        if (data.status === 'success') {
+        const data = await trpcClient.query('emissionsRequests.getById', {uuid})
+        if (data.status === 'success' && data.item) {
           return data.item;
         } else {
           throw new Error("Cannot get auditor emissions request");

@@ -83,11 +83,12 @@ export function decodeParameters(types: string[], values: any[]) {
   return abi.decode(types, values);
 }
 
-export function decodeDate(timestamp?: number) {
-  if (!timestamp) {
+/** Decodes an epoch (number of seconds since Jan 1 1970) into a Date object. */
+export function decodeDate(epoch_in_s?: number) {
+  if (!epoch_in_s) {
     return undefined;
   } else {
-    return new Date(timestamp * 1000);
+    return new Date(epoch_in_s * 1000);
   }
 }
 

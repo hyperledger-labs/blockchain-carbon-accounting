@@ -8,11 +8,13 @@ import {
   ForwardRefRenderFunction
 } from "react";
 import Table from "react-bootstrap/Table";
-import { countAuditorEmissionsRequests, getAuditorEmissionsRequests } from '../services/api.service';
-import { EmissionsRequest } from '../components/static-data';
+import { getAuditorEmissionsRequests } from '../services/api.service';
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 import { useLocation } from "wouter";
+import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
+import DisplayDate from "../components/display-date";
+import DisplayTokenAmount from "../components/display-token-amount";
 
 type EmissionsRequestsProps = {
   provider?: Web3Provider, 
@@ -25,34 +27,30 @@ type EmissionsRequestsHandle = {
 }
 
 const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress, roles }, ref) => {
-  const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
   const [ pendingEmissions, setPendingEmissions ] = useState<EmissionsRequest[]>([]);
   const [error, setError] = useState("");
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const init = async () => {
       if (provider && signedInAddress) {
-        let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
-        setEmissionsRequestsCount(_emissionsRequestsCount);
         await fetchEmissionsRequests(signedInAddress);
       }
     }
     init();
   }, [provider, signedInAddress]);
-  
+
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
   };
-  
+
   function handleOpenPendingEmissions(emissions: EmissionsRequest) {
     setLocation('/pendingemissions/' + emissions.uuid);
   };
-  
+
   const fetchEmissionsRequests = useCallback(async (auditorAddress: string) => {
     try {
       let newEmissionsRequests = await getAuditorEmissionsRequests(auditorAddress);
-
       setPendingEmissions(newEmissionsRequests);
       setError("");
     } catch (error) {
@@ -83,9 +81,9 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
               onClick={() => handleOpenPendingEmissions(emissions)}
               onMouseOver={pointerHover}
             >
-              <td>{emissions.token_from_date}</td>
-              <td>{emissions.token_thru_date}</td>
-              <td>{emissions.token_total_emissions}</td>
+              <td><DisplayDate date={emissions.token_from_date}/></td>
+              <td><DisplayDate date={emissions.token_thru_date}/></td>
+              <td><DisplayTokenAmount amount={emissions.token_total_emissions}/></td>
               <td>{emissions.token_description}</td>
             </tr>
           ))}
