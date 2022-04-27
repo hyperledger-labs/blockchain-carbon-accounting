@@ -5,7 +5,7 @@ import { queryProcessor } from './base.middle';
 
 export const queryProcessing = async (req: Request, res: Response, next: NextFunction) => {
     // disable this for tRPC endpoints
-    if (req.path.startsWith('/trpc')) {
+    if (req.path.startsWith('/trpc') || req.method !== 'GET') {
         return next();
     }
     // default offset value is zero(0)!
