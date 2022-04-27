@@ -246,7 +246,7 @@ export async function issue_emissions_tokens_with_issuee(
   const t_date = thru_date || new Date();
   const fd = Math.floor(f_date.getTime() / 1000);
   const td = Math.floor(t_date.getTime() / 1000);
-  const manifest = create_manifest(publicKey, ipfs_path, hash, undefined);
+  const manifest = create_manifest(publicKey, ipfs_path, hash);
   const description = `Emissions from ${activity_type}`;
 
   return await gateway_issue_token(issuedFrom, issuedTo, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
@@ -669,19 +669,16 @@ export async function create_emissions_request(
   return em_request
 }
 
-function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_paths?: string[]) {
-  return supporting_document_ipfs_paths ? {
-    "Public Key": publickey_name,
+function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string): {
+  "Public Key":string,
+  "Location":string,
+  "SHA256":string,
+} & Record<string, any> {
+  return {
+    "Public Key": publickey_name ?? 'unknown',
     "Location": `ipfs://${ipfs_path}`,
     "SHA256": hash,
-    "Supporting Documents Location": supporting_document_ipfs_paths.map(p=>`ipfs://${p}`)
   }
- :
-  {
-    "Public Key": publickey_name,
-    "Location": `ipfs://${ipfs_path}`,
-    "SHA256": hash
-  };
 }
 
 function get_random_auditor(auditors: Wallet[]) {
@@ -720,6 +717,14 @@ export async function process_emissions_requests() {
       return;
     }
     console.log('Randomly selected auditor: ', auditor.address);
+
+    // encode input_content and post it into ipfs
+    const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+    const h_content = hash_content(er.input_content);
+    console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
+
+    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h_content.value}`);
+
     // check if we have a supporting Document for it
     const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
     const supporting_docs_ipfs_paths: string[] = [];
@@ -730,18 +735,15 @@ export async function process_emissions_requests() {
       const h_doc = hash_content(data);
       supporting_docs_ipfs_paths.push(d_ipfs_res.path);
       console.log(`document [${doc.file.name}]: IPFS ${d_ipfs_res.path}, Hash: ${h_doc.value}`)
+      manifest.Location = d_ipfs_res.path;
+      manifest.SHA256 = h_doc.value;
     }
+
     // encode input_data and post it into ipfs
+    // TODO: do we actually need that or should we just use input_content?
     const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
     const h_res = hash_content(er.input_data);
     console.log(`input_data: IPFS ${ipfs_res.path}, Hash: ${h_res.value}`)
-
-    // encode input_content and post it into ipfs
-    const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
-    const h_content = hash_content(er.input_content);
-    console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-
-    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h_content.value}`, supporting_docs_ipfs_paths);
 
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,
