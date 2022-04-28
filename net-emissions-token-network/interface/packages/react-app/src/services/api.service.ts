@@ -8,18 +8,19 @@ import { trpcClient } from './trpc'
 axios.defaults.baseURL = BASE_URL;
 
 function handleError(error: unknown, prefix: string) {
-    const response = (error as any).response
-    console.error('Error response has data?:', response?.data)
+    const response = (error as any).response ?? error
+    const data_error = response?.data?.error ?? response?.error ?? response
+    console.error('Error response has data?:', data_error)
     let errMsg = prefix
-    if (response?.data?.error) {
-        const rde = response.data.error
-        if (rde.name === 'ApplicationError' || rde.message) {
-            errMsg += ': ' + rde.message
+    if (data_error) {
+        if (data_error.name === 'ApplicationError' || data_error.message) {
+            errMsg += ': ' + data_error.message
         } else {
-            errMsg += `:\n ${JSON.stringify(response.data.error,null,2)}`
+            errMsg += `:\n ${JSON.stringify(data_error,null,2)}`
 
         }
     }
+    console.error(`handleError: ${prefix} -->`, errMsg)
     return errMsg;
 }
 
@@ -212,8 +213,7 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         if (data.status === 'success') {
             return data;
         } else {
-            console.warn('Response was:', data)
-            throw new Error("Cannot create emissions request");
+            throw data;
         };
     } catch(error) {
         throw new Error(handleError(error, "Cannot create emissions request"))
