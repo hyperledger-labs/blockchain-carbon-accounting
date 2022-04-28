@@ -20,6 +20,7 @@ export type TokenInfo = {
   description?: string,
   fromDate?: number,
   thruDate?: number,
+  dateCreated?: number,
   totalIssued?: number,
   totalRetired?: number,
   availableBalance?: number,
@@ -139,6 +140,10 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
             <tr>
               <td>Thru date</td>
               <td><DisplayDate date={props.token.thruDate}/></td>
+            </tr>
+            <tr>
+              <td>Created date</td>
+              <td><DisplayDate date={props.token.dateCreated}/></td>
             </tr>
             <tr>
               <td>Metadata</td>
