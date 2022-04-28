@@ -731,7 +731,7 @@ export async function process_emissions_requests() {
       const h_doc = hash_content(data);
       supporting_docs_ipfs_paths.push(d_ipfs_res.path);
       console.log(`document [${doc.file.name}]: IPFS ${d_ipfs_res.path}, Hash: ${h_doc.value}`)
-      manifest.Location = d_ipfs_res.path;
+      manifest.Location = `ipfs://${d_ipfs_res.path}`;
       manifest.SHA256 = h_doc.value;
     }
 
