@@ -32,7 +32,7 @@ export type Token = {
   dateCreated?: number
   // eslint-disable-next-line
   metadata: Object
-  manifest: string
+  manifest: Object
   description: string
   totalIssued?: number
   totalRetired?: number
