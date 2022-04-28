@@ -40,16 +40,17 @@ const corsOptions = {
 
 // middleware setting
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
 // enable files upload
 app.use(fileUpload({
   createParentPath: true,
   useTempFiles : true,
   safeFileNames: true,
   preserveExtension: true,
+  limits: { fileSize: 50 * 1024 * 1024 },
   tempFileDir : '/tmp/'
 }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 // for hardhat test sync
 if(process.env.LEDGER_ETH_NETWORK === 'hardhat') {

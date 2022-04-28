@@ -70,7 +70,7 @@ export async function downloadFileEncryptedWithoutPk(ipfspath: string) {
 
 }
 
-export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false) {
+export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false, name = 'content.json') {
   try {
     const ipfs_client = create({url: process.env.IPFS_URL});
     const buff = plain_content instanceof Buffer ? plain_content : Buffer.from(plain_content, 'utf8');
@@ -96,8 +96,10 @@ export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys:
 
     const content = Buffer.concat(buffArr);
 
-    const ipfs_res = await ipfs_client.add({content});
-    return ipfs_res;
+    // the add method needs to have a parent directory, this
+    // will become the CID in IPFS
+    const ipfs_res = await ipfs_client.add({content, path: `/tmp/${name}`});
+    return { ...ipfs_res, ipfs_path: `ipfs://${ipfs_res.cid}/${name}`, filename: name}
   } catch (err) {
     console.error(err)
     throw err;

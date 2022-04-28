@@ -1,9 +1,8 @@
 import {FC, useState} from 'react';
-import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import ToggleButton from 'react-bootstrap/ToggleButton';
 import { Spinner } from 'react-bootstrap';
 
-type IssueTypeSwtichProps = {
+type IssueTypeSwitchProps = {
     h: string;
     changed: (type: string) => void;
 }
@@ -24,7 +23,7 @@ const ISSUED_TYPES: Array<ISSUED_TYPE> = [
     }, 
 ];
 
-const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
+const IssuedTypeSwitch:FC<IssueTypeSwitchProps> = ({changed, h}) => {
     const [ issuedType, setIssuedType ] = useState(ISSUED_TYPES[0].value);
     const [ loading, setLoading ] = useState(false);
 
@@ -33,7 +32,7 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
         if(issuedType === value) return;
         setIssuedType(value);
         setLoading(true);
-        await changed(value);
+        changed(value);
         setLoading(false);
     }
 
@@ -65,4 +64,4 @@ const IssuedTypeSwtich:FC<IssueTypeSwtichProps> = ({changed, h}) => {
     )
 }
 
-export default IssuedTypeSwtich;
+export default IssuedTypeSwitch;

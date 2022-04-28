@@ -1,5 +1,4 @@
 import { BigNumber } from "bignumber.js";
-import { readFileSync } from 'fs';
 import BCGatewayConfig from "emissions_data/src/blockchain-gateway/config";
 import {
   IEthNetEmissionsTokenIssueInput,
@@ -31,6 +30,8 @@ import { uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
+import { readFileSync } from "fs";
+import { extname } from "path";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -40,6 +41,10 @@ async function getDBInstance() {
   if (_db) return _db;
   _db = await PostgresDBService.getInstance();
   return _db;
+}
+
+export function emissions_in_kg_to_tokens(emissions: number) {
+  return new BigNumber(Math.round(emissions * 1000));
 }
 
 export function weight_in_uom(weight: number, uom: string, to_uom: string) {
@@ -80,11 +85,11 @@ function get_convert_kg_for_uom(uom: string): number {
   throw new Error(`Weight UOM ${uom} not supported`);
 }
 
-export function distance_in_km(distance: Distance): number {
-  return distance_in_km2(distance.value, distance.unit);
+export function distance_object_in_km(distance: Distance): number {
+  return distance_in_km(distance.value, distance.unit);
 }
 
-export function distance_in_km2(distance: number, unit?: string): number {
+export function distance_in_km(distance: number, unit?: string): number {
   if (!unit || unit === "km") return distance;
   if (unit === "mi" || unit === "miles") return distance* 1.60934;
   // not recognized
@@ -92,8 +97,8 @@ export function distance_in_km2(distance: number, unit?: string): number {
 }
 
 export function distance_in_uom(distance: number, uom: string, to_uom: string) {
-  const d1 = distance_in_km2(distance, uom)
-  const d2 = distance_in_km2(1, to_uom)
+  const d1 = distance_in_km(distance, uom)
+  const d2 = distance_in_km(1, to_uom)
   return d1 / d2;
 }
 
@@ -128,7 +133,7 @@ export async function calc_flight_emissions(
   seat_class: string,
   distance: Distance
 ): Promise<Emissions> {
-  const distance_km = distance_in_km(distance);
+  const distance_km = distance_object_in_km(distance);
   // lookup the factor for different class
   const f = await get_flight_emission_factor(seat_class);
   // assume the factor uom is in passenger.km here
@@ -140,15 +145,20 @@ export async function calc_flight_emissions(
     throw new Error(`Found factor does not have a co2_equivalent_emissions ${factor.uuid}`);
   }
   const emissions = passengers * distance_km * parseFloat(factor.co2_equivalent_emissions);
-  // assume all factors produce kgCO2e
-  return { amount: { value: emissions, unit: "kgCO2e" }, factor };
+  // convert all factors into kgCO2e based on co2_equivalent_emissions_uom
+  let uom = factor.co2_equivalent_emissions_uom
+  if (uom) {
+    // remove co2e from the weight uom if present
+    uom = uom.toLowerCase().replace(/co2.*/, '')
+  }
+  return { amount: { value: weight_in_kg(emissions, uom), unit: "kgCO2e" }, factor };
 }
 
 export async function calc_freight_emissions(
   weight_kg: number,
   distance: Distance
 ): Promise<Emissions> {
-  const distance_km = distance_in_km(distance);
+  const distance_km = distance_object_in_km(distance);
   // lookup factor for different 'mode'
   const f = await get_freight_emission_factor(distance.mode);
   // most uom should be in tonne.km here
@@ -166,7 +176,7 @@ export async function issue_emissions_tokens(
   activity_type: string,
   from_date: Date,
   thru_date: Date,
-  total_emissions: number,
+  total_emissions_in_kg: number,
   metadata: string,
   hash: string,
   ipfs_path: string,
@@ -180,7 +190,7 @@ export async function issue_emissions_tokens(
     thru_date,
     issued_from || process.env.ETH_ISSUE_FROM_ACCT || "",
     issued_to || process.env.ETH_ISSUE_TO_ACCT || "",
-    total_emissions,
+    total_emissions_in_kg,
     metadata,
     hash,
     ipfs_path,
@@ -226,18 +236,18 @@ export async function issue_emissions_tokens_with_issuee(
   thru_date: Date,
   issuedFrom: string,
   issuedTo: string,
-  total_emissions: number,
+  total_emissions_in_kg: number,
   metadata: string,
   hash: string,
   ipfs_path: string,
   publicKey: string
 ) {
-  const tokens = new BigNumber(Math.round(total_emissions));
+  const tokens = emissions_in_kg_to_tokens(total_emissions_in_kg);
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
   const fd = Math.floor(f_date.getTime() / 1000);
   const td = Math.floor(t_date.getTime() / 1000);
-  const manifest = create_manifest(publicKey, ipfs_path, hash, undefined);
+  const manifest = create_manifest(publicKey, ipfs_path, hash);
   const description = `Emissions from ${activity_type}`;
 
   return await gateway_issue_token(issuedFrom, issuedTo, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
@@ -246,7 +256,7 @@ export async function issue_emissions_tokens_with_issuee(
 async function gateway_issue_token(
   issuedFrom: string,
   issuedTo: string,
-  quantity: number,
+  quantity_of_tokens: number,
   fromDate: number,
   thruDate: number,
   manifest: string,
@@ -274,7 +284,7 @@ async function gateway_issue_token(
   const input: IEthNetEmissionsTokenIssueInput = {
     issuedFrom: issuedFrom,
     issuedTo: issuedTo,
-    quantity: quantity,
+    quantity: quantity_of_tokens,
     fromDate: fromDate,
     thruDate: thruDate,
     manifest: manifest,
@@ -372,7 +382,7 @@ export async function process_emissions_factor(
         throw new Error(`This emissions factor requires a distance and distance_uom inputs`);
       }
       amount *= distance_in_uom(a.distance, a.distance_uom, uom)
-      distance_km = distance_in_km2(a.distance, a.distance_uom)
+      distance_km = distance_in_km(a.distance, a.distance_uom)
     } else {
       if (!a.activity_amount || !a.activity_uom) {
         throw new Error(`This emissions factor requires an activity_amount and activity_uom inputs`);
@@ -380,10 +390,16 @@ export async function process_emissions_factor(
       amount *= a.activity_amount
     }
   }
+  // convert all factors into kgCO2e based on co2_equivalent_emissions_uom
+  let uom = factor.co2_equivalent_emissions_uom
+  if (uom) {
+    // remove co2e from the weight uom if present
+    uom = uom.toLowerCase().replace(/co2.*/, '')
+  }
   const emissions: Emissions = {
     amount: {
-      value: amount,
-      unit: factor.co2_equivalent_emissions_uom
+      value: weight_in_kg(amount, uom),
+      unit: "kgCO2e"
     },
     factor
   }
@@ -554,7 +570,7 @@ export async function issue_tokens(
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
-    ipfs_res.path,
+    ipfs_res.ipfs_path,
     publicKeys[0],
     issued_from,
     issued_to
@@ -566,7 +582,6 @@ export async function issue_tokens(
 export async function queue_issue_tokens(
   doc: GroupedResult,
   activity_type: string,
-  input_data: string,
   mode?: string,
   issued_from?: string,
   issued_to?: string,
@@ -581,7 +596,6 @@ export async function queue_issue_tokens(
     doc.thru_date||new Date(),
     total_emissions,
     JSON.stringify(metadata),
-    input_data,
     content,
     issued_from,
     issued_to);
@@ -613,7 +627,7 @@ export async function issue_tokens_with_issuee(
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
-    ipfs_res.path,
+    ipfs_res.ipfs_path,
     publicKeys[0]
   );
   doc.token = token_res;
@@ -624,9 +638,8 @@ export async function create_emissions_request(
   activity_type: string,
   from_date: Date,
   thru_date: Date,
-  total_emissions: number,
+  total_emissions_in_kg: number,
   metadata: string,
-  input_data: string,
   input_content: string,
   issuee_from?: string,
   issuee_to?: string,
@@ -636,11 +649,10 @@ export async function create_emissions_request(
   const status = 'CREATED';
   const f_date = from_date || new Date();
   const t_date = thru_date || new Date();
-  const tokens = new BigNumber(Math.round(total_emissions));
+  const tokens = emissions_in_kg_to_tokens(total_emissions_in_kg);
 
   const db = await getDBInstance();
   const em_request = await db.getEmissionsRequestRepo().insert({
-    input_data: input_data,
     input_content: input_content,
     issued_from: issuee_from,
     issued_to: issuee_to,
@@ -654,19 +666,16 @@ export async function create_emissions_request(
   return em_request
 }
 
-function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string, supporting_document_ipfs_path?: string) {
-  return supporting_document_ipfs_path ? {
-    "Public Key": publickey_name,
-    "Location": `ipfs://${ipfs_path}`,
+function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string): {
+  "Public Key":string,
+  "Location":string,
+  "SHA256":string,
+} & Record<string, any> {
+  return {
+    "Public Key": publickey_name ?? 'unknown',
+    "Location": ipfs_path,
     "SHA256": hash,
-    "Supporting Document Location": `ipfs://${supporting_document_ipfs_path}`
   }
- :
-  {
-    "Public Key": publickey_name,
-    "Location": `ipfs://${ipfs_path}`,
-    "SHA256": hash
-  };
 }
 
 function get_random_auditor(auditors: Wallet[]) {
@@ -684,47 +693,69 @@ function get_random_auditor(auditors: Wallet[]) {
 
 export async function process_emissions_requests() {
   const db = await getDBInstance();
-  const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
-  if (emissions_requests && emissions_requests.length > 0) {
-      const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
-      if (auditors && auditors.length > 0) {
-        // get auditors with public keys
-        const active_auditors = auditors.filter((w) => !!w.public_key);
-        if (active_auditors.length > 0) {
-          // process from created to pending
-          for (const e in emissions_requests) {
-              const er = emissions_requests[e];
-              console.log("Process emission request: ", er.uuid);
-              const auditor = get_random_auditor(active_auditors);
-              if (auditor && auditor.public_key) {
-                console.log('Randomly selected auditor: ', auditor.address);
-                // encode input_data and post it into ipfs
-                const ipfs_res = await uploadFileEncrypted(er.input_data, [auditor.public_key], true);
+  const emissions_requests = await db.getEmissionsRequestRepo().selectCreated(true);
+  if (!emissions_requests || !emissions_requests.length) {
+    console.log('There are no emissions requests to process.');
+    return;
+  }
+  const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
+  if (!auditors || !auditors.length) {
+    console.log('There are no auditors with public key.');
+    return;
+  }
+  console.log('Found auditors', auditors.map(w=>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
+  // process from created to pending
+  for (const e in emissions_requests) {
+    const er = emissions_requests[e];
+    console.log("Processing emission request: ", er.uuid);
+    const auditor = get_random_auditor(auditors);
+    if (!auditor || !auditor.public_key) {
+      console.log('Cannot select an auditor with public key.');
+      return;
+    }
+    console.log('Randomly selected auditor: ', auditor.address);
 
-                const h = hash_content(er.input_content);
-                const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
-                const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h.value}`, undefined);
+    // only upload one document
+    let uploaded = false;
+    let manifest;
 
-                await db.getEmissionsRequestRepo().updateToPending(
-                  er.uuid,
-                  auditor.address,
-                  ipfs_res.path,
-                  auditor.public_key,
-                  auditor.public_key_name,
-                  JSON.stringify(manifest)
-                  );
-              } else {
-                console.log('Cannot select auditor.');
-              }
-          }
-        } else {
-          console.log('There are no auditors with public key.');
-        }
-      } else {
-         console.log('There are no auditors.');
+    // check if we have a supporting Document for it
+    const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
+    const supporting_docs_ipfs_paths: string[] = [];
+    for (const doc of docs) {
+      const filename = (process.env.DOC_UPLOAD_PATH || './upload/') + doc.file.uuid;
+      const data = readFileSync(filename);
+      // if we want the original filename use doc.file.name directly but this might be suitable
+      // in all cases, we only need the file extension so that it can be opened once downloaded
+      const file_ext = extname(doc.file.name);
+      const ipfs_content = await uploadFileEncrypted(data, [auditor.public_key], true, `content${file_ext}`);
+      const h_content = hash_content(data);
+      supporting_docs_ipfs_paths.push(ipfs_content.path);
+      console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
+      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+      // only upload one document
+      uploaded = true;
+      if (docs.length > 1) {
+        console.error(`Found more than one supporting document, we only support uploading one, other ${docs.length-1} ignored.`)
       }
-  } else {
-      console.log('There are no emissions requests to process.');
+      break;
+    }
+
+    if (!uploaded) {
+      // encode input_content and post it into ipfs
+      const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+      const h_content = hash_content(er.input_content);
+      console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
+      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+    }
+
+    await db.getEmissionsRequestRepo().updateToPending(
+      er.uuid,
+      auditor.address,
+      auditor.public_key,
+      auditor.public_key_name,
+      JSON.stringify(manifest)
+    );
   }
 }
 

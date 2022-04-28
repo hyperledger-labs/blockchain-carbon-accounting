@@ -68,7 +68,7 @@ export function generateKeyPair(name: string) {
 }
 
 const HASH_ALGO = 'sha256';
-export function hash_content(content: string) {
-  const h = crypto.createHash(HASH_ALGO).update(content+'\n').digest('hex');
+export function hash_content(content: Buffer|string) {
+  const h = crypto.createHash(HASH_ALGO).update(content).digest('hex');
   return { type: HASH_ALGO, value: h };
 }

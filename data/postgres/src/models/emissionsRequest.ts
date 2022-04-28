@@ -17,10 +17,7 @@ export class EmissionsRequest {
   @PrimaryGeneratedColumn("uuid")
   uuid!: string;
 
-  @Column({nullable: false})
-  input_data!: string;
-
-  @Column({nullable: false})
+  @Column({nullable: false, select: false})
   input_content!: string;
 
   @Column({nullable: true})
@@ -58,9 +55,6 @@ export class EmissionsRequest {
 
   @Column({nullable: true})
   emission_auditor?: string;
-
-  @Column({nullable: true})
-  input_data_ipfs_hash?: string;
 
   @OneToMany(() => EmissionsRequestSupportingDocument, doc => doc.emissions_request)
   supporting_documents?: EmissionsRequestSupportingDocument[];

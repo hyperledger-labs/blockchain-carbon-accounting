@@ -13,7 +13,6 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
 import {
-  formatDate,
   getNumOfUniqueTrackers,
   getRoles,
   getTrackerDetails,
@@ -28,7 +27,8 @@ import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
-import IssuedTypeSwitch from '../components/issue-type-swtich';
+import IssuedTypeSwitch from '../components/issue-type-switch';
+import DisplayTokenAmount from "../components/display-token-amount";
 
 type IssuedTokensProps = {
   provider?: Web3Provider, 
@@ -153,23 +153,18 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       for (let i = 0; i < balances.length; i++) {
         const balance = balances[i];
 
-        // cast time from long to date
-        balance.token.fromDate = formatDate(balance.token.fromDate);
-        balance.token.thruDate = formatDate(balance.token.thruDate);
-        balance.token.dateCreated = formatDate(balance.token.dateCreated);
-
         let token = {
           ...balance,
           tokenId: balance.token.tokenId,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
-          availableBalance: (balance.available / 1000).toFixed(3),
-          retiredBalance: (balance.retired / 1000).toFixed(3),
-          transferredBalance: (balance.transferred / 1000).toFixed(3)
+          availableBalance: balance.available,
+          retiredBalance: balance.retired,
+          transferredBalance: balance.transferred
         }
         newMyBalances.push(token);
       }
     } catch (error) {
-      
+      console.error(error)
     }
 
     setMyBalances(newMyBalances);
@@ -191,35 +186,29 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
       // this count means total number of issued tokens
       let {tokens, count} = await getTokens(offset, _pageSize, [..._query, query]);
-      
       // this count means total pages of issued tokens
       _issuedCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
-      
       // fetch token from database
-      
       // my tokens
       // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= _pageSize; i++) {
         let tokenDetails = tokens[i-1];
         if (!tokenDetails) continue;
 
-        let fromDate = formatDate(tokenDetails.fromDate);
-        let thruDate = formatDate(tokenDetails.thruDate);
-        
-        let totalIssued = "";
+        let totalIssued: number|undefined;
         try {
-          totalIssued = (Number(tokenDetails.totalIssued) / 1000).toFixed(3);
+          totalIssued = Number(tokenDetails.totalIssued);
         } catch (error) {
           console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
-          totalIssued = "";
+          totalIssued = undefined;
         }
 
-        let totalRetired = "";
+        let totalRetired: number|undefined;
         try {
-          totalRetired = (Number(tokenDetails.totalRetired) / 1000).toFixed(3);
+          totalRetired = Number(tokenDetails.totalRetired);
         } catch (error) {
           console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
-          totalRetired = "";
+          totalRetired = undefined;
         }
 
         let token: Token = {
@@ -232,8 +221,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           issuedBy: tokenDetails.issuedBy,
           issuedTo: tokenDetails.issuedTo,
           dateCreated: tokenDetails.dateCreated,
-          fromDate: fromDate,
-          thruDate: thruDate,
+          fromDate: tokenDetails.fromDate,
+          thruDate: tokenDetails.thruDate,
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
@@ -259,10 +248,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         // Fetch tracker details
         let trackerDetails = await getTrackerDetails(provider, i);
         console.log('--- trackerDetails', trackerDetails);
-
-        // Format unix times to Date objects
-        let fromDate = formatDate(trackerDetails.fromDate.toNumber());
-        let thruDate = formatDate(trackerDetails.thruDate.toNumber());
 
         let totalEmissions = "";
         try {
@@ -290,8 +275,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           for (let j = 0; j <= trackerIds.length; j++) {
             tokenAmounts = await getTokenAmounts(provider,i,sourceTracker);
             for (let k = 0; k < tokenAmounts[2].length; k++) {
-              
-
               totalOutNumber += ( tokenAmounts[2][k].toNumber()/ 1000);
             }
             sourceTracker = trackerIds[j];
@@ -317,36 +300,22 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
           ciVct = "";
         }
-        /*let totalOffset = "";
-        try {
-          totalOffset = trackerDetails.totalOffset.toNumber();
-          totalOffset = (totalOffset / 1000).toFixed(3);
-        } catch (error) {
-          console.warn("Cannot convert total Audited to number", trackerDetails.totalOffset);
-          totalOffset = "";
-        }*/
 
         let tracker: Tracker = {
           trackerId: i,
           trackee: trackerDetails.trackee,
-          fromDate: fromDate,
-          thruDate: thruDate,
+          fromDate: trackerDetails.fromDate,
+          thruDate: trackerDetails.thruDate,
           metadata: trackerDetails.metadata,
           description: trackerDetails.description,
           totalEmissions: totalEmissions,
           totalAudited: totalAudited,
-         //totalOffset: totalOffset,
           totalOut: totalOut,
           ciAec: ciAec,
           ciVct: ciVct,
           sourceTrackers: {
             trackerIds: [],
             trackerAmounts: [{
-              /*0:{
-                tokenIds: [],
-                inAmounts: [],
-                outAmounts: []
-              }*/
             }],
             tokenIds: [],
             totalOut: [],
@@ -356,7 +325,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
         if (tracker.trackee.toLowerCase() === signedInAddress.toLowerCase()) {
           newMyIssuedTrackers.push({...tracker});
-          //NFT.isMyIssuedTracker = true;
         }
       }
 
@@ -446,7 +414,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                 href="/issue">
                 Issue
               </Button> 
-            
+
             {(emissionsRequestsCount) ?
               <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
               : null
@@ -476,8 +444,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                       <td>{token.tokenId}</td>
                       <td>{token.tokenType}</td>
                       <td>{token.description}</td>
-                      <td>{token.totalIssued}</td>
-                      <td>{token.totalRetired}</td>
+                      <td><DisplayTokenAmount amount={token.totalIssued}/></td>
+                      <td><DisplayTokenAmount amount={token.totalRetired}/></td>
                     </tr>
                   ))}
               </tbody>
@@ -504,7 +472,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                   <th>Description</th>
                   <th>Total Emissions</th>
                   <th>Total Audited</th>
-                  <th>Tracker IDs</th>                  
+                  <th>Tracker IDs</th>
                   {/* <th>Total Output</th>
                       <th>Outputs Tracked</th>*/}
                 </tr>
@@ -521,9 +489,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                       <td>{tracker.description}</td>
                       <td>{tracker.totalEmissions}</td>
                       <td>{tracker.totalAudited}</td>
-                      {/* <th>Total Output</th>
-                          <th>Outputs Tracked</th>*/}
-                      
                     </tr>
                   ))}
               </tbody>

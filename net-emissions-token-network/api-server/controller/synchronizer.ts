@@ -127,12 +127,15 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
         // restructure 
         const _metadata = token.metadata as string;
+        const _manifest = token.manifest as string;
         // eslint-disable-next-line
-        let metaObj: any = {}
+        let metaObj: any = {};
+        let manifestObj: any = {};
         try {
           metaObj = JSON.parse(_metadata);
+          manifestObj = JSON.parse(_manifest);
         } catch (error) {
-          console.error('Invalid JSON in token metadata:', _metadata);
+          console.error('Invalid JSON in token metadata or manifest:', _metadata, _manifest);
           metaObj = {}
         }
 
@@ -145,12 +148,13 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
         // build token model
         // eslint-disable-next-line
-        const { metadata, ..._tokenPayload } = { ...token };
+        const { metadata, manifest, ..._tokenPayload } = { ...token };
         const tokenPayload: TokenPayload = {
             ..._tokenPayload,
             scope,
             type,
-            metadata: metaObj
+            metadata: metaObj,
+            manifest: manifestObj
         };
 
         // reset totalIssued and totalRetired
@@ -168,7 +172,7 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 export const truncateTable = async () => {
     const db = await PostgresDBService.getInstance()
     await db.getTokenRepo().truncateTokens();
-    await db.getBalanceRepo().truncateBalances();
+    // truncate balances is also done by truncate tokens
     console.log('--- Tables has been cleared. ----\n')
 }
 

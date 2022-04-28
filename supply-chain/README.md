@@ -63,7 +63,7 @@ In this case the IPFS content ID can be retrieved in the group "token.manifest" 
 ...
 "token": {
     ...
-    "manifest": "ipfs://<content_id>",
+    "manifest": "ipfs://<content_id>/content.json",
     ...
 },
 .....
@@ -71,7 +71,7 @@ In this case the IPFS content ID can be retrieved in the group "token.manifest" 
 
 Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
 ```
-npm run cli -- -pk user1-private.pem -fetch <content_id>
+npm run cli -- -pk user1-private.pem -fetch <content_id>/content.json
 ```
 
 ## REST API

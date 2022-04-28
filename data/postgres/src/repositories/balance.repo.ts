@@ -33,11 +33,11 @@ export class BalanceRepo {
     }
   }
 
-  public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>) : Promise<Array<Balance>> => {
+  public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>) => {
     try {
-      let selectBuilder: SelectQueryBuilder<Balance> = this._db.getRepository(Balance).createQueryBuilder('balance')
+      let selectBuilder = this._db.getRepository(Balance).createQueryBuilder('balance')
       selectBuilder = buildQueries('balance', selectBuilder, bundles, [Balance, Token])
-      return selectBuilder    
+      return await selectBuilder
         .limit(limit)
         .offset(offset)
         .orderBy('balance.tokenId', 'ASC')

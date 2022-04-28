@@ -161,7 +161,6 @@ function getActivity(body: any): Activity {
 export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
-    console.log('postEmissionsRequest request is', req.body)
     const db = await PostgresDBService.getInstance()
     // check the supporting document was uploaded
     if (!req.files || !req.files.supportingDocument) {
@@ -205,10 +204,6 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     const queue_result = await queue_issue_tokens(
       group,
       activity_type,
-      JSON.stringify({
-        issued_from,
-        ...activity
-      }),
       undefined, // mode
       issued_from,
       issued_to,
@@ -229,7 +224,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
 
     // do something with it ?
     console.log(`postEmissionsRequest moving to upload folder as ${uploaded_file.uuid} ...`)
-    supportingDocument.mv('./upload/' + uploaded_file.uuid);
+    supportingDocument.mv((process.env.DOC_UPLOAD_PATH || './upload/') + uploaded_file.uuid);
 
     return res.status(200).json({ status: 'success', queue_result, result });
   } catch (error) {

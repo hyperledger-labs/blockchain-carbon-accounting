@@ -85,7 +85,7 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
             reject({trackingNumber, error});
           });
         } else {
-          resolve(result);
+          reject({trackingNumber, error: 'Package not delivered yet!'});
         }
       })
       .catch(error => {

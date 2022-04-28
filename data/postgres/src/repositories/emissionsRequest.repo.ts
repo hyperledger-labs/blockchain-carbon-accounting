@@ -20,22 +20,30 @@ export class EmissionsRequestRepo {
     })
   }
 
-  public selectAll = async (): Promise<Array<EmissionsRequest>> => {
-    return await this._db.getRepository(EmissionsRequest).find()
+  public getERQueryBuilder(includeSensitiveFields = false) {
+    const q = this._db.getRepository(EmissionsRequest).createQueryBuilder('emissions_request')
+    if (includeSensitiveFields) {
+      return q.addSelect('emissions_request.input_content')
+    }
+    return q
   }
 
-  public selectPending = async (): Promise<Array<EmissionsRequest>> => {
-    return await this.selectByStatus('PENDING')
+  public selectAll = async (includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
+    return await this.getERQueryBuilder(includeSensitiveFields)
+      .getMany()
   }
 
-  public selectCreated = async (): Promise<Array<EmissionsRequest>> => {
-    return await this.selectByStatus('CREATED')
+  public selectPending = async (includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
+    return await this.selectByStatus('PENDING', includeSensitiveFields)
   }
 
-  public selectByStatus = async (status: string): Promise<Array<EmissionsRequest>> => {
+  public selectCreated = async (includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
+    return await this.selectByStatus('CREATED', includeSensitiveFields)
+  }
+
+  public selectByStatus = async (status: string, includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
     try {
-      return await this._db.getRepository(EmissionsRequest)
-        .createQueryBuilder('emissions_request')
+      return await this.getERQueryBuilder(includeSensitiveFields)
         .where("emissions_request.status = :status", {status})
         .getMany()
     } catch (error) {
@@ -43,11 +51,10 @@ export class EmissionsRequestRepo {
     }
   }
 
-  public selectByEmissionAuditor = async (emissionAuditor: string): Promise<Array<EmissionsRequest>> => {
+  public selectByEmissionAuditor = async (emissionAuditor: string, includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
     const status = 'PENDING';
     try {
-      return await this._db.getRepository(EmissionsRequest)
-        .createQueryBuilder('emissions_request')
+      return await this.getERQueryBuilder(includeSensitiveFields)
         .where("LOWER(emissions_request.emission_auditor) = LOWER(:emissionAuditor)", {emissionAuditor})
         .andWhere("emissions_request.status = :status", {status})
         .getMany()
@@ -72,7 +79,6 @@ export class EmissionsRequestRepo {
   public updateToPending = async (
       uuid: string,
       emissionAuditor: string,
-      inputDataIpfsHash: string,
       publicKey: string,
       publicKeyName: string | undefined,
       tokenManifest: string
@@ -84,7 +90,6 @@ export class EmissionsRequestRepo {
       .update(EmissionsRequest)
       .set({
         emission_auditor: () =>  `'${emissionAuditor}'`,
-        input_data_ipfs_hash: () => `'${inputDataIpfsHash}'`,
         public_key: () => `'${publicKey}'`,
         public_key_name: () => `'${publicKeyName}'`,
         token_manifest: () => `'${tokenManifest}'`,
@@ -122,10 +127,19 @@ export class EmissionsRequestRepo {
     await this.updateStatus(uuid, 'ISSUED')
   }
 
-  public selectEmissionsRequest = async (uuid: string): Promise<EmissionsRequest | null> => {
-    return await this._db.getRepository(EmissionsRequest).findOneBy({uuid})
+  public selectEmissionsRequest = async (uuid: string, includeSensitiveFields = false): Promise<EmissionsRequest | null> => {
+    return await this.getERQueryBuilder(includeSensitiveFields)
+      .where({uuid})
+      .getOne()
   }
 
+  public selectSupportingDocuments = async (emissions_request: EmissionsRequest) => {
+    return await this._db.getRepository(EmissionsRequestSupportingDocument)
+      .createQueryBuilder("doc")
+      .leftJoinAndSelect("doc.file", "uploaded_file")
+      .where({emissions_request})
+      .getMany()
+  }
   public addSupportingDocument = async (emissions_request: EmissionsRequest, file: UploadedFile) => {
     const repo = this._db.getRepository(EmissionsRequestSupportingDocument)
     const supporting_doc = repo

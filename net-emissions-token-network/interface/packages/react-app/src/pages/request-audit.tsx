@@ -17,11 +17,14 @@ type RequestAuditProps = {
   limitedMode: boolean
 }
 
+
+type ShipmentMode = 'air' | 'ground' | 'sea' | '';
+
 export type EmissionsFactorForm = {
   issued_from: string,
   activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
   ups_tracking: string
-  shipment_mode: 'air' | 'ground' | 'sea' | ''
+  shipment_mode: ShipmentMode
   weight: string
   weight_uom: 'kg' | 'lbs'
   distance: string
@@ -335,6 +338,10 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       <h2>Request audit</h2>
       <Form
         onSubmit={async(e)=>{
+          // autoselect emissionsFactor when drilled down to only one choice if this mode was selected
+          if (emForm.activity_type === 'emissions_factor' && !emForm.emissions_factor_uuid && lookupQuery.data?.emissionsFactors.length === 1) {
+            selectEmissionsFactor(lookupQuery.data.emissionsFactors[0])
+          }
           // always stop the event as we handle all in this function
           e.preventDefault()
           e.stopPropagation()
@@ -366,7 +373,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           }
         }}
         noValidate validated={validated}>
-        
+
         <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} />
 
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
@@ -382,7 +389,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
               {value:'air', label:'Air'},
               {value:'ground', label:'Ground'},
               {value:'sea', label:'Sea'}
-            ]}/>
+            ]} onChange={(val)=>{ if(val) setEmForm({...emForm, ups_tracking: '', shipment_mode: val as ShipmentMode});  }}/>
             {!emForm.shipment_mode && <>
               <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="ups_tracking" label="UPS Tracking Number" required/>
               </>}
@@ -432,16 +439,19 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
               </> : <>
                 <h3 id="lookupForm">Choose an emissions factor</h3>
-                {level1sQuery.data && 
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}/>
+                {level1sQuery.data &&
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}
+                    onChange={(val)=>{setEmForm({...emForm, level_1:val, level_2:'', level_3: '', level_4: ''})}}/>
               }
-                {emForm.level_1 && level2sQuery.data && 
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}/>
+                {emForm.level_1 && level2sQuery.data &&
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}
+                    onChange={(val)=>{setEmForm({...emForm, level_2:val, level_3: '', level_4: ''})}}/>
               }
-                {emForm.level_1 && emForm.level_2 && level3sQuery.data && 
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}/>
+                {emForm.level_1 && emForm.level_2 && level3sQuery.data &&
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}
+                    onChange={(val)=>{setEmForm({...emForm, level_3:val, level_4: ''})}}/>
               }
-                {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && 
+                {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && level4sQuery.data.emissionsFactors.length > 1 &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_4" label="Level 4" values={level4sQuery.data.emissionsFactors}/>
               }
                 {lookupQuery.data ?
@@ -464,6 +474,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
                       aria-hidden="true"
                       />
                   </div>}
+                {validated && formErrors && formErrors.emissions_factor_uuid && <>
+                  <span className="is-invalid"></span>
+                  <Form.Control.Feedback type="invalid">
+                    {(formErrors && formErrors.emissions_factor_uuid) || "This value is required"}
+                  </Form.Control.Feedback></>}
                 </>}
 
             </>}
@@ -478,12 +493,12 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          {topError && <ErrorAlert error={topError} />}
+          {topError && <ErrorAlert error={topError} onDismiss={()=>{resetForm()}} />}
 
           {topSuccess ?
             <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
               <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>
-              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}CO2e</div>
+              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
             </SuccessAlert>
             : 
 

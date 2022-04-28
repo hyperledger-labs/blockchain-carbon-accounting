@@ -34,8 +34,9 @@ export class Token {
     // eslint-disable-next-line
     metadata!: Object;
 
-    @Column()
-    manifest!: string;
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    // eslint-disable-next-line
+    manifest!: Object;
 
     @Column({nullable: true})
     description!: string;

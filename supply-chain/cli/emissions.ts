@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
-import { readFileSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { sep } from 'path';
 import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import {
   GroupedResult,
@@ -22,7 +23,6 @@ function print_usage() {
   console.log('  -pk privatekey.pem: is used to decrypt content (only when fetching content from IPFS).');
   console.log('  -generatekeypair name: generates a name-privatekey.pem and name-publickey.pem which can be used as -pk and -pubk respectively.');
   console.log('  -fetch objectpath: fetch the ipfs://<objectpath> object, if -pk is given will decrypt the file with it.');
-  console.log('  -verify: when fetching from IPFS, outputs the hash.');
   console.log('  -queue: create EmissionsRequest instead of issuing the token');
   console.log('  -processrequests: process EmissionsRequests, get and randomly assign emission auditors');
   console.log('  -v or --verbose to switch to a more verbose output format.');
@@ -39,7 +39,6 @@ let privateKey: string|undefined = undefined;
 let fetchObjectPath: string|undefined = undefined;
 let pretend = false;
 let verbose = false;
-let verify = false;
 let queue = false;
 let processrequests = false;
 const generatedKeypairs: string[] = [];
@@ -48,7 +47,6 @@ const generatedKeypairs: string[] = [];
 // -h or --help
 // -v or --verbose
 // -fetch <ipfs_content_id>
-// -verify
 // -pk <filename>
 // -pubk <filename>
 // -generatekeypair <name>
@@ -82,8 +80,6 @@ for (let i=0; i<args.length; i++) {
     if (fetchObjectPath) throw new Error('Cannot define multiple objects to fetch');
     a = args[i];
     fetchObjectPath = a;
-  } else if (a === '-verify') {
-    verify = true;
   } else if (a === '-p' || a === '-pretend' || a === '--pretend') {
     pretend = true;
   } else if (a === '-v' || a === '-verbose' || a === '--verbose') {
@@ -108,9 +104,9 @@ type OutputActivity = {
   error?: string
 };
 
-async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], input_data: string, mode?: string) {
+async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
   const token_res = queue ? 
-    await queue_issue_tokens(g, activity_type, input_data, mode) :
+    await queue_issue_tokens(g, activity_type, mode) :
     await issue_tokens(g, activity_type, publicKeys, mode);
   // add each activity to output array
   for (const a of g.content) {
@@ -128,16 +124,21 @@ if (fetchObjectPath) {
     throw new Error('A privatekey is required, specify one with -pk <privatekey.pem>');
   }
 
-  downloadFileEncrypted(fetchObjectPath, privateKey).then((res) => {
+  const filename = fetchObjectPath
+  downloadFileEncrypted(filename, privateKey).then((res) => {
     if (res) {
-      const result = res.toString('utf8');
-      if (verify) {
-        const h = hash_content(result);
-        console.log(`HASH: ${h.type}:${h.value}`);
-        console.log('');
-        console.log('=====from IPFS =======')
+      // binary works the same as 'utf8' here
+      // TODO: need a way to save the extension so files can be opened
+      const dirs = filename.split(sep);
+      if (dirs.length > 1) {
+        for (let i = 0; i < dirs.length-1; i++) {
+          mkdirSync(dirs[i]);
+        }
       }
-      console.log(result);
+      writeFileSync(filename, res, 'binary');
+      const h = hash_content(res);
+      console.log(`HASH: ${h.type}:${h.value}`);
+      console.log(`File saved: ${filename}`);
     }
   });
 } else {
@@ -177,11 +178,11 @@ if (fetchObjectPath) {
           const group = grouped_by_type[t] as GroupedResults;
           for (const mode in group) {
             const doc = group[mode] as GroupedResult;
-            await process_group(output_array, doc, t, publicKeys, data, mode);
+            await process_group(output_array, doc, t, publicKeys, mode);
           }
         } else {
           const doc = grouped_by_type[t] as GroupedResult;
-          await process_group(output_array, doc, t, publicKeys, data);
+          await process_group(output_array, doc, t, publicKeys);
         }
       }
       // add back any errors we filtered before to the output

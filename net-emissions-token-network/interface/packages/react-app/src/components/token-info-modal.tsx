@@ -5,36 +5,37 @@ import Col from "react-bootstrap/Col";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { FaCoins } from 'react-icons/fa';
+import DisplayDate from "./display-date";
+import DisplayJSON from "./display-json";
+import DisplayTokenAmount from "./display-token-amount";
+
+
+export type TokenInfo = {
+  isMyIssuedToken?: boolean,
+  tokenId?: number,
+  tokenType?: string,
+  issuedBy?: string,
+  issuedFrom?: string,
+  issuedTo?: string,
+  description?: string,
+  fromDate?: number,
+  thruDate?: number,
+  dateCreated?: number,
+  totalIssued?: number,
+  totalRetired?: number,
+  availableBalance?: number,
+  retiredBalance?: number,
+  metadata?: any,
+  manifest?: any,
+}
 
 type TokenInfoModalProps = {
   show:boolean
-  token:any
+  token:TokenInfo
   onHide:()=>void 
 }
 
 const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
-
-  const castMetadata = (metadata: any) => {
-    if(metadata === undefined || !metadata) return <></>;
-    
-    if(typeof metadata === 'string') {
-      try {
-        metadata = JSON.parse(metadata);
-      } catch (err) {
-        console.error('Could not parse JSON from ', metadata);
-      }
-    } 
-    
-    let keys: string[] = [];
-    let values: string[] = [];
-    for (const key in metadata) {
-      keys.push(key);
-      values.push(metadata[key]);
-    }
-    
-    return <>{keys.filter((k,i)=>k&&values[i]).map((key, i) => <div key={`${key}-${i}`}><b>{key}</b> : {values[i]}</div>
-    )}</>
-  };
 
   return (
     <Modal {...props} centered size="lg">
@@ -47,16 +48,16 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
           {props.token.isMyIssuedToken ?
             <Col className="col-5 offset-1 text-right">
               <h5 className="text-secondary">Total Issued</h5>
-              <h1>{props.token.totalIssued}</h1>
+              <h1><DisplayTokenAmount amount={props.token.totalIssued}/></h1>
               <h5 className="text-secondary">Total Retired</h5>
-              <h2>{props.token.totalRetired}</h2>
+              <h2><DisplayTokenAmount amount={props.token.totalRetired}/></h2>
             </Col>
             :
             <Col className="col-4 offset-1 text-right">
               <h5 className="text-secondary">Available Balance</h5>
-              <h1>{props.token.availableBalance}</h1>
+              <h1><DisplayTokenAmount amount={props.token.availableBalance}/></h1>
               <h5 className="text-secondary">Retired Balance</h5>
-              <h2>{props.token.retiredBalance}</h2>
+              <h2><DisplayTokenAmount amount={props.token.retiredBalance}/></h2>
             </Col>
           }
 
@@ -92,7 +93,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
                 <Button
                   variant="success"
                   href={`/transfer?tokenId=${props.token.tokenId}`}
-                  disabled={Number(props.token.availableBalance) <= 0}
+                  disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
                 >
                   Transfer
                 </Button>
@@ -103,7 +104,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
                 <Button
                   variant="danger"
                   href={`/retire?tokenId=${props.token.tokenId}`}
-                  disabled={Number(props.token.availableBalance) <= 0}
+                  disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
                 >
                   Retire
                 </Button>
@@ -134,22 +135,26 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
             </tr>
             <tr>
               <td>From date</td>
-              <td>{props.token.fromDate}</td>
+              <td><DisplayDate date={props.token.fromDate}/></td>
             </tr>
             <tr>
               <td>Thru date</td>
-              <td>{props.token.thruDate}</td>
+              <td><DisplayDate date={props.token.thruDate}/></td>
+            </tr>
+            <tr>
+              <td>Created date</td>
+              <td><DisplayDate date={props.token.dateCreated}/></td>
             </tr>
             <tr>
               <td>Metadata</td>
               <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
-                {castMetadata(props.token.metadata)}
+                <DisplayJSON json={props.token.metadata}/>
               </td>
             </tr>
             <tr>
               <td>Manifest</td>
               <td style={{ overflowWrap: "anywhere" }}>
-                {castMetadata(props.token.manifest)}
+                <DisplayJSON json={props.token.manifest}/>
               </td>
             </tr>
             <tr>

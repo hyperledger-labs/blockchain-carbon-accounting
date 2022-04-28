@@ -4,6 +4,7 @@ import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postg
 import { ZodError } from 'zod';
 import { balanceRouter } from './balance.trpc'
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
+import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
 
 // created for each request, here set the DB connector
@@ -13,20 +14,21 @@ const createContext = async () => ({
 export type TrpcContext = trpc.inferAsyncReturnType<typeof createContext>;
 
 const createRouter = () => {
-    // this adds the zodError to the response which can then be
-    // analyzed for input errors
-    return trpc.router<TrpcContext>().formatError(({ shape, error }) => {
-        return {
-            ...shape,
-            data: {
-                ...shape.data,
-                zodError:
-                error.code === 'BAD_REQUEST' &&
-                    error.cause instanceof ZodError
-                    ? error.cause.flatten()
-                    : null,
-            }
+  // this adds the zodError to the response which can then be
+  // analyzed for input errors
+  return trpc.router<TrpcContext>()
+    .formatError(({ shape, error }) => {
+      return {
+        ...shape,
+        data: {
+          ...shape.data,
+          zodError:
+          error.code === 'BAD_REQUEST' &&
+            error.cause instanceof ZodError
+            ? error.cause.flatten()
+            : null,
         }
+      }
     })
 }
 
@@ -34,6 +36,7 @@ const appRouter = createRouter()
   .merge('balance.', balanceRouter)
   .merge('wallet.', walletRouter)
   .merge('emissionsFactors.', emissionsFactorsRouter)
+  .merge('emissionsRequests.', emissionsRequestsRouter)
 
 export type AppRouter = typeof appRouter
 
