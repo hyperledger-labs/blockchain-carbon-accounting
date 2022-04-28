@@ -692,7 +692,7 @@ function get_random_auditor(auditors: Wallet[]) {
 
 export async function process_emissions_requests() {
   const db = await getDBInstance();
-  const emissions_requests = await db.getEmissionsRequestRepo().selectCreated();
+  const emissions_requests = await db.getEmissionsRequestRepo().selectCreated(true);
   if (!emissions_requests || !emissions_requests.length) {
     console.log('There are no emissions requests to process.');
     return;
