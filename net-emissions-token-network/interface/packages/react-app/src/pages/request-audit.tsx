@@ -493,7 +493,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </Form.Control.Feedback>
           </Form.Group>
 
-          {topError && <ErrorAlert error={topError} />}
+          {topError && <ErrorAlert error={topError} onDismiss={()=>{resetForm()}} />}
 
           {topSuccess ?
             <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
