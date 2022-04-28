@@ -78,7 +78,6 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
       for (const entity of entities) {
         const md = builder.connection.getMetadata(entity)
         if (md.hasColumnWithPropertyPath(query.field)) {
-          console.log('found field',query.field,'in entity',md.name);
           alias = md.name;
           break;
         }
