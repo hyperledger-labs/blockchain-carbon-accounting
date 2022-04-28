@@ -17,7 +17,7 @@ export class EmissionsRequest {
   @PrimaryGeneratedColumn("uuid")
   uuid!: string;
 
-  @Column({nullable: false})
+  @Column({nullable: false, select: false})
   input_content!: string;
 
   @Column({nullable: true})
