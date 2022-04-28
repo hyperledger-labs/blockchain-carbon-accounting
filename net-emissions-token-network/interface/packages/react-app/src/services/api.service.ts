@@ -1,13 +1,15 @@
 import axios from 'axios';
-import { Balance, Token, Wallet, EmissionsRequest } from '../components/static-data';
-import { EmissionsFactorForm } from '../pages/request-audit';
+import type { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
+import type { Token, Wallet } from '../components/static-data';
+import type { EmissionsFactorForm } from '../pages/request-audit';
+import { BASE_URL } from './api.config';
+import { trpcClient } from './trpc'
 
-export const BASE_URL = "http://localhost:8000";
 axios.defaults.baseURL = BASE_URL;
 
 function handleError(error: unknown, prefix: string) {
     const response = (error as any).response
-    console.error('Axios error has data?:', response?.data)
+    console.error('Error response has data?:', response?.data)
     let errMsg = prefix
     if (response?.data?.error) {
         const rde = response.data.error
@@ -19,6 +21,21 @@ function handleError(error: unknown, prefix: string) {
         }
     }
     return errMsg;
+}
+
+
+function buildBundlesFromQueries(query: string[]) {
+    let bundles: QueryBundle[] = []
+    query.forEach(elem => {
+        const elems = elem.split(',')
+        bundles.push({
+            field: elems[0],
+            fieldType: elems[1],
+            value: elems[2],
+            op: elems[3],
+        })
+    });
+    return bundles
 }
 
 export const getTokens = async (offset: number, limit: number, query: string[]): Promise<{count:number, tokens:Token[], status:string}> => {
@@ -40,19 +57,18 @@ export const getTokens = async (offset: number, limit: number, query: string[]):
     }
 }
 
-export const getBalances = async (offset: number, limit: number, query: string[]): Promise<{count: number, balances: Balance[]}> => {
+export const getBalances = async (offset: number, limit: number, query: string[]) => {
     try {
-        var params = new URLSearchParams();
-        params.append('offset', offset.toString());
-        params.append('limit', limit.toString());
-        query.forEach(elem => {
-            params.append('bundles', elem);
-        });
-        const { data } = await axios.get('/balances', {
-            params
-        });
-        if(data.status === 'success') return data;
-        else return {count: 0, balances: []};
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getBalances:', offset, limit, bundles)
+        const list = await trpcClient.query('balance.list', {offset, limit, bundles})
+        console.info('getBalances result:', list)
+        if (list.status === 'success' && list.balances) {
+            return { count: list.count, balances: list.balances }
+        } else {
+            if (list.status !== 'success') console.error('getBalances error:', list.error)
+            return {count: 0, balances: []};
+        }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get balances"))
     }
@@ -122,35 +138,32 @@ export const lookupWallets = async (query: string): Promise<Wallet[]> => {
 
 export const countAuditorEmissionsRequests = async (auditor: string): Promise<number> => {
     try {
-        const url = BASE_URL + '/emissionsrequests/' + auditor + '/count';
-        const { data } = await axios.get(url, {});
-        if (data.status === 'success') return data.count
+        const data = await trpcClient.query('emissionsRequests.count', {auditor})
+        if (data.status === 'success' && data.count) return data.count
         else return 0;
     } catch(error) {
         throw new Error(handleError(error, "Cannot count auditor emissions requests"))
     }
 }
 
-export const getAuditorEmissionsRequests = async (auditor: string): Promise<EmissionsRequest[]> => {
+export const getAuditorEmissionsRequests = async (auditor: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequests/' + auditor;
-        const { data } = await axios.get(url, {});
-        if (data.status === 'success') return data.items
+        const data = await trpcClient.query('emissionsRequests.list', {auditor})
+        if (data.status === 'success' && data.items) return data.items
         else return [];
     } catch(error) {
         throw new Error(handleError(error, "Cannot get auditor emissions requests"))
     }
 }
 
-export const getAuditorEmissionsRequest = async (uuid: string): Promise<EmissionsRequest> => {
+export const getAuditorEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequest/' + uuid;
-        const { data } = await axios.get(url, {});
-        if (data.status === 'success') {
+        const data = await trpcClient.query('emissionsRequests.getById', {uuid})
+        if (data.status === 'success' && data.item) {
           return data.item;
         } else {
           throw new Error("Cannot get auditor emissions request");
-        };
+        }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get auditor emissions request"))
     }
@@ -158,13 +171,12 @@ export const getAuditorEmissionsRequest = async (uuid: string): Promise<Emission
 
 export const declineEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequest/' + uuid;
-        const { data } = await axios.delete(url, {});
+        const data = await trpcClient.mutation('emissionsRequests.decline', {uuid})
         if (data.status === 'success') {
           return data;
         } else {
           throw new Error("Cannot decline emissions request");
-        };
+        }
     } catch(error) {
         throw new Error(handleError(error, "Cannot decline emissions request"))
     }
@@ -172,15 +184,14 @@ export const declineEmissionsRequest = async (uuid: string) => {
 
 export const issueEmissionsRequest = async (uuid: string) => {
     try {
-        const url = BASE_URL + '/emissionsrequest/' + uuid;
-        const { data } = await axios.put(url, {});
+        const data = await trpcClient.mutation('emissionsRequests.issue', {uuid})
         if (data && data.status === 'success') {
           return data;
         } else {
-          throw new Error("cannot issue emissions request");
-        };
+          throw new Error("Cannot issue emissions request");
+        }
     } catch(error) {
-        throw new Error("cannot issue emissions request");
+        throw new Error(handleError(error, "Cannot issue emissions request"))
     }
 }
 
@@ -193,7 +204,11 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         }
         formData.append("supportingDocument", supportingDocument);
         formData.append("signedInAddress", signedInAddress);
-        const { data } = await axios.post(url, formData);
+        const resp = await fetch(url, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await resp.json();
         if (data.status === 'success') {
             return data;
         } else {

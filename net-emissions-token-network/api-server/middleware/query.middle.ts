@@ -4,6 +4,10 @@ import { QueryBundle } from 'blockchain-accounting-data-postgres/src/repositorie
 import { queryProcessor } from './base.middle';
 
 export const queryProcessing = async (req: Request, res: Response, next: NextFunction) => {
+    // disable this for tRPC endpoints
+    if (req.path.startsWith('/trpc') || req.method !== 'GET') {
+        return next();
+    }
     // default offset value is zero(0)!
     const offset = parseInt(req.query.offset as string || '0');
     const limit = parseInt(req.query.limit as string || '25');

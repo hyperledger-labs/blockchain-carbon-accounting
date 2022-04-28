@@ -41,11 +41,21 @@ export interface TokenPayload {
 
 export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
 
+const OP_MAP: Record<string, string> = {
+    'eq': '=',
+    'like': 'like',
+    'ls': '<',
+    'gt': '>',
+};
+
 // eslint-disable-next-line
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>, entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
   const len = queries.length
   for (let i = 0; i < len; i++) {
     const query: QueryBundle = queries[i]
+    if (OP_MAP[query.op]) {
+      query.op = OP_MAP[query.op]
+    }
 
     // last payload
     const payload: StringPayload = {}

@@ -27,15 +27,15 @@ export type Token = {
   issuedBy: string
   issuedFrom: string
   issuedTo: string
-  fromDate: number|string
-  thruDate: number|string
-  dateCreated: number|string
+  fromDate?: number
+  thruDate?: number
+  dateCreated?: number
   // eslint-disable-next-line
   metadata: Object
   manifest: string
   description: string
-  totalIssued: number|string
-  totalRetired: number|string
+  totalIssued?: number
+  totalRetired?: number
   scope: number
   type: string
   isMyIssuedToken?: boolean
@@ -44,8 +44,8 @@ export type Token = {
 export type Tracker = {
   trackerId: number
   trackee: string
-  fromDate: string
-  thruDate: string
+  fromDate?: number
+  thruDate?: number
   metadata: string
   description: string
   totalEmissions: string
@@ -70,9 +70,9 @@ export type Balance = {
   transferred: number
   token: Token
   tokenType?: string
-  availableBalance?: string
-  retiredBalance?: string
-  transferredBalance?: string
+  availableBalance?: number
+  retiredBalance?: number
+  transferredBalance?: number
 }
 
 export type Proposal = {
@@ -113,26 +113,6 @@ export type RolesInfo = {
   hasAnyRole?: boolean
   hasIndustryRole?: boolean
   hasDealerRole?: boolean
-}
-
-export type EmissionsRequest = {
-  uuid: string
-  input_data: string
-  public_key: string
-  public_key_name: string
-  issued_from: string
-  issued_to: string
-  status: string
-  token_from_date?: Date
-  token_thru_date?: Date
-  token_total_emissions: number
-  token_metadata?: string
-  token_manifest?: string
-  token_description?: string
-  emission_auditor?: string
-  input_data_ipfs_hash?: string
-  created_at: Date
-  updated_at: Date
 }
 
 export type Role = 'None' | 'Owner' | 'Consumer' | 'REC Dealer' | 'Offset Dealer' | 'Emissions Auditor' | 'Industry' | 'Industry Dealer'
