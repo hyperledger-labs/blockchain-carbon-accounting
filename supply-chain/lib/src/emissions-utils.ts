@@ -31,6 +31,7 @@ import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
 import { readFileSync } from "fs";
+import { extname } from "path";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -569,7 +570,7 @@ export async function issue_tokens(
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
-    ipfs_res.path,
+    ipfs_res.ipfs_path,
     publicKeys[0],
     issued_from,
     issued_to
@@ -626,7 +627,7 @@ export async function issue_tokens_with_issuee(
     total_emissions,
     JSON.stringify(metadata),
     `${h.value}`,
-    ipfs_res.path,
+    ipfs_res.ipfs_path,
     publicKeys[0]
   );
   doc.token = token_res;
@@ -672,7 +673,7 @@ function create_manifest(publickey_name: string | undefined, ipfs_path: string, 
 } & Record<string, any> {
   return {
     "Public Key": publickey_name ?? 'unknown',
-    "Location": `ipfs://${ipfs_path}`,
+    "Location": ipfs_path,
     "SHA256": hash,
   }
 }
@@ -714,12 +715,9 @@ export async function process_emissions_requests() {
     }
     console.log('Randomly selected auditor: ', auditor.address);
 
-    // encode input_content and post it into ipfs
-    const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
-    const h_content = hash_content(er.input_content);
-    console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-
-    const manifest = create_manifest(auditor.public_key_name, ipfs_content.path, `${h_content.value}`);
+    // only upload one document
+    let uploaded = false;
+    let manifest;
 
     // check if we have a supporting Document for it
     const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
@@ -727,12 +725,28 @@ export async function process_emissions_requests() {
     for (const doc of docs) {
       const filename = (process.env.DOC_UPLOAD_PATH || './upload/') + doc.file.uuid;
       const data = readFileSync(filename);
-      const d_ipfs_res = await uploadFileEncrypted(data, [auditor.public_key], true);
-      const h_doc = hash_content(data);
-      supporting_docs_ipfs_paths.push(d_ipfs_res.path);
-      console.log(`document [${doc.file.name}]: IPFS ${d_ipfs_res.path}, Hash: ${h_doc.value}`)
-      manifest.Location = `ipfs://${d_ipfs_res.path}`;
-      manifest.SHA256 = h_doc.value;
+      // if we want the original filename use doc.file.name directly but this might be suitable
+      // in all cases, we only need the file extension so that it can be opened once downloaded
+      const file_ext = extname(doc.file.name);
+      const ipfs_content = await uploadFileEncrypted(data, [auditor.public_key], true, `content${file_ext}`);
+      const h_content = hash_content(data);
+      supporting_docs_ipfs_paths.push(ipfs_content.path);
+      console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
+      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+      // only upload one document
+      uploaded = true;
+      if (docs.length > 1) {
+        console.error(`Found more than one supporting document, we only support uploading one, other ${docs.length-1} ignored.`)
+      }
+      break;
+    }
+
+    if (!uploaded) {
+      // encode input_content and post it into ipfs
+      const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+      const h_content = hash_content(er.input_content);
+      console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
+      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
     }
 
     await db.getEmissionsRequestRepo().updateToPending(

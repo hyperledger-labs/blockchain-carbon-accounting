@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
-import { readFileSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { sep } from 'path';
 import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import {
   GroupedResult,
@@ -128,6 +129,12 @@ if (fetchObjectPath) {
     if (res) {
       // binary works the same as 'utf8' here
       // TODO: need a way to save the extension so files can be opened
+      const dirs = filename.split(sep);
+      if (dirs.length > 1) {
+        for (let i = 0; i < dirs.length-1; i++) {
+          mkdirSync(dirs[i]);
+        }
+      }
       writeFileSync(filename, res, 'binary');
       const h = hash_content(res);
       console.log(`HASH: ${h.type}:${h.value}`);
