@@ -8,7 +8,7 @@ import { issue } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
-import DisplayDate from "../components/display-date";
+import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
 
@@ -46,15 +46,18 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     if (provider && selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         const tokenTypeId = 3;
+        // handle the dates properly
+        const from_date = parseDate(selectedPendingEmissions.token_from_date);
+        const thru_date = parseDate(selectedPendingEmissions.token_thru_date);
         if (!selectedPendingEmissions.issued_from) {
           setError("Empty issued from.");
           return;
         }
-        if (!selectedPendingEmissions.token_from_date) {
+        if (!from_date) {
           setError("Empty token from date.");
           return;
         }
-        if (!selectedPendingEmissions.token_thru_date) {
+        if (!thru_date) {
           setError("Empty token thru date.");
           return;
         }
@@ -79,8 +82,8 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           selectedPendingEmissions.issued_to,
           tokenTypeId,
           quantity_formatted,
-          selectedPendingEmissions.token_from_date,
-          selectedPendingEmissions.token_thru_date,
+          from_date,
+          thru_date,
           selectedPendingEmissions.token_metadata,
           selectedPendingEmissions.token_manifest,
           selectedPendingEmissions.token_description);
