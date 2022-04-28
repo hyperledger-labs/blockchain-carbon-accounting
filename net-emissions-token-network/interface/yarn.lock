@@ -2290,24 +2290,24 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@trpc/client@^9.23.0":
-  version "9.23.1"
-  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.23.1.tgz#45db781a9efd95c02b9c5121725bd146b6ba9eb0"
-  integrity sha512-Whnn2dH2h1nJVwBVUkqToAry5iDDMwuYAHdMY6y0eEgk3ngzZ+1wZYTxtNwq6jEJm4GxWFP2ymoYqQ3h1CROZg==
+"@trpc/client@^9.23.2":
+  version "9.23.2"
+  resolved "https://registry.yarnpkg.com/@trpc/client/-/client-9.23.2.tgz#db833db0884b5121b355ae70e6f7b36e66e58814"
+  integrity sha512-L4ZajhrrupESQXE565UekQH6SDXoL4zCRTF5+/tZ+Y0YkE1DUdBmwBUwWSFIco/QkkMdzNovjZU1xEEWMc+0rw==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/react@^9.23.0":
-  version "9.23.1"
-  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.23.1.tgz#0837ee702a5bdb9654dc5fe32b81c402134a91aa"
-  integrity sha512-KVmcv4HYdWRm61/Dbtkr40p3JmC6WsOrnJ/Evs3hoE04viOEYmIS2ugfmN42ymP3zgCV1hzNCQ/SQncAXtu11g==
+"@trpc/react@^9.23.2":
+  version "9.23.2"
+  resolved "https://registry.yarnpkg.com/@trpc/react/-/react-9.23.2.tgz#35ac7bf7b1129813b8f741ca71384f405d2734b0"
+  integrity sha512-T30BCRUNPt5BcVqZMSrqhF1qBIUrSOxwLvyp6pr8CXYmnypPLHvdPm3cgxjddeMuVZg8aggU8lhfPkTuAZBpEw==
   dependencies:
     "@babel/runtime" "^7.9.0"
 
-"@trpc/server@^9.23.0":
-  version "9.23.1"
-  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.23.1.tgz#1318caf741ca4461b0bccb658c53160e502a498d"
-  integrity sha512-fcFo8VAfujulXsNnFen4fuajyLpRcKoVrwuLir11T+16bj03sqoxhPIDBXEMhSSELi0SzdTrRPWxqbZW9BZa4A==
+"@trpc/server@^9.23.2":
+  version "9.23.2"
+  resolved "https://registry.yarnpkg.com/@trpc/server/-/server-9.23.2.tgz#ed2703d5b3c1e27a2749459458b248b07be07b87"
+  integrity sha512-uFvn2pFV+wJWLtvH3sqwF+1xfMp1m3Irq4S9MkNtUIFER9k3o6RN6FU2yUA+nefeCDkGsptPE7R4RbxojtpNXw==
 
 "@trysound/sax@0.2.0":
   version "0.2.0"
@@ -6837,9 +6837,9 @@ globby@^11.0.4:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-"gluegun@git+https://github.com/edgeandnode/gluegun.git#v4.3.1-pin-colors-dep":
+"gluegun@https://github.com/edgeandnode/gluegun#v4.3.1-pin-colors-dep":
   version "4.3.1"
-  resolved "git+https://github.com/edgeandnode/gluegun.git#b34b9003d7bf556836da41b57ef36eb21570620a"
+  resolved "https://github.com/edgeandnode/gluegun#b34b9003d7bf556836da41b57ef36eb21570620a"
   dependencies:
     apisauce "^1.0.1"
     app-module-path "^2.2.0"

@@ -13,7 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@trpc/server": "^9.23.0",
+    "@trpc/server": "^9.23.2",
     "blockchain-accounting-data-postgres": "file:../../data/postgres",
     "chalk": "^5.0.1",
     "cors": "^2.8.5",
