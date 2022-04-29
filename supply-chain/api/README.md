@@ -5,7 +5,7 @@
 * Run `ipfs daemon` on local computer.
 * Emissions contract is running on a network, either local hardhat or a public testnet or livenet.
 * Configure `supply-chain/.env` with issuer wallet and private key and API keys.
-* The `REST_API_PORT` key in that `.env` is to setup the API server port, by default it will use port 5000.
+* The `SUPPLY_CHAIN_API_PORT` key in that `.env` is to setup the API server port, by default it will use port 5000.
 * Create public/private key pair for encrypting your file base on instructions in [`supply-chain/README.md`](../README.md)
 
 ## Run server

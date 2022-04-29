@@ -2,8 +2,7 @@ import express, { Application } from 'express';
 import fileUpload from 'express-fileupload';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 // sanity checks
 const assertEnv = (key: string) => {
     if (!process.env[key]) {

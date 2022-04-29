@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import React, { ElementRef, FC, useRef, useState } from "react";
-import { useQuery } from "@apollo/react-hooks";
+import { ElementRef, FC, useRef, useState } from "react";
 
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
@@ -22,7 +21,6 @@ import useWeb3Modal from "./hooks/useWeb3Modal";
 
 import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 
-import GET_TRANSFERS from "./graphql/subgraph";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { trpc, useTrpcClient } from "./services/trpc";
 
@@ -30,18 +28,11 @@ const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
 
-  const { loading, error, data } = useQuery(GET_TRANSFERS);
   const { provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode } = useWeb3Modal();
 
   const [location] = useLocation();
 
   const dashboardRef = useRef<ElementRef<typeof Dashboard>>(null);
-
-  React.useEffect(() => {
-    if (!loading && !error && data && data.transfers) {
-      console.log({ transfers: data.transfers });
-    }
-  }, [loading, error, data]);
 
   const isOwner = roles.isAdmin;
   const isDealer = roles.hasDealerRole;

@@ -12,7 +12,22 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
   }
 
   public putUtilityLookupItem = async (doc: UtilityLookupItemInterface) => {
-    await this._db.getRepository(UtilityLookupItem).save(doc)
+    const item = new UtilityLookupItem()
+
+    item.class = doc.class
+    item.key = doc.key
+    item.uuid = doc.uuid
+    item.year = doc.year
+    item.utility_number = doc.utility_number
+    item.utility_name = doc.utility_name
+    item.country = doc.country
+    item.state_province = doc.state_province
+    if (doc.divisions) {
+      item.division_type = doc.divisions.division_type
+      item.division_id = doc.divisions.division_id
+    }
+
+    await this._db.getRepository(UtilityLookupItem).save(item)
   }
 
   public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface | null> => {
