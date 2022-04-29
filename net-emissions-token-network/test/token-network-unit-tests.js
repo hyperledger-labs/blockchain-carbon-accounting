@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-/* global deployments:readonly */
 const { expect, assert } = require("chai");
-const { getNamedAccounts } = require("hardhat");
+const { getNamedAccounts, deployments } = require("hardhat");
 const {
   allTokenTypeId,
   quantity,
