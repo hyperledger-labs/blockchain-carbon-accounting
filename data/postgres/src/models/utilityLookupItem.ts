@@ -13,7 +13,7 @@ export class UtilityLookupItem implements UtilityLookupItemInterface {
 
   @Column()
   class!: string
-  @Column()
+  @Column({nullable:true})
   key?: string
   @Column()
   year?: string
@@ -25,9 +25,9 @@ export class UtilityLookupItem implements UtilityLookupItemInterface {
   country?: string
   @Column()
   state_province?: string
-  @Column()
+  @Column({nullable:true})
   division_type?: string
-  @Column()
+  @Column({nullable:true})
   division_id?: string
 }
 

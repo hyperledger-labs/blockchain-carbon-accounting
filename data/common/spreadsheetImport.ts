@@ -606,7 +606,7 @@ export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progres
       opts.verbose && console.log("-- Prepare to insert from ", row);
       const d: UtilityLookupItemInterface = {
         class: UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER,
-        uuid: "USA_EIA_" + row["Utility Number"],
+        uuid: uuidv4(),
         year: row["Data Year"],
         utility_number: row["Utility Number"],
         utility_name: row["Utility Name"].replace(/'/g, "`").replace(/ /g, "_"),
