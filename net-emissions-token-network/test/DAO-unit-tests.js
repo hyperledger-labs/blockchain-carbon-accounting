@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
+/* global deployments:readonly */
 const { expect } = require("chai");
 const {
   advanceBlocks,
   createProposal,
   hoursToBlocks,
   proposalStates,
-  revertError
+  revertError,
+  ethers
 } = require("./common.js");
 const { getNamedAccounts } = require("hardhat");
 

@@ -2,7 +2,9 @@ module.exports = {
     "root": true,
     "env": {
         "browser": true,
-        "es2021": true
+        "node": true,
+        "es2021": true,
+        "mocha": true
     },
     "extends": [
         "eslint:recommended",
@@ -17,5 +19,6 @@ module.exports = {
         "@typescript-eslint"
     ],
     "rules": {
+        '@typescript-eslint/no-var-requires': 0,
     }
 }

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+/* global deployments:readonly */
 const { expect, assert } = require("chai");
 const { getNamedAccounts } = require("hardhat");
 const {
@@ -11,9 +12,10 @@ const {
   metadata,
   manifest,
   description,
-  revertError
+  revertError,
+  upgrades,
+  ethers
 } = require("./common.js");
-const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Unit tests", function() {
 

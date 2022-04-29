@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
+/* global deployments:readonly */
 const { expect } = require("chai");
 const {
   advanceBlocks,
   createMultiAttributeProposal,
   hoursToBlocks,
   proposalStates,
-  revertError
+  revertError,
+  ethers
 } = require("./common.js");
 const { getNamedAccounts } = require("hardhat");
 
@@ -22,7 +24,7 @@ describe("Climate DAO - Multi-attribute proposal tests", function() {
   it("should allow a user to make a multi-attribute proposal", async function () {
 
     const { deployer } = await getNamedAccounts();
-    const daoToken = await ethers.getContract('DAOToken');
+    await ethers.getContract('DAOToken');
     const governor = await ethers.getContract('Governor');
     const netEmissionsTokenNetwork = await ethers.getContract('NetEmissionsTokenNetwork');
 

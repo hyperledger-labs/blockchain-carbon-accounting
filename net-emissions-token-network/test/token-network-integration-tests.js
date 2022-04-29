@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+/* global deployments:readonly */
 const { expect } = require("chai");
 const {
   allTokenTypeId,
@@ -10,9 +11,10 @@ const {
   metadata,
   manifest,
   description,
-  revertError
+  revertError,
+  ethers
 } = require("./common.js");
-const { ethers } = require("./ethers-provider");
+const { getNamedAccounts } = require("hardhat");
 
 describe("Net Emissions Token Network - Integration tests", function() {
 
@@ -59,7 +61,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     expect(issue);
 
     try {
-      let issueWithDealerTwo = await contract
+      await contract
         .connect(await ethers.getSigner(dealer2))
         .issue(
           dealer1,
@@ -79,7 +81,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     try {
-      let issueWithConsumer = await contract
+      await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
           dealer1,
@@ -105,7 +107,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get available/retire balance before transfer
     let expectedTotalAvailableBefore = quantity.toString();
     let expectedTotalRetiredBefore = "0";
-    let beforeTransferBalanceAmount = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableBefore},${expectedTotalRetiredBefore}`)
@@ -117,7 +119,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // try to transfer balance greater than the available balance
     try {
-      let transferFail = await contract.transfer(consumer1, tokenId, quantity + 1);
+      await contract.transfer(consumer1, tokenId, quantity + 1);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("ERC1155: insufficient balance for transfer")
@@ -132,23 +134,23 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // verify available balance after transfer for consumer one
     let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
-    let afterTransferBalances = await contract
+    await contract
       .balanceOf(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
 
     // verify balances after transfer for consumer two
     let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
-    let afterTransferBalancesConsumerTwo = await contract
+    await contract
       .balanceOf(consumer2, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
-     let retire = await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId, retireAmount);
+    await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId, retireAmount);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
     let expectedTotalAvailableAfterRetire = (transferAmount - retireAmount).toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
-    let afterRetireAndTransferBalance = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
@@ -156,7 +158,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // test to make sure retired token balance cannot be transferred
     try {
-      let transferRetired = await contract.transfer(consumer1, tokenId, quantity);
+      await contract.transfer(consumer1, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("ERC1155: insufficient balance for transfer")
@@ -164,7 +166,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     // issue more tokens to the same consumer
-    let issueTwo = await contract
+    await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
         dealer1,
@@ -180,13 +182,13 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // retire some of the newly issued tokens
 
-    let retireTwo = await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 1, retireAmount);
+    await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 1, retireAmount);
     //let retireThree = await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 2, retireAmount);
 
     // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
     let expectedAvailableTwo = (quantity - retireAmount).toString();
     let expectedRetireTwo = retireAmount.toString();
-    let afterRetireTwo = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
@@ -242,7 +244,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     expect(issue);
 
     try {
-      let issueWithDealerTwo = await contract
+      await contract
         .connect(await ethers.getSigner(dealer2))
         .issue(
           dealer2,
@@ -262,7 +264,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     try {
-      let issueWithConsumer = await contract
+      await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
           dealer1,
@@ -288,7 +290,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get available/retired balance before transfer
     let expectedTotalAvailableBefore = quantity.toString();
     let expectedTotalRetiredBefore = "0";
-    let beforeTransferBalanceAmount = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableBefore},${expectedTotalRetiredBefore}`)
@@ -300,7 +302,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // try to transfer balance greater than the available balance
     try {
-      let transferFail = await contract.transfer(consumer1, tokenId, quantity + 1);
+      await contract.transfer(consumer1, tokenId, quantity + 1);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("ERC1155: insufficient balance for transfer")
@@ -315,23 +317,23 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // verify available balance after transfer for consumer one
     let expectedTotalAvailableAfterTransfer = (quantity - transferAmount).toString();
-    let afterTransferBalances = await contract
+    await contract
       .balanceOf(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransfer));
 
     // verify balances after transfer for consumer two
     let expectedTotalAvailableAfterTransferConsumerTwo = transferAmount.toString();
-    let afterTransferBalancesConsumerTwo = await contract
+    await contract
       .balanceOf(consumer2, tokenId)
       .then((response) => expect(response.toString()).to.equal(expectedTotalAvailableAfterTransferConsumerTwo));
 
     // retire part of the balance
-    let retire = await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId, retireAmount);
+    await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId, retireAmount);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
     let expectedTotalAvailableAfterRetire = (transferAmount - retireAmount).toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
-    let afterRetireAndTransferBalance = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
@@ -339,7 +341,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // test to make sure retired token cannot be transferred
     try {
-      let transferRetired = await contract.transfer(consumer1, tokenId, quantity);
+      await contract.transfer(consumer1, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("ERC1155: insufficient balance for transfer")
@@ -347,7 +349,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     // issue more tokens to the same consumer
-    let issueTwo = await contract
+    await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
         dealer1,
@@ -361,7 +363,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         description
       );
 
-    let issueThree = await contract
+    await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
         dealer1,
@@ -377,19 +379,19 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // retire some of the newly issued tokens
 
-    let retireTwo = await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 1, retireAmount);
-    let retireThree = await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 2, retireAmount);
+    await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 1, retireAmount);
+    await contract.connect(await ethers.getSigner(consumer1)).retire(tokenId + 2, retireAmount);
 
     // get total balances of newly issued/retired tokens.  It should correctly return both the available and retired balances the tokens.
     let expectedAvailableTwo = (quantity - retireAmount).toString();
     let expectedRetireTwo = retireAmount.toString();
-    let afterRetireTwo = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
     let expectedAvailableThree = (quantity - retireAmount).toString();
     let expectedRetireThree = retireAmount.toString();
-    let afterRetireThree = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
@@ -439,7 +441,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     expect(issue);
 
     try {
-      let issueWithDealerTwo = await contract
+      await contract
         .connect(await ethers.getSigner(dealer2))
         .issue(
           dealer2,
@@ -459,7 +461,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     try {
-      let issueWithConsumer = await contract
+      await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
           dealer2,
@@ -485,7 +487,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get available/retire balance
     let expectedAvailable = "0";
     let expectedRetire = quantity.toString();
-    let available = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
 
@@ -495,7 +497,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // try to transfer the Audited Emissions token to another consumer, verify that it fails
     try {
-      let transferRetired = await contract.transfer(consumer1, tokenId, quantity);
+      await contract.transfer(consumer1, tokenId, quantity);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("ERC1155: insufficient balance for transfer")
@@ -503,7 +505,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     // issue more tokens to the same consumer
-    let issueTwo = await contract
+    await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
         dealer1,
@@ -517,7 +519,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
         description
       );
 
-    let issueThree = await contract
+    await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
         dealer2,
@@ -534,13 +536,13 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // get total balance of tokens of this type.  It should correctly return both the available and retired balances from all the tokens.
     let expectedAvailableTwo = "0";
     let expectedRetireTwo = quantity.toString();
-    let afterRetireTwo = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId + 1)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableTwo},${expectedRetireTwo}`));
 
     let expectedAvailableThree = "0";
     let expectedRetireThree = quantity.toString();
-    let afterRetireThree = await contract
+    await contract
       .getAvailableAndRetired(consumer1, tokenId + 2)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailableThree},${expectedRetireThree}`));
 
@@ -555,7 +557,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
   it("should define a Carbon Token, go through userflow with token", async function() {
 
-    const { deployer, dealer1, dealer2, consumer1, consumer2, industry1, industry2 } = await getNamedAccounts();
+    const { deployer, dealer1, consumer1, consumer2, industry1, industry2 } = await getNamedAccounts();
 
     // register Industry (as admin REGISTERED_DEALER)
     let registerDealerInd = await contract.registerDealer(industry1, allTokenTypeId[3]);
@@ -601,7 +603,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
 
     try {
-      let issueWithConsumer = await contract
+      await contract
         .connect(await ethers.getSigner(consumer1))
         .issue(
           industry1,
@@ -619,7 +621,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     try {
-      let issueWithIndustryTwo = await contract
+      await contract
         .connect(await ethers.getSigner(industry2))
         .issue(
           industry2,
@@ -639,7 +641,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     try {
-      let issueWithAe = await contract
+      await contract
         .connect(await ethers.getSigner(dealer1))
         .issue(
           dealer1,
@@ -665,7 +667,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Get available/retire balance
     let expectedAvailable = quantity.toString();
     let expectedRetire = "0";
-    let available = await contract
+    await contract
       .getAvailableAndRetired(industry1, tokenId)
       .then((response) => expect(response.toString()).to.equal(`${expectedAvailable},${expectedRetire}`));
 
@@ -685,7 +687,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     expect(transfer);
     
     /*
-    // Drop this test as we no longer require recieving party approval to transfer tracker tokens
+    // Drop this test as we no longer require receiving party approval to transfer tracker tokens
     // Assume that their in an inhenet value in holding volunrary tracker tokens linked to an emission profile
 
     // try to transfer carbon tokens again, verify that it fails with approval signature is not valid
@@ -705,7 +707,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
     msg = ethers.utils.arrayify(msg);
     signature = await signer.signMessage(msg);
     try {
-      let transfer2 = await contract
+      await contract
         .connect(await ethers.getSigner(industry1))
         .safeTransferFrom(industry1, industry2, tokenId, quantity,signature);
     } catch (err) {
@@ -716,12 +718,12 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // retire part of the balance
     let retire = await contract.connect(await ethers.getSigner(industry1)).retire(tokenId, retireAmount);
-    let event = (await retire.wait(0)).events[0];
-    
+    (await retire.wait(0)).events[0];
+
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
     let expectedTotalAvailableAfterRetire = (transferAmount - retireAmount).toString();
     let expectedTotalRetireAfterRetire = retireAmount.toString();
-    let afterRetireAndTransferBalance = await contract
+    await contract
       .getAvailableAndRetired(industry1, tokenId)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetire},${expectedTotalRetireAfterRetire}`)
@@ -729,7 +731,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // test to make sure retired token balance cannot be transferred
     try {
-      let transferRetired = await contract
+      await contract
         .connect(await ethers.getSigner(industry1))
         .retire(tokenId, quantity);
     } catch (err) {
