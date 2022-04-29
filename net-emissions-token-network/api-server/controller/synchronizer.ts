@@ -127,16 +127,22 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
         // restructure 
         const _metadata = token.metadata as string;
-        const _manifest = token.manifest as string;
         // eslint-disable-next-line
         let metaObj: any = {};
+        try {
+          if (_metadata) metaObj = JSON.parse(_metadata);
+        } catch (error) {
+          console.error('Invalid JSON in token metadata:', _metadata);
+          metaObj = {}
+        }
+        const _manifest = token.manifest as string;
+        // eslint-disable-next-line
         let manifestObj: any = {};
         try {
-          metaObj = JSON.parse(_metadata);
-          manifestObj = JSON.parse(_manifest);
+          if (_manifest) manifestObj = JSON.parse(_manifest);
         } catch (error) {
-          console.error('Invalid JSON in token metadata or manifest:', _metadata, _manifest);
-          metaObj = {}
+          console.error('Invalid JSON in token manifest:', _manifest);
+          manifestObj = {}
         }
 
         // extract scope and type
