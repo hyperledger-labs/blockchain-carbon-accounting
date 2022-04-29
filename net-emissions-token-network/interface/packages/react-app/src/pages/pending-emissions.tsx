@@ -49,7 +49,8 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         // handle the dates properly
         const from_date = parseDate(selectedPendingEmissions.token_from_date);
         const thru_date = parseDate(selectedPendingEmissions.token_thru_date);
-        if (!selectedPendingEmissions.issued_from) {
+        const issued_from = selectedPendingEmissions.issued_from || signedInAddress;
+        if (!issued_from) {
           setError("Empty issued from.");
           return;
         }
@@ -78,7 +79,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         let quantity_formatted = Math.round(selectedPendingEmissions.token_total_emissions * 1000) / 1000;
 
         let result = await issue(provider,
-          selectedPendingEmissions.issued_from,
+          issued_from,
           selectedPendingEmissions.issued_to,
           tokenTypeId,
           quantity_formatted,
