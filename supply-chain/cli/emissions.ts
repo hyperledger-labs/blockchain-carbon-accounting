@@ -1,4 +1,4 @@
-import * as dotenv from 'dotenv';
+import 'dotenv/config';
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { sep } from 'path';
 import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
@@ -12,9 +12,6 @@ import {
   queue_issue_tokens
 } from 'supply-chain-lib/src/emissions-utils';
 import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
-
-// common config
-dotenv.config();
 
 function print_usage() {
   console.log('Usage: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
