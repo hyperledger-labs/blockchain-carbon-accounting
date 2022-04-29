@@ -8,7 +8,7 @@ dotenv.config({path: '../.env'});
 import { router } from './app/routers/router';
 
 const app: Application = express();
-const PORT: number | string = process.env.REST_API_PORT || 5000;
+const PORT: number | string = process.env.SUPPLY_CHAIN_API_PORT || 5000;
 
 const corsOptions = {
     origin: "http://localhost:3000"
