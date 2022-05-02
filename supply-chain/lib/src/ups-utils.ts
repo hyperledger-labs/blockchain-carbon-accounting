@@ -80,7 +80,9 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
             calc_freight_emissions(weight, distance).then(emissions=>{
               output.emissions = emissions;
               resolve(result);
-            });
+            }).catch(error => {
+                reject({trackingNumber, error});
+              });
           }).catch(error => {
             reject({trackingNumber, error});
           });
