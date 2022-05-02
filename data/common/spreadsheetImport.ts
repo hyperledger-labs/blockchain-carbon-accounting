@@ -134,7 +134,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
           type: EMISSIONS_FACTOR_TYPE,
-          level_1: "Emissions Factor",
+          level_1: "eGRID EMISSIONS FACTORS",
           level_2: "USA",
           level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
           scope: "SCOPE 2",
@@ -181,7 +181,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
           uuid: uuidv4(),
           type: EMISSIONS_FACTOR_TYPE,
-          level_1: "Emissions Factor",
+          level_1: "eGRID EMISSIONS FACTORS",
           level_2: "USA",
           level_3: `STATE: ${row["State abbreviation"]}`,
           scope: "SCOPE 2",
@@ -223,7 +223,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
           type: EMISSIONS_FACTOR_TYPE,
-          level_1: "Emissions Factor",
+          level_1: "eGRID EMISSIONS FACTORS",
           level_2: "USA",
           level_3: "COUNTRY: USA",
           scope: "SCOPE 2",
