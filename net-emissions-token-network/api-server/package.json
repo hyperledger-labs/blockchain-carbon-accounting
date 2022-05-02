@@ -21,12 +21,14 @@
     "ethers": "^5.6.4",
     "express": "^4.18.0",
     "express-fileupload": "^1.3.1",
+    "express-request-context": "^1.0.1",
     "pg": "^8.7.3",
     "supply-chain-lib": "file:../../supply-chain/lib",
     "web3": "^1.7.3",
     "zod": "^3.14.4"
   },
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/express-fileupload": "^1.2.2",

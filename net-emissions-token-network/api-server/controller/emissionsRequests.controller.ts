@@ -99,12 +99,13 @@ export async function getEmissionsRequest(req: Request, res: Response) {
   }
 }
 
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor' {
   if (body.activity_type === 'shipment' || body.activity_type === 'flight' || body.activity_type === 'emissions_factor') return body.activity_type
   throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getActivity(body: any): Activity {
   const activity_type = getActivityType(body)
 
