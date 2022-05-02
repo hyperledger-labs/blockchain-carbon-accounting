@@ -1,19 +1,21 @@
-import { generateKeyPair } from '../../supply-chain/lib/src/crypto-utils';
-import { syncWalletRoles } from '../api-server/controller/synchronizer';
-import { PostgresDBService } from '../../data/postgres/src/postgresDbService';
 import { existsSync, unlinkSync, readFileSync } from 'fs';
 import { expect } from 'chai';
+import { v4 as uuidv4 } from 'uuid';
 import sinon from 'sinon';
 import { run, network, getNamedAccounts, deployments, ethers } from "hardhat";
 import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
 import { OPTS_TYPE } from '../api-server/server';
 import { Contract } from 'ethers';
-import { group_processed_activities, process_activities } from '../api-server/node_modules/supply-chain-lib/src/emissions-utils';
+import { GroupedResult, GroupedResults, group_processed_activities, process_activities, process_emissions_requests, queue_issue_tokens } from '../api-server/node_modules/supply-chain-lib/src/emissions-utils';
+import { generateKeyPair, hash_content } from '../../supply-chain/lib/src/crypto-utils';
+import { syncWalletRoles } from '../api-server/controller/synchronizer';
+import { PostgresDBService } from '../../data/postgres/src/postgresDbService';
 import { get_gclient } from '../api-server/node_modules/supply-chain-lib/src/distance-utils';
 import { get_ups_client } from '../api-server/node_modules/supply-chain-lib/src/ups-utils';
-import { v4 as uuidv4 } from 'uuid';
 import { ActivityEmissionsFactorLookup } from '../api-server/node_modules/blockchain-accounting-data-postgres/src/models/activityEmissionsFactorLookup';
 import { EmissionsFactorInterface } from '../../supply-chain/node_modules/emissions_data_chaincode/src/lib/emissionsFactor';
+import { issue_emissions_request } from '../api-server/controller/emissionsRequests.controller';
+import { downloadFileEncrypted } from '../api-server/node_modules/supply-chain-lib/src/ipfs-utils';
 
 function cleanup() {
   if (existsSync('tests-private.pem')) unlinkSync('tests-private.pem');
@@ -45,9 +47,54 @@ async function addTestEmissionsFactorAndLookup(efl: ActivityEmissionsFactorLooku
 }
 
 
+async function setupDBSeed() {
+  await addTestEmissionsFactorAndLookup({
+    mode:'flight',
+    type:'economy',
+    scope:'Scope 3',
+    level_1:'Business travel- air',
+    level_2:'Flights',
+    level_3:'INTERNATIONAL, TO/FROM NON-UK',
+    level_4:'ECONOMY CLASS',
+    text:'With RF',
+    activity_uom:'passenger.km'
+  });
+  await addTestEmissionsFactorAndLookup({
+    mode:'flight',
+    type:'business',
+    scope:'Scope 3',
+    level_1:'Business travel- air',
+    level_2:'Flights',
+    level_3:'INTERNATIONAL, TO/FROM NON-UK',
+    level_4:'BUSINESS CLASS',
+    text:'With RF',
+    activity_uom:'passenger.km'
+  });
+  await addTestEmissionsFactorAndLookup({
+    mode:'carrier',
+    type:'ground',
+    scope:'Scope 3',
+    level_1:'Freighting good',
+    level_2:'Vans',
+    level_3:'',
+    level_4:'',
+    text:'',
+    activity_uom:'tonne.km'
+  });
+  await addTestEmissionsFactor({
+    ...factor_fields,
+    level_1: 'BUSINESS TRAVEL- SEA',
+    level_2: 'FERRY',
+    level_3: 'FOOT PASSENGER',
+    activity_uom:'passenger.km',
+    uuid: uuidv4()
+  });
+}
+
+
 let geoCount = 1;
 
-describe("Emissions and Tokens requests test", function() {
+describe("Emissions and Tokens requests test (must have IPFS running)", function() {
   before(async function() {
     cleanup();
     // create a test connection instance
@@ -62,50 +109,9 @@ describe("Emissions and Tokens requests test", function() {
     // clean DB state
     await db.getConnection().synchronize(true);
     // add some factors needed for the test
-    await addTestEmissionsFactorAndLookup({
-      mode:'flight',
-      type:'economy',
-      scope:'Scope 3',
-      level_1:'Business travel- air',
-      level_2:'Flights',
-      level_3:'INTERNATIONAL, TO/FROM NON-UK',
-      level_4:'ECONOMY CLASS',
-      text:'With RF',
-      activity_uom:'passenger.km'
-    });
-    await addTestEmissionsFactorAndLookup({
-      mode:'flight',
-      type:'business',
-      scope:'Scope 3',
-      level_1:'Business travel- air',
-      level_2:'Flights',
-      level_3:'INTERNATIONAL, TO/FROM NON-UK',
-      level_4:'BUSINESS CLASS',
-      text:'With RF',
-      activity_uom:'passenger.km'
-    });
-    await addTestEmissionsFactorAndLookup({
-      mode:'carrier',
-      type:'ground',
-      scope:'Scope 3',
-      level_1:'Freighting good',
-      level_2:'Vans',
-      level_3:'',
-      level_4:'',
-      text:'',
-      activity_uom:'tonne.km'
-    });
-    await addTestEmissionsFactor({
-      ...factor_fields,
-      level_1: 'BUSINESS TRAVEL- SEA',
-      level_2: 'FERRY',
-      level_3: 'FOOT PASSENGER',
-      activity_uom:'passenger.km',
-      uuid: uuidv4()
-    });
+    await setupDBSeed();
 
     // run the JSON RPC server
-    // run("node");
     const server = await run(TASK_NODE_CREATE_SERVER, {
       hostname: "localhost",
       port: 8545,
@@ -274,9 +280,15 @@ describe("Emissions and Tokens requests test", function() {
     expect(existsSync('tests-public.pem')).to.be.true;
 
     const public_key = readFileSync('tests-public.pem').toString();
+    const private_key = readFileSync('tests-private.pem').toString();
+    expect(public_key).to.be.a('string').and.not.empty;
+    expect(private_key).to.be.a('string').and.not.empty;
 
     // Store the public keys for the 2 default auditors in hardhat, not the demo ones.
-    const { dealer2: auditor1, dealer4: auditor2 } = await getNamedAccounts();
+    const { consumer1, dealer2: auditor1, dealer4: auditor2 } = await getNamedAccounts();
+    // register them as auditors
+    await contract.registerDealer(auditor1, 3);
+    await contract.registerDealer(auditor2, 3);
     const db = await PostgresDBService.getInstance();
 
     await db.getWalletRepo().clearWalletsRoles();
@@ -305,31 +317,90 @@ describe("Emissions and Tokens requests test", function() {
     expect(data).to.have.property('activities');
 
     const process_result = await process_activities(data.activities);
-    console.log('process_result', process_result);
     // should be an array with 9 elements
     expect(process_result).to.be.an('array');
-    // expect(process_result).to.have.lengthOf(9);
+    expect(process_result).to.have.lengthOf(9);
     // only two should have errors
     for (const a of process_result) {
       const activity = a.activity;
       if (activity.id === '2' || activity.id === '4') {
         expect(a.error).to.exist;
       } else {
-        console.log(a.error)
         expect(a.error).to.not.exist;
       }
     }
-    // expect(process_result.filter(x => x.error)).to.have.lengthOf(2);
+    expect(process_result.filter(x => x.error)).to.have.lengthOf(2);
 
     const grouped_by_type = group_processed_activities(process_result);
-    console.log('grouped_by_type', grouped_by_type);
-
+    // check the result has groups for each input activity type
+    expect(grouped_by_type).to.have.property('shipment');
+    expect(grouped_by_type).to.have.property('flight');
+    expect(grouped_by_type).to.have.property('emissions_factor');
+    // queue the audit requests, they will be issued from auditor1 and issued to consumer1
+    for (const t in grouped_by_type) {
+      if (t === 'shipment') {
+        const group = grouped_by_type[t] as GroupedResults;
+        for (const mode in group) {
+          const doc = group[mode] as GroupedResult;
+          const token_res = await queue_issue_tokens(doc, t, mode, undefined, consumer1);
+          expect(token_res).to.have.property('tokenId').that.is.a('string').equal('queued');
+        }
+      } else {
+        const doc = grouped_by_type[t] as GroupedResult;
+        const token_res = await queue_issue_tokens(doc, t, undefined, undefined, consumer1);
+        expect(token_res).to.have.property('tokenId').that.is.a('string').equal('queued');
+      }
+    }
+    // DB should have 3 audit requests (one per processed group)
+    let audit_requests = await db.getEmissionsRequestRepo().selectAll();
+    expect(audit_requests).to.have.lengthOf(3);
+    // they should all have a status of CREATED
+    expect(audit_requests.filter(x => x.status === 'CREATED')).to.have.lengthOf(3);
 
     // Process the requests.
+    await process_emissions_requests();
+    // they now should be PENDING
+    audit_requests = await db.getEmissionsRequestRepo().selectAll();
+    expect(audit_requests).to.have.lengthOf(3);
+    expect(audit_requests.filter(x => x.status === 'PENDING')).to.have.lengthOf(3);
+
     // Issue the tokens from the auditors
-    // Verify the tokens are issued in the right units
-    // Get the files and decrypt with the private keys
-    // Verify the files have the correct sha256
-    console.log('test');
+    // Note: this just marks them issued
+    // Verify the tokens quantities are correct
+    for (const request of audit_requests) {
+      await issue_emissions_request(request.uuid);
+      const token_amount = request.token_total_emissions;
+      const metadata = request.token_metadata;
+      expect(metadata).to.be.a('string').that.is.not.empty;
+      // just to make TS infer not undefined
+      if (!metadata) throw new Error('empty metadata');
+      const json = JSON.parse(metadata);
+      expect(json).to.have.property('Total emissions').that.is.a('number');
+      expect(json["Total emissions"]).to.equal(token_amount/1000);
+      const manifest = request.token_manifest;
+      expect(manifest).to.be.a('string').that.is.not.empty;
+      // just to make TS infer not undefined
+      if (!manifest) throw new Error('empty metadata');
+      const json_manifest = JSON.parse(manifest);
+      expect(json_manifest).to.have.property('Public Key').that.is.a('string').that.is.not.empty;
+      expect(json_manifest).to.have.property('Location').that.is.a('string').that.is.not.empty;
+      expect(json_manifest).to.have.property('SHA256').that.is.a('string').that.is.not.empty;
+      const location = json_manifest['Location'] as string;
+      const sha256 = json_manifest['SHA256'] as string;
+      const public_key = json_manifest['Public Key'] as string;
+      expect(public_key).to.equal('test');
+      // Get the files and decrypt with the private keys
+      // Verify the files have the correct sha256
+      expect(location).to.be.a('string').and.match(/^ipfs:\/\//);
+      const filename = location.substring(7);
+      const content = await downloadFileEncrypted(filename, './tests-private.pem');
+      // content should not be null
+      expect(content).to.not.be.null;
+      if (!content) throw new Error('Could not decrypt file? did not get content!');
+      const h = hash_content(content);
+      expect(h.value).to.equal(sha256);
+    }
+
+    console.log('All Done.');
   })
 });
