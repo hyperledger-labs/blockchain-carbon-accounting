@@ -102,14 +102,23 @@ type OutputActivity = {
 };
 
 async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
-  const token_res = queue ? 
-    await queue_issue_tokens(g, activity_type, mode) :
-    await issue_tokens(g, activity_type, publicKeys, mode);
+  let token_res;
+  let token_error: string | undefined = undefined;
+  try {
+    token_res = queue ? 
+      await queue_issue_tokens(g, activity_type, mode) :
+      await issue_tokens(g, activity_type, publicKeys, mode);
+  } catch (e) {
+    token_error = e instanceof Error ? e.message : String(e)
+  }
   // add each activity to output array
   for (const a of g.content) {
     const out: OutputActivity = { id: a.activity.id };
-    if (a.error) out.error = a.error;
-    if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId; 
+    if (a.error) {
+      out.error = a.error;
+    }
+    if (token_res?.tokenId) out.tokenId = token_res.tokenId;
+    else if (token_error) out.error = token_error;
     output_array.push(out);
   }
 }

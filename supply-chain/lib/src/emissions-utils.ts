@@ -292,12 +292,10 @@ async function gateway_issue_token(
     description: description
   };
   try {
-    const token = await gateway.issue(caller, input);
-    return token;
+    return await gateway.issue(caller, input);
   } catch (error) {
-    console.log("gateway_issue_token, error", error)
-    if (error instanceof Error) new Error(error.message) 
-    else new Error(String(error));
+    if (error instanceof Error) throw new Error(error.message) 
+    else throw new Error(String(error));
   }
 }
 
