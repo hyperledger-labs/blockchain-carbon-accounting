@@ -7,7 +7,7 @@ export const emissionsFactorsRouter = trpc
 .router<TrpcContext>()
 .query('getLevel1s', {
     input: z.object({
-        scope: z.string(),
+        scope: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
         try {
@@ -22,7 +22,7 @@ export const emissionsFactorsRouter = trpc
 })
 .query('getLevel2s', {
     input: z.object({
-        scope: z.string(),
+        scope: z.string().optional(),
         level_1: z.string(),
     }),
     async resolve({ input, ctx }) {
@@ -38,7 +38,7 @@ export const emissionsFactorsRouter = trpc
 })
 .query('getLevel3s', {
     input: z.object({
-        scope: z.string(),
+        scope: z.string().optional(),
         level_1: z.string(),
         level_2: z.string(),
     }),
@@ -55,7 +55,7 @@ export const emissionsFactorsRouter = trpc
 })
 .query('getLevel4s', {
     input: z.object({
-        scope: z.string(),
+        scope: z.string().optional(),
         level_1: z.string(),
         level_2: z.string(),
         level_3: z.string(),
@@ -73,7 +73,7 @@ export const emissionsFactorsRouter = trpc
 })
 .query('lookup', {
     input: z.object({
-        scope: z.string(),
+        scope: z.string().optional(),
         level_1: z.string(),
         level_2: z.string().optional(),
         level_3: z.string().optional(),

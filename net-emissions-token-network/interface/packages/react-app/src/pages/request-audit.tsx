@@ -197,26 +197,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const [topSuccess, setTopSuccess] = useState<SuccessResultType|null>(null)
   const [loading, setLoading] = useState(false);
 
-  const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {
-    scope: 'Scope 3',
-  }], {
+  const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {}], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
   })
   const level2sQuery = trpc.useQuery(['emissionsFactors.getLevel2s', {
-    scope: 'Scope 3',
     level_1: emForm.level_1
   }], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1,
   })
   const level3sQuery = trpc.useQuery(['emissionsFactors.getLevel3s', {
-    scope: 'Scope 3',
     level_1: emForm.level_1,
     level_2: emForm.level_2
   }], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && !!emForm.level_2,
   })
   const level4sQuery = trpc.useQuery(['emissionsFactors.getLevel4s', {
-    scope: 'Scope 3',
     level_1: emForm.level_1,
     level_2: emForm.level_2,
     level_3: emForm.level_3
@@ -225,7 +220,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   })
 
   const lookupQuery = trpc.useQuery(['emissionsFactors.lookup', {
-    scope: 'Scope 3',
     level_1: emForm.level_1,
     level_2: emForm.level_2,
     level_3: emForm.level_3,
