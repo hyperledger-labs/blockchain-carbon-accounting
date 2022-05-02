@@ -96,7 +96,12 @@ export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<Up
   });
 }
 
+
+let ups_client: UpsAPI;
+
 export function get_ups_client() {
+
+  if (ups_client) return ups_client;
 
   const conf = {
     environment: process.env.UPS_ENV,
@@ -105,7 +110,7 @@ export function get_ups_client() {
     access_key: process.env.UPS_KEY,
   }
 
-  const ups: UpsAPI = new upsAPI(conf);
-  return ups;
+  ups_client = new upsAPI(conf);
+  return ups_client;
 
 }
