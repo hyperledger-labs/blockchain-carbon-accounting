@@ -46,6 +46,10 @@ export class PostgresDBService {
     PostgresDBService._instance = null
   }
 
+  public getConnection() {
+    return this._db;
+  }
+
   public getActivityEmissionsFactorLookupRepo() {
     return new ActivityEmissionsFactorLookupRepo(this._db)
   }

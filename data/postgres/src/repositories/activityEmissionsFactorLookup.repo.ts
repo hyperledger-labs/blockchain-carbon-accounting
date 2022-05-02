@@ -13,4 +13,8 @@ export class ActivityEmissionsFactorLookupRepo {
     return await this._db.getRepository(ActivityEmissionsFactorLookup).findOneBy({mode, type})
   }
 
+  public putActivityEmissionsFactorLookup = async (a: ActivityEmissionsFactorLookup): Promise<ActivityEmissionsFactorLookup | null> => {
+    return await this._db.getRepository(ActivityEmissionsFactorLookup).save(a)
+  }
+
 }
