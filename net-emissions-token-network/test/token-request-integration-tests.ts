@@ -2,6 +2,7 @@ import { existsSync, unlinkSync, readFileSync } from 'fs';
 import { expect } from 'chai';
 import { v4 as uuidv4 } from 'uuid';
 import sinon from 'sinon';
+import Ctl from 'ipfsd-ctl';
 import { run, network, getNamedAccounts, deployments, ethers } from "hardhat";
 import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
 import { OPTS_TYPE } from '../api-server/server';
@@ -94,7 +95,7 @@ async function setupDBSeed() {
 
 let geoCount = 1;
 
-describe("Emissions and Tokens requests test (must have IPFS running)", function() {
+describe("Emissions and Tokens requests test", function() {
   before(async function() {
     cleanup();
     // create a test connection instance
@@ -273,6 +274,15 @@ describe("Emissions and Tokens requests test (must have IPFS running)", function
   });
 
   it("should allow an emissions request to be processed", async function() {
+    // start ipfs
+    const ipfsd = await Ctl.createController({
+      ipfsHttpModule: require('ipfs-http-client'),
+      ipfsBin: require('go-ipfs').path()
+    })
+    const id = await ipfsd.api.id()
+
+    console.log('IPFS started', id);
+
     // Generate 2 public/private key pairs
     generateKeyPair('tests');
     // check they exist
