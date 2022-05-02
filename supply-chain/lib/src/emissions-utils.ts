@@ -450,7 +450,7 @@ export async function process_activities(
         return { activity, result };
       } catch (error) {
         // console.error("Error in process_activities: ", error);
-        const errMsg = (error instanceof Error)?error.message:String(error) 
+        const errMsg = (error instanceof Error)?error.message:JSON.stringify(error);
         return { activity, error: errMsg };
       }
     })
