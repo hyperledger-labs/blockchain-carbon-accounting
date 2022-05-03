@@ -5,18 +5,18 @@ import sinon from 'sinon';
 import Ctl from 'ipfsd-ctl';
 import { run, network, getNamedAccounts, deployments, ethers } from "hardhat";
 import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
-import { OPTS_TYPE } from '../api-server/server';
 import { Contract } from 'ethers';
-import { GroupedResult, GroupedResults, group_processed_activities, process_activities, process_emissions_requests, queue_issue_tokens } from '../api-server/node_modules/supply-chain-lib/src/emissions-utils';
-import { generateKeyPair, hash_content } from '../../supply-chain/lib/src/crypto-utils';
-import { syncWalletRoles } from '../api-server/controller/synchronizer';
-import { PostgresDBService } from '../../data/postgres/src/postgresDbService';
-import { get_gclient } from '../api-server/node_modules/supply-chain-lib/src/distance-utils';
-import { get_ups_client } from '../api-server/node_modules/supply-chain-lib/src/ups-utils';
-import { ActivityEmissionsFactorLookup } from '../api-server/node_modules/blockchain-accounting-data-postgres/src/models/activityEmissionsFactorLookup';
-import { EmissionsFactorInterface } from '../../supply-chain/node_modules/emissions_data_chaincode/src/lib/emissionsFactor';
-import { issue_emissions_request } from '../api-server/controller/emissionsRequests.controller';
-import { downloadFileEncrypted } from '../api-server/node_modules/supply-chain-lib/src/ipfs-utils';
+import { GroupedResult, GroupedResults, group_processed_activities, process_activities, process_emissions_requests, queue_issue_tokens } from 'supply-chain-lib/src/emissions-utils';
+import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
+import { get_gclient } from 'supply-chain-lib/src/distance-utils';
+import { get_ups_client } from 'supply-chain-lib/src/ups-utils';
+import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
+import { ActivityEmissionsFactorLookup } from 'blockchain-accounting-data-postgres/src/models/activityEmissionsFactorLookup';
+import { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor';
+import { OPTS_TYPE } from 'api-server/server';
+import { syncWalletRoles } from 'api-server/controller/synchronizer';
+import { issue_emissions_request } from 'api-server/controller/emissionsRequests.controller';
 
 function cleanup() {
   if (existsSync('tests-private.pem')) unlinkSync('tests-private.pem');
@@ -131,6 +131,7 @@ describe("Emissions and Tokens requests test", function() {
                   text: '123 km',
                   value: 123000
                 },
+                // @ts-ignore
                 status: 'OK'
               }
             ]
@@ -138,6 +139,7 @@ describe("Emissions and Tokens requests test", function() {
         ]
       }
     });
+    // @ts-ignore
     sinon.stub(gclient, 'geocode').callsFake((args: any)=>{
       const { lat, lng } = args?.params?.address?.indexOf('Paris') > -1 ?
         { lat: 48.856, lng: 2.352 } :
