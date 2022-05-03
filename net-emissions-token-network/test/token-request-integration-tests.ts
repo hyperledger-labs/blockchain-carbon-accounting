@@ -102,9 +102,9 @@ describe("Emissions and Tokens requests test", function() {
     // create a test connection instance
     const db = await PostgresDBService.getInstance({
       dbName: 'blockchain-carbon-accounting-test',
-      dbUser: '', 
-      dbPassword: '',
-      dbHost: 'localhost',
+      dbUser: process.env.POSTGRES_USER || '',
+      dbPassword: process.env.POSTGRES_PASSWORD || '',
+      dbHost: process.env.POSTGRES_HOST || 'localhost',
       dbPort: 5432,
       dbVerbose: false,
     });
