@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon server.ts",
     "dev": "nodemon server.ts",
-    "build": "tsc -p",
+    "build": "tsc",
     "postinstall": "npm --prefix ../../data install && npm --prefix ../../supply-chain install"
   },
   "keywords": [],

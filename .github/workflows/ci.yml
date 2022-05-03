@@ -23,6 +23,23 @@ jobs:
       - name: Run build script
         run: npm run build
 
+  build-api-server: # Run lint script for the typescript_app directory
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./net-emissions-token-network/api-server
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.15.0"
+      - name: Install dependencies
+        run: |
+          npm i -g npm@latest
+          npm ci
+      - name: Run build script
+        run: npm run build
+
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
     defaults:
