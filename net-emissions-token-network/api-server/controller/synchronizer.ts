@@ -148,18 +148,17 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
 
         // build token model
         // eslint-disable-next-line
-        const { metadata, manifest, ..._tokenPayload } = { ...token };
+        const { metadata, manifest,totalIssued, totalRetired, ..._tokenPayload } = { ...token };
         const tokenPayload: TokenPayload = {
             ..._tokenPayload,
             scope,
             type,
+            // reset totalIssued and totalRetired
+            totalIssued: "0",
+            totalRetired: "0",
             metadata: metaObj,
             manifest: manifestObj
         };
-
-        // reset totalIssued and totalRetired
-        tokenPayload.totalIssued = 0;
-        tokenPayload.totalRetired = 0;
 
         return tokenPayload;
     } catch (err) {
@@ -220,15 +219,15 @@ export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
             const tokenId: number = singleTransfer.id;
             const from: string = singleTransfer.from;
             const to: string = singleTransfer.to;
-            const amount: number = singleTransfer.value; // it must be divided by 10^3
+            const amount: string = singleTransfer.value; // it must be divided by 10^3
             // issue case
             if(from == BURN) {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuedTo: to,
-                    available: Number(amount),
-                    retired: 0,
-                    transferred: 0
+                    available: amount,
+                    retired: "0",
+                    transferred: "0"
                 }
 
                 // resolve conflicts
@@ -259,9 +258,9 @@ export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuedTo: to,
-                    available: Number(amount),
-                    retired: 0,
-                    transferred: 0
+                    available: amount,
+                    retired: "0",
+                    transferred: "0"
                 }
                 await insertNewBalance(balancePayload);
             } else {
