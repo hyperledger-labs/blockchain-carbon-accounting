@@ -164,10 +164,10 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     console.log('postEmissionsRequest...')
     const db = await PostgresDBService.getInstance()
     // check the supporting document was uploaded
-    if (!req.files || !req.files.supportingDocument) {
+    let supportingDocument = req.files?.['supportingDocument'];
+    if (!supportingDocument) {
       return res.status(400).json({ status: 'failed', error: 'No supporting document was uploaded!' })
     }
-    let supportingDocument = req.files.supportingDocument;
     console.log('postEmissionsRequest checking file', supportingDocument)
     if (Array.isArray(supportingDocument)) {
       if (supportingDocument.length !== 1) {
