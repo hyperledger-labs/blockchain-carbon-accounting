@@ -63,7 +63,7 @@ export function weight_in_kg(weight?: number, uom?: string) {
   const u = uom.toLowerCase();
   if (u === "kg") return weight;
   if (u === "lb" || u === "lbs" || u === "pound") return weight * 0.453592;
-  if (u === "t" || u === "tonne") return weight * 1000.0;
+  if (u === "t" || u === "tonne" || u === "tons") return weight * 1000.0;
   if (u === "g") return weight / 1000.0;
   // not recognized
   throw new Error(`Weight UOM ${uom} not supported`);
@@ -369,7 +369,7 @@ export async function process_emissions_factor(
         throw new Error(`This emissions factor requires a number_of_passengers input`);
       }
       amount *= a.number_of_passengers;
-    } else if (uom === 'kg' || uom === 'tonne' || uom === 'lbs') {
+    } else if (uom === 'kg' || uom === 'tonne' || uom === 'tons' || uom === 'lbs') {
       if (!a.weight || !a.weight_uom) {
         throw new Error(`This emissions factor requires a weight and weight_uom inputs`);
       }

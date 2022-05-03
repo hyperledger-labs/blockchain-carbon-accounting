@@ -234,7 +234,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     if (error instanceof ApplicationError) {
       return res.status(error.status).json({ status: 'failed', error })
     }
-    return res.status(500).json({ status: 'failed', error });
+    return res.status(500).json({ status: 'failed', error:  (error as Error).message });
   }
 }
 
