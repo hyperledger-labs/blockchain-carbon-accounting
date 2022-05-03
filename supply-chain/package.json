@@ -5,7 +5,7 @@
   "main": "emissions.js",
   "scripts": {
     "postinstall": "npm --prefix ../emissions-data/chaincode/emissionscontract/typescript install && npm --prefix ../emissions-data/typescript_app install && npm --prefix ../data install",
-    "build": "tsc",
+    "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "api": "npm run start --workspace=api",
     "api:dev": "npm run dev --workspace=api",
