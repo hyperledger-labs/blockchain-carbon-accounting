@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
+import type { QueryBundle } from '../../../../../../data/postgres/src/repositories/common';
 import type { Token, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';

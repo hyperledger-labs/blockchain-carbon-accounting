@@ -10,7 +10,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
-import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
 
 type PendingEmissionsProps = {
   provider?: Web3Provider,
