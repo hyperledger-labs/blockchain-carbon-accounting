@@ -25,13 +25,13 @@ export class Balance {
     @JoinColumn({name: 'tokenId'})
     token!: Token;
 
-    @Column()
-    available!: number;
+    @Column({type: 'bigint'})
+    available!: string;
 
-    @Column()
-    retired!: number;
+    @Column({type: 'bigint'})
+    retired!: string;
 
-    @Column()
-    transferred!: number;
+    @Column({type: 'bigint'})
+    transferred!: string;
 }
 

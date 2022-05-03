@@ -56,11 +56,13 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
 
       // build token model
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { metadata, ..._tokenPayload } = { ...token };
+      const { metadata,totalIssued, totalRetired, ..._tokenPayload } = { ...token };
       const tokenPayload: TokenPayload = {
         ..._tokenPayload,
         scope,
         type,
+        totalIssued: token.totalIssued.toString(),
+        totalRetired: token.totalRetired.toString(),
         metadata: metaObj
       }
 
@@ -87,16 +89,16 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
       const tokenId: number = transferred.id;
       const from: string = transferred.from;
       const to: string = transferred.to;
-      const amount: number = transferred.value; // it must be divided by 10^3
+      const amount: string = transferred.value; // it must be divided by 10^3
 
       // issue case
       if(from == BURN) {
         const balancePayload: BalancePayload = {
           tokenId,
           issuedTo: to,
-          available: Number(amount),
-          retired: 0,
-          transferred: 0
+          available: amount,
+          retired: "0",
+          transferred: "0"
         }
         await insertNewBalance(balancePayload);
         await db.getTokenRepo().updateTotalIssued(tokenId, amount);
@@ -124,9 +126,9 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
         const balancePayload: BalancePayload = {
           tokenId,
           issuedTo: to,
-          available: Number(amount),
-          retired: 0,
-          transferred: 0
+          available: amount,
+          retired: "0",
+          transferred: "0"
         }
         await insertNewBalance(balancePayload);
       } else {

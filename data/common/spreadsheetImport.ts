@@ -9,10 +9,12 @@ import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from "./db"
 
 
 export type ParseWorksheetOpts = {
-  verbose?: boolean, 
-  file: string, 
-  sheet: string, 
-  skip_rows?: number
+  verbose?: boolean,
+  file: string,
+  sheet: string,
+  skip_rows?: number,
+  format?: string,
+  source?: string
 };
 
 function getStateNameMapping(key: keyof typeof STATE_NAME_MAPPING) {
@@ -67,6 +69,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
     bar.start(Object.keys(worksheet).length, 0);
 
     for (const z in worksheet) {
+      bar.increment();
       if (z[0] === "!") continue;
       //parse out the column, row, and value
       let tt = 0;
@@ -80,7 +83,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
       const col = z.substring(0, tt).trim();
       const row = parseInt(z.substring(tt));
       const value = worksheet[z].v;
-      bar.increment();
+
       if (opts.skip_rows && opts.skip_rows >= row) continue;
 
       //store header names
@@ -96,7 +99,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
     data = data.filter(function () {
       return true;
     });
-    bar.increment();
+
     bar.stop();
     break;
   }
@@ -104,27 +107,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
 };
 
 export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: EmissionFactorDbInterface) => {
-  const supportedFiles = [
-    { file: "eGRID2018_Data_v2.xlsx", sheet: "NRL18" },
-    { file: "eGRID2018_Data_v2.xlsx", sheet: "ST18" },
-    { file: "eGRID2018_Data_v2.xlsx", sheet: "US18" },
-    { file: "egrid2019_data.xlsx", sheet: "NRL19" },
-    { file: "egrid2019_data.xlsx", sheet: "ST19" },
-    { file: "egrid2019_data.xlsx", sheet: "US19" },
-    { file: "2019-RES_proxies_EEA.csv", sheet: "Sheet1" },
-    { file: "co2-emission-intensity-6.csv", sheet: "Sheet1" },
-    {
-      file: "conversion-factors-2021-flat-file-automatic-processing.xls",
-      sheet: "Factors by Category",
-      skip_rows: 4,
-    },
-  ];
-
-  if (
-    opts.file == "all" ||
-    (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "NRL18")
-  ) {
-    const data = parseWorksheet(supportedFiles[0]);
+  if (opts.format === "egrid_data") {
     // import data for each valid row, eg:
     // Year = 2018 from 'Data Year'
     // Country = USA
@@ -138,309 +121,142 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
     // Source = https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
     // async.eachSeries(data, function iterator(row, callback) {
     // console.log(`Received data of length ${data.length}`);
-    progressBar.start(data.length, 0);
-    for (const row of data) {
-      // skip empty rows
-      if (!row || !row["Data Year"]) continue;
-      // skip header rows
-      if (row["Data Year"] == "YEAR") continue;
-      // generate a unique for the row
-      const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
-        level_2: "USA",
-        level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
-        scope: "SCOPE 2",
-        uuid: uuidv4(),
-        year: row["Data Year"].toString(),
-        country: "USA",
-        division_type: "NERC_REGION",
-        division_id: row["NERC region acronym"],
-        division_name: (row["NERC region name "] || "").replace(/ /g, "_"),
-        net_generation:
-          row["NERC region annual net generation (MWh)"].toString(),
-        net_generation_uom: "MWH",
-        co2_equivalent_emissions:
-          row["NERC region annual CO2 equivalent emissions (tons)"].toString(),
-        co2_equivalent_emissions_uom: "tons",
-        source:
-          "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
-        non_renewables:
-          row[
-            "NERC region annual total nonrenewables net generation (MWh)"
-          ].toString(),
-        renewables:
-          row[
-            "NERC region annual total renewables net generation (MWh)"
-          ].toString(),
-        percent_of_renewables: "",
-      };
-      await db.putEmissionFactor(d);
-      progressBar.increment();
+
+    if (opts.sheet.startsWith("NRL")) {
+      const data = parseWorksheet(opts);
+      progressBar.start(data.length, 0);
+      for (const row of data) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) continue;
+        // skip header rows
+        if (row["Data Year"] == "YEAR") continue;
+        // generate a unique for the row
+        const d: EmissionsFactorInterface = {
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          type: EMISSIONS_FACTOR_TYPE,
+          level_1: "eGRID EMISSIONS FACTORS",
+          level_2: "USA",
+          level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
+          scope: "SCOPE 2",
+          uuid: uuidv4(),
+          year: row["Data Year"].toString(),
+          country: "USA",
+          division_type: "NERC_REGION",
+          division_id: row["NERC region acronym"],
+          division_name: (row["NERC region name "] || "").replace(/ /g, "_"),
+          net_generation:
+            row["NERC region annual net generation (MWh)"].toString(),
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions:
+            row["NERC region annual CO2 equivalent emissions (tons)"].toString(),
+          co2_equivalent_emissions_uom: "tons",
+          source: opts.source || opts.file,
+          non_renewables:
+            row[
+              "NERC region annual total nonrenewables net generation (MWh)"
+            ].toString(),
+          renewables:
+            row[
+              "NERC region annual total renewables net generation (MWh)"
+            ].toString(),
+          percent_of_renewables: "",
+        };
+        await db.putEmissionFactor(d);
+        progressBar.increment();
+      }
+      progressBar.stop();
+      return;
+    } else if (opts.sheet.startsWith("ST")) {
+      const data = parseWorksheet(opts);
+      progressBar.start(data.length, 0);
+
+      for (const row of data) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) continue;
+        // skip header rows
+        if (row["Data Year"] == "YEAR") continue;
+        opts.verbose && console.log("-- Prepare to insert from ", row);
+        // generate a unique for the row
+        const d: EmissionsFactorInterface = {
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          uuid: uuidv4(),
+          type: EMISSIONS_FACTOR_TYPE,
+          level_1: "eGRID EMISSIONS FACTORS",
+          level_2: "USA",
+          level_3: `STATE: ${row["State abbreviation"]}`,
+          scope: "SCOPE 2",
+          year: row["Data Year"].toString(),
+          country: "USA",
+          division_type: "STATE",
+          division_id: row["State abbreviation"],
+          division_name: getStateNameMapping(row["State abbreviation"]),
+          net_generation: row["State annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions:
+            row["State annual CO2 equivalent emissions (tons)"].toString(),
+          co2_equivalent_emissions_uom: "tons",
+          source: opts.source || opts.file,
+          non_renewables:
+            row[
+              "State annual total nonrenewables net generation (MWh)"
+            ].toString(),
+          renewables:
+            row["State annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: "",
+        };
+        await db.putEmissionFactor(d);
+        progressBar.increment();
+      }
+      progressBar.stop();
+      return;
+    } else if (opts.sheet.startsWith("US")) {
+      const data = parseWorksheet(opts);
+      progressBar.start(data.length, 0);
+
+      for (const row of data) {
+        // skip empty rows
+        if (!row || !row["Data Year"]) continue;
+        // skip header rows
+        if (row["Data Year"] == "YEAR") continue;
+        opts.verbose && console.log("-- Prepare to insert from ", row);
+        // generate a unique for the row
+        const d: EmissionsFactorInterface = {
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          type: EMISSIONS_FACTOR_TYPE,
+          level_1: "eGRID EMISSIONS FACTORS",
+          level_2: "USA",
+          level_3: "COUNTRY: USA",
+          scope: "SCOPE 2",
+          uuid: uuidv4(),
+          year: "" + row["Data Year"],
+          country: "USA",
+          division_type: "COUNTRY",
+          division_id: "USA",
+          division_name: "United States of America",
+          net_generation: "" + row["U.S. annual net generation (MWh)"],
+          net_generation_uom: "MWH",
+          co2_equivalent_emissions:
+            "" + row["U.S. annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions_uom: "tons",
+          source: opts.source || opts.file,
+          non_renewables:
+            row[
+              "U.S. annual total nonrenewables net generation (MWh)"
+            ].toString(),
+          renewables:
+            row["U.S. annual total renewables net generation (MWh)"].toString(),
+          percent_of_renewables: "",
+        };
+        await db.putEmissionFactor(d);
+        progressBar.increment();
+      }
+      progressBar.stop();
+      return;
+    } else {
+      console.log(`Wrong sheet name ${opts.sheet} for egrid_data format, should start with NLR or ST or US`);
     }
-    progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-
-  if (
-    opts.file == "all" ||
-    (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "ST18")
-  ) {
-    const data = parseWorksheet(supportedFiles[1]);
-    progressBar.start(data.length, 0);
-
-    for (const row of data) {
-      // skip empty rows
-      if (!row || !row["Data Year"]) continue;
-      // skip header rows
-      if (row["Data Year"] == "YEAR") continue;
-      opts.verbose && console.log("-- Prepare to insert from ", row);
-      // generate a unique for the row
-      const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        uuid: uuidv4(),
-        type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
-        level_2: "USA",
-        level_3: `STATE: ${row["State abbreviation"]}`,
-        scope: "SCOPE 2",
-        year: row["Data Year"].toString(),
-        country: "USA",
-        division_type: "STATE",
-        division_id: row["State abbreviation"],
-        division_name: getStateNameMapping(row["State abbreviation"]),
-        net_generation: row["State annual net generation (MWh)"],
-        net_generation_uom: "MWH",
-        co2_equivalent_emissions:
-          row["State annual CO2 equivalent emissions (tons)"].toString(),
-        co2_equivalent_emissions_uom: "tons",
-        source:
-          "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
-        non_renewables:
-          row[
-            "State annual total nonrenewables net generation (MWh)"
-          ].toString(),
-        renewables:
-          row["State annual total renewables net generation (MWh)"].toString(),
-        percent_of_renewables: "",
-      };
-      await db.putEmissionFactor(d);
-      progressBar.increment();
-    }
-    progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-  if (
-    opts.file == "all" ||
-    (opts.file == "eGRID2018_Data_v2.xlsx" && opts.sheet == "US18")
-  ) {
-    const data = parseWorksheet(supportedFiles[2]);
-    progressBar.start(data.length, 0);
-
-    for (const row of data) {
-      // skip empty rows
-      if (!row || !row["Data Year"]) continue;
-      // skip header rows
-      if (row["Data Year"] == "YEAR") continue;
-      opts.verbose && console.log("-- Prepare to insert from ", row);
-      // generate a unique for the row
-      const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
-        level_2: "USA",
-        level_3: "COUNTRY: USA",
-        scope: "SCOPE 2",
-        uuid: uuidv4(),
-        year: "" + row["Data Year"],
-        country: "USA",
-        division_type: "COUNTRY",
-        division_id: "USA",
-        division_name: "United States of America",
-        net_generation: "" + row["U.S. annual net generation (MWh)"],
-        net_generation_uom: "MWH",
-        co2_equivalent_emissions:
-          "" + row["U.S. annual CO2 equivalent emissions (tons)"],
-        co2_equivalent_emissions_uom: "tons",
-        source:
-          "https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip",
-        non_renewables:
-          row[
-            "U.S. annual total nonrenewables net generation (MWh)"
-          ].toString(),
-        renewables:
-          row["U.S. annual total renewables net generation (MWh)"].toString(),
-        percent_of_renewables: "",
-      };
-      await db.putEmissionFactor(d);
-      progressBar.increment();
-    }
-    progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-
-  // eGRID Data for year 2019 ..
-
-  if (
-    opts.file == "all" ||
-    (opts.file == "egrid2019_data.xlsx" && opts.sheet == "US19")
-  ) {
-    const data = parseWorksheet(supportedFiles[5]);
-    progressBar.start(data.length, 0);
-
-    for (const row of data) {
-      // skip empty rows
-      if (!row || !row["Data Year"]) continue;
-      // skip header rows
-      if (row["Data Year"] == "YEAR") continue;
-
-      opts.verbose && console.log("-- Prepare to insert from ", row);
-      // generate a unique for the row
-
-      const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
-        level_2: "USA",
-        level_3: "COUNTRY: USA",
-        scope: "SCOPE 2",
-        uuid: uuidv4(),
-        year: "" + row["Data Year"],
-        country: "USA",
-        division_type: "COUNTRY",
-        division_id: "USA",
-        division_name: "United States of America",
-        net_generation: "" + row["U.S. annual net generation (MWh)"],
-        net_generation_uom: "MWH",
-        co2_equivalent_emissions:
-          "" + row["U.S. annual CO2 equivalent emissions (tons)"],
-        co2_equivalent_emissions_uom: "tons",
-        source:
-          "https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx",
-        non_renewables:
-          row[
-            "U.S. annual total nonrenewables net generation (MWh)"
-          ].toString(),
-        renewables:
-          row["U.S. annual total renewables net generation (MWh)"].toString(),
-        percent_of_renewables: "",
-      };
-      await db.putEmissionFactor(d);
-      progressBar.increment();
-    }
-    progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-
-  if (
-    opts.file == "all" ||
-    (opts.file == "egrid2019_data.xlsx" && opts.sheet == "ST19")
-  ) {
-    const data = parseWorksheet(supportedFiles[4]);
-    progressBar.start(data.length, 0);
-
-    for (const row of data) {
-      // skip empty rows
-      if (!row || !row["Data Year"]) continue;
-      // skip header rows
-      if (row["Data Year"] == "YEAR") continue;
-      opts.verbose && console.log("-- Prepare to insert from ", row);
-      // generate a unique for the row
-      const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
-        level_2: "USA",
-        level_3: `STATE: ${row["State abbreviation"]}`,
-        scope: "SCOPE 2",
-        uuid: uuidv4(),
-        year: "" + row["Data Year"],
-        country: "USA",
-        division_type: "STATE",
-        division_id: row["State abbreviation"],
-        division_name: getStateNameMapping(row["State abbreviation"]),
-        net_generation: "" + row["State annual net generation (MWh)"],
-        net_generation_uom: "MWH",
-        co2_equivalent_emissions:
-          "" + row["State annual CO2 equivalent emissions (tons)"],
-        co2_equivalent_emissions_uom: "tons",
-        source:
-          "https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx",
-        non_renewables:
-          row[
-            "State annual total nonrenewables net generation (MWh)"
-          ].toString(),
-        renewables:
-          row["State annual total renewables net generation (MWh)"].toString(),
-        percent_of_renewables: "",
-      };
-      await db.putEmissionFactor(d);
-      progressBar.increment();
-    }
-    progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-
-  if (
-    opts.file == "all" ||
-    (opts.file == "egrid2019_data.xlsx" && opts.sheet == "NRL19")
-  ) {
-    const data = parseWorksheet(supportedFiles[3]);
-    progressBar.start(data.length, 0);
-
-    for (const row of data) {
-      // skip empty rows
-      if (!row || !row["Data Year"]) continue;
-      // skip header rows
-      if (row["Data Year"] == "YEAR") continue;
-      opts.verbose && console.log("-- Prepare to insert from ", row);
-
-      // generate a unique for the row
-      const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
-        type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
-        level_2: "USA",
-        level_3: `NERC_REGION: ${row["NERC region acronym"]}`,
-        scope: "SCOPE 2",
-        uuid: uuidv4(),
-        year: "" + row["Data Year"],
-        country: "USA",
-        division_type: "NERC_REGION",
-        division_id: row["NERC region acronym"],
-        division_name: row["NERC region name "] || "",
-        net_generation: "" + row["NERC region annual net generation (MWh)"],
-        net_generation_uom: "MWH",
-        co2_equivalent_emissions:
-          "" + row["NERC region annual CO2 equivalent emissions (tons)"],
-        co2_equivalent_emissions_uom: "tons",
-        source:
-          "https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx",
-        non_renewables:
-          row[
-            "NERC region annual total nonrenewables net generation (MWh)"
-          ].toString(),
-        renewables:
-          row[
-            "NERC region annual total renewables net generation (MWh)"
-          ].toString(),
-        percent_of_renewables: "",
-      };
-
-      await db.putEmissionFactor(d);
-
-      progressBar.increment();
-    }
-    progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-
-  if (
-    opts.file == "all" ||
-    (opts.file == "2019-RES_proxies_EEA.csv" && opts.sheet == "Sheet1")
-  ) {
-    const data = parseWorksheet(supportedFiles[6]);
+  } else if (opts.format === "eea_res_proxies") {
+    const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
 
     for (const row of data) {
@@ -468,8 +284,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         net_generation_uom: "",
         co2_equivalent_emissions: "",
         co2_equivalent_emissions_uom: "",
-        source:
-          "https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file",
+        source: opts.source || opts.file,
         non_renewables: "",
         renewables: "",
         percent_of_renewables: (Number(row[" ValueNumeric"]) * 100).toString(),
@@ -478,16 +293,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       progressBar.increment();
     }
     progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-  if (
-    opts.file == "all" ||
-    (opts.file == "co2-emission-intensity-6.csv" && opts.sheet == "Sheet1")
-  ) {
-    console.log(
-      "Assuming 2019-RES_proxies_EEA.csv has already been imported..."
-    );
-    const data = parseWorksheet(supportedFiles[7]);
+    return;
+  } else if (opts.format === "eea_intensity") {
+    console.log("Assuming eea_res_proxies has already been imported...");
+    const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
     for (const row of data) {
       // skip empty rows
@@ -512,31 +321,32 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         type: EMISSIONS_FACTOR_TYPE,
         co2_equivalent_emissions: row["index:number"],
         co2_equivalent_emissions_uom: "g/KWH",
-        source: `https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6`,
+        source: opts.source || opts.file,
       };
 
       // find previous record to update
-      const factor = await db.getEmissionFactor(document_id);
-      if (factor) {
-        factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
-        factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
-        factor.source = d.source;
+      const factors = await db.getEmissionsFactorsByDivision(countryLong, 'Country', row["Date:year"]);
+      if (factors && factors.length > 0) {
+        const factor = factors[0];
+        if (factor) {
+          factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
+          factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
+          factor.source = d.source;
 
-        await db.putEmissionFactor(factor);
-        progressBar.increment();
+          await db.putEmissionFactor(factor);
+          progressBar.increment();
+        } else {
+          console.log("Could not find imported factor");
+        }
       } else {
-        console.log("Could not find imported factor");
+        console.log("Could not find imported factors");
       }
     }
     progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-
-  if (
-    opts.file == "all" ||
-    opts.file == "conversion-factors-2021-flat-file-automatic-processing.xls"
-  ) {
-    const data = parseWorksheet(supportedFiles[8]);
+    return;
+  } else if (opts.format === "conversion-factors-uk") {
+    opts.skip_rows = 4;
+    const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
 
     let i = 0;
@@ -569,20 +379,16 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         activity_uom: row.UOM,
         co2_equivalent_emissions: "" + row["GHG Conversion Factor 2021"],
         co2_equivalent_emissions_uom: "kg",
-        source:
-          "https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2021",
+        source: opts.source || opts.file,
       };
 
       await db.putEmissionFactor(d);
       progressBar.update(i);
     }
     progressBar.stop();
-    if (opts.file !== "all") return;
-  }
-  if (opts.file !== "all") {
-    console.log(`Given file [${opts.file}] is not supported at the moment.`);
+    return;
   } else {
-    console.log("All supported files imported.");
+    console.log(`Format ${opts.format} is not supported`);
   }
 }
 
