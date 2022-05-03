@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es2018",
-    "strict": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "outDir": "dist",
+    "target": "es2017",
     "module": "commonjs",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist/"
+    "strict": true
   },
   "include": ["./deploy", "./test"],
   "files": ["./hardhat.config.ts"]
