@@ -163,8 +163,9 @@ export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
     const db = await PostgresDBService.getInstance()
-    // check the supporting document was uploaded
-    let supportingDocument = req.files?.['supportingDocument'];
+    // check the supporting document was uploaded, note: ignore ts-error in the test container
+    // @ts-ignore
+    let supportingDocument = req.files?.supportingDocument;
     if (!supportingDocument) {
       return res.status(400).json({ status: 'failed', error: 'No supporting document was uploaded!' })
     }
