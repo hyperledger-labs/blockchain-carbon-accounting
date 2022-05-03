@@ -53,7 +53,7 @@ jobs:
       - name: Install dependencies
         run: yarn ci
       - name: Run build script
-        run: yarn react-app:build
+        run: CI=false yarn react-app:build
 
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
