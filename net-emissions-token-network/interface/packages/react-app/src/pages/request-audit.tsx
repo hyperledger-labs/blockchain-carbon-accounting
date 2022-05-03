@@ -4,7 +4,7 @@ import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bo
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
-import { EmissionsFactorInterface } from "../../../../../../data/postgres/node_modules/emissions_data_chaincode/src/lib/emissionsFactor";
+import { EmissionsFactorInterface } from "../../../../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";
