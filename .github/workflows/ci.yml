@@ -70,6 +70,7 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blockchain-carbon-accounting-test
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -90,14 +91,9 @@ jobs:
         run: |
           npm i -g npm@latest
           npm ci
-      - name: Setup database
-        run: psql -h postgres -U postgres_user -c 'CREATE DATABASE "blockchain-carbon-accounting-test";'
-        env:
-          PGPASSWORD: postgres
       - name: Run tests
         run: npx hardhat test
         env:
-          POSTGRES_HOST: postgres
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
 
