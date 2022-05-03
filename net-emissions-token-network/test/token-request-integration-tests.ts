@@ -389,7 +389,7 @@ describe("Emissions and Tokens requests test", function() {
       if (!metadata) throw new Error('empty metadata');
       const json = JSON.parse(metadata);
       expect(json).to.have.property('Total emissions').that.is.a('number');
-      expect(json["Total emissions"]).to.equal(token_amount/1000);
+      expect(json["Total emissions"]).to.equal(Number(token_amount)/1000);
       const manifest = request.token_manifest;
       expect(manifest).to.be.a('string').that.is.not.empty;
       // just to make TS infer not undefined
