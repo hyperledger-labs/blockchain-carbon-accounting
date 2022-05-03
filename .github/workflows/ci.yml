@@ -50,12 +50,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "16.15.0"
-      - uses: borales/actions-yarn@v2.3.0
-        with:
-          cmd: install # will run `yarn install` command
-      - uses: borales/actions-yarn@v2.3.0
-        with:
-          cmd: react-app:build # will run `yarn build` command
+      - name: Install dependencies
+        run: yarn ci
+      - name: Run build script
+        run: yarn react-app:build
 
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
