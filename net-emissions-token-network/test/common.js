@@ -89,14 +89,14 @@ exports.createProposal = async function (params) {
     targets: [params.netEmissionsTokenNetwork.address], // contract to call
     values: [0], // number of wei sent with call, i.e. msg.value
     signatures: [
-      "issueOnBehalf(address,address,address,uint8,uint256,uint256,uint256,string,string,string)",
+      "issueOnBehalf(address,uint160,address,uint8,uint256,uint256,uint256,string,string,string)",
     ], // function in contract to call
     calldatas: [
       exports.encodeParameters(
         // types of params
         [
           "address",
-          "address",
+          "uint160",
           "address",
           "uint8",
           "uint256",
@@ -195,10 +195,10 @@ exports.createMultiAttributeProposal = async function (params) {
   let proposalParent = {
     targets: params.netEmissionsTokenNetwork.address, // contract to call
     values: 0, // number of wei sent with call, i.e. msg.value
-    signatures: "issueOnBehalf(address,address,address,uint8,uint256,uint256,uint256,string,string,string)", // function in contract to call
+    signatures: "issueOnBehalf(address,uint160,address,uint8,uint256,uint256,uint256,string,string,string)", // function in contract to call
     calldatas: exports.encodeParameters(
       // types of params
-      ['address','address','address','uint8','uint256','uint256','uint256','string','string','string'],
+      ['address','uint160','address','uint8','uint256','uint256','uint256','string','string','string'],
       // value of params
       [
         proposalCallParams.accountBy,

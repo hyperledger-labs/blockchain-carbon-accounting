@@ -141,7 +141,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           // types of params
           [
             'address',
-            'address',
+            'uint160',
             'uint8',
             'uint256',
             'uint256',

@@ -59,7 +59,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 tokenId;
         uint8 tokenTypeId;
         address issuedBy;
-        address issuedFrom;
+        uint160 issuedFrom;
         address issuedTo;
         uint256 fromDate;
         uint256 thruDate;
@@ -89,7 +89,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 tokenId,
         uint8 tokenTypeId,
         address indexed issuedBy,
-        address indexed issuedFrom,
+        uint160 indexed issuedFrom,
         address indexed issuedTo,
         uint256 fromDate,
         uint256 thruDate,
@@ -335,7 +335,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
     function issue(
-        address issuedFrom,
+        uint160 issuedFrom,
         address issuedTo,
         uint8 tokenTypeId,
         uint256 quantity,
@@ -366,7 +366,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      */
     function issueOnBehalf(
         address issuedBy,
-        address issuedFrom,
+        uint160 issuedFrom,
         address issuedTo,
         uint8 tokenTypeId,
         uint256 quantity,
@@ -398,7 +398,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
 
     function _issue(
         address _issuedBy,
-        address _issuedFrom,
+        uint160 _issuedFrom,
         address _issuedTo,
         uint8 _tokenTypeId,
         uint256 _quantity,
@@ -842,6 +842,18 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         returns (address)
     {
         return _tokenDetails[tokenId].issuedBy;
+    }
+
+
+    /**
+     * @dev returns issuer of a given tokenId
+     */
+    function getIssuedFrom(uint256 tokenId)
+        external
+        view
+        returns (uint160)
+    {
+        return _tokenDetails[tokenId].issuedFrom;
     }
 
     /**

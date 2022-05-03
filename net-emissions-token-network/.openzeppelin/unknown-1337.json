@@ -2,12 +2,12 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
-    "txHash": "0x973bd79cf03bdca8ecdabff62e035d3c37b7c6b80f7498b8bf9fac79611a0b8d"
+    "txHash": "0x5f93c35fd814a99644dfc4e6728a542eb33c5fcc604264f53088b064fa34769d"
   },
   "proxies": [
     {
       "address": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
-      "txHash": "0x864cd7f42164b65d4557d99cfbd56de1c3c78cf8af3d0ecc8f28041cad5b1e2c",
+      "txHash": "0x4adf0fe1d64da921046b8837e6c27e5b91ae72a4e1217ef8b37117900363808d",
       "kind": "transparent"
     }
   ],
@@ -290,358 +290,19 @@
         }
       }
     },
-    "5ba599cf0442d2e606f03650bbd979f7e86329f9298280739602fc0b96af356f": {
-      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0x9a3b1ae8bec8da47b62e26b59977ba918aafae89e1459cf1b9939a05fd43e8d2",
-      "layout": {
-        "storage": [
-          {
-            "label": "_initialized",
-            "offset": 0,
-            "slot": "0",
-            "type": "t_bool",
-            "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
-          },
-          {
-            "label": "_initializing",
-            "offset": 1,
-            "slot": "0",
-            "type": "t_bool",
-            "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "1",
-            "type": "t_array(t_uint256)50_storage",
-            "contract": "ContextUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "51",
-            "type": "t_array(t_uint256)50_storage",
-            "contract": "ERC165Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
-          },
-          {
-            "label": "_balances",
-            "offset": 0,
-            "slot": "101",
-            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-            "contract": "ERC1155Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:25"
-          },
-          {
-            "label": "_operatorApprovals",
-            "offset": 0,
-            "slot": "102",
-            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
-            "contract": "ERC1155Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:28"
-          },
-          {
-            "label": "_uri",
-            "offset": 0,
-            "slot": "103",
-            "type": "t_string_storage",
-            "contract": "ERC1155Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:31"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "104",
-            "type": "t_array(t_uint256)47_storage",
-            "contract": "ERC1155Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:475"
-          },
-          {
-            "label": "_roles",
-            "offset": 0,
-            "slot": "151",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
-            "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "152",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:235"
-          },
-          {
-            "label": "limitedMode",
-            "offset": 0,
-            "slot": "201",
-            "type": "t_bool",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:18"
-          },
-          {
-            "label": "admin",
-            "offset": 1,
-            "slot": "201",
-            "type": "t_address",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:19"
-          },
-          {
-            "label": "timelock",
-            "offset": 0,
-            "slot": "202",
-            "type": "t_address",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:20"
-          },
-          {
-            "label": "_numOfUniqueTokens",
-            "offset": 0,
-            "slot": "203",
-            "type": "t_struct(Counter)3114_storage",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:75"
-          },
-          {
-            "label": "_tokenDetails",
-            "offset": 0,
-            "slot": "204",
-            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6723_storage)",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:78"
-          },
-          {
-            "label": "_retiredBalances",
-            "offset": 0,
-            "slot": "205",
-            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:79"
-          },
-          {
-            "label": "_transferredBalances",
-            "offset": 0,
-            "slot": "206",
-            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:80"
-          },
-          {
-            "label": "carbonTransferNonce",
-            "offset": 0,
-            "slot": "207",
-            "type": "t_mapping(t_address,t_mapping(t_address,t_uint32))",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "contracts/NetEmissionsTokenNetwork.sol:83"
-          }
-        ],
-        "types": {
-          "t_address": {
-            "label": "address",
-            "numberOfBytes": "20"
-          },
-          "t_array(t_uint256)47_storage": {
-            "label": "uint256[47]",
-            "numberOfBytes": "1504"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]",
-            "numberOfBytes": "1568"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]",
-            "numberOfBytes": "1600"
-          },
-          "t_bool": {
-            "label": "bool",
-            "numberOfBytes": "1"
-          },
-          "t_bytes32": {
-            "label": "bytes32",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
-            "label": "mapping(address => mapping(address => bool))",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_mapping(t_address,t_uint32))": {
-            "label": "mapping(address => mapping(address => uint32))",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_uint256)": {
-            "label": "mapping(address => uint256)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_uint32)": {
-            "label": "mapping(address => uint32)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
-            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
-            "label": "mapping(uint256 => mapping(address => uint256))",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6723_storage)": {
-            "label": "mapping(uint256 => struct NetEmissionsTokenNetwork.CarbonTokenDetails)",
-            "numberOfBytes": "32"
-          },
-          "t_string_storage": {
-            "label": "string",
-            "numberOfBytes": "32"
-          },
-          "t_struct(CarbonTokenDetails)6723_storage": {
-            "label": "struct NetEmissionsTokenNetwork.CarbonTokenDetails",
-            "members": [
-              {
-                "label": "tokenId",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "tokenTypeId",
-                "type": "t_uint8",
-                "offset": 0,
-                "slot": "1"
-              },
-              {
-                "label": "issuedBy",
-                "type": "t_address",
-                "offset": 1,
-                "slot": "1"
-              },
-              {
-                "label": "issuedFrom",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "2"
-              },
-              {
-                "label": "issuedTo",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "3"
-              },
-              {
-                "label": "fromDate",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "4"
-              },
-              {
-                "label": "thruDate",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "5"
-              },
-              {
-                "label": "dateCreated",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "6"
-              },
-              {
-                "label": "metadata",
-                "type": "t_string_storage",
-                "offset": 0,
-                "slot": "7"
-              },
-              {
-                "label": "manifest",
-                "type": "t_string_storage",
-                "offset": 0,
-                "slot": "8"
-              },
-              {
-                "label": "description",
-                "type": "t_string_storage",
-                "offset": 0,
-                "slot": "9"
-              },
-              {
-                "label": "totalIssued",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "10"
-              },
-              {
-                "label": "totalRetired",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "11"
-              }
-            ],
-            "numberOfBytes": "384"
-          },
-          "t_struct(Counter)3114_storage": {
-            "label": "struct CountersUpgradeable.Counter",
-            "members": [
-              {
-                "label": "_value",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "0"
-              }
-            ],
-            "numberOfBytes": "32"
-          },
-          "t_struct(RoleData)34_storage": {
-            "label": "struct AccessControlUpgradeable.RoleData",
-            "members": [
-              {
-                "label": "members",
-                "type": "t_mapping(t_address,t_bool)",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "adminRole",
-                "type": "t_bytes32",
-                "offset": 0,
-                "slot": "1"
-              }
-            ],
-            "numberOfBytes": "64"
-          },
-          "t_uint256": {
-            "label": "uint256",
-            "numberOfBytes": "32"
-          },
-          "t_uint32": {
-            "label": "uint32",
-            "numberOfBytes": "4"
-          },
-          "t_uint8": {
-            "label": "uint8",
-            "numberOfBytes": "1"
-          }
-        }
-      }
-    },
-    "b934b53904371795ec6324be1a28f09a2b81616a31cbce3c748a5d1e42dd96f9": {
+    "1a30e017b6d5e0cb871f9f71455a33d1d8bac48dabb6ffccbbc935a22dca70cf": {
       "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
-      "txHash": "0xe380d08908a6b8ea0074ba5942e4def50afa20f494919705260b3463e2b285c9",
+      "txHash": "0x9102a69ea87daf95a13c1510773b952be50ebe396818416ff841620de8a1e24c",
       "layout": {
         "storage": [
           {
             "label": "_initialized",
             "offset": 0,
             "slot": "0",
-            "type": "t_bool",
+            "type": "t_uint8",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:39"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
           },
           {
             "label": "_initializing",
@@ -649,7 +310,7 @@
             "slot": "0",
             "type": "t_bool",
             "contract": "Initializable",
-            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:44"
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
           },
           {
             "label": "__gap",
@@ -697,7 +358,7 @@
             "slot": "104",
             "type": "t_array(t_uint256)47_storage",
             "contract": "ERC1155Upgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:475"
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:522"
           },
           {
             "label": "_roles",
@@ -713,7 +374,7 @@
             "slot": "152",
             "type": "t_array(t_uint256)49_storage",
             "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:235"
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:247"
           },
           {
             "label": "limitedMode",
@@ -743,7 +404,7 @@
             "label": "_numOfUniqueTokens",
             "offset": 0,
             "slot": "203",
-            "type": "t_struct(Counter)3114_storage",
+            "type": "t_struct(Counter)3320_storage",
             "contract": "NetEmissionsTokenNetworkV2",
             "src": "contracts/NetEmissionsTokenNetworkV2.sol:67"
           },
@@ -751,7 +412,7 @@
             "label": "_tokenDetails",
             "offset": 0,
             "slot": "204",
-            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8661_storage)",
+            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8881_storage)",
             "contract": "NetEmissionsTokenNetworkV2",
             "src": "contracts/NetEmissionsTokenNetworkV2.sol:70"
           },
@@ -841,7 +502,7 @@
             "label": "mapping(uint256 => mapping(address => uint256))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8661_storage)": {
+          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8881_storage)": {
             "label": "mapping(uint256 => struct NetEmissionsTokenNetworkV2.CarbonTokenDetails)",
             "numberOfBytes": "32"
           },
@@ -849,7 +510,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CarbonTokenDetails)8661_storage": {
+          "t_struct(CarbonTokenDetails)8881_storage": {
             "label": "struct NetEmissionsTokenNetworkV2.CarbonTokenDetails",
             "members": [
               {
@@ -872,7 +533,7 @@
               },
               {
                 "label": "issuedFrom",
-                "type": "t_address",
+                "type": "t_uint160",
                 "offset": 0,
                 "slot": "2"
               },
@@ -933,7 +594,7 @@
             ],
             "numberOfBytes": "384"
           },
-          "t_struct(Counter)3114_storage": {
+          "t_struct(Counter)3320_storage": {
             "label": "struct CountersUpgradeable.Counter",
             "members": [
               {
@@ -962,6 +623,355 @@
               }
             ],
             "numberOfBytes": "64"
+          },
+          "t_uint160": {
+            "label": "uint160",
+            "numberOfBytes": "20"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint32": {
+            "label": "uint32",
+            "numberOfBytes": "4"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        }
+      }
+    },
+    "ebc6a7ec9cc470a9985b9148375a0003b527774684c7ce628ffd72b15f61b64f": {
+      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      "txHash": "0x51a0c8e58af542f5f49207a007e037164b6816ceb0991205b325db72a48f32f6",
+      "layout": {
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_balances",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:25"
+          },
+          {
+            "label": "_operatorApprovals",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_bool))",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:28"
+          },
+          {
+            "label": "_uri",
+            "offset": 0,
+            "slot": "103",
+            "type": "t_string_storage",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:31"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "104",
+            "type": "t_array(t_uint256)47_storage",
+            "contract": "ERC1155Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol:522"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)34_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:61"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:247"
+          },
+          {
+            "label": "limitedMode",
+            "offset": 0,
+            "slot": "201",
+            "type": "t_bool",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:18"
+          },
+          {
+            "label": "admin",
+            "offset": 1,
+            "slot": "201",
+            "type": "t_address",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:19"
+          },
+          {
+            "label": "timelock",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_address",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:20"
+          },
+          {
+            "label": "_numOfUniqueTokens",
+            "offset": 0,
+            "slot": "203",
+            "type": "t_struct(Counter)3320_storage",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:75"
+          },
+          {
+            "label": "_tokenDetails",
+            "offset": 0,
+            "slot": "204",
+            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6929_storage)",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:78"
+          },
+          {
+            "label": "_retiredBalances",
+            "offset": 0,
+            "slot": "205",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:79"
+          },
+          {
+            "label": "_transferredBalances",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:80"
+          },
+          {
+            "label": "carbonTransferNonce",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint32))",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "contracts/NetEmissionsTokenNetwork.sol:83"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)47_storage": {
+            "label": "uint256[47]",
+            "numberOfBytes": "1504"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_bool))": {
+            "label": "mapping(address => mapping(address => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_mapping(t_address,t_uint32))": {
+            "label": "mapping(address => mapping(address => uint32))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_uint32)": {
+            "label": "mapping(address => uint32)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)34_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(uint256 => mapping(address => uint256))",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6929_storage)": {
+            "label": "mapping(uint256 => struct NetEmissionsTokenNetwork.CarbonTokenDetails)",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(CarbonTokenDetails)6929_storage": {
+            "label": "struct NetEmissionsTokenNetwork.CarbonTokenDetails",
+            "members": [
+              {
+                "label": "tokenId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "tokenTypeId",
+                "type": "t_uint8",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "issuedBy",
+                "type": "t_address",
+                "offset": 1,
+                "slot": "1"
+              },
+              {
+                "label": "issuedFrom",
+                "type": "t_uint160",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "issuedTo",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "fromDate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "thruDate",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "dateCreated",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              },
+              {
+                "label": "metadata",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "7"
+              },
+              {
+                "label": "manifest",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "8"
+              },
+              {
+                "label": "description",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "9"
+              },
+              {
+                "label": "totalIssued",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "10"
+              },
+              {
+                "label": "totalRetired",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "11"
+              }
+            ],
+            "numberOfBytes": "384"
+          },
+          "t_struct(Counter)3320_storage": {
+            "label": "struct CountersUpgradeable.Counter",
+            "members": [
+              {
+                "label": "_value",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)34_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint160": {
+            "label": "uint160",
+            "numberOfBytes": "20"
           },
           "t_uint256": {
             "label": "uint256",
