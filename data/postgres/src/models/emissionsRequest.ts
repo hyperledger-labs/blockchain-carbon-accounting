@@ -41,8 +41,8 @@ export class EmissionsRequest {
   @Column({type: 'timestamp', nullable: true})
   token_thru_date?: Date;
 
-  @Column()
-  token_total_emissions!: number;
+  @Column({type: 'bigint'})
+  token_total_emissions!: bigint;
 
   @Column({nullable: true})
   token_metadata?: string;

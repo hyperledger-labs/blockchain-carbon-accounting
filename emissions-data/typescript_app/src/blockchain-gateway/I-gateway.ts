@@ -184,7 +184,7 @@ export interface IEthTxCaller {
 export interface IEthNetEmissionsTokenIssueInput {
     issuedFrom: string;
     issuedTo: string;
-    quantity: number;
+    quantity: bigint;
     fromDate: number;
     thruDate: number;
     metadata: string;

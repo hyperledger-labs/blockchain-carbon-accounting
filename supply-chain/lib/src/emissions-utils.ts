@@ -250,13 +250,13 @@ export async function issue_emissions_tokens_with_issuee(
   const manifest = create_manifest(publicKey, ipfs_path, hash);
   const description = `Emissions from ${activity_type}`;
 
-  return await gateway_issue_token(issuedFrom, issuedTo, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
+  return await gateway_issue_token(issuedFrom, issuedTo, BigInt(tokens.toNumber()), fd, td, JSON.stringify(manifest), metadata, description);
 }
 
 async function gateway_issue_token(
   issuedFrom: string,
   issuedTo: string,
-  quantity_of_tokens: number,
+  quantity_of_tokens: bigint,
   fromDate: number,
   thruDate: number,
   manifest: string,
@@ -657,7 +657,7 @@ export async function create_emissions_request(
     status: status,
     token_from_date: f_date,
     token_thru_date: t_date,
-    token_total_emissions: tokens.toNumber(),
+    token_total_emissions: BigInt(tokens.toNumber()),
     token_metadata: metadata,
     token_description: `Emissions from ${activity_type}`
   });

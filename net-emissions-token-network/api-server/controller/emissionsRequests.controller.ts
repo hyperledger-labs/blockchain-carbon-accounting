@@ -228,7 +228,8 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     console.log(`postEmissionsRequest moving to upload folder as ${uploaded_file.uuid} ...`)
     supportingDocument.mv((process.env.DOC_UPLOAD_PATH || './upload/') + uploaded_file.uuid);
 
-    return res.status(200).json({ status: 'success', queue_result, result });
+    const allresp = { status: 'success', queue_result, result };
+    return res.status(200).send(JSON.stringify(allresp, (_, v) => typeof v === 'bigint' ? v.toString() : v));
   } catch (error) {
     console.error('postEmissionsRequest error: ', error);
     if (error instanceof ApplicationError) {
