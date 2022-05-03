@@ -6,7 +6,7 @@ on: # Run the workflows on push/PR to the main branch
     branches: [main]
 
 jobs:
-  build-supply-chain: # Run lint script for the typescript_app directory
+  build-supply-chain:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,7 +23,7 @@ jobs:
       - name: Run build script
         run: npm run build
 
-  build-api-server: # Run lint script for the typescript_app directory
+  build-api-server:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,6 +39,23 @@ jobs:
           npm ci
       - name: Run build script
         run: npm run build
+
+  build-react-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./net-emissions-token-network/api-server
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.15.0"
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: install # will run `yarn install` command
+      - uses: borales/actions-yarn@v2.3.0
+        with:
+          cmd: react-app:build # will run `yarn build` command
 
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
