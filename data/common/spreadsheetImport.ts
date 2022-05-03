@@ -147,6 +147,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           net_generation:
             row["NERC region annual net generation (MWh)"].toString(),
           net_generation_uom: "MWH",
+          activity_uom: "MWH",
           co2_equivalent_emissions:
             row["NERC region annual CO2 equivalent emissions (tons)"].toString(),
           co2_equivalent_emissions_uom: "tons",
@@ -192,6 +193,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_name: getStateNameMapping(row["State abbreviation"]),
           net_generation: row["State annual net generation (MWh)"],
           net_generation_uom: "MWH",
+          activity_uom: "MWH",
           co2_equivalent_emissions:
             row["State annual CO2 equivalent emissions (tons)"].toString(),
           co2_equivalent_emissions_uom: "tons",
@@ -235,6 +237,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_name: "United States of America",
           net_generation: "" + row["U.S. annual net generation (MWh)"],
           net_generation_uom: "MWH",
+          activity_uom: "MWH",
           co2_equivalent_emissions:
             "" + row["U.S. annual CO2 equivalent emissions (tons)"],
           co2_equivalent_emissions_uom: "tons",
