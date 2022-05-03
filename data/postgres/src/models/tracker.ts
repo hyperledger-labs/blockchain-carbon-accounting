@@ -5,21 +5,24 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Token {
+export class Tracker {
     @PrimaryColumn()
-    tokenId!: number;
+    trackerId!: number;
 
     @Column()
-    tokenTypeId!: number;
+    trackee!: string;
 
     @Column()
-    issuedBy!: string;
+    auditor!: string;
 
     @Column()
-    issuedFrom!: string;
+    totalEmissions!: number;
 
     @Column()
-    issuedTo!: string;
+    totalOffset!: number;
+
+    @Column()
+    numOfProducts!: number;
 
     @Column({nullable: true})
     fromDate!: number;
@@ -34,22 +37,6 @@ export class Token {
     // eslint-disable-next-line
     metadata!: Object;
 
-    @Column({type: "hstore", hstoreType:"object", nullable: true})
-    // eslint-disable-next-line
-    manifest!: Object;
-
     @Column({nullable: true})
     description!: string;
-
-    @Column({type: 'bigint'})
-    totalIssued!: string;
-
-    @Column({type: 'bigint'})
-    totalRetired!: string;
-
-    @Column({nullable: true})
-    scope!: number;
-
-    @Column({nullable: true})
-    type!: string;
 }

@@ -13,7 +13,7 @@ import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import { getRoles } from "../services/contract-functions";
 import TokenInfoModal, { TokenInfo } from "../components/token-info-modal";
-import TrackerInfoModal from "../components/tracker-info-modal";
+//import TrackerInfoModal, { TrackerInfo } from "../components/tracker-info-modal";
 import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
@@ -36,10 +36,9 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenInfo>({});
-  const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
-  const [myBalances, setMyBalances] = useState<Balance[]>([]);
+  const [myBalances, setMyBalances] = useState<any[]>([]);
   const [fetchingTokens, setFetchingTokens] = useState(false);
 
   // const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
@@ -99,7 +98,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
-    let newMyBalances: Balance[] = [];
+    let newMyBalances = [];
 
     let _balanceCount = 0;
     try {
@@ -113,7 +112,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       // this count means total pages of balances
       _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
 
-
       for (let i = 0; i < balances.length; i++) {
         const balance = balances[i];
 
@@ -125,7 +123,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           issuedTo: balance.issuedTo,
           availableBalance: balance.available,
           retiredBalance: balance.retired,
-          transferredBalance: balance.transferred
         }
         newMyBalances.push(token);
       }
@@ -171,15 +168,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           setSelectedToken({});
         }}
       />
-      <TrackerInfoModal
-        show={modalTrackerShow}
-        tracker={selectedTracker}
-        onHide={() => {
-          setModaltrackerShow(false);
-          setSelectedTracker({});
-        }}
-      />
-
       <h2>Dashboard</h2>
       {(displayAddress) ? 
         <p className="mb-1">View token balances for {displayAddress}.</p>
@@ -214,7 +202,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                   <th>Type</th>
                   <th>Balance</th>
                   <th>Retired</th>
-                  <th>Transferred (carbon tracker)</th>
                 </tr>
               </thead>
               <tbody>
@@ -237,7 +224,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                       <td>{balance.tokenType}</td>
                       <td><DisplayTokenAmount amount={balance.availableBalance}/></td>
                       <td><DisplayTokenAmount amount={balance.retiredBalance}/></td>
-                      <td><DisplayTokenAmount amount={balance.transferredBalance}/></td>
                     </tr>
                   ))}
               </tbody>

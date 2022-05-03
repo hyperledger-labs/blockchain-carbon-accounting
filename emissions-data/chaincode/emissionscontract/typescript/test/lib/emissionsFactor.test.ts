@@ -8,10 +8,16 @@ import {
 } from '../../src/lib/emissionsFactor';
 
 const testData: EmissionsFactorInterface = {
+    class: '',
+    type: '',
     uuid: 'id',
     year: '2021',
     division_type: 'division_type',
     division_id: 'division_id',
+    scope: '1',
+    level_1: 'string',
+    level_2: 'string',
+    level_3:'string'
 };
 
 describe('lib/emissionsFactor.ts', () => {

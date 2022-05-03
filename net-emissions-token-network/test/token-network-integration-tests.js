@@ -619,10 +619,10 @@ describe("Net Emissions Token Network - Integration tests", function() {
     }
 
     try {
-      let issueWithIndustryTwo = await contract
-        .connect(await ethers.getSigner(industry2))
+      let issueWithAe = await contract
+        .connect(await ethers.getSigner(dealer1))
         .issue(
-          industry2,
+          industry1,
           industry1,
           allTokenTypeId[3],
           quantity,
@@ -633,27 +633,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal(
-        revertError("CLM8::_issue: registered industry can only issue carbon to itself")
-      );
-    }
-
-    try {
-      let issueWithAe = await contract
-        .connect(await ethers.getSigner(dealer1))
-        .issue(
-          dealer1,
-          dealer1,
-          allTokenTypeId[3],
-          quantity,
-          fromDate,
-          thruDate,
-          metadata,
-          manifest,
-          description
-        );
-    } catch (err) {
-      expect(err.toString()).to.equal(revertError("CLM8::_issue: issuer not a registered industry"));
+      expect(err.toString()).to.equal(revertError("CLM8::_issue: issuer not a registered emissions auditor"));
     }
 
     // Get ID of token just issued

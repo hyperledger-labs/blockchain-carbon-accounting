@@ -76,12 +76,17 @@ task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 req
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async taskArgs => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, dealer4, dealer5, dealer6, dealer7} = await getNamedAccounts();
+    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, industry3, industry4, dealer4, dealer5, dealer6, dealer7} = await getNamedAccounts();
 
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
-
+    
+    const {get} = deployments;
+    let carbonTracker = await get("CarbonTracker");
+    
+    await contract.connect(admin).registerDealer(carbonTracker.address, 4); // REC dealer
+    console.log("Account " + carbonTracker.address + " set as industry dealer");
     await contract.connect(admin).registerDealer(dealer1, 1); // REC dealer
     console.log("Account " + dealer1 + " is now a REC dealer");
     await contract.connect(admin).registerDealer(dealer2, 3); // emissions auditor
@@ -97,9 +102,13 @@ task("setTestAccountRoles", "Set default account roles for testing")
 
     await contract.connect(admin).registerDealer(industry1,4);
     console.log("Account " + industry1 + " is now an industry")
-    // self registered industry dealer
     await contract.connect(await ethers.getSigner(industry1)).registerIndustry(industry2);
     console.log("Account " + industry2 + " is now an industry")
+    await contract.connect(admin).registerDealer(industry3,4);
+    console.log("Account " + industry3 + " is now an industry")
+    await contract.connect(admin).registerDealer(industry4,4);
+    console.log("Account " + industry4 + " is now an industry")
+
 
     await contract.connect(await ethers.getSigner(industry1)).registerConsumer(consumer1);
     console.log("Account " + consumer1 + " is now a consumer");
@@ -387,6 +396,87 @@ task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live
     console.log("Done performing Timelock admin switch.");
   });
 
+task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emissions")
+  .addParam("contract", "The CLM8 contract")
+  //.addParam("trackerContract", "The C-NFT contract")
+  //.addParam("count", "Number of token to issue in each loop")
+  .setAction(async taskArgs => {
+    const { dealer2, industry1, industry2, industry3, industry4 } = await getNamedAccounts();
+
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const {get} = deployments;
+    let carbonTracker = await get("CarbonTracker");
+    const trackerContract = await CarbonTracker.attach(carbonTracker.address);
+
+    let locations = ['Bakken','Niobrara','Permian'];
+    let industryAddresses = [industry1,industry2,industry3];
+    let ventingEmissions = [42359667456,4878701472,33035904000];
+    let flaringEmissions = [3172353757,164659360,7191612033];
+    let oilAmounts = [60432084,32360576,217910480];
+    let gasAmounts = [24024439,48692554,148632745];
+    let oilUnitAmounts = [60432084,32360576,217910480];
+    let gasUnitAmounts = [27935394,56619248,172828773];
+
+    for (let i = 0; i<locations.length; i++) {
+      await contract.connect(await ethers.getSigner(dealer2))
+      .issueAndTrack(
+        dealer2,
+        industryAddresses[i],
+        carbonTracker.address,
+        0,
+        4,
+        ventingEmissions[i],
+        "1577836800",
+        "1609415999",
+        JSON.stringify({'type': 'CH4', 'scope': '1', 'location':  locations[i]}),
+        'https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760',
+        'Methane venting and leakage'
+      );
+      console.log("Methane venting and leakage tokens issued for "+locations[i]);
+      await contract.connect(await ethers.getSigner(dealer2))
+      .issueAndTrack(
+        dealer2,
+        industryAddresses[i],
+        carbonTracker.address,
+        i+1,
+        4,
+        flaringEmissions[i],
+        "1577836800",
+        "1609415999",
+        JSON.stringify({'type': 'CO2', 'scope': '1', 'location':  locations[i]}),
+        'https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760',
+        'Methane flaring'
+      );
+      console.log("Gas flaring tokens issued for "+locations[i]);
+      await trackerContract.connect(await ethers.getSigner(dealer2))
+      .trackUpdate(
+        i+1,
+        [],
+        [],
+        0,
+        0,
+        locations[i]+" oil and gas emissions"
+      );
+      await trackerContract.connect(await ethers.getSigner(dealer2))
+      .productsUpdate(
+        i+1,
+        [0,0],
+        [oilAmounts[i],gasAmounts[i]],
+        ['Oil','Methane'],
+        ['toe', 'kcm'],
+        [oilUnitAmounts[i],gasUnitAmounts[i]]
+      );
+      console.log("Oil and gas products added to tracker id "+(i+1).toString()+" for "+locations[i]);
+
+      await trackerContract.connect(await ethers.getSigner(dealer2)).audit(i+1);
+      console.log("Tracker id "+(i+1).toString()+" verified");
+    }
+    await trackerContract.connect(await ethers.getSigner(industry2))
+      .transferProduct(4,1000000,2,industry4);
+    console.log("Transfer Gas (productId = 4) from "+locations[2]+" to Gas Utility: "+industry4);
+  });
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -406,6 +496,8 @@ module.exports = {
     consumer2: { default: 18 },
     industry1: { default: 15 },
     industry2: { default: 16 },
+    industry3: { default: 17 },
+    industry4: { default: 18 },
     unregistered: { default: 8 }
   },
 

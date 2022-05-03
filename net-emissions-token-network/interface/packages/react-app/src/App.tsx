@@ -11,7 +11,9 @@ import IssuedTokens from "./pages/issued-tokens";
 import EmissionsRequests from "./pages/emissions-requests";
 import PendingEmissions from "./pages/pending-emissions";
 import IssueForm from "./pages/issue-form";
+import IssuedTrackers from "./pages/issued-trackers";
 import TrackForm from "./pages/track-form";
+import ProductForm from "./pages/products-form";
 import TransferForm from "./pages/transfer-form";
 import RetireForm from "./pages/retire-form";
 import AccessControlForm from "./pages/access-control-form";
@@ -29,7 +31,7 @@ const App:FC = () => {
   const [trpcClient] = useTrpcClient();
 
   const { provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode } = useWeb3Modal();
-
+  //console.log(roles)
   const [location] = useLocation();
 
   const dashboardRef = useRef<ElementRef<typeof Dashboard>>(null);
@@ -76,8 +78,9 @@ const App:FC = () => {
           <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
           {((limitedMode && isOwner) || !limitedMode) &&
-            <Link href="/track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
+            <Link href="/issuedTrackers"><Nav.Link eventKey="issuedTrackers">Track</Nav.Link></Link>
         }
+
 
           {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
           <Link href="/access-control"><Nav.Link eventKey="access-control">
@@ -122,9 +125,15 @@ const App:FC = () => {
                 <Route path="/retire">
                   <RetireForm provider={provider} roles={roles} />
                 </Route>
-                <Route path="/track">
-                  <TrackForm provider={provider} registeredTracker={registeredTracker}/>
-                </Route>
+                <Route path="/issuedTrackers/:address?">{params=>
+                  <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
+                }</Route>
+                <Route path="/track/:trackerId?">{params=>
+                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                }</Route>
+                <Route path="/verifyTracker/:trackerId?">{params=>
+                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                }</Route>
                 <Route path="/access-control">
                   <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
                 </Route>

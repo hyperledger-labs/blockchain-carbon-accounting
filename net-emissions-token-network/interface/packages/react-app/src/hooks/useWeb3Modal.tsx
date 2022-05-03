@@ -80,7 +80,7 @@ function useWeb3Modal(config: any = {}) {
 
     if (provider) {
       fetchRoles(provider);
-      fetchRegisteredTracker(provider);
+      //fetchRegisteredTracker(provider);
       fetchLimitedMode(provider);
     }
 

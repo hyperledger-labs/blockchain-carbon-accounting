@@ -1,22 +1,69 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from "react-bootstrap/Col";
 import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { FaLink } from 'react-icons/fa';
+import Form from 'react-bootstrap/Form';
+import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
+import { trackUpdate } from "../services/contract-functions";
+import { Web3Provider } from "@ethersproject/providers";
+import DisplayDate from "./display-date";
+import DisplayJSON from "./display-json";
 
 
-type TrackerInfoModalProps = {
-  show:boolean
-  tracker:any
-  onHide:()=>void 
+export type TrackerInfo = {
+  isMyIssuedToken?: boolean,
+  tokenId?: number,
+  tokenType?: string,
+  issuedBy?: string,
+  issuedFrom?: string,
+  issuedTo?: string,
+  description?: string,
+  fromDate?: number,
+  thruDate?: number,
+  dateCreated?: number,
+  totalIssued?: number,
+  totalRetired?: number,
+  availableBalance?: number,
+  retiredBalance?: number,
+  metadata?: any,
+  manifest?: any,
 }
 
-const TrackerInfoModal:FC<TrackerInfoModalProps> = (props) => {
+type TrackerInfoModalProps = {
+  provider?: Web3Provider,
+  show:boolean,
+  tracker:any,
+  onHide:()=>void, 
+  isDealer?:boolean,
+}
+
+type KeyValuePair = {
+  key: string
+  value: string
+}
+
+const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHide,isDealer}) => {
+
+  const [trackerDescription, setTrackerDescription] = useState("");
+  const onTrackerDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerDescription(event.target.value); }, []);
+  const [result, setResult] = useState("");
+
+  function handleSubmit() {
+    submit();
+    //setSubmissionModalShow(true);
+  }
+
+  async function submit() {
+    if (!provider) return;
+    let result = await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription);
+    setResult(result.toString());
+  }
+
 
   return (
-    <Modal {...props} centered size="lg">
+    <Modal {...{show,tracker,onHide}} centered size="lg">
       <Modal.Header closeButton>
         <Modal.Title>Tracker Details</Modal.Title>
       </Modal.Header>
@@ -26,35 +73,27 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = (props) => {
           <Col className="col-3">
             <Row className="text-center">
               <Col>
-                <h3 className="mb-1 mt-2">ID: {props.tracker.trackerId}</h3>
+                <h3 className="mb-1 mt-2">ID: {tracker.trackerId}</h3>
               </Col>
               <Col>
-                <h1 className="display-4">
+                <h3 className="display-10">
                   <FaLink />
-                </h1>
+                </h3>
               </Col>
             </Row>
             <Row className="text-center mt-1">
               <Col>
                 <small className="text-secondary text-uppercase">
-                  {props.tracker.tokenType}
+                  {tracker.tokenType}
                 </small>
               </Col>
             </Row>
           </Col>
           <Col className="col-9">
             <h5>
-                Reported emissions: {props.tracker.totalEmissions}
+                Reported emissions: {tracker.totalEmissions} kgCO2e
             </h5>
-            <h5>Carbon Intensity: {props.tracker.ciVct}</h5>
-            {/*<h5 className="text-secondary">CI AEC {props.tracker.ciAec}</h5>*/}
-
-            { Number(props.tracker.totalAudited) > 0  &&
-              <h5 className="text-secondary">Audited emissions (out): {props.tracker.totalAudited} </h5>}
-            { Number(props.tracker.totalOffsets) > 0  &&
-              <h5 className="text-secondary">Offset credits (out): {props.tracker.totalOffsets}</h5>}
-            { Number(props.tracker.totalOut) > 0  &&
-              <h5 className="text-secondary">Carbon tokens (out): {props.tracker.totalOut}</h5>}
+  
           </Col>
           {/* Total emission inputs and audited/offset outputs */}
         </Row>
@@ -68,35 +107,89 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = (props) => {
           <tbody>
             <tr>
               <td>Trackee</td>
-              <td className="text-monospace">{props.tracker.trackee}</td>
+              <td className="text-monospace">{tracker.trackee}</td>
             </tr>
             <tr>
               <td>From date</td>
-              <td>{props.tracker.fromDate}</td>
+              <td><DisplayDate date={tracker.fromDate}/></td>
             </tr>
             <tr>
               <td>Thru date</td>
-              <td>{props.tracker.thruDate}</td>
-            </tr>
-            <tr>
-              <td>Metadata</td>
-              <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
-                {props.tracker.metadata}
-              </td>
-            </tr>
-            <tr>
-              <td>Manifest</td>
-              <td style={{ overflowWrap: "anywhere" }}>{props.tracker.manifest}</td>
+              <td><DisplayDate date={tracker.thruDate}/></td>
             </tr>
             <tr>
               <td>Description</td>
-              <td style={{ overflowWrap: "anywhere" }}>{props.tracker.description}</td>
+              
+              {(isDealer && tracker.auditor=="0x0000000000000000000000000000000000000000") ?
+                <td style={{ overflowWrap: "anywhere" }}>
+                  <Form.Group className="mb-3" controlId="trackerDescriptionInput">
+                    <Form.Control as="textarea" placeholder={tracker.description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
+                  </Form.Group>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-100"
+                    onClick={handleSubmit}
+                    //disabled={disableIssueButton(calldata, quantity, address)}
+                  >
+                    Submit
+                  </Button> 
+                </td>
+                : <td style={{ overflowWrap: "anywhere" }}>{tracker.description}</td>
+            }
             </tr>
+          </tbody>
+        </table>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Products</th>
+              <th>Amount (Available)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tracker.products?.names.map((name: any,i: number) => ( 
+              <tr key={name+i}>
+                <td>
+                  {name}{":"+" "}  
+                  <div key={'intensityLabel'+i}>GHG Intensity</div>                    
+                </td>
+                <td>
+                  <div key={name+"Amount"+i}>
+                    {tracker.products?.amounts[i]+" "+tracker.products?.units[i]}
+                    {" ("+tracker.products?.available[i]+") "}
+                  </div>
+                  <div key={name+"Intensity"+i}>{tracker.products?.carbonIntensities[i].toFixed(0)}{" kgCO2e/"+tracker.products?.units[i]}</div>
+                </td>
+              </tr>
+            ))
+            }
+          </tbody>
+        </table>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Emissions</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tracker.tokens?.details.map((e: any,i: number) => ( 
+                <tr key={e.tokenId+'Details'}>
+                  <td>{"tokenId "+e.tokenId}{" "}{"amount: "}
+                    <div>{(e.description)}</div>
+                  </td>
+                  <td>{tracker.tokens?.amounts[i]+" kgCO2e"}
+                    <DisplayJSON json={e.metadata}/>
+                  </td>
+                </tr>
+              ))
+            }
           </tbody>
         </table>
       </Modal.Body>
       <Modal.Footer>
-        <Button onClick={props.onHide}>Close</Button>
+        <Button onClick={onHide}>Close</Button>
       </Modal.Footer>
     </Modal>
   );
