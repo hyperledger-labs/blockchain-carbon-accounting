@@ -70,14 +70,11 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           return;
         }
 
-        // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
-        let quantity_formatted = Math.round(selectedPendingEmissions.token_total_emissions * 1000) / 1000;
-
         let result = await issue(provider,
           selectedPendingEmissions.issued_from,
           selectedPendingEmissions.issued_to,
           tokenTypeId,
-          quantity_formatted,
+          selectedPendingEmissions.token_total_emissions,
           from_date,
           thru_date,
           selectedPendingEmissions.token_metadata,

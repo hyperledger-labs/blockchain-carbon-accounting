@@ -204,7 +204,7 @@ export async function issue(
   issuedFrom: string|undefined,
   issuedTo: string,
   tokenTypeId: number,
-  quantity: number,
+  quantity: bigint,
   fromDate: number|Date,
   thruDate: number|Date,
   metadata: string,
