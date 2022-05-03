@@ -34,8 +34,8 @@ export type Token = {
   metadata: Object
   manifest: Object
   description: string
-  totalIssued?: number
-  totalRetired?: number
+  totalIssued?: bigint // bigint
+  totalRetired?: bigint // bigint
   scope: number
   type: string
   isMyIssuedToken?: boolean
@@ -65,14 +65,14 @@ export type Tracker = {
 export type Balance = {
   issuedTo: string
   tokenId: number
-  available: number
-  retired: number
-  transferred: number
+  available: bigint // bigint
+  retired: bigint // bigint
+  transferred: bigint // bigint
   token: Token
   tokenType?: string
-  availableBalance?: number
-  retiredBalance?: number
-  transferredBalance?: number
+  availableBalance?: bigint
+  retiredBalance?: bigint
+  transferredBalance?: bigint
 }
 
 export type Proposal = {

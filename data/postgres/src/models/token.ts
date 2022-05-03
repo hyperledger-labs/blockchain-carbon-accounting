@@ -42,10 +42,10 @@ export class Token {
     description!: string;
 
     @Column({type: 'bigint'})
-    totalIssued!: string;
+    totalIssued!: bigint;
 
     @Column({type: 'bigint'})
-    totalRetired!: string;
+    totalRetired!: bigint;
 
     @Column({nullable: true})
     scope!: number;

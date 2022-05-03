@@ -26,12 +26,12 @@ export class Balance {
     token!: Token;
 
     @Column({type: 'bigint'})
-    available!: string;
+    available!: bigint;
 
     @Column({type: 'bigint'})
-    retired!: string;
+    retired!: bigint;
 
     @Column({type: 'bigint'})
-    transferred!: string;
+    transferred!: bigint;
 }
 

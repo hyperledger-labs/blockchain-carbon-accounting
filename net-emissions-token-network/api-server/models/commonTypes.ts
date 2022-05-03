@@ -10,8 +10,8 @@ export interface CreatedToken {
     metadata: string;
     manifest: string;
     description: string;
-    totalIssued: number;
-    totalRetired: number;
+    totalIssued: bigint;
+    totalRetired: bigint;
 }
 
 export type FIELD = {

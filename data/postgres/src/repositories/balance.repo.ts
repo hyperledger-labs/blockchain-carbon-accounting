@@ -56,7 +56,7 @@ export class BalanceRepo {
     .execute()
   }
 
-  public addAvailableBalance = async (issuedTo: string, tokenId: number, amount: string) => {
+  public addAvailableBalance = async (issuedTo: string, tokenId: number, amount: bigint) => {
     try {
       await this._db.getRepository(Balance)
       .createQueryBuilder('balance')
@@ -70,7 +70,7 @@ export class BalanceRepo {
     }
   }
 
-  public transferBalance = async (issuedTo: string, tokenId: number, amount: string) => {
+  public transferBalance = async (issuedTo: string, tokenId: number, amount: bigint) => {
     try {
       await this._db.getRepository(Balance)
       .createQueryBuilder('balance')
@@ -87,7 +87,7 @@ export class BalanceRepo {
     }
   }
 
-  public retireBalance = async (issuedTo: string, tokenId: number, amount: string) => {
+  public retireBalance = async (issuedTo: string, tokenId: number, amount: bigint) => {
     try {
       await this._db.getRepository(Balance)
       .createQueryBuilder('balance')

@@ -140,7 +140,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
-    let newMyBalances = [];
 
     try {
       // get total count of balance
@@ -150,24 +149,25 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       // this count means total number of balances
       let {balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
 
-      for (let i = 0; i < balances.length; i++) {
-        const balance = balances[i];
 
-        let token = {
+      const newMyBalances = balances.map((balance) => {
+        return {
           ...balance,
           tokenId: balance.token.tokenId,
+          token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
+          issuedTo: balance.issuedTo,
           availableBalance: balance.available,
           retiredBalance: balance.retired,
           transferredBalance: balance.transferred
         }
-        newMyBalances.push(token);
-      }
+      });
+      setMyBalances(newMyBalances);
     } catch (error) {
       console.error(error)
+      setMyBalances([]);
     }
 
-    setMyBalances(newMyBalances);
     setBalancePage(_balancePage);
     setBalancePageSize(_balancePageSize);
     setBalanceQuery(_balanceQuery);
@@ -195,22 +195,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         let tokenDetails = tokens[i-1];
         if (!tokenDetails) continue;
 
-        let totalIssued: number|undefined;
-        try {
-          totalIssued = Number(tokenDetails.totalIssued);
-        } catch (error) {
-          console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
-          totalIssued = undefined;
-        }
-
-        let totalRetired: number|undefined;
-        try {
-          totalRetired = Number(tokenDetails.totalRetired);
-        } catch (error) {
-          console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
-          totalRetired = undefined;
-        }
-
         let token: Token = {
           tokenId: tokenDetails.tokenId,
           scope: tokenDetails.scope,
@@ -226,8 +210,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
-          totalIssued: totalIssued,
-          totalRetired: totalRetired,
+          totalIssued: tokenDetails.totalIssued,
+          totalRetired: tokenDetails.totalRetired,
         };
 
         newMyIssuedTokens.push(token);

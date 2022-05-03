@@ -4,9 +4,9 @@ import { EmissionsRequest } from "../models/emissionsRequest";
 export interface BalancePayload {
   issuedTo: string
   tokenId: number
-  available: string
-  retired: string
-  transferred: string
+  available: bigint
+  retired: bigint
+  transferred: bigint
 }
 
 export type QueryBundle = {
@@ -33,8 +33,8 @@ export interface TokenPayload {
   metadata: Object;
   manifest: Object;
   description: string;
-  totalIssued: string;
-  totalRetired: string;
+  totalIssued: bigint;
+  totalRetired: bigint;
   scope: number;
   type: string;
 }
