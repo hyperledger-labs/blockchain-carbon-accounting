@@ -185,7 +185,7 @@ task("createTestProposal", "Create a test proposal using the default account rol
     const calldatas = [
       encodeParameters(new hre.ethers.utils.AbiCoder(),
         // types of params
-        ["address","address","uint8","uint256","uint256","uint256","string","string","string",],
+        ["address","uint160","uint8","uint256","uint256","uint256","string","string","string",],
         // value of params
         [
           dealer2, // account
@@ -204,7 +204,7 @@ task("createTestProposal", "Create a test proposal using the default account rol
     await govContract.connect(admin).propose(
       [contract.address], // targets
       [0], // values
-      ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",], // signatures
+      ["issueOnBehalf(address,uint160,uint8,uint256,uint256,uint256,string,string,string)",], // signatures
       calldatas,
       "a test proposal"
     );
@@ -225,7 +225,7 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
     const calldatas = [
       encodeParameters(new hre.ethers.utils.AbiCoder(),
         // types of params
-        ["address","address","uint8","uint256","uint256","uint256","string","string","string",],
+        ["address","uint160","uint8","uint256","uint256","uint256","string","string","string",],
         // value of params
         [
           dealer2, // account
@@ -244,7 +244,7 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
     const targets = [contract.address];
     const values = [0];
     const signatures = [
-      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",
+      "issueOnBehalf(address,uint160,uint8,uint256,uint256,uint256,string,string,string)",
     ];
     const descriptions = ["a test proposal"];
     for (let i = 0; i < taskArgs.children; i++) {
