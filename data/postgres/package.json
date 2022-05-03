@@ -16,7 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "blockchain-carbon-accounting-data-common": "1.0.0",
+    "blockchain-carbon-accounting-data-common": "file:../common",
     "cli-progress": "^3.10.0",
     "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript",
     "pg": "^8.7.3",
