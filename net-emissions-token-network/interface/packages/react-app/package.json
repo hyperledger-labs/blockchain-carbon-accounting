@@ -58,6 +58,7 @@
     "test": "react-app-rewired test"
   },
   "devDependencies": {
+    "api-server": "file:../../../api-server",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.29",
     "@types/react": "^17.0.44",
