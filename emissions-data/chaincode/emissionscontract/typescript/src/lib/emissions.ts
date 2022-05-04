@@ -26,7 +26,7 @@ export interface EmissionsRecordInterface {
     factorSource?: string;
     url?: string;
     md5?: string;
-    tokenId?: string|null;
+    tokenId?: string | null;
 }
 
 /**
