@@ -20,6 +20,8 @@ export type OPTS_TYPE = {
   contract_address: string,
   network_rpc_url: string,
   network_name: string,
+  // for subscriptions
+  use_web_socket?: boolean,
   // allow bypass of the RPC call when running in Hardhat test
   contract?: Contract
 }

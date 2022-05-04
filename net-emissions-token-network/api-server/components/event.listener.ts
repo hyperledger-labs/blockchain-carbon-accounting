@@ -27,7 +27,7 @@ const rolesChanged = async (address: string, opts: OPTS_TYPE) => {
 }
 
 export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
-  const contract = getContract(opts)
+  const contract = getContract({...opts, use_web_socket: true})
 
   contract.events.TokenCreated({
     filter: { value: []},
