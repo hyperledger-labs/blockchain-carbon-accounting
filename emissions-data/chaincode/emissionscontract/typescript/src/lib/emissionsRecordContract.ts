@@ -82,7 +82,7 @@ export class EmissionsRecordContract {
             recordI.partyId = SHA256(recordI.partyId).toString();
         }
         const record = new EmissionsRecord(recordI);
-        await this.emissionsState.updateEmissionsRecord(record, recordI.uuid||'');
+        await this.emissionsState.updateEmissionsRecord(record, recordI.uuid || '');
         return record.toBuffer();
     }
     async updateEmissionsMintedToken(
@@ -114,7 +114,7 @@ export class EmissionsRecordContract {
                 continue;
             }
             validEmissions.push(emission.record);
-            validUUIDS.push(emission.record.uuid||'');
+            validUUIDS.push(emission.record.uuid || '');
         }
         const output = {
             keys: validUUIDS,

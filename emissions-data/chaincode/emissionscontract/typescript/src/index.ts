@@ -122,9 +122,9 @@ class EmissionsChaincode {
         for (let i = 0; i < fieldsLen; i++) {
             const v = args[i];
             if (numberFields.indexOf(fields[i]) > -1) {
-                recordI = {...recordI, [fields[i]]: Number(v)};
+                recordI = { ...recordI, [fields[i]]: Number(v) };
             } else {
-                recordI = {...recordI, [fields[i]]: v};
+                recordI = { ...recordI, [fields[i]]: v };
             }
         }
         let byte: Uint8Array;
