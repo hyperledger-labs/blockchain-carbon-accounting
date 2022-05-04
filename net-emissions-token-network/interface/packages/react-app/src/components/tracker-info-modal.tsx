@@ -15,7 +15,7 @@ import { Tracker } from "../components/static-data";
 type TrackerInfoModalProps = {
   provider?: Web3Provider,
   show:boolean,
-  tracker:Tracker,
+  tracker:any,
   onHide:()=>void, 
   isDealer?:boolean,
 }
@@ -148,7 +148,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
           <tbody>
             {tracker.tokens?.details.map((e: any,i: number) => ( 
                 <tr key={e.tokenId+'Details'}>
-                  <td>{"tokenId "+e.tokenId}{" "}{"amount: "}
+                  <td>{"tokenId "+e.tokenId}
                     <div>{(e.description)}</div>
                   </td>
                   <td>{tracker.tokens?.amounts[i]+" kgCO2e"}

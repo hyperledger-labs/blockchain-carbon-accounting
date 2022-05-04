@@ -13,7 +13,8 @@ import PendingEmissions from "./pages/pending-emissions";
 import IssueForm from "./pages/issue-form";
 import IssuedTrackers from "./pages/issued-trackers";
 import TrackForm from "./pages/track-form";
-import ProductForm from "./pages/products-form";
+import ProductForm from "./pages/product-form";
+import ProductTransferForm from "./pages/product-transfer-form";
 import TransferForm from "./pages/transfer-form";
 import RetireForm from "./pages/retire-form";
 import AccessControlForm from "./pages/access-control-form";
@@ -131,8 +132,11 @@ const App:FC = () => {
                 <Route path="/track/:trackerId?">{params=>
                   <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
                 }</Route>
-                <Route path="/verifyTracker/:trackerId?">{params=>
-                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                <Route path="/addProduct/:trackerId?">{params=>
+                  <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                }</Route>
+                <Route path="/transferProduct/:trackerId?">{params=>
+                  <ProductTransferForm provider={provider} roles={roles} trackerIdParam={Number(params.trackerId)} productIdParam={Number(1)}/>
                 }</Route>
                 <Route path="/access-control">
                   <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />

@@ -226,7 +226,7 @@ export async function issueAndTrack(
   w3provider: Web3Provider,
   issuedFrom: string,
   issuedTo: string,
-  trackerId: string,
+  trackerId: number,
   trackerDescription: string,
   tokenTypeId: number,
   quantity: number,

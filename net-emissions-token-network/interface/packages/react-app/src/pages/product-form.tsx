@@ -88,9 +88,8 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
 
   async function submit() {
     if (!provider) return;
-    // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
     let productAmount_formatted = Math.round(Number(productAmount));
-    let productUnitAmount_formatted = Math.round(Number(productUnitAmount) * 1000);
+    let productUnitAmount_formatted = Math.round(Number(productUnitAmount));
 
     let result = await productUpdate(
       provider,trackerId,productAmount_formatted,
