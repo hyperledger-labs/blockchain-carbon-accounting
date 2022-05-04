@@ -447,9 +447,9 @@ class EmissionsChaincode {
             if (k === 'divisions') {
                 let division: DivisionsInterface;
                 try {
-                    division = JSON.parse(args[6]) as DivisionsInterface;
+                    division = JSON.parse(v) as DivisionsInterface;
                 } catch (error) {
-                    logger.error(`${ErrInvalidArgument} : invalid divsion json input ${error}`);
+                    logger.error(`${ErrInvalidArgument} : invalid division json input ${error}`);
                     return Shim.error(stringToBytes((error as Error).message));
                 }
                 identifier.divisions = division;

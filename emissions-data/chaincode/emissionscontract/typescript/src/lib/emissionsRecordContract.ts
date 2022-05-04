@@ -70,7 +70,7 @@ export class EmissionsRecordContract {
             factorSource,
             url,
             md5,
-            tokenId: undefined,
+            tokenId: null,
         };
         const emission = new EmissionsRecord(emissionI);
         await this.emissionsState.addEmissionsRecord(emission, uuid);
