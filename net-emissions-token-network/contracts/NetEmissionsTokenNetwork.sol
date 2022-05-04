@@ -896,5 +896,8 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     function isAuditor(address auditor) view external returns (bool) {
         return hasRole(REGISTERED_EMISSIONS_AUDITOR, auditor);
     }
+    function isIndustry(address industry) view external returns (bool) {
+        return hasRole(REGISTERED_INDUSTRY, industry);
+    }
 
 }

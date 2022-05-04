@@ -173,6 +173,11 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             ,"CLM8::registeredTracker: the address is not registered");
         _;
     }
+    modifier isIndustry(address industry){
+        require(net.isIndustry(industry)
+            ,"CLM8::registeredIndustry: the address is not registered");
+        _;
+    }
     modifier onlyAdmin() {         
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender)
             ,"CLM8::onlyAdmin: msg.sender is not an admin");
@@ -324,11 +329,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint productId,
         uint productAmount,
         uint sourceTrackerId,
-        address trackee ) public 
-        {
-        _isAudited(sourceTrackerId);
-        _isOwner(sourceTrackerId,msg.sender);
-
+        address trackee ) public isAudited(sourceTrackerId) 
+        isOwner(sourceTrackerId) isIndustry(trackee){ 
         CarbonTrackerMappings storage sourceTrackerMappings = _trackerMappings[sourceTrackerId];
         ProductQuantities storage product;
         

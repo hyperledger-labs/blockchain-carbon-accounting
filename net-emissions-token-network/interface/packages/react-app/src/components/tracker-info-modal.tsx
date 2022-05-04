@@ -10,31 +10,12 @@ import { trackUpdate } from "../services/contract-functions";
 import { Web3Provider } from "@ethersproject/providers";
 import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
-
-
-export type TrackerInfo = {
-  isMyIssuedToken?: boolean,
-  tokenId?: number,
-  tokenType?: string,
-  issuedBy?: string,
-  issuedFrom?: string,
-  issuedTo?: string,
-  description?: string,
-  fromDate?: number,
-  thruDate?: number,
-  dateCreated?: number,
-  totalIssued?: number,
-  totalRetired?: number,
-  availableBalance?: number,
-  retiredBalance?: number,
-  metadata?: any,
-  manifest?: any,
-}
+import { Tracker } from "../components/static-data";
 
 type TrackerInfoModalProps = {
   provider?: Web3Provider,
   show:boolean,
-  tracker:any,
+  tracker:Tracker,
   onHide:()=>void, 
   isDealer?:boolean,
 }
@@ -60,8 +41,6 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
     let result = await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription);
     setResult(result.toString());
   }
-
-
   return (
     <Modal {...{show,tracker,onHide}} centered size="lg">
       <Modal.Header closeButton>
@@ -79,13 +58,6 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                 <h3 className="display-10">
                   <FaLink />
                 </h3>
-              </Col>
-            </Row>
-            <Row className="text-center mt-1">
-              <Col>
-                <small className="text-secondary text-uppercase">
-                  {tracker.tokenType}
-                </small>
               </Col>
             </Row>
           </Col>
@@ -159,7 +131,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                     {tracker.products?.amounts[i]+" "+tracker.products?.units[i]}
                     {" ("+tracker.products?.available[i]+") "}
                   </div>
-                  <div key={name+"Intensity"+i}>{tracker.products?.carbonIntensities[i].toFixed(0)}{" kgCO2e/"+tracker.products?.units[i]}</div>
+                  <div key={name+"Intensity"+i}>{tracker.products?.emissionFactors[i]}{" kgCO2e/"+tracker.products?.units[i]}</div>
                 </td>
               </tr>
             ))

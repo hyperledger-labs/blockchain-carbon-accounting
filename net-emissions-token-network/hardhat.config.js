@@ -475,7 +475,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     }
     await trackerContract.connect(await ethers.getSigner(industry2))
       .transferProduct(4,1000000,2,industry4);
-    console.log("Transfer Gas (productId = 4) from "+locations[2]+" to Gas Utility: "+industry4);
+    console.log("Transfer Gas (productId = 4) from "+locations[1]+" to Gas Utility: "+industry4);
   });
 /**
  * @type import('hardhat/config').HardhatUserConfig

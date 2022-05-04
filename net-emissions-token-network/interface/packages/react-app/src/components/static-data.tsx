@@ -48,18 +48,17 @@ export type Tracker = {
   thruDate?: number
   metadata: string
   description: string
-  totalEmissions: string
-  totalProductAmounts: string
+  totalEmissions: number
+  totalProductAmounts: number
   auditor: string
   carbonIntensity:number
-  divDecimals:number
   products:{ 
     ids: number[]
     names: string[]
     myBalances: number[]
     amounts: number[]
     available: number[]
-    carbonIntensities: number[]
+    emissionFactors: string[]
     //conversion: number[]
     units: string[]
   }
