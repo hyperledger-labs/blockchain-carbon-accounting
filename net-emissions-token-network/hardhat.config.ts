@@ -449,13 +449,13 @@ module.exports = {
 
 
     // Uncomment the following lines if deploying contract to Binance BSC testnet
-    // Deploy with npx hardhat --network bsctestnet --reset deploy
     //bsctestnet: {
     //  url: "https://data-seed-prebsc-1-s1.binance.org:8545",
     //  chainId: 97,
     //  gasPrice: 20000000000,
     //  accounts: [`0x${ethereumConfig.BSC_PRIVATE_KEY}`]
     //}
+    // Deploy with npx hardhat --network bsctestnet deploy --reset
 
     // Uncomment the following lines if deploying contract to Optimism on Kovan
     // Deploy with npx hardhat run --network optimism_kovan scripts/___.js
