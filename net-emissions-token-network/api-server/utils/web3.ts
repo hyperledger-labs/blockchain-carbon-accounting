@@ -8,7 +8,9 @@ export const BURN = '0x0000000000000000000000000000000000000000';
 export const getWeb3 = (opts: OPTS_TYPE) => {
   let url = opts.network_rpc_url;
   if (opts.use_web_socket) {
-    if (url.startsWith('http:')) {
+    if (opts.network_ws_url) {
+      url = opts.network_ws_url
+    } else if (url.startsWith('http:')) {
       url = url.replace('http:', 'ws:');
     } else if (url.startsWith('https:')) {
       url = url.replace('https:', 'wss:');

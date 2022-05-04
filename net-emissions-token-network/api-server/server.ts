@@ -16,16 +16,18 @@ const assertEnv = (key: string): string => {
 const contract_address = assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
 const network_name = assertEnv('LEDGER_ETH_NETWORK')
 const network_rpc_url = assertEnv('LEDGER_ETH_JSON_RPC_URL')
+const network_ws_url = process.env['LEDGER_ETH_WS_URL']
 export type OPTS_TYPE = {
   contract_address: string,
   network_rpc_url: string,
+  network_ws_url?: string,
   network_name: string,
   // for subscriptions
   use_web_socket?: boolean,
   // allow bypass of the RPC call when running in Hardhat test
   contract?: Contract
 }
-const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url }
+const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
 
 // import synchronizer
 import { fillBalances, fillTokens, syncWallets, truncateTable } from './controller/synchronizer';
