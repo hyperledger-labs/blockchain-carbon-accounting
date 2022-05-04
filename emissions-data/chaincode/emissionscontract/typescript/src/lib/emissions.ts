@@ -36,7 +36,7 @@ export interface EmissionsRecordInterface {
 export class EmissionsRecord extends State {
     record: EmissionsRecordInterface;
     constructor(_record: EmissionsRecordInterface) {
-        super([_record.utilityId, _record.partyId, _record.fromDate, _record.thruDate]);
+        super([_record.utilityId||'', _record.partyId||'', _record.fromDate||'', _record.thruDate||'']);
         this.record = _record;
         this.record.class = EMISSION_CLASS_IDENTIFIER;
         this.record.key = this.getKey();
