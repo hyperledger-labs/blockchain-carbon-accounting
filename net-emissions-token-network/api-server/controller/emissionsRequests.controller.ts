@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { GroupedResult, process_activity, queue_issue_tokens } from 'supply-chain-lib/src/emissions-utils' 
@@ -203,6 +204,13 @@ export async function postEmissionsRequest(req: Request, res: Response) {
         result
       }],
     }
+    if (req.body.fromDate) {
+      group.from_date = moment(req.body.fromDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+    }
+    if (req.body.thruDate) {
+      group.thru_date = moment(req.body.thruDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+    }
+
     const queue_result = await queue_issue_tokens(
       group,
       activity_type,
