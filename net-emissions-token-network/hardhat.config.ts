@@ -81,7 +81,7 @@ task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 req
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async (taskArgs, hre) => {
-    const {dealer1, dealer2, consumer1, consumer2, industry1, industry2, dealer4, dealer5, dealer6, dealer7} = await hre.getNamedAccounts();
+    const {dealer1, dealer2, consumer1, consumer2, industry1, industry2, dealer4, dealer5, dealer6, dealer7, ups, airfrance} = await hre.getNamedAccounts();
 
     const [admin] = await hre.ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
@@ -110,6 +110,11 @@ task("setTestAccountRoles", "Set default account roles for testing")
     console.log("Account " + consumer1 + " is now a consumer");
     await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
+    // special carrier accounts
+    await contract.connect(admin).registerDealer(ups,4);
+    console.log("Account " + ups + " is now an industry")
+    await contract.connect(admin).registerDealer(airfrance,4);
+    console.log("Account " + airfrance + " is now an industry")
   });
 task("issueTestTokens", "Create some test issued tokens")
   .addParam("contract", "The CLM8 contract")
@@ -405,6 +410,8 @@ module.exports = {
     dealer5: { default: 5 },
     dealer6: { default: 6 },
     dealer7: { default: 7 },
+    ups: { default: 8 },
+    airfrance: { default: 9 },
     consumer1: { default: 19 },
     consumer2: { default: 18 },
     industry1: { default: 15 },
