@@ -1505,35 +1505,10 @@
   dependencies:
     "@ethersproject/logger" "^5.6.0"
 
-"@ethersproject/providers@5.6.5":
+"@ethersproject/providers@5.6.5", "@ethersproject/providers@^5.6.5":
   version "5.6.5"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.6.5.tgz#aefecf78459817a323452e05a16d56afcf807e27"
   integrity sha512-TRS+c2Ud+cMpWodmGAc9xbnYRPWzRNYt2zkCSnj58nJoamBQ6x4cUbBeo0lTC3y+6RDVIBeJv18OqsDbSktLVg==
-  dependencies:
-    "@ethersproject/abstract-provider" "^5.6.0"
-    "@ethersproject/abstract-signer" "^5.6.0"
-    "@ethersproject/address" "^5.6.0"
-    "@ethersproject/basex" "^5.6.0"
-    "@ethersproject/bignumber" "^5.6.0"
-    "@ethersproject/bytes" "^5.6.0"
-    "@ethersproject/constants" "^5.6.0"
-    "@ethersproject/hash" "^5.6.0"
-    "@ethersproject/logger" "^5.6.0"
-    "@ethersproject/networks" "^5.6.0"
-    "@ethersproject/properties" "^5.6.0"
-    "@ethersproject/random" "^5.6.0"
-    "@ethersproject/rlp" "^5.6.0"
-    "@ethersproject/sha2" "^5.6.0"
-    "@ethersproject/strings" "^5.6.0"
-    "@ethersproject/transactions" "^5.6.0"
-    "@ethersproject/web" "^5.6.0"
-    bech32 "1.1.4"
-    ws "7.4.6"
-
-"@ethersproject/providers@^5.6.4":
-  version "5.6.4"
-  resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.6.4.tgz#1a49c211b57b0b2703c320819abbbfa35c83dff7"
-  integrity sha512-WAdknnaZ52hpHV3qPiJmKx401BLpup47h36Axxgre9zT+doa/4GC/Ne48ICPxTm0BqndpToHjpLP1ZnaxyE+vw==
   dependencies:
     "@ethersproject/abstract-provider" "^5.6.0"
     "@ethersproject/abstract-signer" "^5.6.0"
@@ -3897,7 +3872,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
   version "1.0.0"
   dependencies:
     "@trpc/server" "^9.23.2"
-    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-3cbe3978-6b4c-4086-8205-d80b1917456b-1651713488997/data/postgres"
+    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-448ed1e3-4aff-415e-8427-7b7ad20bba6b-1651727352492/data/postgres"
     chalk "^5.0.1"
     cors "^2.8.5"
     dotenv "^16.0.0"
@@ -3907,7 +3882,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     express-request-context "^1.0.1"
     moment "^2.29.3"
     pg "^8.7.3"
-    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-3cbe3978-6b4c-4086-8205-d80b1917456b-1651713488997/supply-chain/lib"
+    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-448ed1e3-4aff-415e-8427-7b7ad20bba6b-1651727352492/supply-chain/lib"
     web3 "^1.7.3"
     zod "^3.14.4"
 
@@ -4486,9 +4461,9 @@ blob-to-it@^1.0.1:
 "blockchain-accounting-data-postgres@file:../../data/postgres", "blockchain-carbon-accounting-data-postgres@file:../../data/postgres":
   version "1.0.0"
   dependencies:
-    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-a9e4b355-eb46-4383-8610-cf1b73e69640-1651713489048/node_modules/common"
+    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-ae483115-e6a2-4447-bd48-bf25d96f13d7-1651727352545/node_modules/common"
     cli-progress "^3.10.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-a9e4b355-eb46-4383-8610-cf1b73e69640-1651713489048/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-ae483115-e6a2-4447-bd48-bf25d96f13d7-1651727352545/emissions-data/chaincode/emissionscontract/typescript"
     pg "^8.7.3"
     reflect-metadata "^0.1.13"
     ts-node "^10.7.0"
@@ -4501,7 +4476,7 @@ blob-to-it@^1.0.1:
   version "1.0.0"
   dependencies:
     cli-progress "^3.11.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-8a50881e-2fa9-4daa-9d98-41b8f90970f8-1651713489167/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-62b70332-4639-419e-b485-8757eb5bae52-1651727352602/emissions-data/chaincode/emissionscontract/typescript"
     uuid "^8.3.2"
     xlsx "^0.18.5"
 
@@ -14129,9 +14104,9 @@ stylis@4.0.13:
     "@googlemaps/google-maps-services-js" "^3.3.13"
     axios "^0.27.2"
     bignumber.js "^9.0.2"
-    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-f8c346c7-d2c1-4d99-b34c-4b08a8892578-1651713489042/data/postgres"
-    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-f8c346c7-d2c1-4d99-b34c-4b08a8892578-1651713489042/emissions-data/typescript_app"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-f8c346c7-d2c1-4d99-b34c-4b08a8892578-1651713489042/emissions-data/chaincode/emissionscontract/typescript"
+    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-0037a73b-6fed-4989-bb0d-39d08f128ec2-1651727352534/data/postgres"
+    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-0037a73b-6fed-4989-bb0d-39d08f128ec2-1651727352534/emissions-data/typescript_app"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-0037a73b-6fed-4989-bb0d-39d08f128ec2-1651727352534/emissions-data/chaincode/emissionscontract/typescript"
     ipfs-http-client "^56.0.3"
     ups-nodejs-sdk "^1.0.0"
 
@@ -14734,11 +14709,6 @@ typescript-optional@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/typescript-optional/-/typescript-optional-2.0.1.tgz#1dd4826bd751f78756e7eb3f96a16fbbeb3f7ee6"
   integrity sha512-xuwmqsCjE4OeeMKxbNX3jjNcISGzYh5Q9R1rM5OyxEVNIr94CB5llCkfKW+1nZTKbbUV0axN3QAUuX2fus/DhQ==
-
-typescript@^4.6.3:
-  version "4.6.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.6.3.tgz#eefeafa6afdd31d725584c67a0eaba80f6fc6c6c"
-  integrity sha512-yNIatDa5iaofVozS/uQJEl3JRWLKKGJKh6Yaiv0GLGSuhpFJe7P3SbHZ8/yjAHRQwKRoA6YZqlfjXWmVzoVSMw==
 
 typescript@^4.6.4:
   version "4.6.4"
