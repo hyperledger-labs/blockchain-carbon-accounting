@@ -108,12 +108,14 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     style={style}
     classes={classes}
     renderOption={(props, option) => {
-      const name = (typeof option === 'string') ? null : option.name 
+      const name = (typeof option === 'string') ? null : option.name
       const addr = (typeof option === 'string') ? option : option.address
+      const org = (typeof option === 'string') ? null : option.organization
 
       return (
-        <li {...props}>
+        <li {...props} className={`${props.className} flex-wrap`}>
           {name && <b className="pe-2">{name}</b>}
+          {org && <div className="text-muted pe-2">{org}</div>}
           {addr}
         </li>
       );
