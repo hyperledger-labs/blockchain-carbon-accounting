@@ -84,7 +84,7 @@ const EmissionsFactor: FC<{emissionsFactor: EmissionsFactorInterface}> = ({emiss
     <Breadcrumb.Item active>{emissionsFactor.level_2}</Breadcrumb.Item>
     <Breadcrumb.Item active>{emissionsFactor.level_3}</Breadcrumb.Item>
     <Breadcrumb.Item active>{emissionsFactor.level_4}</Breadcrumb.Item>
-    <Breadcrumb.Item active>{emissionsFactor.text} <b>{Number(emissionsFactor.co2_equivalent_emissions).toFixed(5)} {emissionsFactor.co2_equivalent_emissions_uom}</b> per <b>{emissionsFactor.activity_uom}</b></Breadcrumb.Item>
+    <Breadcrumb.Item active>{emissionsFactor.text} / {emissionsFactor.year} /  <b>{Number(emissionsFactor.co2_equivalent_emissions).toFixed(5)} {emissionsFactor.co2_equivalent_emissions_uom}</b> per <b>{emissionsFactor.activity_uom}</b></Breadcrumb.Item>
   </Breadcrumb>
 }
 
@@ -124,7 +124,7 @@ const EmissionsFactorListItem: FC<{
       level_3: emissionsFactor.level_3, 
       level_4: emissionsFactor.level_4||''
     })}}>{emissionsFactor.level_4}</Breadcrumb.Item>
-    <Breadcrumb.Item active>{emissionsFactor.text} <b>{Number(emissionsFactor.co2_equivalent_emissions).toFixed(5)} {emissionsFactor.co2_equivalent_emissions_uom}</b> per <b>{emissionsFactor.activity_uom}</b></Breadcrumb.Item>
+    <Breadcrumb.Item active>{emissionsFactor.text} / {emissionsFactor.year} / <b>{Number(emissionsFactor.co2_equivalent_emissions).toFixed(5)} {emissionsFactor.co2_equivalent_emissions_uom}</b> per <b>{emissionsFactor.activity_uom}</b></Breadcrumb.Item>
   </Breadcrumb>
 }
 
@@ -199,6 +199,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     setSupportingDoc(null)
     setTopError('')
     setTopSuccess(null)
+    setFromDate(null)
+    setThruDate(null)
   }
   const [emissionsFactor, setEmissionsFactor] = useState<EmissionsFactorInterface|null>(null)
   const [supportingDoc, setSupportingDoc] = useState<File|null>(null)
@@ -237,6 +239,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     level_2: emForm.level_2,
     level_3: emForm.level_3,
     level_4: emForm.level_4,
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined
   }], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && emForm.level_1.length > 0,
   })
@@ -517,27 +521,29 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'emissions_factor' && <>
+            <Row>
+              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
+                <Form.Label>From date</Form.Label>
+                {/* @ts-ignore : some weird thing with the types ... */}
+                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
+              </Form.Group>
+              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
+                <Form.Label>Through date</Form.Label>
+                {/* @ts-ignore : some weird thing with the types ... */}
+                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
+              </Form.Group>
+            </Row>
             {emForm.emissions_factor_uuid && emissionsFactor ? <>
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={emissionsFactor}/>
               {!topSuccess && <Button className="mb-3 mt-1" onClick={_=>{ selectEmissionsFactor(null) }}>Select another Emssions Factor</Button>}
-              <Row>
-                <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
-                  <Form.Label>From date</Form.Label>
-                  {/* @ts-ignore : some weird thing with the types ... */}
-                  {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                    <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
-                </Form.Group>
-                <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
-                  <Form.Label>Through date</Form.Label>
-                  {/* @ts-ignore : some weird thing with the types ... */}
-                  {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                    <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
-                </Form.Group>
-              </Row>
+
               <EmissionsFactorUomInputs emissionsFactor={emissionsFactor} form={emForm} setForm={setEmForm} errors={formErrors} disabled={!!topSuccess}/>
 
               </> : <>
+
                 <h3 id="lookupForm">Choose an emissions factor</h3>
                 {level1sQuery.data &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors} disabled={!!topSuccess}

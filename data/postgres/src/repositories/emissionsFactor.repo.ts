@@ -4,7 +4,7 @@ import { CO2EmissionFactorInterface, getUomFactor } from "emissions_data_chainco
 import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor"
 import { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem"
 import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const"
-import { DataSource, FindOptionsWhere, ILike } from "typeorm"
+import { DataSource, FindOptionsWhere, ILike, MoreThanOrEqual, LessThanOrEqual, Between } from "typeorm"
 import { EmissionsFactor } from "../models/emissionsFactor"
 import { UtilityLookupItem } from "../models/utilityLookupItem"
 
@@ -31,7 +31,17 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     if (doc.level_4) conditions.level_4 = ILike(doc.level_4)
     if (doc.text) conditions.text = ILike(doc.text)
     if (doc.activity_uom) conditions.activity_uom = ILike(doc.activity_uom)
-    if (doc.year) conditions.year = ILike(doc.year)
+    if (doc.year) {
+      conditions.year = ILike(doc.year)
+    } else {
+      if (doc.from_year && doc.thru_year) {
+        conditions.year = Between(doc.from_year, doc.thru_year)
+      } else if (doc.from_year) {
+        conditions.year = MoreThanOrEqual(doc.from_year)
+      } else if (doc.thru_year) {
+        conditions.year = LessThanOrEqual(doc.thru_year)
+      }
+    }
     if (doc.division_id) conditions.division_id = ILike(doc.division_id)
     if (doc.division_type) conditions.division_type = ILike(doc.division_type)
     return conditions

@@ -120,6 +120,8 @@ export const emissionsFactorsRouter = trpc
         level_2: z.string().optional(),
         level_3: z.string().optional(),
         level_4: z.string().optional(),
+        from_year: z.string().optional(),
+        thru_year: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
         try {

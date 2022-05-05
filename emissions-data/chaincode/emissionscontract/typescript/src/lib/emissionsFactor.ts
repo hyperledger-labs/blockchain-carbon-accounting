@@ -30,6 +30,8 @@ export interface EmissionsFactorInterface {
     level_4?: string;
     text?: string;
     year?: string;
+    from_year?: string;
+    thru_year?: string;
     country?: string;
     division_type?: string;
     division_id?: string;
