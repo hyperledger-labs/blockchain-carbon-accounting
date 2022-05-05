@@ -4,7 +4,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
 import { Web3Provider } from "@ethersproject/providers";
 import { abis, addresses } from "@project/contracts";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Tracker } from "../components/static-data";
 
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
@@ -310,9 +310,9 @@ export async function verifyTracker(
 
 export async function transferProduct(
   w3provider: Web3Provider,
+  sourceTrackerId: number,
   productId: number,
   productAmount: number,
-  sourceTrackerId: number,
   trackee: string,
 ) {
   let signer = w3provider.getSigner();
@@ -730,25 +730,93 @@ export async function getNumOfUniqueTrackers(w3provider: Web3Provider) {
   }
   return uniqueTrackers;
 }
-export async function getTrackerDetails(w3provider: Web3Provider, trackerId: number, address: string) {
+
+export async function getTrackerDetails(
+  w3provider: Web3Provider, 
+  trackerId: number, 
+  address: string): Promise<Tracker|string> {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let details;
   try {
-    let result=[];
-    result[0] = await contract.getTrackerDetails(trackerId);
-    result[1] = await contract.getTrackerProductDetails(trackerId);
-    let productIds = result[1][0];
-    result[2] = await contract.getTrackerTokenDetails(trackerId);
-    result[3] = await contract.carbonIntensity(trackerId); 
-    result[4] = await contract.divDecimals();
-    result[5] = await contract.getTrackerProductAddDetails(trackerId);
-    result[6] = [];
-    for (let j = 0; j < productIds.length; j++) {
-      result[6][j]= await contract.getProductBalance(productIds[j],trackerId,address);
+    let [trackerDetails,totalEmissions] = 
+      await contract.getTrackerDetails(trackerId);
+    console.log('--- trackerDetails', trackerDetails);
+    totalEmissions = (totalEmissions).toNumber();
+    let totalProductAmounts = trackerDetails.totalProductAmounts.toNumber();
+    let [productIds,productAmounts,available] = 
+      (await contract.getTrackerProductDetails(trackerId)).map((e:[])=>(e.map(Number)));
+    let owner = await contract.ownerOf(trackerId);
+    //let productIds = result[1][0].map(Number);
+    //let productAmounts = result[1][1].map(Number);
+    //let available = result[1][2].map(Number);
+    let [tokenIds,tokenAmounts] =  await contract.getTrackerTokenDetails(trackerId);
+    //let tokenIds =result[2][0].map(Number)
+    //let tokenAmounts = result[2][1].map(String);
+    
+    let divDecimals = (await contract.divDecimals()).toNumber();
+    let carbonIntensity = (await contract.carbonIntensity(trackerId))/divDecimals; 
+    let result = await contract.getTrackerProductAddDetails(trackerId);
+    let productNames = result[0].map(String);
+    let conversions = result[1].map((e:number)=>(e/divDecimals));
+    let units = result[2].map(String);
+
+    let myProductBalances=[].map(Number);
+    let myTokenAmounts = [].map(Number);
+    let emissionFactors = [].map(Number);
+    let myProductsTotalEmissions = 0;
+
+    for (let i = 0; i < productIds.length; i++) {
+      myProductBalances[i] = 
+        (await contract.getProductBalance(productIds[i],trackerId,address)).toNumber();
+      
+      myTokenAmounts = tokenAmounts.map((e:number) => (
+        (e*myProductBalances[i]/totalProductAmounts).toFixed(0)));
+
+      myProductsTotalEmissions += myProductBalances[i]*carbonIntensity ;
+
+      productAmounts[i] = (productAmounts[i] * conversions[i] ).toFixed(0);
+      myProductBalances[i] = Number((myProductBalances[i]*conversions[i]).toFixed(0));
+      available[i] = (available[i] * conversions[i] ).toFixed(0);
+      emissionFactors[i] = Number((carbonIntensity / conversions[i]).toFixed(3));
     }
-    //let n = await contract.getNumOfProducts();
-    //console.log(n.toNumber())
-    details = result
+
+    if(myProductsTotalEmissions>0 && owner.toString().toLowerCase()!==address.toLowerCase()){
+      totalEmissions = myProductsTotalEmissions.toFixed(0);
+      tokenAmounts = myTokenAmounts;
+      available = myProductBalances;
+    }
+    let tokenDetails = [];
+    for (let i = 0; i < tokenIds.length; i++) {
+      tokenDetails[i]= await getTokenDetails(w3provider,tokenIds[i]);
+    }
+
+    let tracker: Tracker = {
+      trackerId,
+      auditor: trackerDetails.auditor,
+      trackee: trackerDetails.trackee,
+      fromDate: Number(trackerDetails.fromDate),
+      thruDate: Number(trackerDetails.thruDate),
+      metadata: trackerDetails.metadata,
+      description: trackerDetails.description,
+      totalEmissions,
+      myProductsTotalEmissions,
+      //totalOffset: totalOffset,
+      products: {
+        ids: productIds,
+        myBalances: myProductBalances,
+        names: productNames,
+        amounts: productAmounts,
+        available,
+        emissionFactors: emissionFactors,
+        units,
+        conversions
+      },
+      tokens: {
+        amounts: tokenAmounts,
+        details: tokenDetails
+      },
+    };
+    details = tracker
   } catch (error) {
     details = getErrorMessage(error) 
   }

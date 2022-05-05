@@ -135,8 +135,8 @@ const App:FC = () => {
                 <Route path="/addProduct/:trackerId?">{params=>
                   <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
                 }</Route>
-                <Route path="/transferProduct/:trackerId?">{params=>
-                  <ProductTransferForm provider={provider} roles={roles} trackerIdParam={Number(params.trackerId)} productIdParam={Number(1)}/>
+                <Route path="/transferProduct/:trackerId/:productId?">{params=>
+                  <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} trackerId={Number(params.trackerId)} productId={Number(params.productId)}/>
                 }</Route>
                 <Route path="/access-control">
                   <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />

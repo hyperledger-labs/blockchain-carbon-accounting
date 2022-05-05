@@ -187,8 +187,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         _isOwner(trackerId,msg.sender);
         _;
     }
-    function _isOwner(uint trackerId,address trackee) view internal {
-        require(super.ownerOf(trackerId) == trackee,
+    function _isOwner(uint trackerId,address owner) view internal {
+        require(super.ownerOf(trackerId) == owner,
             "CLM8::_isOwner: msg.sender does own this trackerId");
     }
     /**
@@ -319,6 +319,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         //for (uint i = 0; i < productIds.length; i++) { }
         require(productBalance[productId][sourceTrackerId][msg.sender] > productAmount, 
             "CLM8::trackProduct: productAmount exceeds products available form the sourceTrackerId");
+        productBalance[productId][sourceTrackerId][msg.sender]=
+            productBalance[productId][sourceTrackerId][msg.sender].sub(productAmount);
         _updateTrackedProducts(trackerId,sourceTrackerId,productId,productAmount);
     }
     /**

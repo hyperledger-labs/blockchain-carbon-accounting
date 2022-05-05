@@ -12,7 +12,7 @@ import { encodeParameters, getAdmin, issue, track, issueAndTrack,getTrackerDetai
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES } from "../components/static-data";
+import { RolesInfo, TOKEN_TYPES, Tracker } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
@@ -44,8 +44,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   let andTrack = (typeof trackerId !== 'undefined');
   //const [trackerId, setTrackerId] = useState("");
   const [tracker, setTracker] = useState<any>(null);
-  const [productName, setProductName] = useState("");
-  const [productAmount, setProductAmount] = useState("");
   const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
   const [fromDate, setFromDate] = useState<Date|null>(null);
@@ -74,9 +72,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [initializedProductAmountInput, setinitializedProductAmountInput] = useState(false);
 
   //const onTrackerIdChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerId(event.target.value); }, []);
-  const onTrackerChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTracker(event.target.value); }, []);
-  const onProductNameChange  = useCallback((event: ChangeEvent<HTMLInputElement>) => { setProductName(event.target.value); }, []);
-  const onProductAmountChange  = useCallback((event: ChangeEvent<HTMLInputElement>) => { setProductAmount(event.target.value); }, []);
   const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
   const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
@@ -149,9 +144,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       if(!provider || !andTrack){
         return;
       }
-      let result = (await getTrackerDetails(provider,Number(trackerId),signedInAddress))[0][0];
-      if (Number(trackerId)>0) {
-        setTracker(result);
+      const result = 
+        await getTrackerDetails(provider,Number(trackerId),signedInAddress);
+      if (Number(trackerId)>0 && typeof result === 'object'  ) {
+        //setTrackerId(result.trackerId);
         setAddress(result.trackee)
       }
     }
@@ -346,16 +342,12 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                 onBlur={() => setInitializedAddressInput(true)}
                 style={(address || !initializedAddressInput) ? {} : inputError}
                 />
-
             </InputGroup>
           :
             <Form.Control
               type="input"
               value={address}
               disabled
-              onChange={onTrackerChange}
-              onBlur={() => setInitializedTrackerIdInput(true)}
-              style={(andTrack || !initializedTrackerIdInput) ? {} : inputError}
             />            
           }
 
