@@ -18,12 +18,15 @@
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.3.13",
-    "bignumber.js": "^9.0.2",
-    "ipfs-http-client": "^56.0.3",
-    "ups-nodejs-sdk": "^1.0.0",
+    "@metamask/eth-sig-util": "^4.0.1",
     "axios": "^0.27.2",
+    "bignumber.js": "^9.0.2",
     "blockchain-carbon-accounting-data-postgres": "file:../../data/postgres",
     "emissions_data": "file:../../emissions-data/typescript_app",
-    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript"
+    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript",
+    "i": "^0.3.7",
+    "ipfs-http-client": "^56.0.3",
+    "npm": "^8.9.0",
+    "ups-nodejs-sdk": "^1.0.0"
   }
 }

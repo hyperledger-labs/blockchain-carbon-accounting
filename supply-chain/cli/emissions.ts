@@ -11,7 +11,7 @@ import {
   process_emissions_requests,
   queue_issue_tokens
 } from 'supply-chain-lib/src/emissions-utils';
-import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { downloadFileEncrypted, _downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 
 function print_usage() {
   console.log('Usage: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
@@ -131,7 +131,7 @@ if (fetchObjectPath) {
   }
 
   const filename = fetchObjectPath
-  downloadFileEncrypted(filename, privateKey).then((res) => {
+  _downloadFileEncrypted(filename, privateKey).then((res) => {
     if (res) {
       // binary works the same as 'utf8' here
       // TODO: need a way to save the extension so files can be opened

@@ -8,7 +8,9 @@ import { FaCoins } from 'react-icons/fa';
 import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
 import DisplayTokenAmount from "./display-token-amount";
-
+import { create } from 'ipfs-http-client';
+// import ethUtil from 'ethereumjs-util';
+// import sigUtil from '@metamask/eth-sig-util';
 
 export type TokenInfo = {
   isMyIssuedToken?: boolean,
@@ -35,7 +37,71 @@ type TokenInfoModalProps = {
   onHide:()=>void 
 }
 
+type EthereumType = {
+  request: (request: {method: string, params?: Array<any>}) => Promise<any>
+}
+
 const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
+  const ethereum: EthereumType = (window as any).ethereum;
+  const ipfs_client = create({url: 'http://localhost:5001'});
+  
+  const saveToText = (jsonString: string) => {
+    const element = document.createElement('a');
+    const jsonFile = new Blob([jsonString as BlobPart], {type: 'text/plain'});
+    element.href = URL.createObjectURL(jsonFile);
+    element.download = 'token.json';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
+  const decryptWithPrivateKey = async (toDecrypt: Buffer) => {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const encryptedData = {
+      nonce: toDecrypt.toString('utf8', 0, 32),
+      ephemPublicKey: toDecrypt.toString('utf8', 32, 76),
+      version: toDecrypt.toString('utf8', 76, 100),
+      ciphertext: toDecrypt.toString('utf8', 100, toDecrypt.length)
+    }
+    const encryptedMessage = Buffer.from(JSON.stringify(encryptedData)).toString('hex');
+    const decryptedMessage = await ethereum
+      .request({
+        method: 'eth_decrypt',
+        params: [encryptedMessage, accounts[0]]
+      });
+    return decryptedMessage;
+  }
+  
+  const downloadIpfs = async (manifest: any) => {
+    let decoded = undefined;
+    let url = "";
+    if(typeof manifest === 'string') {
+      try {
+        decoded = JSON.parse(manifest);
+      } catch (err) {
+        console.error('Could not parse JSON from ', manifest);
+      }
+    } else {
+      decoded = manifest
+    }
+
+    // extract ipfs url
+    for(const key in decoded) {
+      if(key === 'Location') {
+        url = decoded[key];
+        break;
+      }
+    }
+    const data = [];
+    for await (const chunk of ipfs_client.cat(url)) {
+      data.push(chunk);
+    }
+    const edata0 = Buffer.concat(data);
+    const decryptedMessage = await decryptWithPrivateKey(edata0);
+    
+    // save to local json
+    saveToText(decryptedMessage);
+  }
 
   return (
     <Modal {...props} centered size="lg">
@@ -155,6 +221,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
               <td>Manifest</td>
               <td style={{ overflowWrap: "anywhere" }}>
                 <DisplayJSON json={props.token.manifest}/>
+                <Button onClick={async () => downloadIpfs(props.token.manifest)}>Download</Button>
               </td>
             </tr>
             <tr>

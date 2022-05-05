@@ -26,7 +26,7 @@ import {
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
-import { uploadFileEncrypted } from "./ipfs-utils";
+import { _uploadFileEncrypted, uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
@@ -559,7 +559,7 @@ export async function issue_tokens(
 
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  const ipfs_res = await _uploadFileEncrypted(content, publicKeys[0]);
 
   const token_res = await issue_emissions_tokens(
     activity_type,

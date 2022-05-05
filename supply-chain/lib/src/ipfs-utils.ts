@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 import { create } from 'ipfs-http-client';
-import { encryptRSAKeyFileName, encryptRSA, decryptRSA, encryptAES, decryptAES } from './crypto-utils';
+import { encryptRSAKeyFileName, encryptRSA, decryptRSA, encryptAES, decryptAES, encryptWithPublicKey, decryptWithPrivKey } from './crypto-utils';
 
 export async function downloadFileEncrypted(ipfspath: string, pk: string) {
   try {
@@ -51,6 +51,23 @@ export async function downloadFileEncrypted(ipfspath: string, pk: string) {
   } catch (err) {
     console.log(err)
     throw err;
+  }
+}
+
+export async function _downloadFileEncrypted(ipfspath: string, pk: string) {
+  try {
+    const ipfs_client = create({url: process.env.IPFS_URL});
+    const data = [];
+    console.log(ipfspath);
+    for await (const chunk of ipfs_client.cat(ipfspath)) {
+      data.push(chunk);
+    }
+    const edata0 = Buffer.concat(data);
+    const content = decryptWithPrivKey(pk, edata0);
+    return content;
+
+  } catch (error) {
+    
   }
 }
 
@@ -106,3 +123,18 @@ export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys:
   }
 }
 
+export async function _uploadFileEncrypted(plain_content: string, pubkey: string, pubkeysContent = false, name = 'content.json') {
+  try {
+    const ipfs_client = create({url: process.env.IPFS_URL});
+    // console.log(plain_content);
+    const content = await encryptWithPublicKey(pubkey, plain_content);
+    const ipfs_res = await ipfs_client.add({
+      content,path: `/tmp/${name}`
+    });
+    console.log('ipfs_res: ', ipfs_res);
+    return { ...ipfs_res, ipfs_path: `${ipfs_res.cid}/${name}`, filename: name}
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
