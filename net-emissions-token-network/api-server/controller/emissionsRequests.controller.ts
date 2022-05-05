@@ -101,8 +101,8 @@ export async function getEmissionsRequest(req: Request, res: Response) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor'|'natural_gas' {
-  if (['shipment', 'flight', 'emissions_factor', 'natural_gas'].includes(body.activity_type)) return body.activity_type
+function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor'|'natural_gas'|'electricity' {
+  if (['shipment', 'flight', 'emissions_factor', 'natural_gas', 'electricity'].includes(body.activity_type)) return body.activity_type
   throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
@@ -163,6 +163,17 @@ function getActivity(body: any): Activity {
       type: activity_type,
       activity_amount: Number(body.activity_amount),
       activity_uom: body.activity_uom,
+    }
+  } else if (activity_type === 'electricity') {
+    // make a natural gas activity
+    return {
+      id: '1',
+      type: activity_type,
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
+      country: body.country,
+      state: body.state,
+      utility: body.utility,
     }
   }
   throw new ApplicationError(`Unsupported activity type.` , 400)

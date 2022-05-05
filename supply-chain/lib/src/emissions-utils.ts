@@ -25,6 +25,8 @@ import {
   ShippingMode,
   is_natural_gas_activity,
   NaturalGasActivity,
+  is_electricity_activity,
+  ElectricityActivity,
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
@@ -392,6 +394,17 @@ export async function process_natural_gas(
   })
 }
 
+export async function process_electricity(
+  a: ElectricityActivity 
+): Promise<ActivityResult> {
+  return process_emissions_factor({
+    ...a,
+    level_1: 'WTT- UK & OVERSEAS ELEC',
+    level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (GENERATION)' : 'WTT- UK ELECTRICITY (GENERATION)',
+    level_3: 'ELECTRICITY: ' + a.country,
+  })
+}
+
 export async function process_emissions_factor(
   a: EmissionsFactorActivity
 ): Promise<ActivityResult> {
@@ -534,6 +547,8 @@ export async function process_activity(activity: Activity) {
     return await process_emissions_factor(activity);
   } else if (is_natural_gas_activity(activity)) {
     return await process_natural_gas(activity);
+  } else if (is_electricity_activity(activity)) {
+    return await process_electricity(activity);
   } else {
     throw new Error('activity not recognized');
   }
