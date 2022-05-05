@@ -144,19 +144,20 @@ const EmissionsFactorUomInputs: FC<{
   emissionsFactor: EmissionsFactorInterface,
   setForm: React.Dispatch<React.SetStateAction<EmissionsFactorForm>>,
   form: EmissionsFactorForm,
+  disabled?: boolean,
   errors?: EmissionsFactorFormErrors
-}> = ({emissionsFactor, form, setForm, errors}) => {
+}> = ({emissionsFactor, form, setForm, errors, disabled}) => {
   if (!emissionsFactor || !emissionsFactor.activity_uom) return null;
 
   return <>{emissionsFactor.activity_uom.split('.').map((uom,i)=>{
     const luom = uom.toLowerCase()
-    if (luom === 'passenger') return <FormInputRow key={i} form={form} setForm={setForm} field="num_passengers" type="number" min={0} label="Number of Passengers" required errors={errors}/>
+    if (luom === 'passenger') return <FormInputRow key={i} form={form} setForm={setForm} field="num_passengers" type="number" min={0} label="Number of Passengers" required errors={errors} disabled={disabled}/>
     else if (uomIsWeight(uom)) return <Row key={i}>
       <Col>
-        <FormInputRow form={form} setForm={setForm} field="weight" type="number" min={0} step="any" label={`Weight in ${form.weight_uom}`} required errors={errors}/>
+        <FormInputRow form={form} setForm={setForm} field="weight" type="number" min={0} step="any" label={`Weight in ${form.weight_uom}`} required errors={errors} disabled={disabled}/>
       </Col>
       <Col>
-        <FormSelectRow form={form} setForm={setForm} field="weight_uom" label="Weight UOM" required errors={errors} values={[
+        <FormSelectRow form={form} setForm={setForm} field="weight_uom" label="Weight UOM" required errors={errors} disabled={disabled} values={[
           {value:'kg', label:'kg'},
           {value:'lbs', label:'lbs'}
         ]}/>
@@ -164,16 +165,16 @@ const EmissionsFactorUomInputs: FC<{
     </Row>
     else if (uomIsDistance(uom)) return <Row key={i}>
       <Col>
-        <FormInputRow form={form} setForm={setForm} field="distance" type="number" min={0} step="any" label={`Distance in ${form.distance_uom}`} required errors={errors}/>
+        <FormInputRow form={form} setForm={setForm} field="distance" type="number" min={0} step="any" label={`Distance in ${form.distance_uom}`} required errors={errors} disabled={disabled}/>
       </Col>
       <Col>
-        <FormSelectRow form={form} setForm={setForm} field="distance_uom" label="Distance UOM" required errors={errors} values={[
+        <FormSelectRow form={form} setForm={setForm} field="distance_uom" label="Distance UOM" required errors={errors} disabled={disabled} values={[
           {value:'km', label:'km'},
           {value:'mi', label:'miles'}
         ]}/>
       </Col>
     </Row>
-    else return <FormInputRow key={i} form={form} setForm={setForm} field="activity_amount" type="number" min={0} step="any" label={uom} required errors={errors}/>
+    else return <FormInputRow key={i} form={form} setForm={setForm} field="activity_amount" type="number" min={0} step="any" label={uom} required errors={errors} disabled={disabled}/>
  
   })}</>
 }
@@ -419,7 +420,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
         }}
         noValidate validated={validated}>
 
-        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} onWalletChange={(w)=>{
+        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} disabled={!!topSuccess} onWalletChange={(w)=>{
           setEmForm({
             ...emForm,
             issued_from: w?.address ?? '',
@@ -428,7 +429,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           })
         }} />
 
-        <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type"
+        <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
           values={[
             {value:'flight', label:'Flight'},
             {value:'shipment', label:'Shipment' },
@@ -445,8 +446,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
         {!!emForm.activity_type && <>
           {emForm.activity_type === 'shipment' && <>
             <h3>Shipment Details</h3>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="carrier" label="Carrier"/>
-            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="shipment_mode" label="Shipping Mode" placeholder="Use UPS Tracking Number"
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="carrier" label="Carrier" disabled={!!topSuccess}/>
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="shipment_mode" label="Shipping Mode" placeholder="Use UPS Tracking Number" disabled={!!topSuccess}
               values={[
               {value:'air', label:'Air'},
               {value:'ground', label:'Ground'},
@@ -457,102 +458,104 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
               }}
             />
             {!emForm.shipment_mode && <>
-              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="ups_tracking" label="UPS Tracking Number" required/>
+              <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="ups_tracking" label="UPS Tracking Number" required disabled={!!topSuccess}/>
               </>}
             {!!emForm.shipment_mode && <>
               <Row>
                 <Col>
-                  <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="weight" type="number" min={0} step="any" required label={`Weight in ${emForm.weight_uom}`}/>
+                  <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="weight" type="number" min={0} step="any" required label={`Weight in ${emForm.weight_uom}`} disabled={!!topSuccess}/>
                 </Col>
                 <Col>
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="weight_uom" label="Weight UOM" required values={[
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="weight_uom" label="Weight UOM" required disabled={!!topSuccess} values={[
                     {value:'kg', label:'kg'},
                     {value:'lbs', label:'lbs'}
                   ]}/>
                 </Col>
               </Row>
               <h4>From</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required showValidation={validated}/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required disabled={!!topSuccess} showValidation={validated}/>
               <h4>Destination</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required showValidation={validated}/>
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required disabled={!!topSuccess} showValidation={validated}/>
               </>}
             </>}
 
 
           {emForm.activity_type === 'flight' && <>
             <h3>Flight Details</h3>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="flight_carrier" label="Carrier"/>
-            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="flight_service_level" label="Flight Class" required values={[
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="flight_carrier" label="Carrier" disabled={!!topSuccess}/>
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="flight_service_level" label="Flight Class" required disabled={!!topSuccess} values={[
               {value:'economy', label:'Economy'},
               {value:'premium economy', label:'Premium Economy'},
               {value:'business', label:'Business'},
               {value:'first', label:'First'}
             ]}/>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required/>
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required disabled={!!topSuccess}/>
             <h4>From</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required showValidation={validated}/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required disabled={!!topSuccess} showValidation={validated}/>
             <h4>Destination</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required showValidation={validated}/>
+            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required disabled={!!topSuccess} showValidation={validated}/>
             </>}
 
           {emForm.activity_type === 'electricity' && <>
             <h3>Consumption Details</h3>
-            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required values={electricityCountriesQuery?.data?.countries ?? []} />
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required values={electricityCountriesQuery?.data?.countries ?? []} disabled={!!topSuccess} />
             {emForm.country === 'UNITED STATES' && <>
-              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} />
+              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess} />
               {emForm.state ?
                 <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="utility" label="Utility" required values={electricityUSAUtilitiesQuery?.data?.utilities?.map(
                   (u) => u.utility_name?.replaceAll('_', ' ') || u.uuid
-                ) ?? []} />
+                ) ?? []} disabled={!!topSuccess} />
                 : <div>Select a State</div>
               }
             </>}
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required label={`Amount in kWH`}/>
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required label={`Amount in kWH`} disabled={!!topSuccess}/>
             </>}
 
           {emForm.activity_type === 'natural_gas' && <>
             <h3>Consumption Details</h3>
-            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required label={`Volume in Therm`}/>
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required disabled={!!topSuccess} label={`Volume in Therm`}/>
             </>}
 
           {emForm.activity_type === 'emissions_factor' && <>
             {emForm.emissions_factor_uuid && emissionsFactor ? <>
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={emissionsFactor}/>
-              <Button className="mb-3 mt-1" onClick={_=>{ selectEmissionsFactor(null) }}>Select another Emssions Factor</Button>
+              {!topSuccess && <Button className="mb-3 mt-1" onClick={_=>{ selectEmissionsFactor(null) }}>Select another Emssions Factor</Button>}
               <Row>
                 <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
                   <Form.Label>From date</Form.Label>
                   {/* @ts-ignore : some weird thing with the types ... */}
-                  <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
+                  {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                    <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
                 </Form.Group>
                 <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
                   <Form.Label>Through date</Form.Label>
                   {/* @ts-ignore : some weird thing with the types ... */}
-                  <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
+                  {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                    <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
                 </Form.Group>
               </Row>
-              <EmissionsFactorUomInputs emissionsFactor={emissionsFactor} form={emForm} setForm={setEmForm} errors={formErrors}/>
+              <EmissionsFactorUomInputs emissionsFactor={emissionsFactor} form={emForm} setForm={setEmForm} errors={formErrors} disabled={!!topSuccess}/>
 
               </> : <>
                 <h3 id="lookupForm">Choose an emissions factor</h3>
                 {level1sQuery.data &&
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors} disabled={!!topSuccess}
                     alsoSet={{'*': {level_2:'', level_3: '', level_4: ''}}}
                   />
               }
                 {emForm.level_1 && level2sQuery.data &&
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors} disabled={!!topSuccess}
                     alsoSet={{'*': {level_3: '', level_4: ''}}}
                   />
               }
                 {emForm.level_1 && emForm.level_2 && level3sQuery.data &&
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors} disabled={!!topSuccess}
                     alsoSet={{'*': {level_4: ''}}}
                   />
               }
                 {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && level4sQuery.data.emissionsFactors.length > 1 &&
-                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_4" label="Level 4" values={level4sQuery.data.emissionsFactors}/>
+                  <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_4" label="Level 4" values={level4sQuery.data.emissionsFactors} disabled={!!topSuccess}/>
               }
                 {lookupQuery.data ?
                   <ListGroup className="mb-3" variant="flush">
@@ -586,8 +589,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           <Form.Group controlId="supportingDoc" className="mb-3">
             <Form.Label>Supporting Document</Form.Label>
             {supportingDoc && supportingDoc.name ? 
-              <p><i>File:</i> <b>{supportingDoc.name}</b> ({supportingDoc.size} bytes) <Button className="ms-2" variant="outline-secondary" size="sm" onClick={_=>{setSupportingDoc(null)}}>Clear</Button></p> :
-              <Form.Control required type="file" onChange={(e:ChangeEvent<HTMLInputElement>)=>{ setSupportingDoc(e.currentTarget.files?e.currentTarget.files[0]:null) }} />}
+              <p><i>File:</i> <b>{supportingDoc.name}</b> ({supportingDoc.size} bytes) <Button className="ms-2" variant="outline-secondary" size="sm" disabled={!!topSuccess} onClick={_=>{setSupportingDoc(null)}}>Clear</Button></p> :
+              <Form.Control required disabled={!!topSuccess} type="file" onChange={(e:ChangeEvent<HTMLInputElement>)=>{ setSupportingDoc(e.currentTarget.files?e.currentTarget.files[0]:null) }} />}
             <Form.Control.Feedback type="invalid">
               {(formErrors && formErrors.supportingDoc) || "This value is required"}
             </Form.Control.Feedback>

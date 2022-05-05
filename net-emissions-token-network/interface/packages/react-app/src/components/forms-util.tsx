@@ -20,6 +20,7 @@ type FormInputRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   step?: number | 'any',
   placeholder?: string,
   required?: boolean,
+  disabled?: boolean,
   errors?: T2,
   onChange?: (value: string)=>void
 };
@@ -31,6 +32,7 @@ type FormWalletRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   label: string
   errors?: T2,
   showValidation?: boolean
+  disabled?: boolean,
   onChange?: (value: string)=>void
   onWalletChange?: (value: Wallet | null)=>void
 };
@@ -44,6 +46,7 @@ type FormAddressRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   errors?: T2,
   types?: string[]
   showValidation?: boolean
+  disabled?: boolean,
   onChange?: (value: string)=>void
 };
 
@@ -74,10 +77,11 @@ export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ 
   </Form.Group>
 }
 
-export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
+export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, disabled, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Control
       type={type||"input"}
+      disabled={disabled}
       min={min}
       max={max}
       step={step}
@@ -93,10 +97,11 @@ export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ fo
   </FloatingLabel>
 }
 
-export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, alsoSet, label, placeholder, values, required, errors, onChange }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
+export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, alsoSet, label, placeholder, values, required, disabled, errors, onChange }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Select aria-label={label}
       value={form[field] as string}
+      disabled={disabled}
       onChange={e=>{
         const v = e.currentTarget.value;
         const ac = alsoSet?.[v] ?? alsoSet?.['*'] ?? {};
@@ -121,12 +126,13 @@ const inputErrorStyles = {
   borderColor: 'rgb(220, 53, 69)'
 }
 
-export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, errors, showValidation, onChange, onWalletChange }:PropsWithChildren<FormWalletRowProps<T,T2>>) => {
+export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, errors, showValidation, disabled, onChange, onWalletChange }:PropsWithChildren<FormWalletRowProps<T,T2>>) => {
   return <Form.Group className="mb-3">
     <Form.Label>{label}</Form.Label>
     <InputGroup className={(showValidation && errors && errors[field]) ? 'is-invalid' : ''}>
       <WalletLookupInput
         value={form[field]}
+        disabled={disabled}
         onChange={(v: string) => { setForm({...form, [field]: v}); if (onChange) onChange(v); }} 
         onWalletChange={(w)=>{
           const v = w ? w.address! : ''
