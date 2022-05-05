@@ -3897,7 +3897,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
   version "1.0.0"
   dependencies:
     "@trpc/server" "^9.23.2"
-    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-d6523052-a883-4827-9e12-bc77b3e0b978-1651580543738/data/postgres"
+    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-3cbe3978-6b4c-4086-8205-d80b1917456b-1651713488997/data/postgres"
     chalk "^5.0.1"
     cors "^2.8.5"
     dotenv "^16.0.0"
@@ -3905,8 +3905,9 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     express "^4.18.1"
     express-fileupload "^1.3.1"
     express-request-context "^1.0.1"
+    moment "^2.29.3"
     pg "^8.7.3"
-    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-d6523052-a883-4827-9e12-bc77b3e0b978-1651580543738/supply-chain/lib"
+    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-3cbe3978-6b4c-4086-8205-d80b1917456b-1651713488997/supply-chain/lib"
     web3 "^1.7.3"
     zod "^3.14.4"
 
@@ -4485,9 +4486,9 @@ blob-to-it@^1.0.1:
 "blockchain-accounting-data-postgres@file:../../data/postgres", "blockchain-carbon-accounting-data-postgres@file:../../data/postgres":
   version "1.0.0"
   dependencies:
-    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-7aa3a926-aab7-432b-8310-fff04626ddb6-1651580543785/node_modules/common"
+    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-a9e4b355-eb46-4383-8610-cf1b73e69640-1651713489048/node_modules/common"
     cli-progress "^3.10.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-7aa3a926-aab7-432b-8310-fff04626ddb6-1651580543785/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-a9e4b355-eb46-4383-8610-cf1b73e69640-1651713489048/emissions-data/chaincode/emissionscontract/typescript"
     pg "^8.7.3"
     reflect-metadata "^0.1.13"
     ts-node "^10.7.0"
@@ -4500,7 +4501,7 @@ blob-to-it@^1.0.1:
   version "1.0.0"
   dependencies:
     cli-progress "^3.11.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-91e1cb6c-c02e-42b4-aa6c-44ea6b2bce9d-1651580543806/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-8a50881e-2fa9-4daa-9d98-41b8f90970f8-1651713489167/emissions-data/chaincode/emissionscontract/typescript"
     uuid "^8.3.2"
     xlsx "^0.18.5"
 
@@ -6429,7 +6430,7 @@ elliptic@6.5.4, elliptic@^6.4.0, elliptic@^6.4.1, elliptic@^6.5.2, elliptic@^6.5
   version "0.0.1"
   dependencies:
     crypto-js "^4.1.1"
-    fabric-shim "2.2.2"
+    fabric-shim "2.2.3"
 
 emittery@^0.10.2:
   version "0.10.2"
@@ -7540,13 +7541,13 @@ fabric-common@2.3.0-snapshot.63:
   optionalDependencies:
     pkcs11js "^1.0.6"
 
-fabric-contract-api@2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/fabric-contract-api/-/fabric-contract-api-2.2.2.tgz#a37952774e42aa45f35b8e44d92438077208feef"
-  integrity sha512-1wg8PYeBlNss1IrumqCx5rehIw54PaTaYvKQj+lM+oODA3DM+K+wq8DkM7fM0nD61wPPrbd2Ikp8ZW27jk3d9Q==
+fabric-contract-api@2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/fabric-contract-api/-/fabric-contract-api-2.2.3.tgz#7fcf8121b9722e6e9db457bf2c35f31afff1d019"
+  integrity sha512-LMwLnnqMXS+XQvnCSu0MQ2OSfvDlWYV2jscr5eT6UpVIXtNZLwSoX/2fGRUe7HJyIeH83KtTsg0AKTcDiwCtGg==
   dependencies:
     class-transformer "^0.3.1"
-    fabric-shim-api "2.2.2"
+    fabric-shim-api "2.2.3"
     fast-safe-stringify "^2.0.7"
     get-params "^0.1.2"
     reflect-metadata "^0.1.13"
@@ -7571,23 +7572,23 @@ fabric-protos@2.3.0-snapshot.63:
     "@grpc/proto-loader" "^0.6.2"
     protobufjs "^6.11.2"
 
-fabric-shim-api@2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/fabric-shim-api/-/fabric-shim-api-2.2.2.tgz#286063b6d98f4c18f8c6b8078c9de52b197716f4"
-  integrity sha512-jjyP5Tfw+NNW5WolqcOGkqGbwlFpVOXIO8REJsclSrzppD66z7qoyHEjQVD+tMqgm1Jj/wK/IWAuSXgxzbR0lw==
+fabric-shim-api@2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/fabric-shim-api/-/fabric-shim-api-2.2.3.tgz#dc27b69b0d8de4666f7abd664a9f6b1ae2f3f661"
+  integrity sha512-wpgj/lrB9Ux06+jBRj2xnXFa7lz6iI5J8r1amhbxMnVw4HvkF2HaiNTRfnisJm+IIf3ocoNoiLS5i6nRHUKFYw==
 
-fabric-shim@2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/fabric-shim/-/fabric-shim-2.2.2.tgz#7c74ac909c0ab935a901b96c7ceb7d6dd45a07c4"
-  integrity sha512-zc501NXtZOLSc9B8MSqWyUAsGH76/vD5n8/gQrfRt9Z7Ixu/5znvQYTQLoD8J0eLo5xeM9VD4u59N6z1wxG+7g==
+fabric-shim@2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/fabric-shim/-/fabric-shim-2.2.3.tgz#f77fc20518fd4f06edfb7253a75ba3818cb6a255"
+  integrity sha512-lSCgnKMd/68VPh2aWqF82Xg8ObOXjyayMTPS7IqrIwtyRA7yOSTdiVDe5dTqZT7/pHGoOItMlsAusdjVFNxZUQ==
   dependencies:
     "@fidm/x509" "^1.2.1"
     "@grpc/grpc-js" "^1.1.1"
     "@grpc/proto-loader" "^0.5.4"
     "@types/node" "^14.0.13"
     ajv "^6.12.2"
-    fabric-contract-api "2.2.2"
-    fabric-shim-api "2.2.2"
+    fabric-contract-api "2.2.3"
+    fabric-shim-api "2.2.3"
     fs-extra "^9.0.1"
     reflect-metadata "^0.1.13"
     winston "^3.3.2"
@@ -14128,9 +14129,9 @@ stylis@4.0.13:
     "@googlemaps/google-maps-services-js" "^3.3.13"
     axios "^0.27.2"
     bignumber.js "^9.0.2"
-    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-9e533da7-3781-4f9f-9ee5-099c13a341cf-1651580543782/data/postgres"
-    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-9e533da7-3781-4f9f-9ee5-099c13a341cf-1651580543782/emissions-data/typescript_app"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-9e533da7-3781-4f9f-9ee5-099c13a341cf-1651580543782/emissions-data/chaincode/emissionscontract/typescript"
+    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-f8c346c7-d2c1-4d99-b34c-4b08a8892578-1651713489042/data/postgres"
+    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-f8c346c7-d2c1-4d99-b34c-4b08a8892578-1651713489042/emissions-data/typescript_app"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-f8c346c7-d2c1-4d99-b34c-4b08a8892578-1651713489042/emissions-data/chaincode/emissionscontract/typescript"
     ipfs-http-client "^56.0.3"
     ups-nodejs-sdk "^1.0.0"
 
