@@ -23,6 +23,8 @@ import {
   is_emissions_factor_activity,
   EmissionsFactorActivity,
   ShippingMode,
+  is_natural_gas_activity,
+  NaturalGasActivity,
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
@@ -377,8 +379,21 @@ export async function process_flight(
   return { distance, flight: { number_of_passengers, class: seat_class }, emissions };
 }
 
+export async function process_natural_gas(
+  a: NaturalGasActivity 
+): Promise<ActivityResult> {
+  return process_emissions_factor({
+    ...a,
+    activity_uom: 'cubic metres',
+    activity_amount: Number(a.activity_amount) * 2.83,
+    level_1: 'FUELS',
+    level_2: 'GASEOUS FUELS',
+    level_3: 'NATURAL GAS'
+  })
+}
+
 export async function process_emissions_factor(
-  a: EmissionsFactorActivity 
+  a: EmissionsFactorActivity
 ): Promise<ActivityResult> {
 
   const db = await getDBInstance();
@@ -488,6 +503,8 @@ export async function process_activity(activity: Activity) {
     return await process_flight(activity);
   } else if (is_emissions_factor_activity(activity)) {
     return await process_emissions_factor(activity);
+  } else if (is_natural_gas_activity(activity)) {
+    return await process_natural_gas(activity);
   } else {
     throw new Error('activity not recognized');
   }

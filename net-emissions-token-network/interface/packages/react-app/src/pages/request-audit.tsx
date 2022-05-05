@@ -24,7 +24,7 @@ type ShipmentMode = 'air' | 'ground' | 'sea' | '';
 
 export type EmissionsFactorForm = {
   issued_from: string,
-  activity_type: 'flight' | 'shipment' | 'emissions_factor' | ''
+  activity_type: 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | ''
   ups_tracking: string
   shipment_mode: ShipmentMode
   weight: string
@@ -277,6 +277,12 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           errors.hasErrors = true
         }
       }
+    } else if (emForm.activity_type === 'natural_gas') {
+        // need to have a valid quantity
+        if (!emForm.activity_amount || Number(emForm.activity_amount) <= 0) {
+          errors.activity_amount = 'A valid amount is required'
+          errors.hasErrors = true
+        }
     } else if (emForm.activity_type === 'flight') {
 
         // need to have a valid number of passengers
@@ -383,21 +389,32 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           })
         }} />
 
-        <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
-          {value:'flight', label:'Flight'},
-          {value:'shipment', label:'Shipment'},
-          {value:'emissions_factor', label:'Emissions Factor'}
-        ]} onChange={_=>{ setValidated(false) }}/>
+        <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type"
+          values={[
+            {value:'flight', label:'Flight'},
+            {value:'shipment', label:'Shipment' },
+            {value:'natural_gas', label:'Natural Gas' },
+            {value:'emissions_factor', label:'Emissions Factor'}
+          ]}
+          onChange={_=>{ setValidated(false) }}
+          alsoSet={{
+            'natural_gas': {activity_uom: 'therm'},
+          }}/>
 
         {!!emForm.activity_type && <>
           {emForm.activity_type === 'shipment' && <>
             <h3>Shipment Details</h3>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="carrier" label="Carrier"/>
-            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="shipment_mode" label="Shipping Mode" placeholder="Use UPS Tracking Number" values={[
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="shipment_mode" label="Shipping Mode" placeholder="Use UPS Tracking Number"
+              values={[
               {value:'air', label:'Air'},
               {value:'ground', label:'Ground'},
               {value:'sea', label:'Sea'}
-            ]} onChange={(val)=>{ if(val) setEmForm({...emForm, ups_tracking: '', shipment_mode: val as ShipmentMode});  }}/>
+            ]}
+              alsoSet={{
+                '*': {ups_tracking: ''},
+              }}
+            />
             {!emForm.shipment_mode && <>
               <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="ups_tracking" label="UPS Tracking Number" required/>
               </>}
@@ -437,6 +454,10 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required showValidation={validated}/>
             </>}
 
+          {emForm.activity_type === 'natural_gas' && <>
+            <h3>Consumption Details</h3>
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required label={`Volume in Therm`}/>
+            </>}
 
           {emForm.activity_type === 'emissions_factor' && <>
             {emForm.emissions_factor_uuid && emissionsFactor ? <>
@@ -461,15 +482,18 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
                 <h3 id="lookupForm">Choose an emissions factor</h3>
                 {level1sQuery.data &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_1" label="Level 1" values={level1sQuery.data.emissionsFactors}
-                    onChange={(val)=>{setEmForm({...emForm, level_1:val, level_2:'', level_3: '', level_4: ''})}}/>
+                    alsoSet={{'*': {level_2:'', level_3: '', level_4: ''}}}
+                  />
               }
                 {emForm.level_1 && level2sQuery.data &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_2" label="Level 2" values={level2sQuery.data.emissionsFactors}
-                    onChange={(val)=>{setEmForm({...emForm, level_2:val, level_3: '', level_4: ''})}}/>
+                    alsoSet={{'*': {level_3: '', level_4: ''}}}
+                  />
               }
                 {emForm.level_1 && emForm.level_2 && level3sQuery.data &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_3" label="Level 3" values={level3sQuery.data.emissionsFactors}
-                    onChange={(val)=>{setEmForm({...emForm, level_3:val, level_4: ''})}}/>
+                    alsoSet={{'*': {level_4: ''}}}
+                  />
               }
                 {emForm.level_1 && emForm.level_2 && emForm.level_3 && level4sQuery.data && level4sQuery.data.emissionsFactors.length > 1 &&
                   <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="level_4" label="Level 4" values={level4sQuery.data.emissionsFactors}/>

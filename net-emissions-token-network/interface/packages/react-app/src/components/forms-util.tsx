@@ -48,6 +48,7 @@ type FormAddressRowProps<T extends GenericForm, T2 extends Partial<T>> = {
 };
 
 type FormSelectRowProps<T extends GenericForm, T2 extends Partial<T>> = FormInputRowProps<T,T2> & {
+  alsoSet?: Record<string, Partial<T>>,
   values: {
     value: string
     label: string
@@ -92,16 +93,22 @@ export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ fo
   </FloatingLabel>
 }
 
-export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, values, required, errors, onChange }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
+export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, alsoSet, label, placeholder, values, required, errors, onChange }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Select aria-label={label}
       value={form[field] as string}
-      onChange={e=>{ setForm({...form, [field]: e.currentTarget.value }); if (onChange) onChange(e.currentTarget.value); }}
+      onChange={e=>{
+        const v = e.currentTarget.value;
+        const ac = alsoSet?.[v] ?? alsoSet?.['*'] ?? {};
+        console.log(ac);
+        setForm({...form, ...ac, [field]: e.currentTarget.value });
+        if (onChange) onChange(e.currentTarget.value);
+      }}
       required={required}
     >
       <option value="">{placeholder || `Select ${label}`}</option>
       {values.map((o,i)=> typeof o === 'string' ? <option key={i} value={o}>{o}</option> :
-        <option key={i} value={o.value}>{o.label}</option>
+        <option key={i} value={o.value} data-val={o}>{o.label}</option>
       )}
     </Form.Select> 
     <Form.Control.Feedback type="invalid">
