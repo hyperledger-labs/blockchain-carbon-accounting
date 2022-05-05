@@ -24,7 +24,7 @@ type ShipmentMode = 'air' | 'ground' | 'sea' | '';
 
 export type EmissionsFactorForm = {
   issued_from: string,
-  activity_type: 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | ''
+  activity_type: 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
   ups_tracking: string
   shipment_mode: ShipmentMode
   weight: string
@@ -33,6 +33,9 @@ export type EmissionsFactorForm = {
   distance_uom: 'km' | 'miles'
   activity_amount: string
   activity_uom: string
+  country: string
+  state: string
+  utility: string
   carrier: string
   flight_carrier: string
   flight_service_level: 'Economy Class' | 'Premium Economy Class' | 'Business Class' | 'First Class' | ''
@@ -57,6 +60,9 @@ const defaultEmissionsFactorForm: EmissionsFactorForm = {
   distance_uom: 'km',
   activity_amount: '',
   activity_uom: '',
+  country: '',
+  state: '',
+  utility: '',
   carrier: '',
   flight_carrier: '',
   flight_service_level: '',
@@ -234,6 +240,17 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor' && !!emForm.level_1 && emForm.level_1.length > 0,
   })
 
+  const electricityCountriesQuery = trpc.useQuery(['emissionsFactors.getElectricityCountries', {
+  }], {
+    enabled: emForm.activity_type === 'electricity',
+  })
+  const electricityUSAStatesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAStates'], {
+    enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES',
+  })
+  const electricityUSAUtilitiesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAUtilities', {state_province: emForm.state}], {
+    enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES' && !!emForm.state,
+  })
+
   const selectEmissionsFactor = (factor: EmissionsFactorInterface|null) => {
     setEmissionsFactor(factor)
     setEmForm({
@@ -278,11 +295,33 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
         }
       }
     } else if (emForm.activity_type === 'natural_gas') {
-        // need to have a valid quantity
-        if (!emForm.activity_amount || Number(emForm.activity_amount) <= 0) {
-          errors.activity_amount = 'A valid amount is required'
+      // need to have a valid quantity
+      if (!emForm.activity_amount || Number(emForm.activity_amount) <= 0) {
+        errors.activity_amount = 'A valid amount is required'
+        errors.hasErrors = true
+      }
+    } else if (emForm.activity_type === 'electricity') {
+      // need to have a valid quantity
+      if (!emForm.activity_amount || Number(emForm.activity_amount) <= 0) {
+        errors.activity_amount = 'A valid amount is required'
+        errors.hasErrors = true
+      }
+      // must have a country
+      if (!emForm.country) {
+        errors.country = 'A valid country is required'
+        errors.hasErrors = true
+      }
+      // USAS must have a state and utility as well
+      if (emForm.country === 'UNITED STATES') {
+        if (!emForm.state) {
+          errors.state = 'A valid state is required'
           errors.hasErrors = true
         }
+        if (!emForm.utility) {
+          errors.utility = 'A valid utility is required'
+          errors.hasErrors = true
+        }
+      }
     } else if (emForm.activity_type === 'flight') {
 
         // need to have a valid number of passengers
@@ -393,11 +432,13 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           values={[
             {value:'flight', label:'Flight'},
             {value:'shipment', label:'Shipment' },
+            {value:'electricity', label:'Electricity' },
             {value:'natural_gas', label:'Natural Gas' },
             {value:'emissions_factor', label:'Emissions Factor'}
           ]}
           onChange={_=>{ setValidated(false) }}
           alsoSet={{
+            'electricity': {activity_uom: 'kwh'},
             'natural_gas': {activity_uom: 'therm'},
           }}/>
 
@@ -452,6 +493,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required showValidation={validated}/>
             <h4>Destination</h4>
             <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required showValidation={validated}/>
+            </>}
+
+          {emForm.activity_type === 'electricity' && <>
+            <h3>Consumption Details</h3>
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required values={electricityCountriesQuery?.data?.countries ?? []} />
+            {emForm.country === 'UNITED STATES' && <>
+              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} />
+              {emForm.state ?
+                <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="utility" label="Utility" required values={electricityUSAUtilitiesQuery?.data?.utilities?.map(
+                  (u) => u.utility_name?.replaceAll('_', ' ') || u.uuid
+                ) ?? []} />
+                : <div>Select a State</div>
+              }
+            </>}
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required label={`Amount in kWH`}/>
             </>}
 
           {emForm.activity_type === 'natural_gas' && <>
