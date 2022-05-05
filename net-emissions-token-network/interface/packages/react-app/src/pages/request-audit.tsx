@@ -33,6 +33,7 @@ export type EmissionsFactorForm = {
   distance_uom: 'km' | 'miles'
   activity_amount: string
   activity_uom: string
+  carrier: string
   flight_carrier: string
   flight_service_level: 'Economy Class' | 'Premium Economy Class' | 'Business Class' | 'First Class' | ''
   num_passengers: string
@@ -56,6 +57,7 @@ const defaultEmissionsFactorForm: EmissionsFactorForm = {
   distance_uom: 'km',
   activity_amount: '',
   activity_uom: '',
+  carrier: '',
   flight_carrier: '',
   flight_service_level: '',
   num_passengers: '1',
@@ -372,7 +374,14 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
         }}
         noValidate validated={validated}>
 
-        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} />
+        <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} onWalletChange={(w)=>{
+          setEmForm({
+            ...emForm,
+            issued_from: w?.address ?? '',
+            flight_carrier: w?.organization ?? '',
+            carrier: w?.organization ?? ''
+          })
+        }} />
 
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" values={[
           {value:'flight', label:'Flight'},
@@ -383,6 +392,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
         {!!emForm.activity_type && <>
           {emForm.activity_type === 'shipment' && <>
             <h3>Shipment Details</h3>
+            <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="carrier" label="Carrier"/>
             <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="shipment_mode" label="Shipping Mode" placeholder="Use UPS Tracking Number" values={[
               {value:'air', label:'Air'},
               {value:'ground', label:'Ground'},

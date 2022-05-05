@@ -115,7 +115,7 @@ function getActivity(body: any): Activity {
     return {
       id: '1',
       type: activity_type,
-      carrier: body.ups_tracking?'ups':(body.carrier||'unknown'),
+      carrier: body.carrier || (body.ups_tracking ? 'ups' : 'unknown'),
       tracking: body.ups_tracking || body.tracking_number || 'unknown',
       mode: body.shipment_mode,
       weight: Number(body.weight),

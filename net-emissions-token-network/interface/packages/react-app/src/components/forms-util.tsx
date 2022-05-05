@@ -2,6 +2,7 @@ import { PropsWithChildren } from "react";
 import { FloatingLabel, Form, InputGroup } from "react-bootstrap";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import WalletLookupInput from "../components/wallet-lookup-input";
+import { Wallet } from "./static-data";
 
 
 type GenericForm = {
@@ -31,6 +32,7 @@ type FormWalletRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   errors?: T2,
   showValidation?: boolean
   onChange?: (value: string)=>void
+  onWalletChange?: (value: Wallet | null)=>void
 };
 
 type FormAddressRowProps<T extends GenericForm, T2 extends Partial<T>> = {
@@ -112,7 +114,7 @@ const inputErrorStyles = {
   borderColor: 'rgb(220, 53, 69)'
 }
 
-export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, errors, showValidation, onChange }:PropsWithChildren<FormWalletRowProps<T,T2>>) => {
+export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, errors, showValidation, onChange, onWalletChange }:PropsWithChildren<FormWalletRowProps<T,T2>>) => {
   return <Form.Group className="mb-3">
     <Form.Label>{label}</Form.Label>
     <InputGroup className={(showValidation && errors && errors[field]) ? 'is-invalid' : ''}>
@@ -123,7 +125,8 @@ export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ f
           const v = w ? w.address! : ''
           setForm({...form, [field]: v})
           if (onChange) onChange(v)
-        }} 
+          if (onWalletChange) onWalletChange(w)
+        }}
         // onBlur={() => setInitializedAddressInput(true)}
         sx={(showValidation && errors && errors[field]) ? {
           '& .MuiOutlinedInput-notchedOutline': inputErrorStyles
