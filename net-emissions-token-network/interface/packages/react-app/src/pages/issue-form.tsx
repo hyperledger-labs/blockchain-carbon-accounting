@@ -141,7 +141,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           // types of params
           [
             'address',
-            'address',
+            'uint160',
             'uint8',
             'uint256',
             'uint256',
@@ -217,7 +217,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
 
-    let result = await issue(provider, issuedFrom, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
+    let result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description);
     setResult(result.toString());
   }
 

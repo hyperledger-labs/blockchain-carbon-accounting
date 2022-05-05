@@ -1,17 +1,11 @@
-import Web3 from "web3";
-import { AbiItem } from 'web3-utils';
-import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { CreatedToken } from "../models/commonTypes";
 import { TokenPayload, BalancePayload } from 'blockchain-accounting-data-postgres/src/repositories/common'
 import { insertNewBalance } from "./balance.controller";
 import { Balance } from "blockchain-accounting-data-postgres/src/models/balance";
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { Wallet } from "blockchain-accounting-data-postgres/src/models/wallet";
-
-const BURN = '0x0000000000000000000000000000000000000000';
-
-const web3 = new Web3(process.env.LEDGER_ETH_JSON_RPC_URL as string);
-const contract = new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], process.env.LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS);
+import { OPTS_TYPE } from "../server";
+import { BURN, getContract, getWeb3 } from "../utils/web3";
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
 const FIRST_BLOCK = 18656095;
@@ -21,10 +15,10 @@ const FIRST_BLOCK = 18656095;
  * Instead of relying on the event we just use them to collect the addresses of the accounts,
  * then use getRoles to get the final roles from the contract.
  */
-export const syncWallets = async (currentBlock: number) => {
+export const syncWallets = async (currentBlock: number, opts: OPTS_TYPE) => {
     try {
         // cleanup roles on Hardhat first
-        if (process.env.LEDGER_ETH_NETWORK === 'hardhat') {
+        if (opts.network_name === 'hardhat') {
             const db = await PostgresDBService.getInstance()
             await db.getWalletRepo().clearWalletsRoles()
         }
@@ -39,7 +33,7 @@ export const syncWallets = async (currentBlock: number) => {
         ];
         const accountAddresses: Record<string, boolean> = {};
         const members: Record<string, Record<string, number>> = {};
-        let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
+        let fromBlock: number = "hardhat" === opts.network_name ? 0 : FIRST_BLOCK;
         let toBlock: number | string = fromBlock;
         while(toBlock != currentBlock) {
             if(fromBlock + 5000 > currentBlock) 
@@ -48,7 +42,7 @@ export const syncWallets = async (currentBlock: number) => {
                 toBlock = fromBlock + 5000; 
             for (const {event} of events) {
                 console.log("event: ", event);
-                const logs = await contract.getPastEvents(event, {fromBlock, toBlock});
+                const logs = await getContract(opts).getPastEvents(event, {fromBlock, toBlock});
                 for (const {returnValues} of logs) {
                     const account = returnValues.account
                     accountAddresses[account] = true
@@ -69,7 +63,7 @@ export const syncWallets = async (currentBlock: number) => {
         }
 
         for (const address in accountAddresses) {
-            await syncWalletRoles(address);
+            await syncWalletRoles(address, opts);
         }
     } catch (err) {
         console.error(err)
@@ -77,15 +71,15 @@ export const syncWallets = async (currentBlock: number) => {
     }
 }
 
-export const getRoles = async (address: string) => {
-  return await contract.methods.getRoles(address).call();
+export const getRoles = async (address: string, opts: OPTS_TYPE) => {
+  return await getContract(opts).methods.getRoles(address).call();
 }
 
-export const syncWalletRoles = async (address: string, data?: Partial<Wallet>) => {
+export const syncWalletRoles = async (address: string, opts: OPTS_TYPE, data?: Partial<Wallet>) => {
     try {
         const db = await PostgresDBService.getInstance()
         console.log("getting roles for ", address);
-        const rolesInfo = await getRoles(address);
+        const rolesInfo = await getRoles(address, opts);
         console.log("roles for ", address, rolesInfo);
         const roles = [];
         if (rolesInfo.isAdmin) roles.push('Admin');
@@ -105,15 +99,15 @@ export const syncWalletRoles = async (address: string, data?: Partial<Wallet>) =
 }
 
 
-export const checkSignedMessage = (message: string, signature: string) => {
-  return web3.eth.accounts.recover(message, signature)
+export const checkSignedMessage = (message: string, signature: string, opts: OPTS_TYPE) => {
+  return getWeb3(opts).eth.accounts.recover(message, signature)
 }
 
 
 // get number of unique tokens
-const getNumOfUniqueTokens = async (): Promise<number> => {
+const getNumOfUniqueTokens = async (opts: OPTS_TYPE): Promise<number> => {
     try {
-        const result = await contract.methods.getNumOfUniqueTokens().call();    
+        const result = await getContract(opts).methods.getNumOfUniqueTokens().call();    
         return result;
     } catch (err) {
         console.error(err)
@@ -121,22 +115,28 @@ const getNumOfUniqueTokens = async (): Promise<number> => {
     }
 }
 
-async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
+async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenPayload> {
     try {
-        const token: CreatedToken = await contract.methods.getTokenDetails(tokenId).call();
+        const token: CreatedToken = await getContract(opts).methods.getTokenDetails(tokenId).call();
 
         // restructure 
         const _metadata = token.metadata as string;
-        const _manifest = token.manifest as string;
         // eslint-disable-next-line
         let metaObj: any = {};
+        try {
+          if (_metadata) metaObj = JSON.parse(_metadata);
+        } catch (error) {
+          console.error('Invalid JSON in token metadata:', _metadata);
+          metaObj = {}
+        }
+        const _manifest = token.manifest as string;
+        // eslint-disable-next-line
         let manifestObj: any = {};
         try {
-          metaObj = JSON.parse(_metadata);
-          manifestObj = JSON.parse(_manifest);
+          if (_manifest) manifestObj = JSON.parse(_manifest);
         } catch (error) {
-          console.error('Invalid JSON in token metadata or manifest:', _metadata, _manifest);
-          metaObj = {}
+          console.error('Invalid JSON in token manifest:', _manifest);
+          manifestObj = {}
         }
 
         // extract scope and type
@@ -148,18 +148,17 @@ async function getTokenDetails(tokenId: number): Promise<TokenPayload> {
 
         // build token model
         // eslint-disable-next-line
-        const { metadata, manifest, ..._tokenPayload } = { ...token };
+        const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
         const tokenPayload: TokenPayload = {
             ..._tokenPayload,
             scope,
             type,
+            // reset totalIssued and totalRetired
+            totalIssued: 0n,
+            totalRetired: 0n,
             metadata: metaObj,
             manifest: manifestObj
         };
-
-        // reset totalIssued and totalRetired
-        tokenPayload.totalIssued = 0;
-        tokenPayload.totalRetired = 0;
 
         return tokenPayload;
     } catch (err) {
@@ -176,33 +175,32 @@ export const truncateTable = async () => {
     console.log('--- Tables has been cleared. ----\n')
 }
 
-export const fillTokens = async (): Promise<number> => {
-    
+export const fillTokens = async (opts: OPTS_TYPE): Promise<number> => {
     const db = await PostgresDBService.getInstance()
 
     // get number tokens from database
     const numOfSavedTokens = await db.getTokenRepo().countTokens([]);
 
     // get number tokens from network
-    const numOfIssuedTokens = await getNumOfUniqueTokens();
+    const numOfIssuedTokens = await getNumOfUniqueTokens(opts);
     // getting tokens from network
     // save to database
     if(numOfIssuedTokens > numOfSavedTokens) {
         for (let i = numOfSavedTokens + 1; i <= numOfIssuedTokens; i++) {
             // getting token details and store
-            const token: TokenPayload = await getTokenDetails(i);
+            const token: TokenPayload = await getTokenDetails(i, opts);
             await db.getTokenRepo().insertToken(token);
         }
     }
     console.log(`${numOfIssuedTokens - numOfSavedTokens} new tokens of ${numOfIssuedTokens} are stored into database.`);
-    return await web3.eth.getBlockNumber();
+    return await getWeb3(opts).eth.getBlockNumber();
 }
 
 /**
  * TODOs
  * 1. Cannot insert with available!
  */
-export const fillBalances = async (currentBlock: number) => {
+export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
 
     const db = await PostgresDBService.getInstance()
     let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
@@ -211,26 +209,25 @@ export const fillBalances = async (currentBlock: number) => {
         // target event is TokenRetired & TransferSingle
         if(fromBlock + 5000 > currentBlock) 
             toBlock = currentBlock;
-        else 
-            toBlock = fromBlock + 5000; 
-        const singleTransfers = await contract.getPastEvents('TransferSingle', 
+        else
+            toBlock = fromBlock + 5000;
+        const singleTransfers = await getContract(opts).getPastEvents('TransferSingle', 
             {fromBlock, toBlock});
         const len = singleTransfers.length;
         for (let i = 0; i < len; i++) {
-            
             const singleTransfer = singleTransfers[i].returnValues;
             const tokenId: number = singleTransfer.id;
             const from: string = singleTransfer.from;
             const to: string = singleTransfer.to;
-            const amount: number = singleTransfer.value; // it must be divided by 10^3
+            const amount = BigInt(singleTransfer.value); // it must be divided by 10^3
             // issue case
             if(from == BURN) {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuedTo: to,
-                    available: Number(amount),
-                    retired: 0,
-                    transferred: 0
+                    available: amount,
+                    retired: 0n,
+                    transferred: 0n
                 }
 
                 // resolve conflicts
@@ -246,7 +243,7 @@ export const fillBalances = async (currentBlock: number) => {
             if(to == BURN) {
                 // update issuee balance
                 await db.getBalanceRepo().retireBalance(from, tokenId, amount);
-                
+
                 // update token balance
                 await db.getTokenRepo().updateTotalRetired(tokenId, amount);
                 continue;
@@ -261,9 +258,9 @@ export const fillBalances = async (currentBlock: number) => {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuedTo: to,
-                    available: Number(amount),
-                    retired: 0,
-                    transferred: 0
+                    available: amount,
+                    retired: 0n,
+                    transferred: 0n
                 }
                 await insertNewBalance(balancePayload);
             } else {

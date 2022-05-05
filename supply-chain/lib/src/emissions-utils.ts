@@ -23,10 +23,14 @@ import {
   is_emissions_factor_activity,
   EmissionsFactorActivity,
   ShippingMode,
+  is_natural_gas_activity,
+  NaturalGasActivity,
+  is_electricity_activity,
+  ElectricityActivity,
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
-import { uploadFileEncrypted } from "./ipfs-utils";
+import { _uploadFileEncrypted, uploadFileEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
@@ -63,7 +67,7 @@ export function weight_in_kg(weight?: number, uom?: string) {
   const u = uom.toLowerCase();
   if (u === "kg") return weight;
   if (u === "lb" || u === "lbs" || u === "pound") return weight * 0.453592;
-  if (u === "t" || u === "tonne") return weight * 1000.0;
+  if (u === "t" || u === "tonne" || u === "tons") return weight * 1000.0;
   if (u === "g") return weight / 1000.0;
   // not recognized
   throw new Error(`Weight UOM ${uom} not supported`);
@@ -123,15 +127,18 @@ export async function get_flight_emission_factor(seat_class: string) {
 async function getEmissionFactor(f: Partial<EmissionsFactorInterface>) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
-  if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
-  if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
-  return factors[0];
+  if (factors && factors.length) {
+    return factors[0];
+  }
+
+  return null;
 }
 
 export async function calc_flight_emissions(
   passengers: number,
   seat_class: string,
-  distance: Distance
+  distance: Distance,
+  year?: string | undefined
 ): Promise<Emissions> {
   const distance_km = distance_object_in_km(distance);
   // lookup the factor for different class
@@ -140,7 +147,21 @@ export async function calc_flight_emissions(
   if (f.activity_uom !== 'passenger.km') {
     throw new Error(`Expected flight emission factor uom to be passenger.km but got ${f.activity_uom}`);
   }
-  const factor = await getEmissionFactor(f);
+  let factor;
+  if (year) {
+    let fo = {...f} as Partial<EmissionsFactorInterface>;
+    fo.year = year;
+    factor = await getEmissionFactor(fo);
+    if (!factor) {
+      factor = await getEmissionFactor(f);
+    }
+  } else {
+    factor = await getEmissionFactor(f);
+  }
+
+  if (!factor) {
+    throw new Error(`Cannot find emissions factor for ${f}`);
+  }
   if (!factor.co2_equivalent_emissions) {
     throw new Error(`Found factor does not have a co2_equivalent_emissions ${factor.uuid}`);
   }
@@ -156,14 +177,31 @@ export async function calc_flight_emissions(
 
 export async function calc_freight_emissions(
   weight_kg: number,
-  distance: Distance
+  distance: Distance,
+  year?: string | undefined
 ): Promise<Emissions> {
   const distance_km = distance_object_in_km(distance);
   // lookup factor for different 'mode'
   const f = await get_freight_emission_factor(distance.mode);
+
   // most uom should be in tonne.km here
   const convert = get_convert_kg_for_uom(f.activity_uom);
-  const factor = await getEmissionFactor(f);
+  let factor;
+
+  if (year) {
+    let fo = {...f} as Partial<EmissionsFactorInterface>;
+    fo.year = year;
+    factor = await getEmissionFactor(fo);
+    if (!factor) {
+      factor = await getEmissionFactor(f);
+    }
+  } else {
+    factor = await getEmissionFactor(f);
+  }
+
+  if (!factor) {
+    throw new Error(`Cannot find emissions factor for ${f}`);
+  }
   if (!factor.co2_equivalent_emissions) {
     throw new Error(`Found factor does not have a co2_equivalent_emissions ${factor.uuid}`);
   }
@@ -250,13 +288,13 @@ export async function issue_emissions_tokens_with_issuee(
   const manifest = create_manifest(publicKey, ipfs_path, hash);
   const description = `Emissions from ${activity_type}`;
 
-  return await gateway_issue_token(issuedFrom, issuedTo, tokens.toNumber(), fd, td, JSON.stringify(manifest), metadata, description);
+  return await gateway_issue_token(issuedFrom, issuedTo, BigInt(tokens.toNumber()), fd, td, JSON.stringify(manifest), metadata, description);
 }
 
 async function gateway_issue_token(
   issuedFrom: string,
   issuedTo: string,
-  quantity_of_tokens: number,
+  quantity_of_tokens: bigint,
   fromDate: number,
   thruDate: number,
   manifest: string,
@@ -292,12 +330,10 @@ async function gateway_issue_token(
     description: description
   };
   try {
-    const token = await gateway.issue(caller, input);
-    return token;
+    return await gateway.issue(caller, input);
   } catch (error) {
-    console.log("gateway_issue_token, error", error)
-    if (error instanceof Error) new Error(error.message) 
-    else new Error(String(error));
+    if (error instanceof Error) throw new Error(error.message) 
+    else throw new Error(String(error));
   }
 }
 
@@ -321,7 +357,11 @@ export async function process_shipment(
     const distance = await calc_distance(a.from, a.to, a.mode);
     // then calc emissions ...
     const weight = weight_in_kg(a.weight, a.weight_uom);
-    const emissions = await calc_freight_emissions(weight, distance);
+    let year;
+    if (a.thru_date) {
+       year = new Date(a.thru_date).getFullYear().toString();
+    }
+    const emissions = await calc_freight_emissions(weight, distance, year);
     return { distance, weight: { value: weight, unit: "kg" }, emissions };
   }
 }
@@ -333,19 +373,58 @@ export async function process_flight(
   // use default values when missing
   const number_of_passengers = a.number_of_passengers || 1;
   const seat_class = a.class || 'economy';
-  const emissions = await calc_flight_emissions(number_of_passengers, seat_class, distance);
+  let year;
+  if (a.thru_date) {
+    year = new Date(a.thru_date).getFullYear().toString();
+  }
+  const emissions = await calc_flight_emissions(number_of_passengers, seat_class, distance, year);
   return { distance, flight: { number_of_passengers, class: seat_class }, emissions };
 }
 
+export async function process_natural_gas(
+  a: NaturalGasActivity 
+): Promise<ActivityResult> {
+  return process_emissions_factor({
+    ...a,
+    activity_uom: 'cubic metres',
+    activity_amount: Number(a.activity_amount) * 2.83,
+    level_1: 'FUELS',
+    level_2: 'GASEOUS FUELS',
+    level_3: 'NATURAL GAS'
+  })
+}
+
+export async function process_electricity(
+  a: ElectricityActivity 
+): Promise<ActivityResult> {
+  return process_emissions_factor({
+    ...a,
+    level_1: 'WTT- UK & OVERSEAS ELEC',
+    level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (GENERATION)' : 'WTT- UK ELECTRICITY (GENERATION)',
+    level_3: 'ELECTRICITY: ' + a.country,
+  })
+}
+
 export async function process_emissions_factor(
-  a: EmissionsFactorActivity 
+  a: EmissionsFactorActivity
 ): Promise<ActivityResult> {
 
   const db = await getDBInstance();
   // support a lookup by given uuid or by levels/scope/text
-  const factor = a.emissions_factor_uuid ?
-    await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid)
-    : await getEmissionFactor(a);
+  let factor;
+  if (a.emissions_factor_uuid) {
+    factor = await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid);
+  } else {
+    if (a.thru_date) {
+      const year = new Date(a.thru_date).getFullYear().toString();
+      let fo = {...a} as Partial<EmissionsFactorInterface>;
+      fo.year = year;
+      factor = await getEmissionFactor(fo);
+    }
+    if (!factor) {
+      factor = await getEmissionFactor(a);
+    }
+  }
   if (!factor) {
     if (a.emissions_factor_uuid) {
       throw new Error(`Emissions factor [${a.emissions_factor_uuid}] not found`)
@@ -365,29 +444,38 @@ export async function process_emissions_factor(
   // normalize the outputs
   let distance_km = 0;
   let weight_kg = 0;
+
+  let has_passengers = false;
+  let has_weight = false;
+  let has_amount = false;
+  let has_distance = false;
   for (const uom of luoms) {
     if (uom === 'passenger') {
       if (!a.number_of_passengers) {
         throw new Error(`This emissions factor requires a number_of_passengers input`);
       }
       amount *= a.number_of_passengers;
-    } else if (uom === 'kg' || uom === 'tonne' || uom === 'lbs') {
+      has_passengers = true;
+    } else if (uom === 'kg' || uom === 'tonne' || uom === 'tons' || uom === 'lbs') {
       if (!a.weight || !a.weight_uom) {
         throw new Error(`This emissions factor requires a weight and weight_uom inputs`);
       }
       amount *= weight_in_uom(a.weight, a.weight_uom, uom)
       weight_kg = weight_in_kg(a.weight, a.weight_uom)
+      has_weight = true;
     } else if (uom === 'km' || uom === 'miles' || uom === 'mi') {
       if (!a.distance || !a.distance_uom) {
         throw new Error(`This emissions factor requires a distance and distance_uom inputs`);
       }
       amount *= distance_in_uom(a.distance, a.distance_uom, uom)
       distance_km = distance_in_km(a.distance, a.distance_uom)
+      has_distance = true;
     } else {
       if (!a.activity_amount || !a.activity_uom) {
         throw new Error(`This emissions factor requires an activity_amount and activity_uom inputs`);
       }
       amount *= a.activity_amount
+      has_amount = true;
     }
   }
   // convert all factors into kgCO2e based on co2_equivalent_emissions_uom
@@ -403,27 +491,47 @@ export async function process_emissions_factor(
     },
     factor
   }
-  const distance: Distance = {
-    mode: 'air',
-    unit: 'km',
-    value: distance_km,
+  const results: {
+    emissions: Emissions,
+    distance?: Distance,
+    flight?: {number_of_passengers: number, class?: string},
+    weight?: ValueAndUnit,
+    amount?: ValueAndUnit,
+  } = { emissions };
+  if (has_distance) {
+    const distance: Distance = {
+      mode: 'air',
+      unit: 'km',
+      value: distance_km,
+    }
+    results.distance = distance;
   }
-  if (a.number_of_passengers) {
+  if (has_passengers) {
     const flight = {
-      number_of_passengers: a.number_of_passengers,
+      number_of_passengers: a.number_of_passengers!,
       class: a.class,
     }
-    return { distance, flight, emissions };
-  } else {
-    // handle other cases
-    // the mode should be from factor levels
-    distance.mode = get_mode_from_factor(factor)
+    results.flight = flight;
+  }
+  if (has_amount) {
+    const amount = {
+      value: a.activity_amount!,
+      unit: a.activity_uom!,
+    }
+    results.amount = amount;
+  }
+  if (has_weight) {
     const weight = {
       value: weight_kg,
       unit: 'kg',
     }
-    return { distance, weight, emissions };
+    results.weight = weight;
   }
+  // handle other cases
+  // the mode should be from factor levels
+  if (!has_passengers && results.distance) results.distance.mode = get_mode_from_factor(factor)
+
+  return results;
 }
 
 export async function process_activity(activity: Activity) {
@@ -437,6 +545,10 @@ export async function process_activity(activity: Activity) {
     return await process_flight(activity);
   } else if (is_emissions_factor_activity(activity)) {
     return await process_emissions_factor(activity);
+  } else if (is_natural_gas_activity(activity)) {
+    return await process_natural_gas(activity);
+  } else if (is_electricity_activity(activity)) {
+    return await process_electricity(activity);
   } else {
     throw new Error('activity not recognized');
   }
@@ -452,7 +564,7 @@ export async function process_activities(
         return { activity, result };
       } catch (error) {
         // console.error("Error in process_activities: ", error);
-        const errMsg = (error instanceof Error)?error.message:String(error) 
+        const errMsg = (error instanceof Error)?error.message:JSON.stringify(error);
         return { activity, error: errMsg };
       }
     })
@@ -561,7 +673,7 @@ export async function issue_tokens(
 
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  const ipfs_res = await _uploadFileEncrypted(content, publicKeys[0]);
 
   const token_res = await issue_emissions_tokens(
     activity_type,
@@ -659,7 +771,7 @@ export async function create_emissions_request(
     status: status,
     token_from_date: f_date,
     token_thru_date: t_date,
-    token_total_emissions: tokens.toNumber(),
+    token_total_emissions: BigInt(tokens.toNumber()),
     token_metadata: metadata,
     token_description: `Emissions from ${activity_type}`
   });

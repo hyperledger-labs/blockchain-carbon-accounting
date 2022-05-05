@@ -41,11 +41,11 @@ export class Token {
     @Column({nullable: true})
     description!: string;
 
-    @Column()
-    totalIssued!: number;
+    @Column({type: 'bigint'})
+    totalIssued!: bigint;
 
-    @Column()
-    totalRetired!: number;
+    @Column({type: 'bigint'})
+    totalRetired!: bigint;
 
     @Column({nullable: true})
     scope!: number;

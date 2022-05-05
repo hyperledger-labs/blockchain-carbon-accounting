@@ -1,5 +1,6 @@
 import axios from 'axios';
-import type { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
+import moment from 'moment';
+import type { QueryBundle } from '../../../../../../data/postgres/src/repositories/common';
 import type { Token, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
@@ -196,7 +197,7 @@ export const issueEmissionsRequest = async (uuid: string) => {
     }
 }
 
-export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string) => {
+export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string, fromDate: Date|null, thruDate: Date|null) => {
     try {
         const url = BASE_URL + '/emissionsrequest/';
         const formData = new FormData();
@@ -205,6 +206,12 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         }
         formData.append("supportingDocument", supportingDocument);
         formData.append("signedInAddress", signedInAddress);
+        if (fromDate) {
+            formData.append("fromDate", (moment(fromDate)).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        if (thruDate) {
+            formData.append("thruDate", (moment(thruDate.setHours(23,59,59,999))).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
         const resp = await fetch(url, {
             method: 'POST',
             body: formData,

@@ -52,49 +52,43 @@ type UpsShipmentOutput = {
 }
 
 // return a promise with the output object for a shipment
-export function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<UpsShipmentOutput> {
-  return new Promise((resolve, reject) => {
-    ups_track(ups, trackingNumber)
-      .then((res: UpsResponse) => {
-        const isGround = is_ground(res);
-        const output: Output = { ups: res };
-        const result = { trackingNumber, output };
-        let weight = 0.0;
-        if (res.Shipment && res.Shipment.ShipmentWeight) {
-          const w = res.Shipment.ShipmentWeight;
-          weight = w.Weight;
-          if (w.UnitOfMeasurement.Code === 'LBS') {
-            weight *= 0.453592;
-          }
-          output.weight = {
-            value: weight,
-            unit: 'kg'
-          }
-        }
-        const path = get_path(res);
-        if (path) {
-          output.from = path.from;
-          output.to = path.to;
-          calc_distance(path.from, path.to, isGround ? 'ground' : 'air').then((distance) => {
-            output.distance = distance;
-            calc_freight_emissions(weight, distance).then(emissions=>{
-              output.emissions = emissions;
-              resolve(result);
-            });
-          }).catch(error => {
-            reject({trackingNumber, error});
-          });
-        } else {
-          reject({trackingNumber, error: 'Package not delivered yet!'});
-        }
-      })
-      .catch(error => {
-        reject({trackingNumber, error});
-      })
-  });
+export async function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<UpsShipmentOutput> {
+  let res = await ups_track(ups, trackingNumber);
+  const isGround = is_ground(res);
+  const output: Output = { ups: res };
+  const result = { trackingNumber, output };
+  let weight = 0.0;
+  if (res.Shipment && res.Shipment.ShipmentWeight) {
+    const w = res.Shipment.ShipmentWeight;
+    weight = w.Weight;
+    if (w.UnitOfMeasurement.Code === 'LBS') {
+      weight *= 0.453592;
+    }
+    output.weight = {
+      value: weight,
+      unit: 'kg'
+    }
+  }
+  const path = get_path(res);
+  if (path) {
+    output.from = path.from;
+    output.to = path.to;
+    const distance = await calc_distance(path.from, path.to, isGround ? 'ground' : 'air');
+    output.distance = distance;
+    const emissions = await calc_freight_emissions(weight, distance);
+    output.emissions = emissions;
+    return result;
+  } else {
+    throw new Error('Package not delivered yet!');
+  }
 }
 
+
+let ups_client: UpsAPI;
+
 export function get_ups_client() {
+
+  if (ups_client) return ups_client;
 
   const conf = {
     environment: process.env.UPS_ENV,
@@ -103,7 +97,7 @@ export function get_ups_client() {
     access_key: process.env.UPS_KEY,
   }
 
-  const ups: UpsAPI = new upsAPI(conf);
-  return ups;
+  ups_client = new upsAPI(conf);
+  return ups_client;
 
 }

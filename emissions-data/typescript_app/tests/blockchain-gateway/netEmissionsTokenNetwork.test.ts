@@ -44,7 +44,7 @@ describe('EthNetEmissionsTokenGateway', () => {
             const input: IEthNetEmissionsTokenIssueInput = {
                 issuedFrom: caller.address,
                 issuedTo: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
-                quantity: 100,
+                quantity: BigInt(100),
                 fromDate: 454545,
                 thruDate: 45454,
                 metadata: 'test-token-metadata',
@@ -65,7 +65,7 @@ describe('EthNetEmissionsTokenGateway', () => {
                 await gateway.issue(caller, {
                     issuedFrom: caller.address,
                     issuedTo: '0x7invalid',
-                    quantity: 100,
+                    quantity: BigInt(100),
                     fromDate: 454545,
                     thruDate: 45454,
                     metadata: 'test-token-metadata',
@@ -102,7 +102,7 @@ describe('EthNetEmissionsTokenGateway', () => {
             const input: IEthNetEmissionsTokenIssueInput = {
                 issuedFrom: caller.address,
                 issuedTo: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
-                quantity: 100,
+                quantity: BigInt(100),
                 fromDate: 454545,
                 thruDate: 45454,
                 metadata: 'test-token-metadata',
@@ -123,7 +123,7 @@ describe('EthNetEmissionsTokenGateway', () => {
                 await gateway.issue(caller, {
                     issuedFrom: caller.address,
                     issuedTo: '0x7invalid',
-                    quantity: 100,
+                    quantity: BigInt(100),
                     fromDate: 454545,
                     thruDate: 45454,
                     metadata: 'test-token-metadata',

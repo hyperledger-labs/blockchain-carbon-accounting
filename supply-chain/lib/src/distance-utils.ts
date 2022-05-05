@@ -1,9 +1,12 @@
 import { Client, LatLngLiteral, UnitSystem } from "@googlemaps/google-maps-services-js";
 import { Address, Distance, is_address_object, ShippingMode } from './common-types';
 
-export function get_gclient(client?: Client) {
+let client: Client | undefined;
+
+export function get_gclient() {
   if (client) return client;
-  return new Client({});
+  client = new Client({});
+  return client;
 }
 
 export function calc_coord_distance(o: LatLngLiteral, d: LatLngLiteral) {
@@ -40,9 +43,9 @@ function get_address_string(address: Address): string {
   }
 }
 
-export async function calc_ground_distance(origin: Address, dest: Address, client?: Client): Promise<Distance> {
+export async function calc_ground_distance(origin: Address, dest: Address): Promise<Distance> {
 
-  const gclient = get_gclient(client);
+  const gclient = get_gclient();
   const o = get_address_string(origin);
   const d = get_address_string(dest);
 
@@ -80,15 +83,14 @@ export async function calc_ground_distance(origin: Address, dest: Address, clien
       resolve(res);
     })
       .catch(error => {
-        console.log(error);
         reject(error);
       });
   });
 }
 
-export async function calc_direct_distance(origin: Address, dest: Address, mode: ShippingMode, client?: Client): Promise<Distance> {
+export async function calc_direct_distance(origin: Address, dest: Address, mode: ShippingMode): Promise<Distance> {
 
-  const gclient = get_gclient(client);
+  const gclient = get_gclient();
   const o = get_address_string(origin);
   const d = get_address_string(dest);
 

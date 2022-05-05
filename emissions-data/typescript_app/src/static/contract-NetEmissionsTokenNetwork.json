@@ -28,6 +28,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "account",
@@ -173,9 +186,9 @@
       },
       {
         "indexed": true,
-        "internalType": "address",
+        "internalType": "uint160",
         "name": "issuedFrom",
-        "type": "address"
+        "type": "uint160"
       },
       {
         "indexed": true,
@@ -647,6 +660,25 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getIssuedFrom",
+    "outputs": [
+      {
+        "internalType": "uint160",
+        "name": "",
+        "type": "uint160"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getNumOfUniqueTokens",
     "outputs": [
@@ -786,9 +818,9 @@
             "type": "address"
           },
           {
-            "internalType": "address",
+            "internalType": "uint160",
             "name": "issuedFrom",
-            "type": "address"
+            "type": "uint160"
           },
           {
             "internalType": "address",
@@ -1103,9 +1135,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
+        "internalType": "uint160",
         "name": "issuedFrom",
-        "type": "address"
+        "type": "uint160"
       },
       {
         "internalType": "address",
@@ -1161,9 +1193,9 @@
         "type": "address"
       },
       {
-        "internalType": "address",
+        "internalType": "uint160",
         "name": "issuedFrom",
-        "type": "address"
+        "type": "uint160"
       },
       {
         "internalType": "address",

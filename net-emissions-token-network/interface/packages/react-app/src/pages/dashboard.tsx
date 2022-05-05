@@ -99,7 +99,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
-    let newMyBalances: Balance[] = [];
 
     let _balanceCount = 0;
     try {
@@ -113,11 +112,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       // this count means total pages of balances
       _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
 
-
-      for (let i = 0; i < balances.length; i++) {
-        const balance = balances[i];
-
-        let token = {
+      const newMyBalances = balances.map((balance) => {
+        return {
           ...balance,
           tokenId: balance.token.tokenId,
           token: balance.token,
@@ -127,13 +123,13 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           retiredBalance: balance.retired,
           transferredBalance: balance.transferred
         }
-        newMyBalances.push(token);
-      }
+      });
+      setMyBalances(newMyBalances);
     } catch (error) {
       console.error(error);
+      setMyBalances([]);
     }
 
-    setMyBalances(newMyBalances);
     setBalanceCount(_balanceCount);
     setBalancePage(_balancePage);
     setBalancePageSize(_balancePageSize);

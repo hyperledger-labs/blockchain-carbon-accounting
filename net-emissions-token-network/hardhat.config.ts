@@ -1,21 +1,26 @@
 // SPDX-License-Identifier: Apache-2.0
-require("@nomiclabs/hardhat-waffle");
-require("solidity-coverage");
-require("hardhat-gas-reporter");
-require("@nomiclabs/hardhat-etherscan");
-require('hardhat-deploy');
-require('hardhat-deploy-ethers');
-require('@openzeppelin/hardhat-upgrades');
-require("@ethersproject/bignumber");
+import { task, types } from "hardhat/config";
+import { AbiCoder } from "ethers/lib/utils";
+
+import "@nomiclabs/hardhat-waffle";
+import "solidity-coverage";
+import "hardhat-gas-reporter";
+import "@nomiclabs/hardhat-etherscan";
+import "hardhat-deploy";
+import "hardhat-deploy-ethers";
+import "@openzeppelin/hardhat-upgrades";
+import "@ethersproject/bignumber";
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
-  require("@eth-optimism/plugins/hardhat/compiler");
-  require("@eth-optimism/plugins/hardhat/ethers");
+  import("@eth-optimism/plugins/hardhat/compiler");
+  // TODO: not found ..
+  // import("@eth-optimism/plugins/hardhat/ethers");
 }
 
-let encodeParameters = function (types, values) {
-  let abi = new ethers.utils.AbiCoder();
+// eslint-disable-next-line
+const encodeParameters = function (abi: AbiCoder, types: string[], values: any[]) {
+  // const abi = new ethers.utils.AbiCoder();
   return abi.encode(types, values);
 };
 
@@ -26,10 +31,10 @@ let encodeParameters = function (types, values) {
 task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
   .addParam("value", "True or false to set limited mode")
   .addParam("contract", "The CLM8 contract")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
+  .setAction(async (taskArgs, hre) => {
+    const [admin] = await hre.ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const contract = NetEmissionsTokenNetwork.attach(taskArgs.contract);
     await contract.connect(admin).setLimitedMode( (taskArgs.value) == "true" ? true : false );
   })
 
@@ -37,50 +42,50 @@ task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract"
 task("setQuorum", "Set the quorum value on a Governor contract")
   .addParam("value", "The new quorum value in votes")
   .addParam("contract", "The Governor contract")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
+  .setAction(async (taskArgs, hre) => {
+    const [admin] = await hre.ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const contract = await Governor.attach(taskArgs.contract);
+    const contract = Governor.attach(taskArgs.contract);
     // since the dCLM8 token has 18 decimals places and the sqrt function cuts this in half, so 9 zeros must be padded on the value in order to get the correct order of magnitude.
-    await contract.connect(admin).setQuorum( ethers.BigNumber.from(taskArgs.value).mul(ethers.BigNumber.from("1000000000")));
+    await contract.connect(admin).setQuorum(hre.ethers.BigNumber.from(taskArgs.value).mul(hre.ethers.BigNumber.from("1000000000")));
   })
 
 // Task to set proposal threshold on Governor
 task("setProposalThreshold", "Set the proposal threshold on a Governor contract")
   .addParam("value", "The minimum amount of dCLM8 required to lock with a proposal")
   .addParam("contract", "The Governor contract")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
+  .setAction(async (taskArgs, hre) => {
+    const [admin] = await hre.ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const contract = await Governor.attach(taskArgs.contract);
+    const contract = Governor.attach(taskArgs.contract);
     await contract.connect(admin).setProposalThreshold( String(taskArgs.value) );
   })
 
 task("getQuorum", "Return the quorum value (minimum number of votes for a proposal to pass)")
   .addParam("contract", "The Governor contract")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
+  .setAction(async (taskArgs, hre) => {
+    const [admin] = await hre.ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const contract = await Governor.attach(taskArgs.contract);
-    let quorum = (await contract.connect(admin).quorumVotes()).toString();
-    console.log(ethers.BigNumber.from(quorum).div(ethers.BigNumber.from("1000000000")).toString());
+    const contract = Governor.attach(taskArgs.contract);
+    const quorum = (await contract.connect(admin).quorumVotes()).toString();
+    console.log(hre.ethers.BigNumber.from(quorum).div(hre.ethers.BigNumber.from("1000000000")).toString());
   })
 task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 required to stake with a proposal)")
   .addParam("contract", "The Governor contract")
-  .setAction(async taskArgs => {
-    const [admin] = await ethers.getSigners();
+  .setAction(async (taskArgs, hre) => {
+    const [admin] = await hre.ethers.getSigners();
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const contract = await Governor.attach(taskArgs.contract);
+    const contract = Governor.attach(taskArgs.contract);
     console.log((await contract.connect(admin).proposalThreshold()).toString());
   })
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
-  .setAction(async taskArgs => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, dealer4, dealer5, dealer6, dealer7} = await getNamedAccounts();
+  .setAction(async (taskArgs, hre) => {
+    const {dealer1, dealer2, consumer1, consumer2, industry1, industry2, dealer4, dealer5, dealer6, dealer7, ups, airfrance} = await hre.getNamedAccounts();
 
-    const [admin] = await ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const contract = NetEmissionsTokenNetwork.attach(taskArgs.contract);
 
     await contract.connect(admin).registerDealer(dealer1, 1); // REC dealer
     console.log("Account " + dealer1 + " is now a REC dealer");
@@ -98,19 +103,24 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerDealer(industry1,4);
     console.log("Account " + industry1 + " is now an industry")
     // self registered industry dealer
-    await contract.connect(await ethers.getSigner(industry1)).registerIndustry(industry2);
+    await contract.connect(await hre.ethers.getSigner(industry1)).registerIndustry(industry2);
     console.log("Account " + industry2 + " is now an industry")
 
-    await contract.connect(await ethers.getSigner(industry1)).registerConsumer(consumer1);
+    await contract.connect(await hre.ethers.getSigner(industry1)).registerConsumer(consumer1);
     console.log("Account " + consumer1 + " is now a consumer");
     await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
+    // special carrier accounts
+    await contract.connect(admin).registerDealer(ups,4);
+    console.log("Account " + ups + " is now an industry")
+    await contract.connect(admin).registerDealer(airfrance,4);
+    console.log("Account " + airfrance + " is now an industry")
   });
 task("issueTestTokens", "Create some test issued tokens")
   .addParam("contract", "The CLM8 contract")
   .addParam("count", "Number of token to issue in each loop")
-  .setAction(async taskArgs => {
-    const { dealer7, dealer1, dealer2, consumer1, consumer2 } = await getNamedAccounts();
+  .setAction(async (taskArgs, hre) => {
+    const { dealer7, dealer1, dealer2, consumer1, consumer2 } = await hre.getNamedAccounts();
 
     const n = parseInt(taskArgs.count);
     if (n < 1) {
@@ -118,11 +128,11 @@ task("issueTestTokens", "Create some test issued tokens")
       return;
     }
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const contract = NetEmissionsTokenNetwork.attach(taskArgs.contract);
     for (let i = 1; i<n+1; i++) {
       const qty = i * 100;
       await contract
-      .connect(await ethers.getSigner(dealer1))
+      .connect(await hre.ethers.getSigner(dealer1))
       .issue(
         dealer1,
         consumer1,
@@ -136,7 +146,7 @@ task("issueTestTokens", "Create some test issued tokens")
       );
       console.log("Account " + consumer1 + " received " + qty + " tokens from " + dealer1);
       await contract
-      .connect(await ethers.getSigner(dealer7))
+      .connect(await hre.ethers.getSigner(dealer7))
       .issue(
         dealer7,
         consumer2,
@@ -150,7 +160,7 @@ task("issueTestTokens", "Create some test issued tokens")
       );
       console.log("Account " + consumer2 + " received " + qty + " tokens from " + dealer7);
       await contract
-      .connect(await ethers.getSigner(dealer2))
+      .connect(await hre.ethers.getSigner(dealer2))
       .issue(
         dealer2,
         consumer2,
@@ -168,19 +178,19 @@ task("issueTestTokens", "Create some test issued tokens")
 task("createTestProposal", "Create a test proposal using the default account roles for testing")
   .addParam("governor", "The Governor contract")
   .addParam("contract", "The CLM8 contract")
-  .setAction(async (taskArgs) => {
-    const { dealer1, dealer2 } = await getNamedAccounts();
+  .setAction(async (taskArgs, hre) => {
+    const { dealer1, dealer2 } = await hre.getNamedAccounts();
 
-    const [admin] = await ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const contract = NetEmissionsTokenNetwork.attach(taskArgs.contract);
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const govContract = await Governor.attach(taskArgs.governor);
+    const govContract = Governor.attach(taskArgs.governor);
 
-    let calldatas = [
-      encodeParameters(
+    const calldatas = [
+      encodeParameters(new hre.ethers.utils.AbiCoder(),
         // types of params
-        ["address","address","uint8","uint256","uint256","uint256","string","string","string",],
+        ["address","uint160","uint8","uint256","uint256","uint256","string","string","string",],
         // value of params
         [
           dealer2, // account
@@ -199,7 +209,7 @@ task("createTestProposal", "Create a test proposal using the default account rol
     await govContract.connect(admin).propose(
       [contract.address], // targets
       [0], // values
-      ["issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",], // signatures
+      ["issueOnBehalf(address,uint160,uint8,uint256,uint256,uint256,string,string,string)",], // signatures
       calldatas,
       "a test proposal"
     );
@@ -208,19 +218,19 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
   .addParam("governor", "The Governor contract")
   .addParam("contract", "The CLM8 contract")
   .addOptionalParam("children", "The number of children to add, defaults to 3", 3, types.int)
-  .setAction(async (taskArgs) => {
-    const { dealer1, dealer2 } = await getNamedAccounts();
+  .setAction(async (taskArgs, hre) => {
+    const { dealer1, dealer2 } = await hre.getNamedAccounts();
 
-    const [admin] = await ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const contract = NetEmissionsTokenNetwork.attach(taskArgs.contract);
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const govContract = await Governor.attach(taskArgs.governor);
+    const govContract = Governor.attach(taskArgs.governor);
 
-    let calldatas = [
-      encodeParameters(
+    const calldatas = [
+      encodeParameters(new hre.ethers.utils.AbiCoder(),
         // types of params
-        ["address","address","uint8","uint256","uint256","uint256","string","string","string",],
+        ["address","uint160","uint8","uint256","uint256","uint256","string","string","string",],
         // value of params
         [
           dealer2, // account
@@ -236,12 +246,12 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
       ),
     ];
 
-    let targets = [contract.address];
-    let values = [0];
-    let signatures = [
-      "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)",
+    const targets = [contract.address];
+    const values = [0];
+    const signatures = [
+      "issueOnBehalf(address,uint160,uint8,uint256,uint256,uint256,string,string,string)",
     ];
-    let descriptions = ["a test proposal"];
+    const descriptions = ["a test proposal"];
     for (let i = 0; i < taskArgs.children; i++) {
       // except for the description, it doesn't really matter what we put here since child proposals are never executed
       targets.push("0x0000000000000000000000000000000000000000");
@@ -261,16 +271,16 @@ task("createTestMultiProposal", "Create a test multi proposal using the default 
   });
 task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
   .addParam("contract", "The dCLM8 token")
-  .setAction(async taskArgs => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+  .setAction(async (taskArgs, hre) => {
+    const {dealer1, dealer2, dealer3, consumer1, consumer2} = await hre.getNamedAccounts();
 
-    const [admin] = await ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
     const daoToken = await hre.ethers.getContractFactory("DAOToken");
-    const contract = await daoToken.attach(taskArgs.contract);
+    const contract = daoToken.attach(taskArgs.contract);
 
-    let decimals = ethers.BigNumber.from("1000000000000000000");
-    let tokens = ethers.BigNumber.from("500000");
-    let i = tokens.mul(decimals);
+    const decimals = hre.ethers.BigNumber.from("1000000000000000000");
+    const tokens = hre.ethers.BigNumber.from("500000");
+    const i = tokens.mul(decimals);
 
     await contract.connect(admin).transfer(dealer1, i);
     console.log (`Gave ${tokens} DAO Tokens to ${dealer1}`);
@@ -285,12 +295,12 @@ task("giveDaoTokens", "Give DAO tokens to default account roles for testing")
 })
 task("showDaoTokenBalances", "Show the DAO tokens balances of the test users")
   .addParam("contract", "The dCLM8 token")
-  .setAction(async taskArgs => {
-    const {deployer, dealer1, dealer2, dealer3, consumer1, consumer2} = await getNamedAccounts();
+  .setAction(async (taskArgs, hre) => {
+    const {deployer, dealer1, dealer2, dealer3, consumer1, consumer2} = await hre.getNamedAccounts();
 
-    const [admin] = await ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
     const daoToken = await hre.ethers.getContractFactory("DAOToken");
-    const contract = await daoToken.attach(taskArgs.contract);
+    const contract = daoToken.attach(taskArgs.contract);
 
     console.log("DAO dCLM8 balances:");
     console.log(` deployer  ${await contract.connect(admin).balanceOf(deployer)}`);
@@ -302,46 +312,46 @@ task("showDaoTokenBalances", "Show the DAO tokens balances of the test users")
 })
 task("getTotalSupply", "Get the total supply of DAO tokens")
   .addParam("contract", "The dCLM8 token")
-  .setAction(async (taskArgs) => {
-    const [admin] = await ethers.getSigners();
+  .setAction(async (taskArgs, hre) => {
+    const [admin] = await hre.ethers.getSigners();
     const daoToken = await hre.ethers.getContractFactory("DAOToken");
-    const contract = await daoToken.attach(taskArgs.contract);
+    const contract = daoToken.attach(taskArgs.contract);
 
-    let supply = await contract.connect(admin).getTotalSupply();
+    const supply = await contract.connect(admin).getTotalSupply();
     console.log("Total supply is (dCLM8): " + supply);
   });
 task("addToSupply", "Add a given amount to the total supply of DAO tokens")
   .addParam("contract", "The dCLM8 token")
   .addParam("amount", "The number of dCLM8 token to add")
-  .setAction(async (taskArgs) => {
+  .setAction(async (taskArgs, hre) => {
     if (!taskArgs.amount || taskArgs.amount == "0") {
       console.log("Please specify the amount to add.");
       return;
     }
 
-    const [admin] = await ethers.getSigners();
+    const [admin] = await hre.ethers.getSigners();
     const daoToken = await hre.ethers.getContractFactory("DAOToken");
-    const contract = await daoToken.attach(taskArgs.contract);
+    const contract = daoToken.attach(taskArgs.contract);
     console.log(`Adding ${taskArgs.amount} to the Total supply`);
     await contract.connect(admin).addToTotalSupply(taskArgs.amount.toString());
 
-    let supply = await contract.connect(admin).getTotalSupply();
+    const supply = await contract.connect(admin).getTotalSupply();
     console.log("Total supply is (dCLM8): " + supply);
   });
 
 // Task to upgrade NetEmissionsTokenNetwork contract
 task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
-  .setAction(async taskArgs => {
-    const {deployer} = await getNamedAccounts();
+  .setAction(async (_, hre) => {
+    const {deployer} = await hre.getNamedAccounts();
 
-    const {deploy, get} = deployments;
+    const {deploy, get} = hre.deployments;
 
     // output current implementation address
-    let current = await get("NetEmissionsTokenNetwork");
+    const current = await get("NetEmissionsTokenNetwork");
     console.log("Current NetEmissionsTokenNetwork (to be overwritten):", current.implementation);
 
     // deploy V2
-    let netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
+    const netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
       from: deployer,
       proxy: {
         owner: deployer,
@@ -364,13 +374,11 @@ task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live
   .addParam("signature", "")
   .addParam("data", "")
   .addParam("eta", "")
-  .setAction(async taskArgs => {
-    const {get} = deployments;
-
+  .setAction(async (taskArgs, hre) => {
     const Timelock = await hre.ethers.getContractFactory("Timelock");
-    const timelock = await Timelock.attach(taskArgs.timelock);
+    const timelock = Timelock.attach(taskArgs.timelock);
     const Governor = await hre.ethers.getContractFactory("Governor");
-    const governor = await Governor.attach(taskArgs.governor);
+    const governor = Governor.attach(taskArgs.governor);
 
     await timelock.executeTransaction(
       taskArgs.target,
@@ -402,6 +410,8 @@ module.exports = {
     dealer5: { default: 5 },
     dealer6: { default: 6 },
     dealer7: { default: 7 },
+    ups: { default: 8 },
+    airfrance: { default: 9 },
     consumer1: { default: 19 },
     consumer2: { default: 18 },
     industry1: { default: 15 },
@@ -446,13 +456,13 @@ module.exports = {
 
 
     // Uncomment the following lines if deploying contract to Binance BSC testnet
-    // Deploy with npx hardhat --network bsctestnet --reset deploy
     //bsctestnet: {
     //  url: "https://data-seed-prebsc-1-s1.binance.org:8545",
     //  chainId: 97,
     //  gasPrice: 20000000000,
     //  accounts: [`0x${ethereumConfig.BSC_PRIVATE_KEY}`]
     //}
+    // Deploy with npx hardhat --network bsctestnet deploy --reset
 
     // Uncomment the following lines if deploying contract to Optimism on Kovan
     // Deploy with npx hardhat run --network optimism_kovan scripts/___.js
@@ -506,3 +516,4 @@ module.exports = {
     solcVersion: '0.7.6'
   }
 };
+

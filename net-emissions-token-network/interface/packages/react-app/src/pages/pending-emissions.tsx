@@ -10,7 +10,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
-import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
 
 type PendingEmissionsProps = {
   provider?: Web3Provider,
@@ -49,11 +49,6 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         // handle the dates properly
         const from_date = parseDate(selectedPendingEmissions.token_from_date);
         const thru_date = parseDate(selectedPendingEmissions.token_thru_date);
-        const issued_from = selectedPendingEmissions.issued_from || signedInAddress;
-        if (!issued_from) {
-          setError("Empty issued from.");
-          return;
-        }
         if (!from_date) {
           setError("Empty token from date.");
           return;
@@ -75,14 +70,11 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           return;
         }
 
-        // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
-        let quantity_formatted = Math.round(selectedPendingEmissions.token_total_emissions * 1000) / 1000;
-
         let result = await issue(provider,
-          issued_from,
+          selectedPendingEmissions.issued_from,
           selectedPendingEmissions.issued_to,
           tokenTypeId,
-          quantity_formatted,
+          selectedPendingEmissions.token_total_emissions,
           from_date,
           thru_date,
           selectedPendingEmissions.token_metadata,

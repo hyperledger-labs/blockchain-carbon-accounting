@@ -11,7 +11,7 @@ import {
   process_emissions_requests,
   queue_issue_tokens
 } from 'supply-chain-lib/src/emissions-utils';
-import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { downloadFileEncrypted, _downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 
 function print_usage() {
   console.log('Usage: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
@@ -102,14 +102,23 @@ type OutputActivity = {
 };
 
 async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
-  const token_res = queue ? 
-    await queue_issue_tokens(g, activity_type, mode) :
-    await issue_tokens(g, activity_type, publicKeys, mode);
+  let token_res;
+  let token_error: string | undefined = undefined;
+  try {
+    token_res = queue ? 
+      await queue_issue_tokens(g, activity_type, mode) :
+      await issue_tokens(g, activity_type, publicKeys, mode);
+  } catch (e) {
+    token_error = e instanceof Error ? e.message : String(e)
+  }
   // add each activity to output array
   for (const a of g.content) {
     const out: OutputActivity = { id: a.activity.id };
-    if (a.error) out.error = a.error;
-    if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId; 
+    if (a.error) {
+      out.error = a.error;
+    }
+    if (token_res?.tokenId) out.tokenId = token_res.tokenId;
+    else if (token_error) out.error = token_error;
     output_array.push(out);
   }
 }
@@ -122,7 +131,7 @@ if (fetchObjectPath) {
   }
 
   const filename = fetchObjectPath
-  downloadFileEncrypted(filename, privateKey).then((res) => {
+  _downloadFileEncrypted(filename, privateKey).then((res) => {
     if (res) {
       // binary works the same as 'utf8' here
       // TODO: need a way to save the extension so files can be opened

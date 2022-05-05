@@ -47,8 +47,17 @@ const progressBar = new SingleBar(
           describe: "XLSX file to load from",
         })
         .positional("sheet", {
-          describe: "name of the worksheet to load from",
+          describe: "Name of the worksheet to load from",
           default: "Sheet1",
+        })
+       .option('format', {
+          type: 'string',
+          description: 'Data format, which could be egrid_data | eea_res_proxies | eea_intensity | conversion-factors-uk',
+          demandOption: true,
+        })
+        .option('source', {
+          type: 'string',
+          description: 'Data file source',
         });
     },
     async (argv: any) => {
@@ -70,7 +79,7 @@ const progressBar = new SingleBar(
           demandOption: true,
         })
         .positional("sheet", {
-          describe: "name of the worksheet to load from",
+          describe: "Name of the worksheet to load from",
         })
     },
     async (argv: any) => {

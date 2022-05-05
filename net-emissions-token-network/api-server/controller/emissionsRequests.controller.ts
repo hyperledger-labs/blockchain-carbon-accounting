@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { GroupedResult, process_activity, queue_issue_tokens } from 'supply-chain-lib/src/emissions-utils' 
@@ -99,12 +100,13 @@ export async function getEmissionsRequest(req: Request, res: Response) {
   }
 }
 
-
-function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor' {
-  if (body.activity_type === 'shipment' || body.activity_type === 'flight' || body.activity_type === 'emissions_factor') return body.activity_type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor'|'natural_gas'|'electricity' {
+  if (['shipment', 'flight', 'emissions_factor', 'natural_gas', 'electricity'].includes(body.activity_type)) return body.activity_type
   throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getActivity(body: any): Activity {
   const activity_type = getActivityType(body)
 
@@ -113,7 +115,7 @@ function getActivity(body: any): Activity {
     return {
       id: '1',
       type: activity_type,
-      carrier: body.ups_tracking?'ups':(body.carrier||'unknown'),
+      carrier: body.carrier || (body.ups_tracking ? 'ups' : 'unknown'),
       tracking: body.ups_tracking || body.tracking_number || 'unknown',
       mode: body.shipment_mode,
       weight: Number(body.weight),
@@ -154,6 +156,25 @@ function getActivity(body: any): Activity {
       activity_amount: Number(body.activity_amount),
       activity_uom: body.activity_uom,
     }
+  } else if (activity_type === 'natural_gas') {
+    // make a natural gas activity
+    return {
+      id: '1',
+      type: activity_type,
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
+    }
+  } else if (activity_type === 'electricity') {
+    // make a natural gas activity
+    return {
+      id: '1',
+      type: activity_type,
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
+      country: body.country,
+      state: body.state,
+      utility: body.utility,
+    }
   }
   throw new ApplicationError(`Unsupported activity type.` , 400)
 }
@@ -162,11 +183,12 @@ export async function postEmissionsRequest(req: Request, res: Response) {
   try {
     console.log('postEmissionsRequest...')
     const db = await PostgresDBService.getInstance()
-    // check the supporting document was uploaded
-    if (!req.files || !req.files.supportingDocument) {
+    // check the supporting document was uploaded, note: ignore ts-error in the test container
+    // @ts-ignore
+    let supportingDocument = req.files?.supportingDocument;
+    if (!supportingDocument) {
       return res.status(400).json({ status: 'failed', error: 'No supporting document was uploaded!' })
     }
-    let supportingDocument = req.files.supportingDocument;
     console.log('postEmissionsRequest checking file', supportingDocument)
     if (Array.isArray(supportingDocument)) {
       if (supportingDocument.length !== 1) {
@@ -201,6 +223,13 @@ export async function postEmissionsRequest(req: Request, res: Response) {
         result
       }],
     }
+    if (req.body.fromDate) {
+      group.from_date = moment(req.body.fromDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+    }
+    if (req.body.thruDate) {
+      group.thru_date = moment(req.body.thruDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+    }
+
     const queue_result = await queue_issue_tokens(
       group,
       activity_type,
@@ -226,13 +255,14 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     console.log(`postEmissionsRequest moving to upload folder as ${uploaded_file.uuid} ...`)
     supportingDocument.mv((process.env.DOC_UPLOAD_PATH || './upload/') + uploaded_file.uuid);
 
-    return res.status(200).json({ status: 'success', queue_result, result });
+    const allresp = { status: 'success', queue_result, result };
+    return res.status(200).send(JSON.stringify(allresp, (_, v) => typeof v === 'bigint' ? v.toString() : v));
   } catch (error) {
     console.error('postEmissionsRequest error: ', error);
     if (error instanceof ApplicationError) {
       return res.status(error.status).json({ status: 'failed', error })
     }
-    return res.status(500).json({ status: 'failed', error });
+    return res.status(500).json({ status: 'failed', error:  (error as Error).message });
   }
 }
 

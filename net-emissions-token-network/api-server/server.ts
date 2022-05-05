@@ -1,20 +1,33 @@
 import express, { Application } from 'express';
 import fileUpload from 'express-fileupload';
+import expressContext from "express-request-context";
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import 'dotenv/config';
 // sanity checks
-const assertEnv = (key: string) => {
-    if (!process.env[key]) {
-        console.error(`${key} must be set as an environment variable, check your .env`)
-        process.exit(1);
-    }
+const assertEnv = (key: string): string => {
+  if (!process.env[key]) {
+    console.error(`${key} must be set as an environment variable, check your .env`)
+    process.exit(1);
+  }
+  return process.env[key] || '';
 }
 // assertEnv('MORALIS_API_KEY')
-assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
-assertEnv('LEDGER_ETH_NETWORK')
-assertEnv('LEDGER_ETH_JSON_RPC_URL')
-
+const contract_address = assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
+const network_name = assertEnv('LEDGER_ETH_NETWORK')
+const network_rpc_url = assertEnv('LEDGER_ETH_JSON_RPC_URL')
+const network_ws_url = process.env['LEDGER_ETH_WS_URL']
+export type OPTS_TYPE = {
+  contract_address: string,
+  network_rpc_url: string,
+  network_ws_url?: string,
+  network_name: string,
+  // for subscriptions
+  use_web_socket?: boolean,
+  // allow bypass of the RPC call when running in Hardhat test
+  contract?: Contract
+}
+const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
 
 // import synchronizer
 import { fillBalances, fillTokens, syncWallets, truncateTable } from './controller/synchronizer';
@@ -27,6 +40,7 @@ import { queryProcessing } from "./middleware/query.middle";
 import { synchronizeTokens } from "./middleware/sync.middle";
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { trpcMiddleware } from './trpc/common';
+import { Contract } from 'ethers';
 
 // DB connector
 const db = PostgresDBService.getInstance()
@@ -37,6 +51,12 @@ const corsOptions = {
     origin: "http://localhost:3000"
 }
 
+// pass some context to all requests
+app.use(expressContext());
+app.use('/', (req, _, next) => {
+  req.context.opts = OPTS;
+  next();
+});
 // middleware setting
 app.use(cors(corsOptions));
 // enable files upload
@@ -52,7 +72,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 // for hardhat test sync
-if(process.env.LEDGER_ETH_NETWORK === 'hardhat') {
+if(network_name === 'hardhat') {
     app.use('/tokens', synchronizeTokens);
     app.use('/balances', synchronizeTokens);
 }
@@ -79,14 +99,14 @@ db.then(async () => {
   console.log('--- Synchronization started at: ', new Date().toLocaleString());
   let lastBlock = 0;
   try {
-    lastBlock = await fillTokens();
+    lastBlock = await fillTokens(OPTS);
     console.log('--first last block: ', lastBlock);
   } catch (err) {
     console.error('An error occurred while fetching the tokens', err)
     throw err
   }
   try {
-    await fillBalances(lastBlock);
+    await fillBalances(lastBlock, OPTS);
   } catch (err) {
     console.error('An error occurred while filling balances', err)
     throw err
@@ -96,12 +116,12 @@ db.then(async () => {
   console.log(`elapsed ${elapsed / 1000} seconds.\n`);
 
   // sync wallet roles
-  await syncWallets(lastBlock);
+  await syncWallets(lastBlock, OPTS);
 
   try {
     // for hardhat
-    if(process.env.LEDGER_ETH_NETWORK === 'bsctestnet') {
-      subscribeEvent(lastBlock);
+    if(network_name === 'bsctestnet') {
+      subscribeEvent(lastBlock, OPTS);
     }
   } catch (err) {
     console.error('An error occurred while setting up the blockchain event handlers', err)
