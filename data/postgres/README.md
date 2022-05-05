@@ -37,7 +37,7 @@ For 2020 data, you will need the 2020 spreadsheet and change the sheets to `NRL2
 
 The [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861) can be downloaded, and then the Utility_Data spreadsheet contains the utility identifiers, which can be loaded with
 ```
-npm run dataLoader load_utility_identifiers Utility_Data_2019.xlsx
+npm run dataLoader load_utility_identifiers Utility_Data_2020.xlsx
 ```
 
 
