@@ -431,29 +431,38 @@ export async function process_emissions_factor(
   // normalize the outputs
   let distance_km = 0;
   let weight_kg = 0;
+
+  let has_passengers = false;
+  let has_weight = false;
+  let has_amount = false;
+  let has_distance = false;
   for (const uom of luoms) {
     if (uom === 'passenger') {
       if (!a.number_of_passengers) {
         throw new Error(`This emissions factor requires a number_of_passengers input`);
       }
       amount *= a.number_of_passengers;
+      has_passengers = true;
     } else if (uom === 'kg' || uom === 'tonne' || uom === 'tons' || uom === 'lbs') {
       if (!a.weight || !a.weight_uom) {
         throw new Error(`This emissions factor requires a weight and weight_uom inputs`);
       }
       amount *= weight_in_uom(a.weight, a.weight_uom, uom)
       weight_kg = weight_in_kg(a.weight, a.weight_uom)
+      has_weight = true;
     } else if (uom === 'km' || uom === 'miles' || uom === 'mi') {
       if (!a.distance || !a.distance_uom) {
         throw new Error(`This emissions factor requires a distance and distance_uom inputs`);
       }
       amount *= distance_in_uom(a.distance, a.distance_uom, uom)
       distance_km = distance_in_km(a.distance, a.distance_uom)
+      has_distance = true;
     } else {
       if (!a.activity_amount || !a.activity_uom) {
         throw new Error(`This emissions factor requires an activity_amount and activity_uom inputs`);
       }
       amount *= a.activity_amount
+      has_amount = true;
     }
   }
   // convert all factors into kgCO2e based on co2_equivalent_emissions_uom
@@ -469,27 +478,47 @@ export async function process_emissions_factor(
     },
     factor
   }
-  const distance: Distance = {
-    mode: 'air',
-    unit: 'km',
-    value: distance_km,
+  const results: {
+    emissions: Emissions,
+    distance?: Distance,
+    flight?: {number_of_passengers: number, class?: string},
+    weight?: ValueAndUnit,
+    amount?: ValueAndUnit,
+  } = { emissions };
+  if (has_distance) {
+    const distance: Distance = {
+      mode: 'air',
+      unit: 'km',
+      value: distance_km,
+    }
+    results.distance = distance;
   }
-  if (a.number_of_passengers) {
+  if (has_passengers) {
     const flight = {
-      number_of_passengers: a.number_of_passengers,
+      number_of_passengers: a.number_of_passengers!,
       class: a.class,
     }
-    return { distance, flight, emissions };
-  } else {
-    // handle other cases
-    // the mode should be from factor levels
-    distance.mode = get_mode_from_factor(factor)
+    results.flight = flight;
+  }
+  if (has_amount) {
+    const amount = {
+      value: a.activity_amount!,
+      unit: a.activity_uom!,
+    }
+    results.amount = amount;
+  }
+  if (has_weight) {
     const weight = {
       value: weight_kg,
       unit: 'kg',
     }
-    return { distance, weight, emissions };
+    results.weight = weight;
   }
+  // handle other cases
+  // the mode should be from factor levels
+  if (!has_passengers && results.distance) results.distance.mode = get_mode_from_factor(factor)
+
+  return results;
 }
 
 export async function process_activity(activity: Activity) {
