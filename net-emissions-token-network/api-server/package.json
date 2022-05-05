@@ -25,7 +25,8 @@
     "pg": "^8.7.3",
     "supply-chain-lib": "file:../../supply-chain/lib",
     "web3": "^1.7.3",
-    "zod": "^3.14.4"
+    "zod": "^3.14.4",
+    "moment": "^2.29.3"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",

@@ -17,7 +17,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
 
   private makeEmissionFactorMatchWhereCondition = (doc: Partial<EmissionsFactorInterface>) => {
     const cond = this.makeEmissionFactorMatchCondition(doc)
-    return { where: cond }
+    return cond
   }
 
   private makeEmissionFactorMatchCondition = (doc: Partial<EmissionsFactorInterface>) => {
@@ -196,7 +196,8 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
   }
 
   public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
-    return await this._db.getRepository(EmissionsFactor).find(this.makeEmissionFactorMatchWhereCondition(query))
+    return await this._db.getRepository(EmissionsFactor)
+      .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
   }
   
   public getEmissionsFactorByScope = async (scope: string): Promise<EmissionsFactorInterface[]> => {

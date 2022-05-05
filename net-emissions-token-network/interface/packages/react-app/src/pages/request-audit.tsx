@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ChangeEvent, FC, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
+import Datetime from "react-datetime";
+import "react-datetime/css/react-datetime.css";
 import { Web3Provider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
@@ -196,6 +198,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const [topError, setTopError] = useState('')
   const [topSuccess, setTopSuccess] = useState<SuccessResultType|null>(null)
   const [loading, setLoading] = useState(false);
+  const [fromDate, setFromDate] = useState<Date|null>(null);
+  const [thruDate, setThruDate] = useState<Date|null>(null);
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {}], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
@@ -352,7 +356,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             setLoading(true)
             console.log('Form valid, submit with', emForm, supportingDoc)
             try {
-              const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress)
+              const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
               console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
               setTopSuccess({distance: res?.result?.distance, emissions: res?.result?.emissions?.amount})
             } catch (err) {
@@ -429,6 +433,18 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={emissionsFactor}/>
               <Button className="mb-3 mt-1" onClick={_=>{ selectEmissionsFactor(null) }}>Select another Emssions Factor</Button>
+              <Row>
+                <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
+                  <Form.Label>From date</Form.Label>
+                  {/* @ts-ignore : some weird thing with the types ... */}
+                  <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
+                </Form.Group>
+                <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
+                  <Form.Label>Through date</Form.Label>
+                  {/* @ts-ignore : some weird thing with the types ... */}
+                  <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
+                </Form.Group>
+              </Row>
               <EmissionsFactorUomInputs emissionsFactor={emissionsFactor} form={emForm} setForm={setEmForm} errors={formErrors}/>
 
               </> : <>

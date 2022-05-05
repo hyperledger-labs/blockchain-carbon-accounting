@@ -123,15 +123,18 @@ export async function get_flight_emission_factor(seat_class: string) {
 async function getEmissionFactor(f: Partial<EmissionsFactorInterface>) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
-  if (!factors || !factors.length) throw new Error('No factor found for ' + JSON.stringify(f));
-  if (factors.length > 1) throw new Error('Found more than one factor for ' + JSON.stringify(f));
-  return factors[0];
+  if (factors && factors.length) {
+    return factors[0];
+  }
+
+  return null;
 }
 
 export async function calc_flight_emissions(
   passengers: number,
   seat_class: string,
-  distance: Distance
+  distance: Distance,
+  year?: string | undefined
 ): Promise<Emissions> {
   const distance_km = distance_object_in_km(distance);
   // lookup the factor for different class
@@ -140,7 +143,21 @@ export async function calc_flight_emissions(
   if (f.activity_uom !== 'passenger.km') {
     throw new Error(`Expected flight emission factor uom to be passenger.km but got ${f.activity_uom}`);
   }
-  const factor = await getEmissionFactor(f);
+  let factor;
+  if (year) {
+    let fo = {...f} as Partial<EmissionsFactorInterface>;
+    fo.year = year;
+    factor = await getEmissionFactor(fo);
+    if (!factor) {
+      factor = await getEmissionFactor(f);
+    }
+  } else {
+    factor = await getEmissionFactor(f);
+  }
+
+  if (!factor) {
+    throw new Error(`Cannot find emissions factor for ${f}`);
+  }
   if (!factor.co2_equivalent_emissions) {
     throw new Error(`Found factor does not have a co2_equivalent_emissions ${factor.uuid}`);
   }
@@ -156,14 +173,31 @@ export async function calc_flight_emissions(
 
 export async function calc_freight_emissions(
   weight_kg: number,
-  distance: Distance
+  distance: Distance,
+  year?: string | undefined
 ): Promise<Emissions> {
   const distance_km = distance_object_in_km(distance);
   // lookup factor for different 'mode'
   const f = await get_freight_emission_factor(distance.mode);
+
   // most uom should be in tonne.km here
   const convert = get_convert_kg_for_uom(f.activity_uom);
-  const factor = await getEmissionFactor(f);
+  let factor;
+
+  if (year) {
+    let fo = {...f} as Partial<EmissionsFactorInterface>;
+    fo.year = year;
+    factor = await getEmissionFactor(fo);
+    if (!factor) {
+      factor = await getEmissionFactor(f);
+    }
+  } else {
+    factor = await getEmissionFactor(f);
+  }
+
+  if (!factor) {
+    throw new Error(`Cannot find emissions factor for ${f}`);
+  }
   if (!factor.co2_equivalent_emissions) {
     throw new Error(`Found factor does not have a co2_equivalent_emissions ${factor.uuid}`);
   }
@@ -319,7 +353,11 @@ export async function process_shipment(
     const distance = await calc_distance(a.from, a.to, a.mode);
     // then calc emissions ...
     const weight = weight_in_kg(a.weight, a.weight_uom);
-    const emissions = await calc_freight_emissions(weight, distance);
+    let year;
+    if (a.thru_date) {
+       year = new Date(a.thru_date).getFullYear().toString();
+    }
+    const emissions = await calc_freight_emissions(weight, distance, year);
     return { distance, weight: { value: weight, unit: "kg" }, emissions };
   }
 }
@@ -331,7 +369,11 @@ export async function process_flight(
   // use default values when missing
   const number_of_passengers = a.number_of_passengers || 1;
   const seat_class = a.class || 'economy';
-  const emissions = await calc_flight_emissions(number_of_passengers, seat_class, distance);
+  let year;
+  if (a.thru_date) {
+    year = new Date(a.thru_date).getFullYear().toString();
+  }
+  const emissions = await calc_flight_emissions(number_of_passengers, seat_class, distance, year);
   return { distance, flight: { number_of_passengers, class: seat_class }, emissions };
 }
 
@@ -341,9 +383,20 @@ export async function process_emissions_factor(
 
   const db = await getDBInstance();
   // support a lookup by given uuid or by levels/scope/text
-  const factor = a.emissions_factor_uuid ?
-    await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid)
-    : await getEmissionFactor(a);
+  let factor;
+  if (a.emissions_factor_uuid) {
+    factor = await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid);
+  } else {
+    if (a.thru_date) {
+      const year = new Date(a.thru_date).getFullYear().toString();
+      let fo = {...a} as Partial<EmissionsFactorInterface>;
+      fo.year = year;
+      factor = await getEmissionFactor(fo);
+    }
+    if (!factor) {
+      factor = await getEmissionFactor(a);
+    }
+  }
   if (!factor) {
     if (a.emissions_factor_uuid) {
       throw new Error(`Emissions factor [${a.emissions_factor_uuid}] not found`)
