@@ -98,6 +98,7 @@ export class WalletRepo {
       .createQueryBuilder(ALIAS) 
       .where(`LOWER(${ALIAS}.address) LIKE LOWER(:query)`, {query})
       .orWhere(`LOWER(${ALIAS}.name) LIKE LOWER(:query)`, {query})
+      .orWhere(`LOWER(${ALIAS}.organization) LIKE LOWER(:query)`, {query})
   }
 
   public lookupPaginated = async (offset: number, limit: number, query: string): Promise<Array<Wallet>> => {
