@@ -71,6 +71,48 @@ export const emissionsFactorsRouter = trpc
         }
     },
 })
+.query('getElectricityCountries', {
+    input: z.object({
+        scope: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            const countries = await ctx.db.getEmissionsFactorRepo().getElectricityCountries(input);
+            return {
+                countries,
+            }
+        } catch (error) {
+            handleError('emissionsFactorsRouter.lookup', error)
+        }
+    },
+})
+.query('getElectricityUSAStates', {
+    async resolve({ ctx }) {
+        try {
+            const states = await ctx.db.getEmissionsFactorRepo().getElectricityUSAStates();
+            return {
+                states,
+            }
+        } catch (error) {
+            handleError('emissionsFactorsRouter.lookup', error)
+        }
+    },
+})
+.query('getElectricityUSAUtilities', {
+    input: z.object({
+        state_province: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            const utilities = await ctx.db.getEmissionsFactorRepo().getElectricityUSAUtilities(input);
+            return {
+                utilities,
+            }
+        } catch (error) {
+            handleError('emissionsFactorsRouter.lookup', error)
+        }
+    },
+})
 .query('lookup', {
     input: z.object({
         scope: z.string().optional(),

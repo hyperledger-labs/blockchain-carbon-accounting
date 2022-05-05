@@ -398,7 +398,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
 export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: UtilityLookupItemDbInterface) => {
   opts.skip_rows = 1;
 
-  if (opts.file == "Utility_Data_2019.xlsx") {
+  if (opts.file == "Utility_Data_2019.xlsx" || opts.file == "Utility_Data_2020.xlsx") {
     const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
 

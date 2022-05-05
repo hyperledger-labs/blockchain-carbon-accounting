@@ -6,7 +6,17 @@ import { OPTS_TYPE } from "../server";
 export const BURN = '0x0000000000000000000000000000000000000000';
 
 export const getWeb3 = (opts: OPTS_TYPE) => {
-  const web3 = new Web3(opts.network_rpc_url);
+  let url = opts.network_rpc_url;
+  if (opts.use_web_socket) {
+    if (opts.network_ws_url) {
+      url = opts.network_ws_url
+    } else if (url.startsWith('http:')) {
+      url = url.replace('http:', 'ws:');
+    } else if (url.startsWith('https:')) {
+      url = url.replace('https:', 'wss:');
+    }
+  }
+  const web3 = new Web3(url);
   return web3;
 }
 

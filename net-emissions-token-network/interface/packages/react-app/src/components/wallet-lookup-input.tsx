@@ -7,6 +7,7 @@ import { SxProps, Theme } from "@mui/material";
 
 type WalletLookupInputProps = {
   value?: string,
+  disabled?: boolean,
   onChange: (v:string)=>void
   onWalletChange: (w:Wallet|null)=>void
   onBlur?: FocusEventHandler
@@ -18,7 +19,7 @@ type WalletLookupInputHandle = {
   close: ()=>void
 }
 
-const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, WalletLookupInputProps> = ({onChange, onWalletChange, onBlur, style, classes, sx, value: valueprop}, ref) => {
+const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, WalletLookupInputProps> = ({disabled, onChange, onWalletChange, onBlur, style, classes, sx, value: valueprop}, ref) => {
 
   const [isOpen, setIsOpen] = useState(true);
   const [value, setValue] = useState<Wallet|string|null>(valueprop??null);
@@ -75,6 +76,7 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     freeSolo
     selectOnFocus
     open={isOpen}
+    disabled={disabled}
     id="combo-box-demo"
     options={options}
     loading={lookupQuery.isLoading}
@@ -108,12 +110,14 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     style={style}
     classes={classes}
     renderOption={(props, option) => {
-      const name = (typeof option === 'string') ? null : option.name 
+      const name = (typeof option === 'string') ? null : option.name
       const addr = (typeof option === 'string') ? option : option.address
+      const org = (typeof option === 'string') ? null : option.organization
 
       return (
-        <li {...props}>
+        <li {...props} className={`${props.className} flex-wrap`}>
           {name && <b className="pe-2">{name}</b>}
+          {org && <div className="text-muted pe-2">{org}</div>}
           {addr}
         </li>
       );

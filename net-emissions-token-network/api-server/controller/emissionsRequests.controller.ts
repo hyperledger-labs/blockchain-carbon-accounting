@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { Response, Request } from 'express';
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { GroupedResult, process_activity, queue_issue_tokens } from 'supply-chain-lib/src/emissions-utils' 
@@ -100,8 +101,8 @@ export async function getEmissionsRequest(req: Request, res: Response) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor' {
-  if (body.activity_type === 'shipment' || body.activity_type === 'flight' || body.activity_type === 'emissions_factor') return body.activity_type
+function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor'|'natural_gas'|'electricity' {
+  if (['shipment', 'flight', 'emissions_factor', 'natural_gas', 'electricity'].includes(body.activity_type)) return body.activity_type
   throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
@@ -114,7 +115,7 @@ function getActivity(body: any): Activity {
     return {
       id: '1',
       type: activity_type,
-      carrier: body.ups_tracking?'ups':(body.carrier||'unknown'),
+      carrier: body.carrier || (body.ups_tracking ? 'ups' : 'unknown'),
       tracking: body.ups_tracking || body.tracking_number || 'unknown',
       mode: body.shipment_mode,
       weight: Number(body.weight),
@@ -154,6 +155,25 @@ function getActivity(body: any): Activity {
       distance_uom: body.distance_uom,
       activity_amount: Number(body.activity_amount),
       activity_uom: body.activity_uom,
+    }
+  } else if (activity_type === 'natural_gas') {
+    // make a natural gas activity
+    return {
+      id: '1',
+      type: activity_type,
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
+    }
+  } else if (activity_type === 'electricity') {
+    // make a natural gas activity
+    return {
+      id: '1',
+      type: activity_type,
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
+      country: body.country,
+      state: body.state,
+      utility: body.utility,
     }
   }
   throw new ApplicationError(`Unsupported activity type.` , 400)
@@ -203,6 +223,13 @@ export async function postEmissionsRequest(req: Request, res: Response) {
         result
       }],
     }
+    if (req.body.fromDate) {
+      group.from_date = moment(req.body.fromDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+    }
+    if (req.body.thruDate) {
+      group.thru_date = moment(req.body.thruDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+    }
+
     const queue_result = await queue_issue_tokens(
       group,
       activity_type,

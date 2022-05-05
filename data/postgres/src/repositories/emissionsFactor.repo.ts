@@ -6,6 +6,7 @@ import { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/uti
 import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const"
 import { DataSource, FindOptionsWhere, ILike } from "typeorm"
 import { EmissionsFactor } from "../models/emissionsFactor"
+import { UtilityLookupItem } from "../models/utilityLookupItem"
 
 export class EmissionsFactorRepo implements EmissionFactorDbInterface {
 
@@ -17,7 +18,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
 
   private makeEmissionFactorMatchWhereCondition = (doc: Partial<EmissionsFactorInterface>) => {
     const cond = this.makeEmissionFactorMatchCondition(doc)
-    return { where: cond }
+    return cond
   }
 
   private makeEmissionFactorMatchCondition = (doc: Partial<EmissionsFactorInterface>) => {
@@ -194,9 +195,41 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
     return res.map(e=>e.EmissionsFactor_level_4)
   }
+  public getElectricityCountries = async (query: Pick<EmissionsFactorInterface, 'scope'>): Promise<string[]> => {
+    const res = await this._db.getRepository(EmissionsFactor)
+      .createQueryBuilder()
+      .select('EmissionsFactor.level_3')
+      .where(query)
+      .andWhere({level_1: 'WTT- UK & OVERSEAS ELEC'})
+      .distinct(true)
+      .orderBy({ level_3: 'ASC' })
+      .getRawMany()
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
+    return res.map(e=>e.EmissionsFactor_level_3.replace(/^ELECTRICITY:\s*/i, ''))
+  }
+  public getElectricityUSAStates = async (): Promise<string[]> => {
+    const res = await this._db.getRepository(UtilityLookupItem)
+      .createQueryBuilder()
+      .select('UtilityLookupItem.state_province')
+      .where({country: 'USA'})
+      .distinct(true)
+      .orderBy({ state_province: 'ASC' })
+      .getRawMany()
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
+    return res.map(e=>e.UtilityLookupItem_state_province)
+  }
+  public getElectricityUSAUtilities = async (query: Pick<UtilityLookupItem, 'state_province'>): Promise<UtilityLookupItem[]> => {
+    return await this._db.getRepository(UtilityLookupItem)
+      .createQueryBuilder()
+      .where({country: 'USA'})
+      .andWhere(query)
+      .orderBy({ utility_name: 'ASC' })
+      .getMany()
+  }
 
   public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
-    return await this._db.getRepository(EmissionsFactor).find(this.makeEmissionFactorMatchWhereCondition(query))
+    return await this._db.getRepository(EmissionsFactor)
+      .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
   }
   
   public getEmissionsFactorByScope = async (scope: string): Promise<EmissionsFactorInterface[]> => {

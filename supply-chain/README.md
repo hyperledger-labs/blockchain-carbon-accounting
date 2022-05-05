@@ -25,18 +25,24 @@ Install IPFS.  Then start the daemon in another window.
 
 ```
 ipfs daemon
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["*"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["GET", "POST"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Headers '["Authorization"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Expose-Headers '["Location"]'
+ipfs config --json API.HTTPHeaders.Access-Control-Allow-Credentials '["true"]'
 ```
 
 ## Trying it
 
 First generate one or more key pairs for encrypting and decrypting files on IPFS.
 ```
-npm run cli -- -generatekeypair user1 -generatekeypair user2
+deprecated: npm run cli -- -generatekeypair user1 -generatekeypair user2
 ```
 
-Run by giving a JSON file of activities to process and one or more public key for encryption with:
+
+Run by giving a JSON file of activities to process and one private key for encryption with(You must save your metamask private key or possible from .env into user1-private.key. leading 0x must be removed):
 ```
-npm run cli -- -pubk user1-public.pem [-pubk user2-public.pem] -f input.json
+npm run cli -- -pubk user1-private.key -f input.json
 ```
 
 To create emissions requests instead of issue token with given input.json run:
