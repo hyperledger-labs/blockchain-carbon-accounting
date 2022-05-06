@@ -109,7 +109,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
       retryCount++
     }
     if (results.length === 0) {
-      throw new Error("failed to get Utility Emissions Factors By division")
+      throw new Error(`failed to get Utility Emissions Factors By division ${divisionID}, division type ${divisionType}`)
     }
     return results
   }

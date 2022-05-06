@@ -14,7 +14,8 @@ export type ParseWorksheetOpts = {
   sheet: string,
   skip_rows?: number,
   format?: string,
-  source?: string
+  source?: string,
+  year?: string
 };
 
 function getStateNameMapping(key: keyof typeof STATE_NAME_MAPPING) {
@@ -315,11 +316,14 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
     console.log("Assuming eea_res_proxies has already been imported...");
     const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
+    const skippedRows = [];
     for (const row of data) {
       // skip empty rows
       if (!row || !row["Date:year"]) continue;
+
       // skip rows that aren't latest year
-      if (row["Date:year"] !== 2019) continue;
+      if (row["Date:year"] < 2019) continue;
+
       // skip total EU
       if (row["Member State:text"].startsWith("European Union")) continue;
 
@@ -342,7 +346,11 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       };
 
       // find previous record to update
-      const factors = await db.getEmissionsFactorsByDivision(countryLong, 'Country', row["Date:year"]);
+      const factors = await db.getEmissionsFactors({
+        division_id: countryLong,
+        division_type: 'Country',
+        year: row["Date:year"]
+      })
       if (factors && factors.length > 0) {
         const factor = factors[0];
         if (factor) {
@@ -356,15 +364,23 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           console.log("Could not find imported factor");
         }
       } else {
-        console.log("Could not find imported factors");
+        skippedRows.push(`${countryLong}, ${row["Date:year"]}`)
       }
     }
     progressBar.stop();
+    if (skippedRows.length) {
+      console.log("Could not find factors to update:");
+      for (const i in skippedRows) {
+        console.log(skippedRows[i])
+      }
+    }
     return;
   } else if (opts.format === "conversion-factors-uk") {
+    console.log("Import conversion-factors-uk data, year: ", opts.year);
     opts.skip_rows = 4;
     const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
+    const emissions_column_name = "GHG Conversion Factor " + opts.year;
 
     let i = 0;
     for (const row of data) {
@@ -376,7 +392,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       if (row.GHG !== "kg CO2e") continue;
 
       //skip rows with missing factors
-      if (!row["GHG Conversion Factor 2021"]) continue;
+      if (!row[emissions_column_name]) continue;
 
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
@@ -392,9 +408,9 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         text: row["Column Text"] ?? "",
         scope: row.Scope,
         uuid: document_id,
-        year: "2021",
+        year: opts.year,
         activity_uom: row.UOM,
-        co2_equivalent_emissions: "" + row["GHG Conversion Factor 2021"],
+        co2_equivalent_emissions: "" + row[emissions_column_name],
         co2_equivalent_emissions_uom: "kg",
         source: opts.source || opts.file,
       };
