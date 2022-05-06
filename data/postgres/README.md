@@ -26,16 +26,16 @@ npm run dataLoader load_emissions_factors conversion-factors-2021-flat-file-auto
 
 Download the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid) and .  Then load them with:
 ```
-npm run dataLoader load_emissions_factors egrid2019_data.xlsx NRL19 -- --format egrid_data --source https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
-npm run dataLoader load_emissions_factors egrid2019_data.xlsx ST19 -- --format egrid_data --source https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
-npm run dataLoader load_emissions_factors egrid2019_data.xlsx US19 -- --format egrid_data --source https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
+npm run dataLoader load_emissions_factors egrid2020_data.xlsx NRL20 -- --format egrid_data --source https://www.epa.gov/system/files/documents/2022-01/egrid2020_data.xlsx
+npm run dataLoader load_emissions_factors egrid2020_data.xlsx ST20 -- --format egrid_data --source https://www.epa.gov/system/files/documents/2022-01/egrid2020_data.xlsx
+npm run dataLoader load_emissions_factors egrid2020_data.xlsx US20 -- --format egrid_data --source https://www.epa.gov/system/files/documents/2022-01/egrid2020_data.xlsx
 ```
 
 Source is an optional tag to record where you downloaded the data from.
 
 For 2020 data, you will need the 2020 spreadsheet and change the sheets to `NRL20`, `ST20`, and `US20`.
 
-The [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861) can be downloaded, and then the Utility_Data spreadsheet contains the utility identifiers, which can be loaded with
+The [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861) can be downloaded, and then the `Utility_Data` spreadsheet contains the utility identifiers, which can be loaded with
 ```
 npm run dataLoader load_utility_identifiers Utility_Data_2020.xlsx
 ```
