@@ -238,8 +238,29 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
   }
 
   public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
-    return await this._db.getRepository(EmissionsFactor)
+
+    let factors = await this._db.getRepository(EmissionsFactor)
       .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
+
+    if (factors.length === 0 ) {
+      if (query.year || query.from_year || query.thru_year) {
+        // get factors for last year
+        let lastYear;
+        if (query.level_1) {
+          lastYear = await this.getEmissionsFactorLastYear(query.level_1)
+        }
+
+        if (lastYear) {
+          query.year = lastYear
+          query.from_year = undefined
+          query.thru_year = undefined
+
+          factors = await this._db.getRepository(EmissionsFactor)
+            .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
+        }
+      }
+    }
+    return factors
   }
   
   public getEmissionsFactorByScope = async (scope: string): Promise<EmissionsFactorInterface[]> => {
@@ -395,6 +416,21 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
       throw new Error(
         `${ErrInvalidFactorForActivity} This emissions factor does not match the given activity`
       )
+    }
+  }
+
+  public getEmissionsFactorLastYear = async (factorType: string): Promise<string | undefined> => {
+    const res = await this._db.getRepository(EmissionsFactor)
+      .createQueryBuilder()
+      .select('EmissionsFactor.level_1, EmissionsFactor.year')
+      .where('EmissionsFactor.level_1 = :factorType', {factorType})
+      .groupBy('EmissionsFactor.level_1')
+      .addGroupBy('EmissionsFactor.year')
+      .orderBy({ level_1: 'ASC', year: 'DESC' })
+      .getRawMany()
+
+    if (res && res.length) {
+      return res[0].year
     }
   }
 }
