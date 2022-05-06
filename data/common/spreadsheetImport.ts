@@ -130,6 +130,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         if (!row || !row["Data Year"]) continue;
         // skip header rows
         if (row["Data Year"] == "YEAR") continue;
+        // get annual generation and emissions
+        const net_generation = row["NERC region annual net generation (MWh)"].toString();
+        const total_net_generation = Number(net_generation);
+        const total_co2_equivalent_emissions = Number(row["NERC region annual CO2 equivalent emissions (tons)"].toString());
+        // get the co2e per MWh
+        const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
@@ -144,12 +150,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_type: "NERC_REGION",
           division_id: row["NERC region acronym"],
           division_name: (row["NERC region name "] || "").replace(/ /g, "_"),
-          net_generation:
-            row["NERC region annual net generation (MWh)"].toString(),
+          net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
-          co2_equivalent_emissions:
-            row["NERC region annual CO2 equivalent emissions (tons)"].toString(),
+          co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "tons",
           source: opts.source || opts.file,
           non_renewables:
@@ -177,6 +181,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         // skip header rows
         if (row["Data Year"] == "YEAR") continue;
         opts.verbose && console.log("-- Prepare to insert from ", row);
+        // get annual generation and emissions
+        const net_generation = row["State annual net generation (MWh)"].toString();
+        const total_net_generation = Number(net_generation);
+        const total_co2_equivalent_emissions = Number(row["State annual CO2 equivalent emissions (tons)"].toString());
+        // get the co2e per MWh
+        const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
@@ -191,11 +201,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_type: "STATE",
           division_id: row["State abbreviation"],
           division_name: getStateNameMapping(row["State abbreviation"]),
-          net_generation: row["State annual net generation (MWh)"],
+          net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
-          co2_equivalent_emissions:
-            row["State annual CO2 equivalent emissions (tons)"].toString(),
+          co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "tons",
           source: opts.source || opts.file,
           non_renewables:
@@ -220,6 +229,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         if (!row || !row["Data Year"]) continue;
         // skip header rows
         if (row["Data Year"] == "YEAR") continue;
+        // get annual generation and emissions
+        const net_generation = row["U.S. annual net generation (MWh)"].toString();
+        const total_net_generation = Number(net_generation);
+        const total_co2_equivalent_emissions = Number(row["U.S. annual CO2 equivalent emissions (tons)"].toString());
+        // get the co2e per MWh
+        const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
         opts.verbose && console.log("-- Prepare to insert from ", row);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
@@ -235,11 +250,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_type: "COUNTRY",
           division_id: "USA",
           division_name: "United States of America",
-          net_generation: "" + row["U.S. annual net generation (MWh)"],
+          net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
-          co2_equivalent_emissions:
-            "" + row["U.S. annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "tons",
           source: opts.source || opts.file,
           non_renewables:
