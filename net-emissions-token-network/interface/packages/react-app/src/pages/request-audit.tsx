@@ -507,7 +507,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
               <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess} />
               {emForm.state ?
                 <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="utility" label="Utility" required values={electricityUSAUtilitiesQuery?.data?.utilities?.map(
-                  (u) => u.utility_name?.replaceAll('_', ' ') || u.uuid
+                  (u) => { return  {label: u.utility_name?.replaceAll('_', ' ') || u.uuid, value: u.uuid} }
                 ) ?? []} disabled={!!topSuccess} />
                 : <div>Select a State</div>
               }

@@ -15,7 +15,7 @@ export type AddressObject = {
 };
 export type Emissions = {
     amount: ValueAndUnit,
-    factor: EmissionsFactorInterface 
+    factor?: EmissionsFactorInterface
 }
 export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {

@@ -397,12 +397,84 @@ export async function process_natural_gas(
 export async function process_electricity(
   a: ElectricityActivity 
 ): Promise<ActivityResult> {
-  return process_emissions_factor({
-    ...a,
-    level_1: 'WTT- UK & OVERSEAS ELEC',
-    level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (GENERATION)' : 'WTT- UK ELECTRICITY (GENERATION)',
-    level_3: 'ELECTRICITY: ' + a.country,
-  })
+  // for non UNITED STATES, use the emissions factor
+  // from 'WTT- xxxx ELECTRICITY (GENERATION) and 'WTT- xxxx ELECTRICITY (T&D)
+  // and sum them
+  if (a.country !== 'UNITED STATES') {
+    const generation_result = await process_emissions_factor({
+      ...a,
+      level_1: 'WTT- UK & OVERSEAS ELEC',
+      level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (GENERATION)' : 'WTT- UK ELECTRICITY (GENERATION)',
+      level_3: 'ELECTRICITY: ' + a.country,
+    })
+    const tad_result = await process_emissions_factor({
+      ...a,
+      level_1: 'WTT- UK & OVERSEAS ELEC',
+      level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (T&D)' : 'WTT- UK ELECTRICITY (T&D)',
+      level_3: 'ELECTRICITY: ' + a.country,
+    })
+
+    // merge results
+    if (!generation_result.emissions || !tad_result.emissions) {
+      throw new Error('Could not get emissions values');
+    }
+    const emissions = {
+      amount: {
+        value: generation_result.emissions.amount.value + tad_result.emissions.amount.value,
+        unit: generation_result.emissions.amount.unit,
+      }
+    }
+
+    return {
+      emissions,
+      details: [generation_result, tad_result]
+    }
+  } else {
+    // for UNITED STATES, use the Utility lookup
+    if (!a.utility) throw new Error('Utility field is required');
+    const db = await getDBInstance();
+    const utility = await db.getUtilityLookupItemRepo().getUtilityLookupItem(a.utility);
+    if (!utility) throw new Error(`Utility [${a.utility}] not found`);
+    // if no state then use the country factor
+    const level_1 = 'eGRID EMISSIONS FACTORS';
+    const level_2 = 'USA';
+    let level_3 = utility.state_province ? 'STATE: ' + utility.state_province : 'COUNTRY: USA';
+    // not all states have a factor, so lookup the factor here and if not found use the country factor
+    // those factors are in MWH instead of KWH
+    const activity_uom = 'mwh'
+    const activity_amount = Number(a.activity_amount) / 1000.0;
+    let factor = await getEmissionFactor({
+      ...a,
+      activity_uom,
+      level_1,
+      level_2,
+      level_3,
+    });
+    if (!factor) {
+      level_3 = 'COUNTRY: USA';
+      factor = await getEmissionFactor({
+        ...a,
+        activity_uom,
+        level_1,
+        level_2,
+        level_3,
+      });
+    }
+
+    // from Utility, go to Utility Lookup Item to look up the state_province, and then look for the emissions_factor
+    // eGRID EMISSIONS FACTORS
+    // USA
+    // STATE: + state_province
+    return process_emissions_factor({
+      ...a,
+      activity_amount,
+      activity_uom,
+      emissions_factor_uuid: factor?.uuid,
+      level_1,
+      level_2,
+      level_3,
+    })
+  }
 }
 
 export async function process_emissions_factor(
@@ -429,7 +501,7 @@ export async function process_emissions_factor(
     if (a.emissions_factor_uuid) {
       throw new Error(`Emissions factor [${a.emissions_factor_uuid}] not found`)
     } else {
-      throw new Error(`Emissions factor for [${a}] not found`)
+      throw new Error(`Emissions factor for [${JSON.stringify(a)}] not found`)
     }
   }
   if (!factor.co2_equivalent_emissions || !factor.co2_equivalent_emissions_uom) {
@@ -506,17 +578,17 @@ export async function process_emissions_factor(
     }
     results.distance = distance;
   }
-  if (has_passengers) {
+  if (has_passengers && a.number_of_passengers) {
     const flight = {
-      number_of_passengers: a.number_of_passengers!,
+      number_of_passengers: a.number_of_passengers,
       class: a.class,
     }
     results.flight = flight;
   }
-  if (has_amount) {
+  if (has_amount && a.activity_uom && a.activity_amount) {
     const amount = {
-      value: a.activity_amount!,
-      unit: a.activity_uom!,
+      value: a.activity_amount,
+      unit: a.activity_uom,
     }
     results.amount = amount;
   }
