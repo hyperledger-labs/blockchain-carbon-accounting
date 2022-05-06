@@ -80,6 +80,8 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             <tr>
               <td>Trackee</td>
               <td className="text-monospace">{tracker.trackee}</td>
+              {//<td className="text-monospace">Bakken Oil and Gas Producer</td>
+              }
             </tr>
             <tr>
               <td>From date</td>
@@ -124,12 +126,13 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
               <tr key={name+i}>
                 <td>
                   {name}{":"+" "}  
-                  <div key={'intensityLabel'+i}>GHG Intensity</div>                    
+                  <div key={'intensityLabel'+i}>Emission factor</div>                    
                 </td>
                 <td>
                   <div key={name+"Amount"+i}>
-                    {tracker.products?.amounts[i]+" "+tracker.products?.units[i]}
+                    {tracker.products?.amounts[i]}
                     {" ("+tracker.products?.available[i]+") "}
+                    {tracker.products?.units[i]}
                   </div>
                   <div key={name+"Intensity"+i}>{tracker.products?.emissionFactors[i]}{" kgCO2e/"+tracker.products?.units[i]}</div>
                 </td>

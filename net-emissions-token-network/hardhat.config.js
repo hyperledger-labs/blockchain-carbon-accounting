@@ -430,7 +430,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
         ventingEmissions[i],
         "1577836800",
         "1609415999",
-        JSON.stringify({'type': 'CH4', 'scope': '1', 'location':  locations[i]}),
+        JSON.stringify({"type": "CH4", "scope": "1", "location":  locations[i]}),
         'https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760',
         'Methane venting and leakage'
       );
@@ -445,7 +445,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
         flaringEmissions[i],
         "1577836800",
         "1609415999",
-        JSON.stringify({'type': 'CO2', 'scope': '1', 'location':  locations[i]}),
+        JSON.stringify({"type": "CO2", "scope": "1", "location":  locations[i]}),
         'https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760',
         'Methane flaring'
       );
@@ -464,7 +464,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
         i+1,
         [0,0],
         [oilAmounts[i],gasAmounts[i]],
-        ['Oil','Methane'],
+        ['Oil','Natural Gas'],
         ['toe', 'kcm'],
         [oilUnitAmounts[i],gasUnitAmounts[i]]
       );
@@ -475,7 +475,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     }
     await trackerContract.connect(await ethers.getSigner(industry2))
       .transferProduct(4,1000000,2,industry4);
-    console.log("Transfer Gas (productId = 4) from "+locations[1]+" to Gas Utility: "+industry4);
+    console.log("Transfer Gas (productId = 4) from "+locations[1]+" to Natural Gas Utility: "+industry4);
   });
 /**
  * @type import('hardhat/config').HardhatUserConfig

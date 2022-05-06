@@ -300,7 +300,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             onBlur={() => setInitializedTrackerIdInput(true)}
             style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
           />
-
+          <Form.Text className="text-muted">
+            Setting ID to 0 will issue a new tracker.
+          </Form.Text>
           {/*<Form.Label>Tracker Description</Form.Label>
             <Form.Control 
               as="textarea" 
@@ -393,7 +395,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         />
         {/* Display whether decimal is needed or not */}
         <Form.Text className="text-muted">
-          Must not contain more than three decimal values.
+          In tons of CO2e. Must not contain more than three decimal values.
         </Form.Text>
       </Form.Group>
       <Row>

@@ -377,13 +377,15 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
           <div className="mt-4">
             {isIndustry && myTrackers.length>0 ? <>
               <h4>My Trackers</h4>
+              <h4>{"User: Niobrara oil & gas producer"}</h4> 
               {renderTrackersTable(myTrackers,fetchingTrackers,provider)}</>
               : null 
             }
             {isDealer ? 
               <><h4>All Trackers {(displayAddress ? 'They' : 'You')}'{'ve'} Issued</h4>
               {renderTrackersTable(myIssuedTrackers,fetchingTrackers,provider)}</>
-              :<><h4>Trackers with my product balances</h4> 
+              :<><h4>Trackers with my product balances </h4> 
+              <h4>User: Gas Utility</h4> 
               {renderTrackersTable(trackersWithMyProducts,fetchingTrackers,provider,true)}</>
             }
             {myIssuedTrackers.length !== 0 ? <Paginator 
