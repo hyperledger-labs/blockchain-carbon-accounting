@@ -2,6 +2,7 @@ import * as trpc from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { ZodError } from 'zod';
+import { OPTS } from '../server';
 import { balanceRouter } from './balance.trpc'
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
@@ -9,7 +10,8 @@ import { walletRouter } from './wallet.trpc';
 
 // created for each request, here set the DB connector
 const createContext = async () => ({
-  db: await PostgresDBService.getInstance()
+  db: await PostgresDBService.getInstance(),
+  opts: OPTS
 })
 export type TrpcContext = trpc.inferAsyncReturnType<typeof createContext>;
 

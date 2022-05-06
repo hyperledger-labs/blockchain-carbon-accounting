@@ -27,7 +27,7 @@ export type OPTS_TYPE = {
   // allow bypass of the RPC call when running in Hardhat test
   contract?: Contract
 }
-const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
+export const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
 
 // import synchronizer
 import { fillBalances, fillTokens, syncWallets, truncateTable } from './controller/synchronizer';

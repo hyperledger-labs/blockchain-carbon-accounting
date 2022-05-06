@@ -13,8 +13,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { Web3Provider } from "@ethersproject/providers";
-import { Accordion, AccordionContext, Alert, OverlayTrigger, Tooltip, useAccordionButton } from "react-bootstrap";
-import { trpcClient } from "../services/trpc";
+import { Accordion, AccordionContext, Alert, FloatingLabel, OverlayTrigger, Tooltip, useAccordionButton } from "react-bootstrap";
+import { trpc, trpcClient } from "../services/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FaRegClipboard } from "react-icons/fa";
@@ -69,6 +69,10 @@ function CustomToggle({ children, eventKey }: {children:ReactNode, eventKey:stri
   );
 }
 
+type EthereumType = {
+  request: (request: {method: string, params?: Array<any>}) => Promise<any>
+}
+
 type AccessControlFormProps = {
   provider?: Web3Provider
   signedInAddress: string
@@ -77,6 +81,8 @@ type AccessControlFormProps = {
 }
 
 const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddress, roles, limitedMode }) => {
+
+  const ethereum: EthereumType = (window as any).ethereum;
 
   const [modalShow, setModalShow] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -101,6 +107,19 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
   const [zodErrors, setZodErrors] = useState<any>(null);
+
+  const [myName, setMyName] = useState("");
+  const [myOrganization, setMyOrganization] = useState("");
+  const [myPublicKey, setMyPublicKey] = useState("");
+  const [myWalletLoading, setMyWalletLoading] = useState(false);
+  const myWalletQuery = trpc.useQuery(['wallet.get', {address: signedInAddress}], {
+    enabled: !!signedInAddress,
+    onSettled: (result) => {
+      setMyName(result?.wallet?.name || '');
+      setMyOrganization(result?.wallet?.organization || '');
+      setMyPublicKey(result?.wallet?.public_key || '');
+    }
+  })
 
   const hasAssignRolePermissions = useMemo(()=>
       (roles.isAdmin || (!limitedMode && (!roles.isAdmin && (roles.hasIndustryRole || roles.hasDealerRole)))
@@ -457,6 +476,64 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
                </Spinner>
              </div>
           }
+          { provider && myWalletQuery.data && <>
+            <h4>My Wallet</h4>
+            <Form onSubmit={async(e)=>{
+              setMyWalletLoading(true)
+              e.preventDefault()
+              e.stopPropagation()
+              try {
+                const payload = {
+                  address: signedInAddress,
+                  name: myName,
+                  organization: myOrganization,
+                  public_key: myPublicKey,
+                }
+                const message = JSON.stringify(payload)
+                const signature = await provider.getSigner().signMessage(message)
+                console.log('posting message', message, signature)
+                const data = await trpcClient.mutation('wallet.update', {
+                  ...payload,
+                  signature
+                })
+                console.log('updated',data)
+                myWalletQuery.refetch()
+              } catch (error) {
+                console.error('trpc error;', error)
+              }
+
+              setMyWalletLoading(false)
+            }}>
+              <FloatingLabel className="mb-2" controlId="myNameInput" label="Name">
+                <Form.Control type="input" placeholder="Name" value={myName} onChange={(e)=>{ setMyName(e.currentTarget.value) }}/>
+              </FloatingLabel>
+              <FloatingLabel className="mb-2" controlId="myOrganizationInput" label="Organization">
+                <Form.Control type="input" placeholder="Organization" value={myOrganization} onChange={(e)=>{ setMyOrganization(e.currentTarget.value) }}/>
+              </FloatingLabel>
+              <FloatingLabel className="mb-2" controlId="myPublicKeyInput" label="Public Key">
+                <Form.Control as="textarea" placeholder="Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
+              </FloatingLabel>
+              <Button
+                className="w-100 mb-3"
+                variant="primary"
+                size="lg"
+                disabled={myWalletLoading}
+                type="submit"
+              >
+                {myWalletLoading ? 
+                  <Spinner 
+                    animation="border" 
+                    className="me-2"
+                    size="sm"   
+                    as="span"
+                    role="status"
+                    aria-hidden="true"
+                    /> : <></>
+              }
+                Update
+              </Button>
+            </Form>
+            </>}
         </>
       }
 
