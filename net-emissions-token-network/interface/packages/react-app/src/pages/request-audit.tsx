@@ -432,7 +432,20 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             carrier: w?.organization ?? ''
           })
         }} />
-
+            <Row>
+              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
+                <Form.Label>From date</Form.Label>
+                {/* @ts-ignore : some weird thing with the types ... */}
+                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
+              </Form.Group>
+              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
+                <Form.Label>Through date</Form.Label>
+                {/* @ts-ignore : some weird thing with the types ... */}
+                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
+              </Form.Group>
+            </Row>
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
           values={[
             {value:'flight', label:'Flight'},
@@ -521,20 +534,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'emissions_factor' && <>
-            <Row>
-              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
-                <Form.Label>From date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
-                <Form.Label>Through date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-            </Row>
             {emForm.emissions_factor_uuid && emissionsFactor ? <>
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={emissionsFactor}/>

@@ -340,9 +340,13 @@ async function gateway_issue_token(
 export async function process_shipment(
   a: ShipmentActivity
 ): Promise<ActivityResult> {
+  let year;
+  if (a.thru_date) {
+     year = new Date(a.thru_date).getFullYear().toString();
+  }
   if (a.carrier === "ups") {
     const uc = get_ups_client();
-    const shipment = await get_ups_shipment(uc, a.tracking);
+    const shipment = await get_ups_shipment(uc, a.tracking, year);
     const { distance, weight, emissions, ups } = shipment.output;
     return {
       distance,
@@ -357,10 +361,6 @@ export async function process_shipment(
     const distance = await calc_distance(a.from, a.to, a.mode);
     // then calc emissions ...
     const weight = weight_in_kg(a.weight, a.weight_uom);
-    let year;
-    if (a.thru_date) {
-       year = new Date(a.thru_date).getFullYear().toString();
-    }
     const emissions = await calc_freight_emissions(weight, distance, year);
     return { distance, weight: { value: weight, unit: "kg" }, emissions };
   }
