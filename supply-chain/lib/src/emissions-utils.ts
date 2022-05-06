@@ -149,9 +149,9 @@ export async function calc_flight_emissions(
   }
   let factor;
   if (year) {
-    let fo = {...f} as Partial<EmissionsFactorInterface>;
-    fo.year = year;
-    factor = await getEmissionFactor(fo);
+    const data = {...f} as Partial<EmissionsFactorInterface>;
+    data.year = year;
+    factor = await getEmissionFactor(data);
     if (!factor) {
       factor = await getEmissionFactor(f);
     }
@@ -189,9 +189,9 @@ export async function calc_freight_emissions(
   let factor;
 
   if (year) {
-    let fo = {...f} as Partial<EmissionsFactorInterface>;
-    fo.year = year;
-    factor = await getEmissionFactor(fo);
+    const data = {...f} as Partial<EmissionsFactorInterface>;
+    data.year = year;
+    factor = await getEmissionFactor(data);
     if (!factor) {
       factor = await getEmissionFactor(f);
     }
@@ -417,9 +417,9 @@ export async function process_emissions_factor(
   } else {
     if (a.thru_date) {
       const year = new Date(a.thru_date).getFullYear().toString();
-      let fo = {...a} as Partial<EmissionsFactorInterface>;
-      fo.year = year;
-      factor = await getEmissionFactor(fo);
+      const data = {...a} as Partial<EmissionsFactorInterface>;
+      data.year = year;
+      factor = await getEmissionFactor(data);
     }
     if (!factor) {
       factor = await getEmissionFactor(a);
