@@ -93,7 +93,7 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
       }
     }
     const data = [];
-    for await (const chunk of ipfs_client.cat(url)) {
+    for await (const chunk of ipfs_client.cat(url.substring(7))) {
       data.push(chunk);
     }
     const edata0 = Buffer.concat(data);

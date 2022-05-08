@@ -36,13 +36,22 @@ ipfs config --json API.HTTPHeaders.Access-Control-Allow-Credentials '["true"]'
 
 First generate one or more key pairs for encrypting and decrypting files on IPFS.
 ```
-deprecated: npm run cli -- -generatekeypair user1 -generatekeypair user2
+npm run cli -- -generatekeypair user1 -generatekeypair user2
 ```
 
-
-Run by giving a JSON file of activities to process and one private key for encryption with(You must save your metamask private key or possible from .env into user1-private.key. leading 0x must be removed):
+Run by giving a JSON file of activities to process and RSA public keys
 ```
-npm run cli -- -pubk user1-private.key -f input.json
+npm run cli -- -rsapubk user1-public.pem [-pubk user2-public.pem] -f input.json
+```
+
+Run by giving a JSON file of activities to process and wallet address
+```
+npm run cli -- -walletaddr <wallet_address> -f input.json
+```
+
+for example, 
+```
+npm run cli -- -walletaddr 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 -f input.json
 ```
 
 To create emissions requests instead of issue token with given input.json run:
@@ -62,7 +71,7 @@ npm run cli -- -processrequests
 To get a more complete output use the `-verbose` flag, this will output the grouped activities by type, while shipments
 are further grouped by shipping mode.
 ```
-npm run cli -- -pubk user1-public.pem [-pubk user2-public.pem] -f input.json -verbose
+npm run cli -- -rsapubk user1-public.pem [-rsapubk user2-public.pem] -f input.json -verbose
 ```
 In this case the IPFS content ID can be retrieved in the group "token.manifest" eg:
 ```
@@ -77,7 +86,12 @@ In this case the IPFS content ID can be retrieved in the group "token.manifest" 
 
 Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
 ```
-npm run cli -- -pk user1-private.pem -fetch <content_id>/content.json
+npm run cli -- -rsapk user1-private.pem -fetch <content_id>/content.json
+```
+
+Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of wallet address that were used above:
+```
+npm run cli -- -walletpk priv.key -fetch <content_id>/content.json
 ```
 
 ## REST API

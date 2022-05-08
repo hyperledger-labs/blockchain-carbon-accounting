@@ -11,15 +11,17 @@ import {
   process_emissions_requests,
   queue_issue_tokens
 } from 'supply-chain-lib/src/emissions-utils';
-import { downloadFileEncrypted, _downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 
 function print_usage() {
-  console.log('Usage: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
+  console.log('Usapubkge: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
   console.log('  -f input.json: the JSON file containing the activities array.');
-  console.log('  -pubk pubkey.pem: is used to encrypt content put on IPFS (can use multiple keys to encrypt for multiple users).');
-  console.log('  -pk privatekey.pem: is used to decrypt content (only when fetching content from IPFS).');
+  console.log('  -rsapubk pubkey.pem: is used to encrypt content put on IPFS (can use multiple keys to encrypt for multiple users).');
+  console.log('  -rsapk privatekey.pem: is used to decrypt content (only when fetching content from IPFS).');
   console.log('  -generatekeypair name: generates a name-privatekey.pem and name-publickey.pem which can be used as -pk and -pubk respectively.');
   console.log('  -fetch objectpath: fetch the ipfs://<objectpath> object, if -pk is given will decrypt the file with it.');
+  console.log('  -walletaddr <address>: is used to encrypt content put on IPFS with wallet private key.');
+  console.log('  -walletpk private.key: is used to decrypt content(only when fetching content from IPFS).');
   console.log('  -queue: create EmissionsRequest instead of issuing the token');
   console.log('  -processrequests: process EmissionsRequests, get and randomly assign emission auditors');
   console.log('  -v or --verbose to switch to a more verbose output format.');
@@ -33,6 +35,9 @@ const args = process.argv.splice( /ts-node/.test(process.argv[0]) || /node$/.tes
 let source: string|undefined = undefined;
 const publicKeys: string[] = [];
 let privateKey: string|undefined = undefined;
+let walletPrivKey: string|undefined = undefined;
+let walletAddress: string|undefined = undefined;
+
 let fetchObjectPath: string|undefined = undefined;
 let pretend = false;
 let verbose = false;
@@ -54,9 +59,9 @@ for (let i=0; i<args.length; i++) {
     i++;
     if (i == args.length) throw new Error('Missing argument filename after -f');
     source = args[i];
-  } else if (a === '-pubk') {
+  } else if (a === '-rsapubk') {
     i++;
-    if (i == args.length) throw new Error('Missing argument filename after -pubk');
+    if (i == args.length) throw new Error('Missing argument filename after -rsapubk');
     a = args[i];
     publicKeys.push(a);
   } else if (a === '-generatekeypair') {
@@ -65,13 +70,26 @@ for (let i=0; i<args.length; i++) {
     a = args[i];
     generateKeyPair(a);
     generatedKeypairs.push(a);
-  } else if (a === '-pk') {
+  } else if (a === '-rsapk') {
     i++;
-    if (i == args.length) throw new Error('Missing argument filename after -pk');
+    if (i == args.length) throw new Error('Missing argument filename after -rsapk');
     a = args[i];
     if (privateKey) throw new Error('Cannot define multiple privateKey');
     privateKey = a;
-  } else if (a === '-fetch') {
+  } else if(a === '-walletaddr') {
+    i++;
+    if( i == args.length ) throw new Error('Missing argument filename after -walletaddr');
+    a = args[i];
+    if (walletAddress) throw new Error('Cannot define multiple wallet address');
+    walletAddress = a;
+  } else if(a === '-walletpk') {
+    i++;
+    if( i == args.length ) throw new Error('Missing argument filename after -walletpk');
+    a = args[i];
+    if(walletPrivKey) throw new Error('Cannot define multiple wallet private key');
+    walletPrivKey = a;
+  }
+  else if (a === '-fetch') {
     i++;
     if (i == args.length) throw new Error('Missing argument objectpath after -fetch');
     if (fetchObjectPath) throw new Error('Cannot define multiple objects to fetch');
@@ -101,13 +119,13 @@ type OutputActivity = {
   error?: string
 };
 
-async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
+async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], encMode: string, mode?: string) {
   let token_res;
   let token_error: string | undefined = undefined;
   try {
     token_res = queue ? 
       await queue_issue_tokens(g, activity_type, mode) :
-      await issue_tokens(g, activity_type, publicKeys, mode);
+      await issue_tokens(g, activity_type, publicKeys, encMode, mode);
   } catch (e) {
     token_error = e instanceof Error ? e.message : String(e)
   }
@@ -126,27 +144,45 @@ async function process_group(output_array: OutputActivity[], g: GroupedResult, a
 // check if we are fetching an object from ipfs
 if (fetchObjectPath) {
   // if also given tracking numbers, error out
-  if (!privateKey) {
-    throw new Error('A privatekey is required, specify one with -pk <privatekey.pem>');
+  const filename = fetchObjectPath
+  if (privateKey) {
+    downloadFileRSAEncrypted(filename, privateKey).then((res) => {
+      if (res) {
+        // binary works the same as 'utf8' here
+        // TODO: need a way to save the extension so files can be opened
+        const dirs = filename.split(sep);
+        if (dirs.length > 1) {
+          for (let i = 0; i < dirs.length-1; i++) {
+            mkdirSync(dirs[i]);
+          }
+        }
+        writeFileSync(filename, res, 'binary');
+        const h = hash_content(res);
+        console.log(`HASH: ${h.type}:${h.value}`);
+        console.log(`File saved: ${filename}`);
+      }
+    });  
+  } else if (walletPrivKey) {
+    downloadFileWalletEncrypted(filename, walletPrivKey).then((res) => {
+      if (res) {
+        // binary works the same as 'utf8' here
+        // TODO: need a way to save the extension so files can be opened
+        const dirs = filename.split(sep);
+        if (dirs.length > 1) {
+          for (let i = 0; i < dirs.length-1; i++) {
+            mkdirSync(dirs[i]);
+          }
+        }
+        writeFileSync(filename, res, 'binary');
+        const h = hash_content(res);
+        console.log(`HASH: ${h.type}:${h.value}`);
+        console.log(`File saved: ${filename}`);
+      }
+    }); 
+  } else {
+    throw new Error('No any private key is provided after -rsapk or -walletpk');
   }
 
-  const filename = fetchObjectPath
-  _downloadFileEncrypted(filename, privateKey).then((res) => {
-    if (res) {
-      // binary works the same as 'utf8' here
-      // TODO: need a way to save the extension so files can be opened
-      const dirs = filename.split(sep);
-      if (dirs.length > 1) {
-        for (let i = 0; i < dirs.length-1; i++) {
-          mkdirSync(dirs[i]);
-        }
-      }
-      writeFileSync(filename, res, 'binary');
-      const h = hash_content(res);
-      console.log(`HASH: ${h.type}:${h.value}`);
-      console.log(`File saved: ${filename}`);
-    }
-  });
 } else {
   if (processrequests) {
     process_emissions_requests();
@@ -167,9 +203,18 @@ if (fetchObjectPath) {
     const data_raw = readFileSync(source, 'utf8');
     const data = JSON.parse(data_raw);
 
-    if (!publicKeys.length && !pretend && !queue) {
-      throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
+    let encMode = '';
+    if (walletAddress) {
+      // metamask enc/dec mode
+      encMode = 'metamask';
+    } else {
+      // RSA encrypt/decrypt mode
+      if (!publicKeys.length && !pretend && !queue) {
+        throw new Error('No publickey was given for encryption, specify at least one with the -pubk <public.pem> argument.');
+      }
+      encMode = 'RSA';
     }
+
 
     process_activities(data.activities).then(async (activities)=>{
       // group the resulting emissions per activity type, and for shipment type group by mode:
@@ -184,11 +229,20 @@ if (fetchObjectPath) {
           const group = grouped_by_type[t] as GroupedResults;
           for (const mode in group) {
             const doc = group[mode] as GroupedResult;
-            await process_group(output_array, doc, t, publicKeys, mode);
+            if(mode === 'metamask') {
+              await process_group(output_array, doc, t, [walletAddress as string], encMode, mode);
+            } else {
+              // RSA
+              await process_group(output_array, doc, t, publicKeys, encMode, mode);
+            }
           }
         } else {
           const doc = grouped_by_type[t] as GroupedResult;
-          await process_group(output_array, doc, t, publicKeys);
+          if(encMode === 'metamask') {
+            await process_group(output_array, doc, t, publicKeys, encMode);
+          } else {
+            await process_group(output_array, doc, t, publicKeys, encMode);
+          }
         }
       }
       // add back any errors we filtered before to the output

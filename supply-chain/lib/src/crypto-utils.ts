@@ -25,6 +25,20 @@ export async function encryptWithPublicKey(privKeyPath: string, toEncrypt: strin
   ]);
 }
 
+export async function encryptWithEncPublicKey(encPubKey: string, toEncrypt: string) {
+  const encrypted = encrypt({
+    data: toEncrypt, 
+    publicKey: encPubKey, 
+    version: "x25519-xsalsa20-poly1305"
+  });
+  return Buffer.concat([
+    Buffer.from(encrypted.nonce, 'utf8'),
+    Buffer.from(encrypted.ephemPublicKey, 'utf8'),
+    Buffer.from(encrypted.version, 'utf8'),
+    Buffer.from(encrypted.ciphertext, 'utf8')
+  ]);
+}
+
 export async function decryptWithPrivKey(privKeyPath: string, toDecrypt: Buffer) {
   const privateKey = getFileFromPath(privKeyPath);
   const encryptedData = {

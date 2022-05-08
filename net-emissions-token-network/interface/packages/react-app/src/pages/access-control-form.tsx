@@ -113,6 +113,8 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [myPublicKey, setMyPublicKey] = useState("");
   const [myWalletLoading, setMyWalletLoading] = useState(false);
   const [myUseMetamask, setMyUseMetamask] = useState(false);
+
+  const [ isEmptyPubKey, setIsEmptyPubKey ] = useState(false);
   const myWalletQuery = trpc.useQuery(['wallet.get', {address: signedInAddress}], {
     enabled: !!signedInAddress,
     refetchOnWindowFocus: false,
@@ -121,6 +123,13 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       setMyName(result?.wallet?.name || '');
       setMyOrganization(result?.wallet?.organization || '');
       setMyPublicKey(result?.wallet?.public_key || '');
+
+      // check public key 
+      if(result?.wallet?.public_key === '') {
+        setIsEmptyPubKey(true);
+      } else {
+        setIsEmptyPubKey(false);
+      }
     }
   })
 
@@ -560,6 +569,38 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             </Form>
             </>}
         </>
+      }
+
+      {signedInAddress && provider && isEmptyPubKey &&
+      <>
+        <Button
+          className="w-100 mb-3"
+          variant="primary"
+          size="lg"
+          onClick={async () => {
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            const encryptionPublicKey = await ethereum.request({
+              method: 'eth_getEncryptionPublicKey',
+              params: [accounts[0]],
+            });
+            const payload = {
+              address: signedInAddress,
+              public_key: encryptionPublicKey,
+            }
+            const message = JSON.stringify(payload)
+            const signature = await provider.getSigner().signMessage(message)
+            console.log('posting message', message, signature)
+            const data = await trpcClient.mutation('wallet.update', {
+              ...payload,
+              signature
+            })
+            console.log('updated',data)
+            myWalletQuery.refetch()
+          }}
+        >
+          Provide my encrypted key
+        </Button>
+      </>
       }
 
       <h4>Find or Set Up a User</h4>

@@ -30,7 +30,7 @@ import {
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
-import { _uploadFileEncrypted, uploadFileEncrypted } from "./ipfs-utils";
+import { uploadFileRSAEncrypted, uploadFileWalletEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
@@ -735,6 +735,7 @@ export async function issue_tokens(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
+  encMode: string,
   mode?: string,
   issued_from?: string,
   issued_to?: string,
@@ -745,7 +746,21 @@ export async function issue_tokens(
 
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await _uploadFileEncrypted(content, publicKeys[0]);
+  
+  let ipfs_res: any = {};
+  if(encMode === 'metamask') {
+    // get enc pub key from wallet table
+    const db = await getDBInstance();
+    const wallet = await db.getWalletRepo().selectWallet(publicKeys[0]);
+    if(wallet?.public_key === undefined) {
+      ///
+      console.log('Issuer does not have encryption public key');
+      throw Error("Issuer does not have encryption public key");
+    }
+    ipfs_res = await uploadFileWalletEncrypted(content, wallet?.public_key as string, true);
+  } else {
+    ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
+  }
 
   const token_res = await issue_emissions_tokens(
     activity_type,
@@ -798,7 +813,7 @@ export async function issue_tokens_with_issuee(
   const total_emissions = doc.total_emissions.value;
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  const ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
   // issue tokens
   const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
@@ -912,7 +927,7 @@ export async function process_emissions_requests() {
       // if we want the original filename use doc.file.name directly but this might be suitable
       // in all cases, we only need the file extension so that it can be opened once downloaded
       const file_ext = extname(doc.file.name);
-      const ipfs_content = await uploadFileEncrypted(data, [auditor.public_key], true, `content${file_ext}`);
+      const ipfs_content = await uploadFileWalletEncrypted(data.toString('base64'), auditor.public_key, true, `content${file_ext}`);
       const h_content = hash_content(data);
       supporting_docs_ipfs_paths.push(ipfs_content.path);
       console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
@@ -927,7 +942,7 @@ export async function process_emissions_requests() {
 
     if (!uploaded) {
       // encode input_content and post it into ipfs
-      const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+      const ipfs_content = await uploadFileWalletEncrypted(er.input_content, auditor.public_key, true);
       const h_content = hash_content(er.input_content);
       console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
       manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);

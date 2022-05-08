@@ -1,4 +1,4 @@
-import { existsSync, unlinkSync, readFileSync } from 'fs';
+import { existsSync, unlinkSync, readFileSync, writeFileSync } from 'fs';
 import { expect } from 'chai';
 import { v4 as uuidv4 } from 'uuid';
 import sinon from 'sinon';
@@ -11,7 +11,7 @@ import type { GroupedResult, GroupedResults } from 'supply-chain-lib/src/emissio
 import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import { get_gclient } from 'supply-chain-lib/src/distance-utils';
 import { get_ups_client } from 'supply-chain-lib/src/ups-utils';
-import { downloadFileEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import type { ActivityEmissionsFactorLookup } from 'blockchain-accounting-data-postgres/src/models/activityEmissionsFactorLookup';
 import type { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor';
@@ -22,6 +22,7 @@ import { issue_emissions_request } from 'api-server/controller/emissionsRequests
 function cleanup() {
   if (existsSync('tests-private.pem')) unlinkSync('tests-private.pem');
   if (existsSync('tests-public.pem')) unlinkSync('tests-public.pem');
+  if (existsSync('test-wallet-priv.key')) unlinkSync('test-wallet-priv.key')
 }
 
 const OPTS: OPTS_TYPE = {
@@ -37,6 +38,9 @@ const factor_fields = {
   co2_equivalent_emissions: '10',
   co2_equivalent_emissions_uom: 'kg',
 };
+
+const TEST_WALLET_PRIVATE_KEY = '5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a';
+const TEST_WALLET_ENC_PUB_KEY = 'mgn9uRllOGtnBcc07TbDJlFElnuCPiOhtmWui+kiaDw=';
 
 async function addTestEmissionsFactor(efl: EmissionsFactorInterface) {
   const db = await PostgresDBService.getInstance();
@@ -288,9 +292,11 @@ describe("Emissions and Tokens requests test", function() {
 
     // Generate 2 public/private key pairs
     generateKeyPair('tests');
+    writeFileSync('test-wallet-priv.key', TEST_WALLET_PRIVATE_KEY);
     // check they exist
     expect(existsSync('tests-private.pem')).to.be.true;
     expect(existsSync('tests-public.pem')).to.be.true;
+    expect(existsSync('test-wallet-priv.key')).to.be.true;
 
     const public_key = readFileSync('tests-public.pem').toString();
     const private_key = readFileSync('tests-private.pem').toString();
@@ -310,15 +316,15 @@ describe("Emissions and Tokens requests test", function() {
       name: 'Auditor 1', 
       organization: 'Hardhat Test', 
       public_key_name: 'test', 
-      public_key
+      public_key: TEST_WALLET_ENC_PUB_KEY
     });
-    console.log('Checking account auditor2 ', auditor2);
-    await syncWalletRoles(auditor2, OPTS, {
-      name: 'Auditor 2', 
-      organization: 'Hardhat Test', 
-      public_key_name: 'test', 
-      public_key
-    });
+    // console.log('Checking account auditor2 ', auditor2);
+    // await syncWalletRoles(auditor2, OPTS, {
+    //   name: 'Auditor 2', 
+    //   organization: 'Hardhat Test', 
+    //   public_key_name: 'test', 
+    //   public_key: TEST_WALLET_ENC_PUB_KEY
+    // });
 
 
     // Generate emissions audit requests from the input.json file. We can add a TEST mode so that the code will
@@ -406,7 +412,7 @@ describe("Emissions and Tokens requests test", function() {
       // Verify the files have the correct sha256
       expect(location).to.be.a('string').and.match(/^ipfs:\/\//);
       const filename = location.substring(7);
-      const content = await downloadFileEncrypted(filename, './tests-private.pem');
+      const content = await downloadFileWalletEncrypted(filename, 'test-wallet-priv.key');
       // content should not be null
       expect(content).to.not.be.null;
       if (!content) throw new Error('Could not decrypt file? did not get content!');

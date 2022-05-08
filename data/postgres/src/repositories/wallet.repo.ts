@@ -36,6 +36,10 @@ export class WalletRepo {
     return await this.getRepository().findOneBy({ address })
   }
 
+  public selectWalletByEncPubKey = async (public_key: string) : Promise<Wallet | null> => {
+    return await this.getRepository().findOneBy({public_key})
+  }
+
   public getAuditorsWithPublicKey = async (): Promise<Wallet[]> => {
     return await this.getRepository()
       .createQueryBuilder(ALIAS)
