@@ -21,8 +21,10 @@ Download the emissions factors in flat file for automatic processing format from
 
 Load the data with the `dataLoader` script:
 ```
-npm run dataLoader load_emissions_factors conversion-factors-2021-flat-file-automatic-processing.xls "Factors by Category" -- --format conversion-factors-uk
+npm run dataLoader load_emissions_factors conversion-factors-2021-flat-file-automatic-processing.xls "Factors by Category" -- --format conversion-factors-uk --year 2021
 ```
+
+Year is required parameter for conversion-factors-uk format and it is ignored in other formats.
 
 Download the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid) and .  Then load them with:
 ```
