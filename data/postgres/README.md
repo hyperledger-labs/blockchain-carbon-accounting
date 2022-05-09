@@ -40,6 +40,13 @@ The [U.S. Energy Information Administration's Utility Identifiers](https://www.e
 npm run dataLoader load_utility_identifiers Utility_Data_2020.xlsx
 ```
 
+For the European Data download the [CO2 Intensity of Electricity Generation](https://www.eea.europa.eu/data-and-maps/daviz/sds/co2-emission-intensity-from-electricity-generation-5/download.csv) and save it as `co2-emission-intensity-from-electricity-generation-5.csv`.
+Then get the [Share of Renewables](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract the `2019-RES_proxies_EEA.csv`.
+
+```
+npm run dataLoader load_emissions_factors 2019-RES_proxies_EEA.csv -- --format eea_res_proxies --source https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4/eea-2017-res-share-proxies/2016-res_proxies_eea_csv
+npm run dataLoader load_emissions_factors co2-emission-intensity-from-electricity-generation-5.csv -- --format eea_intensity --source https://www.eea.europa.eu/data-and-maps/daviz/sds/co2-emission-intensity-from-electricity-generation-5
+```
 
 ### Other Seed Data
 
