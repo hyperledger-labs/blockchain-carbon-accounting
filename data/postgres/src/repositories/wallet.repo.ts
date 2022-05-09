@@ -49,6 +49,15 @@ export class WalletRepo {
       .getMany()
   }
 
+  public getAuditorsWithMetamaskPubKey = async (): Promise<Wallet[]> => {
+    return await this.getRepository()
+      .createQueryBuilder(ALIAS)
+      .where(`${ALIAS}.metamask_encrypted_public_key IS NOT NULL`)
+      .andWhere(`${ALIAS}.metamask_encrypted_public_key != ''`)
+      .andWhere(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, {role: '%Emissions Auditor%'})
+      .getMany();
+  }
+
   public mergeWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
     const repo = this.getRepository()
     // lookup case-insensitive, case is used as a checksums only

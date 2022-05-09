@@ -125,7 +125,10 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
       setMyPublicKey(result?.wallet?.public_key || '');
 
       // check public key 
-      if(result?.wallet?.public_key === '') {
+      console.log(result);
+      if(result?.wallet?.metamask_encrypted_public_key === '' || 
+        result?.wallet?.metamask_encrypted_public_key === null) 
+      {
         setIsEmptyPubKey(true);
       } else {
         setIsEmptyPubKey(false);
@@ -495,11 +498,23 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
               e.preventDefault()
               e.stopPropagation()
               try {
-                const payload = {
+                const _payload = {
                   address: signedInAddress,
                   name: myName,
                   organization: myOrganization,
-                  public_key: myPublicKey,
+                }
+
+                let payload;
+                if(myUseMetamask) {
+                  payload = {
+                    ..._payload,
+                    metamask_encrypted_public_key: myPublicKey
+                  }
+                } else {
+                  payload = {
+                    ..._payload,
+                    public_key: myPublicKey
+                  }
                 }
                 const message = JSON.stringify(payload)
                 const signature = await provider.getSigner().signMessage(message)
@@ -585,7 +600,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
             });
             const payload = {
               address: signedInAddress,
-              public_key: encryptionPublicKey,
+              metamask_encrypted_public_key: encryptionPublicKey,
             }
             const message = JSON.stringify(payload)
             const signature = await provider.getSigner().signMessage(message)

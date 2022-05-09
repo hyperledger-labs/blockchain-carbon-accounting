@@ -13,12 +13,19 @@ export class Wallet {
 
   @Column({nullable:true})
   name?: string
+
   @Column({nullable:true})
   organization?: string
+  
   @Column({nullable:true})
   public_key?: string
+  
   @Column({nullable:true})
   public_key_name?: string
+  
+  @Column({nullable:true})
+  metamask_encrypted_public_key?: string
+  
   @Column({nullable:true})
   roles?: string
 }

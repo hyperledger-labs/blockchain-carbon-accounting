@@ -88,5 +88,6 @@ export const FIELDS = {
     "organization": STRING_FIELD,
     "public_key": STRING_FIELD,
     "public_key_name": STRING_FIELD,
-    "roles": STRING_FIELD
+    "roles": STRING_FIELD,
+    "metamask_encrypted_public_key": STRING_FIELD
 };
