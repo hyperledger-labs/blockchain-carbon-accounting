@@ -54,7 +54,7 @@ export class WalletRepo {
       .createQueryBuilder(ALIAS)
       .where(`${ALIAS}.metamask_encrypted_public_key IS NOT NULL`)
       .andWhere(`${ALIAS}.metamask_encrypted_public_key != ''`)
-      .andWhere(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, {role: '%Emissions Auditor%'})
+      .andWhere(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, {role: '%Emission Auditor%'})
       .getMany();
   }
 
