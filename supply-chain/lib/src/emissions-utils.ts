@@ -398,37 +398,14 @@ export async function process_electricity(
   a: ElectricityActivity 
 ): Promise<ActivityResult> {
   // for non UNITED STATES, use the emissions factor
-  // from 'WTT- xxxx ELECTRICITY (GENERATION) and 'WTT- xxxx ELECTRICITY (T&D)
-  // and sum them
+  // from EEA EMISSIONS FACTORS
   if (a.country !== 'UNITED STATES') {
-    const generation_result = await process_emissions_factor({
+    return process_emissions_factor({
       ...a,
-      level_1: 'WTT- UK & OVERSEAS ELEC',
-      level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (GENERATION)' : 'WTT- UK ELECTRICITY (GENERATION)',
-      level_3: 'ELECTRICITY: ' + a.country,
+      level_1: 'EEA EMISSIONS FACTORS',
+      level_2: a.country,
+      level_3: 'COUNTRY: ' + a.country,
     })
-    const tad_result = await process_emissions_factor({
-      ...a,
-      level_1: 'WTT- UK & OVERSEAS ELEC',
-      level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (T&D)' : 'WTT- UK ELECTRICITY (T&D)',
-      level_3: 'ELECTRICITY: ' + a.country,
-    })
-
-    // merge results
-    if (!generation_result.emissions || !tad_result.emissions) {
-      throw new Error('Could not get emissions values');
-    }
-    const emissions = {
-      amount: {
-        value: generation_result.emissions.amount.value + tad_result.emissions.amount.value,
-        unit: generation_result.emissions.amount.unit,
-      }
-    }
-
-    return {
-      emissions,
-      details: [generation_result, tad_result]
-    }
   } else {
     // for UNITED STATES, use the Utility lookup
     if (!a.utility) throw new Error('Utility field is required');

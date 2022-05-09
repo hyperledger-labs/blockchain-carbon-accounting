@@ -289,7 +289,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
+        level_1: "EEA EMISSIONS FACTORS",
         level_2: countryName,
         level_3: `COUNTRY: ${countryName}`,
         scope: "SCOPE 2",
@@ -319,29 +319,39 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
     const skippedRows = [];
     for (const row of data) {
       // skip empty rows
-      if (!row || !row["Date:year"]) continue;
+      if (!row) {
+        continue;
+      }
 
       // skip rows that aren't latest year
-      if (row["Date:year"] < 2019) continue;
+      const year = row["Year"] || row["date:number"] || row["Date:year"];
+      if (!year || year < 2019) {
+        continue;
+      }
 
       // skip total EU
-      if (row["Member State:text"].startsWith("European Union")) continue;
+      const country = row["ugeo:text"] || row["Member State:text"] || row["CountryShort"];
+      if (!country || country.startsWith("EU") || country.startsWith("European Union")) continue;
 
       // get country long name and abbreviation from long name
-      const countryLong = row["Member State:text"].replace(" ", "_");
+      const countryLong = row["ugeo:text"]?.replace(" ", "_") || row["CountryLong"]?.replace(" ", "_") || row["Member State:text"]?.replace(" ", "_");
       const countryShort = Object.keys(COUNTRY_MAPPINGS).find(
         (key) => getCountryMapping(key as keyof typeof COUNTRY_MAPPINGS) === countryLong
       );
 
       // skip if country name not found
-      if (!countryShort) continue;
+      if (!countryShort) {
+        continue;
+      }
 
       const document_id = uuidv4();
+      const emissions = row["index:number"] || row["ValueNumeric"];
+      if (!emissions) continue;
       const d = {
         uuid: document_id,
         type: EMISSIONS_FACTOR_TYPE,
-        co2_equivalent_emissions: row["index:number"],
-        co2_equivalent_emissions_uom: "g/KWH",
+        co2_equivalent_emissions: emissions,
+        co2_equivalent_emissions_uom: "g",
         source: opts.source || opts.file,
       };
 
@@ -349,7 +359,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       const factors = await db.getEmissionsFactors({
         division_id: countryLong,
         division_type: 'Country',
-        year: row["Date:year"]
+        year
       })
       if (factors && factors.length > 0) {
         const factor = factors[0];
@@ -357,8 +367,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
           factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
           factor.source = d.source;
+          factor.activity_uom = "kWH";
 
           await db.putEmissionFactor(factor);
+          console.log('updated factor', factor)
           progressBar.increment();
         } else {
           console.log("Could not find imported factor");

@@ -206,16 +206,18 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     return res.map(e=>e.EmissionsFactor_level_4)
   }
   public getElectricityCountries = async (query: Pick<EmissionsFactorInterface, 'scope'>): Promise<string[]> => {
+    // we do not want to use WTT, instead will use UNITED STATES and the country from
+    // level_1="EEA EMISSIONS FACTORS" -> level 2
     const res = await this._db.getRepository(EmissionsFactor)
       .createQueryBuilder()
-      .select('EmissionsFactor.level_3')
+      .select('EmissionsFactor.level_2')
       .where(query)
-      .andWhere({level_1: 'WTT- UK & OVERSEAS ELEC'})
+      .andWhere({level_1: 'EEA EMISSIONS FACTORS'})
       .distinct(true)
-      .orderBy({ level_3: 'ASC' })
+      .orderBy({ level_2: 'ASC' })
       .getRawMany()
-    // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
-    return res.map(e=>e.EmissionsFactor_level_3.replace(/^ELECTRICITY:\s*/i, ''))
+    // comes from the Raw query, note: must use raw to not have uuid per record (distinct values)
+    return res.map(e=>e.EmissionsFactor_level_2).concat(['UNITED STATES'])
   }
   public getElectricityUSAStates = async (): Promise<string[]> => {
     const res = await this._db.getRepository(UtilityLookupItem)
