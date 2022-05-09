@@ -20,6 +20,8 @@ import QueryBuilder from "../components/query-builder";
 import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
 import DisplayTokenAmount from "../components/display-token-amount";
+import Button from 'react-bootstrap/Button';
+import { BsFunnel } from 'react-icons/bs';
 
 type DashboardProps = {
   provider?: Web3Provider, 
@@ -54,6 +56,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
   const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
 
+  const [showQueryBuilder, setShowQueryBuilder] = useState(false);
+
   async function handleBalancePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
     await fetchBalances(value, balancePageSize, balanceQuery);
   }
@@ -73,6 +77,10 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       handleRefresh();
     }
   }));
+
+  function switchQueryBuilder() {
+     setShowQueryBuilder(!showQueryBuilder);
+  }
 
   async function handleRefresh() {
     // clear localStorage
@@ -198,11 +206,15 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
         {(signedInAddress) &&
           <div className="mb-4">
-            <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
-            <QueryBuilder
-              fieldList={BALANCE_FIELDS}
-              handleQueryChanged={handleBalanceQueryChanged}
-            />
+            <h4 style={{display: 'inline'}}>{(displayAddress) ? 'Their' : 'Your'} Tokens&nbsp;</h4>
+            <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
+            <div hidden={!showQueryBuilder}>
+              <QueryBuilder
+                fieldList={BALANCE_FIELDS}
+                handleQueryChanged={handleBalanceQueryChanged}
+              />
+            </div>
+
             <Table hover size="sm">
               <thead>
                 <tr>
