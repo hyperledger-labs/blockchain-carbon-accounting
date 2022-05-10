@@ -227,20 +227,11 @@ if (fetchObjectPath) {
           const group = grouped_by_type[t] as GroupedResults;
           for (const mode in group) {
             const doc = group[mode] as GroupedResult;
-            if(mode === 'metamask') {
-              await process_group(output_array, doc, t, [walletAddress as string], encMode, mode);
-            } else {
-              // RSA
-              await process_group(output_array, doc, t, publicKeys, encMode, mode);
-            }
+            await process_group(output_array, doc, t, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode, mode);
           }
         } else {
           const doc = grouped_by_type[t] as GroupedResult;
-          if(encMode === 'metamask') {
-            await process_group(output_array, doc, t, publicKeys, encMode);
-          } else {
-            await process_group(output_array, doc, t, publicKeys, encMode);
-          }
+          await process_group(output_array, doc, t, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode);
         }
       }
       // add back any errors we filtered before to the output
