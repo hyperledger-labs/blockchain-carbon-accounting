@@ -108,30 +108,25 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
   const [zodErrors, setZodErrors] = useState<any>(null);
 
-  const [myName, setMyName] = useState("");
-  const [myOrganization, setMyOrganization] = useState("");
   const [myPublicKey, setMyPublicKey] = useState("");
+  const [hasMetamaskPubKey, setHasMetamaskPubKey] = useState(false);
   const [myWalletLoading, setMyWalletLoading] = useState(false);
-  const [myUseMetamask, setMyUseMetamask] = useState(false);
 
-  const [ isEmptyPubKey, setIsEmptyPubKey ] = useState(false);
   const myWalletQuery = trpc.useQuery(['wallet.get', {address: signedInAddress}], {
     enabled: !!signedInAddress,
     refetchOnWindowFocus: false,
     onSettled: (result) => {
       console.log('query get wallet', result)
-      setMyName(result?.wallet?.name || '');
-      setMyOrganization(result?.wallet?.organization || '');
       setMyPublicKey(result?.wallet?.public_key || '');
 
-      // check public key 
+      // check public key
       console.log(result);
       if(result?.wallet?.metamask_encrypted_public_key === '' || 
         result?.wallet?.metamask_encrypted_public_key === null) 
       {
-        setIsEmptyPubKey(true);
+        setHasMetamaskPubKey(false);
       } else {
-        setIsEmptyPubKey(false);
+        setHasMetamaskPubKey(true);
       }
     }
   })
@@ -498,23 +493,9 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
               e.preventDefault()
               e.stopPropagation()
               try {
-                const _payload = {
+                const payload = {
                   address: signedInAddress,
-                  name: myName,
-                  organization: myOrganization,
-                }
-
-                let payload;
-                if(myUseMetamask) {
-                  payload = {
-                    ..._payload,
-                    metamask_encrypted_public_key: myPublicKey
-                  }
-                } else {
-                  payload = {
-                    ..._payload,
-                    public_key: myPublicKey
-                  }
+                  public_key: myPublicKey
                 }
                 const message = JSON.stringify(payload)
                 const signature = await provider.getSigner().signMessage(message)
@@ -531,37 +512,10 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 
               setMyWalletLoading(false)
             }}>
-              <FloatingLabel className="mb-2" controlId="myNameInput" label="Name">
-                <Form.Control type="input" placeholder="Name" value={myName} onChange={(e)=>{ setMyName(e.currentTarget.value) }}/>
+              <FloatingLabel className="mb-2" controlId="myPublicKeyInput" label="Public Key">
+                <Form.Control as="textarea" style={{height: '6em'}} placeholder="RSA Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
               </FloatingLabel>
-              <FloatingLabel className="mb-2" controlId="myOrganizationInput" label="Organization">
-                <Form.Control type="input" placeholder="Organization" value={myOrganization} onChange={(e)=>{ setMyOrganization(e.currentTarget.value) }}/>
-              </FloatingLabel>
-              <Form.Check 
-                type="switch"
-                id="use-metamask-switch"
-                label="Use metamask to provide a secure key"
-                checked={myUseMetamask}
-                onChange={async(e)=>{
-                  const checked = e.currentTarget.checked
-                  if (checked) {
-                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-                    const encryptionPublicKey = await ethereum.request({
-                      method: 'eth_getEncryptionPublicKey',
-                      params: [accounts[0]],
-                    });
-                    console.log(encryptionPublicKey);
-                    setMyPublicKey(encryptionPublicKey);
-                  }
-
-                  setMyUseMetamask(checked)
-                }}
-                />
-              {!myUseMetamask && 
-                <FloatingLabel className="mb-2" controlId="myPublicKeyInput" label="Public Key">
-                  <Form.Control as="textarea" placeholder="Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
-                </FloatingLabel>
-              }
+                {hasMetamaskPubKey && <p>Your Metamask encryption key was provided.</p>}
               <Button
                 className="w-100 mb-3"
                 variant="primary"
@@ -586,7 +540,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
         </>
       }
 
-      {signedInAddress && provider && isEmptyPubKey &&
+      {signedInAddress && provider && !hasMetamaskPubKey &&
       <>
         <Button
           className="w-100 mb-3"
