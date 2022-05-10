@@ -136,7 +136,6 @@ export async function uploadFileWalletEncrypted(plain_content: string|Buffer, pu
     const ipfs_res = await ipfs_client.add({
       content,path: `/tmp/${name}`
     });
-    console.log('ipfs_res: ', ipfs_res);
     return { ...ipfs_res, ipfs_path: `ipfs://${ipfs_res.cid}/${name}`, filename: name}
   } catch (error) {
     console.error(error);
