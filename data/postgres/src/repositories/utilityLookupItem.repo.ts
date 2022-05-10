@@ -12,6 +12,20 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
   }
 
   public putUtilityLookupItem = async (doc: UtilityLookupItemInterface) => {
+    // cleanup any existing record matching the same fields
+    const repo = this._db.getRepository(UtilityLookupItem);
+
+   await repo.delete({
+      class: doc.class,
+      year: doc.year,
+      utility_number: doc.utility_number,
+      utility_name: doc.utility_name,
+      country: doc.country,
+      state_province: doc.state_province,
+      division_type: doc.divisions?.division_type,
+      division_id: doc.divisions?.division_id,
+    });
+
     const item = new UtilityLookupItem()
 
     item.class = doc.class
@@ -27,7 +41,7 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
       item.division_id = doc.divisions.division_id
     }
 
-    await this._db.getRepository(UtilityLookupItem).save(item)
+    await repo.save(item)
   }
 
   public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface | null> => {
