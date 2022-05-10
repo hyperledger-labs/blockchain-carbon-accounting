@@ -76,6 +76,7 @@ type ActivityCommon = {
   type: ActivityType,
   from_date?: Date,
   thru_date?: Date,
+  issued_from?: string,
 };
 type ActivityBase = Path & ActivityCommon
 export type ShipmentActivity = ActivityBase & Shipment;

@@ -627,9 +627,72 @@ function read_date(v: string | Date | undefined, default_date?: Date) {
   throw new Error('Cannot read as a Date: ' + v);
 }
 
-export function group_processed_activities(activities: ProcessedActivity[]) {
-  return activities
+/** Group a list of processed activities by `activity_type`, and shipments are further grouped by mode.
+    We then also need to group by `issued_from` which will be either the given `issued_from` or
+    the carrier for activities that have carriers like shipments and flights looked up Wallet
+    or the environment variable `ETH_ISSUE_FROM_ACCT`.
+    @param activities: the list of activities to grouped
+    @returns a map of `activity_type` (top map of shipment mode if activity type is "shipment") to map of `issued_from` to list of activities
+*/
+export async function group_processed_activities(activities: ProcessedActivity[], default_issued_from?: string) {
+  const default_grouped_emissions = () => ({
+    total_emissions: { value: 0.0, unit: "kgCO2e" },
+    content: [],
+  });
+  const set_dates = (d: GroupedResult, fd: Date, td: Date) => {
+    if (!d.from_date || d.from_date > fd) {
+      d.from_date = fd;
+    }
+    if (!d.thru_date || d.thru_date < td) {
+      d.thru_date = td;
+    }
+  }
+  const add_emissions = (d: GroupedResult, a: ProcessedActivity) => {
+    if (!a.result) return;
+    d.total_emissions.value += a.result.emissions?.amount?.value??0;
+    d.content.push(a);
+  }
+  const set_issued_from = async (a: ProcessedActivity) => {
+    let issued_from: string | undefined = undefined;
+    const activity = a.activity;
+    if (activity.issued_from) {
+      // activity already has an issued_from set
+      return activity.issued_from;
+    }
+    const db = await getDBInstance();
+    if (is_shipment_activity(activity)) {
+      if (activity.carrier) {
+        // lookup a shipment carrier
+        const wallets = await db.getWalletRepo().lookupPaginated(0, 1, activity.carrier);
+        if (wallets && wallets[0]?.address) {
+          issued_from = wallets[0]?.address;
+        }
+      }
+    } else if (is_flight_activity(activity)) {
+      if (activity.carrier) {
+        // lookup a shipment carrier
+        const wallets = await db.getWalletRepo().lookupPaginated(0, 1, activity.carrier);
+        if (wallets && wallets[0]?.address) {
+          issued_from = wallets[0]?.address;
+        }
+      }
+    }
+    if (issued_from) {
+      // we found a wallet from the carrier
+      activity.issued_from = issued_from;
+    } else {
+      // else use the default from the env variable
+      activity.issued_from = default_issued_from || '';
+    }
+    return activity.issued_from;
+  }
+  const activities_async = await Promise.all(activities
     .filter((a) => !a.error)
+    .map(async (a) => {
+      await set_issued_from(a);
+      return a;
+    }))
+  return activities_async
     .reduce((prev: GroupedResults, a) => {
       const t = a.activity.type;
       if (!a.result) {
@@ -642,40 +705,23 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
           return prev;
         }
         const m = a.result.distance.mode;
+        const gm = (prev[t] || {}) as GroupedResults;
+        prev[t] = gm;
+        const g = (gm[m] || {}) as GroupedResults;
+        gm[m] = g;
+        const issued_from = a.activity.issued_from || '';
+        const d = (g[issued_from] || default_grouped_emissions()) as GroupedResult;
+        add_emissions(d, a);
+        set_dates(d, fd, td);
+        g[issued_from] = d;
+      } else {
         const g = (prev[t] || {}) as GroupedResults;
         prev[t] = g;
-        g[m] = g[m] || {
-          total_emissions: { value: 0.0, unit: "kgCO2e" },
-          content: [],
-        };
-        const d = (g[m] || {
-          total_emissions: { value: 0.0, unit: "kgCO2e" },
-          content: [],
-        }) as GroupedResult;
-        d.total_emissions.value += a.result.emissions?.amount?.value??0;
-        d.content.push(a);
-        if (!d.from_date || d.from_date > fd) {
-          d.from_date = fd;
-        }
-        if (!d.thru_date || d.thru_date < td) {
-          d.thru_date = td;
-        }
-        g[m] = d;
-      } else {
-        const d = (prev[t] || {
-          total_emissions: { value: 0.0, unit: "kgCO2e" },
-          content: [],
-        }) as GroupedResult;
-        const v = d.total_emissions as ValueAndUnit;
-        v.value += a.result.emissions?.amount?.value??0;
-        d.content.push(a);
-        if (!d.from_date || d.from_date > fd) {
-          d.from_date = fd;
-        }
-        if (!d.thru_date || d.thru_date < td) {
-          d.thru_date = td;
-        }
-        prev[t] = d;
+        const issued_from = a.activity.issued_from || '';
+        const d = (g[issued_from] || default_grouped_emissions()) as GroupedResult;
+        add_emissions(d, a);
+        set_dates(d, fd, td);
+        g[issued_from] = d;
       }
       return prev;
     }, {});
@@ -853,7 +899,7 @@ function create_manifest(publickey_name: string | undefined, ipfs_path: string, 
   "Public Key":string,
   "Location":string,
   "SHA256":string,
-} & Record<string, any> {
+} & Record<string, any> { // eslint-disable-line @typescript-eslint/no-explicit-any
   return {
     "Public Key": publickey_name ?? 'unknown',
     "Location": ipfs_path,

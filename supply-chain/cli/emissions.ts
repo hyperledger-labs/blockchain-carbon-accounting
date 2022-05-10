@@ -119,13 +119,13 @@ type OutputActivity = {
   error?: string
 };
 
-async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], encMode: string, mode?: string) {
+async function process_group(output_array: OutputActivity[], g: GroupedResult, activity_type: string, issued_from: string, publicKeys: string[], encMode: string, mode?: string) {
   let token_res;
   let token_error: string | undefined = undefined;
   try {
     token_res = queue ? 
-      await queue_issue_tokens(g, activity_type, mode) :
-      await issue_tokens(g, activity_type, publicKeys, encMode, mode);
+      await queue_issue_tokens(g, activity_type, mode, issued_from) :
+      await issue_tokens(g, activity_type, publicKeys, encMode, mode, issued_from);
   } catch (e) {
     token_error = e instanceof Error ? e.message : String(e)
   }
@@ -216,7 +216,7 @@ if (fetchObjectPath) {
 
     process_activities(data.activities).then(async (activities)=>{
       // group the resulting emissions per activity type, and for shipment type group by mode:
-      const grouped_by_type = group_processed_activities(activities);
+      const grouped_by_type = await group_processed_activities(activities, process.env.ETH_ISSUE_FROM_ACCT);
       if (pretend) {
         return grouped_by_type;
       }
@@ -226,12 +226,18 @@ if (fetchObjectPath) {
         if (t === 'shipment') {
           const group = grouped_by_type[t] as GroupedResults;
           for (const mode in group) {
-            const doc = group[mode] as GroupedResult;
-            await process_group(output_array, doc, t, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode, mode);
+            const issue_group = group[mode] as GroupedResults;
+            for (const issued_from in issue_group) {
+              const doc = issue_group[issued_from] as GroupedResult;
+              await process_group(output_array, doc, t, issued_from, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode, mode);
+            }
           }
         } else {
-          const doc = grouped_by_type[t] as GroupedResult;
-          await process_group(output_array, doc, t, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode);
+          const issue_group = grouped_by_type[t] as GroupedResults;
+          for (const issued_from in issue_group) {
+            const doc = issue_group[issued_from] as GroupedResult;
+            await process_group(output_array, doc, t, issued_from, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode);
+          }
         }
       }
       // add back any errors we filtered before to the output
