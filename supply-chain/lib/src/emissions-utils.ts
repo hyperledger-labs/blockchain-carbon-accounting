@@ -771,16 +771,42 @@ export async function issue_tokens(
   // save into IPFS
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let ipfs_res: any = {};
-  if(encMode === 'metamask') {
-    // get enc pub key from wallet table
+  if (encMode === 'wallet') {
+    // get enc pub key from wallet table, use either the metamask key (preferred) or the RSA key
     const db = await getDBInstance();
-    const wallet = await db.getWalletRepo().selectWallet(publicKeys[0]);
-    if(wallet?.public_key === undefined) {
-      ///
-      console.log('Issuer does not have encryption public key');
-      throw Error("Issuer does not have encryption public key");
+    const wallet = await db.getWalletRepo().findWalletByAddress(publicKeys[0]);
+    if (!wallet) {
+      const err = 'Wallet not found: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
     }
-    ipfs_res = await uploadFileWalletEncrypted(content, [wallet?.public_key as string], true);
+    const pubkey = wallet.metamask_encrypted_public_key || wallet.public_key;
+    if (!pubkey) {
+      const err = 'Wallet does not have a public key: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    if (wallet.metamask_encrypted_public_key) {
+      ipfs_res = await uploadFileWalletEncrypted(content, [pubkey], true);
+    } else {
+      ipfs_res = await uploadFileRSAEncrypted(content, [pubkey], true);
+    }
+  } else if (encMode === 'metamask') {
+    // get enc pub key from wallet table, here only use if it has a metamask key
+    const db = await getDBInstance();
+    const wallet = await db.getWalletRepo().findWalletByAddress(publicKeys[0]);
+    if (!wallet) {
+      const err = 'Wallet not found: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    const pubkey = wallet.metamask_encrypted_public_key;
+    if (!pubkey) {
+      const err = 'Wallet does not have a metamask public key: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    ipfs_res = await uploadFileWalletEncrypted(content, [pubkey], true);
   } else {
     ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
   }

@@ -204,7 +204,7 @@ if (fetchObjectPath) {
     let encMode = '';
     if (walletAddress) {
       // metamask enc/dec mode
-      encMode = 'metamask';
+      encMode = 'wallet';
     } else {
       // RSA encrypt/decrypt mode
       if (!publicKeys.length && !pretend && !queue) {
@@ -229,14 +229,14 @@ if (fetchObjectPath) {
             const issue_group = group[mode] as GroupedResults;
             for (const issued_from in issue_group) {
               const doc = issue_group[issued_from] as GroupedResult;
-              await process_group(output_array, doc, t, issued_from, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode, mode);
+              await process_group(output_array, doc, t, issued_from, (encMode === 'wallet') ? [walletAddress as string] : publicKeys, encMode, mode);
             }
           }
         } else {
           const issue_group = grouped_by_type[t] as GroupedResults;
           for (const issued_from in issue_group) {
             const doc = issue_group[issued_from] as GroupedResult;
-            await process_group(output_array, doc, t, issued_from, (encMode === 'metamask') ? [walletAddress as string] : publicKeys, encMode);
+            await process_group(output_array, doc, t, issued_from, (encMode === 'wallet') ? [walletAddress as string] : publicKeys, encMode);
           }
         }
       }
