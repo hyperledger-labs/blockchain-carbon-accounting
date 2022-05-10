@@ -149,7 +149,6 @@ if (fetchObjectPath) {
     downloadFileRSAEncrypted(filename, privateKey).then((res) => {
       if (res) {
         // binary works the same as 'utf8' here
-        // TODO: need a way to save the extension so files can be opened
         const dirs = filename.split(sep);
         if (dirs.length > 1) {
           for (let i = 0; i < dirs.length-1; i++) {
@@ -161,12 +160,11 @@ if (fetchObjectPath) {
         console.log(`HASH: ${h.type}:${h.value}`);
         console.log(`File saved: ${filename}`);
       }
-    });  
+    });
   } else if (walletPrivKey) {
     downloadFileWalletEncrypted(filename, walletPrivKey).then((res) => {
       if (res) {
         // binary works the same as 'utf8' here
-        // TODO: need a way to save the extension so files can be opened
         const dirs = filename.split(sep);
         if (dirs.length > 1) {
           for (let i = 0; i < dirs.length-1; i++) {
@@ -178,7 +176,7 @@ if (fetchObjectPath) {
         console.log(`HASH: ${h.type}:${h.value}`);
         console.log(`File saved: ${filename}`);
       }
-    }); 
+    });
   } else {
     throw new Error('No any private key is provided after -rsapk or -walletpk');
   }
