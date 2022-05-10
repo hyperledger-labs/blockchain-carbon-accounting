@@ -874,9 +874,9 @@ export async function process_emissions_requests() {
     console.log('There are no emissions requests to process.');
     return;
   }
-  const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
+  const auditors = await db.getWalletRepo().getAuditorsWithMetamaskPubKey();
   if (!auditors || !auditors.length) {
-    console.log('There are no auditors with public key.');
+    console.log('There are no auditors with encrypted public key.');
     return;
   }
   console.log('Found auditors', auditors.map(w=>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
@@ -885,7 +885,7 @@ export async function process_emissions_requests() {
     const er = emissions_requests[e];
     console.log("Processing emission request: ", er.uuid);
     const auditor = get_random_auditor(auditors);
-    if (!auditor || !auditor.public_key) {
+    if (!auditor || !auditor.metamask_encrypted_public_key) {
       console.log('Cannot select an auditor with public key.');
       return;
     }
@@ -904,7 +904,7 @@ export async function process_emissions_requests() {
       // if we want the original filename use doc.file.name directly but this might be suitable
       // in all cases, we only need the file extension so that it can be opened once downloaded
       const file_ext = extname(doc.file.name);
-      const ipfs_content = await uploadFileWalletEncrypted(data.toString('base64'), auditor.public_key, true, `content${file_ext}`);
+      const ipfs_content = await uploadFileWalletEncrypted(data.toString('base64'), auditor.metamask_encrypted_public_key, true, `content${file_ext}`);
       const h_content = hash_content(data);
       supporting_docs_ipfs_paths.push(ipfs_content.path);
       console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
@@ -919,7 +919,7 @@ export async function process_emissions_requests() {
 
     if (!uploaded) {
       // encode input_content and post it into ipfs
-      const ipfs_content = await uploadFileWalletEncrypted(er.input_content, auditor.public_key, true);
+      const ipfs_content = await uploadFileWalletEncrypted(er.input_content, auditor.metamask_encrypted_public_key, true);
       const h_content = hash_content(er.input_content);
       console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
       manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
@@ -928,8 +928,8 @@ export async function process_emissions_requests() {
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,
       auditor.address,
-      auditor.public_key,
-      auditor.public_key_name,
+      auditor.metamask_encrypted_public_key,
+      undefined,
       JSON.stringify(manifest)
     );
   }

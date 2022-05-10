@@ -316,16 +316,16 @@ describe("Emissions and Tokens requests test", function() {
       name: 'Auditor 1', 
       organization: 'Hardhat Test', 
       public_key_name: 'test', 
-      public_key: TEST_WALLET_ENC_PUB_KEY
+      public_key,
+      metamask_encrypted_public_key: TEST_WALLET_ENC_PUB_KEY
     });
-    // console.log('Checking account auditor2 ', auditor2);
-    // await syncWalletRoles(auditor2, OPTS, {
-    //   name: 'Auditor 2', 
-    //   organization: 'Hardhat Test', 
-    //   public_key_name: 'test', 
-    //   public_key: TEST_WALLET_ENC_PUB_KEY
-    // });
-
+    console.log('Checking account auditor2 ', auditor2);
+    await syncWalletRoles(auditor2, OPTS, {
+      name: 'Auditor 2', 
+      organization: 'Hardhat Test', 
+      public_key_name: 'test', 
+      public_key
+    });
 
     // Generate emissions audit requests from the input.json file. We can add a TEST mode so that the code will
     //  automatically return a fixed emissions for the shipments and flights, instead of requiring Google and UPS

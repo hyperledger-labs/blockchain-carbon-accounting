@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { z } from 'zod'
 import { checkSignedMessage } from '../controller/synchronizer';
 import { handleError, TrpcContext } from './common';
+import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -41,7 +42,7 @@ export const walletRouter = trpc
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const wallets = await ctx.db.getWalletRepo().selectPaginated(input.offset, input.limit, input.bundles);
+            const wallets: Wallet[] = await ctx.db.getWalletRepo().selectPaginated(input.offset, input.limit, input.bundles);
             const count = await ctx.db.getWalletRepo().countWallets(input.bundles);
             return {
                 count, 
@@ -92,6 +93,7 @@ export const walletRouter = trpc
         name: z.string().optional(),
         organization: z.string().optional(),
         public_key: z.string().optional(),
+        metamask_encrypted_public_key: z.string().optional(),
         signature: z.string(),
     }),
     async resolve({ input, ctx }) {

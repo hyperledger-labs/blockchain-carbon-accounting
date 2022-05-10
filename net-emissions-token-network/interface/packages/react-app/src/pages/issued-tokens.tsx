@@ -12,6 +12,7 @@ import {
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
+import { BsFunnel } from 'react-icons/bs';
 import {
   getNumOfUniqueTrackers,
   getRoles,
@@ -78,6 +79,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   const [ balancePageSize, setBalancePageSize ] = useState(20);
   const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
 
+  const [showQueryBuilder, setShowQueryBuilder] = useState(false);
+
   // issue type : default issuedBy
   const onIssudTypeChanged = async (type: string) => {
     issuedType = type;
@@ -113,6 +116,10 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       handleRefresh();
     }
   }));
+
+  function switchQueryBuilder() {
+     setShowQueryBuilder(!showQueryBuilder);
+  }
 
   async function handleRefresh() {
     // clear localStorage
@@ -387,26 +394,29 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
             <h2 style={{display: 'inline'}}>
               Tokens&nbsp;
             </h2>
-              <IssuedTypeSwitch 
-                changed={onIssudTypeChanged}
-                h={(displayAddress? 'them' : 'you')}
-              />
-              &nbsp;
-              <Button 
-                className="mb-3"
-                variant="outline-dark" 
-                href="/issue">
-                Issue
-              </Button> 
+            <IssuedTypeSwitch
+              changed={onIssudTypeChanged}
+              h={(displayAddress? 'them' : 'you')}
+            />
+            &nbsp;
+            <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
+            <Button
+              className="float-end"
+              variant="outline-dark"
+              href="/issue">
+              Issue
+            </Button>
 
             {(emissionsRequestsCount) ?
               <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
               : null
             }
-            <QueryBuilder 
-              fieldList={TOKEN_FIELDS}
-              handleQueryChanged={handleQueryChanged}
-            />
+            <div hidden={!showQueryBuilder}>
+              <QueryBuilder
+                fieldList={TOKEN_FIELDS}
+                handleQueryChanged={handleQueryChanged}
+              />
+            </div>
             <Table hover size="sm">
               <thead>
                 <tr>
