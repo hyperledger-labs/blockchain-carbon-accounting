@@ -723,7 +723,7 @@ export async function issue_tokens(
 
   const h = hash_content(content);
   // save into IPFS
-  
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let ipfs_res: any = {};
   if(encMode === 'metamask') {
     // get enc pub key from wallet table
@@ -751,6 +751,13 @@ export async function issue_tokens(
     issued_from,
     issued_to
   );
+  // note: convert the returned issued_from from a BigInt to a string
+  // eg: "344073830386746567427978432078835137280280269756" becomes "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+  // this is because the contract uses an int16 instead of Address type although they are interchangeable
+  // the int value allows empty (0).
+  if (token_res.issuedFrom) {
+    token_res.issuedFrom = '0x' + BigInt(token_res.issuedFrom).toString(16);
+  }
   doc.token = token_res;
   return token_res;
 }
