@@ -780,7 +780,7 @@ export async function issue_tokens(
       console.log('Issuer does not have encryption public key');
       throw Error("Issuer does not have encryption public key");
     }
-    ipfs_res = await uploadFileWalletEncrypted(content, wallet?.public_key as string, true);
+    ipfs_res = await uploadFileWalletEncrypted(content, [wallet?.public_key as string], true);
   } else {
     ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
   }
@@ -927,9 +927,9 @@ export async function process_emissions_requests() {
     console.log('There are no emissions requests to process.');
     return;
   }
-  const auditors = await db.getWalletRepo().getAuditorsWithMetamaskPubKey();
+  const auditors = await db.getWalletRepo().getAuditorsWithPublicKey();
   if (!auditors || !auditors.length) {
-    console.log('There are no auditors with encrypted public key.');
+    console.log('There are no auditors with public key.');
     return;
   }
   console.log('Found auditors', auditors.map(w=>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
@@ -938,10 +938,13 @@ export async function process_emissions_requests() {
     const er = emissions_requests[e];
     console.log("Processing emission request: ", er.uuid);
     const auditor = get_random_auditor(auditors);
-    if (!auditor || !auditor.metamask_encrypted_public_key) {
+    const pubkey = auditor?.metamask_encrypted_public_key || auditor?.public_key;
+    if (!auditor || !pubkey) {
       console.log('Cannot select an auditor with public key.');
       return;
     }
+    const pubkey_name = auditor.metamask_encrypted_public_key ? 'metamask' : auditor.public_key_name;
+    const encryptFn = auditor.metamask_encrypted_public_key ? uploadFileWalletEncrypted : uploadFileRSAEncrypted;
     console.log('Randomly selected auditor: ', auditor.address);
 
     // only upload one document
@@ -957,11 +960,11 @@ export async function process_emissions_requests() {
       // if we want the original filename use doc.file.name directly but this might be suitable
       // in all cases, we only need the file extension so that it can be opened once downloaded
       const file_ext = extname(doc.file.name);
-      const ipfs_content = await uploadFileWalletEncrypted(data.toString('base64'), auditor.metamask_encrypted_public_key, true, `content${file_ext}`);
+      const ipfs_content = await encryptFn(data, [pubkey], true, `content${file_ext}`);
       const h_content = hash_content(data);
       supporting_docs_ipfs_paths.push(ipfs_content.path);
       console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value);
       // only upload one document
       uploaded = true;
       if (docs.length > 1) {
@@ -972,17 +975,17 @@ export async function process_emissions_requests() {
 
     if (!uploaded) {
       // encode input_content and post it into ipfs
-      const ipfs_content = await uploadFileWalletEncrypted(er.input_content, auditor.metamask_encrypted_public_key, true);
+      const ipfs_content = await encryptFn(er.input_content, [pubkey], true);
       const h_content = hash_content(er.input_content);
       console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value);
     }
 
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,
       auditor.address,
-      auditor.metamask_encrypted_public_key,
-      undefined,
+      pubkey,
+      pubkey_name,
       JSON.stringify(manifest)
     );
   }

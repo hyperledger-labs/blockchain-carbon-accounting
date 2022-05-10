@@ -66,7 +66,7 @@ export async function downloadFileWalletEncrypted(ipfspath: string, pk: string) 
     return content;
 
   } catch (error) {
-    
+    console.error(error);
   }
 }
 
@@ -122,13 +122,17 @@ export async function uploadFileRSAEncrypted(plain_content: string|Buffer, pubke
   }
 }
 
-export async function uploadFileWalletEncrypted(plain_content: string, pubkey: string, pubkeysContent = false, name = 'content.json') {
+export async function uploadFileWalletEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false, name = 'content.json') {
   try {
+    if (!pubkeys || !pubkeys.length) {
+      throw new Error('No public keys provided.');
+    }
+    const txt = plain_content instanceof Buffer ? plain_content.toString('base64') : plain_content;
     const ipfs_client = create({url: process.env.IPFS_URL});
     // console.log(plain_content);
     const content = pubkeysContent ? 
-      await encryptWithEncPublicKey(pubkey, plain_content) : 
-      await encryptWithPublicKey(pubkey, plain_content);
+      await encryptWithEncPublicKey(pubkeys[0], txt) :
+      await encryptWithPublicKey(pubkeys[0], txt);
     const ipfs_res = await ipfs_client.add({
       content,path: `/tmp/${name}`
     });
