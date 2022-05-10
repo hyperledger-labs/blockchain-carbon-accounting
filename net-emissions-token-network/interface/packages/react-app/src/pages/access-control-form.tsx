@@ -12,7 +12,7 @@ import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { Accordion, AccordionContext, Alert, FloatingLabel, OverlayTrigger, Tooltip, useAccordionButton } from "react-bootstrap";
 import { trpc, trpcClient } from "../services/trpc";
 import { TRPCClientError } from "@trpc/client";
@@ -74,7 +74,7 @@ type EthereumType = {
 }
 
 type AccessControlFormProps = {
-  provider?: Web3Provider
+  provider?: Web3Provider | JsonRpcProvider
   signedInAddress: string
   roles: RolesInfo
   limitedMode: boolean 
@@ -227,7 +227,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     await postSignedMessage(message, signature);
   }
 
-  const registerRoleInContract = useCallback(async (provider: Web3Provider, address: string, role: Role) => {
+  const registerRoleInContract = useCallback(async (provider: Web3Provider | JsonRpcProvider, address: string, role: Role) => {
     let result = null;
     switch (role) {
       case RoleEnum.None:
@@ -264,7 +264,7 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     }
   }, [])
 
-  const unregisterRoleInContract = useCallback(async (provider: Web3Provider, address: string, role: Role) => {
+  const unregisterRoleInContract = useCallback(async (provider: Web3Provider | JsonRpcProvider, address: string, role: Role) => {
     let result = null;
 
     switch (role) {
@@ -404,37 +404,37 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
     setModalShow(true);
   }
 
-  async function fetchRegisterConsumer(provider: Web3Provider, address: string) {
+  async function fetchRegisterConsumer(provider: Web3Provider | JsonRpcProvider, address: string) {
     let result = await registerConsumer(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterConsumer(provider: Web3Provider, address: string) {
+  async function fetchUnregisterConsumer(provider: Web3Provider | JsonRpcProvider, address: string) {
     let result = await unregisterConsumer(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchRegisterIndustry(provider: Web3Provider, address: string) {
+  async function fetchRegisterIndustry(provider: Web3Provider | JsonRpcProvider, address: string) {
     let result = await registerIndustry(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterIndustry(provider: Web3Provider, address: string) {
+  async function fetchUnregisterIndustry(provider: Web3Provider | JsonRpcProvider, address: string) {
     let result = await unregisterIndustry(provider, address);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchRegisterDealer(provider: Web3Provider, address: string, tokenTypeId: number) {
+  async function fetchRegisterDealer(provider: Web3Provider | JsonRpcProvider, address: string, tokenTypeId: number) {
     let result = await registerDealer(provider, address, tokenTypeId);
     setResult(result.toString());
     return result;
   }
 
-  async function fetchUnregisterDealer(provider: Web3Provider, address: string, tokenTypeId: number) {
+  async function fetchUnregisterDealer(provider: Web3Provider | JsonRpcProvider, address: string, tokenTypeId: number) {
     let result = await unregisterDealer(provider, address, tokenTypeId);
     setResult(result.toString());
     return result;
@@ -743,4 +743,3 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
 }
 
 export default AccessControlForm;
-

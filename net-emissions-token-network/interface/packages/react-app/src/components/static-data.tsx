@@ -14,9 +14,12 @@ export type Field = {
 export type Wallet = {
   name?: string
   address?: string
+  email?: string
+  password?: string
   organization?: string
   roles?: string
   public_key?: string
+  private_key?: string
   public_key_name?: string
 }
 

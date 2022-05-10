@@ -88,3 +88,60 @@ export async function getNumOfWallets(req: Request, res: Response) {
     }
 }
 
+export async function generateWalletWithCredentials(req: Request, res: Response) {
+    try {
+        const db = await PostgresDBService.getInstance();
+
+        // generate new wallet
+        const newAccount = ethers.Wallet.createRandom();
+        console.log('address ', newAccount.address);
+        console.log('mnemonic: ', newAccount.mnemonic.phrase);
+        console.log('privateKey', newAccount.privateKey);
+
+        const address = newAccount.address;
+        const public_key = newAccount.address;
+        const private_key = newAccount.privateKey;
+        const email = req.body.mailAddress;
+        const password = req.body.password;
+
+        const wallet = await db.getWalletRepo().insertWallet({
+            address,
+            email,
+            password,
+            public_key,
+            private_key
+        });
+
+        return res.status(200).json({
+            status: 'success',
+            wallet,
+        });
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            status: 'failed',
+            error
+        });
+    }
+}
+
+export async function getWalletWithCredentials(req: Request, res: Response) {
+    try {
+        const db = await PostgresDBService.getInstance();
+
+        console.log('getWalletWithCredentials: ', req.body);
+        const wallet = await db.getWalletRepo().findWalletByCredentials(req.body.mailAddress, req.body.password);
+        return res.status(200).json({
+            status: 'success',
+            wallet,
+        });
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            status: 'failed',
+            error
+        });
+    }
+}

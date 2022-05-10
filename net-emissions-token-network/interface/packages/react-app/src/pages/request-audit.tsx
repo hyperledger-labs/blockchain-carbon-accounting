@@ -3,7 +3,7 @@ import { ChangeEvent, FC, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
@@ -13,7 +13,7 @@ import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
 
 type RequestAuditProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   roles: RolesInfo,
   limitedMode: boolean
@@ -697,4 +697,3 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 }
 
 export default RequestAudit;
-

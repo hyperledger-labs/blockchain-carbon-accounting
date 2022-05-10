@@ -18,14 +18,14 @@ import { getBalances, countAuditorEmissionsRequests } from '../services/api.serv
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayTokenAmount from "../components/display-token-amount";
 import Button from 'react-bootstrap/Button';
 import { BsFunnel } from 'react-icons/bs';
 import { Link } from "wouter";
 
 type DashboardProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   displayAddress: string
 }
@@ -92,7 +92,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider, address: string) {
+  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);

@@ -27,13 +27,13 @@ import { getBalances, getTokens, countAuditorEmissionsRequests } from '../servic
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import IssuedTypeSwitch from '../components/issue-type-switch';
 import DisplayTokenAmount from "../components/display-token-amount";
 import { Link } from "wouter";
 
 type IssuedTokensProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   displayAddress: string,
   roles: RolesInfo
@@ -132,7 +132,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider, address: string) {
+  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);
@@ -401,12 +401,14 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
             />
             &nbsp;
             <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
-            <Link href="/issue"><Button
-              className="float-end"
-              variant="outline-dark"
+            <Link href="/issue">
+              <Button
+                className="float-end"
+                variant="outline-dark"
               >
-              Issue
-            </Button></Link>
+                Issue
+              </Button>
+            </Link>
 
             {(emissionsRequestsCount) ?
               <p className="mb-1">You have {emissionsRequestsCount} pending <Link href="/emissionsrequests">emissions audits</Link>.</p>

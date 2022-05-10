@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
@@ -14,9 +14,10 @@ const INFURA_ID = "INVALID_INFURA_KEY";
 const NETWORK_NAME = "mainnet";
 
 function useWeb3Modal(config: any = {}) {
-  const [provider, setProvider] = useState<Web3Provider>();
+  const [provider, setProvider] = useState<Web3Provider|JsonRpcProvider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
+  const [privateKey, setPrivateKey] = useState("");
   const [roles, setRoles] = useState<RolesInfo>({});
   const [registeredTracker, setRegisteredTracker] = useState(false);
   const [limitedMode, setLimitedMode] = useState(true);
@@ -50,6 +51,8 @@ function useWeb3Modal(config: any = {}) {
     setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
+
+
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
@@ -58,6 +61,20 @@ function useWeb3Modal(config: any = {}) {
     },
     [web3Modal],
   );
+
+  // TODO: the JsonRpcProvider should not be hardcoded to localhost!
+  const loadWalletInfo = (public_key:string, private_key:string) => {
+    const web3Provider = new JsonRpcProvider("http://localhost:8545");
+    setProvider(web3Provider);
+    setSignedInAddress(public_key);
+    setPrivateKey(private_key);
+  }
+
+  const logoutOfWalletInfo = () => {
+    setSignedInAddress("");
+    setPrivateKey("");
+    window.location.reload();
+  }
 
   // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
   useEffect(() => {
@@ -68,13 +85,13 @@ function useWeb3Modal(config: any = {}) {
   }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
 
   useEffect(() => {
-    async function fetchRoles(provider: Web3Provider) {
+    async function fetchRoles(provider: Web3Provider | JsonRpcProvider) {
       setRoles(await getRoles(provider, signedInAddress));
     };
-    async function fetchRegisteredTracker(provider: Web3Provider) {
+    async function fetchRegisteredTracker(provider: Web3Provider | JsonRpcProvider) {
       setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
     };
-    async function fetchLimitedMode(provider: Web3Provider) {
+    async function fetchLimitedMode(provider: Web3Provider | JsonRpcProvider) {
       setLimitedMode(await getLimitedMode(provider));
     }
 
@@ -85,8 +102,7 @@ function useWeb3Modal(config: any = {}) {
     }
 
   }, [provider, signedInAddress]);
-
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode};
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode};
 }
 
 export default useWeb3Modal;

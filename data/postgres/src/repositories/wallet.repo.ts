@@ -36,14 +36,14 @@ export class WalletRepo {
     return await this.getRepository().findOneBy({ address })
   }
 
-  public selectWalletByEncPubKey = async (public_key: string) : Promise<Wallet | null> => {
-    return await this.getRepository().findOneBy({public_key})
+  public selectWalletByEncPubKey = async (public_key: string): Promise<Wallet | null> => {
+    return await this.getRepository().findOneBy({ public_key })
   }
 
   public getAuditorsWithPublicKey = async (): Promise<Wallet[]> => {
     return await this.getRepository()
       .createQueryBuilder(ALIAS)
-      .where(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, {role: '%Emission Auditor%'})
+      .where(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, { role: '%Emission Auditor%' })
       .andWhere(`((${ALIAS}.public_key IS NOT NULL AND ${ALIAS}.public_key != '') OR (${ALIAS}.metamask_encrypted_public_key IS NOT NULL AND ${ALIAS}.metamask_encrypted_public_key != ''))`)
       .getMany()
   }
@@ -62,7 +62,7 @@ export class WalletRepo {
       .createQueryBuilder(ALIAS)
       .where(`${ALIAS}.metamask_encrypted_public_key IS NOT NULL`)
       .andWhere(`${ALIAS}.metamask_encrypted_public_key != ''`)
-      .andWhere(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, {role: '%Emission Auditor%'})
+      .andWhere(`LOWER(${ALIAS}.roles) LIKE LOWER(:role)`, { role: '%Emission Auditor%' })
       .getMany();
   }
 
@@ -94,6 +94,18 @@ export class WalletRepo {
     return await this.getRepository().save({
       ...payload,
     })
+  }
+
+  /**
+   * Login a user Wallet.
+   * @param email
+   * @param password
+   * @returns Wallet
+   */
+  public findWalletByCredentials = async (email: string, password: string): Promise<Wallet | null> => {
+    console.log('findWalletByCredentials: ', email, password);
+    return await this.getRepository()
+      .findOneBy({ email, password });
   }
 
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {
@@ -186,5 +198,3 @@ export class WalletRepo {
     await this.getRepository().update({}, { roles: '' });
   }
 }
-
-

@@ -6,7 +6,7 @@ import Row from 'react-bootstrap/Row';
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import { issue } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
@@ -14,13 +14,14 @@ import type { EmissionsRequest } from "../../../../../../data/postgres/src/model
 import { trpc } from "../services/trpc";
 
 type PendingEmissionsProps = {
-  provider?: Web3Provider,
+  provider?: Web3Provider | JsonRpcProvider,
   signedInAddress: string,
   roles: RolesInfo,
-  uuid: string
+  uuid: string,
+  privateKey: string
 }
 
-const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid }) => {
+const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid, privateKey }) => {
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
 
@@ -88,7 +89,9 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           thru_date,
           selectedPendingEmissions.token_metadata,
           selectedPendingEmissions.token_manifest,
-          selectedPendingEmissions.token_description);
+          selectedPendingEmissions.token_description,
+          privateKey
+          );
 
         console.log("handleIssue", result.toString());
         if (result) {
