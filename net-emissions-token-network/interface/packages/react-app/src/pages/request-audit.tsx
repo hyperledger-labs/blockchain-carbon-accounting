@@ -255,6 +255,14 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const electricityUSAUtilitiesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAUtilities', {state_province: emForm.state}], {
     enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES' && !!emForm.state,
   })
+  const gasFactorQuery = trpc.useQuery(['emissionsFactors.lookup', {
+    level_1: 'FUELS',
+    level_2: 'GASEOUS FUELS',
+    level_3: 'NATURAL GAS',
+    activity_uom: 'cubic metres',
+  }], {
+    enabled: emForm.activity_type === 'natural_gas',
+  })
 
   const selectEmissionsFactor = (factor: EmissionsFactorInterface|null) => {
     setEmissionsFactor(factor)
@@ -529,6 +537,10 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'natural_gas' && <>
+            {gasFactorQuery.data && gasFactorQuery.data.emissionsFactors.length && <>
+              <h3>Emissions Factor</h3>
+              <EmissionsFactor emissionsFactor={gasFactorQuery.data.emissionsFactors[0]}/>
+              </>}
             <h3>Consumption Details</h3>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required disabled={!!topSuccess} label={`Volume in Therm`}/>
             </>}

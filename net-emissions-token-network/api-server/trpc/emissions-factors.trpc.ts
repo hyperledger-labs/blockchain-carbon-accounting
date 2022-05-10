@@ -16,7 +16,7 @@ export const emissionsFactorsRouter = trpc
                 emissionsFactors, 
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getLevel1s', error)
         }
     },
 })
@@ -32,7 +32,7 @@ export const emissionsFactorsRouter = trpc
                 emissionsFactors, 
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getLevel2s', error)
         }
     },
 })
@@ -49,7 +49,7 @@ export const emissionsFactorsRouter = trpc
                 emissionsFactors, 
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getLevel3s', error)
         }
     },
 })
@@ -67,7 +67,7 @@ export const emissionsFactorsRouter = trpc
                 emissionsFactors, 
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getLevel4s', error)
         }
     },
 })
@@ -82,7 +82,7 @@ export const emissionsFactorsRouter = trpc
                 countries,
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getElectricityCountries', error)
         }
     },
 })
@@ -94,7 +94,7 @@ export const emissionsFactorsRouter = trpc
                 states,
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getElectricityUSAStates', error)
         }
     },
 })
@@ -109,7 +109,7 @@ export const emissionsFactorsRouter = trpc
                 utilities,
             }
         } catch (error) {
-            handleError('emissionsFactorsRouter.lookup', error)
+            handleError('emissionsFactorsRouter.getElectricityUSAUtilities', error)
         }
     },
 })
@@ -120,6 +120,7 @@ export const emissionsFactorsRouter = trpc
         level_2: z.string().optional(),
         level_3: z.string().optional(),
         level_4: z.string().optional(),
+        activity_uom: z.string().optional(),
         from_year: z.string().optional(),
         thru_year: z.string().optional(),
     }),
