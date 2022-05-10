@@ -316,18 +316,17 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
     console.log("Assuming eea_res_proxies has already been imported...");
     const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
-    const skippedRows = [];
     for (const row of data) {
       // skip empty rows
       if (!row) {
         continue;
       }
 
-      // skip rows that aren't latest year
       const year = row["Year"] || row["date:number"] || row["Date:year"];
-      if (!year || year < 2019) {
+      if (!year) {
         continue;
       }
+      console.log("ROW", row);
 
       // skip total EU
       const country = row["ugeo:text"] || row["Member State:text"] || row["CountryShort"];
@@ -353,13 +352,15 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         co2_equivalent_emissions: emissions,
         co2_equivalent_emissions_uom: "g",
         source: opts.source || opts.file,
+        activity_uom: 'kWH'
       };
 
       // find previous record to update
-      const factors = await db.getEmissionsFactors({
+      const factors = await db.getEmissionsFactorsSimple({
+        level_1: "EEA EMISSIONS FACTORS",
         division_id: countryLong,
         division_type: 'Country',
-        year
+        year: "" + year
       })
       if (factors && factors.length > 0) {
         const factor = factors[0];
@@ -367,25 +368,45 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
           factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
           factor.source = d.source;
-          factor.activity_uom = "kWH";
+          factor.activity_uom = d.activity_uom;
 
           await db.putEmissionFactor(factor);
-          console.log('updated factor', factor)
           progressBar.increment();
+          console.log('Updated factor ', factor.level_2,factor.year);
         } else {
           console.log("Could not find imported factor");
         }
       } else {
-        skippedRows.push(`${countryLong}, ${row["Date:year"]}`)
+        // import it
+        const factor: EmissionsFactorInterface = {
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          uuid: d.uuid,
+          type: d.type,
+          level_1: "EEA EMISSIONS FACTORS",
+          level_2: countryLong,
+          level_3: `COUNTRY: ${countryLong}`,
+          scope: "SCOPE 2",
+          year: "" + year,
+          country: countryLong,
+          division_type: "Country",
+          division_id: countryLong,
+          division_name: countryLong,
+          net_generation: "",
+          net_generation_uom: "",
+          co2_equivalent_emissions: d.co2_equivalent_emissions,
+          co2_equivalent_emissions_uom: d.co2_equivalent_emissions_uom,
+          activity_uom: d.activity_uom,
+          source: d.source,
+          non_renewables: "",
+          renewables: "",
+          percent_of_renewables: "",
+        };
+        await db.putEmissionFactor(factor);
+        console.log('--- IMPORTED factor ', factor.level_2,factor.year);
+        progressBar.increment();
       }
     }
     progressBar.stop();
-    if (skippedRows.length) {
-      console.log("Could not find factors to update:");
-      for (const i in skippedRows) {
-        console.log(skippedRows[i])
-      }
-    }
     return;
   } else if (opts.format === "conversion-factors-uk") {
     console.log("Import conversion-factors-uk data, year: ", opts.year);

@@ -239,6 +239,14 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
       .getMany()
   }
 
+  /** Does a simple query matching all the give fields. */
+  public getEmissionsFactorsSimple = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
+
+    return await this._db.getRepository(EmissionsFactor)
+      .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
+  }
+
+  /** Like getEmissionsFactorsSimple but falls back to the last year of data. */
   public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
 
     let factors = await this._db.getRepository(EmissionsFactor)
@@ -264,7 +272,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     }
     return factors
   }
-  
+
   public getEmissionsFactorByScope = async (scope: string): Promise<EmissionsFactorInterface[]> => {
     return this.getEmissionsFactors({scope})
   }
