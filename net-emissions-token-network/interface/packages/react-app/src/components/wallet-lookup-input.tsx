@@ -61,7 +61,8 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
   const lookupQuery = trpc.useQuery(['wallet.lookup', {query: searchText}], {
     enabled: !!searchText && searchText.length > 0,
     onSettled: (data, error) => {
-      console.log('lookup query settled with', data, error)
+      //console.log('lookup query settled with', data, error)
+      //console.log('searchText', searchText)
       if (data?.wallets) {
         setOptions([...data.wallets])
         onWalletsFetched(data.wallets, searchText)
@@ -71,7 +72,9 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     }
   })
 
-  return <Autocomplete 
+
+
+  return <Autocomplete
     freeSolo
     selectOnFocus
     open={isOpen}
@@ -79,11 +82,11 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     options={options}
     loading={lookupQuery.isLoading}
     sx={{ backgroundColor: 'white', flex: '1 1 auto', width: '1%', minWidth: 0, ...sx }}
-    renderInput={(params) => 
+    renderInput={(params) =>
       <TextField {...params} label="Enter Address (0x0000...) or Name" />
     }
     getOptionLabel={(option) => (typeof option === 'string') ? option : option.address!}
-    filterOptions={(x) => x} 
+    filterOptions={(x) => x}
     value={value}
     onChange={(_, newValue) => {
       setOptions(newValue && options.indexOf(newValue) === -1 ? [newValue, ...options] : options);
@@ -108,9 +111,8 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
     style={style}
     classes={classes}
     renderOption={(props, option) => {
-      const name = (typeof option === 'string') ? null : option.name 
-      const addr = (typeof option === 'string') ? option : option.address
-
+      const name = (typeof option === 'string') ? null : option.name
+      const addr = (typeof option === 'string') ? option : "0x.." + option.address?.slice(option.address.length-6)
       return (
         <li {...props}>
           {name && <b className="pe-2">{name}</b>}
@@ -143,4 +145,3 @@ function useDebounce<T>(value: T, delay: number) {
 }
 
 export default forwardRef(WalletLookupInput);
-
