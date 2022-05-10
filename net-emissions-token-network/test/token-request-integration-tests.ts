@@ -11,7 +11,7 @@ import type { GroupedResult, GroupedResults } from 'supply-chain-lib/src/emissio
 import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import { get_gclient } from 'supply-chain-lib/src/distance-utils';
 import { get_ups_client } from 'supply-chain-lib/src/ups-utils';
-import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { downloadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import type { ActivityEmissionsFactorLookup } from 'blockchain-accounting-data-postgres/src/models/activityEmissionsFactorLookup';
 import type { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor';
@@ -136,6 +136,7 @@ describe("Emissions and Tokens requests test", function() {
                   text: '123 km',
                   value: 123000
                 },
+                // eslint-disable-next-line
                 // @ts-ignore
                 status: 'OK'
               }
@@ -144,8 +145,9 @@ describe("Emissions and Tokens requests test", function() {
         ]
       }
     });
+    // eslint-disable-next-line
     // @ts-ignore
-    sinon.stub(gclient, 'geocode').callsFake((args: any)=>{
+    sinon.stub(gclient, 'geocode').callsFake((args: any)=>{ //eslint-disable-line @typescript-eslint/no-explicit-any
       const { lat, lng } = args?.params?.address?.indexOf('Paris') > -1 ?
         { lat: 48.856, lng: 2.352 } :
         { lat: 1*(geoCount++), lng: 2*(geoCount++) };
@@ -342,15 +344,15 @@ describe("Emissions and Tokens requests test", function() {
     // only two should have errors
     for (const a of process_result) {
       const activity = a.activity;
-      if (activity.id === '2' || activity.id === '4') {
+      if (activity.id === '4') {
         expect(a.error).to.exist;
       } else {
         expect(a.error).to.not.exist;
       }
     }
-    expect(process_result.filter(x => x.error)).to.have.lengthOf(2);
+    expect(process_result.filter(x => x.error)).to.have.lengthOf(1);
 
-    const grouped_by_type = group_processed_activities(process_result);
+    const grouped_by_type = await group_processed_activities(process_result);
     // check the result has groups for each input activity type
     expect(grouped_by_type).to.have.property('shipment');
     expect(grouped_by_type).to.have.property('flight');
@@ -360,14 +362,20 @@ describe("Emissions and Tokens requests test", function() {
       if (t === 'shipment') {
         const group = grouped_by_type[t] as GroupedResults;
         for (const mode in group) {
-          const doc = group[mode] as GroupedResult;
-          const token_res = await queue_issue_tokens(doc, t, mode, undefined, consumer1);
-          expect(token_res).to.have.property('tokenId').that.is.a('string').equal('queued');
+          const issue_group = group[mode] as GroupedResults;
+          for (const issued_from in issue_group) {
+            const doc = issue_group[issued_from] as GroupedResult;
+            const token_res = await queue_issue_tokens(doc, t, mode, undefined, consumer1);
+            expect(token_res).to.have.property('tokenId').that.is.a('string').equal('queued');
+          }
         }
       } else {
-        const doc = grouped_by_type[t] as GroupedResult;
-        const token_res = await queue_issue_tokens(doc, t, undefined, undefined, consumer1);
-        expect(token_res).to.have.property('tokenId').that.is.a('string').equal('queued');
+        const issue_group = grouped_by_type[t] as GroupedResults;
+        for (const issued_from in issue_group) {
+          const doc = issue_group[issued_from] as GroupedResult;
+          const token_res = await queue_issue_tokens(doc, t, undefined, undefined, consumer1);
+          expect(token_res).to.have.property('tokenId').that.is.a('string').equal('queued');
+        }
       }
     }
     // DB should have 3 audit requests (one per processed group)
