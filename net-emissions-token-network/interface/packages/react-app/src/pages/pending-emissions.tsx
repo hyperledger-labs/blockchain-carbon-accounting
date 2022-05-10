@@ -11,6 +11,7 @@ import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
+import { trpc } from "../services/trpc";
 
 type PendingEmissionsProps = {
   provider?: Web3Provider,
@@ -41,6 +42,14 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
       setError("Empty current pending emission request.");
     }
   }
+
+  const issueFromQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_from || ''}], {
+    enabled: !!selectedPendingEmissions?.issued_from,
+  });
+  const issueToQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_to || ''}], {
+    enabled: !!selectedPendingEmissions?.issued_to,
+  });
+
 
   async function handleIssue() {
     if (provider && selectedPendingEmissions && selectedPendingEmissions.uuid) {
@@ -147,11 +156,21 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         <tbody>
           <tr>
             <td>Issued From</td>
-            <td className="text-monospace">{selectedPendingEmissions.issued_from}</td>
+            <td className="text-monospace">
+              {selectedPendingEmissions.issued_from}
+              <div>
+                {issueFromQuery.data?.wallet?.name}
+              </div>
+            </td>
           </tr>
           <tr>
             <td>Issued To</td>
-            <td className="text-monospace">{selectedPendingEmissions.issued_to}</td>
+            <td className="text-monospace">
+              {selectedPendingEmissions.issued_to}
+              <div>
+                {issueToQuery.data?.wallet?.name}
+              </div>
+            </td>
           </tr>
           <tr>
             <td>From date</td>
