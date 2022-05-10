@@ -20,7 +20,7 @@
     "@ethersproject/contracts": "^5.6.0",
     "@ethersproject/providers": "^5.6.5",
     "@metamask/eth-sig-util": "^4.0.1",
-    "@mui/material": "^5.6.3",
+    "@mui/material": "^5.6.4",
     "@project/contracts": "^1.0.0",
     "@testing-library/dom": "^8.13.0",
     "@testing-library/jest-dom": "^5.16.4",
@@ -43,7 +43,7 @@
     "react-dom": "17.0.2",
     "react-google-places-autocomplete": "^3.3.4",
     "react-icons": "^4.3.1",
-    "react-query": "^3.38.0",
+    "react-query": "^3.39.0",
     "react-scripts": "^5.0.1",
     "styled-components": "^5.3.5",
     "web3modal": "^1.9.7",
@@ -60,8 +60,8 @@
     "test": "react-app-rewired test"
   },
   "devDependencies": {
-    "@types/jest": "^27.4.1",
-    "@types/node": "^17.0.29",
+    "@types/jest": "^27.5.0",
+    "@types/node": "^17.0.31",
     "@types/react": "^17.0.44",
     "@types/react-bootstrap": "^0.32.29",
     "@types/react-copy-to-clipboard": "^5.0.2",
