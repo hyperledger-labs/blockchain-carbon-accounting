@@ -1,0 +1,146 @@
+CountryShort ,CountryLong,Year,ValueNumeric ,Unit ,Market_Sector,Data_source 
+BE,Belgium,2018,0.093109472,%,Total,EEA
+BG,Bulgaria,2018,0.1872275,%,Total,EEA
+CZ,Czech Republic,2018,0.149345751,%,Total,EEA
+DK,Denmark,2018,0.364202331,%,Total,EEA
+DE,Germany,2018,0.165837708,%,Total,EEA
+EE,Estonia,2018,0.28067502,%,Total,EEA
+IE,Ireland,2018,0.110388719,%,Total,EEA
+EL,Greece,2018,0.170257428,%,Total,EEA
+ES,Spain,2018,0.177725995,%,Total,EEA
+FR,France,2018,0.168159126,%,Total,EEA
+HR,Croatia,2018,0.277005024,%,Total,EEA
+IT,Italy,2018,0.176026207,%,Total,EEA
+CY,Cyprus,2018,0.099349842,%,Total,EEA
+LV,Latvia,2018,0.401951761,%,Total,EEA
+LT,Lithuania,2018,0.242709031,%,Total,EEA
+LU,Luxembourg,2018,0.088720532,%,Total,EEA
+HU,Hungary,2018,0.136882505,%,Total,EEA
+MT,Malta,2018,0.074736523,%,Total,EEA
+NL,Netherlands,2018,0.069871044,%,Total,EEA
+AT,Austria,2018,0.328605361,%,Total,EEA
+PL,Poland,2018,0.109347977,%,Total,EEA
+PT,Portugal,2018,0.27926975,%,Total,EEA
+RO,Romania,2018,0.248149432,%,Total,EEA
+SI,Slovenia,2018,0.218568925,%,Total,EEA
+SK,Slovakia,2018,0.116846916,%,Total,EEA
+FI,Finland,2018,0.417474695,%,Total,EEA
+SE,Sweden,2018,0.569796403,%,Total,EEA
+UK,United Kingdom,2018,0.110869725,%,Total,EEA
+EU-28,EU-28,2018,0.180432698,%,Total,EEA
+BE,Belgium,2018,0.068376813,%,Transport,EEA
+BG,Bulgaria,2018,0.079942588,%,Transport,EEA
+CZ,Czech Republic,2018,0.067540615,%,Transport,EEA
+DK,Denmark,2018,0.052269951,%,Transport,EEA
+DE,Germany,2018,0.079063067,%,Transport,EEA
+EE,Estonia,2018,0.003922389,%,Transport,EEA
+IE,Ireland,2018,0.07164011,%,Transport,EEA
+EL,Greece,2018,0.040556029,%,Transport,EEA
+ES,Spain,2018,0.070793333,%,Transport,EEA
+FR,France,2018,0.092202274,%,Transport,EEA
+HR,Croatia,2018,0.011488428,%,Transport,EEA
+IT,Italy,2018,0.066969565,%,Transport,EEA
+CY,Cyprus,2018,0.024996522,%,Transport,EEA
+LV,Latvia,2018,0.050849832,%,Transport,EEA
+LT,Lithuania,2018,0.043087677,%,Transport,EEA
+LU,Luxembourg,2018,0.063214287,%,Transport,EEA
+HU,Hungary,2018,0.083901958,%,Transport,EEA
+MT,Malta,2018,0.060830504,%,Transport,EEA
+NL,Netherlands,2018,0.067508497,%,Transport,EEA
+AT,Austria,2018,0.100804734,%,Transport,EEA
+PL,Poland,2018,0.035689404,%,Transport,EEA
+PT,Portugal,2018,0.074930759,%,Transport,EEA
+RO,Romania,2018,0.076050564,%,Transport,EEA
+SI,Slovenia,2018,0.031341975,%,Transport,EEA
+SK,Slovakia,2018,0.079225606,%,Transport,EEA
+FI,Finland,2018,0.172949817,%,Transport,EEA
+SE,Sweden,2018,0.450841156,%,Transport,EEA
+UK,United Kingdom,2018,0.049239723,%,Transport,EEA
+EU-28,EU-28,2018,0.081019239,%,Transport,EEA
+BE,Belgium,2018,0.181606291,%,Electricity,EEA
+BG,Bulgaria,2018,0.200469464,%,Electricity,EEA
+CZ,Czech Republic,2018,0.138698462,%,Electricity,EEA
+DK,Denmark,2018,0.629843478,%,Electricity,EEA
+DE,Germany,2018,0.378324312,%,Electricity,EEA
+EE,Estonia,2018,0.175906751,%,Electricity,EEA
+IE,Ireland,2018,0.331837236,%,Electricity,EEA
+EL,Greece,2018,0.262398881,%,Electricity,EEA
+ES,Spain,2018,0.355512222,%,Electricity,EEA
+FR,France,2018,0.210464776,%,Electricity,EEA
+HR,Croatia,2018,0.481525082,%,Electricity,EEA
+IT,Italy,2018,0.324349023,%,Electricity,EEA
+CY,Cyprus,2018,0.091991685,%,Electricity,EEA
+LV,Latvia,2018,0.539216873,%,Electricity,EEA
+LT,Lithuania,2018,0.18441779,%,Electricity,EEA
+LU,Luxembourg,2018,0.078677549,%,Electricity,EEA
+HU,Hungary,2018,0.083108336,%,Electricity,EEA
+MT,Malta,2018,0.076606761,%,Electricity,EEA
+NL,Netherlands,2018,0.149039475,%,Electricity,EEA
+AT,Austria,2018,0.773440907,%,Electricity,EEA
+PL,Poland,2018,0.139135151,%,Electricity,EEA
+PT,Portugal,2018,0.529774197,%,Electricity,EEA
+RO,Romania,2018,0.423748508,%,Electricity,EEA
+SI,Slovenia,2018,0.329104386,%,Electricity,EEA
+SK,Slovakia,2018,0.244831888,%,Electricity,EEA
+FI,Finland,2018,0.360898239,%,Electricity,EEA
+SE,Sweden,2018,0.686801537,%,Electricity,EEA
+UK,United Kingdom,2018,0.312448794,%,Electricity,EEA
+EU-28,EU-28,2018,0.320985885,%,Electricity,EEA
+BE,Belgium,2018,0.080619995,%,Heating and Cooling,EEA
+BG,Bulgaria,2018,0.300217137,%,Heating and Cooling,EEA
+CZ,Czech Republic,2018,0.199873327,%,Heating and Cooling,EEA
+DK,Denmark,2018,0.480200796,%,Heating and Cooling,EEA
+DE,Germany,2018,0.138523614,%,Heating and Cooling,EEA
+EE,Estonia,2018,0.517920165,%,Heating and Cooling,EEA
+IE,Ireland,2018,0.064530502,%,Heating and Cooling,EEA
+EL,Greece,2018,0.27151273,%,Heating and Cooling,EEA
+ES,Spain,2018,0.183475349,%,Heating and Cooling,EEA
+FR,France,2018,0.219742131,%,Heating and Cooling,EEA
+HR,Croatia,2018,0.368755067,%,Heating and Cooling,EEA
+IT,Italy,2018,0.19408377,%,Heating and Cooling,EEA
+CY,Cyprus,2018,0.246035216,%,Heating and Cooling,EEA
+LV,Latvia,2018,0.56190557,%,Heating and Cooling,EEA
+LT,Lithuania,2018,0.451703903,%,Heating and Cooling,EEA
+LU,Luxembourg,2018,0.086462244,%,Heating and Cooling,EEA
+HU,Hungary,2018,0.198446242,%,Heating and Cooling,EEA
+MT,Malta,2018,0.199427646,%,Heating and Cooling,EEA
+NL,Netherlands,2018,0.060121426,%,Heating and Cooling,EEA
+AT,Austria,2018,0.31852202,%,Heating and Cooling,EEA
+PL,Poland,2018,0.146096,%,Heating and Cooling,EEA
+PT,Portugal,2018,0.348223237,%,Heating and Cooling,EEA
+RO,Romania,2018,0.265606484,%,Heating and Cooling,EEA
+SI,Slovenia,2018,0.33366113,%,Heating and Cooling,EEA
+SK,Slovakia,2018,0.098406416,%,Heating and Cooling,EEA
+FI,Finland,2018,0.553170056,%,Heating and Cooling,EEA
+SE,Sweden,2018,0.694664992,%,Heating and Cooling,EEA
+UK,United Kingdom,2018,0.080736364,%,Heating and Cooling,EEA
+EU-28,EU-28,2018,0.198197187,%,Heating and Cooling,EEA
+BE,Belgium,2018,36761.71443,ktoe,GFEC,EEA
+BG,Bulgaria,2018,11283.91228,ktoe,GFEC,EEA
+CZ,Czech Republic,2018,27391.15683,ktoe,GFEC,EEA
+DK,Denmark,2018,15754.38584,ktoe,GFEC,EEA
+DE,Germany,2018,221390.147,ktoe,GFEC,EEA
+EE,Estonia,2018,3254.525586,ktoe,GFEC,EEA
+IE,Ireland,2018,12121.44071,ktoe,GFEC,EEA
+EL,Greece,2018,17604.4634,ktoe,GFEC,EEA
+ES,Spain,2018,88722.92538,ktoe,GFEC,EEA
+FR,France,2018,156387.0588,ktoe,GFEC,EEA
+HR,Croatia,2018,7228.086499,ktoe,GFEC,EEA
+IT,Italy,2018,120012.1487,ktoe,GFEC,EEA
+CY,Cyprus,2018,1673.860434,ktoe,GFEC,EEA
+LV,Latvia,2018,4260.624278,ktoe,GFEC,EEA
+LT,Lithuania,2018,5757.425806,ktoe,GFEC,EEA
+LU,Luxembourg,2018,4049.890074,ktoe,GFEC,EEA
+HU,Hungary,2018,19647.9763,ktoe,GFEC,EEA
+MT,Malta,2018,537.8148833,ktoe,GFEC,EEA
+NL,Netherlands,2018,50481.29919,ktoe,GFEC,EEA
+AT,Austria,2018,29599.52134,ktoe,GFEC,EEA
+PL,Poland,2018,74950.98583,ktoe,GFEC,EEA
+PT,Portugal,2018,16733.97545,ktoe,GFEC,EEA
+RO,Romania,2018,24883.89463,ktoe,GFEC,EEA
+SI,Slovenia,2018,5011.554149,ktoe,GFEC,EEA
+SK,Slovakia,2018,11795.47374,ktoe,GFEC,EEA
+FI,Finland,2018,26452.69202,ktoe,GFEC,EEA
+SE,Sweden,2018,35560.28264,ktoe,GFEC,EEA
+UK,United Kingdom,2018,130808.9776,ktoe,GFEC,EEA
+EU-28,EU-28,2018,1160118.214,ktoe,GFEC,EEA
