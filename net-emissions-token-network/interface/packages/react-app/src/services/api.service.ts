@@ -107,7 +107,7 @@ export const postSignedMessage = async (message: string, signature: string) => {
         if(data.status === 'success') return data.wallet;
         else return null;
     } catch(error){
-        throw new Error(handleError(error, "Cannot Sign Up this user"))
+        throw new Error(handleError(error, "Failed to Sign Up"))
     }
 }
 

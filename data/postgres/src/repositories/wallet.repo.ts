@@ -103,9 +103,13 @@ export class WalletRepo {
    * @returns Wallet
    */
   public findWalletByCredentials = async (email: string, password: string): Promise<Wallet | null> => {
-    console.log('findWalletByCredentials: ', email, password);
     return await this.getRepository()
       .findOneBy({ email, password });
+  }
+
+  public findWalletByEmail = async (email: string): Promise<Wallet | null> => {
+    return await this.getRepository()
+      .findOneBy({ email });
   }
 
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {

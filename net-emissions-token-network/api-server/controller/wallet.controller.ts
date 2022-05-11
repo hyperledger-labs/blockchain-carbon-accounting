@@ -92,6 +92,14 @@ export async function generateWalletWithCredentials(req: Request, res: Response)
     try {
         const db = await PostgresDBService.getInstance();
 
+        // check that a wallet with this email does not already exist
+        const w = await db.getWalletRepo().findWalletByEmail(req.body.mailAddress);
+        if (w) {
+            return res.status(500).json({
+                status: 'failed',
+                error: 'Wallet already exists, try signing in instead'
+            });
+        }
         // generate new wallet
         const newAccount = ethers.Wallet.createRandom();
         console.log('address ', newAccount.address);
@@ -129,8 +137,6 @@ export async function generateWalletWithCredentials(req: Request, res: Response)
 export async function getWalletWithCredentials(req: Request, res: Response) {
     try {
         const db = await PostgresDBService.getInstance();
-
-        console.log('getWalletWithCredentials: ', req.body);
         const wallet = await db.getWalletRepo().findWalletByCredentials(req.body.mailAddress, req.body.password);
         return res.status(200).json({
             status: 'success',

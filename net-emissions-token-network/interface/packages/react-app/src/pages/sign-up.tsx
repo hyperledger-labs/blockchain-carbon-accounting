@@ -26,22 +26,28 @@ const SignUp: FC<SignUpProps> = ({ loadWalletInfo }) => {
 
   function handleSignUp() {
     fetchSignUp();
-    setModalShow(true);
   }
 
   async function fetchSignUp() {
-    const rslt = await signUpUser(mailAddress, password);
-    if (rslt) {
-      //wallet connect
-      console.log('rslt for api call-signup', rslt);
-      if (rslt.address && rslt.private_key) {
-        loadWalletInfo(rslt.address, rslt.private_key);
-        setLocation('/dashboard');
+    try {
+      const rslt = await signUpUser(mailAddress, password);
+      if (rslt) {
+        //wallet connect
+        console.log('rslt for api call-signup', rslt);
+        if (rslt.address && rslt.private_key) {
+          loadWalletInfo(rslt.address, rslt.private_key);
+          setLocation('/dashboard');
+        }
+        setModalShow(true);
+        setResult("Unexpected error: No wallet info returned from API");
+      } else {
+        setModalShow(true);
+        setResult("Failed to register your wallet");
       }
-      setModalShow(true);
-      setResult("Unexpected error: No wallet info returned from API");
-    } else {
-      setResult("Failed to register your wallet");
+    } catch (err) {
+      console.error(err);
+        setModalShow(true);
+        setResult("" + ((err instanceof Error) ? err.message : err));
     }
   }
 
