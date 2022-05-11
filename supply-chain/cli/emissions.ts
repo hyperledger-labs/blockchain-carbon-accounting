@@ -144,7 +144,7 @@ async function process_group(output_array: OutputActivity[], g: GroupedResult, a
 // check if we are fetching an object from ipfs
 if (fetchObjectPath) {
   // if also given tracking numbers, error out
-  const filename = fetchObjectPath
+  const filename = fetchObjectPath.startsWith('ipfs://') ? fetchObjectPath.substring(7) : fetchObjectPath;
   if (privateKey) {
     downloadFileRSAEncrypted(filename, privateKey).then((res) => {
       if (res) {
