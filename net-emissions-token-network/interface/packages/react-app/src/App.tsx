@@ -133,7 +133,7 @@ const App:FC = () => {
                   <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
                 </Route>
                 <Route path="/sign-up">
-                  <SignUp></SignUp>
+                  <SignUp loadWalletInfo={loadWalletInfo}></SignUp>
                 </Route>
                 <Route path="/sign-in">
                   <SignIn loadWalletInfo={loadWalletInfo} />

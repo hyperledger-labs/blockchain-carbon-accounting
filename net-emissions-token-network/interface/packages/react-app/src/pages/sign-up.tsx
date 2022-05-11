@@ -1,13 +1,17 @@
-import { useState, ChangeEventHandler } from "react";
-import { Link } from "wouter"
+import { FC, useState, ChangeEventHandler } from "react";
+import { Link, useLocation } from "wouter"
 import { Form, Button } from "react-bootstrap";
 
 import SubmissionModal from "../components/submission-modal";
 import { signUpUser } from "../services/api.service";
 
-function SignUp() {
+type SignUpProps = {
+  loadWalletInfo: (publick_key: string, private_key: string) => void
+}
+const SignUp: FC<SignUpProps> = ({ loadWalletInfo }) => {
 
   const [modalShow, setModalShow] = useState(false);
+  const [, setLocation] = useLocation();
 
   const [mailAddress, setMailAddress] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -30,7 +34,12 @@ function SignUp() {
     if (rslt) {
       //wallet connect
       console.log('rslt for api call-signup', rslt);
-      setResult("Successfully registered your wallet");
+      if (rslt.address && rslt.private_key) {
+        loadWalletInfo(rslt.address, rslt.private_key);
+        setLocation('/dashboard');
+      }
+      setModalShow(true);
+      setResult("Unexpected error: No wallet info returned from API");
     } else {
       setResult("Failed to register your wallet");
     }
@@ -51,31 +60,37 @@ function SignUp() {
     <div className="d-flex justify-content-start flex-column align-items-left">
       <h2>Sign Up</h2>
       <p>Enter your email and password, then your wallet is generated</p>
-      <Form.Group className="mb-3" controlId="quantityInput">
-        <Form.Label>Email</Form.Label>
-        <Form.Control
-          type="input"
-          placeholder="Joe@gmail.com"
-          value={mailAddress}
-          onChange={onEmailChange}
-          onBlur={() => setInitializedMailInput(true)}
-          style={(mailAddress || !initializedMailInput) ? {} : inputError}
-        />
-      </Form.Group>
-      <Form.Group className="mb-3" controlId="quantityInput">
-        <Form.Label>Password</Form.Label>
-        <Form.Control
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={onPasswordChange}
-          onBlur={() => setInitializedPasswordInput(true)}
-          style={(password || !initializedPasswordInput) ? {} : inputError}
-        />
-      </Form.Group>
+      <Form onSubmit={(e)=>{
+        e.preventDefault()
+        e.stopPropagation()
+        handleSignUp()
+      }}>
+        <Form.Group className="mb-3" controlId="quantityInput">
+          <Form.Label>Email</Form.Label>
+          <Form.Control
+            type="email"
+            placeholder="Joe@gmail.com"
+            value={mailAddress}
+            onChange={onEmailChange}
+            onBlur={() => setInitializedMailInput(true)}
+            style={(mailAddress || !initializedMailInput) ? {} : inputError}
+            />
+        </Form.Group>
+        <Form.Group className="mb-3" controlId="quantityInput">
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={onPasswordChange}
+            onBlur={() => setInitializedPasswordInput(true)}
+            style={(password || !initializedPasswordInput) ? {} : inputError}
+            />
+        </Form.Group>
 
-      <Button className="w-100 mb-3" variant="success" size="lg" onClick={handleSignUp}>Sign Up</Button>
-      <p>If you already have an account, you can sign in here <Link href="/sign-in">SignIn</Link></p>
+        <Button type="submit" className="w-100 mb-3" variant="success" size="lg">Sign Up</Button>
+        <p>If you already have an account, you can sign in here <Link href="/sign-in">SignIn</Link></p>
+      </Form>
 
     </div>
   </>)
