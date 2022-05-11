@@ -267,6 +267,15 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     activity_uom: 'mwh',
     from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
     thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+    // this needs a fallback query when no state factors are found
+    fallback: {
+      level_1: 'eGRID EMISSIONS FACTORS',
+      level_2: 'USA',
+      level_3: 'COUNTRY: USA',
+      activity_uom: 'mwh',
+      from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+      thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+    }
   } : {
     level_1: 'EEA EMISSIONS FACTORS',
     level_2: emForm.country,

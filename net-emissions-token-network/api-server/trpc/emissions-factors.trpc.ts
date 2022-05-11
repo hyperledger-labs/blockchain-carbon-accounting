@@ -127,10 +127,21 @@ export const emissionsFactorsRouter = trpc
         activity_uom: z.string().optional(),
         from_year: z.string().optional(),
         thru_year: z.string().optional(),
+        fallback: z.object({
+            scope: z. string().optional(),
+            level_1: z.string(),
+            level_2: z.string().optional(),
+            level_3: z.string().optional(),
+            level_4: z.string().optional(),
+            activity_uom: z.string().optional(),
+            from_year: z.string().optional(),
+            thru_year: z.string().optional(),
+        }).optional(),
     }),
     async resolve({ input, ctx }) {
         try {
-            const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactors(input);
+            const { fallback, ...query} = input;
+            const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactors(query, fallback);
             return {
                 emissionsFactors, 
             }

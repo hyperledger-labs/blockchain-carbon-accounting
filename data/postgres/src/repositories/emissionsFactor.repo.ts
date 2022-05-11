@@ -305,7 +305,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
   }
 
   /** Like getEmissionsFactorsSimple but falls back to the last year of data. */
-  public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
+  public getEmissionsFactors = async (query: Partial<EmissionsFactorInterface>, fallback?: Partial<EmissionsFactorInterface>): Promise<EmissionsFactorInterface[]> => {
 
     let factors = await this._db.getRepository(EmissionsFactor)
       .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
@@ -327,6 +327,10 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
             .find({order: { year: "DESC" }, where: this.makeEmissionFactorMatchWhereCondition(query)})
         }
       }
+    }
+    // if still no results, use the fallback query if given
+    if (factors.length === 0 && fallback) {
+      return await this.getEmissionsFactors(fallback)
     }
     return factors
   }
