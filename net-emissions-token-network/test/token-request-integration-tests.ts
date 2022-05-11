@@ -1,5 +1,5 @@
 import { existsSync, unlinkSync, readFileSync, writeFileSync } from 'fs';
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { v4 as uuidv4 } from 'uuid';
 import sinon from 'sinon';
 import Ctl from 'ipfsd-ctl';
@@ -11,7 +11,7 @@ import type { GroupedResult, GroupedResults } from 'supply-chain-lib/src/emissio
 import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
 import { get_gclient } from 'supply-chain-lib/src/distance-utils';
 import { get_ups_client } from 'supply-chain-lib/src/ups-utils';
-import { downloadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+import { downloadFileRSAEncrypted, downloadFileWalletEncrypted, uploadFileRSAEncrypted, uploadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import type { ActivityEmissionsFactorLookup } from 'blockchain-accounting-data-postgres/src/models/activityEmissionsFactorLookup';
 import type { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor';
@@ -294,16 +294,31 @@ describe("Emissions and Tokens requests test", function() {
 
     // Generate 2 public/private key pairs
     generateKeyPair('tests');
-    writeFileSync('test-wallet-priv.key', TEST_WALLET_PRIVATE_KEY);
+    // the second wallet will use a metamask type key
+    const wallet_private_key_file = 'test-wallet-priv.key';
+    writeFileSync(wallet_private_key_file, TEST_WALLET_PRIVATE_KEY);
     // check they exist
-    expect(existsSync('tests-private.pem')).to.be.true;
-    expect(existsSync('tests-public.pem')).to.be.true;
-    expect(existsSync('test-wallet-priv.key')).to.be.true;
+    const rsa_private_key_file = 'tests-private.pem';
+    const rsa_public_key_file = 'tests-public.pem';
+    expect(existsSync(rsa_private_key_file)).to.be.true;
+    expect(existsSync(rsa_public_key_file)).to.be.true;
+    expect(existsSync(wallet_private_key_file)).to.be.true;
 
-    const public_key = readFileSync('tests-public.pem').toString();
-    const private_key = readFileSync('tests-private.pem').toString();
+    const public_key = readFileSync(rsa_public_key_file).toString();
+    const private_key = readFileSync(rsa_private_key_file).toString();
     expect(public_key).to.be.a('string').and.not.empty;
     expect(private_key).to.be.a('string').and.not.empty;
+
+    // check we can upload and download encrypted content to IPFS using RSA keys
+    const test_content = JSON.stringify({foo: "bar", content: "test content"});
+    const uploaded = await uploadFileRSAEncrypted(test_content, [public_key], true);
+    const downloaded = await downloadFileRSAEncrypted(uploaded.ipfs_path, rsa_private_key_file);
+    expect(downloaded?.toString()).to.equal(test_content);
+
+    // check we can upload and download encrypted content to IPFS using metamask keys
+    const uploaded2 = await uploadFileWalletEncrypted(test_content, [TEST_WALLET_ENC_PUB_KEY], true);
+    const downloaded2 = await downloadFileWalletEncrypted(uploaded2.ipfs_path, wallet_private_key_file);
+    expect(downloaded2?.toString()).to.equal(test_content);
 
     // Store the public keys for the 2 default auditors in hardhat, not the demo ones.
     const { consumer1, dealer2: auditor1, dealer4: auditor2 } = await getNamedAccounts();
@@ -315,17 +330,17 @@ describe("Emissions and Tokens requests test", function() {
     await db.getWalletRepo().clearWalletsRoles();
     console.log('Checking account auditor1 ', auditor1);
     await syncWalletRoles(auditor1, OPTS, {
-      name: 'Auditor 1', 
-      organization: 'Hardhat Test', 
-      public_key_name: 'test', 
+      name: 'Auditor 1',
+      organization: 'Hardhat Test',
+      public_key_name: 'metamask',
       public_key,
       metamask_encrypted_public_key: TEST_WALLET_ENC_PUB_KEY
     });
     console.log('Checking account auditor2 ', auditor2);
     await syncWalletRoles(auditor2, OPTS, {
-      name: 'Auditor 2', 
-      organization: 'Hardhat Test', 
-      public_key_name: 'test', 
+      name: 'Auditor 2',
+      organization: 'Hardhat Test',
+      public_key_name: 'test',
       public_key
     });
 
@@ -397,6 +412,12 @@ describe("Emissions and Tokens requests test", function() {
     for (const request of audit_requests) {
       await issue_emissions_request(request.uuid);
       const token_amount = request.token_total_emissions;
+      // check the request is assigned to an auditor, either auditor1 or auditor2
+      const auditor = request.emission_auditor;
+      expect(auditor).to.be.a('string').that.is.not.empty;
+      expect(auditor).to.be.oneOf([auditor1, auditor2]);
+      // just to make TS infer not undefined
+      if (!auditor) throw new Error('empty auditor');
       const metadata = request.token_metadata;
       expect(metadata).to.be.a('string').that.is.not.empty;
       // just to make TS infer not undefined
@@ -415,12 +436,23 @@ describe("Emissions and Tokens requests test", function() {
       const location = json_manifest['Location'] as string;
       const sha256 = json_manifest['SHA256'] as string;
       const public_key = json_manifest['Public Key'] as string;
-      expect(public_key).to.equal('test');
       // Get the files and decrypt with the private keys
       // Verify the files have the correct sha256
       expect(location).to.be.a('string').and.match(/^ipfs:\/\//);
       const filename = location.substring(7);
-      const content = await downloadFileWalletEncrypted(filename, 'test-wallet-priv.key');
+      const decrypt = async (auditor: string, filename: string) => {
+        if (auditor === auditor1) {
+          expect(public_key).to.equal('metamask');
+          return await downloadFileWalletEncrypted(filename, wallet_private_key_file);
+        } else if (auditor === auditor2) {
+          expect(public_key).to.equal('test');
+          return await downloadFileRSAEncrypted(filename, rsa_private_key_file);
+        } else {
+          assert.fail('unknown auditor');
+        }
+      }
+      // decrypt depends on the wallet address of the auditor
+      const content = await decrypt(auditor, filename);
       // content should not be null
       expect(content).to.not.be.null;
       if (!content) throw new Error('Could not decrypt file? did not get content!');
