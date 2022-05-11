@@ -4,7 +4,7 @@ import { CO2EmissionFactorInterface, getUomFactor } from "emissions_data_chainco
 import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor"
 import { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem"
 import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const"
-import { DataSource, FindOptionsWhere, ILike, MoreThanOrEqual, LessThanOrEqual, Between } from "typeorm"
+import { DataSource, FindOptionsWhere, ILike, MoreThanOrEqual, LessThanOrEqual, Between, SelectQueryBuilder } from "typeorm"
 import { EmissionsFactor } from "../models/emissionsFactor"
 import { UtilityLookupItem } from "../models/utilityLookupItem"
 
@@ -47,6 +47,20 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     return conditions
   }
 
+
+  private addYearConditionsToQueryBuilder = (
+      {from_year, thru_year}:{from_year?: string, thru_year?: string},
+      queryBuilder: SelectQueryBuilder<EmissionsFactor> | SelectQueryBuilder<UtilityLookupItem>
+  ) => {
+    if (from_year && thru_year) {
+      queryBuilder.andWhere("year BETWEEN :from_year AND :thru_year", {from_year, thru_year})
+    } else if (from_year) {
+      queryBuilder.andWhere("year >= :from_year", {from_year})
+    } else if (thru_year) {
+      queryBuilder.andWhere("year <= :thru_year", {thru_year})
+    }
+    return queryBuilder
+  }
 
   public checkActivityAndFactorMatches = (
     activity: Partial<ActivityInterface>,
@@ -205,17 +219,17 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
     return res.map(e=>e.EmissionsFactor_level_4)
   }
-  public getElectricityCountries = async (query: Pick<EmissionsFactorInterface, 'scope'>): Promise<string[]> => {
+  public getElectricityCountries = async (query: Pick<EmissionsFactorInterface, 'scope' | 'from_year' | 'thru_year'>): Promise<string[]> => {
     // we do not want to use WTT, instead will use UNITED STATES and the country from
     // level_1="EEA EMISSIONS FACTORS" -> level 2
-    const res = await this._db.getRepository(EmissionsFactor)
+    const qb = this._db.getRepository(EmissionsFactor)
       .createQueryBuilder()
       .select('EmissionsFactor.level_2')
       .where(query)
       .andWhere({level_1: 'EEA EMISSIONS FACTORS'})
       .distinct(true)
       .orderBy({ level_2: 'ASC' })
-      .getRawMany()
+    const res = await this.addYearConditionsToQueryBuilder(query, qb).getRawMany()
     // comes from the Raw query, note: must use raw to not have uuid per record (distinct values)
     return res.map(e=>e.EmissionsFactor_level_2).concat(['UNITED STATES'])
   }
@@ -230,13 +244,57 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     // comes from the Raw query, note: must use raw to not have uuid per record (distinct level_1)
     return res.map(e=>e.UtilityLookupItem_state_province)
   }
-  public getElectricityUSAUtilities = async (query: Pick<UtilityLookupItem, 'state_province'>): Promise<UtilityLookupItem[]> => {
-    return await this._db.getRepository(UtilityLookupItem)
+  public getElectricityUSAUtilities = async (query: Pick<UtilityLookupItem, 'state_province'> & {from_year?: string, thru_year?: string}): Promise<UtilityLookupItem[]> => {
+    // handle from_year / thru_year
+    // query all the utilities for the state
+    // group entries by utility name
+    // then filter based on the year
+    //   if utility has multiple results, return latest matching entry
+    //   if utility has no matching result, return the latest entry
+    const utilities = await this._db.getRepository(UtilityLookupItem)
       .createQueryBuilder()
       .where({country: 'USA'})
-      .andWhere(query)
-      .orderBy({ utility_name: 'ASC' })
+      .andWhere({state_province: query.state_province})
+      .orderBy({ utility_name: 'ASC', year: 'DESC' })
       .getMany()
+
+    // group utilities by utility name
+    const groupedUtilities = utilities.reduce((acc: Record<string, UtilityLookupItem[]>, utility) => {
+      if (!utility.utility_name) return acc;
+      if (!acc[utility.utility_name]) {
+        acc[utility.utility_name] = []
+      }
+      acc[utility.utility_name].push(utility)
+      return acc
+    }, {});
+
+    // for each group get the utility that matches from_year and thru_year
+    // or if no matches, get the last utility
+    const filteredUtilities = Object.keys(groupedUtilities).map(utilityName => {
+      const utilities = groupedUtilities[utilityName]
+      const filteredUtility = utilities.filter(utility => {
+        if (!utility.year) return true;
+        const fromYear = query.from_year ? parseInt(query.from_year) : 0;
+        const thruYear = query.thru_year ? parseInt(query.thru_year) : 0;
+        const utilityYear = parseInt(utility.year);
+        if (fromYear && thruYear) {
+          return utilityYear >= fromYear && utilityYear <= thruYear
+        } else if (fromYear) {
+          return utilityYear >= fromYear
+        } else if (thruYear) {
+          return utilityYear <= thruYear
+        }
+        return true
+      })
+      // return utility for the most recent year
+      if (filteredUtility.length > 0) {
+        return filteredUtility[0]
+      } else {
+        return utilities[utilities.length - 1]
+      }
+    })
+
+    return filteredUtilities;
   }
 
   /** Does a simple query matching all the give fields. */

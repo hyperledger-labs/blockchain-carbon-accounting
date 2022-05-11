@@ -250,11 +250,36 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     enabled: emForm.activity_type === 'electricity',
   })
   const electricityUSAStatesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAStates'], {
-    enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES',
+    enabled: emForm.activity_type === 'electricity' && emForm.country.toUpperCase() === 'UNITED STATES',
   })
-  const electricityUSAUtilitiesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAUtilities', {state_province: emForm.state}], {
-    enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES' && !!emForm.state,
+  const electricityUSAUtilitiesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAUtilities', {
+    state_province: emForm.state,
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined
+  }], {
+    enabled: emForm.activity_type === 'electricity' && emForm.country.toUpperCase() === 'UNITED STATES' && !!emForm.state,
   })
+
+  const electricityFactorQuery = trpc.useQuery(['emissionsFactors.lookup', emForm.country.toUpperCase() === 'UNITED STATES' ? {
+    level_1: 'eGRID EMISSIONS FACTORS',
+    level_2: 'USA',
+    level_3: 'STATE: ' + emForm.state,
+    activity_uom: 'mwh',
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+  } : {
+    level_1: 'EEA EMISSIONS FACTORS',
+    level_2: emForm.country,
+    level_3:'COUNTRY: ' + emForm.country,
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+  }], {
+    enabled: emForm.activity_type === 'electricity' && !!emForm.country && (
+      emForm.country.toUpperCase() !== 'UNITED STATES'
+      || (!!emForm.state && !!emForm.utility)
+    ),
+  })
+
   const gasFactorQuery = trpc.useQuery(['emissionsFactors.lookup', {
     level_1: 'FUELS',
     level_2: 'GASEOUS FUELS',
@@ -524,14 +549,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'electricity' && <>
+            {!!electricityFactorQuery.data?.emissionsFactors?.length && <>
+              <h3>Emissions Factor</h3>
+              <EmissionsFactor emissionsFactor={electricityFactorQuery.data.emissionsFactors[0]}/>
+              </>}
             <h3>Consumption Details</h3>
             <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required values={electricityCountriesQuery?.data?.countries ?? []} disabled={!!topSuccess} />
             {emForm.country === 'UNITED STATES' && <>
-              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess} />
+              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess}
+                  alsoSet={{
+                    '*': {utility: ''},
+                  }} />
               {emForm.state ?
                 <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="utility" label="Utility" required values={electricityUSAUtilitiesQuery?.data?.utilities?.map(
                   (u) => { return  {label: u.utility_name?.replaceAll('_', ' ') || u.uuid, value: u.uuid} }
-                ) ?? []} disabled={!!topSuccess} />
+                ) ?? []} disabled={!!topSuccess}/>
                 : <div>Select a State</div>
               }
             </>}
@@ -539,7 +571,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'natural_gas' && <>
-            {gasFactorQuery.data && gasFactorQuery.data.emissionsFactors.length && <>
+            {!!gasFactorQuery.data?.emissionsFactors?.length && <>
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={gasFactorQuery.data.emissionsFactors[0]}/>
               </>}

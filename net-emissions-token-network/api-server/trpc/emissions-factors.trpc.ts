@@ -74,6 +74,8 @@ export const emissionsFactorsRouter = trpc
 .query('getElectricityCountries', {
     input: z.object({
         scope: z.string().optional(),
+        from_year: z.string().optional(),
+        thru_year: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
         try {
@@ -101,6 +103,8 @@ export const emissionsFactorsRouter = trpc
 .query('getElectricityUSAUtilities', {
     input: z.object({
         state_province: z.string().optional(),
+        from_year: z.string().optional(),
+        thru_year: z.string().optional(),
     }),
     async resolve({ input, ctx }) {
         try {
