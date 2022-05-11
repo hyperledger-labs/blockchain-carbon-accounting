@@ -99,6 +99,7 @@ export function decodeDate(epoch_in_s?: number) {
  */
 
 export async function getRoles(w3provider: Web3Provider, address: string) {
+  if (!w3provider || !address) return {};
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   try {
     const r = await contract.getRoles(address) as RolesInfo;
@@ -109,7 +110,7 @@ export async function getRoles(w3provider: Web3Provider, address: string) {
     if (roles.isIndustryDealer || roles.isIndustry) roles.hasIndustryRole = true;
     return roles;
   } catch (error) {
-    console.error('getRoles', error);
+    console.error('getRoles', address, error);
     return {}
   }
 }
