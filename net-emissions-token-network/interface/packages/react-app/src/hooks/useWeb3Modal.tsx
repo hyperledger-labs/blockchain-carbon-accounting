@@ -6,6 +6,7 @@ import WalletConnectProvider from "@walletconnect/web3-provider";
 
 import { getRoles, getRegisteredTracker, getLimitedMode } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
+import { RPC_URL } from "../services/api.config";
 
 // Enter a valid infura key here to avoid being rate limited
 // You can get a key for free at https://infura.io/register
@@ -64,7 +65,7 @@ function useWeb3Modal(config: any = {}) {
 
   // TODO: the JsonRpcProvider should not be hardcoded to localhost!
   const loadWalletInfo = (public_key:string, private_key:string) => {
-    const web3Provider = new JsonRpcProvider("http://localhost:8545");
+    const web3Provider = new JsonRpcProvider(RPC_URL);
     setProvider(web3Provider);
     setSignedInAddress(public_key);
     setPrivateKey(private_key);

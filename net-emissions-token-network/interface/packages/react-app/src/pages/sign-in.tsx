@@ -33,11 +33,11 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
     if (rslt) {
       //wallet connect
       console.log('rslt for api call-signin', rslt);
-      setResult("Successfully, get Wallet Info with Credentials");
+      setResult("Login successful");
       if (rslt.address && rslt.private_key)
         loadWalletInfo(rslt.address, rslt.private_key);
     } else {
-      setResult("Oops, Failed to Sign In");
+      setResult("Incorrect mail address or password");
     }
   }
 

@@ -30,9 +30,9 @@ function SignUp() {
     if (rslt) {
       //wallet connect
       console.log('rslt for api call-signup', rslt);
-      setResult("Successfully, Registered your wallet");
+      setResult("Successfully registered your wallet");
     } else {
-      setResult("Oops, Failed to Sign Up");
+      setResult("Failed to register your wallet");
     }
   }
 
