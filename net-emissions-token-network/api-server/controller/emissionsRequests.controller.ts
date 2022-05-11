@@ -184,6 +184,7 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     console.log('postEmissionsRequest...')
     const db = await PostgresDBService.getInstance()
     // check the supporting document was uploaded, note: ignore ts-error in the test container
+    // eslint-disable-next-line
     // @ts-ignore
     let supportingDocument = req.files?.supportingDocument;
     if (!supportingDocument) {
