@@ -260,6 +260,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     level_2: 'GASEOUS FUELS',
     level_3: 'NATURAL GAS',
     activity_uom: 'cubic metres',
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
   }], {
     enabled: emForm.activity_type === 'natural_gas',
   })
