@@ -554,7 +554,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
               <EmissionsFactor emissionsFactor={electricityFactorQuery.data.emissionsFactors[0]}/>
               </>}
             <h3>Consumption Details</h3>
-            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required values={electricityCountriesQuery?.data?.countries ?? []} disabled={!!topSuccess} />
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required
+              values={electricityCountriesQuery?.data?.countries.map(c=>{ return {label: c.toLowerCase().replaceAll('_', ' '), value: c } }) ?? []}
+              disabled={!!topSuccess} />
             {emForm.country === 'UNITED STATES' && <>
               <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess}
                   alsoSet={{

@@ -72,3 +72,9 @@ code {
 .pre-wrap {
   white-space: pre-wrap;
 }
+
+
+ select.form-select,
+ select.form-select option {
+   text-transform: capitalize;
+ }
