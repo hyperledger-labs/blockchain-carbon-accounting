@@ -59,8 +59,8 @@ npm run dataLoader load_emissions_factors egrid2020_data.xlsx NRL20 -- --format 
 npm run dataLoader load_emissions_factors egrid2020_data.xlsx ST20 -- --format egrid_data --source https://www.epa.gov/system/files/documents/2022-01/egrid2020_data.xlsx
 npm run dataLoader load_emissions_factors egrid2020_data.xlsx US20 -- --format egrid_data --source https://www.epa.gov/system/files/documents/2022-01/egrid2020_data.xlsx
 
-npm run dataLoader load_utility_identifiers Utility_Data_2019.xlsx --source Utility_Data_2019.xlsx
-npm run dataLoader load_utility_identifiers Utility_Data_2020.xlsx --source Utility_Data_2020.xlsx
+npm run dataLoader load_utility_identifiers Utility_Data_2019.xlsx -- --source Utility_Data_2019.xlsx
+npm run dataLoader load_utility_identifiers Utility_Data_2020.xlsx -- --source Utility_Data_2020.xlsx
 
 npm run dataLoader load_emissions_factors 2016-RES_proxies_EEA.csv -- --format eea_res_proxies --source https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4/eea-2017-res-share-proxies/2016-res_proxies_eea_csv
 npm run dataLoader load_emissions_factors 2017-RES_proxies_EEA.csv -- --format eea_res_proxies --source https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4/eea-2017-res-share-proxies/2017-res_proxies_eea_csv
