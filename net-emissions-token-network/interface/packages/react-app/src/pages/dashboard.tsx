@@ -22,6 +22,7 @@ import { Web3Provider } from "@ethersproject/providers";
 import DisplayTokenAmount from "../components/display-token-amount";
 import Button from 'react-bootstrap/Button';
 import { BsFunnel } from 'react-icons/bs';
+import { Link } from "wouter";
 
 type DashboardProps = {
   provider?: Web3Provider, 
@@ -191,7 +192,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         <p className="mb-1">View your token balances.</p>
       }
       {(emissionsRequestsCount) ?
-        <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
+        <p className="mb-1">You have {emissionsRequestsCount} pending <Link href='/emissionsrequests'>emissions audits</Link>.</p>
         : null
       }
       <div className={fetchingTokens ? "dimmed" : ""}>

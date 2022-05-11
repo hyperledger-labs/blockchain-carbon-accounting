@@ -9,6 +9,7 @@ import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
 import DisplayTokenAmount from "./display-token-amount";
 import { create } from 'ipfs-http-client';
+import { Link } from "wouter";
 // import ethUtil from 'ethereumjs-util';
 // import sigUtil from '@metamask/eth-sig-util';
 
@@ -156,24 +157,26 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
             <br />
             <Row className="text-left mb-2">
               <Col>
-                <Button
-                  variant="success"
-                  href={`/transfer?tokenId=${props.token.tokenId}`}
-                  disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
-                >
-                  Transfer
-                </Button>
+                <Link href={`/transfer?tokenId=${props.token.tokenId}`}>
+                  <Button
+                    variant="success"
+                    disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
+                  >
+                    Transfer
+                  </Button>
+                </Link>
               </Col>
             </Row>
             <Row className="text-left mb-2">
               <Col>
-                <Button
-                  variant="danger"
-                  href={`/retire?tokenId=${props.token.tokenId}`}
-                  disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
-                >
-                  Retire
-                </Button>
+                <Link href={`/retire?tokenId=${props.token.tokenId}`}>
+                  <Button
+                    variant="danger"
+                    disabled={!props.token.availableBalance || Number(props.token.availableBalance) <= 0}
+                  >
+                    Retire
+                  </Button>
+                </Link>
               </Col>
             </Row>
           </Col>}

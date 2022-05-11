@@ -30,6 +30,7 @@ import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from ".
 import { Web3Provider } from "@ethersproject/providers";
 import IssuedTypeSwitch from '../components/issue-type-switch';
 import DisplayTokenAmount from "../components/display-token-amount";
+import { Link } from "wouter";
 
 type IssuedTokensProps = {
   provider?: Web3Provider, 
@@ -400,15 +401,15 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
             />
             &nbsp;
             <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
-            <Button
+            <Link href="/issue"><Button
               className="float-end"
               variant="outline-dark"
-              href="/issue">
+              >
               Issue
-            </Button>
+            </Button></Link>
 
             {(emissionsRequestsCount) ?
-              <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
+              <p className="mb-1">You have {emissionsRequestsCount} pending <Link href="/emissionsrequests">emissions audits</Link>.</p>
               : null
             }
             <div hidden={!showQueryBuilder}>
