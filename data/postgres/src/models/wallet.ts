@@ -13,7 +13,7 @@ export class Wallet {
 
   @Column({nullable:true})
   email?:string
-  @Column({nullable:true})
+  @Column({nullable:true, select: false})
   password?: string
 
   @Column({nullable:true})
@@ -28,7 +28,7 @@ export class Wallet {
   @Column({nullable:true})
   public_key_name?: string
 
-  @Column({nullable:true})
+  @Column({nullable:true, select: false})
   private_key?: string
 
   @Column({nullable:true})

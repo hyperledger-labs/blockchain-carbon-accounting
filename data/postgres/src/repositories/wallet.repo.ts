@@ -104,7 +104,10 @@ export class WalletRepo {
    */
   public findWalletByCredentials = async (email: string, password: string): Promise<Wallet | null> => {
     return await this.getRepository()
-      .findOneBy({ email, password });
+      .createQueryBuilder(ALIAS)
+      .where({ email, password })
+      .addSelect(`${ALIAS}.private_key`)
+      .getOne()
   }
 
   public findWalletByEmail = async (email: string): Promise<Wallet | null> => {
