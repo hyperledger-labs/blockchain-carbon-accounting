@@ -549,7 +549,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'electricity' && <>
-            {!!electricityFactorQuery.data?.emissionsFactors?.length && <>
+            {(emForm.country.toUpperCase() !== 'UNITED STATES' || !!emForm.utility) && !!electricityFactorQuery.data?.emissionsFactors?.length && <>
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={electricityFactorQuery.data.emissionsFactors[0]}/>
               </>}
