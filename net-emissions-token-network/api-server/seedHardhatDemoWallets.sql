@@ -28,7 +28,7 @@ UPDATE wallet SET name = 'Offset Dealer 1', organization = 'Test Hardhat' WHERE 
 UPDATE wallet
 SET name = 'Emissions Auditor 2',
 organization = 'Test Hardhat',
-public_key_name = 'demo2-public.pem',
+public_key_name = 'demo1-public.pem',
 public_key = '-----BEGIN RSA PUBLIC KEY-----
 MIICCgKCAgEA8XZYc7pibvGlM9DKF931TrGnFFYnhQeq6wbu7M/kwZl81A21TJ1X
 GVluZwWE0wQLBI/IJYk5Q5t73PM73z60yM6VJqaBlD5PxbuaazBxqfr/eDPfifSn
@@ -41,7 +41,8 @@ TvYidp5VRrt+Mbjqk3QxrmFQaTDl+17qt82ZHnhH1ICtijGZraDFeTygD/OikYE9
 piZMD1LqfQPZM18uP6LzVD8cSywNy/OumLZ2HYeQ5CYAwtilbRT2r5qLAzJmQIOv
 j0FLKvPtHRUgXdafOPU0CGlyH+gMLQkQhytH2JuxLi6iykYmGN2QJoaOol/6hq6/
 9mRpIOUBzdOYOnW8XvdKZF1dm2u9a5C3jWvBwaqXnvDyCF6j/j4DDqkCAwEAAQ==
------END RSA PUBLIC KEY-----'
+-----END RSA PUBLIC KEY-----',
+metamask_encrypted_public_key = 'k1ryuntSrGBOWt2887GV/v3SBk0hobrQ27A3rR2efSE='
 WHERE lower(address) = lower( '0x15d34aaf54267db7d7c367839aaf71a00a2c6a65');
 -- account 19
 UPDATE wallet SET name = 'Consumer 1', organization = 'Test Hardhat' WHERE lower(address) = lower( '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199');
