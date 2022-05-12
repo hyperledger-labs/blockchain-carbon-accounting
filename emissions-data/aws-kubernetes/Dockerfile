@@ -1,4 +1,4 @@
-FROM node:10-alpine
+FROM node:18-alpine
 RUN apk update && apk add python make g++
 
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
