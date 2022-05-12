@@ -106,9 +106,17 @@ function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor'|'nat
   throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
 }
 
+
+function parse_date(date: string) {
+  if (!date) return undefined
+  return moment(date, 'YYYY-MM-DD HH:mm:ss.SSS').toDate()
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getActivity(body: any): Activity {
   const activity_type = getActivityType(body)
+  const from_date = parse_date(body.fromDate)
+  const thru_date = parse_date(body.thruDate)
 
   if (activity_type === 'shipment') {
     // make a shipment activity
@@ -125,7 +133,9 @@ function getActivity(body: any): Activity {
       },
       to: {
         address: body.destination_address
-      }
+      },
+      from_date,
+      thru_date
     }
   } else if (activity_type === 'flight') {
     // make a flight activity
@@ -141,7 +151,9 @@ function getActivity(body: any): Activity {
       },
       to: {
         address: body.destination_address
-      }
+      },
+      from_date,
+      thru_date
     }
   } else if (activity_type === 'emissions_factor') {
     return {
@@ -155,6 +167,8 @@ function getActivity(body: any): Activity {
       distance_uom: body.distance_uom,
       activity_amount: Number(body.activity_amount),
       activity_uom: body.activity_uom,
+      from_date,
+      thru_date
     }
   } else if (activity_type === 'natural_gas') {
     // make a natural gas activity
@@ -163,6 +177,8 @@ function getActivity(body: any): Activity {
       type: activity_type,
       activity_amount: Number(body.activity_amount),
       activity_uom: body.activity_uom,
+      from_date,
+      thru_date
     }
   } else if (activity_type === 'electricity') {
     // make a natural gas activity
@@ -174,6 +190,8 @@ function getActivity(body: any): Activity {
       country: body.country,
       state: body.state,
       utility: body.utility,
+      from_date,
+      thru_date
     }
   }
   throw new ApplicationError(`Unsupported activity type.` , 400)
@@ -225,10 +243,10 @@ export async function postEmissionsRequest(req: Request, res: Response) {
       }],
     }
     if (req.body.fromDate) {
-      group.from_date = moment(req.body.fromDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+      group.from_date = parse_date(req.body.fromDate);
     }
     if (req.body.thruDate) {
-      group.thru_date = moment(req.body.thruDate, 'YYYY-MM-DD HH:mm:ss.SSS').toDate();
+      group.thru_date = parse_date(req.body.thruDate);
     }
 
     const queue_result = await queue_issue_tokens(

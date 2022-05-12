@@ -397,6 +397,8 @@ export async function process_natural_gas(
 export async function process_electricity(
   a: ElectricityActivity 
 ): Promise<ActivityResult> {
+  const from_year = a.from_date?.getFullYear()?.toString()
+  const thru_year = a.thru_date?.getFullYear()?.toString()
   // for non UNITED STATES, use the emissions factor
   // from EEA EMISSIONS FACTORS
   if (a.country !== 'UNITED STATES') {
@@ -422,6 +424,8 @@ export async function process_electricity(
     const activity_amount = Number(a.activity_amount) / 1000.0;
     let factor = await getEmissionFactor({
       ...a,
+      from_year,
+      thru_year,
       activity_uom,
       level_1,
       level_2,
@@ -431,6 +435,8 @@ export async function process_electricity(
       level_3 = 'COUNTRY: USA';
       factor = await getEmissionFactor({
         ...a,
+        from_year,
+        thru_year,
         activity_uom,
         level_1,
         level_2,
@@ -458,6 +464,8 @@ export async function process_emissions_factor(
   a: EmissionsFactorActivity
 ): Promise<ActivityResult> {
 
+  const from_year = a.from_date?.getFullYear()?.toString()
+  const thru_year = a.thru_date?.getFullYear()?.toString()
   const db = await getDBInstance();
   // support a lookup by given uuid or by levels/scope/text
   let factor;
@@ -465,9 +473,7 @@ export async function process_emissions_factor(
     factor = await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid);
   } else {
     if (a.thru_date) {
-      const year = new Date(a.thru_date).getFullYear().toString();
-      const data = {...a} as Partial<EmissionsFactorInterface>;
-      data.year = year;
+      const data = {...a, from_year, thru_year} as Partial<EmissionsFactorInterface>;
       factor = await getEmissionFactor(data);
     }
     if (!factor) {
