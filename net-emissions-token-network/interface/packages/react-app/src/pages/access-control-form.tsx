@@ -18,6 +18,7 @@ import { trpc, trpcClient } from "../services/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FaRegClipboard } from "react-icons/fa";
+import ErrorAlert from "../components/error-alert";
 
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
@@ -101,6 +102,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
   const [role, setRole] = useState<Role>("None");
   const [result, setResult] = useState("");
   const [roleError, setRoleError] = useState("");
+  const [registerSelfError, setRegisterSelfError] = useState("");
   const [lookupError, setLookupError] = useState("");
   const [lookupMessage, setLookupMessage] = useState("");
   const [registerFormValidated, setRegisterFormValidated] = useState(false);
@@ -198,6 +200,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
     setLookupError('')
     setLookupMessage('')
     setRoleError('')
+    setRegisterSelfError('')
   }, [])
 
 
@@ -320,6 +323,20 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
       return null;
     }
   }, [])
+
+
+  async function registerSelfIndustry() {
+    if (!provider) return;
+    setRegisterSelfError("");
+    const result = await fetchRegisterIndustry(provider, signedInAddress);
+    if (!result || result.toString().indexOf('Success') === -1) {
+      console.error('Transaction did not succeed', result);
+      setRegisterSelfError(result);
+      return 'The transaction could not be sent to the blockchain: ' + result;
+    } else {
+      console.log('Transaction successful', result.toString());
+    }
+  }
 
   async function handleRegister() {
     if (!provider) return;
@@ -751,11 +768,12 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
             <Form.Select disabled hidden>
             </Form.Select>
           </Form.Group>
-          <Form.Group className="d-grid gap-2 mt-3">
-            <Button variant="success" size="lg" onClick={() => { if(provider) fetchRegisterIndustry(provider, signedInAddress)}}>
+          <Form.Group className="d-grid gap-2 mt-3 mb-2">
+            <Button variant="success" size="lg" onClick={registerSelfIndustry}>
               Register
             </Button>
           </Form.Group>
+          {registerSelfError && <ErrorAlert error={registerSelfError} onDismiss={()=>{setRegisterSelfError("")}} />}
         </>
     }
 
