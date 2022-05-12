@@ -464,8 +464,14 @@ export async function process_emissions_factor(
   a: EmissionsFactorActivity
 ): Promise<ActivityResult> {
 
-  const from_year = a.from_date?.getFullYear()?.toString()
-  const thru_year = a.thru_date?.getFullYear()?.toString()
+  let from_year;
+  if (a.from_date) {
+    from_year = new Date(a.from_date).getFullYear().toString()
+  }
+  let thru_year;
+  if (a.thru_date) {
+    thru_year = new Date(a.thru_date).getFullYear().toString()
+  }
   const db = await getDBInstance();
   // support a lookup by given uuid or by levels/scope/text
   let factor;
