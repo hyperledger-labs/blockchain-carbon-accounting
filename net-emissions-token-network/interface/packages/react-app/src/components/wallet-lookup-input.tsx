@@ -16,7 +16,8 @@ type WalletLookupInputProps = {
   sx?: SxProps<Theme>
 }
 type WalletLookupInputHandle = {
-  close: ()=>void
+  close: ()=>void,
+  value: ()=>string,
 }
 
 const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, WalletLookupInputProps> = ({disabled, onChange, onWalletChange, onBlur, style, classes, sx, value: valueprop}, ref) => {
@@ -36,6 +37,9 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
   useImperativeHandle(ref, () => ({
     close() {
       setIsOpen(false);
+    },
+    value() {
+      return (value && typeof value === 'string') ? value : (value as Wallet)?.address ?? inputValue;
     }
   }));
 
