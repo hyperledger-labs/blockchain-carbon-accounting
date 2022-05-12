@@ -1,7 +1,7 @@
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { Alert, Button } from "react-bootstrap";
 
-const SuccessAlert: FC<{title: string, dismissLabel?: string, onDismiss?: ()=>void}> = ({title, dismissLabel, onDismiss, children}) => {
+const SuccessAlert: FC<{title: string, dismissLabel?: string, onDismiss?: ()=>void, children?: ReactNode}> = ({title, dismissLabel, onDismiss, children}) => {
   const [show, setShow] = useState(true);
 
   useEffect(()=>{

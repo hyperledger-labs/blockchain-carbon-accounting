@@ -5,7 +5,7 @@ type TokenAmountProps = {
 }
 const DisplayTokenAmount:FC<TokenAmountProps> = ({amount}) => {
   if (amount === undefined) return <span></span>
-  if (!amount) return <span>{amount}</span>
+  if (!amount) return <span>{'0'}</span>
 
   // not ideal, but it's a start
   const display = (Number(amount) / 1000).toFixed(3)
