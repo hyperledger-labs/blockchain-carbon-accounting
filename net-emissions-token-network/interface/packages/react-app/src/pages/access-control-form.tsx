@@ -6,6 +6,7 @@ import {  postSignedMessage } from "../services/api.service"
 
 import SubmissionModal from "../components/submission-modal";
 import WalletLookupInput from "../components/wallet-lookup-input";
+import RegisterSelfIndustry from "../components/register-self-industry";
 import {Role, RoleEnum, RolesInfo, rolesInfoToArray, Wallet} from "../components/static-data";
 
 import Spinner from "react-bootstrap/Spinner";
@@ -18,7 +19,6 @@ import { trpc, trpcClient } from "../services/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FaRegClipboard } from "react-icons/fa";
-import ErrorAlert from "../components/error-alert";
 
 
 function RolesCodesToLi({currentRoles, roles, unregister}: {currentRoles: RolesInfo, roles: string | Role[] | undefined, unregister?: (r:Role)=>void}) {
@@ -757,24 +757,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
       }
 
     {(!roles.isAdmin && !roles.isIndustry) &&
-     <>
-          <h4 className="mt-4">Register my account as industry</h4>
-          <Form.Group>
-            {/*<Form.Label>Address</Form.Label>*/}
-            <Form.Control type="input" disabled hidden value={signedInAddress}/>
-          </Form.Group>
-          <Form.Group>
-            {/*<Form.Label>Role</Form.Label>*/}
-            <Form.Select disabled hidden>
-            </Form.Select>
-          </Form.Group>
-          <Form.Group className="d-grid gap-2 mt-3 mb-2">
-            <Button variant="success" size="lg" onClick={registerSelfIndustry}>
-              Register
-            </Button>
-          </Form.Group>
-          {registerSelfError && <ErrorAlert error={registerSelfError} onDismiss={()=>{setRegisterSelfError("")}} />}
-        </>
+     <RegisterSelfIndustry provider={provider} signedInAddress={signedInAddress} />
     }
 
     </>
