@@ -28,11 +28,12 @@ const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
 
-  const { provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode } = useWeb3Modal();
+  const { provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode, refresh } = useWeb3Modal();
 
   const [location] = useLocation();
 
   const dashboardRef = useRef<ElementRef<typeof Dashboard>>(null);
+  const accessControlRef = useRef<ElementRef<typeof AccessControlForm>>(null);
 
   const isOwner = roles.isAdmin;
   const isDealer = roles.hasDealerRole;
@@ -80,12 +81,20 @@ const App:FC = () => {
         }
 
           {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
-          <Link href="/access-control"><Nav.Link eventKey="access-control">
+          {(location.substring(1) === "access-control")
+            ? <Nav.Link onClick={() => accessControlRef.current?.refresh()} eventKey="access-control">
+              {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
+                ? "Manage roles"
+                : "My roles"
+            }
+            </Nav.Link>
+            : <Link href="/access-control"><Nav.Link eventKey="access-control">
             {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
               ? "Manage roles"
               : "My roles"
           }
-          </Nav.Link></Link>
+          </Nav.Link></Link> 
+        }
 
         </Nav>
 
@@ -126,7 +135,7 @@ const App:FC = () => {
                   <TrackForm provider={provider} registeredTracker={registeredTracker}/>
                 </Route>
                 <Route path="/access-control">
-                  <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+                  <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
                 </Route>
                 <Route>
                   <Redirect to="/dashboard" />

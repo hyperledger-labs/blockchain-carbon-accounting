@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { useState, useRef, ChangeEventHandler, FC, useCallback, ReactNode, useContext, useMemo, ElementRef } from "react";
+import { useState, useRef, ChangeEventHandler, useCallback, ReactNode, useContext, useMemo, ElementRef, ForwardRefRenderFunction, useImperativeHandle, forwardRef } from "react";
 
 import { getRoles, registerConsumer, unregisterConsumer, registerIndustry, registerDealer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import {  postSignedMessage } from "../services/api.service"
@@ -77,10 +77,15 @@ type AccessControlFormProps = {
   provider?: Web3Provider
   signedInAddress: string
   roles: RolesInfo
-  limitedMode: boolean 
+  limitedMode: boolean
+  providerRefresh?: ()=>void
 }
 
-const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddress, roles, limitedMode }) => {
+type AccessControlHandle = {
+  refresh: ()=>void
+}
+
+const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessControlFormProps> = ({ provider, providerRefresh, signedInAddress, roles, limitedMode }, ref) => {
 
   const ethereum: EthereumType = (window as any).ethereum;
 
@@ -111,6 +116,22 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   const [myPublicKey, setMyPublicKey] = useState("");
   const [hasMetamaskPubKey, setHasMetamaskPubKey] = useState(false);
   const [myWalletLoading, setMyWalletLoading] = useState(false);
+
+  // Allows the parent component to refresh
+  useImperativeHandle(ref, () => ({
+    refresh() {
+      handleRefresh();
+    }
+  }));
+
+  async function handleRefresh() {
+    if (!!signedInAddress) {
+      myWalletQuery.refetch();
+      if (providerRefresh) {
+        providerRefresh();
+      }
+    }
+  }
 
   const myWalletQuery = trpc.useQuery(['wallet.get', {address: signedInAddress}], {
     enabled: !!signedInAddress,
@@ -742,5 +763,5 @@ const AccessControlForm: FC<AccessControlFormProps> = ({ provider, signedInAddre
   );
 }
 
-export default AccessControlForm;
+export default forwardRef(AccessControlForm);
 

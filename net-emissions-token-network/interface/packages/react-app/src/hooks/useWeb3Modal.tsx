@@ -59,15 +59,7 @@ function useWeb3Modal(config: any = {}) {
     [web3Modal],
   );
 
-  // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
-  useEffect(() => {
-    if (autoLoad && !autoLoaded && web3Modal.cachedProvider) {
-      loadWeb3Modal();
-      setAutoLoaded(true);
-    }
-  }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
-
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     async function fetchRoles(provider: Web3Provider) {
       setRoles(await getRoles(provider, signedInAddress));
     };
@@ -83,10 +75,21 @@ function useWeb3Modal(config: any = {}) {
       fetchRegisteredTracker(provider);
       fetchLimitedMode(provider);
     }
-
   }, [provider, signedInAddress]);
 
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode};
+  // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
+  useEffect(() => {
+    if (autoLoad && !autoLoaded && web3Modal.cachedProvider) {
+      loadWeb3Modal();
+      setAutoLoaded(true);
+    }
+  }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode, refresh};
 }
 
 export default useWeb3Modal;
