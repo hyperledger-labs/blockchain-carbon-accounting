@@ -63,7 +63,6 @@ function useWeb3Modal(config: any = {}) {
     [web3Modal],
   );
 
-  // TODO: the JsonRpcProvider should not be hardcoded to localhost!
   const loadWalletInfo = (public_key:string, private_key:string) => {
     const web3Provider = new JsonRpcProvider(RPC_URL);
     setProvider(web3Provider);
@@ -77,15 +76,7 @@ function useWeb3Modal(config: any = {}) {
     window.location.reload();
   }
 
-  // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
-  useEffect(() => {
-    if (autoLoad && !autoLoaded && web3Modal.cachedProvider) {
-      loadWeb3Modal();
-      setAutoLoaded(true);
-    }
-  }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
-
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     async function fetchRoles(provider: Web3Provider | JsonRpcProvider) {
       setRoles(await getRoles(provider, signedInAddress));
     };
@@ -101,9 +92,21 @@ function useWeb3Modal(config: any = {}) {
       fetchRegisteredTracker(provider);
       fetchLimitedMode(provider);
     }
-
   }, [provider, signedInAddress]);
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode};
+
+  // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
+  useEffect(() => {
+    if (autoLoad && !autoLoaded && web3Modal.cachedProvider) {
+      loadWeb3Modal();
+      setAutoLoaded(true);
+    }
+  }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh};
 }
 
 export default useWeb3Modal;

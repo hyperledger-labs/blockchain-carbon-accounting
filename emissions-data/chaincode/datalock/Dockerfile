@@ -1,4 +1,4 @@
-FROM golang:1.16.5-alpine3.14 as build
+FROM golang:1.18-alpine AS build
 
 WORKDIR /datalock
 COPY go.mod .
@@ -9,7 +9,7 @@ COPY . .
 
 RUN go build -o datalock
 
-FROM alpine
+FROM alpine:3 as prod
 
 COPY  --from=build /datalock/datalock /datalock
 
