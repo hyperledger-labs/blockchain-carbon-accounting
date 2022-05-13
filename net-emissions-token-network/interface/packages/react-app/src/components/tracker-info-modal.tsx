@@ -12,8 +12,6 @@ import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
 import { Tracker } from "../components/static-data";
 
-import { type AppRouter } from '../../../../../api-server/trpc/common';
-import { WalletRepo } from "../../../../../../data/postgres/src/repositories/wallet.repo";
 import { trpc } from "../services/trpc";
 import { Wallet } from "./static-data";
 
@@ -35,7 +33,8 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
   const [trackerDescription, setTrackerDescription] = useState("");
   const onTrackerDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerDescription(event.target.value); }, []);
   const [result, setResult] = useState("");
-  const [data, setData] = useState<(Wallet)[]>([]);
+  const [trackeeWallet, setTrackeeWallet] = useState<(Wallet)>();
+  const [auditorWallet, setAuditorWallet] = useState<(Wallet)>();
 
   function handleSubmit() {
     submit();
@@ -52,144 +51,152 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
     onSettled: (output, error) => {
       console.log('lookup query settled with', output?.wallets)
       if (output?.wallets) {
-        setData([...output?.wallets])
-      } else {
-        setData([])
-      }
+        setTrackeeWallet([...output?.wallets][0])
+      } 
+    }
+  })
+  trpc.useQuery(['wallet.lookup', {query: tracker.auditor}], {
+    onSettled: (output, error) => {
+      console.log('lookup query settled with', output?.wallets)
+      if (output?.wallets) {
+        setAuditorWallet([...output?.wallets][0])
+      } 
     }
   })
 
- function getWalletRole (trackee : any){
-    return data[0]
- }
- return (
-   <Modal {...{show,tracker,onHide}} centered size="lg">
-     <Modal.Header closeButton>
-       <Modal.Title>Tracker Details</Modal.Title>
-     </Modal.Header>
-     <Modal.Body>
-       <Row className="mt-2 mb-4 me-3">
-         {/* tracker ID, icon, and type */}
-         <Col className="col-3">
-           <Row className="text-center">
-             <Col>
-               <h3 className="mb-1 mt-2">ID: {tracker.trackerId}</h3>
-             </Col>
-             <Col>
-               <h3 className="display-10">
-                 <FaLink />
-               </h3>
-             </Col>
-           </Row>
-         </Col>
-         <Col className="col-9">
-           <h5>
-               Reported emissions: {Math.round(tracker.totalEmissions).toLocaleString('en-US')} kgCO2e
-           </h5>
-
-         </Col>
-         {/* Total emission inputs and audited/offset outputs */}
-       </Row>
-       <table className="table">
-         <thead>
-           <tr>
-             <th>Property</th>
-             <th>Value</th>
-           </tr>
-         </thead>
-         <tbody>
-           <tr>
-             <td>Name</td>
-             <td className="text-monospace">{getWalletRole(tracker.trackee)?.name}</td>
-           </tr>
-           <tr>
-             <td>Address</td>
-             <td className="text-monospace">{tracker.trackee}</td>
-           </tr>
-           <tr>
-             <td>From date</td>
-             <td><DisplayDate date={tracker.fromDate}/></td>
-           </tr>
-           <tr>
-             <td>Thru date</td>
-             <td><DisplayDate date={tracker.thruDate}/></td>
-           </tr>
-           <tr>
-             <td>Description</td>
-
-             {(isDealer && tracker.auditor=="0x0000000000000000000000000000000000000000") ?
-               <td style={{ overflowWrap: "anywhere" }}>
-                 <Form.Group className="mb-3" controlId="trackerDescriptionInput">
-                   <Form.Control as="textarea" placeholder={tracker.description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
-                 </Form.Group>
-                 <Button
-                   variant="primary"
-                   size="lg"
-                   className="w-100"
-                   onClick={handleSubmit}
-                   //disabled={disableIssueButton(calldata, quantity, address)}
-                 >
-                   Submit
-                 </Button>
-               </td>
-               : <td style={{ overflowWrap: "anywhere" }}>{tracker.description}</td>
-           }
-           </tr>
-         </tbody>
-       </table>
-       <table className="table">
-         <thead>
-           <tr>
-             <th>Products</th>
-             <th>Amount (Available)</th>
-           </tr>
-         </thead>
-         <tbody>
-           {tracker.products?.names.map((name: any,i: number) => (
-             <tr key={name+i}>
-               <td>
-                 {name}{":"+" "}
-                 <div key={'intensityLabel'+i}>GHG Intensity</div>
-               </td>
-               <td>
-                 <div key={name+"Amount"+i}>
-                   {Math.round(tracker.products?.amounts[i]).toLocaleString('en-US') + " " + tracker.products?.units[i]}
-                   {" ("+tracker.products?.available[i]+") "}
-                 </div>
-                 <div key={name+"Intensity"+i}>{Math.round(tracker.products?.emissionFactors[i]).toLocaleString('en-US')}{" kgCO2e/"+tracker.products?.units[i]}</div>
-               </td>
-             </tr>
-           ))
-           }
-         </tbody>
-       </table>
-       <table className="table">
-         <thead>
-           <tr>
-             <th>Emissions</th>
-             <th>Amount</th>
-           </tr>
-         </thead>
-         <tbody>
-           {tracker.tokens?.details.map((e: any,i: number) => (
-               <tr key={e.tokenId+'Details'}>
-                 <td>{"tokenId "+e.tokenId}
-                   <div>{(e.description)}</div>
-                 </td>
-                 <td>{Math.round(tracker.tokens?.amounts[i]).toLocaleString('en-US')+" kgCO2e"}
-                   <DisplayJSON json={e.metadata}/>
-                 </td>
-               </tr>
-             ))
-           }
-         </tbody>
-       </table>
-     </Modal.Body>
-     <Modal.Footer>
-       <Button onClick={onHide}>Close</Button>
-     </Modal.Footer>
-   </Modal>
- );
+  return (
+    <Modal {...{show,tracker,onHide}} centered size="lg">
+      <Modal.Header closeButton>
+         <Modal.Title>Emission Certificate Details</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Row className="mt-2 mb-4 me-3">
+          {/* tracker ID, icon, and type */}
+          <Col className="col-3">
+            <Row className="text-center">
+              <Col>
+                <h3 className="mb-1 mt-2">ID: {tracker.trackerId}</h3>
+              </Col>
+              <Col>
+                <h3 className="display-10">
+                  <FaLink />
+                </h3>
+              </Col>
+            </Row>
+          </Col>
+          <Col className="col-9">
+            <h5>
+                Reported emissions: {Math.round(tracker.totalEmissions).toLocaleString('en-US')} kgCO2e
+            </h5>
+  
+          </Col>
+        </Row>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Issued To{"\n"}</td>
+              <td className="text-monospace">
+                  {trackeeWallet?.name+"\n"}
+                  <small>({trackeeWallet?.address?.substring(0,7)+"..."})</small>
+              </td>
+            </tr>
+            {(tracker.auditor!=="0x0000000000000000000000000000000000000000" ? 
+              <tr>
+                <td>Auditor</td>
+                <td className="text-monospace">                  
+                  {auditorWallet?.name+"\n"}
+                  <small>({auditorWallet?.address?.substring(0,7)+"..."})</small></td>
+              </tr>
+            : null)}
+            <tr>
+              <td>From date</td>
+              <td><DisplayDate date={tracker.fromDate}/></td>
+            </tr>
+            <tr>
+              <td>Thru date</td>
+              <td><DisplayDate date={tracker.thruDate}/></td>
+            </tr>
+            <tr>
+              <td>Description</td>
+  
+              {(isDealer && tracker.auditor=="0x0000000000000000000000000000000000000000") ?
+                <td style={{ overflowWrap: "anywhere" }}>
+                  <Form.Group className="mb-3" controlId="trackerDescriptionInput">
+                    <Form.Control as="textarea" placeholder={tracker.description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
+                  </Form.Group>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-100"
+                    onClick={handleSubmit}
+                    //disabled={disableIssueButton(calldata, quantity, address)}
+                  >
+                    Submit
+                  </Button>
+                </td>
+                : <td style={{ overflowWrap: "anywhere" }}>{tracker.description}</td>
+            }
+            </tr>
+          </tbody>
+        </table>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Products</th>
+              <th>Amount (Available)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tracker.products?.names.map((name: any,i: number) => (
+              <tr key={name+i}>
+                <td>
+                  {name}{":"+" "}
+                  <div key={'intensityLabel'+i}>Emission factor</div>
+                </td>
+                <td>
+                  <div key={name+"Amount"+i}>
+                    {Math.round(tracker.products?.amounts[i]).toLocaleString('en-US') + " " + tracker.products?.units[i]}
+                    {" ("+Math.round(tracker.products?.available[i]).toLocaleString('en-US') +") "}
+                  </div>
+                  <div key={name+"Intensity"+i}>{Math.round(tracker.products?.emissionFactors[i]).toLocaleString('en-US')}{" kgCO2e/"+tracker.products?.units[i]}</div>
+                </td>
+              </tr>
+            ))
+            }
+          </tbody>
+        </table>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Emissions</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tracker.tokens?.details.map((e: any,i: number) => (
+                <tr key={e.tokenId+'Details'}>
+                  <td>{"Token ID "+e.tokenId}
+                    <div>{(e.description)}</div>
+                  </td>
+                  <td>{Math.round(tracker.tokens?.amounts[i]).toLocaleString('en-US')+" kgCO2e"}
+                    <DisplayJSON json={e.metadata}/>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </Modal.Body>
+      <Modal.Footer>
+        <Button onClick={onHide}>Close</Button>
+      </Modal.Footer>
+    </Modal>
+  );
 }
-
 export default TrackerInfoModal;

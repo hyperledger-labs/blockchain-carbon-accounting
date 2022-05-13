@@ -285,7 +285,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         Issue tokens
       </h2>
       <p>
-        {(andTrack) ? "for emissions tracker contract: "+ addresses.carbonTracker.address : null } 
+        {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null } 
       </p>
 
       {(andTrack) ? 
@@ -316,16 +316,23 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <Form.Label>
             Issue From Address
           </Form.Label>
-          <InputGroup>
-            <WalletLookupInput 
-              onChange={(v: string) => { setIssuedFrom(v) }} 
-              onWalletChange={(w)=>{
-                setIssuedFrom(w ? w.address! : '');
-              }} 
-              onBlur={() => setInitializedAddressInput(true)}
-              style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
-              />
-          </InputGroup>
+          { true ? 
+            <InputGroup>
+              <WalletLookupInput 
+                onChange={(v: string) => { setIssuedFrom(v) }} 
+                onWalletChange={(w)=>{
+                  setIssuedFrom(w ? w.address! : '');
+                }} 
+                onBlur={() => setInitializedAddressInput(true)}
+                style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
+                />
+            </InputGroup>
+            :<Form.Control
+              type="input"
+              value={signedInAddress}
+              disabled
+            /> 
+          }
         </Form.Group>
 
       { ((!limitedMode) || (tokenTypeId === 3))

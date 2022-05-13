@@ -50,7 +50,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
      * product mapping productId to ProductQuantities
      * trackerIds - arrays of tracker ids referenced by this tracker
      * trackerIndex - mapping sourceTrackerId to index in array. 1st index is 1, 0 reserved for unindexed.
-     * productsTracked - map productId to information about productsTracked 
+     * productsTracked - map trackerId to information about productsTracked 
     **/
     struct CarbonTrackerMappings {
         uint[] tokenIds;
@@ -189,7 +189,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     }
     function _isOwner(uint trackerId,address owner) view internal {
         require(super.ownerOf(trackerId) == owner,
-            "CLM8::_isOwner: msg.sender does own this trackerId");
+            "CLM8::_isOwner: msg.sender does not own this trackerId");
     }
     /**
      * @dev require msg.sender has admin role

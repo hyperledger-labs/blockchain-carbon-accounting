@@ -765,6 +765,8 @@ export async function getTrackerDetails(
     let emissionFactors = [].map(Number);
     let myProductsTotalEmissions = 0;
 
+    let remainingEmissions = 0;
+
     for (let i = 0; i < productIds.length; i++) {
       myProductBalances[i] = 
         (await contract.getProductBalance(productIds[i],trackerId,address)).toNumber();
@@ -776,7 +778,9 @@ export async function getTrackerDetails(
 
       productAmounts[i] = (productAmounts[i] * conversions[i] ).toFixed(0);
       myProductBalances[i] = Number((myProductBalances[i]*conversions[i]).toFixed(0));
+      remainingEmissions += (available[i]*carbonIntensity);
       available[i] = (available[i] * conversions[i] ).toFixed(0);
+      
       emissionFactors[i] = Number((carbonIntensity / conversions[i]).toFixed(3));
     }
 
@@ -799,6 +803,7 @@ export async function getTrackerDetails(
       metadata: trackerDetails.metadata,
       description: trackerDetails.description,
       totalEmissions,
+      //: Number(remainingEmissions.toFixed(0)),
       myProductsTotalEmissions,
       //totalOffset: totalOffset,
       products: {

@@ -76,7 +76,7 @@ task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 req
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async taskArgs => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, industry3, industry4, dealer4, dealer5, dealer6, dealer7} = await getNamedAccounts();
+    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, industry3, industry4, industry5, industry6, investor1, dealer4, dealer5, dealer6, dealer7} = await getNamedAccounts();
 
     const [admin] = await ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
@@ -108,6 +108,13 @@ task("setTestAccountRoles", "Set default account roles for testing")
     console.log("Account " + industry3 + " is now an industry")
     await contract.connect(admin).registerDealer(industry4,4);
     console.log("Account " + industry4 + " is now an industry")
+    await contract.connect(admin).registerDealer(industry5,4);
+    console.log("Account " + industry5 + " is now an industry")
+    await contract.connect(admin).registerDealer(industry6,4);
+    console.log("Account " + industry6 + " is now an industry")
+
+    await contract.connect(admin).registerConsumer(investor1);
+    console.log("Account " + investor1 + " is now an consumer (investor)")
 
 
     await contract.connect(await ethers.getSigner(industry1)).registerConsumer(consumer1);
@@ -401,7 +408,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
   //.addParam("trackerContract", "The C-NFT contract")
   //.addParam("count", "Number of token to issue in each loop")
   .setAction(async taskArgs => {
-    const { dealer2, industry1, industry2, industry3, industry4 } = await getNamedAccounts();
+    const { dealer2, industry1, industry2, industry3, industry4, industry5, industry6 } = await getNamedAccounts();
 
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
@@ -410,15 +417,16 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     let carbonTracker = await get("CarbonTracker");
     const trackerContract = await CarbonTracker.attach(carbonTracker.address);
 
-    let locations = ['Bakken','Niobrara','Permian'];
-    let industryAddresses = [industry1,industry2,industry3];
-    let ventingEmissions = [42359667456,4878701472,33035904000];
-    let flaringEmissions = [3172353757,164659360,7191612033];
-    let oilAmounts = [60432084,32360576,217910480];
-    let gasAmounts = [24024439,48692554,148632745];
-    let oilUnitAmounts = [60432084,32360576,217910480];
-    let gasUnitAmounts = [27935394,56619248,172828773];
-
+    let locations = ['Bakken','Niobrara','Permian','U.S. Average','World Average'];
+    let industryAddresses = [industry1,industry2,industry3,industry5,industry6];
+    // methane emission O&G in Kg
+    let ventingEmissions = [42359667456,4878701472,33035904000,405270000000,2160000000000];
+    let flaringEmissions = [3172353757,164659360,7191612033,24798016000,302743508000];
+    let oilAmounts = [60597652,32449236,218507495,822827823,4378031482];
+    let gasAmounts = [22036430,48818206,149034246,815448153,3451977203];
+    let oilUnitAmounts = [60597652,32449236,218507495,822827823,4378031482];
+    let gasUnitAmounts = [25623756,56765356,173295635,948195526,4013926980,];
+    let productTransfer = [860000,860000,860000]
     for (let i = 0; i<locations.length; i++) {
       await contract.connect(await ethers.getSigner(dealer2))
       .issueAndTrack(
@@ -430,9 +438,9 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
         ventingEmissions[i],
         "1577836800",
         "1609415999",
-        JSON.stringify({"type": "CH4", "scope": "1", "location":  locations[i]}),
-        'https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760',
-        'Methane venting and leakage'
+        JSON.stringify({"type": "CH4", "scope": "1", "location":  locations[i], "GWP": "30"}),
+        "https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760",
+        "Methane venting and leakage"
       );
       console.log("Methane venting and leakage tokens issued for "+locations[i]);
       await contract.connect(await ethers.getSigner(dealer2))
@@ -446,8 +454,8 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
         "1577836800",
         "1609415999",
         JSON.stringify({"type": "CO2", "scope": "1", "location":  locations[i]}),
-        'https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760',
-        'Methane flaring'
+        "https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760",
+        "Methane flaring"
       );
       console.log("Gas flaring tokens issued for "+locations[i]);
       await trackerContract.connect(await ethers.getSigner(dealer2))
@@ -472,10 +480,12 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
 
       await trackerContract.connect(await ethers.getSigner(dealer2)).audit(i+1);
       console.log("Tracker id "+(i+1).toString()+" verified");
+      if(i<3){
+        await trackerContract.connect(await ethers.getSigner(industryAddresses[i]))
+          .transferProduct((i+1)*2,productTransfer[i],i+1,industry4);
+        console.log("Transfer Gas (productId = "+(i+1).toString()+") from "+locations[i+1]+" to Natural Gas Utility: "+industry4);
+      }
     }
-    await trackerContract.connect(await ethers.getSigner(industry2))
-      .transferProduct(4,1000000,2,industry4);
-    console.log("Transfer Gas (productId = 4) from "+locations[1]+" to Natural Gas Utility: "+industry4);
   });
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -497,7 +507,11 @@ module.exports = {
     industry1: { default: 15 },
     industry2: { default: 16 },
     industry3: { default: 17 },
-    industry4: { default: 18 },
+    industry4: { default: 14 },
+    industry5: { default: 13 },
+    industry6: { default: 12 },
+    investor1: { default: 11 },
+
     unregistered: { default: 8 }
   },
 

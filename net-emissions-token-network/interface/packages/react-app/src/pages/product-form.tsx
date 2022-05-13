@@ -110,9 +110,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
         body={result}
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
-      <h2>Add product to tracker</h2>
-
-      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered consumers.</p>
+      <h2>Add Product to Emission Certificate</h2>
 
       <Form.Group className="mb-3" controlId="trackerIdInput">
         <Form.Label>TrackerId</Form.Label>
@@ -126,7 +124,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
         />
       </Form.Group>
       <Form.Group className="mb-3" controlId="productInput">
-        <Form.Label>Add product</Form.Label>
+        <Form.Label>Product details</Form.Label>
         <Form.Control
           type="input"
           placeholder="Product name (e.g., oil and gas)"
@@ -146,7 +144,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
         />
         <Form.Text className="text-muted">
           Set a unitless amount of products to be distributed to other industries and consumers.
-          These unit will determine the weighting of emissions across when issuing mutiple product types to a tracker.
+          This number will determine the weighting of emissions across multiple product types.
         </Form.Text>
       </Form.Group>
       <Form.Group className="mb-3" controlId="productUnitsInput">
@@ -163,7 +161,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
         <Form.Label>Product amount (units)</Form.Label>
         <Form.Control
           type="input"
-          placeholder="amount of product in unit (e.g., 1000 kwh)"
+          placeholder="0"
           value={productUnitAmount}
           onChange={onProductUnitAmountChange}
           onBlur={() => setInitializedProductUnitAmountInput(true)}
@@ -171,7 +169,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
         />
         <Form.Text className="text-muted">
           This information is used to convert unitless product amounts into physical product units.
-          If necessary it can be stored off network to hide sensitive product information.
+          If necessary it can be stored off network to conceal sensative commercial data.
         </Form.Text>
       </Form.Group>
       <Row className="mt-4">

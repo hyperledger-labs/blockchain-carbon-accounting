@@ -28,7 +28,9 @@ import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
 import { Web3Provider } from "@ethersproject/providers";
-import WalletLookupInput from "../components/wallet-lookup-input";
+
+import { trpc } from "../services/trpc";
+import { Wallet } from "../components/static-data";
 
 type IssuedTrackersProps = {
   provider?: Web3Provider, 
@@ -52,6 +54,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
   // Balances of my tokens and tokens I've issued
   const [myBalances, setMyBalances] = useState<Balance[]>([]);
   const [myTrackers, setMyTrackers] = useState<Tracker[]>([]);
+  const [refTracker, setRefTracker] = useState<Tracker>();
   const [myIssuedTrackers, setMyIssuedTrackers] = useState<Tracker[]>([]);
   const [trackersWithMyProducts, setTrackersWithMyProducts] = useState<Tracker[]>([]);
 
@@ -76,6 +79,9 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balancePageSize, setBalancePageSize ] = useState(20);
   const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
+
+  const [userWallet, setUserWallet] = useState<(Wallet)>();
+
 
   // issue type : default issuedBy
   const onIssudTypeChanged = async (type: string) => {
@@ -129,6 +135,15 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
     }
   }
 
+  trpc.useQuery(['wallet.lookup', {query: signedInAddress}], {
+    onSettled: (output, error) => {
+      console.log('lookup query settled with', output?.wallets)
+      if (output?.wallets) {
+        setUserWallet([...output?.wallets][0])
+      } 
+    }
+  })
+
   useEffect(() => {
     if(provider) fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
@@ -175,14 +190,17 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
   const fetchTrackers = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
 
     let newMyTrackers =[];
+    let newRefTracker;
     let newMyIssuedTrackers = [];
     let newTrackersWithMyProducts =[];
     let _issuedCount = 0;
 
     try {
       // First, fetch number of unique tokens
+      console.log("sa")
       if(!provider) return;
       let numOfUniqueTrackers = (await getNumOfUniqueTrackers(provider)).toNumber();
+      console.log("TrackerDetails", numOfUniqueTrackers)
       // Iterate over each tokenId and find balance of signed in address
       let result;
       let trackerDetails;
@@ -190,7 +208,11 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
         // Fetch tracker details
         let tracker:Tracker|string 
           = await getTrackerDetails(provider, i, signedInAddress);
+        console.log("TrackerDetails", tracker)
         if(typeof tracker === "object"){
+          if (tracker.trackerId===4){
+            newRefTracker = tracker;
+          }
           if (tracker?.trackee?.toLowerCase() === signedInAddress.toLowerCase()) {
             newMyTrackers.push({...tracker});
           }
@@ -210,6 +232,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
     // setMyBalances(newMyBalances);
     setFetchingTrackers(false);
     setMyTrackers(newMyTrackers);
+    setRefTracker(newRefTracker);
     setMyIssuedTrackers(newMyIssuedTrackers);
     setTrackersWithMyProducts(newTrackersWithMyProducts);
     setError("");
@@ -226,10 +249,11 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
         if ((myTrackers !== [] 
           || myIssuedTrackers !== [] || trackersWithMyProducts !== []
           ) && !fetchingTrackers){
+          console.log("fetching trackers")
           setFetchingTrackers(true);
-          // TO-DO imlplement postgres backend for storing and tracking traker data
-          await fetchTrackers(page, pageSize, query);
-          //await fetchBalances(balancePage, balancePageSize, balanceQuery);
+          // TO-DO imlplement postgres backend for storing and tracking traker dataawait fetchTrackers(page, pageSize, query);
+          await fetchTrackers(balancePage, balancePageSize, balanceQuery);
+
         }
     } }
     init();
@@ -251,12 +275,12 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
       <div key={tracker.trackerId+"ProductInfo"+productId}> 
         <div key={tracker.trackerId+name+productId+"Amount"}> 
           {
-            name+": "+tracker.products?.available[productId]+" "+units
+            name+": "+Math.round(tracker.products?.available[productId]).toLocaleString('en-US')+" "+units
             //name+": "+amount+" ("+tracker.products?.available[productId]+") "+units
           }
         </div>
         <div key={tracker.trackerId+name+productId+"intensity"}>
-          {tracker.products?.emissionFactors[productId]}
+          {tracker.products?.emissionFactors[productId].toFixed(0)}
           {" kgCO2e/"+units}
         </div>
       </div>)
@@ -267,7 +291,23 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+  function rowShading(emissionFactor:number){
+    // TO-DO create an admin configurable reference tracking for product emissino factors
+    // that share common units.
+    let referenceEmissionFactor = 
+      refTracker?.products?.emissionFactors[1];
+    if(!referenceEmissionFactor){return}
 
+    let opacity = ((referenceEmissionFactor-emissionFactor)
+      /referenceEmissionFactor);
+    if(referenceEmissionFactor > emissionFactor){
+      return 'rgba(60, 179, 113,'+opacity.toString()+')';
+    }else if(referenceEmissionFactor < emissionFactor){
+      return 'rgba(255, 99, 71,'+(-1*opacity).toString()+')';
+    } else {
+      return 'rgb(210, 210, 210, 0.5)';
+    }
+  }
 
   function renderTrackersTable(trackers: Tracker[],fetching:boolean,
     provider?: Web3Provider,myProducts?:boolean){
@@ -286,11 +326,14 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
         {(trackers !== [] && !fetching) &&
           trackers.map((tracker:Tracker) => (
             <tr key={tracker.trackerId}
+              style={{
+                backgroundColor: rowShading(tracker?.products?.emissionFactors[1])
+              }}
               onClick={() => handleOpenTrackerInfoModal(tracker)}
               onMouseOver={pointerHover}
             >
               <td>{tracker.trackerId}</td>
-              <td>{tracker.totalEmissions.toString()+" kgCO2e"}</td>
+              <td>{tracker.totalEmissions.toLocaleString('en-US')+" kgCO2e"}</td>
               <td>{tracker.products?.ids?.map((productId,i) => (
                 <div key={tracker.trackerId+"ProductInfo"+i}>
                   {displayProduct(tracker,i,myProducts)}  
@@ -375,19 +418,20 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
         {
           //((!displayAddress && isIndustry) || (displayAddress && displayAddressIsIndustry)) &&
           <div className="mt-4">
-            {isIndustry && myTrackers.length>0 ? <>
-              <h4>My Trackers</h4>
-              <h4>{"User: Niobrara oil & gas producer"}</h4> 
-              {renderTrackersTable(myTrackers,fetchingTrackers,provider)}</>
-              : null 
-            }
+            {(isIndustry && myTrackers.length>0 ? <>
+              <h4>My Emission Certificates</h4>
+              <h4>{"User: "+userWallet?.name}</h4> 
+              {renderTrackersTable(myTrackers,fetchingTrackers,provider)}</> 
+            : null)}
             {isDealer ? 
-              <><h4>All Trackers {(displayAddress ? 'They' : 'You')}'{'ve'} Issued</h4>
+              <><h4>All Emission Certificates {(displayAddress ? 'They' : 'You')}'{'ve'} Issued</h4>
               {renderTrackersTable(myIssuedTrackers,fetchingTrackers,provider)}</>
-              :<><h4>Trackers with my product balances </h4> 
-              <h4>User: Gas Utility</h4> 
+              : null}
+            {trackersWithMyProducts.length>0 ? 
+              <><h4>Emission Certificates with My Product Balances </h4> 
+              <h4>User: {userWallet?.name}</h4> 
               {renderTrackersTable(trackersWithMyProducts,fetchingTrackers,provider,true)}</>
-            }
+              : null}
             {myIssuedTrackers.length !== 0 ? <Paginator 
               count={count}
               page={page}

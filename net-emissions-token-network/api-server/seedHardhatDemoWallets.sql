@@ -45,5 +45,6 @@ UPDATE wallet SET name = 'Offset Dealer 2', organization = 'Test Hardhat' WHERE 
 UPDATE wallet SET name = 'Bakken O&G Producer', organization = 'Test Hardhat' WHERE lower(address) = lower( '0xcd3B766CCDd6AE721141F452C550Ca635964ce71');
 UPDATE wallet SET name = 'Niobrara O&G Producer', organization = 'Test Hardhat' WHERE lower(address) = lower( '0x2546BcD3c84621e976D8185a91A922aE77ECEc30');
 UPDATE wallet SET name = 'Permian O&G Producer', organization = 'Test Hardhat' WHERE lower(address) = lower( '0xbda5747bfd65f08deb54cb465eb87d40e51b197e');
-UPDATE wallet SET name = 'Natural Gas Utility Co.', organization = 'Test Hardhat' WHERE lower(address) = lower( '0xdd2fd4581271e230360230f9337d5c0430bf44c0');
+UPDATE wallet SET name = 'Natural Gas Utility Co.', organization = 'Test Hardhat' WHERE lower(address) = lower( '0xdf3e18d64bc6a983f673ab319ccae4f1a57c7097');
+UPDATE wallet SET name = 'U.S. O&G Producer', organization = 'Test Hardhat' WHERE lower(address) = lower( '0x1cbd3b2770909d4e10f157cabc84c7264073c9ec');
 
