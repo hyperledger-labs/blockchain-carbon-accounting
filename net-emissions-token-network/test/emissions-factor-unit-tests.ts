@@ -218,6 +218,18 @@ describe("Emissions Factors tests", function() {
     const emissionsFactors = await db.getEmissionsFactorRepo().getEmissionsFactors(condition);
     expect(emissionsFactors).to.have.lengthOf(1);
     expect(emissionsFactors[0]).to.have.property('year').equal('2019');
+
+    const condition2 = {
+      level_1: 'eGRID EMISSIONS FACTORS',
+      level_2: 'USA',
+      level_3: 'STATE: CA',
+      level_4: '',
+      year: '2020'
+    }
+
+    const emissionsFactors2 = await db.getEmissionsFactorRepo().getEmissionsFactors(condition2);
+    expect(emissionsFactors2).to.have.lengthOf(1);
+    expect(emissionsFactors2[0]).to.have.property('year').equal('2020');
   });
 
   it("should be correct calculation of US electricity based on state", async function() {
