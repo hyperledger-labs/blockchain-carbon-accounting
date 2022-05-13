@@ -4083,7 +4083,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
   version "1.0.0"
   dependencies:
     "@trpc/server" "^9.23.2"
-    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-c413b8b3-77a1-4e5f-949b-ab1985324137-1652336931523/data/postgres"
+    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-24dd65a3-19b0-4e8a-8dc1-6981986bc997-1652445311094/data/postgres"
     chalk "^5.0.1"
     cors "^2.8.5"
     dotenv "^16.0.0"
@@ -4092,10 +4092,11 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     express-fileupload "^1.3.1"
     express-request-context "^1.0.1"
     moment "^2.29.3"
+    nodemailer "^6.7.5"
     pg "^8.7.3"
-    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-c413b8b3-77a1-4e5f-949b-ab1985324137-1652336931523/supply-chain/lib"
+    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-24dd65a3-19b0-4e8a-8dc1-6981986bc997-1652445311094/supply-chain/lib"
     web3 "^1.7.3"
-    zod "^3.14.4"
+    zod "^3.16.0"
 
 app-root-path@^3.0.0:
   version "3.0.0"
@@ -4697,9 +4698,9 @@ blob-to-it@^1.0.1:
 "blockchain-accounting-data-postgres@file:../../data/postgres", "blockchain-carbon-accounting-data-postgres@file:../../data/postgres":
   version "1.0.0"
   dependencies:
-    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-79bcab51-203f-4394-911c-5316195af22c-1652336931608/node_modules/common"
+    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-59ee093f-4b3e-4bd2-b27e-8a36cdb977a6-1652445311206/node_modules/common"
     cli-progress "^3.10.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-79bcab51-203f-4394-911c-5316195af22c-1652336931608/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-59ee093f-4b3e-4bd2-b27e-8a36cdb977a6-1652445311206/emissions-data/chaincode/emissionscontract/typescript"
     pg "^8.7.3"
     reflect-metadata "^0.1.13"
     ts-node "^10.7.0"
@@ -4712,7 +4713,7 @@ blob-to-it@^1.0.1:
   version "1.0.0"
   dependencies:
     cli-progress "^3.11.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-bd27fb6a-0f97-46c9-ae6d-5bf46b8949fd-1652336931679/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-39401a84-3e80-4b84-944d-1b20ee049c4f-1652445311224/emissions-data/chaincode/emissionscontract/typescript"
     uuid "^8.3.2"
     xlsx "^0.18.5"
 
@@ -11622,6 +11623,11 @@ node.extend@^1.1.5:
     has "^1.0.3"
     is "^3.2.1"
 
+nodemailer@^6.7.5:
+  version "6.7.5"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.7.5.tgz#b30b1566f5fa2249f7bd49ced4c58bec6b25915e"
+  integrity sha512-6VtMpwhsrixq1HDYSBBHvW0GwiWawE75dS3oal48VqRhUvKJNnKnJo2RI/bCVQubj1vgrgscMNW4DHaD6xtMCg==
+
 nopt@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/nopt/-/nopt-5.0.0.tgz#530942bb58a512fccafe53fe210f13a25355dc88"
@@ -15157,9 +15163,9 @@ stylis@4.0.13:
     "@metamask/eth-sig-util" "^4.0.1"
     axios "^0.27.2"
     bignumber.js "^9.0.2"
-    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-1f3fab7e-af25-4aeb-a672-3d144c3b25c0-1652336931565/data/postgres"
-    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-1f3fab7e-af25-4aeb-a672-3d144c3b25c0-1652336931565/emissions-data/typescript_app"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-1f3fab7e-af25-4aeb-a672-3d144c3b25c0-1652336931565/emissions-data/chaincode/emissionscontract/typescript"
+    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-3b059540-5ede-46c6-8db7-3a16d5f9f267-1652445311173/data/postgres"
+    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-3b059540-5ede-46c6-8db7-3a16d5f9f267-1652445311173/emissions-data/typescript_app"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-3b059540-5ede-46c6-8db7-3a16d5f9f267-1652445311173/emissions-data/chaincode/emissionscontract/typescript"
     i "^0.3.7"
     ipfs-http-client "^56.0.3"
     npm "^8.9.0"
@@ -17533,7 +17539,7 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz#0294eb3dee05028d31ee1a5fa2c556a6aaf10a1b"
   integrity sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 
-zod@^3.14.4:
-  version "3.14.4"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.14.4.tgz#e678fe9e5469f4663165a5c35c8f3dc66334a5d6"
-  integrity sha512-U9BFLb2GO34Sfo9IUYp0w3wJLlmcyGoMd75qU9yf+DrdGA4kEx6e+l9KOkAlyUO0PSQzZCa3TR4qVlcmwqSDuw==
+zod@^3.16.0:
+  version "3.16.0"
+  resolved "https://registry.yarnpkg.com/zod/-/zod-3.16.0.tgz#edfdbf77fcc9a5af13a2630a44bdda5b90e759b7"
+  integrity sha512-szrIkryADbTM+xBt2a1KoS2CJQXec4f9xG78bj5MJeEH/XqmmHpnO+fG3IE115AKBJak+2HrbxLZkc9mhdbDKA==
