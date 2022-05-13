@@ -1,4 +1,5 @@
-// @ts-ignore 
+// eslint-disable-next-line
+// @ts-ignore
 import upsAPI from 'ups-nodejs-sdk';
 import { UpsAPI, UpsResponse } from './ups-types';
 import { Output, Path } from './common-types';
@@ -52,8 +53,8 @@ type UpsShipmentOutput = {
 }
 
 // return a promise with the output object for a shipment
-export async function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Promise<UpsShipmentOutput> {
-  let res = await ups_track(ups, trackingNumber);
+export async function get_ups_shipment(ups:UpsAPI, trackingNumber: string, year?: string | undefined): Promise<UpsShipmentOutput> {
+  const res = await ups_track(ups, trackingNumber);
   const isGround = is_ground(res);
   const output: Output = { ups: res };
   const result = { trackingNumber, output };
@@ -75,7 +76,7 @@ export async function get_ups_shipment(ups:UpsAPI, trackingNumber: string): Prom
     output.to = path.to;
     const distance = await calc_distance(path.from, path.to, isGround ? 'ground' : 'air');
     output.distance = distance;
-    const emissions = await calc_freight_emissions(weight, distance);
+    const emissions = await calc_freight_emissions(weight, distance, year);
     output.emissions = emissions;
     return result;
   } else {

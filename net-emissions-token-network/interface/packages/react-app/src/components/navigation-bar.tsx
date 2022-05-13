@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { FC, useState, useEffect } from "react";
+import {Link} from "wouter";
 
 import { addresses } from "@project/contracts";
 
@@ -13,12 +14,12 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 import { FaRegClipboard } from 'react-icons/fa'
 import { FaGithub } from 'react-icons/fa'
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "./static-data";
 import { Tooltip } from "react-bootstrap";
 
 type WalletButtonProps = {
-  provider?: Web3Provider 
+  provider?: Web3Provider | JsonRpcProvider
   loadWeb3Modal: ()=>void 
   logoutOfWeb3Modal:()=>void 
 }
@@ -43,18 +44,24 @@ const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfW
 
 
 type NavigationBarProps = {
-  provider?: Web3Provider 
+  provider?: Web3Provider | JsonRpcProvider
   loadWeb3Modal: ()=>void 
   logoutOfWeb3Modal:()=>void
+  logoutOfWalletInfo: () =>void
   signedInAddress?: string
+  privateKey?: string
   roles: RolesInfo
   limitedMode: boolean
 }
 
-const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, limitedMode }) => {
-  
+const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, logoutOfWalletInfo, signedInAddress, privateKey, roles, limitedMode }) => {
+
   const [role, setRole] = useState("");
   const [cachedRoles, setCachedRoles] = useState<RolesInfo>({});
+
+  useEffect(() => {
+    console.log('sign address', signedInAddress);
+  }, [signedInAddress]);
 
   useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
@@ -96,7 +103,22 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
           <Nav.Link href="https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/net-emissions-token-network"><FaGithub/></Nav.Link>
         </Nav>
         <Nav>
-          {(signedInAddress !== "") &&
+          {(signedInAddress === "")?
+            <>
+            <Link href="sign-in">
+              <Button
+                variant="primary"
+                className="ms-1 mr-3">Sign In
+              </Button>
+            </Link>
+            <Link href="sign-up">
+              <Button
+                variant="primary"
+                className="ms-1 mr-3">Sign Up 
+              </Button>
+            </Link>
+          </>
+          :
             <>
               <Nav.Item style={{padding: "0 1.2rem"}}>
                 <Row className="d-flex justify-content-center">
@@ -135,7 +157,17 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
               </Nav.Item>
             </>
           }
-          <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
+          { privateKey !== "" &&
+            <Button
+                variant="primary"
+                className="ms-1 mr-3"
+                onClick={() => {logoutOfWalletInfo()}}
+                >Sign Out
+            </Button>
+          }
+          { privateKey === "" &&
+            <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
+          }
         </Nav>
       </Navbar.Collapse>
     </Navbar>

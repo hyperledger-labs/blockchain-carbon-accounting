@@ -15,7 +15,7 @@ export type AddressObject = {
 };
 export type Emissions = {
     amount: ValueAndUnit,
-    factor: EmissionsFactorInterface 
+    factor?: EmissionsFactorInterface
 }
 export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {
@@ -76,6 +76,7 @@ type ActivityCommon = {
   type: ActivityType,
   from_date?: Date,
   thru_date?: Date,
+  issued_from?: string,
 };
 type ActivityBase = Path & ActivityCommon
 export type ShipmentActivity = ActivityBase & Shipment;

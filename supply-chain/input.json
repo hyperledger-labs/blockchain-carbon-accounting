@@ -10,13 +10,15 @@
       "id": "1a",
       "type": "shipment",
       "carrier": "ups",
-      "tracking": "1Z038EY90300111662"
+      "tracking": "1Z038EY90300111662",
+      "from_date": "2020-03-02T08:13:28.311Z",
+      "thru_date": "2020-03-02T09:32:23.172Z"
     },
     {
       "id": "2",
       "type": "shipment",
-      "carrier": "fedex",
-      "tracking": "FDX12341234",
+      "carrier": "ups",
+      "tracking": "1z9876543210123456",
       "mode": "air",
       "from": {
         "country": "USA",

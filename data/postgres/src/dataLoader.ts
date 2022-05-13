@@ -58,11 +58,19 @@ const progressBar = new SingleBar(
         .option('source', {
           type: 'string',
           description: 'Data file source',
+        })
+        .option('year', {
+          type: 'string',
+          description: 'Source data year, required for conversion-factors-uk, skipped for other formats',
         });
     },
     async (argv: any) => {
-      const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting load_emissions_factors ...")
+      if (argv.format === 'conversion-factors-uk' && !argv.year) {
+        console.log("'--year' parameter is required for conversion-factors-uk format")
+        return
+      }
+      const db = await init(parseCommonYargsOptions(argv))
       await loadEmissionsFactors(argv, progressBar, db.getEmissionsFactorRepo())
       const count = await db.getEmissionsFactorRepo().countAllFactors()
       console.log(`=== Done, we now have ${count} EmissionFactors in the DB`)

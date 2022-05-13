@@ -91,6 +91,20 @@ export const postSignedMessage = async (message: string, signature: string) => {
     }
 }
 
+/**
+ * This is the function to login with mail and password by calling API Server
+ */
+ export const signInUser =  async(email:string, password:string) => {
+  return trpcClient.mutation('wallet.signin', {email, password})
+}
+
+/**
+ * This is the function to create wallet with mail and password by calling API Server
+ */
+export const signUpUser =  async(email:string, password:string, passwordConfirm:string) => {
+  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm})
+}
+
 export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {
     try {
         var params = {
@@ -226,4 +240,3 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         throw new Error(handleError(error, "Cannot create emissions request"))
     }
 }
-

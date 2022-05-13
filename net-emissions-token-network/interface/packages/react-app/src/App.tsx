@@ -6,6 +6,8 @@ import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 
 import NavigationBar from "./components/navigation-bar";
+import SignUp from "./pages/sign-up";
+import SignIn from "./pages/sign-in";
 import Dashboard from "./pages/dashboard";
 import IssuedTokens from "./pages/issued-tokens";
 import EmissionsRequests from "./pages/emissions-requests";
@@ -28,11 +30,12 @@ const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
 
-  const { provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode } = useWeb3Modal();
+  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh } = useWeb3Modal();
 
   const [location] = useLocation();
 
   const dashboardRef = useRef<ElementRef<typeof Dashboard>>(null);
+  const accessControlRef = useRef<ElementRef<typeof AccessControlForm>>(null);
 
   const isOwner = roles.isAdmin;
   const isDealer = roles.hasDealerRole;
@@ -45,7 +48,9 @@ const App:FC = () => {
           provider={provider}
           loadWeb3Modal={loadWeb3Modal}
           logoutOfWeb3Modal={logoutOfWeb3Modal}
+          logoutOfWalletInfo={logoutOfWalletInfo}
           signedInAddress={signedInAddress}
+          privateKey={privateKey}
           roles={roles}
           limitedMode={limitedMode}
           />
@@ -80,12 +85,20 @@ const App:FC = () => {
         }
 
           {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
-          <Link href="/access-control"><Nav.Link eventKey="access-control">
+          {(location.substring(1) === "access-control")
+            ? <Nav.Link onClick={() => accessControlRef.current?.refresh()} eventKey="access-control">
+              {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
+                ? "Manage roles"
+                : "My roles"
+            }
+            </Nav.Link>
+            : <Link href="/access-control"><Nav.Link eventKey="access-control">
             {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
               ? "Manage roles"
               : "My roles"
           }
-          </Nav.Link></Link>
+          </Nav.Link></Link> 
+        }
 
         </Nav>
 
@@ -102,7 +115,7 @@ const App:FC = () => {
                   <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                 </Route>
                 <Route path="/issue">
-                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
+                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} privateKey = {privateKey}  />
                 </Route>
                 <Route path="/requestAudit">
                   <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
@@ -114,7 +127,7 @@ const App:FC = () => {
                   <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
                 </Route>
                 <Route path="/pendingemissions/:uuid">{params=>
-                  <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} />
+                  <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} privateKey = {privateKey}/>
                 }</Route>
                 <Route path="/transfer">
                   <TransferForm provider={provider} roles={roles} />
@@ -126,7 +139,13 @@ const App:FC = () => {
                   <TrackForm provider={provider} registeredTracker={registeredTracker}/>
                 </Route>
                 <Route path="/access-control">
-                  <AccessControlForm provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+                  <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+                </Route>
+                <Route path="/sign-up">
+                  <SignUp></SignUp>
+                </Route>
+                <Route path="/sign-in">
+                  <SignIn loadWalletInfo={loadWalletInfo} />
                 </Route>
                 <Route>
                   <Redirect to="/dashboard" />

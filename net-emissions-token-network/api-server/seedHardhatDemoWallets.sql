@@ -19,7 +19,8 @@ ZzoOHUG3CdTcWoj2h1vjB704Q/QF7N9M74BZyq53NOk9RO2Ur2Xhs7vP1S7LDWxU
 kMm6c6bLXEqr6CWUWuWeOUXsV8vOY/7zGX1+crULXll9urFeG+EM+GC1FMo7zAgz
 BOJP3Eo6Dv8fc15YPsRpnXty0+khlBIQAuxgsf8r05nqBT4bd1BVR7GSgSMfQabf
 tMOOx2oLGriVPF8ahSWM6xaflk+lAc73w+yt8Ozj1kTqYxD7gLW6dy0CAwEAAQ==
------END RSA PUBLIC KEY-----'
+-----END RSA PUBLIC KEY-----',
+metamask_encrypted_public_key = 'mgn9uRllOGtnBcc07TbDJlFElnuCPiOhtmWui+kiaDw='
 WHERE lower(address) = lower( '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC');
 -- account 3
 UPDATE wallet SET name = 'Offset Dealer 1', organization = 'Test Hardhat' WHERE lower(address) = lower( '0x90F79bf6EB2c4f870365E785982E1f101E93b906');
@@ -27,7 +28,7 @@ UPDATE wallet SET name = 'Offset Dealer 1', organization = 'Test Hardhat' WHERE 
 UPDATE wallet
 SET name = 'Emissions Auditor 2',
 organization = 'Test Hardhat',
-public_key_name = 'demo2-public.pem',
+public_key_name = 'demo1-public.pem',
 public_key = '-----BEGIN RSA PUBLIC KEY-----
 MIICCgKCAgEA8XZYc7pibvGlM9DKF931TrGnFFYnhQeq6wbu7M/kwZl81A21TJ1X
 GVluZwWE0wQLBI/IJYk5Q5t73PM73z60yM6VJqaBlD5PxbuaazBxqfr/eDPfifSn
@@ -40,7 +41,8 @@ TvYidp5VRrt+Mbjqk3QxrmFQaTDl+17qt82ZHnhH1ICtijGZraDFeTygD/OikYE9
 piZMD1LqfQPZM18uP6LzVD8cSywNy/OumLZ2HYeQ5CYAwtilbRT2r5qLAzJmQIOv
 j0FLKvPtHRUgXdafOPU0CGlyH+gMLQkQhytH2JuxLi6iykYmGN2QJoaOol/6hq6/
 9mRpIOUBzdOYOnW8XvdKZF1dm2u9a5C3jWvBwaqXnvDyCF6j/j4DDqkCAwEAAQ==
------END RSA PUBLIC KEY-----'
+-----END RSA PUBLIC KEY-----',
+metamask_encrypted_public_key = 'k1ryuntSrGBOWt2887GV/v3SBk0hobrQ27A3rR2efSE='
 WHERE lower(address) = lower( '0x15d34aaf54267db7d7c367839aaf71a00a2c6a65');
 -- account 19
 UPDATE wallet SET name = 'Consumer 1', organization = 'Test Hardhat' WHERE lower(address) = lower( '0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199');

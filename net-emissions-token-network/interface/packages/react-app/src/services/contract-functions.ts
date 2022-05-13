@@ -2,7 +2,8 @@
 import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
-import { Web3Provider } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet"
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { abis, addresses } from "@project/contracts";
 import { RolesInfo } from "../components/static-data";
 
@@ -69,7 +70,7 @@ function toUnixTime(date: Date | number) {
   return parseInt(((date as Date).getTime() / 1000).toFixed(0));
 }
 
-export async function getBlockNumber(w3provider: Web3Provider) {
+export async function getBlockNumber(w3provider: Web3Provider | JsonRpcProvider) {
   return w3provider.getBlockNumber();
 }
 
@@ -98,7 +99,8 @@ export function decodeDate(epoch_in_s?: number) {
  *
  */
 
-export async function getRoles(w3provider: Web3Provider, address: string) {
+export async function getRoles(w3provider: Web3Provider | JsonRpcProvider, address: string) {
+  if (!w3provider || !address) return {};
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   try {
     const r = await contract.getRoles(address) as RolesInfo;
@@ -109,12 +111,12 @@ export async function getRoles(w3provider: Web3Provider, address: string) {
     if (roles.isIndustryDealer || roles.isIndustry) roles.hasIndustryRole = true;
     return roles;
   } catch (error) {
-    console.error('getRoles', error);
+    console.error('getRoles', address, error);
     return {}
   }
 }
 
-export async function getIssuedBy(w3provider: Web3Provider, tokenId: number) {
+export async function getIssuedBy(w3provider: Web3Provider | JsonRpcProvider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let issuer;
   try {
@@ -126,7 +128,7 @@ export async function getIssuedBy(w3provider: Web3Provider, tokenId: number) {
   return issuer;
 }
 
-export async function getTokenDetails(w3provider: Web3Provider, tokenId: number) {
+export async function getTokenDetails(w3provider: Web3Provider | JsonRpcProvider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let details;
   try {
@@ -138,7 +140,7 @@ export async function getTokenDetails(w3provider: Web3Provider, tokenId: number)
   return details;
 }
 
-export async function getNumOfUniqueTokens(w3provider: Web3Provider) {
+export async function getNumOfUniqueTokens(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let uniqueTokens;
   try {
@@ -150,7 +152,7 @@ export async function getNumOfUniqueTokens(w3provider: Web3Provider) {
   return uniqueTokens;
 }
 
-export async function getAvailableRetiredAndTransferred(w3provider: Web3Provider, address: string, tokenId: number) {
+export async function getAvailableRetiredAndTransferred(w3provider: Web3Provider | JsonRpcProvider, address: string, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let balances;
   try {
@@ -162,7 +164,7 @@ export async function getAvailableRetiredAndTransferred(w3provider: Web3Provider
   return balances;
 }
 
-export async function getTokenType(w3provider: Web3Provider, tokenId: number) {
+export async function getTokenType(w3provider: Web3Provider | JsonRpcProvider, tokenId: number) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let tokenType;
   try {
@@ -174,7 +176,7 @@ export async function getTokenType(w3provider: Web3Provider, tokenId: number) {
   return tokenType;
 }
 
-export async function getLimitedMode(w3provider: Web3Provider) {
+export async function getLimitedMode(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let limitedMode: boolean;
   try {
@@ -187,7 +189,7 @@ export async function getLimitedMode(w3provider: Web3Provider) {
   return limitedMode;
 }
 
-export async function getAdmin(w3provider: Web3Provider) {
+export async function getAdmin(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let admin;
   try {
@@ -200,41 +202,67 @@ export async function getAdmin(w3provider: Web3Provider) {
 }
 
 export async function issue(
-  w3provider: Web3Provider,
-  issuedFrom: string|undefined,
+  w3provider: Web3Provider | JsonRpcProvider,
+  issuedFrom: string | undefined,
   issuedTo: string,
   tokenTypeId: number,
   quantity: bigint,
-  fromDate: number|Date,
-  thruDate: number|Date,
+  fromDate: number | Date,
+  thruDate: number | Date,
   metadata: string,
   manifest: string,
-  description: string
+  description: string,
+  privateKey: string,
 ) {
-  let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let signed = contract.connect(signer);
   let issue_result;
-  try {
-    await signed.issue(
-      issuedFrom||0,
-      issuedTo,
-      tokenTypeId,
-      quantity,
-      convertToZeroIfBlank(toUnixTime(fromDate)),
-      convertToZeroIfBlank(toUnixTime(thruDate)),
-      metadata,
-      manifest,
-      description
-    );
-    issue_result = SUCCESS_MSG;
-  } catch (error) {
-    issue_result = catchError(error);
+  if (w3provider instanceof Web3Provider) {
+    let signer = w3provider.getSigner();
+    let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
+    let signed = contract.connect(signer);
+
+    try {
+      await signed.issue(
+        issuedFrom || 0,
+        issuedTo,
+        tokenTypeId,
+        quantity,
+        convertToZeroIfBlank(toUnixTime(fromDate)),
+        convertToZeroIfBlank(toUnixTime(thruDate)),
+        metadata,
+        manifest,
+        description
+      );
+      issue_result = SUCCESS_MSG;
+    } catch (error) {
+      issue_result = catchError(error);
+    }
+  } else {
+    console.log("Json Provider - Issue");
+    const signer  = new Wallet(privateKey, w3provider);
+    let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, signer)
+    try{
+      await contract.issue(
+        issuedFrom || 0,
+        issuedTo,
+        tokenTypeId,
+        quantity,
+        convertToZeroIfBlank(toUnixTime(fromDate)),
+        convertToZeroIfBlank(toUnixTime(thruDate)),
+        metadata,
+        manifest,
+        description
+      );
+      issue_result = SUCCESS_MSG;
+    } catch(error){
+      issue_result = catchError(error);
+    }
+
   }
+
   return issue_result;
 }
 
-export async function retire(w3provider: Web3Provider, tokenId: number, amount: number) {
+export async function retire(w3provider: Web3Provider | JsonRpcProvider, tokenId: number, amount: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -248,7 +276,7 @@ export async function retire(w3provider: Web3Provider, tokenId: number, amount: 
   return retire_result;
 }
 
-export async function transfer(w3provider: Web3Provider, address: string, tokenId: number, amount: number) {
+export async function transfer(w3provider: Web3Provider | JsonRpcProvider, address: string, tokenId: number, amount: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -262,7 +290,7 @@ export async function transfer(w3provider: Web3Provider, address: string, tokenI
   return transfer_result;
 }
 
-export async function registerConsumer(w3provider: Web3Provider, address: string) {
+export async function registerConsumer(w3provider: Web3Provider | JsonRpcProvider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -276,7 +304,7 @@ export async function registerConsumer(w3provider: Web3Provider, address: string
   return registerConsumer_result;
 }
 
-export async function unregisterConsumer(w3provider: Web3Provider, address: string) {
+export async function unregisterConsumer(w3provider: Web3Provider | JsonRpcProvider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -290,7 +318,7 @@ export async function unregisterConsumer(w3provider: Web3Provider, address: stri
   return unregisterConsumer_result;
 }
 
-export async function registerIndustry(w3provider: Web3Provider, address: string) {
+export async function registerIndustry(w3provider: Web3Provider | JsonRpcProvider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -304,7 +332,7 @@ export async function registerIndustry(w3provider: Web3Provider, address: string
   return registerIndustry_result;
 }
 
-export async function unregisterIndustry(w3provider: Web3Provider, address: string) {
+export async function unregisterIndustry(w3provider: Web3Provider | JsonRpcProvider, address: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -318,7 +346,7 @@ export async function unregisterIndustry(w3provider: Web3Provider, address: stri
   return registerIndustry_result;
 }
 
-export async function registerDealer(w3provider: Web3Provider, address: string, tokenTypeId: number) {
+export async function registerDealer(w3provider: Web3Provider | JsonRpcProvider, address: string, tokenTypeId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -332,7 +360,7 @@ export async function registerDealer(w3provider: Web3Provider, address: string, 
   return registerDealer_result;
 }
 
-export async function unregisterDealer(w3provider: Web3Provider, address: string, tokenTypeId: number) {
+export async function unregisterDealer(w3provider: Web3Provider | JsonRpcProvider, address: string, tokenTypeId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let signed = contract.connect(signer);
@@ -352,7 +380,7 @@ export async function unregisterDealer(w3provider: Web3Provider, address: string
  *
  */
 
-export async function daoTokenTotalSupply(w3provider: Web3Provider) {
+export async function daoTokenTotalSupply(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let balance;
   try {
@@ -365,7 +393,7 @@ export async function daoTokenTotalSupply(w3provider: Web3Provider) {
   return balance;
 }
 
-export async function daoTokenBalanceOf(w3provider: Web3Provider, account: string) {
+export async function daoTokenBalanceOf(w3provider: Web3Provider | JsonRpcProvider, account: string) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let balance;
   try {
@@ -378,7 +406,7 @@ export async function daoTokenBalanceOf(w3provider: Web3Provider, account: strin
   return balance;
 }
 
-export async function delegate(w3provider: Web3Provider, delegatee: string) {
+export async function delegate(w3provider: Web3Provider | JsonRpcProvider, delegatee: string) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let signed = contract.connect(signer);
@@ -392,7 +420,7 @@ export async function delegate(w3provider: Web3Provider, delegatee: string) {
   return delegate;
 }
 
-export async function delegates(w3provider: Web3Provider, address: string) {
+export async function delegates(w3provider: Web3Provider | JsonRpcProvider, address: string) {
   let contract = new Contract(addresses.dao.daoToken.address, abis.daoToken.abi, w3provider);
   let delegates;
   try {
@@ -409,7 +437,7 @@ export async function delegates(w3provider: Web3Provider, address: string) {
  *
  */
 
-export async function getProposalCount(w3provider: Web3Provider) {
+export async function getProposalCount(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let count;
   try {
@@ -420,7 +448,7 @@ export async function getProposalCount(w3provider: Web3Provider) {
   return count;
 }
 
-export async function getProposalDetails(w3provider: Web3Provider, proposalId: number): Promise<any|string> {
+export async function getProposalDetails(w3provider: Web3Provider | JsonRpcProvider, proposalId: number): Promise<any|string> {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let proposals;
   try {
@@ -431,7 +459,7 @@ export async function getProposalDetails(w3provider: Web3Provider, proposalId: n
   return proposals;
 }
 
-export async function getProposalState(w3provider: Web3Provider, proposalId: number) {
+export async function getProposalState(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let state;
   try {
@@ -442,7 +470,7 @@ export async function getProposalState(w3provider: Web3Provider, proposalId: num
   return PROPOSAL_STATES[state];
 }
 
-export async function propose(w3provider: Web3Provider, targets: string[], values: number[], signatures: string[], calldatas: string[], description: string[]) {
+export async function propose(w3provider: Web3Provider | JsonRpcProvider, targets: string[], values: number[], signatures: string[], calldatas: string[], description: string[]) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -484,7 +512,7 @@ export async function propose(w3provider: Web3Provider, targets: string[], value
   return proposal;
 }
 
-export async function getReceipt(w3provider: Web3Provider, proposalId: number, voter: string) {
+export async function getReceipt(w3provider: Web3Provider | JsonRpcProvider, proposalId: number, voter: string) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let receipt;
   try {
@@ -495,7 +523,7 @@ export async function getReceipt(w3provider: Web3Provider, proposalId: number, v
   return receipt;
 }
 
-export async function getActions(w3provider: Web3Provider, proposalId: number) {
+export async function getActions(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let actions;
   try {
@@ -506,7 +534,7 @@ export async function getActions(w3provider: Web3Provider, proposalId: number) {
   return actions;
 }
 
-export async function getDescription(w3provider: Web3Provider, proposalId: number) {
+export async function getDescription(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let description;
   try {
@@ -517,7 +545,7 @@ export async function getDescription(w3provider: Web3Provider, proposalId: numbe
   return description;
 }
 
-export async function castVote(w3provider: Web3Provider, proposalId: number, support: boolean, votes: BigNumber) {
+export async function castVote(w3provider: Web3Provider | JsonRpcProvider, proposalId: number, support: boolean, votes: BigNumber) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -531,7 +559,7 @@ export async function castVote(w3provider: Web3Provider, proposalId: number, sup
   return castVote;
 }
 
-export async function queue(w3provider: Web3Provider, proposalId: number) {
+export async function queue(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -545,7 +573,7 @@ export async function queue(w3provider: Web3Provider, proposalId: number) {
   return queue;
 }
 
-export async function execute(w3provider: Web3Provider, proposalId: number) {
+export async function execute(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -559,7 +587,7 @@ export async function execute(w3provider: Web3Provider, proposalId: number) {
   return execute;
 }
 
-export async function cancel(w3provider: Web3Provider, proposalId: number) {
+export async function cancel(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -573,7 +601,7 @@ export async function cancel(w3provider: Web3Provider, proposalId: number) {
   return cancel;
 }
 
-export async function refund(w3provider: Web3Provider, proposalId: number) {
+export async function refund(w3provider: Web3Provider | JsonRpcProvider, proposalId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let signed = contract.connect(signer);
@@ -587,7 +615,7 @@ export async function refund(w3provider: Web3Provider, proposalId: number) {
   return refund;
 }
 
-export async function getQuorum(w3provider: Web3Provider) {
+export async function getQuorum(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let quorum;
   try {
@@ -599,7 +627,7 @@ export async function getQuorum(w3provider: Web3Provider) {
   return quorum;
 }
 
-export async function getProposalThreshold(w3provider: Web3Provider) {
+export async function getProposalThreshold(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.dao.governor.address, abis.governor.abi, w3provider);
   let proposalThreshold;
   try {
@@ -610,7 +638,7 @@ export async function getProposalThreshold(w3provider: Web3Provider) {
   }
   return proposalThreshold;
 }
-export async function registerTracker(w3provider: Web3Provider,trackee: string){
+export async function registerTracker(w3provider: Web3Provider | JsonRpcProvider,trackee: string){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
@@ -624,7 +652,7 @@ export async function registerTracker(w3provider: Web3Provider,trackee: string){
   return register_result;
 }
 
-export async function getNumOfUniqueTrackers(w3provider: Web3Provider) {
+export async function getNumOfUniqueTrackers(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let uniqueTrackers;
   try {
@@ -634,7 +662,7 @@ export async function getNumOfUniqueTrackers(w3provider: Web3Provider) {
   }
   return uniqueTrackers;
 }
-export async function getTrackerDetails(w3provider: Web3Provider, trackerId: number) {
+export async function getTrackerDetails(w3provider: Web3Provider | JsonRpcProvider, trackerId: number) {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let details;
   try {
@@ -644,7 +672,7 @@ export async function getTrackerDetails(w3provider: Web3Provider, trackerId: num
   }
   return details;
 }
-export async function getTrackerIds(w3provider: Web3Provider, trackerId: number) {
+export async function getTrackerIds(w3provider: Web3Provider | JsonRpcProvider, trackerId: number) {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let trackerIds;
   try {
@@ -654,7 +682,7 @@ export async function getTrackerIds(w3provider: Web3Provider, trackerId: number)
   }
   return trackerIds;
 }
-export async function getCarbonIntensity(w3provider: Web3Provider, trackerId: number, tokenTypeId: number){
+export async function getCarbonIntensity(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, tokenTypeId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let ci;
   try {
@@ -666,7 +694,7 @@ export async function getCarbonIntensity(w3provider: Web3Provider, trackerId: nu
 }
 
 
-export async function getTokenAmounts(w3provider: Web3Provider, trackerId: number, sourceTrackerId: number){
+export async function getTokenAmounts(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, sourceTrackerId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let tokenAmounts;
   try {
@@ -677,7 +705,7 @@ export async function getTokenAmounts(w3provider: Web3Provider, trackerId: numbe
   return tokenAmounts;
 }
 
-export async function getRegisteredTracker(w3provider: Web3Provider, signedInAddress: string){
+export async function getRegisteredTracker(w3provider: Web3Provider | JsonRpcProvider, signedInAddress: string){
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let registeredTracker;
   try {
@@ -690,7 +718,7 @@ export async function getRegisteredTracker(w3provider: Web3Provider, signedInAdd
 }
 
 export async function track(
-  w3provider: Web3Provider,
+  w3provider: Web3Provider | JsonRpcProvider,
   trackee: string,
   tokenIds: string,
   inAmounts: string,

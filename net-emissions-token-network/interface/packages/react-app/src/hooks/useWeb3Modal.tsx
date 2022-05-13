@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
 import { getRoles, getRegisteredTracker, getLimitedMode } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
+import { RPC_URL } from "../services/api.config";
 
 // Enter a valid infura key here to avoid being rate limited
 // You can get a key for free at https://infura.io/register
@@ -14,9 +15,10 @@ const INFURA_ID = "INVALID_INFURA_KEY";
 const NETWORK_NAME = "mainnet";
 
 function useWeb3Modal(config: any = {}) {
-  const [provider, setProvider] = useState<Web3Provider>();
+  const [provider, setProvider] = useState<Web3Provider|JsonRpcProvider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
+  const [privateKey, setPrivateKey] = useState("");
   const [roles, setRoles] = useState<RolesInfo>({});
   const [registeredTracker, setRegisteredTracker] = useState(false);
   const [limitedMode, setLimitedMode] = useState(true);
@@ -50,6 +52,8 @@ function useWeb3Modal(config: any = {}) {
     setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
+
+
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
@@ -58,6 +62,37 @@ function useWeb3Modal(config: any = {}) {
     },
     [web3Modal],
   );
+
+  const loadWalletInfo = (public_key:string, private_key:string) => {
+    const web3Provider = new JsonRpcProvider(RPC_URL);
+    setProvider(web3Provider);
+    setSignedInAddress(public_key);
+    setPrivateKey(private_key);
+  }
+
+  const logoutOfWalletInfo = () => {
+    setSignedInAddress("");
+    setPrivateKey("");
+    window.location.reload();
+  }
+
+  const refresh = useCallback(async () => {
+    async function fetchRoles(provider: Web3Provider | JsonRpcProvider) {
+      setRoles(await getRoles(provider, signedInAddress));
+    };
+    async function fetchRegisteredTracker(provider: Web3Provider | JsonRpcProvider) {
+      setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
+    };
+    async function fetchLimitedMode(provider: Web3Provider | JsonRpcProvider) {
+      setLimitedMode(await getLimitedMode(provider));
+    }
+
+    if (provider) {
+      fetchRoles(provider);
+      fetchRegisteredTracker(provider);
+      fetchLimitedMode(provider);
+    }
+  }, [provider, signedInAddress]);
 
   // If autoLoad is enabled and the the wallet had been loaded before, load it automatically now.
   useEffect(() => {
@@ -68,25 +103,10 @@ function useWeb3Modal(config: any = {}) {
   }, [autoLoad, autoLoaded, loadWeb3Modal, setAutoLoaded, web3Modal.cachedProvider]);
 
   useEffect(() => {
-    async function fetchRoles(provider: Web3Provider) {
-      setRoles(await getRoles(provider, signedInAddress));
-    };
-    async function fetchRegisteredTracker(provider: Web3Provider) {
-      setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
-    };
-    async function fetchLimitedMode(provider: Web3Provider) {
-      setLimitedMode(await getLimitedMode(provider));
-    }
+    refresh();
+  }, [refresh]);
 
-    if (provider) {
-      fetchRoles(provider);
-      fetchRegisteredTracker(provider);
-      fetchLimitedMode(provider);
-    }
-
-  }, [provider, signedInAddress]);
-
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, signedInAddress, roles, registeredTracker, limitedMode};
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh};
 }
 
 export default useWeb3Modal;

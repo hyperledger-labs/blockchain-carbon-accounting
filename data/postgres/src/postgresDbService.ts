@@ -15,7 +15,7 @@ export class PostgresDBService {
 
   private _db: DataSource
   private static _instance: PostgresDBService | null
-  private static _instanceLoading: Promise<PostgresDBService>
+  private static _instanceLoading: Promise<PostgresDBService> | null
 
   public static getInstance = async (opts?: DbOpts): Promise<PostgresDBService> => {
     if (PostgresDBService._instance) return PostgresDBService._instance
@@ -44,6 +44,7 @@ export class PostgresDBService {
   public async close() {
     await this._db.destroy()
     PostgresDBService._instance = null
+    PostgresDBService._instanceLoading = null
   }
 
   public getConnection() {

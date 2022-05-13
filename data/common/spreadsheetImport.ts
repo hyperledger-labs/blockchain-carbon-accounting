@@ -14,7 +14,8 @@ export type ParseWorksheetOpts = {
   sheet: string,
   skip_rows?: number,
   format?: string,
-  source?: string
+  source?: string,
+  year?: string
 };
 
 function getStateNameMapping(key: keyof typeof STATE_NAME_MAPPING) {
@@ -130,6 +131,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         if (!row || !row["Data Year"]) continue;
         // skip header rows
         if (row["Data Year"] == "YEAR") continue;
+        // get annual generation and emissions
+        const net_generation = row["NERC region annual net generation (MWh)"].toString();
+        const total_net_generation = Number(net_generation);
+        const total_co2_equivalent_emissions = Number(row["NERC region annual CO2 equivalent emissions (tons)"].toString());
+        // get the co2e per MWh
+        const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
@@ -144,12 +151,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_type: "NERC_REGION",
           division_id: row["NERC region acronym"],
           division_name: (row["NERC region name "] || "").replace(/ /g, "_"),
-          net_generation:
-            row["NERC region annual net generation (MWh)"].toString(),
+          net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
-          co2_equivalent_emissions:
-            row["NERC region annual CO2 equivalent emissions (tons)"].toString(),
+          co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "tons",
           source: opts.source || opts.file,
           non_renewables:
@@ -177,6 +182,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         // skip header rows
         if (row["Data Year"] == "YEAR") continue;
         opts.verbose && console.log("-- Prepare to insert from ", row);
+        // get annual generation and emissions
+        const net_generation = row["State annual net generation (MWh)"].toString();
+        const total_net_generation = Number(net_generation);
+        const total_co2_equivalent_emissions = Number(row["State annual CO2 equivalent emissions (tons)"].toString());
+        // get the co2e per MWh
+        const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
@@ -191,11 +202,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_type: "STATE",
           division_id: row["State abbreviation"],
           division_name: getStateNameMapping(row["State abbreviation"]),
-          net_generation: row["State annual net generation (MWh)"],
+          net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
-          co2_equivalent_emissions:
-            row["State annual CO2 equivalent emissions (tons)"].toString(),
+          co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "tons",
           source: opts.source || opts.file,
           non_renewables:
@@ -220,6 +230,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         if (!row || !row["Data Year"]) continue;
         // skip header rows
         if (row["Data Year"] == "YEAR") continue;
+        // get annual generation and emissions
+        const net_generation = row["U.S. annual net generation (MWh)"].toString();
+        const total_net_generation = Number(net_generation);
+        const total_co2_equivalent_emissions = Number(row["U.S. annual CO2 equivalent emissions (tons)"].toString());
+        // get the co2e per MWh
+        const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
         opts.verbose && console.log("-- Prepare to insert from ", row);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
@@ -235,11 +251,10 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           division_type: "COUNTRY",
           division_id: "USA",
           division_name: "United States of America",
-          net_generation: "" + row["U.S. annual net generation (MWh)"],
+          net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
-          co2_equivalent_emissions:
-            "" + row["U.S. annual CO2 equivalent emissions (tons)"],
+          co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "tons",
           source: opts.source || opts.file,
           non_renewables:
@@ -274,7 +289,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
-        level_1: "Emissions Factor",
+        level_1: "EEA EMISSIONS FACTORS",
         level_2: countryName,
         level_3: `COUNTRY: ${countryName}`,
         scope: "SCOPE 2",
@@ -303,54 +318,102 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
     progressBar.start(data.length, 0);
     for (const row of data) {
       // skip empty rows
-      if (!row || !row["Date:year"]) continue;
-      // skip rows that aren't latest year
-      if (row["Date:year"] !== 2019) continue;
+      if (!row) {
+        continue;
+      }
+
+      const year = row["Year"] || row["date:number"] || row["Date:year"];
+      if (!year) {
+        continue;
+      }
+      console.log("ROW", row);
+
       // skip total EU
-      if (row["Member State:text"].startsWith("European Union")) continue;
+      const country = row["ugeo:text"] || row["Member State:text"] || row["CountryShort"];
+      if (!country || country.startsWith("EU") || country.startsWith("European Union")) continue;
 
       // get country long name and abbreviation from long name
-      const countryLong = row["Member State:text"].replace(" ", "_");
+      const countryLong = row["ugeo:text"]?.replace(" ", "_") || row["CountryLong"]?.replace(" ", "_") || row["Member State:text"]?.replace(" ", "_");
       const countryShort = Object.keys(COUNTRY_MAPPINGS).find(
         (key) => getCountryMapping(key as keyof typeof COUNTRY_MAPPINGS) === countryLong
       );
 
       // skip if country name not found
-      if (!countryShort) continue;
+      if (!countryShort) {
+        continue;
+      }
 
       const document_id = uuidv4();
+      const emissions = row["index:number"] || row["ValueNumeric"];
+      if (!emissions) continue;
       const d = {
         uuid: document_id,
         type: EMISSIONS_FACTOR_TYPE,
-        co2_equivalent_emissions: row["index:number"],
-        co2_equivalent_emissions_uom: "g/KWH",
+        co2_equivalent_emissions: emissions,
+        co2_equivalent_emissions_uom: "g",
         source: opts.source || opts.file,
+        activity_uom: 'kWH'
       };
 
       // find previous record to update
-      const factors = await db.getEmissionsFactorsByDivision(countryLong, 'Country', row["Date:year"]);
+      const factors = await db.getEmissionsFactorsSimple({
+        level_1: "EEA EMISSIONS FACTORS",
+        division_id: countryLong,
+        division_type: 'Country',
+        year: "" + year
+      })
       if (factors && factors.length > 0) {
         const factor = factors[0];
         if (factor) {
           factor.co2_equivalent_emissions = d.co2_equivalent_emissions;
           factor.co2_equivalent_emissions_uom = d.co2_equivalent_emissions_uom;
           factor.source = d.source;
+          factor.activity_uom = d.activity_uom;
 
           await db.putEmissionFactor(factor);
           progressBar.increment();
+          console.log('Updated factor ', factor.level_2,factor.year);
         } else {
           console.log("Could not find imported factor");
         }
       } else {
-        console.log("Could not find imported factors");
+        // import it
+        const factor: EmissionsFactorInterface = {
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          uuid: d.uuid,
+          type: d.type,
+          level_1: "EEA EMISSIONS FACTORS",
+          level_2: countryLong,
+          level_3: `COUNTRY: ${countryLong}`,
+          scope: "SCOPE 2",
+          year: "" + year,
+          country: countryLong,
+          division_type: "Country",
+          division_id: countryLong,
+          division_name: countryLong,
+          net_generation: "",
+          net_generation_uom: "",
+          co2_equivalent_emissions: d.co2_equivalent_emissions,
+          co2_equivalent_emissions_uom: d.co2_equivalent_emissions_uom,
+          activity_uom: d.activity_uom,
+          source: d.source,
+          non_renewables: "",
+          renewables: "",
+          percent_of_renewables: "",
+        };
+        await db.putEmissionFactor(factor);
+        console.log('--- IMPORTED factor ', factor.level_2,factor.year);
+        progressBar.increment();
       }
     }
     progressBar.stop();
     return;
   } else if (opts.format === "conversion-factors-uk") {
+    console.log("Import conversion-factors-uk data, year: ", opts.year);
     opts.skip_rows = 4;
     const data = parseWorksheet(opts);
     progressBar.start(data.length, 0);
+    const emissions_column_name = "GHG Conversion Factor " + opts.year;
 
     let i = 0;
     for (const row of data) {
@@ -362,7 +425,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       if (row.GHG !== "kg CO2e") continue;
 
       //skip rows with missing factors
-      if (!row["GHG Conversion Factor 2021"]) continue;
+      if (!row[emissions_column_name]) continue;
 
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
@@ -378,9 +441,9 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         text: row["Column Text"] ?? "",
         scope: row.Scope,
         uuid: document_id,
-        year: "2021",
+        year: opts.year,
         activity_uom: row.UOM,
-        co2_equivalent_emissions: "" + row["GHG Conversion Factor 2021"],
+        co2_equivalent_emissions: "" + row[emissions_column_name],
         co2_equivalent_emissions_uom: "kg",
         source: opts.source || opts.file,
       };

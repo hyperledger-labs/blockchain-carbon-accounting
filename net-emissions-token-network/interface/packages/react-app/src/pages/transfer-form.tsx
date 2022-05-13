@@ -7,13 +7,13 @@ import SubmissionModal from "../components/submission-modal";
 
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { InputGroup } from "react-bootstrap";
 import WalletLookupInput from "../components/wallet-lookup-input";
 
 type TransferFormProps = {
-  provider?: Web3Provider
+  provider?: Web3Provider | JsonRpcProvider
   roles: RolesInfo
 }
 

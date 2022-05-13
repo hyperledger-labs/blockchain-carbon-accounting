@@ -30,7 +30,7 @@ import {
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
-import { _uploadFileEncrypted, uploadFileEncrypted } from "./ipfs-utils";
+import { uploadFileRSAEncrypted, uploadFileWalletEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
 import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
 import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
@@ -39,12 +39,9 @@ import { extname } from "path";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
-let _db: PostgresDBService|null = null;
 
 async function getDBInstance() {
-  if (_db) return _db;
-  _db = await PostgresDBService.getInstance();
-  return _db;
+  return await PostgresDBService.getInstance();
 }
 
 export function emissions_in_kg_to_tokens(emissions: number) {
@@ -149,9 +146,9 @@ export async function calc_flight_emissions(
   }
   let factor;
   if (year) {
-    let fo = {...f} as Partial<EmissionsFactorInterface>;
-    fo.year = year;
-    factor = await getEmissionFactor(fo);
+    const data = {...f} as Partial<EmissionsFactorInterface>;
+    data.year = year;
+    factor = await getEmissionFactor(data);
     if (!factor) {
       factor = await getEmissionFactor(f);
     }
@@ -189,9 +186,9 @@ export async function calc_freight_emissions(
   let factor;
 
   if (year) {
-    let fo = {...f} as Partial<EmissionsFactorInterface>;
-    fo.year = year;
-    factor = await getEmissionFactor(fo);
+    const data = {...f} as Partial<EmissionsFactorInterface>;
+    data.year = year;
+    factor = await getEmissionFactor(data);
     if (!factor) {
       factor = await getEmissionFactor(f);
     }
@@ -340,9 +337,13 @@ async function gateway_issue_token(
 export async function process_shipment(
   a: ShipmentActivity
 ): Promise<ActivityResult> {
+  let year;
+  if (a.thru_date) {
+     year = new Date(a.thru_date).getFullYear().toString();
+  }
   if (a.carrier === "ups") {
     const uc = get_ups_client();
-    const shipment = await get_ups_shipment(uc, a.tracking);
+    const shipment = await get_ups_shipment(uc, a.tracking, year);
     const { distance, weight, emissions, ups } = shipment.output;
     return {
       distance,
@@ -357,10 +358,6 @@ export async function process_shipment(
     const distance = await calc_distance(a.from, a.to, a.mode);
     // then calc emissions ...
     const weight = weight_in_kg(a.weight, a.weight_uom);
-    let year;
-    if (a.thru_date) {
-       year = new Date(a.thru_date).getFullYear().toString();
-    }
     const emissions = await calc_freight_emissions(weight, distance, year);
     return { distance, weight: { value: weight, unit: "kg" }, emissions };
   }
@@ -397,18 +394,81 @@ export async function process_natural_gas(
 export async function process_electricity(
   a: ElectricityActivity 
 ): Promise<ActivityResult> {
-  return process_emissions_factor({
-    ...a,
-    level_1: 'WTT- UK & OVERSEAS ELEC',
-    level_2: a.country !== 'UK' ? 'WTT- OVERSEAS ELECTRICITY (GENERATION)' : 'WTT- UK ELECTRICITY (GENERATION)',
-    level_3: 'ELECTRICITY: ' + a.country,
-  })
+  const from_year = a.from_date?.getFullYear()?.toString()
+  const thru_year = a.thru_date?.getFullYear()?.toString()
+  // for non UNITED STATES, use the emissions factor
+  // from EEA EMISSIONS FACTORS
+  if (a.country !== 'UNITED STATES') {
+    return process_emissions_factor({
+      ...a,
+      level_1: 'EEA EMISSIONS FACTORS',
+      level_2: a.country,
+      level_3: 'COUNTRY: ' + a.country,
+    })
+  } else {
+    // for UNITED STATES, use the Utility lookup
+    if (!a.utility) throw new Error('Utility field is required');
+    const db = await getDBInstance();
+    const utility = await db.getUtilityLookupItemRepo().getUtilityLookupItem(a.utility);
+    if (!utility) throw new Error(`Utility [${a.utility}] not found`);
+    // if no state then use the country factor
+    const level_1 = 'eGRID EMISSIONS FACTORS';
+    const level_2 = 'USA';
+    let level_3 = utility.state_province ? 'STATE: ' + utility.state_province : 'COUNTRY: USA';
+    // not all states have a factor, so lookup the factor here and if not found use the country factor
+    // those factors are in MWH instead of KWH
+    const activity_uom = 'mwh'
+    const activity_amount = Number(a.activity_amount) / 1000.0;
+    let factor = await getEmissionFactor({
+      ...a,
+      from_year,
+      thru_year,
+      activity_uom,
+      level_1,
+      level_2,
+      level_3,
+    });
+    if (!factor) {
+      level_3 = 'COUNTRY: USA';
+      factor = await getEmissionFactor({
+        ...a,
+        from_year,
+        thru_year,
+        activity_uom,
+        level_1,
+        level_2,
+        level_3,
+      });
+    }
+
+    // from Utility, go to Utility Lookup Item to look up the state_province, and then look for the emissions_factor
+    // eGRID EMISSIONS FACTORS
+    // USA
+    // STATE: + state_province
+    return process_emissions_factor({
+      ...a,
+      activity_amount,
+      activity_uom,
+      emissions_factor_uuid: factor?.uuid,
+      level_1,
+      level_2,
+      level_3,
+    })
+  }
 }
 
 export async function process_emissions_factor(
   a: EmissionsFactorActivity
 ): Promise<ActivityResult> {
 
+  let from_year;
+  if (a.from_date) {
+    from_year = new Date(a.from_date).getFullYear().toString()
+  }
+  let thru_year;
+  if (a.thru_date) {
+    thru_year = new Date(a.thru_date).getFullYear().toString()
+  }
   const db = await getDBInstance();
   // support a lookup by given uuid or by levels/scope/text
   let factor;
@@ -416,10 +476,8 @@ export async function process_emissions_factor(
     factor = await db.getEmissionsFactorRepo().getEmissionFactor(a.emissions_factor_uuid);
   } else {
     if (a.thru_date) {
-      const year = new Date(a.thru_date).getFullYear().toString();
-      let fo = {...a} as Partial<EmissionsFactorInterface>;
-      fo.year = year;
-      factor = await getEmissionFactor(fo);
+      const data = {...a, from_year, thru_year} as Partial<EmissionsFactorInterface>;
+      factor = await getEmissionFactor(data);
     }
     if (!factor) {
       factor = await getEmissionFactor(a);
@@ -429,7 +487,7 @@ export async function process_emissions_factor(
     if (a.emissions_factor_uuid) {
       throw new Error(`Emissions factor [${a.emissions_factor_uuid}] not found`)
     } else {
-      throw new Error(`Emissions factor for [${a}] not found`)
+      throw new Error(`Emissions factor for [${JSON.stringify(a)}] not found`)
     }
   }
   if (!factor.co2_equivalent_emissions || !factor.co2_equivalent_emissions_uom) {
@@ -506,17 +564,17 @@ export async function process_emissions_factor(
     }
     results.distance = distance;
   }
-  if (has_passengers) {
+  if (has_passengers && a.number_of_passengers) {
     const flight = {
-      number_of_passengers: a.number_of_passengers!,
+      number_of_passengers: a.number_of_passengers,
       class: a.class,
     }
     results.flight = flight;
   }
-  if (has_amount) {
+  if (has_amount && a.activity_uom && a.activity_amount) {
     const amount = {
-      value: a.activity_amount!,
-      unit: a.activity_uom!,
+      value: a.activity_amount,
+      unit: a.activity_uom,
     }
     results.amount = amount;
   }
@@ -578,9 +636,72 @@ function read_date(v: string | Date | undefined, default_date?: Date) {
   throw new Error('Cannot read as a Date: ' + v);
 }
 
-export function group_processed_activities(activities: ProcessedActivity[]) {
-  return activities
+/** Group a list of processed activities by `activity_type`, and shipments are further grouped by mode.
+    We then also need to group by `issued_from` which will be either the given `issued_from` or
+    the carrier for activities that have carriers like shipments and flights looked up Wallet
+    or the environment variable `ETH_ISSUE_FROM_ACCT`.
+    @param activities: the list of activities to grouped
+    @returns a map of `activity_type` (top map of shipment mode if activity type is "shipment") to map of `issued_from` to list of activities
+*/
+export async function group_processed_activities(activities: ProcessedActivity[], default_issued_from?: string) {
+  const default_grouped_emissions = () => ({
+    total_emissions: { value: 0.0, unit: "kgCO2e" },
+    content: [],
+  });
+  const set_dates = (d: GroupedResult, fd: Date, td: Date) => {
+    if (!d.from_date || d.from_date > fd) {
+      d.from_date = fd;
+    }
+    if (!d.thru_date || d.thru_date < td) {
+      d.thru_date = td;
+    }
+  }
+  const add_emissions = (d: GroupedResult, a: ProcessedActivity) => {
+    if (!a.result) return;
+    d.total_emissions.value += a.result.emissions?.amount?.value??0;
+    d.content.push(a);
+  }
+  const set_issued_from = async (a: ProcessedActivity) => {
+    let issued_from: string | undefined = undefined;
+    const activity = a.activity;
+    if (activity.issued_from) {
+      // activity already has an issued_from set
+      return activity.issued_from;
+    }
+    const db = await getDBInstance();
+    if (is_shipment_activity(activity)) {
+      if (activity.carrier) {
+        // lookup a shipment carrier
+        const wallets = await db.getWalletRepo().lookupPaginated(0, 1, activity.carrier);
+        if (wallets && wallets[0]?.address) {
+          issued_from = wallets[0]?.address;
+        }
+      }
+    } else if (is_flight_activity(activity)) {
+      if (activity.carrier) {
+        // lookup a shipment carrier
+        const wallets = await db.getWalletRepo().lookupPaginated(0, 1, activity.carrier);
+        if (wallets && wallets[0]?.address) {
+          issued_from = wallets[0]?.address;
+        }
+      }
+    }
+    if (issued_from) {
+      // we found a wallet from the carrier
+      activity.issued_from = issued_from;
+    } else {
+      // else use the default from the env variable
+      activity.issued_from = default_issued_from || '';
+    }
+    return activity.issued_from;
+  }
+  const activities_async = await Promise.all(activities
     .filter((a) => !a.error)
+    .map(async (a) => {
+      await set_issued_from(a);
+      return a;
+    }))
+  return activities_async
     .reduce((prev: GroupedResults, a) => {
       const t = a.activity.type;
       if (!a.result) {
@@ -593,40 +714,23 @@ export function group_processed_activities(activities: ProcessedActivity[]) {
           return prev;
         }
         const m = a.result.distance.mode;
+        const gm = (prev[t] || {}) as GroupedResults;
+        prev[t] = gm;
+        const g = (gm[m] || {}) as GroupedResults;
+        gm[m] = g;
+        const issued_from = a.activity.issued_from || '';
+        const d = (g[issued_from] || default_grouped_emissions()) as GroupedResult;
+        add_emissions(d, a);
+        set_dates(d, fd, td);
+        g[issued_from] = d;
+      } else {
         const g = (prev[t] || {}) as GroupedResults;
         prev[t] = g;
-        g[m] = g[m] || {
-          total_emissions: { value: 0.0, unit: "kgCO2e" },
-          content: [],
-        };
-        const d = (g[m] || {
-          total_emissions: { value: 0.0, unit: "kgCO2e" },
-          content: [],
-        }) as GroupedResult;
-        d.total_emissions.value += a.result.emissions?.amount?.value??0;
-        d.content.push(a);
-        if (!d.from_date || d.from_date > fd) {
-          d.from_date = fd;
-        }
-        if (!d.thru_date || d.thru_date < td) {
-          d.thru_date = td;
-        }
-        g[m] = d;
-      } else {
-        const d = (prev[t] || {
-          total_emissions: { value: 0.0, unit: "kgCO2e" },
-          content: [],
-        }) as GroupedResult;
-        const v = d.total_emissions as ValueAndUnit;
-        v.value += a.result.emissions?.amount?.value??0;
-        d.content.push(a);
-        if (!d.from_date || d.from_date > fd) {
-          d.from_date = fd;
-        }
-        if (!d.thru_date || d.thru_date < td) {
-          d.thru_date = td;
-        }
-        prev[t] = d;
+        const issued_from = a.activity.issued_from || '';
+        const d = (g[issued_from] || default_grouped_emissions()) as GroupedResult;
+        add_emissions(d, a);
+        set_dates(d, fd, td);
+        g[issued_from] = d;
       }
       return prev;
     }, {});
@@ -663,6 +767,7 @@ export async function issue_tokens(
   doc: GroupedResult,
   activity_type: string,
   publicKeys: string[],
+  encMode: string,
   mode?: string,
   issued_from?: string,
   issued_to?: string,
@@ -673,7 +778,47 @@ export async function issue_tokens(
 
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await _uploadFileEncrypted(content, publicKeys[0]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let ipfs_res: any = {};
+  if (encMode === 'wallet') {
+    // get enc pub key from wallet table, use either the metamask key (preferred) or the RSA key
+    const db = await getDBInstance();
+    const wallet = await db.getWalletRepo().findWalletByAddress(publicKeys[0]);
+    if (!wallet) {
+      const err = 'Wallet not found: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    const pubkey = wallet.metamask_encrypted_public_key || wallet.public_key;
+    if (!pubkey) {
+      const err = 'Wallet does not have a public key: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    if (wallet.metamask_encrypted_public_key) {
+      ipfs_res = await uploadFileWalletEncrypted(content, [pubkey], true);
+    } else {
+      ipfs_res = await uploadFileRSAEncrypted(content, [pubkey], true);
+    }
+  } else if (encMode === 'metamask') {
+    // get enc pub key from wallet table, here only use if it has a metamask key
+    const db = await getDBInstance();
+    const wallet = await db.getWalletRepo().findWalletByAddress(publicKeys[0]);
+    if (!wallet) {
+      const err = 'Wallet not found: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    const pubkey = wallet.metamask_encrypted_public_key;
+    if (!pubkey) {
+      const err = 'Wallet does not have a metamask public key: ' + publicKeys[0];
+      console.log(err);
+      throw new Error(err);
+    }
+    ipfs_res = await uploadFileWalletEncrypted(content, [pubkey], true);
+  } else {
+    ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
+  }
 
   const token_res = await issue_emissions_tokens(
     activity_type,
@@ -687,6 +832,13 @@ export async function issue_tokens(
     issued_from,
     issued_to
   );
+  // note: convert the returned issued_from from a BigInt to a string
+  // eg: "344073830386746567427978432078835137280280269756" becomes "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc"
+  // this is because the contract uses an int16 instead of Address type although they are interchangeable
+  // the int value allows empty (0).
+  if (token_res.issuedFrom) {
+    token_res.issuedFrom = '0x' + BigInt(token_res.issuedFrom).toString(16);
+  }
   doc.token = token_res;
   return token_res;
 }
@@ -726,7 +878,7 @@ export async function issue_tokens_with_issuee(
   const total_emissions = doc.total_emissions.value;
   const h = hash_content(content);
   // save into IPFS
-  const ipfs_res = await uploadFileEncrypted(content, publicKeys);
+  const ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
   // issue tokens
   const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
 
@@ -782,7 +934,7 @@ function create_manifest(publickey_name: string | undefined, ipfs_path: string, 
   "Public Key":string,
   "Location":string,
   "SHA256":string,
-} & Record<string, any> {
+} & Record<string, any> { // eslint-disable-line @typescript-eslint/no-explicit-any
   return {
     "Public Key": publickey_name ?? 'unknown',
     "Location": ipfs_path,
@@ -821,10 +973,13 @@ export async function process_emissions_requests() {
     const er = emissions_requests[e];
     console.log("Processing emission request: ", er.uuid);
     const auditor = get_random_auditor(auditors);
-    if (!auditor || !auditor.public_key) {
+    const pubkey = auditor?.metamask_encrypted_public_key || auditor?.public_key;
+    if (!auditor || !pubkey) {
       console.log('Cannot select an auditor with public key.');
       return;
     }
+    const pubkey_name = auditor.metamask_encrypted_public_key ? 'metamask' : auditor.public_key_name;
+    const encryptFn = auditor.metamask_encrypted_public_key ? uploadFileWalletEncrypted : uploadFileRSAEncrypted;
     console.log('Randomly selected auditor: ', auditor.address);
 
     // only upload one document
@@ -840,11 +995,11 @@ export async function process_emissions_requests() {
       // if we want the original filename use doc.file.name directly but this might be suitable
       // in all cases, we only need the file extension so that it can be opened once downloaded
       const file_ext = extname(doc.file.name);
-      const ipfs_content = await uploadFileEncrypted(data, [auditor.public_key], true, `content${file_ext}`);
+      const ipfs_content = await encryptFn(data, [pubkey], true, `content${file_ext}`);
       const h_content = hash_content(data);
       supporting_docs_ipfs_paths.push(ipfs_content.path);
       console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value);
       // only upload one document
       uploaded = true;
       if (docs.length > 1) {
@@ -855,17 +1010,17 @@ export async function process_emissions_requests() {
 
     if (!uploaded) {
       // encode input_content and post it into ipfs
-      const ipfs_content = await uploadFileEncrypted(er.input_content, [auditor.public_key], true);
+      const ipfs_content = await encryptFn(er.input_content, [pubkey], true);
       const h_content = hash_content(er.input_content);
       console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-      manifest = create_manifest(auditor.public_key_name, ipfs_content.ipfs_path, h_content.value);
+      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value);
     }
 
     await db.getEmissionsRequestRepo().updateToPending(
       er.uuid,
       auditor.address,
-      auditor.public_key,
-      auditor.public_key_name,
+      pubkey,
+      pubkey_name,
       JSON.stringify(manifest)
     );
   }

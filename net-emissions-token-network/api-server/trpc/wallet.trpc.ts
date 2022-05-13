@@ -1,7 +1,10 @@
 import * as trpc from '@trpc/server'
 import { ethers } from 'ethers';
 import { z } from 'zod'
+import { checkSignedMessage } from '../controller/synchronizer';
 import { handleError, TrpcContext } from './common';
+import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
+import { signinWallet, signupWallet } from '../controller/wallet.controller';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -40,7 +43,7 @@ export const walletRouter = trpc
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const wallets = await ctx.db.getWalletRepo().selectPaginated(input.offset, input.limit, input.bundles);
+            const wallets: Wallet[] = await ctx.db.getWalletRepo().selectPaginated(input.offset, input.limit, input.bundles);
             const count = await ctx.db.getWalletRepo().countWallets(input.bundles);
             return {
                 count, 
@@ -67,6 +70,96 @@ export const walletRouter = trpc
             }
         } catch (error) {
             handleError('lookup', error)
+        }
+    },
+})
+.query('get', {
+    input: z.object({
+        address: validAddress,
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            const wallet = await ctx.db.getWalletRepo().findWalletByAddress(input.address);
+            return {
+                wallet
+            }
+        } catch (error) {
+            handleError('get', error)
+        }
+    },
+})
+.mutation('signin', {
+    input: z.object({
+        email: z.string().email(),
+        password: z.string().min(8).max(64),
+    }),
+    async resolve({ input }) {
+        try {
+            const wallet = await signinWallet(input.email, input.password);
+            return { wallet }
+        } catch (error) {
+            handleError('signin', error)
+        }
+    },
+})
+.mutation('signup', {
+    input: z.object({
+        email: z.string().email(),
+        password: z.string().min(8).max(64),
+        passwordConfirm: z.string().min(8).max(64),
+    })
+    .refine((data) => data.password === data.passwordConfirm, {
+        message: "Passwords don't match",
+        path: ["passwordConfirm"],
+    }),
+    async resolve({ input }) {
+        try {
+            await signupWallet(input.email, input.password);
+            return { success: true }
+        } catch (error) {
+            handleError('signup', error)
+        }
+    },
+})
+.mutation('update', {
+    input: z.object({
+        address: validAddress,
+        name: z.string().optional(),
+        organization: z.string().optional(),
+        public_key: z.string().optional(),
+        metamask_encrypted_public_key: z.string().optional(),
+        signature: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            // check the signature
+            const { signature, ...msg} = input;
+            const message = JSON.stringify(msg)
+            console.log('Verifying message', message)
+            console.log('Verifying signature', signature)
+            const account = checkSignedMessage(message, signature, ctx.opts)
+            if (!account) {
+                throw new Error("Failed to verify signature!")
+            }
+            console.log(`Verified signature from ${account}`)
+            const found = await ctx.db.getWalletRepo().findWalletByAddress(input.address)
+            if (found) {
+                if (found.address !== account) {
+                    throw new Error("Failed to verify signature!")
+                }
+                const wallet = await ctx.db.getWalletRepo().getRepository().save({
+                    ...found,
+                    ...input,
+                    address: found.address
+                })
+                return {
+                    wallet
+                }
+            } else {
+                handleError('get', 'Wallet not found')
+            }
+        } catch (error) {
+            handleError('get', error)
         }
     },
 })

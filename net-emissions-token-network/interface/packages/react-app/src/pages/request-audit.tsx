@@ -3,7 +3,7 @@ import { ChangeEvent, FC, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
@@ -13,7 +13,7 @@ import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
 
 type RequestAuditProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   roles: RolesInfo,
   limitedMode: boolean
@@ -250,10 +250,54 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     enabled: emForm.activity_type === 'electricity',
   })
   const electricityUSAStatesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAStates'], {
-    enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES',
+    enabled: emForm.activity_type === 'electricity' && emForm.country.toUpperCase() === 'UNITED STATES',
   })
-  const electricityUSAUtilitiesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAUtilities', {state_province: emForm.state}], {
-    enabled: emForm.activity_type === 'electricity' && emForm.country === 'UNITED STATES' && !!emForm.state,
+  const electricityUSAUtilitiesQuery = trpc.useQuery(['emissionsFactors.getElectricityUSAUtilities', {
+    state_province: emForm.state,
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined
+  }], {
+    enabled: emForm.activity_type === 'electricity' && emForm.country.toUpperCase() === 'UNITED STATES' && !!emForm.state,
+  })
+
+  const electricityFactorQuery = trpc.useQuery(['emissionsFactors.lookup', emForm.country.toUpperCase() === 'UNITED STATES' ? {
+    level_1: 'eGRID EMISSIONS FACTORS',
+    level_2: 'USA',
+    level_3: 'STATE: ' + emForm.state,
+    activity_uom: 'mwh',
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+    // this needs a fallback query when no state factors are found
+    fallback: {
+      level_1: 'eGRID EMISSIONS FACTORS',
+      level_2: 'USA',
+      level_3: 'COUNTRY: USA',
+      activity_uom: 'mwh',
+      from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+      thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+    }
+  } : {
+    level_1: 'EEA EMISSIONS FACTORS',
+    level_2: emForm.country,
+    level_3:'COUNTRY: ' + emForm.country,
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+  }], {
+    enabled: emForm.activity_type === 'electricity' && !!emForm.country && (
+      emForm.country.toUpperCase() !== 'UNITED STATES'
+      || (!!emForm.state && !!emForm.utility)
+    ),
+  })
+
+  const gasFactorQuery = trpc.useQuery(['emissionsFactors.lookup', {
+    level_1: 'FUELS',
+    level_2: 'GASEOUS FUELS',
+    level_3: 'NATURAL GAS',
+    activity_uom: 'cubic metres',
+    from_year: fromDate ? fromDate.getFullYear().toString() : undefined,
+    thru_year: thruDate ? thruDate.getFullYear().toString() : undefined,
+  }], {
+    enabled: emForm.activity_type === 'natural_gas',
   })
 
   const selectEmissionsFactor = (factor: EmissionsFactorInterface|null) => {
@@ -432,7 +476,20 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             carrier: w?.organization ?? ''
           })
         }} />
-
+            <Row>
+              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
+                <Form.Label>From date</Form.Label>
+                {/* @ts-ignore : some weird thing with the types ... */}
+                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
+              </Form.Group>
+              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
+                <Form.Label>Through date</Form.Label>
+                {/* @ts-ignore : some weird thing with the types ... */}
+                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
+              </Form.Group>
+            </Row>
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
           values={[
             {value:'flight', label:'Flight'},
@@ -501,14 +558,23 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'electricity' && <>
+            {(emForm.country.toUpperCase() !== 'UNITED STATES' || !!emForm.utility) && !!electricityFactorQuery.data?.emissionsFactors?.length && <>
+              <h3>Emissions Factor</h3>
+              <EmissionsFactor emissionsFactor={electricityFactorQuery.data.emissionsFactors[0]}/>
+              </>}
             <h3>Consumption Details</h3>
-            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required values={electricityCountriesQuery?.data?.countries ?? []} disabled={!!topSuccess} />
+            <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="country" label="Country" required
+              values={electricityCountriesQuery?.data?.countries.map(c=>{ return {label: c.toLowerCase().replaceAll('_', ' '), value: c } }) ?? []}
+              disabled={!!topSuccess} />
             {emForm.country === 'UNITED STATES' && <>
-              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess} />
+              <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="state" label="State" required values={electricityUSAStatesQuery?.data?.states ?? []} disabled={!!topSuccess}
+                  alsoSet={{
+                    '*': {utility: ''},
+                  }} />
               {emForm.state ?
                 <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="utility" label="Utility" required values={electricityUSAUtilitiesQuery?.data?.utilities?.map(
-                  (u) => u.utility_name?.replaceAll('_', ' ') || u.uuid
-                ) ?? []} disabled={!!topSuccess} />
+                  (u) => { return  {label: u.utility_name?.replaceAll('_', ' ') || u.uuid, value: u.uuid} }
+                ) ?? []} disabled={!!topSuccess}/>
                 : <div>Select a State</div>
               }
             </>}
@@ -516,25 +582,15 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             </>}
 
           {emForm.activity_type === 'natural_gas' && <>
+            {!!gasFactorQuery.data?.emissionsFactors?.length && <>
+              <h3>Emissions Factor</h3>
+              <EmissionsFactor emissionsFactor={gasFactorQuery.data.emissionsFactors[0]}/>
+              </>}
             <h3>Consumption Details</h3>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_amount" type="number" min={0} step="any" required disabled={!!topSuccess} label={`Volume in Therm`}/>
             </>}
 
           {emForm.activity_type === 'emissions_factor' && <>
-            <Row>
-              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
-                <Form.Label>From date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
-                <Form.Label>Through date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-            </Row>
             {emForm.emissions_factor_uuid && emissionsFactor ? <>
               <h3>Emissions Factor</h3>
               <EmissionsFactor emissionsFactor={emissionsFactor}/>
@@ -641,4 +697,3 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 }
 
 export default RequestAudit;
-

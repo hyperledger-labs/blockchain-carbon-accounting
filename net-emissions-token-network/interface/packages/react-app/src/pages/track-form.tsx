@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { FC, ChangeEventHandler, useCallback, useState } from "react";
 import { InputGroup } from "react-bootstrap";
 import Button from 'react-bootstrap/Button';
@@ -13,7 +13,7 @@ import SubmissionModal from "../components/submission-modal";
 import WalletLookupInput from "../components/wallet-lookup-input";
 
 type TrackFormProps = {
-  provider?: Web3Provider
+  provider?: Web3Provider | JsonRpcProvider
   registeredTracker: boolean
 }
 
