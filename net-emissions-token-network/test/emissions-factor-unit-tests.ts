@@ -154,7 +154,7 @@ describe("Emissions Factors tests", function() {
   after(async function () {
     // close DB connection instance
     const db = await PostgresDBService.getInstance();
-    db.close();
+    await db.close();
   });
 
   it("should get last emissions factor if factors are not found for given date range", async function() {
@@ -250,7 +250,6 @@ describe("Emissions Factors tests", function() {
   });
 
   it("should be correct calculation of natural gas from therm to kgCO2e", async function() {
-    const db = await PostgresDBService.getInstance();
     const activity: Activity = {
       id: '1',
       type: 'natural_gas',

@@ -279,7 +279,6 @@ describe("Emissions and Tokens requests test", function() {
     // set the contract address
     OPTS.contract_address = contract.address;
     // OPTS.contract = contract;
-    console.log('beforeEach: contract?', contract.address);
   });
 
   it("should allow an emissions request to be processed", async function() {

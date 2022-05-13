@@ -39,12 +39,9 @@ import { extname } from "path";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
-let _db: PostgresDBService|null = null;
 
 async function getDBInstance() {
-  if (_db) return _db;
-  _db = await PostgresDBService.getInstance();
-  return _db;
+  return await PostgresDBService.getInstance();
 }
 
 export function emissions_in_kg_to_tokens(emissions: number) {
