@@ -142,7 +142,7 @@ const App:FC = () => {
                   <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
                 </Route>
                 <Route path="/sign-up">
-                  <SignUp loadWalletInfo={loadWalletInfo}></SignUp>
+                  <SignUp></SignUp>
                 </Route>
                 <Route path="/sign-in">
                   <SignIn loadWalletInfo={loadWalletInfo} />

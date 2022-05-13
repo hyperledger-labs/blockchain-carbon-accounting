@@ -96,23 +96,19 @@ export class WalletRepo {
     })
   }
 
-  /**
-   * Login a user Wallet.
-   * @param email
-   * @param password
-   * @returns Wallet
-   */
-  public findWalletByCredentials = async (email: string, password: string): Promise<Wallet | null> => {
-    return await this.getRepository()
+  public findWalletByEmail = async (email: string, with_private_fields?: boolean): Promise<Wallet | null> => {
+    const q = this.getRepository()
       .createQueryBuilder(ALIAS)
-      .where({ email, password })
-      .addSelect(`${ALIAS}.private_key`)
-      .getOne()
-  }
+      .where(`LOWER(${ALIAS}.email) LIKE LOWER(:email)`, { email })
 
-  public findWalletByEmail = async (email: string): Promise<Wallet | null> => {
-    return await this.getRepository()
-      .findOneBy({ email });
+    if (with_private_fields) {
+      q.addSelect(`${ALIAS}.email_verified`)
+      q.addSelect(`${ALIAS}.private_key`)
+      q.addSelect(`${ALIAS}.password_hash`)
+      q.addSelect(`${ALIAS}.password_salt`)
+      q.addSelect(`${ALIAS}.private_key`)
+    }
+    return await q.getOne()
   }
 
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {

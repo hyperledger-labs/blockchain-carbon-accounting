@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { checkSignedMessage } from '../controller/synchronizer';
 import { handleError, TrpcContext } from './common';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
+import { signinWallet, signupWallet } from '../controller/wallet.controller';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -84,6 +85,39 @@ export const walletRouter = trpc
             }
         } catch (error) {
             handleError('get', error)
+        }
+    },
+})
+.mutation('signin', {
+    input: z.object({
+        email: z.string().email(),
+        password: z.string().min(8).max(64),
+    }),
+    async resolve({ input }) {
+        try {
+            const wallet = await signinWallet(input.email, input.password);
+            return { wallet }
+        } catch (error) {
+            handleError('signin', error)
+        }
+    },
+})
+.mutation('signup', {
+    input: z.object({
+        email: z.string().email(),
+        password: z.string().min(8).max(64),
+        passwordConfirm: z.string().min(8).max(64),
+    })
+    .refine((data) => data.password === data.passwordConfirm, {
+        message: "Passwords don't match",
+        path: ["passwordConfirm"],
+    }),
+    async resolve({ input }) {
+        try {
+            await signupWallet(input.email, input.password);
+            return { success: true }
+        } catch (error) {
+            handleError('signup', error)
         }
     },
 })

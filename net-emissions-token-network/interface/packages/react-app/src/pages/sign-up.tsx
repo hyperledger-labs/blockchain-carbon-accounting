@@ -1,104 +1,110 @@
-import { FC, useState, ChangeEventHandler } from "react";
-import { Link, useLocation } from "wouter"
-import { Form, Button } from "react-bootstrap";
+import { FC, useState } from "react";
+import { Link } from "wouter"
+import { Form, Button, Card, Spinner } from "react-bootstrap";
 
-import SubmissionModal from "../components/submission-modal";
 import { signUpUser } from "../services/api.service";
+import { TRPCClientError } from "@trpc/client";
+import { FormInputRow } from "../components/forms-util";
+import ErrorAlert from "../components/error-alert";
 
-type SignUpProps = {
-  loadWalletInfo: (publick_key: string, private_key: string) => void
+
+type SignUpForm = {
+  email: string,
+  password: string,
+  passwordConfirm: string
+  error: string,
+  success: string,
+  loading: string
 }
-const SignUp: FC<SignUpProps> = ({ loadWalletInfo }) => {
+type SignUpFormErrors = Partial<SignUpForm>
 
-  const [modalShow, setModalShow] = useState(false);
-  const [, setLocation] = useLocation();
+const defaultSignUpForm: SignUpForm = {
+  email: "",
+  password: "",
+  passwordConfirm: "",
+  error: "",
+  success: "",
+  loading: ""
+} as const;
 
-  const [mailAddress, setMailAddress] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [result, setResult] = useState<string>("");
+const SignUp: FC<{}> = () => {
 
-  // After initial onFocus for sing-up inputs, display red outline if invalid
-  const [initializedMailInput, setInitializedMailInput] = useState(false);
-  const [initializedPasswordInput, setInitializedPasswordInput] = useState(false);
+  const [form, setForm] = useState<SignUpForm>(defaultSignUpForm)
+  const [formErrors, setFormErrors] = useState<SignUpFormErrors>({})
 
-  const onEmailChange: ChangeEventHandler<HTMLInputElement> = (event) => { setMailAddress(event.target.value); };
-  const onPasswordChange: ChangeEventHandler<HTMLInputElement> = (event) => { setPassword(event.target.value); };
-
-  function handleSignUp() {
-    fetchSignUp();
-  }
-
-  async function fetchSignUp() {
+  async function handleSignUp() {
     try {
-      const rslt = await signUpUser(mailAddress, password);
-      if (rslt) {
-        //wallet connect
-        console.log('rslt for api call-signup', rslt);
-        if (rslt.address && rslt.private_key) {
-          loadWalletInfo(rslt.address, rslt.private_key);
-          setLocation('/dashboard');
-        }
-        setModalShow(true);
-        setResult("Unexpected error: No wallet info returned from API");
-      } else {
-        setModalShow(true);
-        setResult("Failed to register your wallet");
+      setFormErrors({})
+      setForm({ ...form, error: "", success: "", loading: "true" })
+      const result = await signUpUser(form.email, form.password, form.passwordConfirm);
+      if (result) {
+        setForm({
+          ...defaultSignUpForm,
+          loading: '',
+          success: "Sign up successful, please check your email to verify your account."
+        });
       }
     } catch (err) {
       console.error(err);
-        setModalShow(true);
-        setResult("" + ((err instanceof Error) ? err.message : err));
+      if (err instanceof TRPCClientError) {
+        console.warn(err.data)
+        if (err?.data?.zodError?.fieldErrors) {
+          const fieldErrors = err.data.zodError.fieldErrors;
+          const errs: SignUpFormErrors = {};
+          for (const f in fieldErrors) {
+            errs[f as keyof SignUpFormErrors] = fieldErrors[f].join(', ');
+          }
+          setFormErrors({ ...errs })
+        }
+        setForm({ ...form, loading: '', error: err?.data?.domainError });
+      } else {
+        setForm({ ...form, loading: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
+      }
     }
   }
 
-  const inputError = {
-    boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
-    borderColor: '#dc3545'
-  };
-
   return (<>
-    <SubmissionModal
-      show={modalShow}
-      title="Sign Up"
-      body={result}
-      onHide={() => { setModalShow(false); setResult("") }}
-    />
-    <div className="d-flex justify-content-start flex-column align-items-left">
-      <h2>Sign Up</h2>
-      <p>Enter your email and password, then your wallet is generated</p>
-      <Form onSubmit={(e)=>{
-        e.preventDefault()
-        e.stopPropagation()
-        handleSignUp()
-      }}>
-        <Form.Group className="mb-3" controlId="quantityInput">
-          <Form.Label>Email</Form.Label>
-          <Form.Control
-            type="email"
-            placeholder="Joe@gmail.com"
-            value={mailAddress}
-            onChange={onEmailChange}
-            onBlur={() => setInitializedMailInput(true)}
-            style={(mailAddress || !initializedMailInput) ? {} : inputError}
-            />
-        </Form.Group>
-        <Form.Group className="mb-3" controlId="quantityInput">
-          <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={onPasswordChange}
-            onBlur={() => setInitializedPasswordInput(true)}
-            style={(password || !initializedPasswordInput) ? {} : inputError}
-            />
-        </Form.Group>
+    <Card style={{ width: '32rem', margin: 'auto', padding: '1rem' }}>
+      <Card.Body>
 
-        <Button type="submit" className="w-100 mb-3" variant="success" size="lg">Sign Up</Button>
-        <p>If you already have an account, you can sign in here <Link href="/sign-in">SignIn</Link></p>
-      </Form>
+        {form.success ? <>
+          <Card.Title as="h2">Sign Up Success</Card.Title>
+          <p className="mt-4">{form.success}</p>
+          </> : <>
+            <Card.Title as="h2">Sign Up</Card.Title>
 
-    </div>
+            <p className="mt-4">Enter your email and a password. A verification email will be sent to you.</p>
+            <Form
+              onSubmit={(e)=>{
+                e.preventDefault()
+                e.stopPropagation()
+                if (e.currentTarget.checkValidity() === false) return
+                handleSignUp()
+              }}>
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="passwordConfirm" label="Confirm Password" />
+
+              <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
+                {!!form.loading ?
+                  <Spinner
+                    animation="border"
+                    className="me-2"
+                    size="sm"
+                    as="span"
+                    role="status"
+                    aria-hidden="true"
+                    /> : <></>
+              }
+                Sign Up
+              </Button>
+              {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }} />}
+              <p className="text-muted">If you already have an account, you can <Link href="/sign-in">sign in here</Link>.</p>
+            </Form>
+            </>
+      }
+      </Card.Body>
+    </Card>
   </>)
 }
 

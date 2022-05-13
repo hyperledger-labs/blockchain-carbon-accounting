@@ -1,7 +1,12 @@
-import { FC, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useState } from "react";
 import { Alert, Button } from "react-bootstrap";
 
-const ErrorAlert: FC<{error: string, dismissLabel?: string, onDismiss?: ()=>void}> = ({error, dismissLabel, onDismiss}) => {
+const ErrorAlert: FC<{
+  error: string,
+  dismissLabel?: string,
+  onDismiss?: ()=>void,
+  children?: ReactNode
+}> = ({error, dismissLabel, onDismiss, children}) => {
   const [show, setShow] = useState(true);
 
   useEffect(()=>{
@@ -15,6 +20,7 @@ const ErrorAlert: FC<{error: string, dismissLabel?: string, onDismiss?: ()=>void
         <p className="pre-wrap">
           {error}
         </p>
+        {children}
         <hr />
         <div className="d-flex justify-content-end">
           <Button onClick={() => {setShow(false); if (onDismiss) onDismiss();}} variant="outline-danger">

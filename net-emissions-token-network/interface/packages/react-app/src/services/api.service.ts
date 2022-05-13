@@ -92,43 +92,17 @@ export const postSignedMessage = async (message: string, signature: string) => {
 }
 
 /**
- * This is the function to create wallet with mail and password by calling API Server
- * @param mailAddress
- * @param password
+ * This is the function to login with mail and password by calling API Server
  */
- export const signUpUser =  async(mailAddress:string, password:string):Promise<Wallet|null> => {
-    try {
-        var params = {
-            mailAddress,
-            password
-        };
-        const {data} = await axios.post('/sign-up', params);
-        console.log('singUpUser response: ', data);
-        if(data.status === 'success') return data.wallet;
-        else return null;
-    } catch(error){
-        throw new Error(handleError(error, "Failed to Sign Up"))
-    }
+ export const signInUser =  async(email:string, password:string) => {
+  return trpcClient.mutation('wallet.signin', {email, password})
 }
 
 /**
- * This is the function to login with mail and password by calling API Server
- * @param mailAddress
- * @param password
+ * This is the function to create wallet with mail and password by calling API Server
  */
-export const signInUser =  async(mailAddress:string, password:string):Promise<Wallet|null> => {
-    try{
-        var params = {
-            mailAddress,
-            password
-        };
-        const {data} = await axios.post('/sign-in', params);
-        console.log('signInUser response: ', data);
-        if(data.status === 'success') return data.wallet;
-        else return null;
-    } catch (error){
-        throw new Error(handleError(error, "Cannot SignIn"))
-    }
+export const signUpUser =  async(email:string, password:string, passwordConfirm:string) => {
+  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm})
 }
 
 export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {

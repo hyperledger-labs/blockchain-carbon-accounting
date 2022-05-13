@@ -14,8 +14,9 @@ type FormInputRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   setForm: React.Dispatch<React.SetStateAction<T>>,
   field: keyof T & string,
   label: string
-  type?: 'input' | 'number'
+  type?: 'input' | 'number' | 'password' | 'email'
   min?: number,
+  minlength?: number,
   max?: number,
   step?: number | 'any',
   placeholder?: string,
@@ -77,12 +78,14 @@ export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ 
   </Form.Group>
 }
 
-export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, max, step, required, disabled, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
+export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, minlength, max, step, required, disabled, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Control
       type={type||"input"}
+      isInvalid={errors && !!errors[field]}
       disabled={disabled}
       min={min}
+      minLength={minlength}
       max={max}
       step={step}
       placeholder={placeholder||label}
