@@ -103,6 +103,7 @@ export class WalletRepo {
 
     if (with_private_fields) {
       q.addSelect(`${ALIAS}.email_verified`)
+      q.addSelect(`${ALIAS}.verification_token`)
       q.addSelect(`${ALIAS}.private_key`)
       q.addSelect(`${ALIAS}.password_hash`)
       q.addSelect(`${ALIAS}.password_salt`)

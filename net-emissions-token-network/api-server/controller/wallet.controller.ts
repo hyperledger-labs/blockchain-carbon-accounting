@@ -5,6 +5,7 @@ import { ethers } from 'ethers';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 import nodemailer from 'nodemailer';
 import { DomainError } from '../trpc/common';
+import path from 'path';
 
 export async function getWallets(req: Request, res: Response) {
     try {
@@ -118,9 +119,7 @@ export async function sendVerificationEmail(email: string, token?: string) {
     }
     console.log('sendVerificationEmail', opts)
     const transporter = nodemailer.createTransport(opts)
-    const link = new URL(`${process.env.VERIFY_ROOT_URL}/verify-email`)
-    link.searchParams.append('token', token)
-    link.searchParams.append('email', email)
+    const link = new URL(path.join('verify-email', token, email), `${process.env.VERIFY_ROOT_URL}`)
     const message = {
         from: 'noreply@opentaps.com',
         to: email,
@@ -204,6 +203,7 @@ export async function verify(email: string, token: string) {
     // check that a wallet with this email does not already exist
     const w = await db.getWalletRepo().findWalletByEmail(email);
     if (!w || w.verification_token !== token) {
+        console.error(!w ? 'No wallet found with that email: ' + email : 'Wrong token: ' + w.verification_token + ' vs ' + token);
         throw new DomainError('Wallet not found');
     }
 
@@ -215,8 +215,11 @@ export async function verify(email: string, token: string) {
 
 export async function verifyWalletEmail(req: Request, res: Response) {
     try {
+        // get the eamil and token from get parameters as string
+        const email = req.params.email;
+        const token = req.params.token;
 
-        const w = await verify(req.body.email, req.body.token);
+        const w = await verify(email, token);
         if (w) {
             // redirect to sign-in page
             const url = new URL(`${process.env.APP_ROOT_URL}/sign-in`)

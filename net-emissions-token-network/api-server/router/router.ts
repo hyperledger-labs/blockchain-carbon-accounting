@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.post('/sign-up', generateWalletWithCredentials);
 router.post('/sign-in', getWalletWithCredentials);
-router.get('/verify-email', verifyWalletEmail);
+router.get('/verify-email/:token/:email', verifyWalletEmail);
 
 router.get('/tokens', getTokens);
 router.get('/balances', getBalances)

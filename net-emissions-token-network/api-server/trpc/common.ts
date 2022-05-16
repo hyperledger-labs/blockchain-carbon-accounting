@@ -54,11 +54,13 @@ export const trpcMiddleware = trpcExpress.createExpressMiddleware({
 
 export class DomainError extends Error {
   status: TRPC_ERROR_CODE_KEY;
-  constructor(message: string, status: TRPC_ERROR_CODE_KEY = 'BAD_REQUEST') {
+  details?: string;
+  constructor(message: string, status: TRPC_ERROR_CODE_KEY = 'BAD_REQUEST', details?: string) {
     super(message);
     // Ensure the name of this error is the same as the class name
     this.name = this.constructor.name;
     this.status = status;
+    this.details = details ?? message;
     // This clips the constructor invocation from the stack trace.
     // It's not absolutely essential, but it does make the stack trace a little nicer.
     //  @see Node.js reference (bottom)
