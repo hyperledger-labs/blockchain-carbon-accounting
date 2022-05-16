@@ -55,6 +55,7 @@ const ChangePassword: FC<{}> = () => {
       if (result) {
         setForm({
           ...defaultChangePasswordForm,
+          email: form.email,
           loading: '',
           success: "Password changed successfully."
         });
