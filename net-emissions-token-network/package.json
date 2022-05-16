@@ -21,7 +21,7 @@
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.1",
     "@types/uuid": "^8.3.4",
-    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
     "api-server": "file:./api-server",
     "blockchain-accounting-data-postgres": "file:../data/postgres",
     "chai": "4.3.6",

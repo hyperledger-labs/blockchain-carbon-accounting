@@ -3994,7 +3994,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
   version "1.0.0"
   dependencies:
     "@trpc/server" "^9.23.3"
-    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-97a43cb2-3d9a-42ac-933f-7fceb213b682-1652696893297/data/postgres"
+    blockchain-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-786b60c5-4b0e-4412-af53-a0537b7b3f47-1652709618733/data/postgres"
     chalk "^5.0.1"
     cors "^2.8.5"
     dotenv "^16.0.1"
@@ -4007,7 +4007,7 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     moment "^2.29.3"
     nodemailer "^6.7.5"
     pg "^8.7.3"
-    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-97a43cb2-3d9a-42ac-933f-7fceb213b682-1652696893297/supply-chain/lib"
+    supply-chain-lib "file:../../../../Library/Caches/Yarn/v6/npm-api-server-1.0.0-786b60c5-4b0e-4412-af53-a0537b7b3f47-1652709618733/supply-chain/lib"
     useragent "^2.3.0"
     web3 "^1.7.3"
     zod "^3.16.0"
@@ -4245,7 +4245,7 @@ available-typed-arrays@^1.0.5:
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
 
-aws-sdk@^2.1126.0:
+aws-sdk@^2.1135.0:
   version "2.1135.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1135.0.tgz#8c14aa6894be529cb5fb7b6d19f3dc70e4f35816"
   integrity sha512-bl9n4QgrEh52hmQ+Jo76BgJXM/p+PwfVZvImEQHFeel/33H/PDLcTJquEw5bzxM1HRNI24iH+FNPwyWLMrttTw==
@@ -4612,9 +4612,9 @@ blob-to-it@^1.0.1:
 "blockchain-accounting-data-postgres@file:../../data/postgres", "blockchain-carbon-accounting-data-postgres@file:../../data/postgres":
   version "1.0.0"
   dependencies:
-    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-c461abf9-a7f5-4ff4-b782-0a12546867ee-1652696893384/node_modules/common"
+    blockchain-carbon-accounting-data-common "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-eb13e583-f95e-4505-b574-5b152202b407-1652709618818/node_modules/common"
     cli-progress "^3.10.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-c461abf9-a7f5-4ff4-b782-0a12546867ee-1652696893384/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-accounting-data-postgres-1.0.0-eb13e583-f95e-4505-b574-5b152202b407-1652709618818/emissions-data/chaincode/emissionscontract/typescript"
     pg "^8.7.3"
     reflect-metadata "^0.1.13"
     ts-node "^10.7.0"
@@ -4627,7 +4627,7 @@ blob-to-it@^1.0.1:
   version "1.0.0"
   dependencies:
     cli-progress "^3.11.0"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-4dd2a0c5-ed3f-43d8-9809-763fe88d86cf-1652696893393/emissions-data/chaincode/emissionscontract/typescript"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-blockchain-carbon-accounting-data-common-1.0.0-4787a0ab-d336-462d-9b26-fafc8b57ba73-1652709618932/emissions-data/chaincode/emissionscontract/typescript"
     uuid "^8.3.2"
     xlsx "^0.18.5"
 
@@ -6642,15 +6642,15 @@ elliptic@6.5.4, elliptic@^6.4.0, elliptic@^6.4.1, elliptic@^6.5.2, elliptic@^6.5
     "@hyperledger/cactus-plugin-ledger-connector-fabric" "1.0.0"
     "@hyperledger/cactus-plugin-ledger-connector-xdai" "1.0.0"
     "@supercharge/request-ip" "^1.2.0"
-    aws-sdk "^2.1126.0"
+    aws-sdk "^2.1135.0"
     body-parser "^1.20.0"
-    dotenv "^16.0.0"
+    dotenv "^16.0.1"
     express "^4.18.1"
     express-validator "^6.14.0"
-    fabric-client "^1.4.19"
+    fabric-client "^1.4.20"
     joi "^17.6.0"
     multer "^1.4.4"
-    nanoid "^3.3.3"
+    nanoid "^3.3.4"
     node-vault "0.9.22"
     run-time-error "^1.4.0"
     rxjs "^7.5.5"
@@ -7716,7 +7716,7 @@ fabric-ca-client@2.3.0-snapshot.62:
     url "^0.11.0"
     winston "^2.4.5"
 
-fabric-client@^1.4.19:
+fabric-client@^1.4.20:
   version "1.4.20"
   resolved "https://registry.yarnpkg.com/fabric-client/-/fabric-client-1.4.20.tgz#e2420bb25ec2ab5d37f94304a6ef8dd3e812e299"
   integrity sha512-4e/cFZ3KtwlFHE487zRHMjUwoP74Gifs2db8qTUSm2oBhoSw9CD4lg28rA0MY+AVCx0P2fCjU548+QDH2Z9a9Q==
@@ -11386,7 +11386,7 @@ nano@^9.0.3:
     qs "^6.9.4"
     tough-cookie "^4.0.0"
 
-nanoid@^3.0.2, nanoid@^3.1.20, nanoid@^3.1.23, nanoid@^3.3.3:
+nanoid@^3.0.2, nanoid@^3.1.20, nanoid@^3.1.23, nanoid@^3.3.3, nanoid@^3.3.4:
   version "3.3.4"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.4.tgz#730b67e3cd09e2deacf03c027c81c9d9dbc5e8ab"
   integrity sha512-MqBkQh/OHTS2egovRtLk45wEyNXwF+cokD+1YPf9u5VfJiRdAiRwB2froX5Co9Rh20xs4siNPm8naNotSD6RBw==
@@ -15123,9 +15123,9 @@ stylis@4.0.13:
     "@metamask/eth-sig-util" "^4.0.1"
     axios "^0.27.2"
     bignumber.js "^9.0.2"
-    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-669dfa7d-a93a-496b-a8fb-57f2a50ab2b8-1652696893341/data/postgres"
-    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-669dfa7d-a93a-496b-a8fb-57f2a50ab2b8-1652696893341/emissions-data/typescript_app"
-    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-669dfa7d-a93a-496b-a8fb-57f2a50ab2b8-1652696893341/emissions-data/chaincode/emissionscontract/typescript"
+    blockchain-carbon-accounting-data-postgres "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-2b493114-2b1b-4e9f-81e8-137dc7864bfb-1652709618777/data/postgres"
+    emissions_data "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-2b493114-2b1b-4e9f-81e8-137dc7864bfb-1652709618777/emissions-data/typescript_app"
+    emissions_data_chaincode "file:../../../../Library/Caches/Yarn/v6/npm-supply-chain-lib-1.0.0-2b493114-2b1b-4e9f-81e8-137dc7864bfb-1652709618777/emissions-data/chaincode/emissionscontract/typescript"
     i "^0.3.7"
     ipfs-http-client "^56.0.3"
     npm "^8.9.0"
