@@ -103,7 +103,10 @@ export class WalletRepo {
 
     if (with_private_fields) {
       q.addSelect(`${ALIAS}.email_verified`)
+      q.addSelect(`${ALIAS}.password_reset_token`)
+      q.addSelect(`${ALIAS}.password_reset_token_sent_at`)
       q.addSelect(`${ALIAS}.verification_token`)
+      q.addSelect(`${ALIAS}.verification_token_sent_at`)
       q.addSelect(`${ALIAS}.private_key`)
       q.addSelect(`${ALIAS}.password_hash`)
       q.addSelect(`${ALIAS}.password_salt`)
@@ -112,11 +115,35 @@ export class WalletRepo {
     return await q.getOne()
   }
 
+  public changePassword = async (email: string, password: string) => {
+    const { password_hash, password_salt } = Wallet.generateHash(password);
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        password_reset_token: '',
+        password_hash,
+        password_salt
+      })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email })
+      .execute();
+  }
+
+  public markPasswordResetRequested = async (email: string, token: string) => {
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        password_reset_token: token,
+        password_reset_token_sent_at: new Date(),
+      })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email })
+      .execute();
+  }
+
   public markEmailVerified = async (email: string) => {
     this.getRepository().createQueryBuilder()
       .update(Wallet)
       .set({
-        verification_token: undefined, 
+        verification_token: '', 
         email_verified: true,
       })
       .where(`LOWER(email) LIKE LOWER(:email)`, { email })

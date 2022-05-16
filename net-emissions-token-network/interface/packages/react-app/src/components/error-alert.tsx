@@ -18,10 +18,10 @@ const ErrorAlert: FC<{
     return (
       <Alert variant="danger" onClose={() => setShow(false)}>
         <Alert.Heading>An error occurred!</Alert.Heading>
-        <p className="pre-wrap">
+        <div className="pre-wrap">
           {errMsg}
           {children}
-        </p>
+        </div>
         <hr />
         <div className="d-flex justify-content-end">
           <Button onClick={() => {setShow(false); if (onDismiss) onDismiss();}} variant="outline-danger">

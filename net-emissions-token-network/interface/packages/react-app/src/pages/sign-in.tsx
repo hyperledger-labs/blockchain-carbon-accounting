@@ -1,27 +1,35 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Form, Button, Card } from "react-bootstrap"
+import { Form, Button, Card, Spinner } from "react-bootstrap"
+import { motion } from 'framer-motion';
 
-import { signInUser } from '../services/api.service';
+import { signInUser, requestPasswordReset } from '../services/api.service';
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import { TRPCClientError } from "@trpc/client";
+import { useTimer } from "../hooks/useTimer";
 
 
 type SignInForm = {
+  state: 'signin' | 'reset',
   email: string,
   password: string,
   error: string,
   success: string,
+  resetPasswordError: string,
+  resetPasswordSuccess: string,
   loading: string
 }
 type SignInFormErrors = Partial<SignInForm>
 
 const defaultSignInForm: SignInForm = {
+  state: 'signin',
   email: "",
   password: "",
   error: "",
   success: "",
+  resetPasswordError: "",
+  resetPasswordSuccess: "",
   loading: ""
 } as const;
 
@@ -30,9 +38,14 @@ type SignInProps = {
 }
 const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
 
+  const [currentHeight, setCurrentHeight] = useState<number | string>('auto');
+  const [didAnimate, setDidAnimate] = useState(false);
   const [form, setForm] = useState<SignInForm>(defaultSignInForm)
   const [formErrors, setFormErrors] = useState<SignInFormErrors>({})
   const [, setLocation] = useLocation();
+  const [timer, timerStarted, startTimer] = useTimer(40);
+  const refSignin = useRef<HTMLDivElement>(null);
+  const refReset = useRef<HTMLDivElement>(null);
 
   useEffect(()=>{
     // get the email parameter from the url
@@ -43,8 +56,14 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
     }
   }, [])
 
+  useLayoutEffect(() => {
+    const h = (form.state === 'signin' ? refSignin.current : refReset.current)?.scrollHeight || 'auto'
+    if (h !== currentHeight) setCurrentHeight(h)
+  }, [form, refSignin, refReset, currentHeight])
+
   async function handleSignIn() {
     try {
+      setForm({...form, loading: 'true'})
       const rslt = await signInUser(form.email, form.password);
       if (rslt) {
         const wallet = rslt.wallet;
@@ -82,30 +101,140 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
     }
   }
 
-  return (
-    <Card style={{ width: '32rem', margin: 'auto', padding: '1rem' }}>
-      <Card.Body>
-        <Card.Title as="h2">Sign In</Card.Title>
-        <p className="mt-4">Please sign in with your credentials</p>
-        <Form onSubmit={(e)=>{
-          e.preventDefault()
-          e.stopPropagation()
-          if (e.currentTarget.checkValidity() === false) return
-          handleSignIn()
-        }}>
-          <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
-          <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
-          <p className="text-muted"><a href="">Forgot your password? </a></p>
-          <Button type="submit" className="w-100 mb-3" variant="success" size="lg">Sign In</Button>
-          {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
-            <div>If you just signed up, make sure to valid your email address first.</div>
-          </ErrorAlert>}
-          <p className="text-muted">If you don't have an account, you can signup here <Link href="sign-up">SignUp</Link></p>
-        </Form>
+  async function handleResetPassword() {
+    try {
+      setForm({...form, resetPasswordSuccess: '', resetPasswordError: '', loading: 'true'})
+      await requestPasswordReset(form.email);
+      setForm({
+        ...form,
+        loading: '',
+        resetPasswordSuccess: 'true'
+      });
+      startTimer();
+    } catch (err) {
+      console.error(err);
+      if (err instanceof TRPCClientError) {
+        console.warn(err.data)
+        if (err?.data?.zodError?.fieldErrors) {
+          const fieldErrors = err.data.zodError.fieldErrors;
+          const errs: SignInFormErrors = {};
+          for (const f in fieldErrors) {
+            errs[f as keyof SignInFormErrors] = fieldErrors[f].join(', ');
+          }
+          setFormErrors({ ...errs })
+        }
+        setForm({ ...form, loading: '', resetPasswordError: err?.data?.domainError });
+      } else {
+        setForm({ ...form, loading: '', resetPasswordError: ("" + ((err instanceof Error) ? err.message : err)) });
+      }
+    }
+  }
 
-      </Card.Body>
-    </Card>
-  )
+  return (
+    <>
+      <Card style={{ width: '32rem', margin: 'auto', padding: '1rem', overflow: 'hidden' }}>
+        <motion.div
+          style={{ position: 'relative' }}
+          animate={{
+            height: currentHeight
+          }}
+          transition={{ stiffness: 150 }} >
+
+          <motion.div
+            key='signin'
+            ref={refSignin}
+            transition={{ stiffness: 150 }}
+            initial={didAnimate ? { x: '-110%' } : false}
+            exit={{ x: '-110%' }}
+            animate={{ x: form.state === 'signin' ? 0 : '-110%' }}
+            onAnimationComplete={()=>{ console.log('signin animation complete') }}
+          >
+            <Card.Body>
+              <Card.Title as="h2">Sign In</Card.Title>
+              <p className="mt-4">Please sign in with your credentials.</p>
+              <Form onSubmit={(e)=>{
+                e.preventDefault()
+                e.stopPropagation()
+                if (e.currentTarget.checkValidity() === false) return
+                handleSignIn()
+              }}>
+                <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
+                <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
+                <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'reset', error: ''})}>Forgot your password?</Button>
+                <Button type="submit" className="w-100 mb-3" variant="success" size="lg">Sign In</Button>
+                {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
+                  <div>If you just signed up, make sure to valid your email address first.</div>
+                </ErrorAlert>}
+                <p className="text-muted">If you don't have an account, you can <Link href="sign-up">Sign Up</Link> here </p>
+              </Form>
+            </Card.Body>
+          </motion.div>
+
+          <motion.div
+            style={{ position: 'absolute', top: 0, width: '100%' }}
+            key='reset'
+            ref={refReset}
+            onAnimationComplete={()=>{ setDidAnimate(true) }}
+            transition={{ stiffness: 150 }}
+            initial={{ x: '110%' }}
+            exit={{ x: '110%' }}
+            animate={{ x: form.state === 'reset' ? 0 : '110%' }}
+          >
+
+            <Card.Body>
+              <Card.Title as="h2">Reset Password</Card.Title>
+              {form.resetPasswordSuccess ? <>
+                <p className="mt-4">Please check your inbox and click on the received link to reset your password.</p>
+                <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'signin'})}>Back to Sign In</Button>
+                <p className="mt-4">Did not receive our email? Please wait for a while or try again.</p>
+                <Button className="w-100 mb-3" variant="outline-primary"  disabled={!!form.loading || (timerStarted && timer > 0)} onClick={()=>setForm({...form, resetPasswordError:'', resetPasswordSuccess:'', email:''})}>
+                  <>
+                    {!!form.loading ?
+                      <><Spinner
+                        animation="border"
+                        className="me-2"
+                        size="sm"
+                        as="span"
+                        role="status"
+                        aria-hidden="true"
+                        /> Resend</> : timerStarted ? <>Please wait {timer} sec.</> : <>Try again</>
+                  }
+                    </>
+                </Button>
+
+                </>
+                : <p className="mt-4">Enter the email you registered with to receive password reset instructions.</p>
+            }
+              {!form.resetPasswordSuccess &&
+              <Form
+                onSubmit={(e)=>{
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (e.currentTarget.checkValidity() === false) return
+                  handleResetPassword()
+                }}>
+                <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
+                <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'signin'})}>Remembered your password?</Button>
+                { form.resetPasswordError && <div className="alert alert-danger">{form.resetPasswordError}.</div> }
+                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
+                  {!!form.loading ?
+                    <Spinner
+                      animation="border"
+                      className="me-2"
+                      size="sm"
+                      as="span"
+                      role="status"
+                      aria-hidden="true"
+                      /> : <></>
+                }
+                  Reset Password
+                </Button>
+              </Form>}
+            </Card.Body>
+          </motion.div>
+        </motion.div>
+      </Card>
+      </>)
 
 }
 

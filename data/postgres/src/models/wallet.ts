@@ -19,7 +19,12 @@ export class Wallet {
   @Column({nullable:true, select: false})
   email_verified?: boolean
   @Column({nullable:true, select: false})
+  password_reset_token?: string
+  @Column({nullable:true, select: false})
+  password_reset_token_sent_at?: Date
+  @Column({nullable:true, select: false})
   verification_token?: string
+  @Column({nullable:true, select: false})
   verification_token_sent_at?: Date
   @Column({nullable:true, select: false})
   password_hash?: string

@@ -11,7 +11,7 @@ body {
   background-color: #F1F1F1;
 }
 
-.btn:not(.input-group-append .btn) {
+.btn:not(.btn-link):not(.input-group-append .btn) {
   border-radius: 10px !important;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
 }

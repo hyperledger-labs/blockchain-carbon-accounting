@@ -10,7 +10,7 @@ axios.defaults.baseURL = BASE_URL;
 
 function handleError(error: unknown, prefix: string) {
     const response = (error as any).response ?? error
-    const data_error = response?.data?.error ?? response?.error ?? response
+    const data_error = response?.data?.error ?? response?.error ?? response?.data ?? response
     console.error('Error response has data?:', data_error)
     let errMsg = prefix
     if (data_error) {
@@ -91,16 +91,25 @@ export const postSignedMessage = async (message: string, signature: string) => {
     }
 }
 
-/**
- * This is the function to login with mail and password by calling API Server
- */
- export const signInUser =  async(email:string, password:string) => {
+export const requestPasswordReset = async(email:string) => {
+  try {
+    const { data } = await axios.post(`/request-password-reset/${email}`);
+    console.log('requestPasswordReset response:', data);
+    if(data.status === 'success') return data.wallet;
+    else return null;
+  } catch(error) {
+    throw new Error(handleError(error, "Cannot request a password reset"))
+  }
+}
+
+export const changePassword = async(email: string, token: string, currentPassword: string, password: string, passwordConfirm: string) => {
+  return trpcClient.mutation('wallet.changePassword', {email, token, currentPassword, password, passwordConfirm})
+}
+
+export const signInUser =  async(email:string, password:string) => {
   return trpcClient.mutation('wallet.signin', {email, password})
 }
 
-/**
- * This is the function to create wallet with mail and password by calling API Server
- */
 export const signUpUser =  async(email:string, password:string, passwordConfirm:string) => {
   return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm})
 }

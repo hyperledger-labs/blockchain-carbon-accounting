@@ -25,6 +25,7 @@ import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 
 import { QueryClient, QueryClientProvider } from "react-query";
 import { trpc, useTrpcClient } from "./services/trpc";
+import ChangePassword from "./pages/change-password";
 
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
@@ -140,6 +141,9 @@ const App:FC = () => {
                 </Route>
                 <Route path="/access-control">
                   <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+                </Route>
+                <Route path="/reset-password">
+                  <ChangePassword></ChangePassword>
                 </Route>
                 <Route path="/sign-up">
                   <SignUp></SignUp>

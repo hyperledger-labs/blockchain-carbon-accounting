@@ -70,6 +70,9 @@ app.use(fileUpload({
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
+// needed for rate limiting behind a proxy (since in production this is behind the Apache proxy)
+// this should still work locally even if no proxy are used
+app.set('trust proxy', 1)
 
 // for hardhat test sync
 if(network_name === 'hardhat') {
