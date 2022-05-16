@@ -95,9 +95,10 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
         }}>
           <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
           <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
+          <p className="text-muted"><a href="">Forgot your password? </a></p>
           <Button type="submit" className="w-100 mb-3" variant="success" size="lg">Sign In</Button>
-          {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }}>
-            <p>If you just signed up, make sure to valid your email address first.</p>
+          {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
+            <div>If you just signed up, make sure to valid your email address first.</div>
           </ErrorAlert>}
           <p className="text-muted">If you don't have an account, you can signup here <Link href="sign-up">SignUp</Link></p>
         </Form>

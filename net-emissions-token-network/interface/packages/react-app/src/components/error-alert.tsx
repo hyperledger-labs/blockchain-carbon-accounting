@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, ReactNode, useEffect, useMemo, useState } from "react";
 import { Alert, Button } from "react-bootstrap";
 
 const ErrorAlert: FC<{
@@ -8,6 +8,7 @@ const ErrorAlert: FC<{
   children?: ReactNode
 }> = ({error, dismissLabel, onDismiss, children}) => {
   const [show, setShow] = useState(true);
+  const errMsg = useMemo(()=> (error && !error.endsWith(".")) ? `${error}.` : error, [error]);
 
   useEffect(()=>{
     setShow(!!error)
@@ -18,9 +19,9 @@ const ErrorAlert: FC<{
       <Alert variant="danger" onClose={() => setShow(false)}>
         <Alert.Heading>An error occurred!</Alert.Heading>
         <p className="pre-wrap">
-          {error}
+          {errMsg}
+          {children}
         </p>
-        {children}
         <hr />
         <div className="d-flex justify-content-end">
           <Button onClick={() => {setShow(false); if (onDismiss) onDismiss();}} variant="outline-danger">
