@@ -5,7 +5,6 @@ import { ethers } from 'ethers';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 import nodemailer from 'nodemailer';
 import { DomainError } from '../trpc/common';
-import path from 'path';
 
 export async function getWallets(req: Request, res: Response) {
     try {
@@ -119,7 +118,7 @@ export async function sendVerificationEmail(email: string, token?: string) {
     }
     console.log('sendVerificationEmail', opts)
     const transporter = nodemailer.createTransport(opts)
-    const link = new URL(path.join('verify-email', token, email), `${process.env.VERIFY_ROOT_URL}`)
+    const link = new URL(`${process.env.VERIFY_ROOT_URL}/verify-email/${token}/${email}`)
     const message = {
         from: 'noreply@opentaps.com',
         to: email,
@@ -199,18 +198,19 @@ export async function generateWalletWithCredentials(req: Request, res: Response)
 export async function verify(email: string, token: string) {
 
     const db = await PostgresDBService.getInstance();
+    console.log(`Verifying ${email} with token ${token}`);
 
     // check that a wallet with this email does not already exist
-    const w = await db.getWalletRepo().findWalletByEmail(email);
+    const w = await db.getWalletRepo().findWalletByEmail(email, true);
     if (!w || w.verification_token !== token) {
         console.error(!w ? 'No wallet found with that email: ' + email : 'Wrong token: ' + w.verification_token + ' vs ' + token);
         throw new DomainError('Wallet not found');
     }
 
     // update the wallet as verified
-    w.verification_token = undefined;
-    w.email_verified = true;
-    return await db.getWalletRepo().getRepository().save(w);
+    await db.getWalletRepo().markEmailVerified(email);
+    console.log(`Returning verified wallet`, w.email, w.address);
+    return w;
 }
 
 export async function verifyWalletEmail(req: Request, res: Response) {

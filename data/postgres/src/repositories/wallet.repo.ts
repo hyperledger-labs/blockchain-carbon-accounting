@@ -112,6 +112,17 @@ export class WalletRepo {
     return await q.getOne()
   }
 
+  public markEmailVerified = async (email: string) => {
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        verification_token: undefined, 
+        email_verified: true,
+      })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email })
+      .execute();
+  }
+
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
       let selectBuilder: SelectQueryBuilder<Wallet> = this.getRepository().createQueryBuilder(ALIAS)
