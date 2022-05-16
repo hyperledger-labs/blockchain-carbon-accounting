@@ -137,7 +137,7 @@ export async function sendPasswordResetEmail(email: string, token: string, os?: 
     const text = templateText(tpl)
 
     const message = {
-        from: 'noreply@opentaps.com',
+        from: process.env.MAILER_FROM_ADDRESS, 
         to: email,
         subject: 'Reset your password',
         html,
@@ -186,8 +186,11 @@ export async function sendVerificationEmail(email: string, token?: string) {
     }
     const html = templateHtml(tpl)
     const text = templateText(tpl)
+
+    console.log("Getting ready to send verification email " + "\n" + html + "\n");
+
     const message = {
-        from: 'noreply@opentaps.com',
+        from: process.env.MAILER_FROM_ADDRESS, 
         to: email,
         subject: 'Verify your email',
         text,
