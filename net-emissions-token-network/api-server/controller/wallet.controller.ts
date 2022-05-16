@@ -171,12 +171,27 @@ export async function sendVerificationEmail(email: string, token?: string) {
     }
     const transporter = getMailer();
     const link = new URL(`${process.env.VERIFY_ROOT_URL}/verify-email/${token}/${email}`)
+    const emailTemplateSourceHtml = readFileSync(path.join(__dirname, "../email/templates/verify-email.html"), "utf8")
+    const emailTemplateSourceText = readFileSync(path.join(__dirname, "../email/templates/verify-email.txt"), "utf8")
+    const templateHtml = handlebars.compile(emailTemplateSourceHtml)
+    const templateText = handlebars.compile(emailTemplateSourceText)
+    const tpl = {
+        site_url: process.env.APP_ROOT_URL || 'http://localhost:3000',
+        site_name: process.env.MAIL_SITE_NAME || 'Blockchain Accounting',
+        company_name: process.env.MAIL_COMPANY_NAME || 'Blockchain Accounting',
+        company_address_1: process.env.MAIL_COMPANY_ADDRESS_1 || '123 Main St.',
+        company_address_2: process.env.MAIL_COMPANY_ADDRESS_2 || 'Suite 100',
+        support_url: process.env.MAIL_SUPPORT_URL || 'mailto:support@opentaps.com',
+        action_url: link.href,
+    }
+    const html = templateHtml(tpl)
+    const text = templateText(tpl)
     const message = {
         from: 'noreply@opentaps.com',
         to: email,
         subject: 'Verify your email',
-        text: `Please verify your email by clicking on the following link: ${link.href}`,
-        html: `<p>Please verify your email by clicking on the following link: <a href="${link.href}">verification link</a></p>`,
+        text,
+        html
     }
     return new Promise((resolve, reject) => {
         transporter.sendMail(message, (err, info) => {
