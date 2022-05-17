@@ -20,7 +20,6 @@ kMm6c6bLXEqr6CWUWuWeOUXsV8vOY/7zGX1+crULXll9urFeG+EM+GC1FMo7zAgz
 BOJP3Eo6Dv8fc15YPsRpnXty0+khlBIQAuxgsf8r05nqBT4bd1BVR7GSgSMfQabf
 tMOOx2oLGriVPF8ahSWM6xaflk+lAc73w+yt8Ozj1kTqYxD7gLW6dy0CAwEAAQ==
 -----END RSA PUBLIC KEY-----',
-metamask_encrypted_public_key = 'mgn9uRllOGtnBcc07TbDJlFElnuCPiOhtmWui+kiaDw='
 WHERE lower(address) = lower( '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC');
 -- account 3
 UPDATE wallet SET name = 'Offset Dealer 1', organization = 'Test Hardhat' WHERE lower(address) = lower( '0x90F79bf6EB2c4f870365E785982E1f101E93b906');
