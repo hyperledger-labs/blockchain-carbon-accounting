@@ -2,9 +2,10 @@ import * as trpc from '@trpc/server'
 import { ethers } from 'ethers';
 import { z } from 'zod'
 import { checkSignedMessage } from '../controller/synchronizer';
-import { handleError, TrpcContext } from './common';
+import { DomainError, handleError, TrpcContext } from './common';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 import { changePassword, markPkExported, signinWallet, signupWallet } from '../controller/wallet.controller';
+import { signinLimiter, signupAndResetLimiter } from '../utils/rateLimiter';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -93,8 +94,13 @@ export const walletRouter = trpc
         email: z.string().email(),
         password: z.string().min(8).max(64),
     }),
-    async resolve({ input }) {
+    async resolve({ input, ctx }) {
         try {
+            try {
+                await signinLimiter.consume(ctx.ip || 'unknown')
+            } catch {
+                throw new DomainError('Too many signin attempts from this IP address', 'BAD_REQUEST');
+            }
             const wallet = await signinWallet(input.email, input.password);
             return { wallet }
         } catch (error) {
@@ -112,8 +118,13 @@ export const walletRouter = trpc
         message: "Passwords don't match",
         path: ["passwordConfirm"],
     }),
-    async resolve({ input }) {
+    async resolve({ input, ctx }) {
         try {
+            try {
+                await signupAndResetLimiter.consume(ctx.ip || 'unknown')
+            } catch {
+                throw new DomainError('Too many signup attempts from this IP address', 'BAD_REQUEST');
+            }
             await signupWallet(input.email, input.password);
             return { success: true }
         } catch (error) {
@@ -137,8 +148,13 @@ export const walletRouter = trpc
         message: "Current password was not given",
         path: ["currentPassword"],
     }),
-    async resolve({ input }) {
+    async resolve({ input, ctx }) {
         try {
+            try {
+                await signupAndResetLimiter.consume(ctx.ip || 'unknown')
+            } catch {
+                throw new DomainError('Too many password requests attempts from this IP address', 'BAD_REQUEST');
+            }
             await changePassword(input.email, input.password, input.passwordConfirm, input.token, input.currentPassword);
             return { success: true }
         } catch (error) {
