@@ -19,6 +19,7 @@ const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
     message: "Address must be a valid Ethereum address",
 })
 
+const validPassword = z.string().min(8).max(128)
 
 export const walletRouter = trpc
 .router<TrpcContext>()
@@ -92,7 +93,7 @@ export const walletRouter = trpc
 .mutation('signin', {
     input: z.object({
         email: z.string().email(),
-        password: z.string().min(8).max(64),
+        password: validPassword,
     }),
     async resolve({ input, ctx }) {
         try {
@@ -111,8 +112,8 @@ export const walletRouter = trpc
 .mutation('signup', {
     input: z.object({
         email: z.string().email(),
-        password: z.string().min(8).max(64),
-        passwordConfirm: z.string().min(8).max(64),
+        password: validPassword,
+        passwordConfirm: validPassword,
     })
     .refine((data) => data.password === data.passwordConfirm, {
         message: "Passwords don't match",
@@ -135,8 +136,8 @@ export const walletRouter = trpc
 .mutation('changePassword', {
     input: z.object({
         email: z.string().email(),
-        password: z.string().min(8).max(64),
-        passwordConfirm: z.string().min(8).max(64),
+        password: validPassword,
+        passwordConfirm: validPassword,
         currentPassword: z.string().optional(),
         token: z.string().optional(),
     })
@@ -165,7 +166,7 @@ export const walletRouter = trpc
 .mutation('markPkExported', {
     input: z.object({
         email: z.string().email(),
-        password: z.string().min(8).max(64),
+        password: validPassword,
     }),
     async resolve({ input }) {
         try {
