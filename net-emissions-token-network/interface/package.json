@@ -9,7 +9,7 @@
   ],
   "private": true,
   "scripts": {
-    "preci": "rm -fr node_modules",
+    "preci": "rm -fr node_modules pacakges/*/node_modules && npm --prefix ../api-server install",
     "ci": "yarn install --frozen-lockfile --ignore-engines --ignore-scripts",
     "react-app:build": "yarn workspace @project/react-app build",
     "react-app:eject": "yarn workspace @project/react-app eject",
