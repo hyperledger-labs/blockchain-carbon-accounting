@@ -18,7 +18,7 @@ The application connects to the contract of the address specified in `net-emissi
 From the `net-emissions-token-network/interface` directory, run
 
 ```bash
-yarn install
+yarn ci
 ```
 
 ## Api Server
