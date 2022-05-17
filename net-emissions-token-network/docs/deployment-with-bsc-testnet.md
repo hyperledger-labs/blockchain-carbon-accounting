@@ -166,10 +166,15 @@ npm install pm2 -g
 
 Start it with:
 ```
-pm2 start "npm install pm2 -g"
+pm2 start "npx ts-node server" --name bca-api-server
 ```
 
 You can manage with `pm2 list` `pm2 stop X` `pm2 delete X` `pm2 log X` ...
+
+For example to see the app logs:
+```
+pm2 log bca-api-server
+```
 
 
 ### Check Web Server config
