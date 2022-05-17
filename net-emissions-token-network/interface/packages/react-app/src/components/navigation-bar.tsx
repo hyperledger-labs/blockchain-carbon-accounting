@@ -111,12 +111,6 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
                 className="ms-1 mr-3">Sign In
               </Button>
             </Link>
-            <Link href="sign-up">
-              <Button
-                variant="primary"
-                className="ms-1 mr-3">Sign Up 
-              </Button>
-            </Link>
           </>
           :
             <>
