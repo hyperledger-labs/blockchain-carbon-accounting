@@ -82,7 +82,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
         <>
           <h4>My Roles</h4>
           {roles
-           ? <RolesList roles={roles}/>
+           ? (roles.hasAnyRole ? <RolesList roles={roles}/> : <p>Unregistered.</p>)
            : <div className="text-center mt-3 mb-3">
                <Spinner animation="border" role="status">
                  <span className="sr-only">Loading...</span>

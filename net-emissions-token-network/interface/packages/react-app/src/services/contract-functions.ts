@@ -104,7 +104,7 @@ export async function getRoles(w3provider: Web3Provider | JsonRpcProvider, addre
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   try {
     const r = await contract.getRoles(address) as RolesInfo;
-    // note: the returned value is not ext  ensible, so copy the values here
+    // note: the returned value is not extensible, so copy the values here
     const roles = {...r}
     if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasAnyRole = true;
     if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasDealerRole = true;
