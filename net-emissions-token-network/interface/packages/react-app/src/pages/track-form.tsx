@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Web3Provider } from "@ethersproject/providers";
 import { FC, ChangeEventHandler, useCallback, useEffect, useState } from "react";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { InputGroup } from "react-bootstrap";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -14,7 +14,7 @@ import WalletLookupInput from "../components/wallet-lookup-input";
 import { RolesInfo, TOKEN_TYPES } from "../components/static-data";
 
 type TrackFormProps = {
-  provider?: Web3Provider,
+  provider?: Web3Provider | JsonRpcProvider
   roles: RolesInfo
 }
 
@@ -160,7 +160,7 @@ const TrackForm:FC<TrackFormProps> = ({ provider, roles }) => {
         <div className="mt-4">
           <h4>Only emission auditor can issue a tracker</h4>
         </div>
-       /*<div className="mt-4">{registeredTracker}
+       /*<div className="mt-4">
           <h4>Register tracker</h4>
 
           <Form.Group className="mb-3" controlId="addressInput">

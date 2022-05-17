@@ -6,6 +6,7 @@ import { UtilityLookupItem } from "./models/utilityLookupItem"
 import { Wallet } from "./models/wallet"
 import { Token } from "./models/token"
 import { Tracker } from "./models/tracker"
+import { Product } from "./models/product"
 import { Balance } from "./models/balance"
 import { EmissionsRequest, EmissionsRequestSupportingDocument } from "./models/emissionsRequest"
 import { UploadedFile } from "./models/uploadedFile"
@@ -28,6 +29,7 @@ export const initDb = async (opts: DbOpts) => {
       Balance,
       Token,
       Tracker,
+      Product,
       EmissionsRequest,
       EmissionsRequestSupportingDocument,
       ActivityEmissionsFactorLookup,

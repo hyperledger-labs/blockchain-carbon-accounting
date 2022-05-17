@@ -6,6 +6,55 @@ on: # Run the workflows on push/PR to the main branch
     branches: [main]
 
 jobs:
+  build-supply-chain:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./supply-chain
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.15.0"
+      - name: Install dependencies
+        run: |
+          npm i -g npm@latest
+          npm ci
+      - name: Run build script
+        run: npm run build
+
+  build-api-server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./net-emissions-token-network/api-server
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.15.0"
+      - name: Install dependencies
+        run: |
+          npm i -g npm@latest
+          npm ci
+      - name: Run build script
+        run: npm run build
+
+  build-react-app:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./net-emissions-token-network/interface
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16.15.0"
+      - name: Install dependencies
+        run: yarn ci
+      - name: Run build script
+        run: CI=false yarn react-app:build
+
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
     defaults:
@@ -15,7 +64,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "16.14.2"
+          node-version: "16.15.0"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -32,7 +81,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "16.14.2"
+          node-version: "16.15.0"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -58,12 +107,27 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: "1.16"
+          go-version: "1.18"
       - name: Run chaincode tests
         run: go test -v internal/*.go -count=1
 
   test-net-emissions-token-network: # Run tests for the net-emissions-token-network directory
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blockchain-carbon-accounting-test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     defaults:
       run:
         working-directory: ./net-emissions-token-network
@@ -71,13 +135,16 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "16.14.2"
+          node-version: "16.15.0"
       - name: Install dependencies
         run: |
           npm i -g npm@latest
           npm ci
       - name: Run tests
         run: npx hardhat test
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
 
   test-typescript-app: # Build and test the typescript_app project
     runs-on: ubuntu-latest
@@ -88,7 +155,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "16.14.2"
+          node-version: "16.15.0"
       - name: Download Fabric binaries
         run: |
           sudo chmod +x /usr/local/bin/docker-compose

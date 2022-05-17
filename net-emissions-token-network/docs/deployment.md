@@ -25,7 +25,7 @@ During deployment, some contract functions are called to complete the initializa
 
 The deployment script runs in this particular order because some variables need to be set up on the latter contracts that point to the former contracts for correct permissioning (i.e. ensuring that only the Governor has permission to collect and burn DAO tokens). In `deploy/dao.js` (the script used to deploy Timelock and Governor), we can see at the bottom of the file:
 
-```js
+```javascript
 module.exports.tags = ['DAO'];
 module.exports.dependencies = ['DAOToken'];
 ```
@@ -36,14 +36,14 @@ The tag 'DAO' is set so that the Timelock and Governor can be deployed individua
 
 At the top of each deployment script, a few functions from hardhat-deploy are imported:
 
-```js
+```javascript
 const {deploy, execute, get} = deployments;
 const {deployer} = await getNamedAccounts();
 ```
 
 `deploy` allows us to deploy a given contract to the given network, for example:
 
-```js
+```javascript
 let timelock = await deploy('Timelock', {
   from: deployer,
   args: [
@@ -56,7 +56,7 @@ console.log("Timelock deployed to:", timelock.address);
 
 `execute` allows us to execute functions on a contract, for example:
 
-```js
+```javascript
 await execute(
   'Timelock',                 // contract to call
   { from: deployer },         // options (e.g. from address)
@@ -72,7 +72,7 @@ console.log("Queued setPendingAdmin() on Timelock.");
 
 `get` allows us to get a previously deployed contract of the given network defined in the `deployments/` folder, for example:
 
-```js
+```javascript
 daoToken = await get("DAOToken"); // required to deploy Timelock and Governor
 ```
 
@@ -98,13 +98,13 @@ cp .ethereum-config.js.template .ethereum-config.js
 
 3. Edit the file `hardhat.config.js` and uncomment these lines (or uncomment the network you want to deploy to):
 
-```bash
-     // const ethereumConfig = require("./.ethereum-config");
+```javascript
+     const ethereumConfig = require("./.ethereum-config");
      ...
-     // goerli: {
-     //   url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
-     //   accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
-     // },
+     goerli: {
+       url: `https://goerli.infura.io/v3/${goerliConfig.INFURA_PROJECT_ID}`,
+       accounts: [`0x${goerliConfig.GOERLI_CONTRACT_OWNER_PRIVATE_KEY}`]
+     },
 ```
 
 4. Deploy by via the deploy script (or replacing goerli with the network you want to deploy to):
@@ -123,8 +123,8 @@ npx hardhat completeTimelockAdminSwitch --network goerli --timelock 0xE13Ec0c623
 
 The addresses of the contracts (prefixed with 0x) will be returned once the contracts are finished deploying.  Copy this and run it again in two days.
 
-This `completeTimelockAdminSwitch` task does two things: run executeTransaction() on the Timelock to call setPendingAdmin() to the Governor contract 
-(since it is deployed after Timelock and must be set manually after deployment), and then call __acceptAdmin() on Governor to complete the switch. 
+This `completeTimelockAdminSwitch` task does two things: run `executeTransaction()` on the Timelock to call `setPendingAdmin()` to the Governor contract 
+(since it is deployed after Timelock and must be set manually after deployment), and then call `acceptAdmin()` on Governor to complete the switch. 
 Most of the parameters are for the first command:
 
 ```
@@ -143,7 +143,7 @@ Due to latency on the network, this task may return an error such as
    ProviderError: execution reverted: Timelock::acceptAdmin: Call must come from pendingAdmin.
 ```
 
-This means that executeTransaction() is still running when acceptAdmin() was called.  Try commenting out the block for executeTransaction() in `hardhat.config.js`
+This means that `executeTransaction()` is still running when `acceptAdmin()` was called.  Try commenting out the block for`` executeTransaction()`` in `hardhat.config.js`
 and submitting the request again.   
 
 ## Deploying to xDai
@@ -171,7 +171,7 @@ Connect to BSC testnet via MetaMask by [Use MetaMask For Binance Smart Chain](ht
 Be sure your `.ethereum-config.js` has the private key of your deployer address, uncomment out the "bsctestnet" network in `hardhat.config.js` (similar to the steps above) and deploy with:
 
 ```bash
-npx hardhat deploy --network bsctestnet
+npx hardhat deploy --reset --network bsctestnet
 ```
 
 Be sure to copy the command to complete the Timelock admin switch in two days from the time of deployment (example in the section above).
@@ -201,7 +201,7 @@ Some incompatibilities exist between Hardhat and Optimism, so the current recomm
 To deploy contracts to a local Optimism development node after following starting your local Optimism Ethereum environment, run:
 
 ```bash
-$ npx hardhat deploy --network ovm_localhost
+npx hardhat deploy --network ovm_localhost
 ```
 
 Use the test addresses for testing on the interface and elsewhere:

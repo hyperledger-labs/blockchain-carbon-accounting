@@ -7,11 +7,11 @@ import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 import Form from 'react-bootstrap/Form';
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 
 type DelegateDaoTokensModalProps = {
   show: boolean
-  provider?: Web3Provider
+  provider?: Web3Provider | JsonRpcProvider
   title: string
   balance: string
   onHide: ()=>void

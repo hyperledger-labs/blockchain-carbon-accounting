@@ -4,6 +4,8 @@ import { initDb } from './models'
 import { BalanceRepo } from "./repositories/balance.repo"
 import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
 import { TokenRepo } from "./repositories/token.repo"
+import { TrackerRepo } from "./repositories/tracker.repo"
+import { ProductRepo } from "./repositories/product.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
 import { EmissionsRequestRepo } from "./repositories/emissionsRequest.repo"
@@ -15,7 +17,7 @@ export class PostgresDBService {
 
   private _db: DataSource
   private static _instance: PostgresDBService | null
-  private static _instanceLoading: Promise<PostgresDBService>
+  private static _instanceLoading: Promise<PostgresDBService> | null
 
   public static getInstance = async (opts?: DbOpts): Promise<PostgresDBService> => {
     if (PostgresDBService._instance) return PostgresDBService._instance
@@ -44,6 +46,11 @@ export class PostgresDBService {
   public async close() {
     await this._db.destroy()
     PostgresDBService._instance = null
+    PostgresDBService._instanceLoading = null
+  }
+
+  public getConnection() {
+    return this._db;
   }
 
   public getActivityEmissionsFactorLookupRepo() {
@@ -60,6 +67,14 @@ export class PostgresDBService {
 
   public getTokenRepo() {
     return new TokenRepo(this._db)
+  }
+
+  public getTrackerRepo() {
+    return new TrackerRepo(this._db)
+  }
+
+  public getProductRepo() {
+    return new ProductRepo(this._db)
   }
 
   public getBalanceRepo() {

@@ -47,6 +47,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
      * tokenIds - array of ids of carbon tokens (direct/indirect/offsets)
      * idIndex - mapping tokenId to its index in array. 1st index is 1, 0 reserved for unindexed
      * amount - mapping tokenId to amount of emissions
+     * productIds - array of productIds 
+     * productIdIndex mapping productId to index in array
      * product mapping productId to ProductQuantities
      * trackerIds - arrays of tracker ids referenced by this tracker
      * trackerIndex - mapping sourceTrackerId to index in array. 1st index is 1, 0 reserved for unindexed.
@@ -58,27 +60,26 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         mapping(uint => uint) amount;
         uint[] productIds;
         mapping(uint => uint) productIdIndex;
-        mapping(uint => ProductQuantities) product;
+        //mapping(uint => ProductQuantities) product;
         uint[] trackerIds;
         mapping(uint => uint) trackerIndex;
         mapping(uint => ProductsTracked) productsTracked;
     }
     /**
-     * @dev ProductQuantities
+     * @dev ProductDetails
      * amount - amount of product
      * available - amount of product available
      * auditor - address that submited the unit amount
     **/
-    struct ProductQuantities {
-        uint256 amount;
-        uint256 available;
-    }
     struct ProductDetails {
+        uint trackerId;
         address auditor;
+        uint256 amount;
+        uint256 available;        
         // TO-DO the unit Amount and unit should be stored offline to retain product privacy.
         string name;
-        uint unitAmount;
         string unit;
+        uint unitAmount;
     }
     /**
      * @dev ProductsTracked
@@ -94,11 +95,10 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
 
     mapping(uint => CarbonTrackerDetails) internal _trackerData;
     mapping(uint => CarbonTrackerMappings) internal _trackerMappings;
-    mapping(uint => ProductDetails) internal _productData;
+    mapping(uint => ProductDetails) public _productData;
 
     CountersUpgradeable.Counter public _numOfUniqueTrackers;
     CountersUpgradeable.Counter public _numOfProducts;
-    mapping(uint => uint) _productTrackerId; // map productId to trackerId
     mapping(uint => uint) lockedAmount;//amount of token Id locked into the contract.
     // map productBalance from productId => trackerId and address of holder 
     mapping(uint => mapping(uint => mapping(address => uint))) public productBalance;
@@ -301,7 +301,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         emit TrackerUpdated(trackerData.trackerId,msg.sender,tokenIds,tokenAmounts,fromDate,thruDate);
     } 
     /**
-     * @dev track a product to and existing trackerId
+     * @dev track a product to an existing trackerId
      * used by track() and trackerUpdate()
     **/ 
     function trackProduct(
@@ -333,11 +333,10 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint sourceTrackerId,
         address trackee ) public isAudited(sourceTrackerId) 
         isOwner(sourceTrackerId) isIndustry(trackee){ 
-        CarbonTrackerMappings storage sourceTrackerMappings = _trackerMappings[sourceTrackerId];
-        ProductQuantities storage product;
+        ProductDetails storage product;
         
         //for (uint i = 0; i < productIds.length; i++) { }
-        product = sourceTrackerMappings.product[productId];
+        product = _productData[productId];
         require(product.available > productAmount, 
             "CLM8::transferProduct: productAmount exceeds products available in sourceTrackerId");
         // update product availability
@@ -361,8 +360,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         //    "CLM8::sendProducts: productAmounts and productIds are not the same length");
         require(trackerId != sourceTrackerId, 
                 "CLM8::transferProductToTracker: sourceTrackerId can not equal the trackerId");
-        CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
-        ProductQuantities storage product = trackerMappings.product[productId];
+        ProductDetails storage product = _productData[productId];
         
         //for (uint i = 0; i < productIds.length; i++) { }
         require(productBalance[productId][sourceTrackerId][msg.sender] > productAmount, 
@@ -370,9 +368,10 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         // update product availability
         productBalance[productId][sourceTrackerId][msg.sender] = 
             productBalance[productId][sourceTrackerId][msg.sender].sub(productAmount);
-        product.amount = productAmount;
-        product.available = productAmount;
-        trackerMappings.productIds.push(productId);
+        product.amount = product.amount.add(productAmount);
+        product.available = product.available.add(productAmount);
+        //CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
+        _trackerMappings[trackerId].productIds.push(productId);
         _trackerData[trackerId].totalProductAmounts = 
             _trackerData[trackerId].totalProductAmounts.add(productAmount);
     }
@@ -390,7 +389,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint[] memory productUnitAmounts
         ) public notAudited(trackerId) trackerExists(trackerId) isAuditor(trackerId){
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        CarbonTrackerMappings storage  trackerMappings = _trackerMappings[trackerId];
+        //CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
         require(productAmounts.length == productIds.length, 
             "CLM8::productsUpdate: productAmounts and productIds are not the same length");
         // TO-DO the followoing input paramters should not be sent to the contract to presever producer privacy.
@@ -403,12 +402,11 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             "CLM8::productsUpdate: productUnitAmounts and productIds are not the same length");
 
         uint productId;
-        ProductQuantities storage product;
+        ProductDetails storage product;
         for (uint i = 0; i < productIds.length; i++) {
-
             if(productIds[i]>0){
                 productId = productIds[i];
-                require(_productTrackerId[productId] == trackerId, 
+                require(_productData[productId].trackerId == trackerId, 
                     "CLM8::productsUpdate: productIds[i] does not belong to trackerId");
                  
                 trackerData.totalProductAmounts = 
@@ -418,14 +416,14 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             }else{
                 _numOfProducts.increment();
                 productId = _numOfProducts.current();
-                _productTrackerId[productId]=trackerId;
-                trackerMappings.productIds.push(productId);
+                _productData[productId].trackerId=trackerId;
                 _productData[productId].auditor = msg.sender;
+                _trackerMappings[trackerId].productIds.push(productId);
             } 
-            product = trackerMappings.product[productId];
-            _productData[productId].name = productNames[i];
-            _productData[productId].unitAmount = productUnitAmounts[i];
-            _productData[productId].unit = productUnits[i];
+            product = _productData[productId];
+            product.name = productNames[i];
+            product.unitAmount = productUnitAmounts[i];
+            product.unit = productUnits[i];
             product.amount = productAmounts[i];
             product.available = productAmounts[i];
             trackerData.totalProductAmounts = 
@@ -464,6 +462,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             
         }
     }
+    /*
     function _subTokenAmounts(uint tokenId, CarbonTrackerMappings storage tokenData, 
         uint total, 
         uint amountSub,
@@ -491,7 +490,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             delete tokenData.tokenIds[tokenData.tokenIds.length-1];
         }
         return total;
-    }
+    }*/
     /**
      * @dev update the product info within the Tacker
     **/
@@ -574,7 +573,6 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     /**
      * @dev change trackee of trackerId
      * @param trackerId - id of token tp be changed
-    
     function changeTrackee(uint trackerId, address trackee) external 
         onlyAdmin registeredTracker(trackee) trackerExists(trackerId){
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
@@ -603,20 +601,16 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             emit VerifierRemoved(verifier,msg.sender);
         }
     }
+
+
     /**
      * These are public view functions
      * Warning: should never be called within functions that update the network to avoid excessive gas fees
     */
-    function carbonIntensity(uint trackerId /*, uint productId*/)
+    function carbonIntensity(uint trackerId)
         public view returns (uint) {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        //require(_numOfProducts.current()>=productId,
-        //    "CLM8::_carbonIntensity: product does not exist");
-        //ProductQuantities storage product = _trackerMappings[trackerId].product[productId];
-        //require(product.amount>0,
-        //    "CLM8::_carbonIntensity: product amount is 0");
         if(trackerData.totalProductAmounts>0){
-            //"CLM8::_carbonIntensity: the total product amount is 0");
             return(getTotalEmissions(trackerId).mul(divDecimals)
             .div(trackerData.totalProductAmounts));
         }else{return(0);}
@@ -633,11 +627,12 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint trackerId,
         uint productId,
         string memory unit,
+        uint unitAmount,
         bytes memory signature
     ) public view isAudited(trackerId) trackerExists(trackerId) returns (bool){   
         address signer = _productData[productId].auditor;
         bytes32 ethSignedUnitHash =
-            _getUnitHash(trackerId, productId, unit).toEthSignedMessageHash();
+            _getUnitHash(trackerId, productId, unit, unitAmount).toEthSignedMessageHash();
         return ethSignedUnitHash.recover(signature)==signer;
     }
     /**
@@ -651,35 +646,30 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     function _getUnitHash(
         uint trackerId,
         uint productId,        
-        string memory unit
+        string memory unit,
+        uint unitAmount
     ) public view returns (bytes32) {
         return keccak256(abi.encodePacked(address(this)
-            ,trackerId, productId, unit));
+            ,trackerId, productId, unit, unitAmount));
     }
     /**
      * @dev returns total emissions
      */
     function getTotalEmissions(uint trackerId) public view returns (uint256) {
-        CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
+        //CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
         CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
-        uint totalEmissions = _getTotalEmissions(trackerData,trackerMappings);
+        uint totalEmissions = _getTotalEmissions(trackerMappings);
         return totalEmissions;
     } 
     function _getTotalEmissions(
-        CarbonTrackerDetails storage trackerData,
         CarbonTrackerMappings storage trackerMappings) internal view returns (uint256) {
         uint[] storage tokenIds = trackerMappings.tokenIds;
         uint totalEmissions;
         for (uint i = 0; i < tokenIds.length; i++) {
             totalEmissions = totalEmissions.add(trackerMappings.amount[tokenIds[i]]);
         }
-        uint[] memory productIds = trackerMappings.productIds;
-        for (uint i = 0; i < productIds.length; i++) {
-            uint productTrackerId = _productTrackerId[productIds[i]];
-            if(productTrackerId!=trackerData.trackerId){
-                totalEmissions = totalEmissions.add(getTotalEmissions(productTrackerId));
-            }
-        }
+        uint[] memory productIds ;//= trackerMappings.productIds;
+
         uint[] memory trackerIds = trackerMappings.trackerIds;
         ProductsTracked storage productsTracked;
         for (uint i = 0; i < trackerIds.length; i++) {
@@ -689,7 +679,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             for (uint j = 0; j < productIds.length; j++) {
                 productAmount = productsTracked.amount[productIds[j]];
                 totalEmissions = totalEmissions.add(
-                    productAmount.mul(carbonIntensity(trackerIds[i]/*,productIds[j]*/))
+                    productAmount.mul(carbonIntensity(trackerIds[i]))
                     .div(divDecimals)
                 );
             }
@@ -699,19 +689,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     function getProductBalance(uint productId, uint trackerId, address owner ) public view returns (uint256) {
         return productBalance[productId][trackerId][owner];
     } 
-    /**
-     * @dev returns total product amounts
-     */
-    function getTotalProductAmounts(uint trackerId) public view returns (uint256) {
-        CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
-        uint[] memory productIds = trackerMappings.productIds;
-        uint totalProductAmounts;
-        for (uint i = 0; i < productIds.length; i++) {
-            totalProductAmounts = 
-                totalProductAmounts.add(trackerMappings.product[productIds[i]].amount);
-        }
-        return totalProductAmounts;
-    }        
+       
     /**
      * @dev returns number of unique trackers
      */
@@ -723,58 +701,33 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
      */
     function getTrackerDetails(uint256 trackerId)
         public view
-        returns (CarbonTrackerDetails memory, uint)
+        returns (CarbonTrackerDetails memory, uint, uint[] memory)
     {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
         CarbonTrackerMappings storage trackerMappings =  _trackerMappings[trackerId];
-        uint totalEmissions = _getTotalEmissions(trackerData,trackerMappings);        
-        return (trackerData,totalEmissions);
+        uint[] storage productIds = trackerMappings.productIds;
+        uint totalEmissions = _getTotalEmissions(trackerMappings);        
+        return (trackerData,totalEmissions,productIds);
     }
-    function getTrackerProductDetails(uint256 trackerId)
+    function getProductDetails(uint256 productId)
         public view
-        returns (uint[] memory, uint[] memory, uint[] memory)
+        returns (uint, uint, uint)
     {
-        CarbonTrackerMappings storage trackerMappings =  _trackerMappings[trackerId];
-        uint[] memory productIds = trackerMappings.productIds;
-        uint[] memory productAmounts = new uint[](productIds.length);
-        uint[] memory productAvailable = new uint[](productIds.length);
-        ProductQuantities storage product;
-        for (uint i = 0; i < productIds.length; i++) {
-            product = trackerMappings.product[productIds[i]];
-            productAmounts[i] = product.amount;
-            productAvailable[i] = product.available;
-        }
-        return (productIds,productAmounts,productAvailable);
+        ProductDetails memory product = _productData[productId];
+        return (product.trackerId,product.amount,product.available);
     }
-    function getTrackerProductAddDetails(uint256 trackerId)
+    function getProductOptionalDetails(uint256 productId)
         public view
-        returns (string[] memory, uint[] memory, string[] memory)
+        returns (string memory, uint, string memory)
     {
-        CarbonTrackerMappings storage trackerMappings =  _trackerMappings[trackerId];
-        uint[] memory productIds = trackerMappings.productIds;
-        string[] memory productNames = new string[](productIds.length);
-        //uint[] memory productUnitAmounts = new uint[](productIds.length);
-        string[] memory productUnits = new string[](productIds.length);
-        // for converting from product amounts to physical product units
-        uint[] memory productConv = new uint[](productIds.length);
+        uint productConv;
+        ProductDetails memory product= _productData[productId];
+        productConv = divDecimals
+            //total unit amount of products
+            .mul(product.unitAmount)
+            .div(product.amount);
 
-        uint totalProductAmount;//total amount of products (unitless)
-        for (uint i = 0; i < productIds.length; i++) {
-
-            productNames[i] = _productData[productIds[i]].name;
-            //productUnitAmounts[i] = _productData[productIds[i]].unitAmount;
-            productUnits[i] = _productData[productIds[i]].unit;
-            if(_productTrackerId[productIds[i]]!=trackerId){
-                totalProductAmount=_trackerMappings[_productTrackerId[productIds[i]]].product[productIds[i]].amount;
-            }else{
-                totalProductAmount=trackerMappings.product[productIds[i]].amount;
-            }
-            productConv[i] = divDecimals
-                //total unit amount of products
-                .mul(_productData[productIds[i]].unitAmount)
-                .div(totalProductAmount);
-        }
-        return (productNames,productConv,productUnits);
+        return (product.name,productConv,product.unit);
     }
     function getTrackerTokenDetails(uint256 trackerId)
         public view

@@ -27,13 +27,13 @@ import { getBalances, getTokens, countAuditorEmissionsRequests } from '../servic
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 
 import { trpc } from "../services/trpc";
 import { Wallet } from "../components/static-data";
 
 type IssuedTrackersProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   displayAddress: string,
   roles: RolesInfo
@@ -124,7 +124,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
     //await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider, address: string) {
+  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);
@@ -197,11 +197,10 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
 
     try {
       // First, fetch number of unique tokens
-      console.log("sa")
       if(!provider) return;
       let numOfUniqueTrackers = (await getNumOfUniqueTrackers(provider)).toNumber();
-      console.log("TrackerDetails", numOfUniqueTrackers)
-      // Iterate over each tokenId and find balance of signed in address
+      //console.log("TrackerDetails", numOfUniqueTrackers)
+      // Iterate over each trackerId and find balance of signed in address
       let result;
       let trackerDetails;
       for (let i = 1; i <= numOfUniqueTrackers; i++) {
@@ -310,7 +309,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
   }
 
   function renderTrackersTable(trackers: Tracker[],fetching:boolean,
-    provider?: Web3Provider,myProducts?:boolean){
+    provider?: Web3Provider | JsonRpcProvider, myProducts?:boolean){
     if(trackers.length===0 || fetching){return}
     
     return (<><Table hover size="sm">

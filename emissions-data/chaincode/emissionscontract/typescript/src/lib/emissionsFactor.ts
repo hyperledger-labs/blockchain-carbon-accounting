@@ -23,13 +23,15 @@ export interface EmissionsFactorInterface {
     key?: string;
     uuid: string;
     type: string;
-    scope: string;
+    scope?: string;
     level_1: string;
     level_2: string;
     level_3: string;
     level_4?: string;
     text?: string;
     year?: string;
+    from_year?: string;
+    thru_year?: string;
     country?: string;
     division_type?: string;
     division_id?: string;

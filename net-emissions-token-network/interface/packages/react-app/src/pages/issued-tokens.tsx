@@ -12,8 +12,8 @@ import {
 import Spinner from "react-bootstrap/Spinner";
 import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
+import { BsFunnel } from 'react-icons/bs';
 import {
-  getNumOfUniqueTrackers,
   getRoles,
   getTokenAmounts,
   getCarbonIntensity
@@ -23,12 +23,13 @@ import { getBalances, getTokens, countAuditorEmissionsRequests } from '../servic
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import IssuedTypeSwitch from '../components/issue-type-switch';
 import DisplayTokenAmount from "../components/display-token-amount";
+import { Link } from "wouter";
 
 type IssuedTokensProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   displayAddress: string,
   roles: RolesInfo
@@ -71,6 +72,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   const [ balancePageSize, setBalancePageSize ] = useState(20);
   const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
 
+  const [showQueryBuilder, setShowQueryBuilder] = useState(false);
+
   // issue type : default issuedBy
   const onIssudTypeChanged = async (type: string) => {
     issuedType = type;
@@ -101,6 +104,10 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     }
   }));
 
+  function switchQueryBuilder() {
+     setShowQueryBuilder(!showQueryBuilder);
+  }
+
   async function handleRefresh() {
     // clear localStorage
     let localStorage = window.localStorage;
@@ -111,7 +118,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider, address: string) {
+  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);
@@ -127,7 +134,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
-    let newMyBalances = [];
 
     try {
       // get total count of balance
@@ -137,23 +143,24 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       // this count means total number of balances
       let {balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
 
-      for (let i = 0; i < balances.length; i++) {
-        const balance = balances[i];
 
-        let token = {
+      const newMyBalances = balances.map((balance) => {
+        return {
           ...balance,
           tokenId: balance.token.tokenId,
+          token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
+          issuedTo: balance.issuedTo,
           availableBalance: balance.available,
           retiredBalance: balance.retired,
         }
-        newMyBalances.push(token);
-      }
+      });
+      setMyBalances(newMyBalances);
     } catch (error) {
       console.error(error)
+      setMyBalances([]);
     }
 
-    setMyBalances(newMyBalances);
     setBalancePage(_balancePage);
     setBalancePageSize(_balancePageSize);
     setBalanceQuery(_balanceQuery);
@@ -180,22 +187,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         let tokenDetails = tokens[i-1];
         if (!tokenDetails) continue;
 
-        let totalIssued: number|undefined;
-        try {
-          totalIssued = Number(tokenDetails.totalIssued);
-        } catch (error) {
-          console.warn("Cannot convert total Issued to number", tokenDetails.totalIssued);
-          totalIssued = undefined;
-        }
-
-        let totalRetired: number|undefined;
-        try {
-          totalRetired = Number(tokenDetails.totalRetired);
-        } catch (error) {
-          console.warn("Cannot convert total Retired to number", tokenDetails.totalRetired);
-          totalRetired = undefined;
-        }
-
         let token: Token = {
           tokenId: tokenDetails.tokenId,
           scope: tokenDetails.scope,
@@ -211,8 +202,8 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           metadata: tokenDetails.metadata,
           manifest: tokenDetails.manifest,
           description: tokenDetails.description,
-          totalIssued: totalIssued,
-          totalRetired: totalRetired,
+          totalIssued: tokenDetails.totalIssued,
+          totalRetired: tokenDetails.totalRetired,
         };
 
         newMyIssuedTokens.push(token);
@@ -283,26 +274,31 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
             <h2 style={{display: 'inline'}}>
               Tokens&nbsp;
             </h2>
-              <IssuedTypeSwitch 
-                changed={onIssudTypeChanged}
-                h={(displayAddress? 'them' : 'you')}
-              />
-              &nbsp;
-              <Button 
-                className="mb-3"
-                variant="outline-dark" 
-                href="/issue">
+            <IssuedTypeSwitch
+              changed={onIssudTypeChanged}
+              h={(displayAddress? 'them' : 'you')}
+            />
+            &nbsp;
+            <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
+            <Link href="/issue">
+              <Button
+                className="float-end"
+                variant="outline-dark"
+              >
                 Issue
-              </Button> 
+              </Button>
+            </Link>
 
             {(emissionsRequestsCount) ?
-              <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
+              <p className="mb-1">You have {emissionsRequestsCount} pending <Link href="/emissionsrequests">emissions audits</Link>.</p>
               : null
             }
-            <QueryBuilder 
-              fieldList={TOKEN_FIELDS}
-              handleQueryChanged={handleQueryChanged}
-            />
+            <div hidden={!showQueryBuilder}>
+              <QueryBuilder
+                fieldList={TOKEN_FIELDS}
+                handleQueryChanged={handleQueryChanged}
+              />
+            </div>
             <Table hover size="sm">
               <thead>
                 <tr>

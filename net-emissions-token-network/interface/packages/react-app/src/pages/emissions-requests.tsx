@@ -10,14 +10,14 @@ import {
 import Table from "react-bootstrap/Table";
 import { getAuditorEmissionsRequests } from '../services/api.service';
 import { RolesInfo } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider} from "@ethersproject/providers";
 import { useLocation } from "wouter";
-import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
 import DisplayDate from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 
 type EmissionsRequestsProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   roles: RolesInfo
 }

@@ -15,13 +15,13 @@ export type AddressObject = {
 };
 export type Emissions = {
     amount: ValueAndUnit,
-    factor: EmissionsFactorInterface 
+    factor?: EmissionsFactorInterface
 }
 export type Address = string | AddressObject;
 export type AddressAndCoordinates = AddressObject & {
   coords?: LatLngLiteral
 };
-export type ActivityType = 'shipment' | 'flight' | 'emissions_factor';
+export type ActivityType = 'shipment' | 'flight' | 'emissions_factor' | 'natural_gas' | 'electricity';
 export type ShippingMode = 'air' | 'ground' | 'sea' | 'rail';
 export type Distance = {
   origin?: AddressAndCoordinates,
@@ -35,6 +35,10 @@ export type Flight = {
   number_of_passengers?: number,
   carrier?: string,
   class?: string,
+};
+export type WithActivityAmount = {
+  activity_amount: number,
+  activity_uom: string,
 };
 export type Hybrid = {
   emissions_factor_uuid?: string,
@@ -50,6 +54,11 @@ export type Hybrid = {
   weight_uom?: string,
   activity_amount?: number,
   activity_uom?: string,
+};
+export type Electricity = {
+  country: string,
+  state?: string,
+  utility?: string
 };
 export type Shipment = {
   carrier: string,
@@ -67,12 +76,15 @@ type ActivityCommon = {
   type: ActivityType,
   from_date?: Date,
   thru_date?: Date,
+  issued_from?: string,
 };
 type ActivityBase = Path & ActivityCommon
 export type ShipmentActivity = ActivityBase & Shipment;
 export type FlightActivity = ActivityBase & Flight;
+export type NaturalGasActivity = ActivityBase & WithActivityAmount;
+export type ElectricityActivity = ActivityBase & Electricity & WithActivityAmount;
 export type EmissionsFactorActivity = ActivityCommon & (Partial<Flight> & Hybrid);
-export type Activity = ShipmentActivity | FlightActivity | EmissionsFactorActivity;
+export type Activity = ShipmentActivity | FlightActivity | EmissionsFactorActivity | NaturalGasActivity | ElectricityActivity;
 export type ActivityResult = {
   distance?: Distance,
   weight?: ValueAndUnit,
@@ -113,6 +125,14 @@ export function is_flight_activity(a: Activity): a is FlightActivity {
 
 export function is_emissions_factor_activity(a: Activity): a is EmissionsFactorActivity {
   return a.type === 'emissions_factor';
+}
+
+export function is_natural_gas_activity(a: Activity): a is NaturalGasActivity {
+  return a.type === 'natural_gas';
+}
+
+export function is_electricity_activity(a: Activity): a is ElectricityActivity {
+  return a.type === 'electricity';
 }
 
 export function is_address_object(a: Address): a is AddressObject {

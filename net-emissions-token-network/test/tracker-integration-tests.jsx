@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
+const { getNamedAccounts, deployments } = require("hardhat");
 const {
   allTokenTypeId,
   quantity,
@@ -10,13 +11,14 @@ const {
   metadata,
   manifest,
   description,
-  revertError
+  revertError,
+  ethers
 } = require("./common.js");
-const { ethers } = require("./ethers-provider");
 
 describe("Carbon Tracker - Integration tests", function() {
 
   let contract;
+  let contractT;
   beforeEach(async () => {
     await deployments.fixture();
     contract = await ethers.getContract('NetEmissionsTokenNetwork');
@@ -83,7 +85,7 @@ describe("Carbon Tracker - Integration tests", function() {
     let retireReceipt = await retire.wait(0);
     let retireEvent = retireReceipt.events.pop();
     let cttOneRetiredAmount = retireEvent.args[2].toNumber();
-    let cttOneRetiredHash = ethers.utils.arrayify(retireEvent.transactionHash);
+    ethers.utils.arrayify(retireEvent.transactionHash);
 
 
     // verify transfer to industry2 with approval signature.
@@ -100,12 +102,12 @@ describe("Carbon Tracker - Integration tests", function() {
     let transferReceipt = await transfer.wait(0);
     let transferEvent = transferReceipt.events.pop();
     let cttOneTransferAmount = transferEvent.args[4].toNumber();
-    let cttOneTransferHash = ethers.utils.arrayify(transferEvent.transactionHash);
+    ethers.utils.arrayify(transferEvent.transactionHash);
 
     // verify balances after retiring.  The available to transfer balance should be reduced and retired balance is increased
     let expectedTotalAvailableAfterRetireAndTransfer = (quantity - cttOneRetiredAmount - cttOneTransferAmount).toString();
     let expectedTotalRetireAfterRetire = cttOneRetiredAmount.toString();
-    let afterRetireAndTransferBalance = await contract
+    await contract
       .getAvailableAndRetired(industry1, cttOne)
       .then((response) =>
         expect(response.toString()).to.equal(`${expectedTotalAvailableAfterRetireAndTransfer},${expectedTotalRetireAfterRetire}`)
@@ -116,7 +118,7 @@ describe("Carbon Tracker - Integration tests", function() {
     retireReceipt = await retire.wait(0);
     retireEvent = retireReceipt.events.pop();
     let cttOneRetiredAmountTwo = retireEvent.args[2].toNumber();
-    let cttOneRetireHashTwo = ethers.utils.arrayify(retireEvent.transactionHash);
+    ethers.utils.arrayify(retireEvent.transactionHash);
 
     // verify transfer to industry2 with approval signature.
     msg = await contract.getTransferHash(industry2, industry1, [cttOne], [transferAmount-cttOneRetiredAmountTwo]);
@@ -132,7 +134,7 @@ describe("Carbon Tracker - Integration tests", function() {
     transferReceipt = await transfer.wait(0);
     transferEvent = transferReceipt.events.pop();
     let cttOneTransferAmountTwo = transferEvent.args[4].toNumber();
-    let cttOneTransferHashTwo = ethers.utils.arrayify(transferEvent.transactionHash);
+    ethers.utils.arrayify(transferEvent.transactionHash);
 
 
     ////////////////////
@@ -164,7 +166,7 @@ describe("Carbon Tracker - Integration tests", function() {
     retireEvent = retireReceipt.events.pop();
     let cttTwoRetiredAmount = retireEvent.args[2].toNumber();
     expect(cttTwoRetiredAmount).to.equal(retireAmount);
-    let cttTwoRetiredHash = ethers.utils.arrayify(retireEvent.transactionHash);
+    ethers.utils.arrayify(retireEvent.transactionHash);
 
     // verify transfer to industry2 with approval signature.
     msg = await contract.getTransferHash(industry1, industry2, [cttTwo], [transferAmount]);
@@ -180,7 +182,7 @@ describe("Carbon Tracker - Integration tests", function() {
     transferReceipt = await transfer.wait(0);
     transferEvent = transferReceipt.events.pop();
     let cttTwoTransferAmount = transferEvent.args[4].toNumber();
-    let cttTwoTransferHash = ethers.utils.arrayify(transferEvent.transactionHash);
+    ethers.utils.arrayify(transferEvent.transactionHash);
 
     ////////////////////
     let issueThree = await contract
@@ -210,7 +212,7 @@ describe("Carbon Tracker - Integration tests", function() {
     retireReceipt = await retire.wait(0);
     retireEvent = retireReceipt.events.pop();
     let cttThreeRetiredAmount = retireEvent.args[2].toNumber();
-    let cttThreeRetiredHash = ethers.utils.arrayify(retireEvent.transactionHash);
+    ethers.utils.arrayify(retireEvent.transactionHash);
 
     // verify transfer to industry2 with approval signature.
     msg = await contract.getTransferHash(industry2, industry1, [cttThree], [transferAmount]);
@@ -227,14 +229,14 @@ describe("Carbon Tracker - Integration tests", function() {
     transferEvent = transferReceipt.events.pop();
     let cttThreeTransferAmount = transferEvent.args[4].toNumber();
     expect(cttThreeTransferAmount).to.equal(transferAmount);
-    let cttThreeTransferHash = ethers.utils.arrayify(transferEvent.transactionHash);
+    ethers.utils.arrayify(transferEvent.transactionHash);
 
     // retire part of the balance
     retire = await contract.connect(await ethers.getSigner(industry1)).retire(cttThree, 1);
     retireReceipt = await retire.wait(0);
     retireEvent = retireReceipt.events.pop();
     let cttThreeRetiredAmountTwo = retireEvent.args[2].toNumber();
-    let cttThreeRetiredHashTwo = ethers.utils.arrayify(retireEvent.transactionHash);
+    ethers.utils.arrayify(retireEvent.transactionHash);
 
     // verify transfer to industry2 with approval signature.
     msg = await contract.getTransferHash(industry1, industry2, [cttThree], [4]);
@@ -251,7 +253,7 @@ describe("Carbon Tracker - Integration tests", function() {
     transferEvent = transferReceipt.events.pop();
     let cttThreeTransferAmountTwo = transferEvent.args[4].toNumber();
     expect(cttThreeTransferAmountTwo).to.equal(4);
-    let cttThreeTransferHashTwo = ethers.utils.arrayify(transferEvent.transactionHash);
+    ethers.utils.arrayify(transferEvent.transactionHash);
 
 
     ////////////////////
@@ -273,9 +275,9 @@ describe("Carbon Tracker - Integration tests", function() {
     let issueAeReceipt = await issueAe.wait(0);
     let issueAeEvent = issueAeReceipt.events.pop();
     let aeOne = issueAeEvent.args[2].toNumber();
-    let aeOneAmount = issueAeEvent.args[1].toNumber();
+    issueAeEvent.args[1].toNumber();
     expect(aeOne).to.equal(4);
-    let aeOneHash = ethers.utils.arrayify(issueAeEvent.transactionHash);
+    ethers.utils.arrayify(issueAeEvent.transactionHash);
 
     issueAe = await contract
       .connect(await ethers.getSigner(dealer1))
@@ -298,7 +300,7 @@ describe("Carbon Tracker - Integration tests", function() {
     let aeTwo = issueAeEvent.args[2].toNumber();
     let aeTwoAmount = issueAeEvent.args[1].toNumber();
     expect(aeTwoAmount).to.equal(1);
-    let aeTwoHash = ethers.utils.arrayify(issueAeEvent.transactionHash);
+    ethers.utils.arrayify(issueAeEvent.transactionHash);
     let trackOne = await contractT
       .connect(await ethers.getSigner(industry1))
       .track(industry1, 
@@ -314,9 +316,8 @@ describe("Carbon Tracker - Integration tests", function() {
     let trackerOne = trackerReceipt.events[2].args[0].toNumber()
     expect(trackerOne).to.equal(1);
 
-    let trackError;
     try {
-      trackError = await contractT
+      await contractT
         .connect(await ethers.getSigner(industry1))
         .track(industry1, 
           [cttOne,cttTwo],
@@ -331,7 +332,7 @@ describe("Carbon Tracker - Integration tests", function() {
       );
     }
     try {
-      trackError = await contractT
+      await contractT
         .connect(await ethers.getSigner(industry1))
         .track(industry1, 
           [cttOne,cttTwo],
@@ -346,7 +347,7 @@ describe("Carbon Tracker - Integration tests", function() {
       );
     }
     try {
-      trackError = await contractT
+      await contractT
         .connect(await ethers.getSigner(industry1))
         .track(industry1, 
           [cttOne,cttTwo],
@@ -361,7 +362,7 @@ describe("Carbon Tracker - Integration tests", function() {
       );
     }
     try {
-      trackError = await contractT
+      await contractT
         .connect(await ethers.getSigner(industry2))
         .trackUpdate(trackerOne, 
           [cttOne,cttTwo],
@@ -380,9 +381,8 @@ describe("Carbon Tracker - Integration tests", function() {
       .connect(await ethers.getSigner(industry1))
       .approveVerifier(dealer1,true);
     expect(approveVerifier);
-    let approveAuditorError;
     try {
-      approveAuditorError = await contractT
+      await contractT
         .connect(await ethers.getSigner(industry1))
         .approveVerifier(industry2,true)
     } catch (err) {
@@ -391,7 +391,7 @@ describe("Carbon Tracker - Integration tests", function() {
       );
     }
     try {
-      approveAuditorError = await contractT
+      await contractT
         .connect(await ethers.getSigner(dealer1))
         .approveVerifier(dealer1,true)
     } catch (err) {
@@ -400,7 +400,7 @@ describe("Carbon Tracker - Integration tests", function() {
       );
     }
     try {
-      trackError = await contractT
+      await contractT
         .connect(await ethers.getSigner(dealer1))
         .track(industry1, 
           [cttOne],
@@ -416,7 +416,7 @@ describe("Carbon Tracker - Integration tests", function() {
     }
 
     try {
-      trackError = await contractT
+      await contractT
         .connect(await ethers.getSigner(dealer1))
         .trackUpdate(trackerOne, 
           [cttOne],
@@ -445,7 +445,7 @@ describe("Carbon Tracker - Integration tests", function() {
     trackerEvent = trackerReceipt.events.pop();
     let trackerTwo = trackerReceipt.events[1].args[0].toNumber()
     try {
-      let trackTwoError = await contractT
+      await contractT
         .connect(await ethers.getSigner(industry2))
         .trackUpdate(trackerTwo, 
           [cttThree],
@@ -485,7 +485,7 @@ describe("Carbon Tracker - Integration tests", function() {
     let aeThree = issueAeEvent.args[2].toNumber();
     let aeThreeAmount = issueAeEvent.args[1].toNumber();
     expect(aeThreeAmount).to.equal(1);
-    let aeThreeHash = ethers.utils.arrayify(issueAeEvent.transactionHash);
+    ethers.utils.arrayify(issueAeEvent.transactionHash);
   
     trackTwo = await contractT
       .connect(await ethers.getSigner(dealer1))
@@ -509,7 +509,7 @@ describe("Carbon Tracker - Integration tests", function() {
     expect(trackThree);
     trackerReceipt = await trackThree.wait(0);
     trackerEvent = trackerReceipt.events.pop();
-    let trackerThree = trackerReceipt.events[0].args[0].toNumber()
+    trackerReceipt.events[0].args[0].toNumber()
     //console.log((await trackThree.wait(0)).events.pop());
     //console.log((await contractT.getTokenIds(2,0)));
     //console.log((await contractT._trackerData(2)));

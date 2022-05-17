@@ -43,15 +43,29 @@ export interface TrackerPayload {
   trackerId: number;
   trackee: string;
   auditor: string;
-  totalEmissions: number;
-  totalOffset: number;
-  numOfProducts: number;
+  totalProductAmounts: string;
+  totalEmissions: string;
+  totalOffset: string;
   fromDate: number;
   thruDate: number;
   dateCreated: number;
   metadata: Object;
   description: string;
 }
+
+export interface ProductPayload {
+  productId: number;
+  trackerId: number;
+  auditor: string;
+  amount: string;
+  available: string;
+  name: string;
+  unit: string;
+  unitAmount: string;
+  hash: string;
+}
+
+
 
 export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
 

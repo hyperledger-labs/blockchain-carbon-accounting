@@ -1,9 +1,10 @@
 import * as crypto from "crypto";
 import { create } from 'ipfs-http-client';
-import { encryptRSAKeyFileName, encryptRSA, decryptRSA, encryptAES, decryptAES } from './crypto-utils';
+import { encryptRSAKeyFileName, encryptRSA, decryptRSA, encryptAES, decryptAES, encryptWithPublicKey, encryptWithEncPublicKey, decryptWithPrivKey } from './crypto-utils';
 
-export async function downloadFileEncrypted(ipfspath: string, pk: string) {
+export async function downloadFileRSAEncrypted(path: string, pk: string) {
   try {
+    const ipfspath = path.startsWith('ipfs://') ? path.substring(7) : path;
     const ipfs_client = create({url: process.env.IPFS_URL});
     const data = [];
     for await (const chunk of ipfs_client.cat(ipfspath)) {
@@ -54,6 +55,23 @@ export async function downloadFileEncrypted(ipfspath: string, pk: string) {
   }
 }
 
+export async function downloadFileWalletEncrypted(path: string, pk: string) {
+  try {
+    const ipfspath = path.startsWith('ipfs://') ? path.substring(7) : path;
+    const ipfs_client = create({url: process.env.IPFS_URL});
+    const data = [];
+    for await (const chunk of ipfs_client.cat(ipfspath)) {
+      data.push(chunk);
+    }
+    const edata0 = Buffer.concat(data);
+    const content = decryptWithPrivKey(pk, edata0);
+    return content;
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 export async function downloadFileEncryptedWithoutPk(ipfspath: string) {
   try {
     const ipfs_client = create({url: process.env.IPFS_URL});
@@ -70,7 +88,7 @@ export async function downloadFileEncryptedWithoutPk(ipfspath: string) {
 
 }
 
-export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false, name = 'content.json') {
+export async function uploadFileRSAEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false, name = 'content.json') {
   try {
     const ipfs_client = create({url: process.env.IPFS_URL});
     const buff = plain_content instanceof Buffer ? plain_content : Buffer.from(plain_content, 'utf8');
@@ -106,3 +124,23 @@ export async function uploadFileEncrypted(plain_content: string|Buffer, pubkeys:
   }
 }
 
+export async function uploadFileWalletEncrypted(plain_content: string|Buffer, pubkeys: string[], pubkeysContent = false, name = 'content.json') {
+  try {
+    if (!pubkeys || !pubkeys.length) {
+      throw new Error('No public keys provided.');
+    }
+    const txt = plain_content instanceof Buffer ? plain_content.toString('base64') : plain_content;
+    const ipfs_client = create({url: process.env.IPFS_URL});
+    // console.log(plain_content);
+    const content = pubkeysContent ? 
+      await encryptWithEncPublicKey(pubkeys[0], txt) :
+      await encryptWithPublicKey(pubkeys[0], txt);
+    const ipfs_res = await ipfs_client.add({
+      content,path: `/tmp/${name}`
+    });
+    return { ...ipfs_res, ipfs_path: `ipfs://${ipfs_res.cid}/${name}`, filename: name}
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

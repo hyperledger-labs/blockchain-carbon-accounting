@@ -57,13 +57,14 @@ export function issueToken(req: Request, res: Response) {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     console.log('== files?', files)
     const pubKeys: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any = undefined;
     for (const group in files) {
         if (Object.prototype.hasOwnProperty.call(files, group)) {
             const fileGroup: Express.Multer.File[] = files[group]; 
             fileGroup.forEach(file => {
                 if(file.fieldname == 'keys') {
-                    pubKeys.push(file.path);           
+                    pubKeys.push(file.path);
                 } else if(file.fieldname == 'input') {
                     const data_raw = readFileSync(file.path, 'utf-8');
                     data = JSON.parse(data_raw);
@@ -89,7 +90,7 @@ export function issueToken(req: Request, res: Response) {
 
     process_activities(data.activities).then(async (activities)=>{
         // group the resulting emissions per activity type, and for shipment type group by mode:
-        const grouped_by_type = group_processed_activities(activities);
+        const grouped_by_type = await group_processed_activities(activities, issuedFrom);
         if (pretend) {
             return grouped_by_type;
         }
@@ -99,12 +100,20 @@ export function issueToken(req: Request, res: Response) {
             if (t === 'shipment') {
                 const group = grouped_by_type[t] as GroupedResults;
                 for (const mode in group) {
-                    const doc = group[mode] as GroupedResult;
-                    await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys, mode);
+                    const issue_group = group[mode] as GroupedResults;
+                    // Note: this issueToken endpoint forces the issuedFrom from the posted value.
+                    for (const issued_from in issue_group) {
+                        const doc = issue_group[issued_from] as GroupedResult;
+                        await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys, mode);
+                    }
                 }
             } else {
-                const doc = grouped_by_type[t] as GroupedResult;
-                await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys);
+                const issue_group = grouped_by_type[t] as GroupedResults;
+                // Note: this issueToken endpoint forces the issuedFrom from the posted value.
+                for (const issued_from in issue_group) {
+                    const doc = issue_group[issued_from] as GroupedResult;
+                    await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys);
+                }
             }
         }
         // add back any errors we filtered before to the output

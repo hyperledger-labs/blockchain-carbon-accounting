@@ -1,0 +1,151 @@
+CountryShort,Year, ValueNumeric,Unit,Market_Sector,Data_source,Date
+BE,2019,0.0987,%,Total,EEA,30-Sep-20
+BG,2019,0.2133,%,Total,EEA,30-Sep-20
+CZ,2019,0.1547,%,Total,EEA,30-Sep-20
+DK,2019,0.3692,%,Total,EEA,30-Sep-20
+DE,2019,0.1708,%,Total,EEA,30-Sep-20
+EE,2019,0.3137,%,Total,EEA,30-Sep-20
+IE,2019,0.1204,%,Total,EEA,30-Sep-20
+EL,2019,0.196,%,Total,EEA,30-Sep-20
+ES,2019,0.1804,%,Total,EEA,30-Sep-20
+FR,2019,0.1715,%,Total,EEA,30-Sep-20
+HR,2019,0.2869,%,Total,EEA,30-Sep-20
+IT,2019,0.1844,%,Total,EEA,30-Sep-20
+CY,2019,0.1415,%,Total,EEA,30-Sep-20
+LV,2019,0.4082,%,Total,EEA,30-Sep-20
+LT,2019,0.2485,%,Total,EEA,30-Sep-20
+LU,2019,0.0966,%,Total,EEA,30-Sep-20
+HU,2019,0.1259,%,Total,EEA,30-Sep-20
+MT,2019,0.0852,%,Total,EEA,30-Sep-20
+NL,2019,0.0838,%,Total,EEA,30-Sep-20
+AT,2019,0.3387,%,Total,EEA,30-Sep-20
+PL,2019,0.1156,%,Total,EEA,30-Sep-20
+PT,2019,0.3036,%,Total,EEA,30-Sep-20
+RO,2019,0.2426,%,Total,EEA,30-Sep-20
+SI,2019,0.2177,%,Total,EEA,30-Sep-20
+SK,2019,0.1117,%,Total,EEA,30-Sep-20
+FI,2019,0.4223,%,Total,EEA,30-Sep-20
+SE,2019,0.5576,%,Total,EEA,30-Sep-20
+UK,2019,0.1239,%,Total,EEA,30-Sep-20
+EU-28,2019,0.1868,%,Total,EEA,30-Sep-20
+EU-27,2019,0.1948,%,Total,EEA,30-Sep-20
+BE,2019,0.0675,%,Transport,EEA,30-Sep-20
+BG,2019,0.0908,%,Transport,EEA,30-Sep-20
+CZ,2019,0.0669,%,Transport,EEA,30-Sep-20
+DK,2019,0.0694,%,Transport,EEA,30-Sep-20
+DE,2019,0.0782,%,Transport,EEA,30-Sep-20
+EE,2019,0.0319,%,Transport,EEA,30-Sep-20
+IE,2019,0.0893,%,Transport,EEA,30-Sep-20
+EL,2019,0.0379,%,Transport,EEA,30-Sep-20
+ES,2019,0.0666,%,Transport,EEA,30-Sep-20
+FR,2019,0.0895,%,Transport,EEA,30-Sep-20
+HR,2019,0.0632,%,Transport,EEA,30-Sep-20
+IT,2019,0.077,%,Transport,EEA,30-Sep-20
+CY,2019,0.0301,%,Transport,EEA,30-Sep-20
+LV,2019,0.0527,%,Transport,EEA,30-Sep-20
+LT,2019,0.0396,%,Transport,EEA,30-Sep-20
+LU,2019,0.0648,%,Transport,EEA,30-Sep-20
+HU,2019,0.0787,%,Transport,EEA,30-Sep-20
+MT,2019,0.0764,%,Transport,EEA,30-Sep-20
+NL,2019,0.1142,%,Transport,EEA,30-Sep-20
+AT,2019,0.0943,%,Transport,EEA,30-Sep-20
+PL,2019,0.0588,%,Transport,EEA,30-Sep-20
+PT,2019,0.09,%,Transport,EEA,30-Sep-20
+RO,2019,0.0742,%,Transport,EEA,30-Sep-20
+SI,2019,0.0551,%,Transport,EEA,30-Sep-20
+SK,2019,0.0662,%,Transport,EEA,30-Sep-20
+FI,2019,0.1743,%,Transport,EEA,30-Sep-20
+SE,2019,0.3026,%,Transport,EEA,30-Sep-20
+UK,2019,0.0872,%,Transport,EEA,30-Sep-20
+EU-28,2019,0.0844,%,Transport,EEA,30-Sep-20
+EU-27,2019,0.084,%,Transport,EEA,30-Sep-20
+BE,2019,0.2036,%,Electricity,EEA,30-Sep-20
+BG,2019,0.2349,%,Electricity,EEA,30-Sep-20
+CZ,2019,0.1407,%,Electricity,EEA,30-Sep-20
+DK,2019,0.6552,%,Electricity,EEA,30-Sep-20
+DE,2019,0.4103,%,Electricity,EEA,30-Sep-20
+EE,2019,0.2175,%,Electricity,EEA,30-Sep-20
+IE,2019,0.3639,%,Electricity,EEA,30-Sep-20
+EL,2019,0.3086,%,Electricity,EEA,30-Sep-20
+ES,2019,0.3743,%,Electricity,EEA,30-Sep-20
+FR,2019,0.2236,%,Electricity,EEA,30-Sep-20
+HR,2019,0.503,%,Electricity,EEA,30-Sep-20
+IT,2019,0.3503,%,Electricity,EEA,30-Sep-20
+CY,2019,0.0977,%,Electricity,EEA,30-Sep-20
+LV,2019,0.5279,%,Electricity,EEA,30-Sep-20
+LT,2019,0.1978,%,Electricity,EEA,30-Sep-20
+LU,2019,0.1064,%,Electricity,EEA,30-Sep-20
+HU,2019,0.098,%,Electricity,EEA,30-Sep-20
+MT,2019,0.0786,%,Electricity,EEA,30-Sep-20
+NL,2019,0.1756,%,Electricity,EEA,30-Sep-20
+AT,2019,0.7394,%,Electricity,EEA,30-Sep-20
+PL,2019,0.1415,%,Electricity,EEA,30-Sep-20
+PT,2019,0.531,%,Electricity,EEA,30-Sep-20
+RO,2019,0.433,%,Electricity,EEA,30-Sep-20
+SI,2019,0.3435,%,Electricity,EEA,30-Sep-20
+SK,2019,0.2093,%,Electricity,EEA,30-Sep-20
+FI,2019,0.381,%,Electricity,EEA,30-Sep-20
+SE,2019,0.699,%,Electricity,EEA,30-Sep-20
+UK,2019,0.3418,%,Electricity,EEA,30-Sep-20
+EU-28,2019,0.3407,%,Electricity,EEA,30-Sep-20
+EU-27,2019,0.3405,%,Electricity,EEA,30-Sep-20
+BE,2019,0.0843,%,Heating and Cooling,EEA,30-Sep-20
+BG,2019,0.3345,%,Heating and Cooling,EEA,30-Sep-20
+CZ,2019,0.2118,%,Heating and Cooling,EEA,30-Sep-20
+DK,2019,0.4848,%,Heating and Cooling,EEA,30-Sep-20
+DE,2019,0.1387,%,Heating and Cooling,EEA,30-Sep-20
+EE,2019,0.5703,%,Heating and Cooling,EEA,30-Sep-20
+IE,2019,0.0632,%,Heating and Cooling,EEA,30-Sep-20
+EL,2019,0.3179,%,Heating and Cooling,EEA,30-Sep-20
+ES,2019,0.1859,%,Heating and Cooling,EEA,30-Sep-20
+FR,2019,0.2243,%,Heating and Cooling,EEA,30-Sep-20
+HR,2019,0.3739,%,Heating and Cooling,EEA,30-Sep-20
+IT,2019,0.2011,%,Heating and Cooling,EEA,30-Sep-20
+CY,2019,0.3739,%,Heating and Cooling,EEA,30-Sep-20
+LV,2019,0.5757,%,Heating and Cooling,EEA,30-Sep-20
+LT,2019,0.4757,%,Heating and Cooling,EEA,30-Sep-20
+LU,2019,0.1066,%,Heating and Cooling,EEA,30-Sep-20
+HU,2019,0.1776,%,Heating and Cooling,EEA,30-Sep-20
+MT,2019,0.2666,%,Heating and Cooling,EEA,30-Sep-20
+NL,2019,0.0661,%,Heating and Cooling,EEA,30-Sep-20
+AT,2019,0.35,%,Heating and Cooling,EEA,30-Sep-20
+PL,2019,0.1499,%,Heating and Cooling,EEA,30-Sep-20
+PT,2019,0.415,%,Heating and Cooling,EEA,30-Sep-20
+RO,2019,0.2608,%,Heating and Cooling,EEA,30-Sep-20
+SI,2019,0.3213,%,Heating and Cooling,EEA,30-Sep-20
+SK,2019,0.1009,%,Heating and Cooling,EEA,30-Sep-20
+FI,2019,0.5573,%,Heating and Cooling,EEA,30-Sep-20
+SE,2019,0.6615,%,Heating and Cooling,EEA,30-Sep-20
+UK,2019,0.0808,%,Heating and Cooling,EEA,30-Sep-20
+EU-28,2019,0.2024,%,Heating and Cooling,EEA,30-Sep-20
+EU-27,2019,0.2167,%,Heating and Cooling,EEA,30-Sep-20
+BE,2019,"36,210.13",ktoe,GFEC,EEA,30-Sep-20
+BG,2019,"10,763.24",ktoe,GFEC,EEA,30-Sep-20
+CZ,2019,"27,271.21",ktoe,GFEC,EEA,30-Sep-20
+DK,2019,"15,778.58",ktoe,GFEC,EEA,30-Sep-20
+DE,2019,"224,011.76",ktoe,GFEC,EEA,30-Sep-20
+EE,2019,"3,242.59",ktoe,GFEC,EEA,30-Sep-20
+IE,2019,"12,559.68",ktoe,GFEC,EEA,30-Sep-20
+EL,2019,"16,660.18",ktoe,GFEC,EEA,30-Sep-20
+ES,2019,"91,060.83",ktoe,GFEC,EEA,30-Sep-20
+FR,2019,"151,050.57",ktoe,GFEC,EEA,30-Sep-20
+HR,2019,"7,249.14",ktoe,GFEC,EEA,30-Sep-20
+IT,2019,"115,390.75",ktoe,GFEC,EEA,30-Sep-20
+CY,2019,"1,950.17",ktoe,GFEC,EEA,30-Sep-20
+LV,2019,"4,298.64",ktoe,GFEC,EEA,30-Sep-20
+LT,2019,"5,733.16",ktoe,GFEC,EEA,30-Sep-20
+LU,2019,"4,465.63",ktoe,GFEC,EEA,30-Sep-20
+HU,2019,"19,581.27",ktoe,GFEC,EEA,30-Sep-20
+MT,2019,691.315,ktoe,GFEC,EEA,30-Sep-20
+NL,2019,"50,858.06",ktoe,GFEC,EEA,30-Sep-20
+AT,2019,"28,751.49",ktoe,GFEC,EEA,30-Sep-20
+PL,2019,"75,752.80",ktoe,GFEC,EEA,30-Sep-20
+PT,2019,"17,701.42",ktoe,GFEC,EEA,30-Sep-20
+RO,2019,"25,162.09",ktoe,GFEC,EEA,30-Sep-20
+SI,2019,"5,203.94",ktoe,GFEC,EEA,30-Sep-20
+SK,2019,"11,494.03",ktoe,GFEC,EEA,30-Sep-20
+FI,2019,"26,449.65",ktoe,GFEC,EEA,30-Sep-20
+SE,2019,"33,323.58",ktoe,GFEC,EEA,30-Sep-20
+UK,2019,"135,594.82",ktoe,GFEC,EEA,30-Sep-20
+EU-28,2019,"1,158,260.73",ktoe,GFEC,EEA,30-Sep-20
+EU-27,2019,"1,022,665.91",ktoe,GFEC,EEA,30-Sep-20

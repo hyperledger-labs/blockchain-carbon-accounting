@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from 'react-dom/client';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./index.css";
 import App from "./App";
 
-ReactDOM.render(
-  <App />,
-  document.getElementById("root"),
-);
+const el = document.getElementById('root')
+if (el) {
+  const root = createRoot(el)
+  root.render(<App/>)
+}

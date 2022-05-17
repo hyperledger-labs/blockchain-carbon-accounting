@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { addresses } from "@project/contracts";
 import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
@@ -9,7 +9,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { getErrorMessage, propose } from "../services/contract-functions";
 
 type CreateProposalModalProps = {
-  provider?:Web3Provider
+  provider?:Web3Provider | JsonRpcProvider
   show:boolean
   title:string
   token:number
@@ -35,7 +35,7 @@ const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
       let args = {
         targets: [ addresses.tokenNetwork.address ],
         values: [ 0 ],
-        signatures: [ "issueOnBehalf(address,address,uint8,uint256,uint256,uint256,string,string,string)" ],
+        signatures: [ "issueOnBehalf(address,uint160,uint8,uint256,uint256,uint256,string,string,string)" ],
         calldata: [ props.calldata ],
         description: [ description ]
       }

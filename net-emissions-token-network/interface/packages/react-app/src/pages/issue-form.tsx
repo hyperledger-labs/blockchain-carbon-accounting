@@ -11,7 +11,7 @@ import { addresses } from "@project/contracts";
 import { encodeParameters, getAdmin, issue, track, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo, TOKEN_TYPES, Tracker } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
@@ -22,14 +22,15 @@ type KeyValuePair = {
 }
 
 type IssueFormProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   roles: RolesInfo,
   limitedMode: boolean,
+  privateKey: string
   trackerId?: number,
 }
  
-const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, trackerId }) => {
+const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, privateKey, trackerId }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -168,7 +169,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           // types of params
           [
             'address',
-            'address',
+            'uint160',
             'uint8',
             'uint256',
             'uint256',
@@ -247,7 +248,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     if(andTrack && typeof trackerId !== 'undefined'){
       result = await issueAndTrack(provider, issuedFrom, address, Number(trackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     }else{
-      result = await issue(provider, issuedFrom, address, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
+      result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, privateKey);
     }
     setResult(result.toString());
   }

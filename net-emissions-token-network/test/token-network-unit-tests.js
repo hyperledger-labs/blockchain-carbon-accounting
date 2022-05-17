@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 const { expect, assert } = require("chai");
-const { getNamedAccounts } = require("hardhat");
+const { getNamedAccounts, deployments } = require("hardhat");
 const {
   allTokenTypeId,
   quantity,
@@ -11,9 +11,10 @@ const {
   metadata,
   manifest,
   description,
-  revertError
+  revertError,
+  upgrades,
+  ethers
 } = require("./common.js");
-const { ethers } = require("./ethers-provider");
 
 describe("Net Emissions Token Network - Unit tests", function() {
 
@@ -248,7 +249,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let issue = await contract
       .connect(await ethers.getSigner(dealer1))
       .issue(
-        dealer1,
+        0,
         consumer1,
         allTokenTypeId[1],
         quantity,
@@ -270,7 +271,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     await contract.getTokenDetails(tokenId).then((response) => {
       expect(response.tokenId.toNumber()).to.equal(tokenId);
       expect(response.issuedBy).to.equal(dealer1);
-      expect(response.issuedFrom).to.equal(dealer1);
+      expect(response.issuedFrom).to.equal(0);
       expect(response.issuedTo).to.equal(consumer1);
       expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
       expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
@@ -284,6 +285,9 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
     await contract.getIssuedBy(tokenId).then((response) => {
       expect(response).to.equal(dealer1);
+    });
+    await contract.getIssuedFrom(tokenId).then((response) => {
+      expect(response).to.equal(0);
     });
 
     // try to get token details of token that does not exist
@@ -304,6 +308,61 @@ describe("Net Emissions Token Network - Unit tests", function() {
       );
     }
 
+  });
+
+  it("should return all token details correctly with issuedFrom", async function() {
+    const { dealer1, dealer2, consumer1 } = await getNamedAccounts();
+
+    let registerDealer = await contract.registerDealer(dealer1, allTokenTypeId[1]);
+    expect(registerDealer);
+
+    let registerConsumer = await contract.connect(await ethers.getSigner(dealer1)).registerConsumer(consumer1);
+    expect(registerConsumer);
+
+    let issue = await contract
+      .connect(await ethers.getSigner(dealer1))
+      .issue(
+        dealer2,
+        consumer1,
+        allTokenTypeId[1],
+        quantity,
+        fromDate,
+        thruDate,
+        metadata,
+        manifest,
+        description
+      );
+    // Check to be certain mint did not return errors
+    expect(issue);
+
+    // Get ID of first issued token
+    let transactionReceipt = await issue.wait(0);
+    let issueEvent = transactionReceipt.events.pop();
+    let tokenId = issueEvent.args[2].toNumber();
+    expect(tokenId).to.equal(1);
+
+    await contract.getTokenDetails(tokenId).then((response) => {
+      expect(response.tokenId.toNumber()).to.equal(tokenId);
+      expect(response.issuedBy).to.equal(dealer1);
+      expect(response.issuedFrom).to.equal(dealer2);
+      expect(response.issuedTo).to.equal(consumer1);
+      expect(response.tokenTypeId).to.equal(allTokenTypeId[1]);
+      expect(response.fromDate.toNumber()).to.equal(Number(fromDate));
+      expect(response.thruDate.toNumber()).to.equal(Number(thruDate));
+      expect(response.metadata).to.equal(metadata);
+      expect(response.manifest).to.equal(manifest);
+      expect(response.description).to.equal(description);
+      expect(response.totalIssued).to.equal(quantity);
+      expect(response.totalRetired).to.equal(0);
+    });
+
+
+    await contract.getIssuedBy(tokenId).then((response) => {
+      expect(response).to.equal(dealer1);
+    });
+    await contract.getIssuedFrom(tokenId).then((response) => {
+      expect(response).to.equal(dealer2);
+    });
   });
 
   it("should track totalRetired and totalIssued", async function () {

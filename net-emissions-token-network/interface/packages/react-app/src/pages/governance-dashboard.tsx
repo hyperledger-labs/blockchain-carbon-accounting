@@ -49,7 +49,7 @@ const networkNameLowercase = (addresses.network.split(" "))[0].toLowerCase(); //
 const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.dao.governor.address}/transactions`;
 
 type GovernanceDashboardProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   roles: RolesInfo
 }

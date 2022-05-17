@@ -4,17 +4,13 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { BsTrash, BsPlus } from 'react-icons/bs';
-import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { addresses } from "@project/contracts";
-import { encodeParameters, getAdmin, productUpdate } from "../services/contract-functions";
-import CreateProposalModal from "../components/create-proposal-modal";
+import { getAdmin, productUpdate } from "../services/contract-functions";
 import SubmissionModal from "../components/submission-modal";
-import { Web3Provider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES } from "../components/static-data";
-import WalletLookupInput from "../components/wallet-lookup-input";
-import { InputGroup } from "react-bootstrap";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
+import { trpcClient } from "../services/trpc";
+//import { TRPCClientError } from "@trpc/client";
+import { RolesInfo } from "../components/static-data";
 
 type KeyValuePair = {
   key: string
@@ -22,7 +18,7 @@ type KeyValuePair = {
 }
 
 type ProductFormProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   roles: RolesInfo,
   limitedMode: boolean,
@@ -94,7 +90,40 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, signedInAddress, l
     let result = await productUpdate(
       provider,trackerId,productAmount_formatted,
       productName, productUnit, productUnitAmount_formatted);
-    setResult(result.toString());
+      let address = await provider.getSigner().getAddress();
+      console.log(result)
+    try {
+      const register = await trpcClient.mutation('product.insert', {
+        productId: 0, 
+        trackerId: trackerId, 
+        auditor: address,
+        amount: productAmount,
+        available: productAmount,
+        name: productName,
+        unit: productUnit,
+        unitAmount: productUnitAmount,
+        hash: result[1].hash.toString(),
+      })
+      // reset the form values
+      //clearFormFields()
+    } catch (error) {
+      console.error('trpc error;', error)
+      /*let errorSet = false
+      if (error instanceof TRPCClientError && error?.data?.zodError) {
+        const zodError = error.data.zodError
+        setZodErrors(zodError);
+        // handle address errors into lookupError
+        if (zodError.fieldErrors?.address?.length > 0) {
+          const addressError = zodError.fieldErrors?.address?.join("\n")
+          setLookupError(addressError)
+          errorSet = true
+        }
+      }
+      if (!errorSet) setLookupError('An error occurred while registering the wallet.')
+      */
+    }
+
+    setResult(result[0].toString());
   }
 
   const inputError = {

@@ -8,11 +8,11 @@ import SubmissionModal from "../components/submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import "react-datetime/css/react-datetime.css";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 
 type RetireFormProps = {
-  provider?: Web3Provider
+  provider?: Web3Provider | JsonRpcProvider
   roles: RolesInfo
 }
 

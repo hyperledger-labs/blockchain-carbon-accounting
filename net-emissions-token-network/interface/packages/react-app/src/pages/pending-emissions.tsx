@@ -6,20 +6,22 @@ import Row from 'react-bootstrap/Row';
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import { issue } from "../services/contract-functions";
 import { RolesInfo } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
-import { type EmissionsRequest } from "../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
+import { trpc } from "../services/trpc";
 
 type PendingEmissionsProps = {
-  provider?: Web3Provider,
+  provider?: Web3Provider | JsonRpcProvider,
   signedInAddress: string,
   roles: RolesInfo,
-  uuid: string
+  uuid: string,
+  privateKey: string
 }
 
-const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid }) => {
+const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid, privateKey }) => {
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
 
@@ -42,6 +44,14 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     }
   }
 
+  const issueFromQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_from || ''}], {
+    enabled: !!selectedPendingEmissions?.issued_from,
+  });
+  const issueToQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_to || ''}], {
+    enabled: !!selectedPendingEmissions?.issued_to,
+  });
+
+
   async function handleIssue() {
     if (provider && selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
@@ -49,11 +59,6 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         // handle the dates properly
         const from_date = parseDate(selectedPendingEmissions.token_from_date);
         const thru_date = parseDate(selectedPendingEmissions.token_thru_date);
-        const issued_from = selectedPendingEmissions.issued_from || signedInAddress;
-        if (!issued_from) {
-          setError("Empty issued from.");
-          return;
-        }
         if (!from_date) {
           setError("Empty token from date.");
           return;
@@ -75,19 +80,18 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           return;
         }
 
-        // we consider quantity has 3 decimals, multiply by 1000 before passing to the contract
-        let quantity_formatted = Math.round(selectedPendingEmissions.token_total_emissions * 1000) / 1000;
-
         let result = await issue(provider,
-          issued_from,
+          selectedPendingEmissions.issued_from,
           selectedPendingEmissions.issued_to,
           tokenTypeId,
-          quantity_formatted,
+          selectedPendingEmissions.token_total_emissions,
           from_date,
           thru_date,
           selectedPendingEmissions.token_metadata,
           selectedPendingEmissions.token_manifest,
-          selectedPendingEmissions.token_description);
+          selectedPendingEmissions.token_description,
+          privateKey
+          );
 
         console.log("handleIssue", result.toString());
         if (result) {
@@ -155,11 +159,21 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         <tbody>
           <tr>
             <td>Issued From</td>
-            <td className="text-monospace">{selectedPendingEmissions.issued_from}</td>
+            <td className="text-monospace">
+              {selectedPendingEmissions.issued_from}
+              <div>
+                {issueFromQuery.data?.wallet?.name}
+              </div>
+            </td>
           </tr>
           <tr>
             <td>Issued To</td>
-            <td className="text-monospace">{selectedPendingEmissions.issued_to}</td>
+            <td className="text-monospace">
+              {selectedPendingEmissions.issued_to}
+              <div>
+                {issueToQuery.data?.wallet?.name}
+              </div>
+            </td>
           </tr>
           <tr>
             <td>From date</td>

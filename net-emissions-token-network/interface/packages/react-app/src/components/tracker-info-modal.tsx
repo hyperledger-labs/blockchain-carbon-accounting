@@ -7,7 +7,7 @@ import { FaLink } from 'react-icons/fa';
 import Form from 'react-bootstrap/Form';
 import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
 import { trackUpdate } from "../services/contract-functions";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
 import { Tracker } from "../components/static-data";
@@ -16,7 +16,7 @@ import { trpc } from "../services/trpc";
 import { Wallet } from "./static-data";
 
 type TrackerInfoModalProps = {
-  provider?: Web3Provider,
+  provider?: Web3Provider | JsonRpcProvider,
   show:boolean,
   tracker:any,
   onHide:()=>void,

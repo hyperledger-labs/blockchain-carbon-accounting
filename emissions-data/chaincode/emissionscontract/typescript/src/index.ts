@@ -36,8 +36,8 @@ class EmissionsChaincode {
         getValidEmissions: this.getValidEmissions,
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async Init(stub: ChaincodeStub): Promise<ChaincodeResponse> {
-        return Shim.success(null);
+    async Init(_stub: ChaincodeStub): Promise<ChaincodeResponse> {
+        return Shim.success(undefined);
     }
     async Invoke(stub: ChaincodeStub): Promise<ChaincodeResponse> {
         const { fcn, params } = stub.getFunctionAndParameters();
@@ -62,7 +62,7 @@ class EmissionsChaincode {
             'url',
             'md5',
         ];
-        const fieldsMap = {
+        const fieldsMap: Record<string, any> = {
             utilityId: null,
             partyId: null,
             fromDate: null,
@@ -97,7 +97,7 @@ class EmissionsChaincode {
     }
 
     async updateEmissionsRecord(stub: ChaincodeStub, args: string[]): Promise<ChaincodeResponse> {
-        const fields = [
+        const fields: (keyof EmissionsRecordInterface)[] = [
             'uuid',
             'utilityId',
             'partyId',
@@ -112,18 +112,19 @@ class EmissionsChaincode {
             'md5',
             'tokenId',
         ];
-        const numberFields = [
+        const numberFields: (keyof EmissionsRecordInterface)[] = [
             'emissionsAmount',
             'renewableEnergyUseAmount',
             'nonrenewableEnergyUseAmount',
         ];
-        const recordI: EmissionsRecordInterface = {};
+        let recordI: EmissionsRecordInterface = {};
         const fieldsLen = Math.min(args.length, fields.length);
         for (let i = 0; i < fieldsLen; i++) {
+            const v = args[i];
             if (numberFields.indexOf(fields[i]) > -1) {
-                recordI[fields[i]] = Number(args[i]);
+                recordI = { ...recordI, [fields[i]]: Number(v) };
             } else {
-                recordI[fields[i]] = args[i];
+                recordI = { ...recordI, [fields[i]]: v };
             }
         }
         let byte: Uint8Array;
@@ -301,7 +302,7 @@ class EmissionsChaincode {
         }
 
         // order of args input
-        const fields = [
+        const fields: (keyof EmissionsFactorInterface)[] = [
             'uuid',
             'year',
             'country',
@@ -355,7 +356,7 @@ class EmissionsChaincode {
         }
 
         // order of args input
-        const fields = [
+        const fields: (keyof EmissionsFactorInterface)[] = [
             'uuid',
             'year',
             'country',
@@ -429,7 +430,7 @@ class EmissionsChaincode {
                 ),
             );
         }
-        const fields = [
+        const fields: (keyof UtilityLookupItemInterface)[] = [
             'uuid',
             'year',
             'utility_number',
@@ -441,19 +442,20 @@ class EmissionsChaincode {
         const min = Math.min(args.length, fields.length);
         const identifier = { uuid: args[0] } as UtilityLookupItemInterface;
         for (let i = 1; i < min; i++) {
-            identifier[fields[i]] = args[i];
-        }
-        // division exists
-        if (args.length === 7) {
-            delete identifier.divisions;
-            let division: DivisionsInterface;
-            try {
-                division = JSON.parse(args[6]) as DivisionsInterface;
-            } catch (error) {
-                logger.error(`${ErrInvalidArgument} : invalid divsion json input ${error}`);
-                return Shim.error(stringToBytes((error as Error).message));
+            const k = fields[i];
+            const v = args[i];
+            if (k === 'divisions') {
+                let division: DivisionsInterface;
+                try {
+                    division = JSON.parse(v) as DivisionsInterface;
+                } catch (error) {
+                    logger.error(`${ErrInvalidArgument} : invalid division json input ${error}`);
+                    return Shim.error(stringToBytes((error as Error).message));
+                }
+                identifier.divisions = division;
+            } else {
+                identifier[k] = v;
             }
-            identifier.divisions = division;
         }
         let byte: Uint8Array;
         try {
@@ -481,7 +483,7 @@ class EmissionsChaincode {
                 ),
             );
         }
-        const fields = [
+        const fields: (keyof UtilityLookupItemInterface)[] = [
             'uuid',
             'year',
             'utility_number',
@@ -493,27 +495,29 @@ class EmissionsChaincode {
         const min = Math.min(args.length, fields.length);
         const identifier = { uuid: args[0] } as UtilityLookupItemInterface;
         for (let i = 1; i < min; i++) {
-            identifier[fields[i]] = args[i];
-        }
-        // division exists
-        if (args.length === 7) {
-            delete identifier.divisions;
-            const divisionJSON = JSON.parse(args[6]);
-            let division: DivisionsInterface;
-            if (divisionJSON.division_type && divisionJSON.division_id) {
-                division = {
-                    division_id: divisionJSON.division_id,
-                    division_type: divisionJSON.division_type,
-                };
+            const k = fields[i];
+            const v = args[i];
+            if (k === 'divisions') {
+                // division exists
+                const divisionJSON = JSON.parse(v);
+                let division: DivisionsInterface;
+                if (divisionJSON.division_type && divisionJSON.division_id) {
+                    division = {
+                        division_id: divisionJSON.division_id,
+                        division_type: divisionJSON.division_type,
+                    };
+                } else {
+                    logger.error(`${ErrInvalidArgument} : invalid division , got : ${v}`);
+                    return Shim.error(
+                        stringToBytes(
+                            `${ErrInvalidArgument} : division should represented by : '{"division_type" : "","division_id" : ""}`,
+                        ),
+                    );
+                }
+                identifier.divisions = division;
             } else {
-                logger.error(`${ErrInvalidArgument} : invalid division , got : ${args[6]}`);
-                return Shim.error(
-                    stringToBytes(
-                        `${ErrInvalidArgument} : division should represented by : '{"division_type" : "","division_id" : ""}`,
-                    ),
-                );
+                identifier[k] = v;
             }
-            identifier.divisions = division;
         }
         let byte: Uint8Array;
         try {
@@ -555,7 +559,7 @@ class EmissionsChaincode {
     async getAllUtilityIdentifiers(
         stub: ChaincodeStub,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        args: string[],
+        _args: string[],
     ): Promise<ChaincodeResponse> {
         let byte: Uint8Array;
         try {

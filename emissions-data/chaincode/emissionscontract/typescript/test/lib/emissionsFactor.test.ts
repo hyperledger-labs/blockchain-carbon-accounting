@@ -17,7 +17,7 @@ const testData: EmissionsFactorInterface = {
     scope: '1',
     level_1: 'string',
     level_2: 'string',
-    level_3:'string'
+    level_3: 'string',
 };
 
 describe('lib/emissionsFactor.ts', () => {

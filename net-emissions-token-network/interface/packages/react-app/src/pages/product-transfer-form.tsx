@@ -11,7 +11,7 @@ import { addresses } from "@project/contracts";
 import { encodeParameters, getAdmin, transferProduct, getTrackerDetails } from "../services/contract-functions";
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo, TOKEN_TYPES, Tracker } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
@@ -22,7 +22,7 @@ type KeyValuePair = {
 }
 
 type ProductTransferFormProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   roles: RolesInfo,
   trackerId: number,
   productId: number,

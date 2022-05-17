@@ -1,5 +1,6 @@
 import axios from 'axios';
-import type { QueryBundle } from '../../../../../api-server/node_modules/blockchain-accounting-data-postgres/src/repositories/common';
+import moment from 'moment';
+import type { QueryBundle } from '../../../../../../data/postgres/src/repositories/common';
 import type { Token, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
@@ -88,6 +89,20 @@ export const postSignedMessage = async (message: string, signature: string) => {
     } catch(error) {
         throw new Error(handleError(error, "Cannot post the signed message"))
     }
+}
+
+/**
+ * This is the function to login with mail and password by calling API Server
+ */
+ export const signInUser =  async(email:string, password:string) => {
+  return trpcClient.mutation('wallet.signin', {email, password})
+}
+
+/**
+ * This is the function to create wallet with mail and password by calling API Server
+ */
+export const signUpUser =  async(email:string, password:string, passwordConfirm:string) => {
+  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm})
 }
 
 export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {
@@ -196,7 +211,7 @@ export const issueEmissionsRequest = async (uuid: string) => {
     }
 }
 
-export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string) => {
+export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string, fromDate: Date|null, thruDate: Date|null) => {
     try {
         const url = BASE_URL + '/emissionsrequest/';
         const formData = new FormData();
@@ -205,6 +220,12 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         }
         formData.append("supportingDocument", supportingDocument);
         formData.append("signedInAddress", signedInAddress);
+        if (fromDate) {
+            formData.append("fromDate", (moment(fromDate)).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        if (thruDate) {
+            formData.append("thruDate", (moment(thruDate.setHours(23,59,59,999))).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
         const resp = await fetch(url, {
             method: 'POST',
             body: formData,
@@ -219,4 +240,3 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         throw new Error(handleError(error, "Cannot create emissions request"))
     }
 }
-

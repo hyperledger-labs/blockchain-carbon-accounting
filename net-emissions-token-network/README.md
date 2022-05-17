@@ -14,3 +14,11 @@ See the documentation for more information and instructions:
 - [`docs/testing-with-remix.md`](docs/testing-with-remix.md) for testing with the web-based Remix IDE with the remixd daemon
 - [`docs/deployment.md`](docs/deployment.md) for instructions on deploying the contracts to different networks
 - [`docs/carbon-tracker.md`](docs/carbon-tracker.md) for the CarbonTracker contract from the [Oil & Gas Methane Emissions Reduction Project](https://wiki.hyperledger.org/pages/viewpage.action?pageId=62241904) 
+
+## Running tests
+
+To run the contract and integration tests, while hardhat is not otherwise running run:
+`npx hardhat test`
+
+NOTE about DB: the tests expect a Postgres DB named `blockchain-carbon-accounting-test` to exist (any data there will be wiped at the beginning of the tests).
+If you need to set credentials for it, pass them as environment variables to the test runner: `POSTGRES_USER=xxx POSTGRES_PASSWORD=xxx npx hardhat test`

@@ -1,5 +1,5 @@
 import { DataSource, SelectQueryBuilder } from "typeorm"
-import { Token } from "../models/token"
+import { Tracker } from "../models/tracker"
 import { buildQueries, QueryBundle, TrackerPayload } from "./common"
 
 export class TrackerRepo {
@@ -11,15 +11,15 @@ export class TrackerRepo {
   }
 
   public selectAll = async (): Promise<Array<Tracker>> => {
-    const tokenRepository = this._db.getRepository(Tracker)
-    return await tokenRepository.find()
+    const trackerRepository = this._db.getRepository(Tracker)
+    return await trackerRepository.find()
   }
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<Tracker>> => {
     let selectBuilder: SelectQueryBuilder<Tracker> = this._db.getRepository(Tracker).createQueryBuilder("tracker")
 
     // category by issuer address
-    selectBuilder = buildQueries('token', selectBuilder, bundles)
+    selectBuilder = buildQueries('tracker', selectBuilder, bundles)
     return selectBuilder
       .limit(limit)
       .offset(offset)
@@ -27,21 +27,21 @@ export class TrackerRepo {
       .getMany()
   }
 
-  public selectToken = async (trackerId: number): Promise<Tracker | null> => {
+  public selectTracker = async (trackerId: number): Promise<Tracker | null> => {
     return await this._db.getRepository(Tracker).findOneBy({trackerId})
   }
 
   public insertTracker = async (payload: TrackerPayload): Promise<Tracker> => {
     const trackerRepository = this._db.getRepository(Tracker)
-    const Tracker = new Tracker()
-    return await tokenRepository.save({
+    const tracker = new Tracker()
+    return await trackerRepository.save({
       ...tracker,
       ...payload
     })
   }
 
 
-  public countTokens = async (bundles: Array<QueryBundle>): Promise<number> => {
+  public countTrackers = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
       let selectBuilder: SelectQueryBuilder<Tracker> = this._db.getRepository(Tracker).createQueryBuilder("tracker")
       selectBuilder = buildQueries('tracker', selectBuilder, bundles)
@@ -51,8 +51,8 @@ export class TrackerRepo {
     }
   }
 
-  public truncateTokens = async () => {
-    await this._db.getRepository(Token)
+  public truncateTrackers = async () => {
+    await this._db.getRepository(Tracker)
     .createQueryBuilder('tracker')
     .delete()
     .execute()

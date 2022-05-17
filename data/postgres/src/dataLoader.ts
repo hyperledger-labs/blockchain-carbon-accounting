@@ -47,13 +47,30 @@ const progressBar = new SingleBar(
           describe: "XLSX file to load from",
         })
         .positional("sheet", {
-          describe: "name of the worksheet to load from",
+          describe: "Name of the worksheet to load from",
           default: "Sheet1",
+        })
+       .option('format', {
+          type: 'string',
+          description: 'Data format, which could be egrid_data | eea_res_proxies | eea_intensity | conversion-factors-uk',
+          demandOption: true,
+        })
+        .option('source', {
+          type: 'string',
+          description: 'Data file source',
+        })
+        .option('year', {
+          type: 'string',
+          description: 'Source data year, required for conversion-factors-uk, skipped for other formats',
         });
     },
     async (argv: any) => {
-      const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting load_emissions_factors ...")
+      if (argv.format === 'conversion-factors-uk' && !argv.year) {
+        console.log("'--year' parameter is required for conversion-factors-uk format")
+        return
+      }
+      const db = await init(parseCommonYargsOptions(argv))
       await loadEmissionsFactors(argv, progressBar, db.getEmissionsFactorRepo())
       const count = await db.getEmissionsFactorRepo().countAllFactors()
       console.log(`=== Done, we now have ${count} EmissionFactors in the DB`)
@@ -70,7 +87,7 @@ const progressBar = new SingleBar(
           demandOption: true,
         })
         .positional("sheet", {
-          describe: "name of the worksheet to load from",
+          describe: "Name of the worksheet to load from",
         })
     },
     async (argv: any) => {

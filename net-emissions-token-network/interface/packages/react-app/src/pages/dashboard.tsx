@@ -18,11 +18,14 @@ import { getBalances, countAuditorEmissionsRequests } from '../services/api.serv
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
 import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
-import { Web3Provider } from "@ethersproject/providers";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayTokenAmount from "../components/display-token-amount";
+import Button from 'react-bootstrap/Button';
+import { BsFunnel } from 'react-icons/bs';
+import { Link } from "wouter";
 
 type DashboardProps = {
-  provider?: Web3Provider, 
+  provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
   displayAddress: string
 }
@@ -53,6 +56,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
   const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
 
+  const [showQueryBuilder, setShowQueryBuilder] = useState(false);
+
   async function handleBalancePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
     await fetchBalances(value, balancePageSize, balanceQuery);
   }
@@ -73,6 +78,10 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     }
   }));
 
+  function switchQueryBuilder() {
+     setShowQueryBuilder(!showQueryBuilder);
+  }
+
   async function handleRefresh() {
     // clear localStorage
     let localStorage = window.localStorage;
@@ -82,7 +91,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider, address: string) {
+  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
       setDisplayAddressIsIndustry(false);
@@ -98,7 +107,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
-    let newMyBalances = [];
 
     let _balanceCount = 0;
     try {
@@ -112,10 +120,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       // this count means total pages of balances
       _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
 
-      for (let i = 0; i < balances.length; i++) {
-        const balance = balances[i];
-
-        let token = {
+      const newMyBalances = balances.map((balance) => {
+        return {
           ...balance,
           tokenId: balance.token.tokenId,
           token: balance.token,
@@ -124,13 +130,13 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           availableBalance: balance.available,
           retiredBalance: balance.retired,
         }
-        newMyBalances.push(token);
-      }
+      });
+      setMyBalances(newMyBalances);
     } catch (error) {
       console.error(error);
+      setMyBalances([]);
     }
 
-    setMyBalances(newMyBalances);
     setBalanceCount(_balanceCount);
     setBalancePage(_balancePage);
     setBalancePageSize(_balancePageSize);
@@ -175,7 +181,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         <p className="mb-1">View your token balances.</p>
       }
       {(emissionsRequestsCount) ?
-        <p className="mb-1">You have {emissionsRequestsCount} pending <a href='/emissionsrequests'>emissions audits</a>.</p>
+        <p className="mb-1">You have {emissionsRequestsCount} pending <Link href='/emissionsrequests'>emissions audits</Link>.</p>
         : null
       }
       <div className={fetchingTokens ? "dimmed" : ""}>
@@ -190,11 +196,15 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
         {(signedInAddress) &&
           <div className="mb-4">
-            <h4>{(displayAddress) ? 'Their' : 'Your'} Tokens</h4>
-            <QueryBuilder
-              fieldList={BALANCE_FIELDS}
-              handleQueryChanged={handleBalanceQueryChanged}
-            />
+            <h4 style={{display: 'inline'}}>{(displayAddress) ? 'Their' : 'Your'} Tokens&nbsp;</h4>
+            <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
+            <div hidden={!showQueryBuilder}>
+              <QueryBuilder
+                fieldList={BALANCE_FIELDS}
+                handleQueryChanged={handleBalanceQueryChanged}
+              />
+            </div>
+
             <Table hover size="sm">
               <thead>
                 <tr>

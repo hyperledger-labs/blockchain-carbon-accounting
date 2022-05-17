@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 const { expect } = require("chai");
+const { getNamedAccounts, deployments } = require("hardhat");
 const {
   advanceBlocks,
-  advanceHours,
   hoursToBlocks,
   createProposal,
   executeProposalAndConfirmSuccess,
-  proposalStates
+  proposalStates,
+  ethers
 } = require("./common.js");
-const { getNamedAccounts } = require("hardhat");
 
 describe("Climate DAO - Integration tests", function() {
 

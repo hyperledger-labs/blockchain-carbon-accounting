@@ -22,12 +22,12 @@ export class EmissionsRecordContract {
     /**
      *
      * Store the emissions record
-     * @param Id for the utility
-     * @param Id for the party (company) which buys power from utility
-     * @param from date of the time period
-     * @param thru date of the time period
-     * @param energy usage amount
-     * @param UOM of energy usage amount -- ie kwh
+     * @param utilityId for the utility
+     * @param partyId for the party (company) which buys power from utility
+     * @param fromDate date of the time period
+     * @param thruDate date of the time period
+     * @param energyUseAmount usage amount
+     * @param energyUseUom UOM of energy usage amount -- ie kwh
      */
     async recordEmissions(
         utilityId: string,
@@ -82,7 +82,7 @@ export class EmissionsRecordContract {
             recordI.partyId = SHA256(recordI.partyId).toString();
         }
         const record = new EmissionsRecord(recordI);
-        await this.emissionsState.updateEmissionsRecord(record, recordI.uuid);
+        await this.emissionsState.updateEmissionsRecord(record, recordI.uuid || '');
         return record.toBuffer();
     }
     async updateEmissionsMintedToken(
@@ -114,7 +114,7 @@ export class EmissionsRecordContract {
                 continue;
             }
             validEmissions.push(emission.record);
-            validUUIDS.push(emission.record.uuid);
+            validUUIDS.push(emission.record.uuid || '');
         }
         const output = {
             keys: validUUIDS,

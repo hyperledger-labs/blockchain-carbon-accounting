@@ -51,7 +51,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 tokenId;
         uint8 tokenTypeId;
         address issuedBy;
-        address issuedFrom;
+        uint160 issuedFrom;
         address issuedTo;
         uint256 fromDate;
         uint256 thruDate;
@@ -69,7 +69,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
     // Token metadata and retired balances
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
-    mapping(uint256 => mapping(address => uint256)) private _transferredBalances;
 
     // Nonce for tokeTypeId 4 transfer from => to account
     mapping(address => mapping(address => uint32)) private carbonTransferNonce;
@@ -83,7 +82,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
         uint256 tokenId,
         uint8 tokenTypeId,
         address indexed issuedBy,
-        address indexed issuedFrom,
+        uint160 indexed issuedFrom,
         address indexed issuedTo,
         uint256 fromDate,
         uint256 thruDate,
@@ -241,7 +240,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
      * should set the amount as (100 * 10^4) = 1,000,000 (assuming the token's decimals is set to 4)
      */
     function issue(
-        address issuedFrom,
+        uint160 issuedFrom,
         address issuedTo,
         uint8 tokenTypeId,
         uint256 quantity,
@@ -272,7 +271,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
      */
     function issueOnBehalf(
         address issuedBy,
-        address issuedFrom,
+        uint160 issuedFrom,
         address issuedTo,
         uint8 tokenTypeId,
         uint256 quantity,
@@ -304,7 +303,7 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
 
     function _issue(
         address _issuedBy,
-        address _issuedFrom,
+        uint160 _issuedFrom,
         address _issuedTo,
         uint8 _tokenTypeId,
         uint256 _quantity,

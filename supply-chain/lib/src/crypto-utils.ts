@@ -2,10 +2,52 @@
 import * as crypto from "crypto";
 import { readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
+import { getEncryptionPublicKey, encrypt, decrypt } from '@metamask/eth-sig-util';
 
 function getFileFromPath(path: string) {
   const absolutePath = resolve(path)
   return readFileSync(absolutePath, 'utf8')
+}
+
+export async function encryptWithPublicKey(privKeyPath: string, toEncrypt: string) {
+  const privKey = getFileFromPath(privKeyPath);
+  const encPubKey = getEncryptionPublicKey(privKey);
+  const encrypted = encrypt({
+    data: toEncrypt, 
+    publicKey: encPubKey, 
+    version: "x25519-xsalsa20-poly1305"
+  });
+  return Buffer.concat([
+    Buffer.from(encrypted.nonce, 'utf8'),
+    Buffer.from(encrypted.ephemPublicKey, 'utf8'),
+    Buffer.from(encrypted.version, 'utf8'),
+    Buffer.from(encrypted.ciphertext, 'utf8')
+  ]);
+}
+
+export async function encryptWithEncPublicKey(encPubKey: string, toEncrypt: string) {
+  const encrypted = encrypt({
+    data: toEncrypt, 
+    publicKey: encPubKey, 
+    version: "x25519-xsalsa20-poly1305"
+  });
+  return Buffer.concat([
+    Buffer.from(encrypted.nonce, 'utf8'),
+    Buffer.from(encrypted.ephemPublicKey, 'utf8'),
+    Buffer.from(encrypted.version, 'utf8'),
+    Buffer.from(encrypted.ciphertext, 'utf8')
+  ]);
+}
+
+export async function decryptWithPrivKey(privKeyPath: string, toDecrypt: Buffer) {
+  const privateKey = getFileFromPath(privKeyPath);
+  const encryptedData = {
+    nonce: toDecrypt.toString('utf8', 0, 32),
+    ephemPublicKey: toDecrypt.toString('utf8', 32, 76),
+    version: toDecrypt.toString('utf8', 76, 100),
+    ciphertext: toDecrypt.toString('utf8', 100, toDecrypt.length)
+  }
+  return decrypt({encryptedData, privateKey});
 }
 
 export function encryptRSAKeyFileName(toEncrypt: string, pubkeyPath: string) {

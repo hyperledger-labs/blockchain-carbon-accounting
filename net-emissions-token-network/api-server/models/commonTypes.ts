@@ -10,8 +10,8 @@ export interface CreatedToken {
     metadata: string;
     manifest: string;
     description: string;
-    totalIssued: number;
-    totalRetired: number;
+    totalIssued: bigint;
+    totalRetired: bigint;
 }
 
 export type FIELD = {
@@ -88,5 +88,6 @@ export const FIELDS = {
     "organization": STRING_FIELD,
     "public_key": STRING_FIELD,
     "public_key_name": STRING_FIELD,
-    "roles": STRING_FIELD
+    "roles": STRING_FIELD,
+    "metamask_encrypted_public_key": STRING_FIELD
 };

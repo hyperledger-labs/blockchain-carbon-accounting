@@ -15,14 +15,14 @@ export class Tracker {
     @Column()
     auditor!: string;
 
-    @Column()
-    totalEmissions!: number;
+    @Column({type: 'bigint'})
+    totalProductAmounts!: string;
 
-    @Column()
-    totalOffset!: number;
+    @Column({type: 'bigint'})
+    totalEmissions!: string;
 
-    @Column()
-    numOfProducts!: number;
+    @Column({type: 'bigint'})
+    totalOffsets!: string;
 
     @Column({nullable: true})
     fromDate!: number;
