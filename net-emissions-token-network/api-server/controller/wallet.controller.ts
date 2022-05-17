@@ -213,7 +213,7 @@ export async function signupWallet(email: string, password: string) {
     const db = await PostgresDBService.getInstance();
 
     // check that a wallet with this email does not already exist
-    const w = await db.getWalletRepo().findWalletByEmail(email);
+    const w = await db.getWalletRepo().findWalletByEmail(email, true);
     if (w) {
         // if we previously failed at sending the verification_token then just send it again
         if (!w.verification_token_sent_at) {
