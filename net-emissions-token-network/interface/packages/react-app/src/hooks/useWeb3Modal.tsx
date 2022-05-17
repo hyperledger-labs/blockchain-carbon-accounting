@@ -5,7 +5,7 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
 import { getRoles, getRegisteredTracker, getLimitedMode } from "../services/contract-functions";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Wallet } from "../components/static-data";
 import { RPC_URL } from "../services/api.config";
 
 // Enter a valid infura key here to avoid being rate limited
@@ -18,7 +18,7 @@ function useWeb3Modal(config: any = {}) {
   const [provider, setProvider] = useState<Web3Provider|JsonRpcProvider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
-  const [privateKey, setPrivateKey] = useState("");
+  const [signedInWallet, setSignedInWallet] = useState<Wallet | undefined>();
   const [roles, setRoles] = useState<RolesInfo>({});
   const [registeredTracker, setRegisteredTracker] = useState(false);
   const [limitedMode, setLimitedMode] = useState(true);
@@ -39,7 +39,6 @@ function useWeb3Modal(config: any = {}) {
     },
   }), [NETWORK, infuraId]);
 
-
   // Open wallet selection modal.
   const loadWeb3Modal = useCallback(async () => {
     const newProvider = await web3Modal.connect();
@@ -52,8 +51,6 @@ function useWeb3Modal(config: any = {}) {
     setSignedInAddress(newProvider.selectedAddress);
   }, [web3Modal]);
 
-
-
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
@@ -63,16 +60,16 @@ function useWeb3Modal(config: any = {}) {
     [web3Modal],
   );
 
-  const loadWalletInfo = (public_key:string, private_key:string) => {
+  const loadWalletInfo = (wallet:Wallet) => {
     const web3Provider = new JsonRpcProvider(RPC_URL);
     setProvider(web3Provider);
-    setSignedInAddress(public_key);
-    setPrivateKey(private_key);
+    setSignedInWallet(wallet);
+    setSignedInAddress(wallet.public_key||'');
   }
 
   const logoutOfWalletInfo = () => {
     setSignedInAddress("");
-    setPrivateKey("");
+    setSignedInWallet(undefined);
     window.location.reload();
   }
 
@@ -106,7 +103,7 @@ function useWeb3Modal(config: any = {}) {
     refresh();
   }, [refresh]);
 
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh};
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh};
 }
 
 export default useWeb3Modal;

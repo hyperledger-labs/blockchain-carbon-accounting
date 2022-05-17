@@ -209,7 +209,6 @@ export async function sendVerificationEmail(email: string, token?: string) {
     });
 }
 
-
 export async function signupWallet(email: string, password: string) {
 
     const db = await PostgresDBService.getInstance();
@@ -408,7 +407,7 @@ export async function requestPasswordReset(email: string, os?: string, browser?:
 export async function signinWallet(email: string, password: string) {
     const db = await PostgresDBService.getInstance();
     const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
-    console.log('wallet?', wallet)
+    console.log('signin wallet?', wallet)
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
         if (!wallet) console.error('!! The email has no wallet yet');
         else if (!wallet.email_verified) console.error('!! The email has not been verified yet');
@@ -420,6 +419,24 @@ export async function signinWallet(email: string, password: string) {
     delete wallet.password_hash;
     delete wallet.password_salt;
     return wallet;
+}
+
+export async function markPkExported(email: string, password: string) {
+
+    const db = await PostgresDBService.getInstance();
+
+    // require the user to confirm with his password
+    const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
+    if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
+        if (!wallet) console.error('!! The email has no wallet yet');
+        else if (!wallet.email_verified) console.error('!! The email has not been verified yet');
+        else console.error('!! The password is incorrect');
+        // return access denied in all cases in order not to leak any information
+        throw new DomainError('Invalid credentials', 'UNAUTHORIZED');
+    }
+
+    // mark the wallet as exported
+    await db.getWalletRepo().markPkExported(wallet.address);
 }
 
 export async function getWalletWithCredentials(req: Request, res: Response) {

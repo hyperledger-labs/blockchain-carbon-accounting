@@ -11,7 +11,7 @@ import { encodeParameters, getAdmin, issue } from "../services/contract-function
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES } from "../components/static-data";
+import { RolesInfo, TOKEN_TYPES, Wallet } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
@@ -25,10 +25,10 @@ type IssueFormProps = {
   signedInAddress: string, 
   roles: RolesInfo,
   limitedMode: boolean,
-  privateKey: string
+  signedInWallet?: Wallet
 }
 
-const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, privateKey }) => {
+const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -218,7 +218,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
 
-    let result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, privateKey);
+    let result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
     setResult(result.toString());
   }
 

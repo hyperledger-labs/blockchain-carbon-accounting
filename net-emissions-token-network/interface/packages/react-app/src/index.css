@@ -19,6 +19,9 @@ body {
 .navbar {
   background-color: #F1F1F1 !important;
 }
+.navbar .btn {
+  line-height: 2em;
+}
 
 .nav-tabs {
   background-color: #001f3f;

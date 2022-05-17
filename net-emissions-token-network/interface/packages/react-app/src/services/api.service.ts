@@ -102,6 +102,10 @@ export const requestPasswordReset = async(email:string) => {
   }
 }
 
+export const markPkExported = async(email: string, password: string) => {
+  return trpcClient.mutation('wallet.markPkExported', {email, password})
+}
+
 export const changePassword = async(email: string, token: string, currentPassword: string, password: string, passwordConfirm: string) => {
   return trpcClient.mutation('wallet.changePassword', {email, token, currentPassword, password, passwordConfirm})
 }

@@ -15,7 +15,7 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { FaRegClipboard } from 'react-icons/fa'
 import { FaGithub } from 'react-icons/fa'
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo } from "./static-data";
+import { RolesInfo, Wallet } from "./static-data";
 import { Tooltip } from "react-bootstrap";
 
 type WalletButtonProps = {
@@ -49,12 +49,12 @@ type NavigationBarProps = {
   logoutOfWeb3Modal:()=>void
   logoutOfWalletInfo: () =>void
   signedInAddress?: string
-  privateKey?: string
+  signedInWallet?: Wallet
   roles: RolesInfo
   limitedMode: boolean
 }
 
-const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, logoutOfWalletInfo, signedInAddress, privateKey, roles, limitedMode }) => {
+const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, limitedMode }) => {
 
   const [role, setRole] = useState("");
   const [cachedRoles, setCachedRoles] = useState<RolesInfo>({});
@@ -157,7 +157,16 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
               </Nav.Item>
             </>
           }
-          { privateKey !== "" &&
+          { signedInWallet?.private_key &&
+            <Link href="export-pk">
+              <Button
+                variant="primary"
+                className="ms-1 mr-3"
+              >Export Primary Key
+              </Button>
+            </Link>
+          }
+          { signedInWallet &&
             <Button
                 variant="primary"
                 className="ms-1 mr-3"
@@ -165,7 +174,7 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
                 >Sign Out
             </Button>
           }
-          { privateKey === "" &&
+          { !signedInWallet &&
             <WalletButton provider={provider} loadWeb3Modal={loadWeb3Modal} logoutOfWeb3Modal={logoutOfWeb3Modal} />
           }
         </Nav>

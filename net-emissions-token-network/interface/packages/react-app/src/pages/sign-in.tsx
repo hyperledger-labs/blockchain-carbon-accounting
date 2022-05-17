@@ -8,6 +8,7 @@ import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import { TRPCClientError } from "@trpc/client";
 import { useTimer } from "../hooks/useTimer";
+import { Wallet } from "../components/static-data";
 
 
 type SignInForm = {
@@ -34,7 +35,7 @@ const defaultSignInForm: SignInForm = {
 } as const;
 
 type SignInProps = {
-  loadWalletInfo: (publick_key: string, private_key: string) => void
+  loadWalletInfo: (wallet:Wallet) => void
 }
 const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
 
@@ -72,9 +73,16 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
             ...form,
             loading: '',
           });
-          loadWalletInfo(wallet.address, wallet.private_key);
+          loadWalletInfo(wallet);
           setLocation('/dashboard');
-          return
+          return;
+        } else if (!wallet.private_key) {
+          setForm({
+            ...form,
+            loading: '',
+            error: 'You have already exported your private key and must now login with Metamask'
+          });
+          return;
         }
       }
       setForm({
@@ -161,9 +169,21 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
                 <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
                 <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
                 <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'reset', error: ''})}>Forgot your password?</Button>
-                <Button type="submit" className="w-100 mb-3" variant="success" size="lg">Sign In</Button>
+                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
+                  {!!form.loading ?
+                    <Spinner
+                      animation="border"
+                      className="me-2"
+                      size="sm"
+                      as="span"
+                      role="status"
+                      aria-hidden="true"
+                      /> : <></>
+                }
+                  Sign In
+                </Button>
                 {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
-                  <div>If you just signed up, make sure to valid your email address first.</div>
+                  {form.error === 'Invalid credentials' && <div>If you just signed up, make sure to valid your email address first.</div>}
                 </ErrorAlert>}
                 <p className="text-muted">If you don't have an account, you can <Link href="sign-up">Sign Up</Link> here </p>
               </Form>

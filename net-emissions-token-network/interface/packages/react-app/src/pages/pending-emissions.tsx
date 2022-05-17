@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import { issue } from "../services/contract-functions";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Wallet } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
@@ -18,10 +18,10 @@ type PendingEmissionsProps = {
   signedInAddress: string,
   roles: RolesInfo,
   uuid: string,
-  privateKey: string
+  signedInWallet?: Wallet
 }
 
-const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid, privateKey }) => {
+const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid, signedInWallet }) => {
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
 
@@ -90,7 +90,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           selectedPendingEmissions.token_metadata,
           selectedPendingEmissions.token_manifest,
           selectedPendingEmissions.token_description,
-          privateKey
+          signedInWallet?.private_key || ''
           );
 
         console.log("handleIssue", result.toString());
@@ -142,7 +142,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
       console.log(error);
       setError("Cannot get emissions request.");
     }
-  }, [provider, signedInAddress]);
+  }, []);
 
   return (
     <>

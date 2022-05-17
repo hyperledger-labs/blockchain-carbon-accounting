@@ -150,6 +150,16 @@ export class WalletRepo {
       .execute();
   }
 
+  public markPkExported = async (address: string) => {
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        private_key: '',
+      })
+      .where(`LOWER(address) LIKE LOWER(:address)`, { address })
+      .execute();
+  }
+
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
       let selectBuilder: SelectQueryBuilder<Wallet> = this.getRepository().createQueryBuilder(ALIAS)

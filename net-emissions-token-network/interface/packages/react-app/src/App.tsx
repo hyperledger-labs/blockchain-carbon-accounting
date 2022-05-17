@@ -26,12 +26,13 @@ import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 import { QueryClient, QueryClientProvider } from "react-query";
 import { trpc, useTrpcClient } from "./services/trpc";
 import ChangePassword from "./pages/change-password";
+import ExportPk from "./pages/export-pk";
 
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
 
-  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh } = useWeb3Modal();
+  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh } = useWeb3Modal();
 
   const [location] = useLocation();
 
@@ -51,7 +52,7 @@ const App:FC = () => {
           logoutOfWeb3Modal={logoutOfWeb3Modal}
           logoutOfWalletInfo={logoutOfWalletInfo}
           signedInAddress={signedInAddress}
-          privateKey={privateKey}
+          signedInWallet={signedInWallet}
           roles={roles}
           limitedMode={limitedMode}
           />
@@ -116,7 +117,7 @@ const App:FC = () => {
                   <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                 </Route>
                 <Route path="/issue">
-                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} privateKey = {privateKey}  />
+                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet = {signedInWallet}  />
                 </Route>
                 <Route path="/requestAudit">
                   <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
@@ -128,7 +129,7 @@ const App:FC = () => {
                   <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
                 </Route>
                 <Route path="/pendingemissions/:uuid">{params=>
-                  <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} privateKey = {privateKey}/>
+                  <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet = {signedInWallet}/>
                 }</Route>
                 <Route path="/transfer">
                   <TransferForm provider={provider} roles={roles} />
@@ -150,6 +151,9 @@ const App:FC = () => {
                 </Route>
                 <Route path="/sign-in">
                   <SignIn loadWalletInfo={loadWalletInfo} />
+                </Route>
+                <Route path="/export-pk">
+                  <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
                 </Route>
                 <Route>
                   <Redirect to="/dashboard" />
