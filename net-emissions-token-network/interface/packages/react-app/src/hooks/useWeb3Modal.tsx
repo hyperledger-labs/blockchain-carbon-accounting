@@ -64,7 +64,7 @@ function useWeb3Modal(config: any = {}) {
     const web3Provider = new JsonRpcProvider(RPC_URL);
     setProvider(web3Provider);
     setSignedInWallet(wallet);
-    setSignedInAddress(wallet.public_key||'');
+    setSignedInAddress(wallet.address||'');
   }
 
   const logoutOfWalletInfo = () => {
