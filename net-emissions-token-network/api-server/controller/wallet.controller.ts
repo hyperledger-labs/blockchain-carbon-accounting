@@ -252,7 +252,8 @@ export async function signupWallet(a_email: string, password: string) {
     try {
         await sendVerificationEmail(email, verification_token);
         verification_token_sent_at = new Date();
-    } catch (err){
+    } catch (err) {
+        console.error('Error while sending the email:', err);
         throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR');
     } finally {
         // store the account even when mail sending failed
