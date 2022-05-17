@@ -83,7 +83,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
 
       const col = z.substring(0, tt).trim();
       const row = parseInt(z.substring(tt));
-      const value = worksheet[z].v;
+      const value = worksheet[z].v?.trim?.();
 
       if (opts.skip_rows && opts.skip_rows >= row) continue;
 
