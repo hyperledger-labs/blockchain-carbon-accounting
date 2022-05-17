@@ -14,7 +14,7 @@ The members of the network are identified by their crypto wallet, but they are r
 - Emissions Auditor: An organization authorized to issue emissions audits.
 - Offsets Dealer: An organization authorized to issue carbon offsets.
 
-An emissions audit is an audited amount of emissions in kilograms of CO2-equivalent based on any activity which causes Greenhouse Gas (GHG).  The emissions are calculated based on the amount of the activity and an emissions factors.  For example, for use of electricity that emissions factor might be 0.2 kgCO2e per 1 KWH of electricity use, so if you used 200 KWH of electricity, then you would receive 40 kgCO2e of emissions in your audit.  The audited emissions is issued to the user as a token on the network.  Once issued to you, it cannot be transferred to someone else.
+Audited emissions are records of emissions based on any activity which causes Greenhouse Gas (GHG) emissions.  The emissions are calculated based on the amount of the activity and an emissions factors.  For example, for use of electricity that emissions factor might be 0.2 kgCO2e per 1 KWH of electricity use, so if you used 200 KWH of electricity, then you would receive 40 kgCO2e of emissions in your audit.  The audited emissions is issued to the user as a token on the network.  Once issued to you, it cannot be transferred to someone else.
 
 The network can be deployed on any Solidity compatible blockchain.  Currently we're deploying on the Binance Smart Chain (BSC) Testnet because we believe it has [the lowest energy footprint](https://opentaps.org/2022/03/24/estimating-the-energy-impact-of-the-binance-smart-chain/).
 
