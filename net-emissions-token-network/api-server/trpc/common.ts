@@ -2,6 +2,7 @@ import * as trpc from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import { ZodError } from 'zod';
 import { OPTS } from '../server';
 import { balanceRouter } from './balance.trpc'
@@ -9,11 +10,31 @@ import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
 
+
 // created for each request, here set the DB connector
-const createContext = async () => ({
-  db: await PostgresDBService.getInstance(),
-  opts: OPTS
-})
+const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
+  // get the client IP
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  console.log('From client IP', ip);
+  const rates: Record<string, RateLimitRequestHandler> = {};
+  const getRateLimiter = (name: string, max: number, windowMs: number) => {
+    if (!rates[name]) {
+      rates[name] = rateLimit({
+        windowMs,
+        max,
+        standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+        legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+      })
+    }
+    return rates[name];
+  }
+  return {
+    ip,
+    getRateLimiter,
+    db: await PostgresDBService.getInstance(),
+    opts: OPTS
+  }
+}
 export type TrpcContext = trpc.inferAsyncReturnType<typeof createContext>;
 
 const createRouter = () => {
