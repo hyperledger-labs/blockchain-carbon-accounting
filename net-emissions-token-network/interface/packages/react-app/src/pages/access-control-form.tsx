@@ -143,7 +143,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
         </>
       }
 
-      {signedInAddress && provider && !hasMetamaskPubKey &&
+      {signedInAddress && provider && provider instanceof Web3Provider && !hasMetamaskPubKey &&
       <>
         <Button
           className="w-100 mb-3"
