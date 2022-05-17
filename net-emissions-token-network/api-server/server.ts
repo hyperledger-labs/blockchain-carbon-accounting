@@ -4,6 +4,7 @@ import expressContext from "express-request-context";
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import 'dotenv/config';
+import morgan from 'morgan';
 // sanity checks
 const assertEnv = (key: string): string => {
   if (!process.env[key]) {
@@ -50,6 +51,9 @@ const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
 const corsOptions = {
     origin: "http://localhost:3000"
 }
+
+// express-winston logger makes sense BEFORE the router
+app.use(morgan('dev'));
 
 // pass some context to all requests
 app.use(expressContext());

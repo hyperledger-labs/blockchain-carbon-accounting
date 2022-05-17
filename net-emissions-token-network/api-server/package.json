@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@trpc/server": "^9.23.4",
+    "@types/morgan": "^1.9.3",
     "blockchain-accounting-data-postgres": "file:../../data/postgres",
     "chalk": "^5.0.1",
     "cors": "^2.8.5",
@@ -25,6 +26,7 @@
     "express-request-context": "^1.0.1",
     "handlebars": "^4.7.7",
     "moment": "^2.29.3",
+    "morgan": "^1.10.0",
     "nodemailer": "^6.7.5",
     "pg": "^8.7.3",
     "supply-chain-lib": "file:../../supply-chain/lib",
