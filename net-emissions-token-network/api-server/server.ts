@@ -134,7 +134,7 @@ db.then(async () => {
     console.error('An error occurred while setting up the blockchain event handlers', err)
     throw err
   }
-  app.listen(PORT, () => {
+  app.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`Server is listening on ${PORT}\n`)
   });
 })
