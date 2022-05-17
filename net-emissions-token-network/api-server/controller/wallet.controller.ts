@@ -171,6 +171,7 @@ export async function sendVerificationEmail(email: string, token?: string) {
     }
     const transporter = getMailer();
     const link = new URL(`${process.env.VERIFY_ROOT_URL}/verify-email/${token}/${email}`)
+    console.log('sendVerificationEmail: for email [',email,'] verification_token: ', token , link.href);
     const emailTemplateSourceHtml = readFileSync(path.join(__dirname, "../email/templates/verify-email.html"), "utf8")
     const emailTemplateSourceText = readFileSync(path.join(__dirname, "../email/templates/verify-email.txt"), "utf8")
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
@@ -216,18 +217,27 @@ export async function signupWallet(email: string, password: string) {
     // check that a wallet with this email does not already exist
     const w = await db.getWalletRepo().findWalletByEmail(email);
     if (w) {
-        throw new DomainError('Wallet already exists, try signing in instead');
+        // if we previously failed at sending the verification_token then just send it again
+        if (!w.verification_token_sent_at) {
+            await sendVerificationEmail(email, w.verification_token);
+            const { password_hash, password_salt } = Wallet.generateHash(password);
+            const verification_token = Wallet.generateVerificationToken();
+            await db.getWalletRepo().mergeWallet({
+                address: w.address,
+                password_hash,
+                password_salt,
+                verification_token,
+                verification_token_sent_at: new Date(),
+                email_verified: false
+            });
+            return
+        } else {
+            throw new DomainError('Wallet already exists, try signing in instead');
+        }
     }
 
     const { password_hash, password_salt } = Wallet.generateHash(password);
     const verification_token = Wallet.generateVerificationToken();
-
-    // check we can send the email first
-    try {
-        await sendVerificationEmail(email, verification_token);
-    } catch (err){
-        throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR');
-    }
 
     // generate the ETH wallet
     const newAccount = ethers.Wallet.createRandom();
@@ -235,17 +245,29 @@ export async function signupWallet(email: string, password: string) {
     console.log('mnemonic: ', newAccount.mnemonic.phrase);
     console.log('privateKey', newAccount.privateKey);
 
-    await db.getWalletRepo().insertWallet({
-        address: newAccount.address,
-        private_key: newAccount.privateKey,
-        public_key: newAccount.publicKey,
-        email,
-        password_hash,
-        password_salt,
-        verification_token,
-        verification_token_sent_at: new Date(),
-        email_verified: false
-    });
+    let verification_token_sent_at = undefined;
+
+    // check we can send the email first
+    try {
+        await sendVerificationEmail(email, verification_token);
+        verification_token_sent_at = new Date();
+    } catch (err){
+        throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR');
+    } finally {
+        // store the account even when mail sending failed
+        // but in that case verification_token_sent_at is undefined
+        await db.getWalletRepo().insertWallet({
+            address: newAccount.address,
+            private_key: newAccount.privateKey,
+            public_key: newAccount.publicKey,
+            email,
+            password_hash,
+            password_salt,
+            verification_token,
+            verification_token_sent_at,
+            email_verified: false
+        });
+    }
 }
 
 export async function generateWalletWithCredentials(req: Request, res: Response) {
