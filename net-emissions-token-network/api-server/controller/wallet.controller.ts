@@ -429,9 +429,9 @@ export async function signinWallet(email: string, password: string) {
     const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
     console.log('signin wallet?', wallet)
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
-        if (!wallet) console.error('!! The email has no wallet yet');
-        else if (!wallet.email_verified) console.error('!! The email has not been verified yet');
-        else console.error('!! The password is incorrect');
+        if (!wallet) console.error('!! The email has no wallet yet', email);
+        else if (!wallet.email_verified) console.error('!! The email has not been verified yet', email);
+        else console.error('!! The password is incorrect', email);
         // return access denied in all cases in order not to leak any information
         throw new DomainError('Invalid credentials', 'UNAUTHORIZED');
     }
@@ -448,9 +448,9 @@ export async function markPkExported(email: string, password: string) {
     // require the user to confirm with his password
     const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
-        if (!wallet) console.error('!! The email has no wallet yet');
-        else if (!wallet.email_verified) console.error('!! The email has not been verified yet');
-        else console.error('!! The password is incorrect');
+        if (!wallet) console.error('!! The email has no wallet yet', email);
+        else if (!wallet.email_verified) console.error('!! The email has not been verified yet', email);
+        else console.error('!! The password is incorrect', email);
         // return access denied in all cases in order not to leak any information
         throw new DomainError('Invalid credentials', 'UNAUTHORIZED');
     }
