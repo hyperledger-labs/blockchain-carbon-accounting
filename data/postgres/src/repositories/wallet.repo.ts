@@ -99,7 +99,7 @@ export class WalletRepo {
   public findWalletByEmail = async (email: string, with_private_fields?: boolean): Promise<Wallet | null> => {
     const q = this.getRepository()
       .createQueryBuilder(ALIAS)
-      .where(`LOWER(${ALIAS}.email) LIKE LOWER(:email)`, { email })
+      .where(`LOWER(${ALIAS}.email) LIKE LOWER(:email)`, { email: email.trim() })
 
     if (with_private_fields) {
       q.addSelect(`${ALIAS}.email_verified`)
@@ -124,7 +124,7 @@ export class WalletRepo {
         password_hash,
         password_salt
       })
-      .where(`LOWER(email) LIKE LOWER(:email)`, { email })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email: email.trim() })
       .execute();
   }
 
@@ -135,7 +135,7 @@ export class WalletRepo {
         password_reset_token: token,
         password_reset_token_sent_at: new Date(),
       })
-      .where(`LOWER(email) LIKE LOWER(:email)`, { email })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email : email.trim()})
       .execute();
   }
 
@@ -146,7 +146,7 @@ export class WalletRepo {
         verification_token: '', 
         email_verified: true,
       })
-      .where(`LOWER(email) LIKE LOWER(:email)`, { email })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email: email.trim() })
       .execute();
   }
 

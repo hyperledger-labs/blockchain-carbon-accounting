@@ -111,7 +111,8 @@ export function getMailer() {
     return nodemailer.createTransport(opts)
 }
 
-export async function sendPasswordResetEmail(email: string, token: string, os?: string, browser?: string) {
+export async function sendPasswordResetEmail(a_email: string, token: string, os?: string, browser?: string) {
+    const email = a_email.trim();
     const transporter = getMailer();
 
     const link = new URL(`${process.env.APP_ROOT_URL}/reset-password`)
@@ -156,7 +157,8 @@ export async function sendPasswordResetEmail(email: string, token: string, os?: 
     });
 }
 
-export async function sendVerificationEmail(email: string, token?: string) {
+export async function sendVerificationEmail(a_email: string, token?: string) {
+    const email = a_email.trim();
     if (!token) {
         // generate one again (this is a resend)
         const db = await PostgresDBService.getInstance();
@@ -208,8 +210,9 @@ export async function sendVerificationEmail(email: string, token?: string) {
     });
 }
 
-export async function signupWallet(email: string, password: string) {
+export async function signupWallet(a_email: string, password: string) {
 
+    const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
 
     // check that a wallet with this email does not already exist
@@ -270,7 +273,7 @@ export async function signupWallet(email: string, password: string) {
 
 export async function generateWalletWithCredentials(req: Request, res: Response) {
     try {
-        await signupWallet(req.body.mailAddress, req.body.password);
+        await signupWallet(req.body.mailAddress.trim(), req.body.password);
         return res.status(200).json({
             status: 'success',
         });
@@ -284,8 +287,9 @@ export async function generateWalletWithCredentials(req: Request, res: Response)
     }
 }
 
-export async function changePassword(email: string, password: string, passwordConfirm: string, token?: string, currentPassword?: string) {
+export async function changePassword(a_email: string, password: string, passwordConfirm: string, token?: string, currentPassword?: string) {
 
+    const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
     if (!token && !currentPassword) {
         throw new DomainError('You must provide either a token or current password');
@@ -312,8 +316,9 @@ export async function changePassword(email: string, password: string, passwordCo
 }
 
 
-export async function verify(email: string, token: string) {
+export async function verify(a_email: string, token: string) {
 
+    const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
     console.log(`Verifying ${email} with token ${token}`);
 
@@ -332,7 +337,7 @@ export async function verify(email: string, token: string) {
 
 export async function verifyWalletEmail(req: Request, res: Response) {
     try {
-        const email = req.params.email;
+        const email = req.params.email.trim();
         const token = req.params.token;
 
         const w = await verify(email, token);
@@ -356,7 +361,7 @@ export async function verifyWalletEmail(req: Request, res: Response) {
 
 export async function doPasswordRequest(req: Request, res: Response) {
     try {
-        const email = req.params.email;
+        const email = req.params.email.trim();
         // if we have a 
         const token = req.params.token;
 
@@ -382,7 +387,7 @@ export async function doPasswordRequest(req: Request, res: Response) {
 export async function passwordResetRequest(req: Request, res: Response) {
     try {
         const user_agent = useragent.parse(req.headers['user-agent'] || '');
-        const email = req.params.email;
+        const email = req.params.email.trim();
         await requestPasswordReset(email, user_agent.os.toString(), user_agent.toAgent());
         return res.status(200).json({
             status: 'success',
@@ -395,8 +400,10 @@ export async function passwordResetRequest(req: Request, res: Response) {
         });
     }
 }
-export async function requestPasswordReset(email: string, os?: string, browser?: string) {
 
+export async function requestPasswordReset(a_email: string, os?: string, browser?: string) {
+
+    const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
     console.log(`Request password reset for ${email}`);
 
@@ -424,7 +431,9 @@ export async function requestPasswordReset(email: string, os?: string, browser?:
     await db.getWalletRepo().markPasswordResetRequested(email, reset_token);
 }
 
-export async function signinWallet(email: string, password: string) {
+export async function signinWallet(a_email: string, password: string) {
+
+    const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
     const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
     console.log('signin wallet?', wallet)
@@ -441,8 +450,9 @@ export async function signinWallet(email: string, password: string) {
     return wallet;
 }
 
-export async function markPkExported(email: string, password: string) {
+export async function markPkExported(a_email: string, password: string) {
 
+    const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
 
     // require the user to confirm with his password
@@ -461,7 +471,7 @@ export async function markPkExported(email: string, password: string) {
 
 export async function getWalletWithCredentials(req: Request, res: Response) {
     try {
-        const wallet = await signinWallet(req.body.mailAddress, req.body.password);
+        const wallet = await signinWallet(req.body.mailAddress.trim(), req.body.password);
         return res.status(200).json({
             status: 'success',
             wallet,
