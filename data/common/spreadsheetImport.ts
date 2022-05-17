@@ -150,7 +150,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           country: "USA",
           division_type: "NERC_REGION",
           division_id: row["NERC region acronym"],
-          division_name: (row["NERC region name "] || "").replace(/ /g, "_"),
+          division_name: (row["NERC region name"] || "").replace(/ /g, "_"),
           net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
@@ -279,12 +279,18 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
 
     for (const row of data) {
       // skip empty rows
-      if (!row || row["CountryShort"].slice(0, 2) == "EU") continue;
+      if (!row) continue;
+      const countryShort = (row["CountryShort"]??row["MS short"])?.slice(0, 2)
+      if (countryShort == "EU") continue;
+      const shareRenewable = row["ValueNumeric"]??row["Total RES share proxy"];
 
       // skip rows unrelated to electricity
-      if (row["Market_Sector"] !== "Electricity") continue;
+      if (row["Market_Sector"] && row["Market_Sector"] !== "Electricity") continue;
+      console.log(row)
 
-      const countryName = getCountryMapping(row["CountryShort"]);
+      const countryName = getCountryMapping(countryShort);
+      if (!countryName) continue;
+
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: uuidv4(),
@@ -305,7 +311,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         source: opts.source || opts.file,
         non_renewables: "",
         renewables: "",
-        percent_of_renewables: (Number(row[" ValueNumeric"]) * 100).toString(),
+        percent_of_renewables: shareRenewable ? (Number(shareRenewable) * 100).toString() : undefined,
       };
       await db.putEmissionFactor(d);
       progressBar.increment();
