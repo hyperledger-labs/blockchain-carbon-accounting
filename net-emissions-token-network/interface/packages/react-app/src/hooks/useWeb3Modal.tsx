@@ -70,6 +70,8 @@ function useWeb3Modal(config: any = {}) {
   const logoutOfWalletInfo = () => {
     setSignedInAddress("");
     setSignedInWallet(undefined);
+    web3Modal.clearCachedProvider();
+    setProvider(undefined);
   }
 
   const refresh = useCallback(async () => {
