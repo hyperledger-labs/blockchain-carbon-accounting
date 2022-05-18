@@ -138,7 +138,7 @@ const App:FC = () => {
                   <TrackForm provider={provider} registeredTracker={registeredTracker}/>
                 </Route>
                 <Route path="/access-control">
-                  <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+                  <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
                 </Route>
                 <Route path="/reset-password">
                   <ChangePassword></ChangePassword>

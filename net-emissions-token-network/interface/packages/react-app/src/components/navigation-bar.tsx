@@ -151,15 +151,7 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
               </Nav.Item>
             </>
           }
-          { signedInWallet?.private_key &&
-            <Link href="export-pk">
-              <Button
-                variant="primary"
-                className="ms-1 mr-3"
-              >Export Primary Key
-              </Button>
-            </Link>
-          }
+
           { signedInWallet &&
             <Button
                 variant="primary"

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useState, ForwardRefRenderFunction, useImperativeHandle, forwardRef } from "react";
+import {Link} from "wouter";
 
 import RegisterSelfIndustry from "../components/register-self-industry";
 import {RolesInfo} from "../components/static-data";
@@ -12,6 +13,7 @@ import { FloatingLabel } from "react-bootstrap";
 import { trpc, trpcClient } from "../services/trpc";
 import FindOrSetupWallet from "../components/find-or-setup-wallet";
 import RolesList from "../components/roles-list";
+import { Wallet } from "../components/static-data";
 
 
 type EthereumType = {
@@ -22,7 +24,8 @@ type AccessControlFormProps = {
   provider?: Web3Provider | JsonRpcProvider
   signedInAddress: string
   roles: RolesInfo
-  limitedMode: boolean
+  limitedMode: boolean,
+  signedInWallet?: Wallet,
   providerRefresh?: ()=>void
 }
 
@@ -30,7 +33,7 @@ type AccessControlHandle = {
   refresh: ()=>void
 }
 
-const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessControlFormProps> = ({ provider, providerRefresh, signedInAddress, roles, limitedMode }, ref) => {
+const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessControlFormProps> = ({ provider, providerRefresh, signedInAddress, roles, limitedMode, signedInWallet }, ref) => {
 
   const ethereum: EthereumType = (window as any).ethereum;
 
@@ -88,6 +91,16 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
                  <span className="sr-only">Loading...</span>
                </Spinner>
              </div>
+          }
+          { signedInWallet?.private_key &&
+            <Link href="export-pk">
+              <Button
+                className="w-100 mb-3"
+                variant="primary"
+                size="lg"
+              >Export Primary Key
+              </Button>
+            </Link>
           }
           { provider && myWalletQuery.data && <>
             <h4>My Wallet</h4>
