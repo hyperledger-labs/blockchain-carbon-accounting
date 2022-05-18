@@ -12,22 +12,22 @@ import { Wallet } from "../components/static-data";
 
 
 type ExportPkForm = {
-  state: 'signin' | 'reset',
   password: string,
   confirmed: string,
   error: string,
   success: string,
-  loading: string
+  loading: string,
+  currentpk: string
 }
 type ExportPkFormErrors = Partial<ExportPkForm>
 
 const defaultExportPkForm: ExportPkForm = {
-  state: 'signin',
   password: "",
   confirmed: "",
   error: "",
   success: "",
-  loading: ""
+  loading: "",
+  currentpk: ""
 } as const;
 
 type ExportPkProps = {
@@ -42,16 +42,22 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
 
   async function handleExportPk() {
     try {
+      const currentpk = signedInWallet?.private_key;
       setForm({...form, loading: 'true'})
       await markPkExported(signedInWallet?.email || '', form.password);
       setForm({
         ...form,
         loading: '',
+        success: 'true',
+        currentpk: currentpk || '',
       });
+      if (signedInWallet) {
+        signedInWallet.private_key = '';
+      }
+
       // logs out
       logoutOfWalletInfo();
-      // redirect
-      setLocation('/dashboard');
+
     } catch (err) {
       console.error(err);
       if (err instanceof TRPCClientError) {
@@ -64,9 +70,9 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
           }
           setFormErrors({ ...errs })
         }
-        setForm({ ...form, loading: '', error: err?.data?.domainError });
+        setForm({ ...form, loading: '', success: '', error: err?.data?.domainError });
       } else {
-        setForm({ ...form, loading: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
+        setForm({ ...form, loading: '', success: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
       }
     }
   }
@@ -77,12 +83,41 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
 
         <Card.Body>
           <Card.Title as="h2">Export Primary Key</Card.Title>
-          {signedInWallet? <>
+          {(signedInWallet || form.success) ? <>
             {signedInWallet?.private_key? <>
               <p className="mt-4">Once you get this private key, you must always use the private key to access your account. This means you won't be able to login with your email and password but will have to use Metamask instead.</p>
-              <p>Your key:
+
+              <Form onSubmit={(e)=>{
+                e.preventDefault()
+                e.stopPropagation()
+                if (e.currentTarget.checkValidity() === false) return
+                handleExportPk()
+              }}>
+                <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
+
+                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
+                  {!!form.loading ?
+                    <Spinner
+                      animation="border"
+                      className="me-2"
+                      size="sm"
+                      as="span"
+                      role="status"
+                      aria-hidden="true"
+                      /> : <></>
+                }
+                  Confirm Export
+                </Button>
+
+                {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
+                  <div>If you just signed up, make sure to valid your email address first.</div>
+                </ErrorAlert>}
+              </Form>
+              </> : <>
+                <p>You must import this private key into your wallet and sign in with it from now on. You can no longer use your email to sign in.</p>
+                <p>Your key:
                 {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
-                <CopyToClipboard text={signedInWallet?.private_key??''}>
+                <CopyToClipboard text={form.currentpk??''}>
                   <span className="text-secondary">
                     <OverlayTrigger
                       trigger="click"
@@ -96,35 +131,9 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
                   </span>
                 </CopyToClipboard>
               </p>
-              <pre>{signedInWallet?.private_key}</pre>
-
-              <Form onSubmit={(e)=>{
-                e.preventDefault()
-                e.stopPropagation()
-                if (e.currentTarget.checkValidity() === false) return
-                handleExportPk()
-              }}>
-                <Form.Check className="mb-3" type="checkbox" id="check-confirm" label="Confirm I have copied and saved the key" onChange={(e)=>{setForm({...form, confirmed: e.currentTarget.checked ? 'true' : ''})}} />
-                <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
-                <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'reset', error: ''})}>Forgot your password?</Button>
-                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading || !form.confirmed}>
-                  {!!form.loading ?
-                    <Spinner
-                      animation="border"
-                      className="me-2"
-                      size="sm"
-                      as="span"
-                      role="status"
-                      aria-hidden="true"
-                      /> : <></>
-                }
-                  Confirm Export
-                </Button>
-                {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
-                  <div>If you just signed up, make sure to valid your email address first.</div>
-                </ErrorAlert>}
-              </Form>
-              </> : <p className="mt-4">You already exported your private key.</p>}
+              <pre>{form.currentpk}</pre>
+              </>
+              }
             </> : <p className="mt-4">You must <Link href="/sign-in">sign in</Link> to export your private key.</p>}
         </Card.Body>
 
