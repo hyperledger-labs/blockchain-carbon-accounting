@@ -12,3 +12,6 @@ npm run dataLoader load_emissions_factors egrid2020_data.xlsx US20 -- --format e
 npm run dataLoader load_utility_identifiers Utility_Data_2019.xlsx
 npm run dataLoader load_emissions_factors co2-emission-intensity-6.csv -- --format eea_intensity --source https://www.eea.europa.eu/data-and-maps/daviz/sds/co2-emission-intensity-from-electricity-generation
 npm run dataLoader load_emissions_factors 2019-RES_proxies_EEA.csv -- --format eea_res_proxies --source https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4
+
+psql blockchain-carbon-accounting < seeds/*
+
