@@ -1,3 +1,4 @@
+#!/bin/sh
 
 npm run dataLoader load_emissions_factors conversion-factors-2021-flat-file-automatic-processing.xls "Factors by Category" -- --format conversion-factors-uk --year 2021
 npm run dataLoader load_emissions_factors conversion-factors-2019-flat-file-v01-02.xls "Factors by Category" -- --format conversion-factors-uk --year 2019
