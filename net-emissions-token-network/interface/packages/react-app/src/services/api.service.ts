@@ -253,3 +253,31 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         throw new Error(handleError(error, "Cannot create emissions request"))
     }
 }
+
+export const calculateEmissionsRequest = async (form: EmissionsFactorForm, fromDate: Date|null, thruDate: Date|null) => {
+    try {
+        const url = BASE_URL + '/calcemissionsrequest/';
+        const formData = new FormData();
+        for (const k in form) {
+            formData.append(k, form[k as keyof EmissionsFactorForm]);
+        }
+        if (fromDate) {
+            formData.append("fromDate", (moment(fromDate)).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        if (thruDate) {
+            formData.append("thruDate", (moment(thruDate.setHours(23,59,59,999))).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        const resp = await fetch(url, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await resp.json();
+        if (data.status === 'success') {
+            return data;
+        } else {
+            throw data;
+        };
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot create emissions request"))
+    }
+}

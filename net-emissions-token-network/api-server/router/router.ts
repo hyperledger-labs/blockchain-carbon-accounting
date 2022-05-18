@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { getBalances } from '../controller/balance.controller';
-import { countEmissionsRequests, declineEmissionsRequest, getEmissionsRequest, getEmissionsRequests, postEmissionsRequest, issueEmissionsRequest } from '../controller/emissionsRequests.controller';
+import { countEmissionsRequests, declineEmissionsRequest, getEmissionsRequest, getEmissionsRequests, postEmissionsRequest, issueEmissionsRequest, postCalculateEmissionsRequest } from '../controller/emissionsRequests.controller';
 import { handleSignedMessage } from '../controller/signedMessage.controller';
 import { getTokens } from '../controller/token.controller';
 import { getWallets, insertNewWallet, generateWalletWithCredentials, getWalletWithCredentials, verifyWalletEmail, passwordResetRequest } from '../controller/wallet.controller';
@@ -37,6 +37,10 @@ router.post('/emissionsrequest', postEmissionsRequest);
 router.get('/emissionsrequest/:uuid', getEmissionsRequest);
 router.get('/emissionsrequests/:auditor', getEmissionsRequests);
 router.get('/emissionsrequests/:auditor/:op', countEmissionsRequests);
+
+// for non-registered users
+router.post('/calcemissionsrequest', postCalculateEmissionsRequest);
+
 
 // WIP: testing signed message for POST
 router.post('/signedMessage', handleSignedMessage);

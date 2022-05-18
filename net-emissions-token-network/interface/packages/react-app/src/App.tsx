@@ -71,10 +71,7 @@ const App:FC = () => {
             <Link href="/issuedtokens"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
             : null
         }
-          {roles.isConsumer ? 
-            <Link href="/requestAudit"><Nav.Link eventKey="requestAudit">Request audit</Nav.Link></Link>
-            : null
-        }
+          <Link href="/requestAudit"><Nav.Link eventKey="requestAudit">Request audit</Nav.Link></Link>
 
           {((limitedMode && isOwner) || !limitedMode) &&
             <Link href="/transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>

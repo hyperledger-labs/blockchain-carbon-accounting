@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ChangeEvent, FC, useMemo, useState } from "react";
+import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -8,9 +8,10 @@ import { RolesInfo } from "../components/static-data";
 import { trpc } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
-import { createEmissionsRequest } from "../services/api.service";
+import { calculateEmissionsRequest, createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
+import { Link } from "wouter";
 
 type RequestAuditProps = {
   provider?: Web3Provider | JsonRpcProvider, 
@@ -188,6 +189,7 @@ type SuccessResultType = {
     unit: string,
     value: number
   }
+  title?: string
 }
 
 const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
@@ -313,7 +315,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const formNotReady = useMemo(()=>{
     console.log('Check if form is ready?', emForm, supportingDoc)
     const errors:EmissionsFactorFormErrors = {}
-    if (!supportingDoc || !supportingDoc.name) {
+    if (roles.hasAnyRole && (!supportingDoc || !supportingDoc.name)) {
       // must give a file
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
@@ -420,52 +422,63 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           }
         }
       }
-
-
     }
     setFormErrors(errors)
     return !!errors.hasErrors
-  }, [emForm, supportingDoc])
+  }, [emForm, supportingDoc, roles.hasAnyRole])
 
-  return roles.hasAnyRole ? (
+  // Form submit
+  const handleSubmit = async(e:any)=>{
+    // autoselect emissionsFactor when drilled down to only one choice if this mode was selected
+    if (emForm.activity_type === 'emissions_factor' && !emForm.emissions_factor_uuid && lookupQuery.data?.emissionsFactors.length === 1) {
+      selectEmissionsFactor(lookupQuery.data.emissionsFactors[0])
+    }
+    // always stop the event as we handle all in this function
+    e.preventDefault()
+    e.stopPropagation()
+    const form = e.currentTarget
+    let valid = true
+    if (form.checkValidity() === false || formNotReady) {
+      valid = false
+    }
+    // mark the form to render validation errors
+    setValidated(true)
+    setTopError('')
+    setTopSuccess(null)
+    if (valid) {
+      setLoading(true)
+      console.log('Form valid, submit with', emForm, supportingDoc)
+      try {
+        // registered users will create an emissions request, non-registered users will just
+        // get the calculated emissions
+        const res = roles.hasAnyRole ?
+          await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
+          : await calculateEmissionsRequest(emForm, fromDate, thruDate)
+        console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
+        const distance = res?.result?.distance
+        const emissions = res?.result?.emissions?.amount
+        if (roles.hasAnyRole) {
+          setTopSuccess({ distance, emissions })
+        } else {
+          setTopSuccess({ distance, emissions, title: 'Emissions calculated' })
+        }
+      } catch (err) {
+        console.warn('Form error ', err)
+        setTopError(err instanceof Error ? err.message : String(err))
+      } finally {
+        setLoading(false)
+      }
+      // resetForm()
+    } else {
+      console.log('Form invalid, check errors:', formErrors)
+    }
+  }
+
+  return (
     <>
       <h2>Request audit</h2>
       <Form
-        onSubmit={async(e)=>{
-          // autoselect emissionsFactor when drilled down to only one choice if this mode was selected
-          if (emForm.activity_type === 'emissions_factor' && !emForm.emissions_factor_uuid && lookupQuery.data?.emissionsFactors.length === 1) {
-            selectEmissionsFactor(lookupQuery.data.emissionsFactors[0])
-          }
-          // always stop the event as we handle all in this function
-          e.preventDefault()
-          e.stopPropagation()
-          const form = e.currentTarget
-          let valid = true
-          if (form.checkValidity() === false || formNotReady) {
-            valid = false
-          }
-          // mark the form to render validation errors
-          setValidated(true)
-          setTopError('')
-          setTopSuccess(null)
-          if (valid) {
-            setLoading(true)
-            console.log('Form valid, submit with', emForm, supportingDoc)
-            try {
-              const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
-              console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
-              setTopSuccess({distance: res?.result?.distance, emissions: res?.result?.emissions?.amount})
-            } catch (err) {
-              console.warn('Form error ', err)
-              setTopError(err instanceof Error ? err.message : String(err))
-            } finally {
-              setLoading(false)
-            }
-            // resetForm()
-          } else {
-            console.log('Form invalid, check errors:', formErrors)
-          }
-        }}
+        onSubmit={handleSubmit}
         noValidate validated={validated}>
 
         <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} disabled={!!topSuccess} onWalletChange={(w)=>{
@@ -648,6 +661,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
             </>}
 
+          { roles.hasAnyRole &&
           <Form.Group controlId="supportingDoc" className="mb-3">
             <Form.Label>Supporting Document</Form.Label>
             {supportingDoc && supportingDoc.name ? 
@@ -656,14 +670,15 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             <Form.Control.Feedback type="invalid">
               {(formErrors && formErrors.supportingDoc) || "This value is required"}
             </Form.Control.Feedback>
-          </Form.Group>
+          </Form.Group>}
 
           {topError && <ErrorAlert error={topError} onDismiss={()=>{resetForm()}} />}
 
           {topSuccess ?
-            <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
+            <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
               <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
+              {!roles.hasAnyRole && <div className="mt-3">Sign up for an account to record your emissions: <Link href="/sign-up">Sign Up</Link></div>}
             </SuccessAlert>
             : 
 
@@ -691,8 +706,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           </>}
       </Form>
       </>
-  ) : (
-    <p>You must be a registered user to request audits.</p>
   );
 }
 
