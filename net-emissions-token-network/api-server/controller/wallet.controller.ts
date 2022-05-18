@@ -215,22 +215,31 @@ export async function signupWallet(a_email: string, password: string) {
     const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
 
+    let verification_token_sent_at = undefined;
+
     // check that a wallet with this email does not already exist
     const w = await db.getWalletRepo().findWalletByEmail(email, true);
     if (w) {
         // if we previously failed at sending the verification_token then just send it again
         if (!w.verification_token_sent_at) {
-            await sendVerificationEmail(email, w.verification_token);
-            const { password_hash, password_salt } = Wallet.generateHash(password);
-            const verification_token = Wallet.generateVerificationToken();
-            await db.getWalletRepo().mergeWallet({
-                address: w.address,
-                password_hash,
-                password_salt,
-                verification_token,
-                verification_token_sent_at: new Date(),
-                email_verified: false
-            });
+            try {
+                await sendVerificationEmail(email, w.verification_token);
+                verification_token_sent_at = new Date();
+            } catch (err) {
+                console.error('Error while sending the email:', err);
+                throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR', undefined, err);
+            } finally {
+                const { password_hash, password_salt } = Wallet.generateHash(password);
+                const verification_token = Wallet.generateVerificationToken();
+                await db.getWalletRepo().mergeWallet({
+                    address: w.address,
+                    password_hash,
+                    password_salt,
+                    verification_token,
+                    verification_token_sent_at,
+                    email_verified: false
+                });
+            }
             return
         } else {
             throw new DomainError('Wallet already exists, try signing in instead');
@@ -246,7 +255,6 @@ export async function signupWallet(a_email: string, password: string) {
     console.log('mnemonic: ', newAccount.mnemonic.phrase);
     console.log('privateKey', newAccount.privateKey);
 
-    let verification_token_sent_at = undefined;
 
     // check we can send the email first
     try {
@@ -254,7 +262,7 @@ export async function signupWallet(a_email: string, password: string) {
         verification_token_sent_at = new Date();
     } catch (err) {
         console.error('Error while sending the email:', err);
-        throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR');
+        throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR', undefined, err);
     } finally {
         // store the account even when mail sending failed
         // but in that case verification_token_sent_at is undefined
