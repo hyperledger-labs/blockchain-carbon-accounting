@@ -67,7 +67,7 @@ export const walletRouter = trpc
             const wallets = await ctx.db.getWalletRepo().lookupPaginated(input.offset, input.limit, input.query+'%');
             const count = await ctx.db.getWalletRepo().countLookupWallets(input.query);
             return {
-                count, 
+                count,
                 wallets
             }
         } catch (error) {

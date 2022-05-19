@@ -187,16 +187,27 @@ export class WalletRepo {
   }
 
   public lookupPaginated = async (offset: number, limit: number, query: string): Promise<Array<Wallet>> => {
-    return await this.makeLookupQuery(query)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(`${ALIAS}.name`, 'ASC')
-      .addOrderBy(`${ALIAS}.address`, 'ASC')
-      .getMany()
+    // i want to customize the orderby so that better matches are put first
+    // this means escaping the user given value and generating a WHERE like statement
+    // to use as order clause, perhaps the best way here is to use a custom
+    // prepared statement:
+    const res = await this.getRepository().query(
+      `SELECT address, name, organization FROM wallet
+       WHERE LOWER(address) LIKE LOWER($1)
+       OR LOWER(name) LIKE LOWER($1)
+       OR LOWER(organization) LIKE LOWER($1)
+       ORDER BY LOWER(address) LIKE LOWER($1) DESC,
+       LOWER(name) LIKE LOWER($1) DESC,
+       LOWER(organization) LIKE LOWER($1) DESC,
+       LOWER(name) ASC
+       LIMIT $2 OFFSET $3`,
+      [ query, limit, offset ])
+    return res as Wallet[];
   }
 
   public countLookupWallets = async (query: string): Promise<number> => {
     try {
+      // special ordering from above does not matter for the count
       return await this.makeLookupQuery(query)
         .getCount()
     } catch (error) {
