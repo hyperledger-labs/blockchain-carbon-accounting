@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ChangeEvent, FC, useCallback, useMemo, useState } from "react";
-import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
+import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
+import { Breadcrumb, Button, Col, FloatingLabel, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
-import { trpc } from "../services/trpc";
+import { trpc, trpcClient } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { calculateEmissionsRequest, createEmissionsRequest } from "../services/api.service";
@@ -22,10 +22,28 @@ type RequestAuditProps = {
 
 
 type ShipmentMode = 'air' | 'ground' | 'sea' | '';
+type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
+
+const activityTypeToLabel = (activityType: ActivityType) => {
+  switch (activityType) {
+    case 'flight':
+      return 'Flight';
+    case 'shipment':
+      return 'Shipment';
+    case 'emissions_factor':
+      return 'Emissions Factor';
+    case 'natural_gas':
+      return 'Natural Gas';
+    case 'electricity':
+      return 'Electricity';
+    default:
+      return '';
+  }
+}
 
 export type EmissionsFactorForm = {
   issued_from: string,
-  activity_type: 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
+  activity_type: ActivityType
   ups_tracking: string
   shipment_mode: ShipmentMode
   weight: string
@@ -192,7 +210,13 @@ type SuccessResultType = {
   title?: string
 }
 
-const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
+
+type StoredRequest = {
+  request: EmissionsFactorForm,
+  result: SuccessResultType
+}
+
+const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
 
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
   function resetForm() {
@@ -213,6 +237,19 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
+  const [stored, setStored] = useState<StoredRequest[]>([]);
+
+  useEffect(()=>{
+    // if we had saved emissionsRequest, then redirect to the Request audit page
+    const ls = localStorage.getItem('emissionsRequest')
+    const stored = ls ? JSON.parse(ls) : []
+    setStored(stored)
+    if (stored.length > 0) {
+      // restore the last one
+      const last = stored[stored.length-1]
+      setEmForm({...last.request})
+    }
+  }, [])
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {}], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
@@ -315,7 +352,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const formNotReady = useMemo(()=>{
     console.log('Check if form is ready?', emForm, supportingDoc)
     const errors:EmissionsFactorFormErrors = {}
-    if (roles.hasAnyRole && (!supportingDoc || !supportingDoc.name)) {
+    if (signedInAddress && (!supportingDoc || !supportingDoc.name)) {
       // must give a file
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
@@ -425,7 +462,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     }
     setFormErrors(errors)
     return !!errors.hasErrors
-  }, [emForm, supportingDoc, roles.hasAnyRole])
+  }, [emForm, supportingDoc, signedInAddress])
 
   // Form submit
   const handleSubmit = async(e:any)=>{
@@ -451,15 +488,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
       try {
         // registered users will create an emissions request, non-registered users will just
         // get the calculated emissions
-        const res = roles.hasAnyRole ?
+        const res = signedInAddress ?
           await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
           : await calculateEmissionsRequest(emForm, fromDate, thruDate)
         console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
         const distance = res?.result?.distance
         const emissions = res?.result?.emissions?.amount
-        if (roles.hasAnyRole) {
+        if (signedInAddress) {
           setTopSuccess({ distance, emissions })
         } else {
+          // save the request in local storage so we can restore it after the user signs in
+          const ls = localStorage.getItem('emissionsRequest')
+          const stored = ls ? JSON.parse(ls) : []
+          stored.push({request: {...emForm}, result: { emissions, distance }})
+          localStorage.setItem('emissionsRequest', JSON.stringify(stored))
+          setStored(stored)
           setTopSuccess({ distance, emissions, title: 'Emissions calculated' })
         }
       } catch (err) {
@@ -477,6 +520,37 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   return (
     <>
       <h2>Request audit</h2>
+      { stored && stored.length > 0 && <>
+        <FloatingLabel className="mb-3" controlId="prev" label="Previous requests">
+          <Form.Select aria-label="Previous requests"
+            onChange={async(e)=>{
+              if (e.currentTarget.value === 'new') {
+                resetForm();
+                return;
+              }
+              const i = Number(e.currentTarget.value);
+              const f = {...stored[i].request }
+              console.log('Switch to previous request ', f)
+              if (f.emissions_factor_uuid) {
+                const factor = await trpcClient.query('emissionsFactors.get', { uuid: f.emissions_factor_uuid });
+                if (factor?.emissionsFactor) {
+                  selectEmissionsFactor(factor.emissionsFactor)
+                }
+              }
+              setEmForm(f)
+            }}
+          >
+            <option value="new">Select a previous request</option>
+            { stored.map((s, i) =>
+              <option key={i} value={i}>
+                {activityTypeToLabel(s.request.activity_type)}{' '}
+                Calculated emissions:{' '}
+                {s.result.emissions?.value?.toFixed(3)}&nbsp;{s.result.emissions?.unit}{s.result.emissions?.unit.endsWith('CO2e')?'':'CO2e'}
+              </option>
+            )}
+          </Form.Select>
+        </FloatingLabel>
+      </>}
       <Form
         onSubmit={handleSubmit}
         noValidate validated={validated}>
@@ -661,7 +735,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
             </>}
 
-          { roles.hasAnyRole &&
+          { signedInAddress &&
           <Form.Group controlId="supportingDoc" className="mb-3">
             <Form.Label>Supporting Document</Form.Label>
             {supportingDoc && supportingDoc.name ? 
@@ -678,7 +752,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
               <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
-              {!roles.hasAnyRole && <div className="mt-3">Sign up for an account to record your emissions: <Link href="/sign-up">Sign Up</Link></div>}
+              {!signedInAddress && <div className="mt-3">Sign up for an account to record your emissions: <Link href="/sign-up">Sign Up</Link></div>}
             </SuccessAlert>
             : 
 

@@ -117,6 +117,21 @@ export const emissionsFactorsRouter = trpc
         }
     },
 })
+.query('get', {
+    input: z.object({
+        uuid: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            const emissionsFactor = await ctx.db.getEmissionsFactorRepo().getEmissionFactor(input.uuid);
+            return {
+                emissionsFactor,
+            }
+        } catch (error) {
+            handleError('emissionsFactorsRouter.get', error)
+        }
+    },
+})
 .query('lookup', {
     input: z.object({
         scope: z.string().optional(),

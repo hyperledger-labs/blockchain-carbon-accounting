@@ -74,7 +74,14 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
             loading: '',
           });
           loadWalletInfo(wallet);
-          setLocation('/dashboard');
+          // if we had saved emissionsRequest, then redirect to the Request audit page
+          const ls = localStorage.getItem('emissionsRequest')
+          const stored = ls ? JSON.parse(ls) : []
+          if (stored.length > 0) {
+            setLocation('/requestAudit')
+          } else {
+            setLocation('/dashboard')
+          }
           return;
         } else if (!wallet.private_key) {
           setForm({
