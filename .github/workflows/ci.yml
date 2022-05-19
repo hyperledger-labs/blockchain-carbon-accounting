@@ -56,7 +56,7 @@ jobs:
           npm ci --prefix ../api-server
           npm ci
       - name: Run build script
-        run: npm run react-app:build
+        run: CI=false npm run react-app:build
 
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
