@@ -53,6 +53,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm i -g npm@latest
+          npm ci --prefix ../api-server
           npm ci
       - name: Run build script
         run: npm run react-app:build
