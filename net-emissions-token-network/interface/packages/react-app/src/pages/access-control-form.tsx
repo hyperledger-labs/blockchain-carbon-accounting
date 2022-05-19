@@ -77,7 +77,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
               </Button>
             </Link>
           }
-          { provider && myWalletQuery.data && <>
+          { provider && myWalletQuery.data && !signedInWallet?.private_key && <>
             <h4>My Wallet</h4>
             <UpdateMyWalletForm
               provider={provider}
