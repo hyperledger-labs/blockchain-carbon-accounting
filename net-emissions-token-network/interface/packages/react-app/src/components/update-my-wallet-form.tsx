@@ -53,10 +53,15 @@ const UpdateMyWalletForm: FC<Props> = ({
     <FloatingLabel className="mb-2" controlId="myPublicKeyInput" label="Public Key">
       <Form.Control as="textarea" style={{height: '6em'}} placeholder="RSA Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
     </FloatingLabel>
+{/*
+
+Commented out for now because Metamask decrypt is slow.
+
     {  provider instanceof Web3Provider && !!wallet?.metamask_encrypted_public_key ?
       <p>Your Metamask encryption key was provided.</p> :
       <ProvideMetamaskEncryptionKeyButton provider={provider} signedInAddress={signedInAddress} onSuccess={onSuccess} />
-    }
+   }
+*/}
 
     <Button
       className="w-100 mb-3"
