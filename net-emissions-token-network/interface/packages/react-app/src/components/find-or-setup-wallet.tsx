@@ -33,7 +33,6 @@ import {
   Wallet,
 } from "./static-data";
 import { trpcClient } from "../services/trpc";
-import { TRPCClientError } from "@trpc/client";
 import { getRoles } from "../services/contract-functions";
 import SubmissionModal from "./submission-modal";
 import {
@@ -45,6 +44,7 @@ import {
   unregisterIndustry,
 } from "../services/contract-functions";
 import RolesList from "./roles-list";
+import AddUserForm from "./add-user-form";
 
 function RolesCodesToLi({
   currentRoles,
@@ -126,23 +126,18 @@ type Props = {
 
 const FindOrSetupWallet: FC<Props> = ({
   provider,
-  signedInAddress,
   roles,
   limitedMode,
 }) => {
   const formRef = useRef<HTMLFormElement>(null);
   const lookupRef = useRef<ElementRef<typeof WalletLookupInput>>(null);
-  const [modalShow, setModalShow] = useState(false);
 
-  const [result, setResult] = useState("");
+  const [modalShow, setModalShow] = useState(false);
+  const [modalResult, setModalResult] = useState("");
 
   const [lookupWallet, setLookupWallet] = useState<Wallet | null>(null);
   const [role, setRole] = useState<Role>("None");
   const [address, setAddress] = useState("");
-  const [name, setName] = useState("");
-  const [organization, setOrganization] = useState("");
-  const [publicKey, setPublicKey] = useState("");
-  const [publicKeyName, setPublicKeyName] = useState("");
 
   const [roleError, setRoleError] = useState("");
   const [lookupError, setLookupError] = useState("");
@@ -153,10 +148,8 @@ const FindOrSetupWallet: FC<Props> = ({
   const [theirRoles, setTheirRoles] = useState<RolesInfo>({});
 
   const [fetchingTheirRoles, setFetchingTheirRoles] = useState(false);
-  const [zodErrors, setZodErrors] = useState<any>(null);
 
   const clearAllFormMessages = useCallback(() => {
-    setZodErrors(null);
     setLookupError("");
     setLookupMessage("");
     setRoleError("");
@@ -320,28 +313,29 @@ const FindOrSetupWallet: FC<Props> = ({
 
       switch (role) {
         case RoleEnum.Consumer:
-          result = await fetchUnregisterConsumer(provider, address);
+          result = await unregisterConsumer(provider, address);
           break;
         case RoleEnum.RecDealer:
-          result = await fetchUnregisterDealer(provider, address, 1);
+          result = await unregisterDealer(provider, address, 1);
           break;
         case RoleEnum.OffsetDealer:
-          result = await fetchUnregisterDealer(provider, address, 2);
+          result = await unregisterDealer(provider, address, 2);
           break;
         case RoleEnum.EmissionsAuditor:
-          result = await fetchUnregisterDealer(provider, address, 3);
+          result = await unregisterDealer(provider, address, 3);
           break;
         case RoleEnum.Industry:
-          result = await fetchUnregisterIndustry(provider, address);
+          result = await unregisterIndustry(provider, address);
           break;
         case RoleEnum.IndustryDealer:
-          result = await fetchUnregisterDealer(provider, address, 4);
+          result = await unregisterDealer(provider, address, 4);
           break;
         default:
           const err = `Invalid role was given: ${role}`;
           console.error(err);
           return err;
       }
+      setModalResult(result.toString());
       if (!result || result.toString().indexOf("Success") === -1) {
         console.error("Transaction did not succeed");
         return "The transaction could not be sent to the blockchain: " + result;
@@ -352,64 +346,6 @@ const FindOrSetupWallet: FC<Props> = ({
     },
     []
   );
-
-  async function handleRegister() {
-    if (!provider) return;
-    clearAllFormMessages();
-    // validate
-    if (formRef.current && formRef.current.checkValidity() === false) {
-      setRegisterFormValidated(true);
-      return;
-    }
-
-    setRegisterFormValidated(false);
-    // save wallet info
-    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
-    if (currentRoles.indexOf(role) > -1) {
-      console.error("Wallet " + address + " already has role " + role);
-      setRoleError("That address already has this role.");
-      return;
-    } else {
-      console.log("Current roles not include role", currentRoles, role);
-
-      const error = await registerRoleInContract(provider, address, role);
-      if (error) {
-        setRoleError(error);
-        return;
-      }
-
-      if (role !== RoleEnum.None) currentRoles.push(role);
-      try {
-        const register = await trpcClient.mutation("wallet.register", {
-          address,
-          name,
-          organization,
-          public_key: publicKey,
-          public_key_name: publicKeyName,
-          roles: currentRoles,
-        });
-        setLookupWallet(register?.wallet || null);
-        // reset the form values
-        clearFormFields();
-      } catch (error) {
-        console.error("trpc error;", error);
-        let errorSet = false;
-        if (error instanceof TRPCClientError && error?.data?.zodError) {
-          const zodError = error.data.zodError;
-          setZodErrors(zodError);
-          // handle address errors into lookupError
-          if (zodError.fieldErrors?.address?.length > 0) {
-            const addressError = zodError.fieldErrors?.address?.join("\n");
-            setLookupError(addressError);
-            errorSet = true;
-          }
-        }
-        if (!errorSet)
-          setLookupError("An error occurred while registering the wallet.");
-      }
-      if (role !== RoleEnum.None) setModalShow(true);
-    }
-  }
 
   async function handleSingleRegister() {
     if (!provider) return;
@@ -450,14 +386,6 @@ const FindOrSetupWallet: FC<Props> = ({
     }
   }
 
-  const clearFormFields = useCallback(() => {
-    setName("");
-    setOrganization("");
-    setPublicKey("");
-    setPublicKeyName("");
-    clearAllFormMessages();
-  }, [clearAllFormMessages]);
-
   const registerRoleInContract = useCallback(
     async (provider: Web3Provider | JsonRpcProvider, address: string, role: Role) => {
       let result = null;
@@ -465,28 +393,29 @@ const FindOrSetupWallet: FC<Props> = ({
         case RoleEnum.None:
           return null;
         case RoleEnum.Consumer:
-          result = await fetchRegisterConsumer(provider, address);
+          result = await registerConsumer(provider, address);
           break;
         case RoleEnum.RecDealer:
-          result = await fetchRegisterDealer(provider, address, 1);
+          result = await registerDealer(provider, address, 1);
           break;
         case RoleEnum.OffsetDealer:
-          result = await fetchRegisterDealer(provider, address, 2);
+          result = await registerDealer(provider, address, 2);
           break;
         case RoleEnum.EmissionsAuditor:
-          result = await fetchRegisterDealer(provider, address, 3);
+          result = await registerDealer(provider, address, 3);
           break;
         case RoleEnum.Industry:
-          result = await fetchRegisterIndustry(provider, address);
+          result = await registerIndustry(provider, address);
           break;
         case RoleEnum.IndustryDealer:
-          result = await fetchRegisterDealer(provider, address, 4);
+          result = await registerDealer(provider, address, 4);
           break;
         default:
           const err = `Invalid role was given: ${role}`;
           console.error(err);
           return err;
       }
+      setModalResult(result.toString());
       if (!result || result.toString().indexOf("Success") === -1) {
         console.error("Transaction did not succeed", result);
         return "The transaction could not be sent to the blockchain: " + result;
@@ -498,78 +427,6 @@ const FindOrSetupWallet: FC<Props> = ({
     []
   );
 
-  async function fetchRegisterConsumer(
-    provider: Web3Provider | JsonRpcProvider,
-    address: string
-  ) {
-    let result = await registerConsumer(provider, address);
-    setResult(result.toString());
-    return result;
-  }
-
-  async function fetchUnregisterConsumer(
-    provider: Web3Provider | JsonRpcProvider,
-    address: string
-  ) {
-    let result = await unregisterConsumer(provider, address);
-    setResult(result.toString());
-    return result;
-  }
-
-  async function fetchRegisterIndustry(
-    provider: Web3Provider | JsonRpcProvider,
-    address: string
-  ) {
-    let result = await registerIndustry(provider, address);
-    setResult(result.toString());
-    return result;
-  }
-
-  async function fetchUnregisterIndustry(
-    provider: Web3Provider | JsonRpcProvider,
-    address: string
-  ) {
-    let result = await unregisterIndustry(provider, address);
-    setResult(result.toString());
-    return result;
-  }
-
-  async function fetchRegisterDealer(
-    provider: Web3Provider | JsonRpcProvider,
-    address: string,
-    tokenTypeId: number
-  ) {
-    let result = await registerDealer(provider, address, tokenTypeId);
-    setResult(result.toString());
-    return result;
-  }
-
-  async function fetchUnregisterDealer(
-    provider: Web3Provider | JsonRpcProvider,
-    address: string,
-    tokenTypeId: number
-  ) {
-    let result = await unregisterDealer(provider, address, tokenTypeId);
-    setResult(result.toString());
-    return result;
-  }
-
-  const onNameChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setName(event.target.value);
-  };
-  const onOrganizationChange: ChangeEventHandler<HTMLInputElement> = (
-    event
-  ) => {
-    setOrganization(event.target.value);
-  };
-  const onPublicKeyChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setPublicKey(event.target.value);
-  };
-  const onPublicKeyNameChange: ChangeEventHandler<HTMLInputElement> = (
-    event
-  ) => {
-    setPublicKeyName(event.target.value);
-  };
   const onRoleChange: ChangeEventHandler<HTMLSelectElement> = (event) => {
     setRole(event.target.value as Role);
   };
@@ -579,10 +436,10 @@ const FindOrSetupWallet: FC<Props> = ({
       <SubmissionModal
         show={modalShow}
         title="Manage roles"
-        body={result}
+        body={modalResult}
         onHide={() => {
           setModalShow(false);
-          setResult("");
+          setModalResult("");
         }}
       />
 
@@ -709,111 +566,15 @@ const FindOrSetupWallet: FC<Props> = ({
 
       {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
       {!lookupWallet && hasAssignRolePermissions && showAddUserForm && (
-        <>
-          <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group className="mb-3" controlId="nameInput">
-              <Form.Control
-                type="input"
-                placeholder="User name"
-                value={name}
-                onChange={onNameChange}
-                isInvalid={zodErrors?.fieldErrors?.name?.length > 0}
-              />
-              <Form.Control.Feedback type="invalid">
-                {zodErrors?.fieldErrors?.name?.length > 0 &&
-                  zodErrors?.fieldErrors?.name.map((e: string, i: number) => (
-                    <span key={i}>{e}</span>
-                  ))}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="organizationInput">
-              <Form.Control
-                type="input"
-                placeholder="User organization"
-                value={organization}
-                onChange={onOrganizationChange}
-                isInvalid={zodErrors?.fieldErrors?.organization?.length > 0}
-              />
-              <Form.Control.Feedback type="invalid">
-                {zodErrors?.fieldErrors?.organization?.length > 0 &&
-                  zodErrors?.fieldErrors?.organization.map(
-                    (e: string, i: number) => <span key={i}>{e}</span>
-                  )}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="publicKeyNameInput">
-              <Form.Control
-                type="input"
-                placeholder="User public key name"
-                value={publicKeyName}
-                onChange={onPublicKeyNameChange}
-                isInvalid={zodErrors?.fieldErrors?.public_key_name?.length > 0}
-              />
-              <Form.Control.Feedback type="invalid">
-                {zodErrors?.fieldErrors?.public_key_name?.length > 0 &&
-                  zodErrors?.fieldErrors?.public_key_name.map(
-                    (e: string, i: number) => <span key={i}>{e}</span>
-                  )}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="publicKeyInput">
-              <Form.Control
-                as="textarea"
-                placeholder="User public key"
-                value={publicKey}
-                onChange={onPublicKeyChange}
-                isInvalid={zodErrors?.fieldErrors?.public_key?.length > 0}
-              />
-              <Form.Control.Feedback type="invalid">
-                {zodErrors?.fieldErrors?.public_key?.length > 0 &&
-                  zodErrors?.fieldErrors?.public_key.map(
-                    (e: string, i: number) => <span key={i}>{e}</span>
-                  )}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="mb-3" controlId="RoleInput">
-              {roles?.isAdmin ? (
-                <Form.Select
-                  value={role}
-                  onChange={onRoleChange}
-                  isInvalid={!!roleError}
-                >
-                  <option value={RoleEnum.None}>Choose a Role:</option>
-                  <option value="">-----</option>
-                  <option value={RoleEnum.Consumer}>Consumer</option>
-                  <option value={RoleEnum.RecDealer}>
-                    Renewable Energy Certificate (REC) Dealer
-                  </option>
-                  <option value={RoleEnum.OffsetDealer}>Offset Dealer</option>
-                  <option value={RoleEnum.EmissionsAuditor}>
-                    Emissions Auditor
-                  </option>
-                  <option value={RoleEnum.IndustryDealer}>
-                    Registered Industry Dealer (CarbonTracker)
-                  </option>
-                </Form.Select>
-              ) : (
-                <Form.Select
-                  value={role}
-                  onChange={onRoleChange}
-                  isInvalid={!!roleError}
-                >
-                  <option value={RoleEnum.None}>None</option>
-                  <option value={RoleEnum.Consumer}>Consumer</option>
-                  <option value={RoleEnum.Industry}>Industry Member</option>
-                </Form.Select>
-              )}
-              <Form.Control.Feedback type="invalid">
-                {roleError}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="d-grid gap-2 mt-3">
-              <Button variant="success" size="lg" onClick={handleRegister}>
-                Register
-              </Button>
-            </Form.Group>
-          </Form>
-        </>
+        <AddUserForm
+          provider={provider}
+          roles={roles}
+          address={address}
+          registerRoleInContract={registerRoleInContract}
+          setWallet={setLookupWallet}
+          setError={setLookupError}
+          onSuccess={()=>{setModalShow(true)}}
+          />
       )}
     </>
   );
