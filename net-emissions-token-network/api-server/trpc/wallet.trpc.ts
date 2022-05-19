@@ -203,6 +203,7 @@ export const walletRouter = trpc
             const isSelf = !!found && (account === found.address) || (account === input.address)
             const roles = await getRoles(account, ctx.opts)
             const isAdmin = roles && roles.isAdmin
+            console.log(`Verified ${account} isSelf? ${isSelf} isAdmin? ${isAdmin}`)
             if (found && (isSelf || isAdmin)) {
                 const wallet = await ctx.db.getWalletRepo().getRepository().save({
                     ...found,

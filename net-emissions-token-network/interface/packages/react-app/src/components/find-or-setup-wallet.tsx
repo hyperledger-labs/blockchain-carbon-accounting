@@ -11,6 +11,7 @@ import {
 import {
   Alert,
   Button,
+  Card,
   Form,
   InputGroup,
   Spinner,
@@ -355,60 +356,63 @@ const FindOrSetupWallet: FC<Props> = ({
         </Alert>
       )}
       {lookupMessage && <p>{lookupMessage}</p>}
-      {lookupWallet && lookupWallet.address && (
-        <DisplayWalletDetails
-          provider={provider}
-          signedInAddress={signedInAddress}
-          roles={roles}
-          wallet={lookupWallet}
-          unregisterRoleInContract={unregisterRoleInContract}
-          setWallet={setLookupWallet}
-          setError={setLookupError}
-          onSuccess={()=>{setModalShow(true)}}
-          />
-      )}
-      {fetchingTheirRoles && (
-        <div className="text-center mt-3 mb-3">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      )}
-      {theirRoles && <RolesList roles={theirRoles} />}
 
-      {/* For existing wallet, display roles to add if owner has permissions for the roles. */}
-      {lookupWallet && hasAssignRolePermissions && (
-        <>
-          <h4>Add Role</h4>
-          <Form ref={formRef} noValidate validated={registerFormValidated}>
-            <Form.Group className="mb-3" controlId="rolesInput">
-              {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 ? (
-                <Form.Select onChange={onRoleChange} isInvalid={!!roleError}>
-                  {rolesThatCanBeAssigned.map((r, i) => (
-                    <option key={i} value={r.value}>
-                      {r.label}
-                    </option>
-                  ))}
-                </Form.Select>
-              ) : (
-                <p>You cannot assign any more role to this user.</p>
-              )}
-              <Form.Control.Feedback type="invalid">
-                {roleError}
-              </Form.Control.Feedback>
-            </Form.Group>
-            <Form.Group className="d-grid gap-2 mt-3">
-              <Button
-                variant="success"
-                size="lg"
-                onClick={handleSingleRegister}
-              >
-                Add Role
-              </Button>
-            </Form.Group>
-          </Form>
-        </>
-      )}
+      {(lookupWallet || fetchingTheirRoles || theirRoles?.hasAnyRole ) && <Card body>
+        {lookupWallet && lookupWallet.address && (
+          <DisplayWalletDetails
+            provider={provider}
+            signedInAddress={signedInAddress}
+            roles={roles}
+            wallet={lookupWallet}
+            unregisterRoleInContract={unregisterRoleInContract}
+            setWallet={setLookupWallet}
+            setError={setLookupError}
+            onSuccess={()=>{setModalShow(true)}}
+            />
+        )}
+        {fetchingTheirRoles && (
+          <div className="text-center mt-3 mb-3">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
+        )}
+        {theirRoles && <RolesList roles={theirRoles} />}
+
+        {/* For existing wallet, display roles to add if owner has permissions for the roles. */}
+        {lookupWallet && hasAssignRolePermissions && (
+          <>
+            <h4>Add Role</h4>
+            <Form ref={formRef} noValidate validated={registerFormValidated}>
+              <Form.Group className="mb-3" controlId="rolesInput">
+                {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 ? (
+                  <Form.Select onChange={onRoleChange} isInvalid={!!roleError}>
+                    {rolesThatCanBeAssigned.map((r, i) => (
+                      <option key={i} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </Form.Select>
+                ) : (
+                    <p>You cannot assign any more role to this user.</p>
+                  )}
+                <Form.Control.Feedback type="invalid">
+                  {roleError}
+                </Form.Control.Feedback>
+              </Form.Group>
+              <Form.Group className="d-grid gap-2 mt-3">
+                <Button
+                  variant="success"
+                  size="lg"
+                  onClick={handleSingleRegister}
+                >
+                  Add Role
+                </Button>
+              </Form.Group>
+            </Form>
+            </>
+        )}
+      </Card>}
 
       {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
       {!lookupWallet && hasAssignRolePermissions && showAddUserForm && (

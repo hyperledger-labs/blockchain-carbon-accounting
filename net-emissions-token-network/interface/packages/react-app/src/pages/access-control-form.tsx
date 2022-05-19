@@ -79,7 +79,11 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
           }
           { provider && myWalletQuery.data && <>
             <h4>My Wallet</h4>
-            <UpdateMyWalletForm provider={provider} signedInAddress={signedInAddress} wallet={myWalletQuery.data.wallet} onSuccess={()=>{ myWalletQuery.refetch() }} />
+            <UpdateMyWalletForm
+              provider={provider}
+              signedInAddress={signedInAddress}
+              wallet={myWalletQuery.data.wallet}
+              onSuccess={()=>{ myWalletQuery.refetch() }} />
             </>}
         </>
       }
