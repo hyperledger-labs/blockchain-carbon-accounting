@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ChangeEvent, FC, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, FloatingLabel, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -238,18 +238,61 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
   const [stored, setStored] = useState<StoredRequest[]>([]);
+  const [storedSelected, setStoredSelected] = useState('new');
+
+
+  const selectEmissionsFactor = useCallback((factor: EmissionsFactorInterface|null) => {
+    setEmissionsFactor(factor)
+    setEmForm(e=>{return {
+      ...e,
+      emissions_factor_uuid: factor?.uuid??'',
+      activity_uom: factor?.activity_uom??''
+    }})
+  }, []);
+
+  const restoreStored = useCallback(async (v: string) => {
+    setStoredSelected(v);
+    if (v === 'new') {
+      resetForm();
+      return;
+    }
+    const i = Number(v);
+    const f = {...stored[i].request }
+    console.log('Switch to previous request ', f)
+    if (f.emissions_factor_uuid) {
+      const factor = await trpcClient.query('emissionsFactors.get', { uuid: f.emissions_factor_uuid });
+      if (factor?.emissionsFactor) {
+        selectEmissionsFactor(factor.emissionsFactor)
+      }
+    }
+    setEmForm(f)
+  }, [selectEmissionsFactor, stored]);
 
   useEffect(()=>{
-    // if we had saved emissionsRequest, then redirect to the Request audit page
+    // if we had saved emissionsRequest and we got redirected
+    // we can auto restore the latest saved request
     const ls = localStorage.getItem('emissionsRequest')
+    const fromAudit = localStorage.getItem('fromAudit')
     const stored = ls ? JSON.parse(ls) : []
     setStored(stored)
-    if (stored.length > 0) {
+    if (fromAudit && stored.length > 0) {
+      console.log('Coming fromAudit and have stored request')
+      localStorage.removeItem('fromAudit')
       // restore the last one
-      const last = stored[stored.length-1]
-      setEmForm({...last.request})
+      const i = ''+(stored.length-1);
+      setStoredSelected(i);
+      const f = {...stored[i].request }
+      console.log('Switch to previous request ', f)
+      if (f.emissions_factor_uuid) {
+        trpcClient.query('emissionsFactors.get', { uuid: f.emissions_factor_uuid }).then((factor)=>{
+          if (factor?.emissionsFactor) {
+            selectEmissionsFactor(factor.emissionsFactor)
+          }
+        });
+      }
+      setEmForm(f)
     }
-  }, [])
+  }, [selectEmissionsFactor])
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {}], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
@@ -338,15 +381,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
   }], {
     enabled: emForm.activity_type === 'natural_gas',
   })
-
-  const selectEmissionsFactor = (factor: EmissionsFactorInterface|null) => {
-    setEmissionsFactor(factor)
-    setEmForm({
-      ...emForm,
-      emissions_factor_uuid: factor?.uuid??'',
-      activity_uom: factor?.activity_uom??''
-    })
-  }
 
   // Form validation logic
   const formNotReady = useMemo(()=>{
@@ -523,22 +557,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
       { stored && stored.length > 0 && <>
         <FloatingLabel className="mb-3" controlId="prev" label="Previous requests">
           <Form.Select aria-label="Previous requests"
-            onChange={async(e)=>{
-              if (e.currentTarget.value === 'new') {
-                resetForm();
-                return;
-              }
-              const i = Number(e.currentTarget.value);
-              const f = {...stored[i].request }
-              console.log('Switch to previous request ', f)
-              if (f.emissions_factor_uuid) {
-                const factor = await trpcClient.query('emissionsFactors.get', { uuid: f.emissions_factor_uuid });
-                if (factor?.emissionsFactor) {
-                  selectEmissionsFactor(factor.emissionsFactor)
-                }
-              }
-              setEmForm(f)
-            }}
+            value={storedSelected}
+            onChange={(e)=>{ restoreStored(e.currentTarget.value) }}
           >
             <option value="new">Select a previous request</option>
             { stored.map((s, i) =>

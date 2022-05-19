@@ -79,7 +79,6 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
           const fromAudit = localStorage.getItem('fromAudit')
           const stored = ls ? JSON.parse(ls) : []
           if (fromAudit && stored.length > 0) {
-            localStorage.removeItem('fromAudit')
             setLocation('/requestAudit')
           } else {
             setLocation('/dashboard')
