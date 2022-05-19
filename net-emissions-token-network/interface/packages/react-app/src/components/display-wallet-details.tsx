@@ -82,6 +82,7 @@ function RolesCodesToLi({
 type WalletForm = {
   name: string,
   organization: string,
+  email: string,
   error: string,
   success: string,
   loading: string
@@ -91,6 +92,7 @@ type WalletFormErrors = Partial<WalletForm>
 const defaultWalletForm: WalletForm = {
   name: "",
   organization: "",
+  email: "",
   error: "",
   success: "",
   loading: ""
@@ -123,6 +125,7 @@ const DisplayWalletDetails: FC<Props> = ({
   const [formErrors, setFormErrors] = useState<WalletFormErrors>({})
 
   useEffect(()=>{
+    console.log('setting form ?', wallet)
     setForm({
       ...defaultWalletForm,
       ...wallet
@@ -160,7 +163,8 @@ const DisplayWalletDetails: FC<Props> = ({
       const payload = {
         address: wallet!.address!,
         name: form.name,
-        organization: form.organization
+        organization: form.organization,
+        email: form.email
       }
       const message = JSON.stringify(payload)
       const signature = await provider!.getSigner().signMessage(message)
@@ -201,6 +205,7 @@ const DisplayWalletDetails: FC<Props> = ({
         <div className="mb-2"><b>Address</b>: {wallet.address}</div>
         <FormInputRow form={form} setForm={setForm} errors={formErrors} field="name" label="Name" />
         <FormInputRow form={form} setForm={setForm} errors={formErrors} field="organization" label="Organization" />
+        <FormInputRow form={form} setForm={setForm} errors={formErrors} field="email" label="Email" />
         {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }}/>}
         <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
           {!!form.loading ?

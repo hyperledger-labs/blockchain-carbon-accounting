@@ -89,7 +89,7 @@ export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ fo
       max={max}
       step={step}
       placeholder={placeholder||label}
-      value={form[field] as string}
+      value={form[field]??'' as string}
       onChange={e=>{ setForm({...form, [field]: e.currentTarget.value }); if (onChange) onChange(e.currentTarget.value); }}
       onFocus={e=>e.currentTarget.select()}
       required={required}
@@ -103,7 +103,7 @@ export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ fo
 export const FormSelectRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, alsoSet, label, placeholder, values, required, disabled, errors, onChange }:PropsWithChildren<FormSelectRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Select aria-label={label}
-      value={form[field] as string}
+      value={form[field]??'' as string}
       disabled={disabled}
       onChange={e=>{
         const v = e.currentTarget.value;
@@ -134,7 +134,7 @@ export const FormWalletRow = <T extends GenericForm, T2 extends Partial<T>,>({ f
     <Form.Label>{label}</Form.Label>
     <InputGroup className={(showValidation && errors && errors[field]) ? 'is-invalid' : ''}>
       <WalletLookupInput
-        value={form[field]}
+        value={form[field]??''}
         disabled={disabled}
         onChange={(v: string) => { setForm({...form, [field]: v}); if (onChange) onChange(v); }} 
         onWalletChange={(w)=>{
