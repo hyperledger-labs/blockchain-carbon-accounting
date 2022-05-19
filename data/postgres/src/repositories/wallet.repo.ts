@@ -192,7 +192,7 @@ export class WalletRepo {
     // to use as order clause, perhaps the best way here is to use a custom
     // prepared statement:
     const res = await this.getRepository().query(
-      `SELECT address, name, organization FROM wallet
+      `SELECT address, name, organization, roles FROM wallet
        WHERE LOWER(address) LIKE LOWER($1)
        OR LOWER(name) LIKE LOWER($1)
        OR LOWER(organization) LIKE LOWER($1)
