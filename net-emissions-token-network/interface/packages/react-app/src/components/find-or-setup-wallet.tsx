@@ -1,8 +1,6 @@
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import {
   FC,
-  ReactNode,
-  useContext,
   ChangeEventHandler,
   useRef,
   useState,
@@ -11,20 +9,13 @@ import {
   useMemo,
 } from "react";
 import {
-  Accordion,
-  AccordionContext,
   Alert,
   Button,
   Form,
   InputGroup,
-  OverlayTrigger,
   Spinner,
-  Tooltip,
-  useAccordionButton,
 } from "react-bootstrap";
 import WalletLookupInput from "./wallet-lookup-input";
-import { CopyToClipboard } from "react-copy-to-clipboard";
-import { FaRegClipboard } from "react-icons/fa";
 import {
   Role,
   RoleEnum,
@@ -33,89 +24,17 @@ import {
   Wallet,
 } from "./static-data";
 import { trpcClient } from "../services/trpc";
-import { getRoles } from "../services/contract-functions";
+import { getRoles, unregisterConsumer, unregisterDealer, unregisterIndustry } from "../services/contract-functions";
 import SubmissionModal from "./submission-modal";
 import {
   registerConsumer,
-  unregisterConsumer,
   registerIndustry,
   registerDealer,
-  unregisterDealer,
-  unregisterIndustry,
 } from "../services/contract-functions";
 import RolesList from "./roles-list";
 import AddWalletForm from "./add-wallet-form";
+import DisplayWalletDetails from "./display-wallet-details";
 
-function RolesCodesToLi({
-  currentRoles,
-  roles,
-  unregister,
-}: {
-  currentRoles: RolesInfo;
-  roles: string | Role[] | undefined;
-  unregister?: (r: Role) => void;
-}) {
-  if (!roles) return null;
-  const arr: Role[] = Array.isArray(roles)
-    ? roles
-    : (roles.split(",") as Role[]);
-  return (
-    <>
-      {arr.sort().map((r) => (
-        <li key={r}>
-          {r}
-          {unregister &&
-            (currentRoles.isAdmin ||
-              ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) &&
-                r === "Consumer")) && (
-              <Button
-                variant="outline-danger"
-                className="ms-2 my-1"
-                size="sm"
-                onClick={() => {
-                  unregister(r);
-                }}
-              >
-                Unregister
-              </Button>
-            )}
-        </li>
-      ))}
-    </>
-  );
-}
-
-function CustomToggle({
-  children,
-  eventKey,
-}: {
-  children: ReactNode;
-  eventKey: string;
-}) {
-  const { activeEventKey } = useContext(AccordionContext);
-  const decoratedOnClick = useAccordionButton(eventKey);
-  console.log("CustomToggle", eventKey, activeEventKey);
-  const isCurrentEventKey = activeEventKey === eventKey;
-
-  return (
-    <div>
-      <span className="me-3">{children}</span>
-      {isCurrentEventKey ? (
-        <Button
-          onClick={decoratedOnClick}
-          size="sm"
-          variant="outline-secondary"
-        >
-          Hide
-        </Button>
-      ) : (
-        <Button onClick={decoratedOnClick} size="sm" variant="outline-primary">
-          Show
-        </Button>
-      )}
-    </div>
-  );
-}
 
 type Props = {
   provider?: Web3Provider | JsonRpcProvider;
@@ -126,6 +45,7 @@ type Props = {
 
 const FindOrSetupWallet: FC<Props> = ({
   provider,
+  signedInAddress,
   roles,
   limitedMode,
 }) => {
@@ -155,30 +75,6 @@ const FindOrSetupWallet: FC<Props> = ({
     setRoleError("");
   }, []);
 
-  async function handleSingleUnregister(wallet: Wallet, role: Role) {
-    if (!provider) return;
-    const error = await unregisterRoleInContract(
-      provider,
-      wallet.address!,
-      role
-    );
-    if (error) {
-      setLookupError(error);
-      return;
-    }
-    try {
-      const unregister = await trpcClient.mutation("wallet.unregisterRoles", {
-        address: wallet.address!,
-        roles: [role],
-      });
-      setLookupWallet(unregister?.wallet || null);
-      setLookupError("");
-    } catch (error) {
-      console.error("trpc error;", error);
-      setLookupError("An error occurred while unregistering the wallet role.");
-    }
-    setModalShow(true);
-  }
 
   const hasAssignRolePermissions = useMemo(
     () =>
@@ -307,6 +203,45 @@ const FindOrSetupWallet: FC<Props> = ({
     }
   }, [lookupWallet, provider, address, theirRoles, hasAssignRolePermissions]);
 
+  async function handleSingleRegister() {
+    if (!provider) return;
+    // validate
+    if (formRef.current && formRef.current.checkValidity() === false) {
+      setRegisterFormValidated(true);
+      return;
+    }
+
+    setRegisterFormValidated(false);
+    // save wallet info
+    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
+    if (currentRoles.indexOf(role) > -1) {
+      console.error("Wallet " + address + " already has role " + role);
+      setRoleError("That address already has this role.");
+      return;
+    } else {
+      setRoleError("");
+      console.log("Current roles not include role", currentRoles, role);
+
+      const error = await registerRoleInContract(provider, address, role);
+      if (error) {
+        setRoleError(error);
+        return;
+      }
+      try {
+        const register = await trpcClient.mutation("wallet.registerRoles", {
+          address,
+          roles: [role],
+        });
+        setLookupWallet(register?.wallet || null);
+        setLookupError("");
+      } catch (error) {
+        console.error("trpc error;", error);
+        setLookupError("An error occurred while registering the wallet role.");
+      }
+      setModalShow(true);
+    }
+  }
+
   const unregisterRoleInContract = useCallback(
     async (provider: Web3Provider | JsonRpcProvider, address: string, role: Role) => {
       let result = null;
@@ -346,45 +281,6 @@ const FindOrSetupWallet: FC<Props> = ({
     },
     []
   );
-
-  async function handleSingleRegister() {
-    if (!provider) return;
-    // validate
-    if (formRef.current && formRef.current.checkValidity() === false) {
-      setRegisterFormValidated(true);
-      return;
-    }
-
-    setRegisterFormValidated(false);
-    // save wallet info
-    const currentRoles = rolesInfoToArray(await getRoles(provider, address));
-    if (currentRoles.indexOf(role) > -1) {
-      console.error("Wallet " + address + " already has role " + role);
-      setRoleError("That address already has this role.");
-      return;
-    } else {
-      setRoleError("");
-      console.log("Current roles not include role", currentRoles, role);
-
-      const error = await registerRoleInContract(provider, address, role);
-      if (error) {
-        setRoleError(error);
-        return;
-      }
-      try {
-        const register = await trpcClient.mutation("wallet.registerRoles", {
-          address,
-          roles: [role],
-        });
-        setLookupWallet(register?.wallet || null);
-        setLookupError("");
-      } catch (error) {
-        console.error("trpc error;", error);
-        setLookupError("An error occurred while registering the wallet role.");
-      }
-      setModalShow(true);
-    }
-  }
 
   const registerRoleInContract = useCallback(
     async (provider: Web3Provider | JsonRpcProvider, address: string, role: Role) => {
@@ -460,66 +356,16 @@ const FindOrSetupWallet: FC<Props> = ({
       )}
       {lookupMessage && <p>{lookupMessage}</p>}
       {lookupWallet && lookupWallet.address && (
-        <ul>
-          <li>Name: {lookupWallet.name}</li>
-          <li>Address: {lookupWallet.address}</li>
-          {lookupWallet.organization && (
-            <li>Organization: {lookupWallet.organization}</li>
-          )}
-          {lookupWallet.public_key_name && (
-            <li>Public Key Name: {lookupWallet.public_key_name}</li>
-          )}
-          {lookupWallet.public_key && (
-            <li>
-              <Accordion>
-                <CustomToggle eventKey="0">
-                  Public Key:
-                  {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
-                  <CopyToClipboard text={lookupWallet.public_key_name}>
-                    <span className="text-secondary">
-                      <OverlayTrigger
-                        trigger="click"
-                        placement="bottom"
-                        rootClose={true}
-                        delay={{ show: 250, hide: 400 }}
-                        overlay={
-                          <Tooltip id="copied-pubkey-tooltip">
-                            Copied to clipboard!
-                          </Tooltip>
-                        }
-                      >
-                        <sup style={{ cursor: "pointer" }}>
-                          &nbsp;
-                          <FaRegClipboard />
-                        </sup>
-                      </OverlayTrigger>
-                    </span>
-                  </CopyToClipboard>
-                </CustomToggle>
-
-                <Accordion.Collapse eventKey="0">
-                  <pre>{lookupWallet.public_key}</pre>
-                </Accordion.Collapse>
-              </Accordion>
-            </li>
-          )}
-          {lookupWallet.roles ? (
-            <li>
-              Roles:{" "}
-              <ul>
-                <RolesCodesToLi
-                  currentRoles={roles}
-                  roles={lookupWallet.roles}
-                  unregister={(r) => {
-                    handleSingleUnregister(lookupWallet, r);
-                  }}
-                />
-              </ul>
-            </li>
-          ) : (
-            <li>No roles found.</li>
-          )}
-        </ul>
+        <DisplayWalletDetails
+          provider={provider}
+          signedInAddress={signedInAddress}
+          roles={roles}
+          wallet={lookupWallet}
+          unregisterRoleInContract={unregisterRoleInContract}
+          setWallet={setLookupWallet}
+          setError={setLookupError}
+          onSuccess={()=>{setModalShow(true)}}
+          />
       )}
       {fetchingTheirRoles && (
         <div className="text-center mt-3 mb-3">
