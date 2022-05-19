@@ -76,8 +76,10 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
           loadWalletInfo(wallet);
           // if we had saved emissionsRequest, then redirect to the Request audit page
           const ls = localStorage.getItem('emissionsRequest')
+          const fromAudit = localStorage.getItem('fromAudit')
           const stored = ls ? JSON.parse(ls) : []
-          if (stored.length > 0) {
+          if (fromAudit && stored.length > 0) {
+            localStorage.removeItem('fromAudit')
             setLocation('/requestAudit')
           } else {
             setLocation('/dashboard')

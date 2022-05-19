@@ -752,7 +752,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
             <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
               <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
-              {!signedInAddress && <div className="mt-3">Sign up for an account to record your emissions: <Link href="/sign-up">Sign Up</Link></div>}
+              {!signedInAddress && <div className="mt-3">Sign up for an account to record your emissions: <Link href="/sign-up" onClick={()=>{localStorage.setItem('fromAudit', 'true')}}>Sign Up</Link></div>}
             </SuccessAlert>
             : 
 
