@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "./Governance/CarbonTracker.sol";
 contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
 
     using SafeMathUpgradeable for uint256;
@@ -77,7 +78,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     // Token metadata and retired balances
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
-    mapping(uint256 => mapping(address => uint256)) private _transferredBalances;
 
     // Nonce for tokeTypeId 4 transfer from => to account
     mapping(address => mapping(address => uint32)) private carbonTransferNonce;
@@ -177,11 +177,11 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             //hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender) ||
             //hasRole(REGISTERED_INDUSTRY_DEALER, msg.sender) ||
             // the below will achieve the same as the above
-            hasRole(REGISTERED_DEALER,msg.sender) || 
+            hasRole(REGISTERED_DEALER,msg.sender) 
             // REGISTERED_INDSUTRY are considered dealers of carbon tokens
             // but have not be assigned REGISTERED_DEALER role by admin
-            hasRole(REGISTERED_INDUSTRY,msg.sender),
-            "CLM8::onlyDealer: msg.sender not a dealer"
+            // || hasRole(REGISTERED_INDUSTRY,msg.sender)
+            ,"CLM8::onlyDealer: msg.sender not a dealer"
         );
     }
 
@@ -305,15 +305,12 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             // issue (from == address(0)) or
             // burn/retire (to == address(0))
             // otherwise require receiver (to address) to have approved (signed) the transferHash
-            if(token.tokenTypeId == 4 && to != address(0) && from != address(0)) {
+            /*if(token.tokenTypeId == 4 && to != address(0) && from != address(0)) {
                 approveCarbon = false;//true;
                 // TO-DO: drop internal approval of carbon transfers?
                 // voluntary carbon tracker token can be sent to anyone to use in the C-NFT
                 // they can be sent without approval inviting the receiver to track them to their NFT
-                // accumulate total transferred balances (not minted or burnt)
-                _transferredBalances[token.tokenId][from] =
-                    _transferredBalances[token.tokenId][from].add(amounts[i]);
-            }
+            }*/
 
         }
         if(approveCarbon){
@@ -396,6 +393,56 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         );
     }
 
+    function issueAndTrack(
+        uint160 issuedFrom,
+        address issuedTo,
+        address trackerAddress,
+        uint trackerId,
+        //string memory trackerDescription,
+        uint8 tokenTypeId,
+        uint256 quantity,
+        uint256 fromDate,
+        uint256 thruDate,
+        string memory metadata,
+        string memory manifest,
+        string memory description
+    ) public onlyDealer {
+        CarbonTracker ct = CarbonTracker(trackerAddress);
+        require(ct.netAddress()==address(this),
+            "CLM8::issueAndTrack: trackerAddress does not belong to address(this)");
+        require(ct._numOfUniqueTrackers()>=trackerId,
+            "CLM8::issueAndTrack: trackerId does not exist");
+        require(
+            (   (hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender)
+                //&& isVerifierApproved[msg.sender][trackerData.trackee]
+                )
+                ),"CLM8::issueAndTrack: msg.sender is not an approved auditor"
+        );
+        uint[] memory tokenIds = new uint[](1);
+        uint[] memory tokenAmounts = new uint[](1);
+
+        _issue(
+            msg.sender, // issuedBy
+            issuedFrom,
+            trackerAddress,
+            tokenTypeId,
+            quantity,
+            fromDate,
+            thruDate,
+            metadata,
+            manifest,
+            description
+        );
+        string memory trackerDescription="";
+        tokenIds[0]=_numOfUniqueTokens.current();
+        tokenAmounts[0]=quantity;
+        if(trackerId==0){
+            trackerId=ct.track(issuedTo,tokenIds,tokenAmounts,fromDate,thruDate,trackerDescription);
+        }else{
+            ct.trackUpdate(trackerId,tokenIds,tokenAmounts,fromDate,thruDate,trackerDescription);
+        }
+    }
+
     function _issue(
         address _issuedBy,
         uint160 _issuedFrom,
@@ -428,7 +475,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
                     hasRole(REGISTERED_REC_DEALER, _issuedBy) || hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue(limited): proposer not a registered dealer"
                 );
-            } else if (_tokenTypeId == 3) {
+            } else if (_tokenTypeId == 3 || _tokenTypeId == 4) {
                 require(
                     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
                     "CLM8::_issue(limited): issuer not a registered emissions auditor"
@@ -445,7 +492,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
                     hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue: issuer not a registered offset dealer"
                 );
-            } else if (_tokenTypeId == 3) {
+            } else if (_tokenTypeId == 3  || _tokenTypeId == 4) {
                 require(
                     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuedBy),
                     "CLM8::_issue: issuer not a registered emissions auditor"
@@ -454,19 +501,13 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
                 //     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
                 //     "CLM8::_issue: issuer not a registered emissions auditor"
                 // );
-            }
+            }/*else if (_tokenTypeId == 4) {
+                require(
+                    hasRole(REGISTERED_INDUSTRY_DEALER, _issuedBy),
+                    "CLM8::_issue(limited): issuer not a registered industry dealer"
+                );
+            }*/
         }
-        // TO-DO: Define limited mode for tokenTypeId 4?
-        if (_tokenTypeId == 4) {
-            require(
-                hasRole(REGISTERED_INDUSTRY, _issuedBy),
-                "CLM8::_issue: issuer not a registered industry"
-            );
-            require(
-                msg.sender == _issuedBy,
-                "CLM8::_issue: registered industry can only issue carbon to itself"
-            );
-        } 
 
         // increment token identifier
         _numOfUniqueTokens.increment();
@@ -560,10 +601,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     function getRetiredBalances(uint tokenId, address account) 
         external view returns(uint){
         return _retiredBalances[tokenId][account];
-    }
-    function getTransferredBalances(uint tokenId, address account) 
-        external view returns(uint){
-        return _transferredBalances[tokenId][account];
     }
 
     /**
@@ -821,17 +858,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         uint256 retired = this.getTokenRetiredAmount(account, tokenId);
         return (available, retired);
     }
-    function getAvailableRetiredAndTransferred(address account, uint256 tokenId)
-        external
-        view
-        returns (uint256, uint256, uint256)
-    {
-        uint256 available;
-        uint256 retired;
-        (available,retired) = this.getAvailableAndRetired(account, tokenId);
-        uint256 transferred = _transferredBalances[tokenId][account];
-        return (available, retired, transferred);
-    }
 
     /**
      * @dev returns issuer of a given tokenId
@@ -881,6 +907,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
 
     function isAuditor(address auditor) view external returns (bool) {
         return hasRole(REGISTERED_EMISSIONS_AUDITOR, auditor);
+    }
+    function isIndustry(address industry) view external returns (bool) {
+        return hasRole(REGISTERED_INDUSTRY, industry);
     }
 
 }

@@ -51,17 +51,22 @@ export type Tracker = {
   thruDate?: number
   metadata: string
   description: string
-  totalEmissions: string
-  totalAudited:string 
-  totalOut: string
-  ciAec: string
-  ciVct: string
-  sourceTrackers: {
-    trackerIds: number[]
-    trackerAmounts: any[]
-    tokenIds: number[]
-    totalOut: string[]
-    totalTracked: string[]
+  totalEmissions: number
+  myProductsTotalEmissions: number
+  auditor: string
+  products:{ 
+    ids: number[]
+    names: string[]
+    myBalances: number[]
+    amounts: number[]
+    available: number[]
+    emissionFactors: number[]
+    conversions: number[]
+    units: string[]
+  }
+  tokens:{
+    amounts: number[]
+    details: any[]
   }
 }
 

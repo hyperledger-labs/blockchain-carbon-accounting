@@ -13,7 +13,10 @@ import IssuedTokens from "./pages/issued-tokens";
 import EmissionsRequests from "./pages/emissions-requests";
 import PendingEmissions from "./pages/pending-emissions";
 import IssueForm from "./pages/issue-form";
+import IssuedTrackers from "./pages/issued-trackers";
 import TrackForm from "./pages/track-form";
+import ProductForm from "./pages/product-form";
+import ProductTransferForm from "./pages/product-transfer-form";
 import TransferForm from "./pages/transfer-form";
 import RetireForm from "./pages/retire-form";
 import AccessControlForm from "./pages/access-control-form";
@@ -31,7 +34,6 @@ const App:FC = () => {
   const [trpcClient] = useTrpcClient();
 
   const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh } = useWeb3Modal();
-
   const [location] = useLocation();
 
   const dashboardRef = useRef<ElementRef<typeof Dashboard>>(null);
@@ -81,8 +83,9 @@ const App:FC = () => {
           <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
           {((limitedMode && isOwner) || !limitedMode) &&
-            <Link href="/track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
+            <Link href="/issuedTrackers"><Nav.Link eventKey="issuedTrackers">Track</Nav.Link></Link>
         }
+
 
           {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
           {(location.substring(1) === "access-control")
@@ -135,9 +138,18 @@ const App:FC = () => {
                 <Route path="/retire">
                   <RetireForm provider={provider} roles={roles} />
                 </Route>
-                <Route path="/track">
-                  <TrackForm provider={provider} registeredTracker={registeredTracker}/>
-                </Route>
+                <Route path="/issuedTrackers/:address?">{params=>
+                  <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
+                }</Route>
+                <Route path="/track/:trackerId?">{params=>
+                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} privateKey = {privateKey} trackerId={Number(params.trackerId)}/>
+                }</Route>
+                <Route path="/addProduct/:trackerId?">{params=>
+                  <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                }</Route>
+                <Route path="/transferProduct/:trackerId/:productId?">{params=>
+                  <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} trackerId={Number(params.trackerId)} productId={Number(params.productId)}/>
+                }</Route>
                 <Route path="/access-control">
                   <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
                 </Route>

@@ -26,6 +26,7 @@ const rolesChanged = async (address: string, opts: OPTS_TYPE) => {
   await syncWalletRoles(address, opts);
 }
 
+
 export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
   const contract = getContract({...opts, use_web_socket: true})
 
@@ -61,8 +62,8 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
         ..._tokenPayload,
         scope,
         type,
-        totalIssued: token.totalIssued,
-        totalRetired: token.totalRetired,
+        totalIssued: token.totalIssued.toString(),
+        totalRetired: token.totalRetired.toString(),
         metadata: metaObj
       }
 
@@ -89,7 +90,8 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
       const tokenId: number = transferred.id;
       const from: string = transferred.from;
       const to: string = transferred.to;
-      const amount = BigInt(transferred.value); // it must be divided by 10^3
+      //const amount = BigInt(transferred.value); // it must be divided by 10^3
+      const amount = transferred.value.toString(); // it must be divided by 10^3
 
       // issue case
       if(from == BURN) {
@@ -97,8 +99,8 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
           tokenId,
           issuedTo: to,
           available: amount,
-          retired: 0n,
-          transferred: 0n
+          retired: "0",//0n,
+          transferred: "0",//0n
         }
         await insertNewBalance(balancePayload);
         await db.getTokenRepo().updateTotalIssued(tokenId, amount);
@@ -127,8 +129,8 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
           tokenId,
           issuedTo: to,
           available: amount,
-          retired: 0n,
-          transferred: 0n
+          retired: "0",//0n,
+          transferred: "0",//0n
         }
         await insertNewBalance(balancePayload);
       } else {

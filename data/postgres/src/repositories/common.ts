@@ -4,9 +4,9 @@ import { EmissionsRequest } from "../models/emissionsRequest";
 export interface BalancePayload {
   issuedTo: string
   tokenId: number
-  available: bigint
-  retired: bigint
-  transferred: bigint
+  available: string
+  retired: string
+  transferred: string
 }
 
 export type QueryBundle = {
@@ -33,11 +33,39 @@ export interface TokenPayload {
   metadata: Object;
   manifest: Object;
   description: string;
-  totalIssued: bigint;
-  totalRetired: bigint;
+  totalIssued: string;
+  totalRetired: string;
   scope: number;
   type: string;
 }
+
+export interface TrackerPayload {
+  trackerId: number;
+  trackee: string;
+  auditor: string;
+  totalProductAmounts: string;
+  totalEmissions: string;
+  totalOffset: string;
+  fromDate: number;
+  thruDate: number;
+  dateCreated: number;
+  metadata: Object;
+  description: string;
+}
+
+export interface ProductPayload {
+  productId: number;
+  trackerId: number;
+  auditor: string;
+  amount: string;
+  available: string;
+  name: string;
+  unit: string;
+  unitAmount: string;
+  hash: string;
+}
+
+
 
 export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
 

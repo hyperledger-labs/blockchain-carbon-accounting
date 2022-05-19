@@ -4,6 +4,8 @@ import { initDb } from './models'
 import { BalanceRepo } from "./repositories/balance.repo"
 import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
 import { TokenRepo } from "./repositories/token.repo"
+import { TrackerRepo } from "./repositories/tracker.repo"
+import { ProductRepo } from "./repositories/product.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
 import { EmissionsRequestRepo } from "./repositories/emissionsRequest.repo"
@@ -65,6 +67,14 @@ export class PostgresDBService {
 
   public getTokenRepo() {
     return new TokenRepo(this._db)
+  }
+
+  public getTrackerRepo() {
+    return new TrackerRepo(this._db)
+  }
+
+  public getProductRepo() {
+    return new ProductRepo(this._db)
   }
 
   public getBalanceRepo() {

@@ -154,8 +154,10 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
             scope,
             type,
             // reset totalIssued and totalRetired
-            totalIssued: 0n,
-            totalRetired: 0n,
+            totalIssued: "0",
+            totalRetired: "0",
+//**            totalIssued: 0n,
+//**            totalRetired: 0n,
             metadata: metaObj,
             manifest: manifestObj
         };
@@ -219,15 +221,18 @@ export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
             const tokenId: number = singleTransfer.id;
             const from: string = singleTransfer.from;
             const to: string = singleTransfer.to;
-            const amount = BigInt(singleTransfer.value); // it must be divided by 10^3
+            const amount: string = singleTransfer.value; // it must be divided by 10^3
+//**            const amount = BigInt(singleTransfer.value); // it must be divided by 10^3
             // issue case
             if(from == BURN) {
                 const balancePayload: BalancePayload = {
                     tokenId,
                     issuedTo: to,
                     available: amount,
-                    retired: 0n,
-                    transferred: 0n
+                    retired: "0",
+                    transferred: "0"
+//**                    retired: 0n,
+//**                    transferred: 0n
                 }
 
                 // resolve conflicts
@@ -259,8 +264,10 @@ export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
                     tokenId,
                     issuedTo: to,
                     available: amount,
-                    retired: 0n,
-                    transferred: 0n
+                    retired: "0",
+                    transferred: "0"
+//**                    retired: 0n,
+//**                    transferred: 0n
                 }
                 await insertNewBalance(balancePayload);
             } else {
