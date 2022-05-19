@@ -1,7 +1,7 @@
 import * as trpc from '@trpc/server'
 import { ethers } from 'ethers';
 import { z } from 'zod'
-import { checkSignedMessage } from '../controller/synchronizer';
+import { checkSignedMessage, getRoles } from '../controller/synchronizer';
 import { DomainError, handleError, TrpcContext } from './common';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 import { changePassword, markPkExported, signinWallet, signupWallet } from '../controller/wallet.controller';
@@ -199,20 +199,24 @@ export const walletRouter = trpc
             }
             console.log(`Verified signature from ${account}`)
             const found = await ctx.db.getWalletRepo().findWalletByAddress(input.address)
-            if (found) {
-                if (found.address !== account) {
-                    throw new Error("Failed to verify signature!")
-                }
+            // check if is admin or self
+            const isSelf = !!found && (account === found.address) || (account === input.address)
+            const roles = await getRoles(account, ctx.opts)
+            const isAdmin = roles && roles.isAdmin
+            if (found && (isSelf || isAdmin)) {
                 const wallet = await ctx.db.getWalletRepo().getRepository().save({
                     ...found,
                     ...input,
                     address: found.address
                 })
-                return {
-                    wallet
-                }
+                return { wallet }
+            } else if (isSelf || isAdmin) {
+                // create a wallet entry only if we are creating self or the account is admin
+                const wallet = await ctx.db.getWalletRepo().getRepository().save({ ...input })
+                return { wallet }
             } else {
-                handleError('get', 'Wallet not found')
+                // deny access
+                throw new DomainError("You don't have permission to update this wallet", 'FORBIDDEN')
             }
         } catch (error) {
             handleError('get', error)

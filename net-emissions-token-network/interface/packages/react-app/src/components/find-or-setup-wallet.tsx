@@ -44,7 +44,7 @@ import {
   unregisterIndustry,
 } from "../services/contract-functions";
 import RolesList from "./roles-list";
-import AddUserForm from "./add-user-form";
+import AddWalletForm from "./add-wallet-form";
 
 function RolesCodesToLi({
   currentRoles,
@@ -566,7 +566,7 @@ const FindOrSetupWallet: FC<Props> = ({
 
       {/* Only display registration if owner has permissions for the roles, also hide this when the wallet was found already. */}
       {!lookupWallet && hasAssignRolePermissions && showAddUserForm && (
-        <AddUserForm
+        <AddWalletForm
           provider={provider}
           roles={roles}
           address={address}

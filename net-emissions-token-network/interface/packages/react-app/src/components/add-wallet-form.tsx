@@ -16,7 +16,7 @@ type Props = {
   onSuccess?: () => void
 };
 
-const AddUserForm: FC<Props> = ({
+const AddWalletForm: FC<Props> = ({
   provider,
   roles,
   address,
@@ -221,4 +221,4 @@ const AddUserForm: FC<Props> = ({
 
 }
 
-export default AddUserForm;
+export default AddWalletForm;

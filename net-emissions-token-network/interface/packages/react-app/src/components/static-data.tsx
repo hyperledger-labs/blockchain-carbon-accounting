@@ -21,6 +21,7 @@ export type Wallet = {
   public_key?: string
   private_key?: string
   public_key_name?: string
+  metamask_encrypted_public_key?: string
 }
 
 export type Token = {
