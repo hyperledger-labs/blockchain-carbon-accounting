@@ -9,7 +9,7 @@
   ],
   "private": true,
   "scripts": {
-    "react-app:build": "npm build --workspace=@project/react-app",
+    "react-app:build": "npm run build --workspace=@project/react-app",
     "react-app:eject": "npm run eject --workspace=@project/react-app",
     "react-app:ipfs": "npm run ipfs --workspace=@project/react-app",
     "react-app:start": "npm run start --workspace=@project/react-app",

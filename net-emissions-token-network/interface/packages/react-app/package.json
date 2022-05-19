@@ -56,7 +56,7 @@
   "scripts": {
     "build": "react-app-rewired build",
     "eject": "react-app-rewired eject",
-    "ipfs": "npm build && node scripts/ipfs.js",
+    "ipfs": "npm run build && node scripts/ipfs.js",
     "start": "react-app-rewired start",
     "test": "react-app-rewired test"
   },
