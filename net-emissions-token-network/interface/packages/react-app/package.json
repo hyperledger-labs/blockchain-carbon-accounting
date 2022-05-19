@@ -1,6 +1,7 @@
 {
   "name": "@project/react-app",
   "version": "1.0.0",
+  "private": true,
   "homepage": "./",
   "browserslist": {
     "production": [
@@ -55,7 +56,7 @@
   "scripts": {
     "build": "react-app-rewired build",
     "eject": "react-app-rewired eject",
-    "ipfs": "yarn build && node scripts/ipfs.js",
+    "ipfs": "npm build && node scripts/ipfs.js",
     "start": "react-app-rewired start",
     "test": "react-app-rewired test"
   },
@@ -66,7 +67,10 @@
     "@types/react-bootstrap": "^0.32.29",
     "@types/react-copy-to-clipboard": "^5.0.2",
     "@types/react-dom": "^18.0.4",
-    "api-server": "link:../../../api-server",
+    "emissions_data_chaincode": "file:../../../../emissions-data/chaincode/emissionscontract/typescript",
+    "emissions_data": "file:../../../../emissions-data/typescript_app",
+    "supply-chain-lib": "file:../../../../supply-chain/lib",
+    "api-server": "file:../../../api-server",
     "crypto-browserify": "^3.12.0",
     "https-browserify": "^1.0.0",
     "node-libs-browser": "^2.2.1",
@@ -76,5 +80,9 @@
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
     "typescript": "^4.6.4"
+  },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom"
   }
 }

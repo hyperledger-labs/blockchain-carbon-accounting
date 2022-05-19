@@ -51,9 +51,11 @@ jobs:
         with:
           node-version: "16.15.0"
       - name: Install dependencies
-        run: yarn ci
+        run: |
+          npm i -g npm@latest
+          npm ci
       - name: Run build script
-        run: CI=false yarn react-app:build
+        run: npm run react-app:build
 
   lint-typescript-app: # Run lint script for the typescript_app directory
     runs-on: ubuntu-latest
