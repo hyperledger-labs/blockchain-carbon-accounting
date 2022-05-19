@@ -49,6 +49,9 @@ function useWeb3Modal(config: any = {}) {
     const web3Provider = new Web3Provider(newProvider);
     setProvider(web3Provider);
     setSignedInAddress(newProvider.selectedAddress);
+    // in that case we don't need a login state
+    localStorage.removeItem("signedInAddress");
+    localStorage.removeItem("signedInWallet");
   }, [web3Modal]);
 
   const logoutOfWeb3Modal = useCallback(
@@ -60,11 +63,26 @@ function useWeb3Modal(config: any = {}) {
     [web3Modal],
   );
 
+  useEffect(()=>{
+    const lw = localStorage.getItem("signedInWallet");
+    const la = localStorage.getItem("signedInAddress");
+    console.log('restore login ?', la, lw);
+    if (lw && la) {
+      const web3Provider = new JsonRpcProvider(RPC_URL);
+      setProvider(web3Provider);
+      setSignedInAddress(la);
+      setSignedInWallet(JSON.parse(lw));
+    }
+  }, []);
+
   const loadWalletInfo = (wallet:Wallet) => {
     const web3Provider = new JsonRpcProvider(RPC_URL);
     setProvider(web3Provider);
     setSignedInWallet(wallet);
     setSignedInAddress(wallet.address||'');
+    // save the login state
+    localStorage.setItem("signedInAddress", wallet.address||'');
+    localStorage.setItem("signedInWallet", JSON.stringify(wallet));
   }
 
   const logoutOfWalletInfo = () => {
@@ -72,6 +90,9 @@ function useWeb3Modal(config: any = {}) {
     setSignedInWallet(undefined);
     web3Modal.clearCachedProvider();
     setProvider(undefined);
+    // save the logout state
+    localStorage.removeItem("signedInAddress");
+    localStorage.removeItem("signedInWallet");
   }
 
   const refresh = useCallback(async () => {
