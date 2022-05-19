@@ -115,8 +115,10 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
               </Form>
               </> : <>
                 <p>You must import this private key into your wallet and sign in with it from now on. You can no longer use your email to sign in.</p>
-                <p>Your key:
+                <p>Your key:</p>
+                <p><b>{form.currentpk}</b></p>
                 {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+                <p>
                 <CopyToClipboard text={form.currentpk??''}>
                   <span className="text-secondary">
                     <OverlayTrigger
@@ -126,12 +128,11 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
                       delay={{ show: 250, hide: 400 }}
                       overlay={<Tooltip id='copied-address-tooltip'>Copied to clipboard!</Tooltip>}
                     >
-                      <Button variant="outline-secondary" size="sm" className="ms-3">Copy Key to Clipboard&nbsp;<sup><FaRegClipboard/></sup></Button>
+                      <Button variant="outline-secondary" size="sm">Copy Key to Clipboard&nbsp;<sup><FaRegClipboard/></sup></Button>
                     </OverlayTrigger>
                   </span>
                 </CopyToClipboard>
-              </p>
-              <pre>{form.currentpk}</pre>
+                </p>
               </>
               }
             </> : <p className="mt-4">You must <Link href="/sign-in">sign in</Link> to export your private key.</p>}
