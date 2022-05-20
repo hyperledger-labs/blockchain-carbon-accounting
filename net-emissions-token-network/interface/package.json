@@ -35,7 +35,15 @@
   },
   "overrides": {
     "react": "18.1.0",
-    "react-dom": "18.1.0"
+    "react-dom": "18.1.0",
+    "ethjs-unit": {
+      "bn.js": "^4.12.0"
+    },
+    "number-to-bn": {
+      "bn.js": "^4.12.0"
+    },
+    "@walletconnect/utils": {
+      "bn.js": "^4.12.0"
+    }
   }
-
 }

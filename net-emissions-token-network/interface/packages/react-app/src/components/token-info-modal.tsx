@@ -10,8 +10,6 @@ import DisplayJSON from "./display-json";
 import DisplayTokenAmount from "./display-token-amount";
 import { create } from 'ipfs-http-client';
 import { Link } from "wouter";
-// import ethUtil from 'ethereumjs-util';
-// import sigUtil from '@metamask/eth-sig-util';
 
 export type TokenInfo = {
   isMyIssuedToken?: boolean,
