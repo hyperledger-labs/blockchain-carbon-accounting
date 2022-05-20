@@ -48,6 +48,10 @@ const createRouter = () => {
           error instanceof DomainError || error.cause instanceof DomainError
             ? error.message
             : null,
+          domainErrorPath:
+          error instanceof DomainInputError ? error.path : error.cause instanceof DomainInputError
+            ? error.cause.path
+            : null,
         }
       }
     })
@@ -81,6 +85,15 @@ export class DomainError extends Error {
     // It's not absolutely essential, but it does make the stack trace a little nicer.
     //  @see Node.js reference (bottom)
     Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+
+export class DomainInputError extends DomainError {
+  path: string
+  constructor(path: string, message: string, status: TRPC_ERROR_CODE_KEY = 'BAD_REQUEST', details?: string, cause?: unknown) {
+    super(message, status, details, cause);
+    this.path = path
   }
 }
 

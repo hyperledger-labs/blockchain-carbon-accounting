@@ -2,7 +2,7 @@ import * as trpc from '@trpc/server'
 import { ethers } from 'ethers';
 import { z } from 'zod'
 import { checkSignedMessage, getRoles } from '../controller/synchronizer';
-import { DomainError, handleError, TrpcContext } from './common';
+import { DomainError, DomainInputError, handleError, TrpcContext } from './common';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 import { changePassword, markPkExported, signinWallet, signupWallet } from '../controller/wallet.controller';
 import { signinLimiter, signupAndResetLimiter } from '../utils/rateLimiter';
@@ -207,21 +207,24 @@ export const walletRouter = trpc
             const roles = await getRoles(account, ctx.opts)
             const isAdmin = roles && roles.isAdmin
             console.log(`Verified ${account} isSelf? ${isSelf} isAdmin? ${isAdmin}`)
-            if (found && (isSelf || isAdmin)) {
-                const wallet = await ctx.db.getWalletRepo().getRepository().save({
-                    ...found,
-                    ...input,
-                    address: found.address
-                })
+            if (isSelf || isAdmin) {
+                const toSave = found ? {...found, ...input, address: found.address} : {...input}
+                // when saving, this could fail if one of the unique constraints is violated
+                // here only `email` could cause an error
+                const emailChanged = input.email && (found ? found.email?.toLowerCase() !== input.email.toLowerCase() : true)
+                if (emailChanged) {
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    const emailWallet = await ctx.db.getWalletRepo().findWalletByEmail(input.email!)
+                    if (emailWallet && emailWallet.address.toLowerCase() !== input.address.toLowerCase()) {
+                        throw new DomainInputError('email', "This Email is already assigned to another user", "BAD_REQUEST")
+                    }
+                }
+
+                const wallet = await ctx.db.getWalletRepo().getRepository().save(toSave)
                 return { wallet }
-            } else if (isSelf || isAdmin) {
-                // create a wallet entry only if we are creating self or the account is admin
-                const wallet = await ctx.db.getWalletRepo().getRepository().save({ ...input })
-                return { wallet }
-            } else {
-                // deny access
-                throw new DomainError("You don't have permission to update this wallet", 'FORBIDDEN')
             }
+            // deny access
+            throw new DomainError("You don't have permission to update this wallet", 'FORBIDDEN')
         } catch (error) {
             handleError('get', error)
         }

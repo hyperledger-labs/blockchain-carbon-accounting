@@ -159,6 +159,7 @@ const DisplayWalletDetails: FC<Props> = ({
 
   async function handleUpdate() {
     setForm({...form, loading:'true'})
+    setFormErrors({})
     try {
       const payload = {
         address: wallet!.address!,
@@ -178,18 +179,28 @@ const DisplayWalletDetails: FC<Props> = ({
     } catch (err) {
       console.error(err)
       if (err instanceof TRPCClientError) {
-        console.warn(err.data)
+        console.warn(err.data, err.message)
+        let topLevelError = err?.data?.domainError
         if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
+          const fieldErrors = err.data.zodError.fieldErrors
           const errs: WalletFormErrors = {};
           for (const f in fieldErrors) {
-            errs[f as keyof WalletFormErrors] = fieldErrors[f].join(', ');
+            errs[f as keyof WalletFormErrors] = fieldErrors[f].join(', ')
           }
-          setFormErrors({ ...errs })
+          setFormErrors(errs)
+        } else if (err?.data?.domainErrorPath) {
+          const errs: WalletFormErrors = {};
+          errs[err?.data?.domainErrorPath as keyof WalletFormErrors] = err?.data?.domainError
+          console.warn('Set field errors', errs)
+          // here no need to repeat as toplevel error
+          topLevelError = ''
+          setFormErrors(errs)
+        } else if (!topLevelError) {
+          topLevelError = err?.message || 'An unexpected error occurred'
         }
-        setForm({ ...form, loading: '', error: err?.data?.domainError });
+        setForm({ ...form, loading: '', error: topLevelError })
       } else {
-        setForm({ ...form, loading: '', error: ("" + ((err as any)?.message || err) as any) });
+        setForm({ ...form, loading: '', error: ("" + ((err as any)?.message || err) as any) })
       }
     }
   }
