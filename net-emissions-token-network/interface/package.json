@@ -4,8 +4,7 @@
   "keywords": [
     "ethereum",
     "react",
-    "workspaces",
-    "yarn"
+    "workspaces"
   ],
   "private": true,
   "scripts": {

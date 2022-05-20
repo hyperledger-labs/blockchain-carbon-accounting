@@ -18,7 +18,7 @@ The application connects to the contract of the address specified in `net-emissi
 From the `net-emissions-token-network/interface` directory, run
 
 ```bash
-yarn ci
+npm install
 ```
 
 ## Api Server
@@ -34,7 +34,7 @@ To run a testnet locally via Hardhat Network:
 1. Start the React app with
 
 ```bash
-yarn react-app:start
+npm run react-app:start
 ```
 
 2. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
@@ -66,7 +66,7 @@ Goerli is a public Ethereum testnet. When interacting with the contracts on Goer
 2. Start the React app with
 
 ```bash
-yarn react-app:start
+npm run react-app:start
 ```
 
 3. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Goerli Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
@@ -86,7 +86,7 @@ BSC testnet is a test environment for Binance Chain network, run by the Binance 
 2. Start the React app with
 
 ```bash
-yarn react-app:start
+npm run react-app:start
 ```
 
 3. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Binance Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
@@ -114,7 +114,7 @@ npx hardhat deploy --network ovm_localhost
 4. Start the React app with
 
 ```bash
-yarn react-app:start
+npm run react-app:start
 ```
 
 5. After navigating to `localhost:3000` in the browser, add a new network to MetaMask by clicking the networking at the top and Custom RPC with these settings:

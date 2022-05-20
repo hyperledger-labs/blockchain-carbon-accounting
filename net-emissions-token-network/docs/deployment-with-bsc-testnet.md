@@ -76,8 +76,10 @@ cd net-emissions-token-network
 rm -rf node_modules */node_modules
 npm i
 
+npm --prefix api-server i
+
 cd interface
-yarn ci
+npm i
 ```
 
 
@@ -261,7 +263,7 @@ REACT_APP_GOOGLE_MAPS_API_KEY=
 
 3. Now build it:
 ```
-yarn react-app:build
+npm run react-app:build
 ```
 
 4. Copy the build to the served directory:

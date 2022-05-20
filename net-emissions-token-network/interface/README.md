@@ -2,9 +2,9 @@ This project was bootstrapped with [Create Eth App](https://github.com/paulrberg
 
 ## Project Structure
 
-The default template is a monorepo created with [Yarn Workspaces](https://classic.yarnpkg.com/en/docs/workspaces/).
+The default template is a monorepo created with NPM Workspaces.
 
-Workspaces makes it possible to setup multiple packages in such a way that we only need to run `yarn install` once to install all of them in
+Workspaces makes it possible to setup multiple packages in such a way that we only need to run `npm install` once to install all of them in
 a single pass. Dependencies are hoisted at the root.
 
 ```
@@ -56,7 +56,7 @@ my-eth-app
         └── subgraph.yaml
 ```
 
-Owing to this dependency on Yarn Workspaces, Create Eth App can't be used with npm.
+Owing to this dependency on NPM Workspaces, Create Eth App can't be used with npm.
 
 ## Available Scripts
 
@@ -64,7 +64,7 @@ In the project directory, you can run:
 
 ### React App
 
-#### `yarn react-app:start`
+#### `npm run react-app:start`
 
 Runs the React app in development mode.<br>
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
@@ -72,14 +72,14 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will automatically reload if you make changes to the code.<br>
 You will see the build errors and lint warnings in the console.
 
-#### `yarn react-app:test`
+#### `npm run react-app:test`
 
 Runs the React test watcher in an interactive mode.<br>
 By default, runs tests related to files changed since the last commit.
 
 [Read more about testing React.](https://facebook.github.io/create-react-app/docs/running-tests)
 
-#### `yarn react-app:build`
+#### `npm run react-app:build`
 
 Builds the React app for production to the `build` folder.<br />
 It correctly bundles React in production mode and optimizes the build for the best performance.
@@ -89,7 +89,7 @@ Your app is ready to be deployed!
 
 See the React documentation on [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-#### `yarn react-app:eject`
+#### `npm run react-app:eject`
 
 **Note: this is a one-way operation. Once you `react-app:eject`, you can’t go back!**
 
@@ -108,25 +108,25 @@ The Graph is a tool for for indexing events emitted on the Ethereum blockchain. 
 
 To learn more, check out the [The Graph documentation](https://thegraph.com/docs).
 
-#### `yarn subgraph:codegen`
+#### `npm run subgraph:codegen`
 
 Generates AssemblyScript types for smart contract ABIs and the subgraph schema.
 
-#### `yarn subgraph:build`
+#### `npm run subgraph:build`
 
 Compiles the subgraph to WebAssembly.
 
-#### `yarn subgraph:auth`
+#### `npm run subgraph:auth`
 
 Before deploying your subgraph, you need to sign up on the
 [Graph Explorer](https://thegraph.com/explorer/). There, you will be given an access token. Drop it in the command
 below:
 
 ```sh
-GRAPH_ACCESS_TOKEN=your-access-token-here yarn subgraph:auth
+GRAPH_ACCESS_TOKEN=your-access-token-here npm run subgraph:auth
 ```
 
-#### `yarn subgraph:deploy`
+#### `npm run subgraph:deploy`
 
 Deploys the subgraph to the official Graph Node.<br/>
 
