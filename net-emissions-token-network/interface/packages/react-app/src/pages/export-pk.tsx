@@ -1,13 +1,12 @@
 import { FC, useState } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Form, Button, Card, Spinner, OverlayTrigger, Tooltip } from "react-bootstrap"
 import { FaRegClipboard } from 'react-icons/fa'
 
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import { markPkExported } from '../services/api.service';
+import { handleFormErrors, markPkExported } from '../services/api.service';
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
-import { TRPCClientError } from "@trpc/client";
 import { Wallet } from "../components/static-data";
 
 
@@ -38,12 +37,11 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
 
   const [form, setForm] = useState<ExportPkForm>(defaultExportPkForm)
   const [formErrors, setFormErrors] = useState<ExportPkFormErrors>({})
-  const [, setLocation] = useLocation();
 
   async function handleExportPk() {
     try {
       const currentpk = signedInWallet?.private_key;
-      setForm({...form, loading: 'true'})
+      setForm({...form, error:'', loading: 'true'})
       await markPkExported(signedInWallet?.email || '', form.password);
       setForm({
         ...form,
@@ -59,21 +57,7 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
       logoutOfWalletInfo();
 
     } catch (err) {
-      console.error(err);
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data)
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
-          const errs: ExportPkFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof ExportPkFormErrors] = fieldErrors[f].join(', ');
-          }
-          setFormErrors({ ...errs })
-        }
-        setForm({ ...form, loading: '', success: '', error: err?.data?.domainError });
-      } else {
-        setForm({ ...form, loading: '', success: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
-      }
+      handleFormErrors(err, setFormErrors, setForm);
     }
   }
 

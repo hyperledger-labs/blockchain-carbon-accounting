@@ -184,7 +184,7 @@ export const walletRouter = trpc
         address: validAddress,
         name: z.string().optional(),
         organization: z.string().optional(),
-        email: z.string().optional(),
+        email: z.string().email().optional().or(z.literal('')),
         public_key: z.string().optional(),
         metamask_encrypted_public_key: z.string().optional(),
         signature: z.string(),

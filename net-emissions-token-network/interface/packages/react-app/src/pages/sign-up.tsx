@@ -2,8 +2,7 @@ import { FC, useState } from "react";
 import { Link } from "wouter"
 import { Form, Button, Card, Spinner } from "react-bootstrap";
 
-import { signUpUser } from "../services/api.service";
-import { TRPCClientError } from "@trpc/client";
+import { handleFormErrors, signUpUser } from "../services/api.service";
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 
@@ -49,21 +48,7 @@ const SignUp: FC<{}> = () => {
         });
       }
     } catch (err) {
-      console.error(err);
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data)
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
-          const errs: SignUpFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof SignUpFormErrors] = fieldErrors[f].join(', ');
-          }
-          setFormErrors({ ...errs })
-        }
-        setForm({ ...form, loading: '', error: err?.data?.domainError });
-      } else {
-        setForm({ ...form, loading: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
-      }
+      handleFormErrors(err, setFormErrors, setForm);
     }
   }
 

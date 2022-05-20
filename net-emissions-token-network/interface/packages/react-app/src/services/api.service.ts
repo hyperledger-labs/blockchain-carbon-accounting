@@ -1,5 +1,7 @@
+import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import moment from 'moment';
+import { SetStateAction } from 'react';
 import type { QueryBundle } from '../../../../../../data/postgres/src/repositories/common';
 import type { Token, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
@@ -23,6 +25,35 @@ function handleError(error: unknown, prefix: string) {
     }
     console.error(`handleError: ${prefix} -->`, errMsg)
     return errMsg;
+}
+
+
+export function handleFormErrors<F extends {}, E extends {}>(err: unknown, setFormErrors: (e: SetStateAction<E>) => void, setForm: (f: SetStateAction<F>) => void) {
+  console.error(err)
+  if (err instanceof TRPCClientError) {
+    console.warn(err.data, err.message)
+    let topLevelError = err?.data?.domainError
+    if (err?.data?.zodError?.fieldErrors) {
+      const fieldErrors = err.data.zodError.fieldErrors
+      const errs: Partial<Record<keyof E, string>> = {};
+      for (const f in fieldErrors) {
+        errs[f as keyof E] = fieldErrors[f].join(', ')
+      }
+      setFormErrors(e=>{ return { ...e, ...errs} })
+    } else if (err?.data?.domainErrorPath) {
+      const errs: Partial<Record<keyof E, string>> = {};
+      errs[err?.data?.domainErrorPath as keyof E] = err?.data?.domainError
+      console.warn('Set field errors', errs)
+      // here no need to repeat as toplevel error
+      topLevelError = ''
+      setFormErrors(e=>{ return { ...e, ...errs} })
+    } else if (!topLevelError) {
+      topLevelError = err?.message || 'An unexpected error occurred'
+    }
+    setForm(f=>{ return { ...f, loading: '', error: topLevelError } })
+  } else {
+    setForm(f=>{ return { ...f, loading: '', error: ("" + ((err as any)?.message || err) as any) } })
+  }
 }
 
 

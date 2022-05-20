@@ -1,5 +1,5 @@
 import { FC, ReactNode, useContext, useEffect, useState } from "react";
-import { Accordion, AccordionContext, Button, Card, Form, OverlayTrigger, Spinner, Tooltip, useAccordionButton } from "react-bootstrap";
+import { Accordion, AccordionContext, Button, Form, OverlayTrigger, Spinner, Tooltip, useAccordionButton } from "react-bootstrap";
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { trpcClient } from "../services/trpc";
 import { Role, RolesInfo, Wallet } from "./static-data";
@@ -7,7 +7,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 import { FaRegClipboard } from "react-icons/fa";
 import { FormInputRow } from "./forms-util";
 import ErrorAlert from "./error-alert";
-import { TRPCClientError } from "@trpc/client";
+import { handleFormErrors } from "../services/api.service";
 
 function CustomToggle({
   children,
@@ -112,7 +112,6 @@ type Props = {
 
 const DisplayWalletDetails: FC<Props> = ({
   provider,
-  signedInAddress,
   roles,
   wallet,
   unregisterRoleInContract,
@@ -158,14 +157,14 @@ const DisplayWalletDetails: FC<Props> = ({
   }
 
   async function handleUpdate() {
-    setForm({...form, loading:'true'})
+    setForm({...form, error:'', loading:'true'})
     setFormErrors({})
     try {
       const payload = {
         address: wallet!.address!,
-        name: form.name,
-        organization: form.organization,
-        email: form.email
+        name: form.name || '',
+        organization: form.organization || '',
+        email: form.email || ''
       }
       const message = JSON.stringify(payload)
       const signature = await provider!.getSigner().signMessage(message)
@@ -177,31 +176,7 @@ const DisplayWalletDetails: FC<Props> = ({
       console.log('updated',data)
       setForm({...form, loading:''})
     } catch (err) {
-      console.error(err)
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data, err.message)
-        let topLevelError = err?.data?.domainError
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors
-          const errs: WalletFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof WalletFormErrors] = fieldErrors[f].join(', ')
-          }
-          setFormErrors(errs)
-        } else if (err?.data?.domainErrorPath) {
-          const errs: WalletFormErrors = {};
-          errs[err?.data?.domainErrorPath as keyof WalletFormErrors] = err?.data?.domainError
-          console.warn('Set field errors', errs)
-          // here no need to repeat as toplevel error
-          topLevelError = ''
-          setFormErrors(errs)
-        } else if (!topLevelError) {
-          topLevelError = err?.message || 'An unexpected error occurred'
-        }
-        setForm({ ...form, loading: '', error: topLevelError })
-      } else {
-        setForm({ ...form, loading: '', error: ("" + ((err as any)?.message || err) as any) })
-      }
+      handleFormErrors(err, setFormErrors, setForm)
     }
   }
 

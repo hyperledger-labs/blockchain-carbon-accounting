@@ -1,8 +1,7 @@
 import { FC, useEffect, useState } from "react";
 import { Form, Button, Card, Spinner } from "react-bootstrap";
 
-import { changePassword  } from "../services/api.service";
-import { TRPCClientError } from "@trpc/client";
+import { changePassword, handleFormErrors  } from "../services/api.service";
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import { Link } from "wouter";
@@ -61,21 +60,7 @@ const ChangePassword: FC<{}> = () => {
         });
       }
     } catch (err) {
-      console.error(err);
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data)
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
-          const errs: ChangePasswordFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof ChangePasswordFormErrors] = fieldErrors[f].join(', ');
-          }
-          setFormErrors({ ...errs })
-        }
-        setForm({ ...form, loading: '', error: err?.data?.domainError });
-      } else {
-        setForm({ ...form, loading: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
-      }
+      handleFormErrors(err, setFormErrors, setForm);
     }
   }
 

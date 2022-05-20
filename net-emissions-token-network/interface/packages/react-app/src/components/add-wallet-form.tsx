@@ -107,8 +107,7 @@ const AddWalletForm: FC<Props> = ({
             errorSet = true;
           }
         }
-        if (!errorSet)
-          setError("An error occurred while registering the wallet.");
+        if (!errorSet) setError("An error occurred while registering the wallet.");
       }
       if (role !== RoleEnum.None && onSuccess) onSuccess();
     }

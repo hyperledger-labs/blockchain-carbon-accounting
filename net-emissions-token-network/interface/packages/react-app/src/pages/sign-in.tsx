@@ -3,10 +3,9 @@ import { Link, useLocation } from "wouter";
 import { Form, Button, Card, Spinner } from "react-bootstrap"
 import { motion } from 'framer-motion';
 
-import { signInUser, requestPasswordReset } from '../services/api.service';
+import { signInUser, requestPasswordReset, handleFormErrors } from '../services/api.service';
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
-import { TRPCClientError } from "@trpc/client";
 import { useTimer } from "../hooks/useTimer";
 import { Wallet } from "../components/static-data";
 
@@ -64,7 +63,7 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
 
   async function handleSignIn() {
     try {
-      setForm({...form, loading: 'true'})
+      setForm({...form, error:'', loading: 'true'})
       const rslt = await signInUser(form.email, form.password);
       if (rslt) {
         const wallet = rslt.wallet;
@@ -99,21 +98,7 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
         error: 'Unexpected error: No wallet info returned from API'
       });
     } catch (err) {
-      console.error(err);
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data)
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
-          const errs: SignInFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof SignInFormErrors] = fieldErrors[f].join(', ');
-          }
-          setFormErrors({ ...errs })
-        }
-        setForm({ ...form, loading: '', error: err?.data?.domainError });
-      } else {
-        setForm({ ...form, loading: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
-      }
+      handleFormErrors(err, setFormErrors, setForm);
     }
   }
 
@@ -128,21 +113,7 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
       });
       startTimer();
     } catch (err) {
-      console.error(err);
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data)
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
-          const errs: SignInFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof SignInFormErrors] = fieldErrors[f].join(', ');
-          }
-          setFormErrors({ ...errs })
-        }
-        setForm({ ...form, loading: '', resetPasswordError: err?.data?.domainError });
-      } else {
-        setForm({ ...form, loading: '', resetPasswordError: ("" + ((err instanceof Error) ? err.message : err)) });
-      }
+      handleFormErrors(err, setFormErrors, setForm);
     }
   }
 
