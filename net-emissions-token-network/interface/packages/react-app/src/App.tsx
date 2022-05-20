@@ -1,32 +1,35 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ElementRef, FC, useRef, useState } from "react";
+import { ElementRef, FC, useRef, useState, lazy, Suspense } from "react";
 
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 
-import NavigationBar from "./components/navigation-bar";
-import SignUp from "./pages/sign-up";
-import SignIn from "./pages/sign-in";
-import Dashboard from "./pages/dashboard";
-import IssuedTokens from "./pages/issued-tokens";
-import EmissionsRequests from "./pages/emissions-requests";
-import PendingEmissions from "./pages/pending-emissions";
-import IssueForm from "./pages/issue-form";
-import TrackForm from "./pages/track-form";
-import TransferForm from "./pages/transfer-form";
-import RetireForm from "./pages/retire-form";
-import AccessControlForm from "./pages/access-control-form";
-import GovernanceDashboard from "./pages/governance-dashboard";
-import RequestAudit from "./pages/request-audit";
 import useWeb3Modal from "./hooks/useWeb3Modal";
+import NavigationBar from "./components/navigation-bar";
 
 import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 
 import { QueryClient, QueryClientProvider } from "react-query";
 import { trpc, useTrpcClient } from "./services/trpc";
-import ChangePassword from "./pages/change-password";
-import ExportPk from "./pages/export-pk";
+
+
+// lazy load routes
+const Dashboard = lazy(() => import("./pages/dashboard"));
+const SignUp = lazy(() => import("./pages/sign-up"));
+const SignIn = lazy(() => import("./pages/sign-in"));
+const IssuedTokens = lazy(() => import("./pages/issued-tokens"));
+const EmissionsRequests = lazy(() => import("./pages/emissions-requests"));
+const PendingEmissions = lazy(() => import("./pages/pending-emissions"));
+const IssueForm = lazy(() => import("./pages/issue-form"));
+const TrackForm = lazy(() => import("./pages/track-form"));
+const TransferForm = lazy(() => import("./pages/transfer-form"));
+const RetireForm = lazy(() => import("./pages/retire-form"));
+const AccessControlForm = lazy(() => import("./pages/access-control-form"));
+const GovernanceDashboard = lazy(() => import("./pages/governance-dashboard"));
+const RequestAudit = lazy(() => import("./pages/request-audit"));
+const ChangePassword = lazy(() => import("./pages/change-password"));
+const ExportPk = lazy(() => import("./pages/export-pk"));
 
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
@@ -105,57 +108,59 @@ const App:FC = () => {
 
           <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
             <Tab.Content>
-              <Switch>
-                <Route path="/"><Redirect to="/dashboard" /></Route>
-                <Route path="/dashboard/:address?">{params=>
-                  <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
-                }</Route>
-                <Route path="/governance">
-                  <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
-                </Route>
-                <Route path="/issue">
-                  <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet = {signedInWallet}  />
-                </Route>
-                <Route path="/requestAudit">
-                  <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
-                </Route>
-                <Route path="/issuedtokens/:address?">{params=>
-                  <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
-                }</Route>
-                <Route path="/emissionsrequests">
-                  <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
-                </Route>
-                <Route path="/pendingemissions/:uuid">{params=>
-                  <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet = {signedInWallet}/>
-                }</Route>
-                <Route path="/transfer">
-                  <TransferForm provider={provider} roles={roles} />
-                </Route>
-                <Route path="/retire">
-                  <RetireForm provider={provider} roles={roles} />
-                </Route>
-                <Route path="/track">
-                  <TrackForm provider={provider} registeredTracker={registeredTracker}/>
-                </Route>
-                <Route path="/access-control">
-                  <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
-                </Route>
-                <Route path="/reset-password">
-                  <ChangePassword></ChangePassword>
-                </Route>
-                <Route path="/sign-up">
-                  <SignUp></SignUp>
-                </Route>
-                <Route path="/sign-in">
-                  <SignIn loadWalletInfo={loadWalletInfo} />
-                </Route>
-                <Route path="/export-pk">
-                  <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
-                </Route>
-                <Route>
-                  <Redirect to="/dashboard" />
-                </Route>
-              </Switch>
+              <Suspense fallback={<p>Loading ...</p>}>
+                <Switch>
+                  <Route path="/"><Redirect to="/dashboard" /></Route>
+                  <Route path="/dashboard/:address?">{params=>
+                    <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                  }</Route>
+                  <Route path="/governance">
+                    <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
+                  </Route>
+                  <Route path="/issue">
+                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet = {signedInWallet}  />
+                  </Route>
+                  <Route path="/requestAudit">
+                    <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
+                  </Route>
+                  <Route path="/issuedtokens/:address?">{params=>
+                    <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                  }</Route>
+                  <Route path="/emissionsrequests">
+                    <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
+                  </Route>
+                  <Route path="/pendingemissions/:uuid">{params=>
+                    <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet = {signedInWallet}/>
+                  }</Route>
+                  <Route path="/transfer">
+                    <TransferForm provider={provider} roles={roles} />
+                  </Route>
+                  <Route path="/retire">
+                    <RetireForm provider={provider} roles={roles} />
+                  </Route>
+                  <Route path="/track">
+                    <TrackForm provider={provider} registeredTracker={registeredTracker}/>
+                  </Route>
+                  <Route path="/access-control">
+                    <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
+                  </Route>
+                  <Route path="/reset-password">
+                    <ChangePassword></ChangePassword>
+                  </Route>
+                  <Route path="/sign-up">
+                    <SignUp></SignUp>
+                  </Route>
+                  <Route path="/sign-in">
+                    <SignIn loadWalletInfo={loadWalletInfo} />
+                  </Route>
+                  <Route path="/export-pk">
+                    <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
+                  </Route>
+                  <Route>
+                    <Redirect to="/dashboard" />
+                  </Route>
+                </Switch>
+              </Suspense>
             </Tab.Content>
           </Tab.Container>
           <div className="my-5"></div>
