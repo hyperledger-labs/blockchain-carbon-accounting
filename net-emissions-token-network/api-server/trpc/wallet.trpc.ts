@@ -114,6 +114,8 @@ export const walletRouter = trpc
         email: z.string().email(),
         password: validPassword,
         passwordConfirm: validPassword,
+        name: z.string().optional(),
+        organization: z.string().optional(),
     })
     .refine((data) => data.password === data.passwordConfirm, {
         message: "Passwords don't match",
@@ -126,7 +128,7 @@ export const walletRouter = trpc
             } catch {
                 throw new DomainError('Too many signup attempts from this IP address', 'BAD_REQUEST');
             }
-            await signupWallet(input.email, input.password);
+            await signupWallet(input.email, input.password, input.name, input.organization);
             return { success: true }
         } catch (error) {
             handleError('signup', error)

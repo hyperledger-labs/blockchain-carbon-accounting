@@ -224,7 +224,11 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
               <td>Manifest</td>
               <td style={{ overflowWrap: "anywhere" }}>
                 <DisplayJSON json={props.token.manifest}/>
-                <Button onClick={async () => downloadIpfs(props.token.manifest)}>Download</Button>
+                {/*
+                 Commenting out for now because metamask decryption can be very slow for large files
+                
+                 <Button onClick={async () => downloadIpfs(props.token.manifest)}>Download</Button>
+          */}
               </td>
             </tr>
             <tr>

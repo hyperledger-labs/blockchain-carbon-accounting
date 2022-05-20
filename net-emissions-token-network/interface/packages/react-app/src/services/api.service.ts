@@ -114,8 +114,8 @@ export const signInUser =  async(email:string, password:string) => {
   return trpcClient.mutation('wallet.signin', {email, password})
 }
 
-export const signUpUser =  async(email:string, password:string, passwordConfirm:string) => {
-  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm})
+export const signUpUser =  async(email:string, password:string, passwordConfirm:string, name:string|undefined, organization:string|undefined) => {
+  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm, name, organization})
 }
 
 export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {

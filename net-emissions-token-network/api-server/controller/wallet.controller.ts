@@ -210,7 +210,7 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     });
 }
 
-export async function signupWallet(a_email: string, password: string) {
+export async function signupWallet(a_email: string, password: string, name?: string, organization?: string) {
 
     const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
@@ -237,7 +237,9 @@ export async function signupWallet(a_email: string, password: string) {
                     password_salt,
                     verification_token,
                     verification_token_sent_at,
-                    email_verified: false
+                    email_verified: false,
+                    name,
+                    organization
                 });
             }
             return
@@ -275,7 +277,9 @@ export async function signupWallet(a_email: string, password: string) {
             password_salt,
             verification_token,
             verification_token_sent_at,
-            email_verified: false
+            email_verified: false,
+            name,
+            organization
         });
     }
 }

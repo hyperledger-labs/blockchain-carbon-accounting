@@ -9,6 +9,8 @@ import ErrorAlert from "../components/error-alert";
 
 
 type SignUpForm = {
+  name: string,
+  organization: string,
   email: string,
   password: string,
   passwordConfirm: string
@@ -19,6 +21,8 @@ type SignUpForm = {
 type SignUpFormErrors = Partial<SignUpForm>
 
 const defaultSignUpForm: SignUpForm = {
+  name: "",
+  organization: "",
   email: "",
   password: "",
   passwordConfirm: "",
@@ -36,7 +40,7 @@ const SignUp: FC<{}> = () => {
     try {
       setFormErrors({})
       setForm({ ...form, error: "", success: "", loading: "true" })
-      const result = await signUpUser(form.email, form.password, form.passwordConfirm);
+      const result = await signUpUser(form.email, form.password, form.passwordConfirm, form.name, form.organization);
       if (result) {
         setForm({
           ...defaultSignUpForm,
@@ -81,6 +85,8 @@ const SignUp: FC<{}> = () => {
                 if (e.currentTarget.checkValidity() === false) return
                 handleSignUp()
               }}>
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} type="input" field="name" label="Name" />
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} type="input" field="organization" label="Organization" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="passwordConfirm" label="Confirm Password" />
