@@ -31,12 +31,10 @@ export class Token {
     dateCreated!: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    // eslint-disable-next-line
-    metadata!: Object;
+    metadata!: Object; // eslint-disable-line
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    // eslint-disable-next-line
-    manifest!: Object;
+    manifest!: Object; // eslint-disable-line
 
     @Column({nullable: true})
     description!: string;
