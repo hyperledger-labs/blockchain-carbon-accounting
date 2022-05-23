@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from "react";
-import { Breadcrumb, Button, Col, FloatingLabel, Form, ListGroup, Row, Spinner } from "react-bootstrap";
+import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
@@ -24,23 +24,6 @@ type RequestAuditProps = {
 
 type ShipmentMode = 'air' | 'ground' | 'sea' | '';
 type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
-
-const activityTypeToLabel = (activityType: ActivityType) => {
-  switch (activityType) {
-    case 'flight':
-      return 'Flight';
-    case 'shipment':
-      return 'Shipment';
-    case 'emissions_factor':
-      return 'Emissions Factor';
-    case 'natural_gas':
-      return 'Natural Gas';
-    case 'electricity':
-      return 'Electricity';
-    default:
-      return '';
-  }
-}
 
 export type EmissionsFactorForm = {
   issued_from: string,
@@ -211,12 +194,6 @@ type SuccessResultType = {
   title?: string
 }
 
-
-type StoredRequest = {
-  request: EmissionsFactorForm,
-  result: SuccessResultType
-}
-
 const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
 
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
@@ -238,8 +215,6 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
-  const [stored, setStored] = useState<StoredRequest[]>([]);
-  const [storedSelected, setStoredSelected] = useState('new');
 
 
   const selectEmissionsFactor = useCallback((factor: EmissionsFactorInterface|null) => {
@@ -251,37 +226,18 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
     }})
   }, []);
 
-  const restoreStored = useCallback(async (v: string) => {
-    setStoredSelected(v);
-    if (v === 'new') {
-      resetForm();
-      return;
-    }
-    const i = Number(v);
-    const f = {...stored[i].request }
-    console.log('Switch to previous request ', f)
-    if (f.emissions_factor_uuid) {
-      const factor = await trpcClient.query('emissionsFactors.get', { uuid: f.emissions_factor_uuid });
-      if (factor?.emissionsFactor) {
-        selectEmissionsFactor(factor.emissionsFactor)
-      }
-    }
-    setEmForm(f)
-  }, [selectEmissionsFactor, stored]);
-
   useEffect(()=>{
     // if we had saved emissionsRequest and we got redirected
     // we can auto restore the latest saved request
     const ls = localStorage.getItem('emissionsRequest')
-    const fromAudit = localStorage.getItem('fromAudit')
     const stored = ls ? JSON.parse(ls) : []
-    setStored(stored)
-    if (fromAudit && stored.length > 0) {
-      console.log('Coming fromAudit and have stored request')
+    const fromAudit = localStorage.getItem('fromAudit')
+    if (fromAudit) {
       localStorage.removeItem('fromAudit')
-      // restore the last one
+    }
+    if (stored.length > 0) {
+      // restore the last one (should only store one anyway)
       const i = ''+(stored.length-1);
-      setStoredSelected(i);
       const f = {...stored[i].request }
       console.log('Switch to previous request ', f)
       if (f.emissions_factor_uuid) {
@@ -531,13 +487,12 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
         const emissions = res?.result?.emissions?.amount
         if (signedInAddress) {
           setTopSuccess({ distance, emissions })
+          // remove the saved emissions request
+          localStorage.removeItem('emissionsRequest')
         } else {
           // save the request in local storage so we can restore it after the user signs in
-          const ls = localStorage.getItem('emissionsRequest')
-          const stored = ls ? JSON.parse(ls) : []
-          stored.push({request: {...emForm}, result: { emissions, distance }})
+          const stored = [{request: {...emForm}, result: { emissions, distance }}];
           localStorage.setItem('emissionsRequest', JSON.stringify(stored))
-          setStored(stored)
           setTopSuccess({ distance, emissions, title: 'Emissions calculated' })
         }
       } catch (err) {
@@ -555,27 +510,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
   return (
     <>
       <h2>Request audit</h2>
-      { stored && stored.length > 0 && <>
-        <FloatingLabel className="mb-3" controlId="prev" label="Previous requests">
-          <Form.Select aria-label="Previous requests"
-            value={storedSelected}
-            onChange={(e)=>{ restoreStored(e.currentTarget.value) }}
-          >
-            <option value="new">Select a previous request</option>
-            { stored.map((s, i) =>
-              <option key={i} value={i}>
-                {activityTypeToLabel(s.request.activity_type)}{' '}
-                Calculated emissions:{' '}
-                {s.result.emissions?.value?.toFixed(3)}&nbsp;{s.result.emissions?.unit}{s.result.emissions?.unit.endsWith('CO2e')?'':'CO2e'}
-              </option>
-            )}
-          </Form.Select>
-        </FloatingLabel>
-      </>}
       <Form
         onSubmit={handleSubmit}
         noValidate validated={validated}>
 
+        { signedInAddress &&
         <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} disabled={!!topSuccess} onWalletChange={(w)=>{
           setEmForm({
             ...emForm,
@@ -583,21 +522,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
             flight_carrier: w?.organization ?? '',
             carrier: w?.organization ?? ''
           })
-        }} />
-            <Row>
-              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
-                <Form.Label>From date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
-                <Form.Label>Through date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-            </Row>
+        }} /> }
+        <Row>
+          <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
+            <Form.Label>From date</Form.Label>
+            {/* @ts-ignore : some weird thing with the types ... */}
+            {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+              <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
+          </Form.Group>
+          <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
+            <Form.Label>Through date</Form.Label>
+            {/* @ts-ignore : some weird thing with the types ... */}
+            {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+              <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
+          </Form.Group>
+        </Row>
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
           values={[
             {value:'flight', label:'Flight'},
@@ -769,20 +708,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
 
           {topError && <ErrorAlert error={topError} onDismiss={()=>{resetForm()}} />}
 
-          {topSuccess ?
+          {topSuccess ? <>
             <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
               <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
               {!signedInAddress && <div className="mt-3">Sign up for an account to record your emissions: <Link href="/sign-up" onClick={()=>{localStorage.setItem('fromAudit', 'true')}}>Sign Up</Link></div>}
             </SuccessAlert>
-            : 
+            {!signedInAddress && <Link href="/sign-up" onClick={()=>{localStorage.setItem('fromAudit', 'true')}}><Button className="w-100" size="lg" variant="primary">Sign Up to Request to Audit</Button></Link>}
+            </> :
 
             <AsyncButton
               className="w-100"
               variant="success"
               loading={loading}
               type="submit"
-            >Submit Request</AsyncButton>
+            >{ signedInAddress ? "Submit Request" : "Estimate Emissions" }</AsyncButton>
         }
           </>}
       </Form>

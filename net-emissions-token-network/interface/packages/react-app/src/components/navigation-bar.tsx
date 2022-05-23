@@ -95,7 +95,7 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
   }
 
   return (
-    <Navbar bg="white" expand="md" className="m-2">
+    <Navbar bg="white" expand="md" className="p-3">
       <Navbar.Brand>Net Emissions Token Network</Navbar.Brand>
       <Navbar.Toggle />
       <Navbar.Collapse >
