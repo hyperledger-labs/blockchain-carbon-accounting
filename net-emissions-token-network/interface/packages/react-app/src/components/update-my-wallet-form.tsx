@@ -3,7 +3,8 @@ import { Button, FloatingLabel, Form, Spinner } from "react-bootstrap";
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { trpcClient } from "../services/trpc";
 import { Wallet } from "./static-data";
-import ProvideMetamaskEncryptionKeyButton from "./provide-metamask-encryption-key-button";
+import AsyncButton from "./AsyncButton";
+// import ProvideMetamaskEncryptionKeyButton from "./provide-metamask-encryption-key-button";
 
 type Props = {
   provider: Web3Provider | JsonRpcProvider
@@ -63,25 +64,13 @@ Commented out for now because Metamask decrypt is slow.
    }
 */}
 
-    <Button
+    <AsyncButton
       className="w-100 mb-3"
       variant="primary"
-      size="lg"
-      disabled={loading}
+      loading={loading}
       type="submit"
-    >
-      {loading ?
-        <Spinner
-          animation="border" 
-          className="me-2"
-          size="sm"
-          as="span"
-          role="status"
-          aria-hidden="true"
-          /> : <></>
-    }
-      Update
-    </Button>
+    >Update</AsyncButton>
+
   </Form>
 
 }

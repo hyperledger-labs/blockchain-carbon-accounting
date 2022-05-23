@@ -1,10 +1,11 @@
 import { FC, useEffect, useState } from "react";
-import { Form, Button, Card, Spinner } from "react-bootstrap";
+import { Form, Card } from "react-bootstrap";
 
 import { changePassword, handleFormErrors  } from "../services/api.service";
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import { Link } from "wouter";
+import AsyncButton from "../components/AsyncButton";
 
 
 type ChangePasswordForm = {
@@ -96,19 +97,12 @@ const ChangePassword: FC<{}> = () => {
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="New Password" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="passwordConfirm" label="New Confirm Password" />
 
-              <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
-                {!!form.loading ?
-                  <Spinner
-                    animation="border"
-                    className="me-2"
-                    size="sm"
-                    as="span"
-                    role="status"
-                    aria-hidden="true"
-                    /> : <></>
-              }
-                Set New Password
-              </Button>
+              <AsyncButton
+                type="submit"
+                className="w-100 mb-3"
+                variant="success"
+                loading={!!form.loading}
+              >Set New Password</AsyncButton>
               {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }} />}
             </Form>
             </>

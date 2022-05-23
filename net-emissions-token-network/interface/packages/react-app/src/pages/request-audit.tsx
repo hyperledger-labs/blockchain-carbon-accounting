@@ -12,6 +12,7 @@ import { calculateEmissionsRequest, createEmissionsRequest } from "../services/a
 import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
 import { Link } from "wouter";
+import AsyncButton from "../components/AsyncButton";
 
 type RequestAuditProps = {
   provider?: Web3Provider | JsonRpcProvider, 
@@ -776,26 +777,12 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
             </SuccessAlert>
             : 
 
-            <Button 
+            <AsyncButton
               className="w-100"
               variant="success"
-              size="lg"
-              disabled={loading}
-              onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
+              loading={loading}
               type="submit"
-            >
-              {loading ? 
-                <Spinner 
-                  animation="border" 
-                  className="me-2"
-                  size="sm"   
-                  as="span"
-                  role="status"
-                  aria-hidden="true"
-                  /> : <></>
-            }
-              Submit Request
-            </Button>
+            >Submit Request</AsyncButton>
         }
           </>}
       </Form>

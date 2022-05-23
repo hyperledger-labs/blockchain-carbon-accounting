@@ -8,6 +8,7 @@ import { FaRegClipboard } from "react-icons/fa";
 import { FormInputRow } from "./forms-util";
 import ErrorAlert from "./error-alert";
 import { handleFormErrors } from "../services/api.service";
+import AsyncButton from "./AsyncButton";
 
 function CustomToggle({
   children,
@@ -193,19 +194,12 @@ const DisplayWalletDetails: FC<Props> = ({
         <FormInputRow form={form} setForm={setForm} errors={formErrors} field="organization" label="Organization" />
         <FormInputRow form={form} setForm={setForm} errors={formErrors} field="email" label="Email" />
         {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }}/>}
-        <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
-          {!!form.loading ?
-            <Spinner
-              animation="border"
-              className="me-2"
-              size="sm"
-              as="span"
-              role="status"
-              aria-hidden="true"
-              /> : <></>
-        }
-          Update User Information
-        </Button>
+        <AsyncButton
+          type="submit"
+          className="w-100 mb-3"
+          variant="success"
+          loading={!!form.loading}
+        >Update User Information</AsyncButton>
         <ul>
 
           {wallet.public_key_name && (

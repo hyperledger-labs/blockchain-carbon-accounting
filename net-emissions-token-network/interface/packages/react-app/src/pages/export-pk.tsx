@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import { Link } from "wouter";
-import { Form, Button, Card, Spinner, OverlayTrigger, Tooltip } from "react-bootstrap"
+import { Form, Button, Card, OverlayTrigger, Tooltip } from "react-bootstrap"
 import { FaRegClipboard } from 'react-icons/fa'
 
 import { CopyToClipboard } from 'react-copy-to-clipboard';
@@ -8,6 +8,7 @@ import { handleFormErrors, markPkExported } from '../services/api.service';
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import { Wallet } from "../components/static-data";
+import AsyncButton from "../components/AsyncButton";
 
 
 type ExportPkForm = {
@@ -79,19 +80,12 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
               }}>
                 <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
 
-                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
-                  {!!form.loading ?
-                    <Spinner
-                      animation="border"
-                      className="me-2"
-                      size="sm"
-                      as="span"
-                      role="status"
-                      aria-hidden="true"
-                      /> : <></>
-                }
-                  Confirm Export
-                </Button>
+                <AsyncButton
+                  type="submit"
+                  className="w-100 mb-3"
+                  variant="success"
+                  loading={!!form.loading}
+                >Confirm Export</AsyncButton>
 
                 {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
                   <div>If you just signed up, make sure to valid your email address first.</div>

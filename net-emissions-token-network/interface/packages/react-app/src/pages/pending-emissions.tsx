@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 import { FC, useCallback, useEffect, useState } from "react";
-import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
@@ -12,6 +11,8 @@ import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
 import { trpc } from "../services/trpc";
+import { useMutation } from "react-query";
+import AsyncButton from "../components/AsyncButton";
 
 type PendingEmissionsProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -25,7 +26,14 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
 
-  async function handleDecline() {
+  const issueFromQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_from || ''}], {
+    enabled: !!selectedPendingEmissions?.issued_from,
+  });
+  const issueToQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_to || ''}], {
+    enabled: !!selectedPendingEmissions?.issued_to,
+  });
+
+  const declineQuery = useMutation(async () => {
     if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         let result = await declineEmissionsRequest(selectedPendingEmissions.uuid);
@@ -42,17 +50,9 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     } else {
       setError("Empty current pending emission request.");
     }
-  }
-
-  const issueFromQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_from || ''}], {
-    enabled: !!selectedPendingEmissions?.issued_from,
-  });
-  const issueToQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_to || ''}], {
-    enabled: !!selectedPendingEmissions?.issued_to,
   });
 
-
-  async function handleIssue() {
+  const issueQuery = useMutation(async () => {
     if (provider && selectedPendingEmissions && selectedPendingEmissions.uuid) {
       try {
         const tokenTypeId = 3;
@@ -91,7 +91,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
           selectedPendingEmissions.token_manifest,
           selectedPendingEmissions.token_description,
           signedInWallet?.private_key || ''
-          );
+        );
 
         console.log("handleIssue", result.toString());
         if (result) {
@@ -116,22 +116,13 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     } else {
       setError("Empty current pending emission request.");
     }
-  }
-
-  useEffect(() => {
-    const init = async () => {
-      if (provider && uuid && signedInAddress) {
-        await fetchEmissionsRequest(uuid, signedInAddress);
-      }
-    }
-    init();
-  }, [provider, uuid, signedInAddress]);
+  });
 
   const fetchEmissionsRequest = useCallback(async (uuid: string, signedInAddress: string) => {
     try {
       let newEmissionsRequest = await getAuditorEmissionsRequest(uuid);
       if (newEmissionsRequest && newEmissionsRequest.emission_auditor && signedInAddress
-          && newEmissionsRequest.emission_auditor.toLowerCase() === signedInAddress.toLowerCase()) {
+        && newEmissionsRequest.emission_auditor.toLowerCase() === signedInAddress.toLowerCase()) {
         setSelectedPendingEmissions(newEmissionsRequest);
         setError("");
       } else {
@@ -144,80 +135,100 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
     }
   }, []);
 
+  useEffect(() => {
+    const init = async () => {
+      if (provider && uuid && signedInAddress) {
+        await fetchEmissionsRequest(uuid, signedInAddress);
+      }
+    }
+    init();
+  }, [provider, uuid, signedInAddress, fetchEmissionsRequest]);
+
   return (
     <>
-    <h2>Pending Emissions Request</h2>
-    <p className="text-danger">{error}</p>
-    {(selectedPendingEmissions && selectedPendingEmissions.uuid) && (
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Property</th>
-            <th>Value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Issued From</td>
-            <td className="text-monospace">
-              {selectedPendingEmissions.issued_from}
-              <div>
-                {issueFromQuery.data?.wallet?.name}
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>Issued To</td>
-            <td className="text-monospace">
-              {selectedPendingEmissions.issued_to}
-              <div>
-                {issueToQuery.data?.wallet?.name}
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>From date</td>
-            <td><DisplayDate date={selectedPendingEmissions.token_from_date}/></td>
-          </tr>
-          <tr>
-            <td>Thru date</td>
-            <td><DisplayDate date={selectedPendingEmissions.token_thru_date}/></td>
-          </tr>
-          <tr>
-            <td>Emissions</td>
-            <td><DisplayTokenAmount amount={selectedPendingEmissions.token_total_emissions}/></td>
-          </tr>
-          <tr>
-            <td>Metadata</td>
-            <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
-              <DisplayJSON json={selectedPendingEmissions.token_metadata}/>
-            </td>
-          </tr>
-          <tr>
-            <td>Manifest</td>
-            <td style={{ overflowWrap: "anywhere" }}>
-              <DisplayJSON json={selectedPendingEmissions.token_manifest}/>
-            </td>
-          </tr>
-          <tr>
-            <td>Description</td>
-            <td style={{ overflowWrap: "anywhere" }}>{selectedPendingEmissions.token_description}</td>
-          </tr>
-        </tbody>
-      </table>
-    )}
-    {(selectedPendingEmissions && selectedPendingEmissions.uuid) ?
-      <Row className="mt-4">
-        <Col>
-          <Button className="w-100" variant="danger" size="lg" onClick={handleDecline}>Decline</Button>
-        </Col>
-        <Col>
-          <Button className="w-100" variant="primary" size="lg" onClick={handleIssue}>Issue</Button>
-        </Col> 
-      </Row>
-      : null
+      <h2>Pending Emissions Request</h2>
+      <p className="text-danger">{error}</p>
+      {(selectedPendingEmissions && selectedPendingEmissions.uuid) && (
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Issued From</td>
+              <td className="text-monospace">
+                {selectedPendingEmissions.issued_from}
+                <div>
+                  {issueFromQuery.data?.wallet?.name}
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Issued To</td>
+              <td className="text-monospace">
+                {selectedPendingEmissions.issued_to}
+                <div>
+                  {issueToQuery.data?.wallet?.name}
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>From date</td>
+              <td><DisplayDate date={selectedPendingEmissions.token_from_date}/></td>
+            </tr>
+            <tr>
+              <td>Thru date</td>
+              <td><DisplayDate date={selectedPendingEmissions.token_thru_date}/></td>
+            </tr>
+            <tr>
+              <td>Emissions</td>
+              <td><DisplayTokenAmount amount={selectedPendingEmissions.token_total_emissions}/></td>
+            </tr>
+            <tr>
+              <td>Metadata</td>
+              <td className="text-monospace" style={{ overflowWrap: "anywhere" }}>
+                <DisplayJSON json={selectedPendingEmissions.token_metadata}/>
+              </td>
+            </tr>
+            <tr>
+              <td>Manifest</td>
+              <td style={{ overflowWrap: "anywhere" }}>
+                <DisplayJSON json={selectedPendingEmissions.token_manifest}/>
+              </td>
+            </tr>
+            <tr>
+              <td>Description</td>
+              <td style={{ overflowWrap: "anywhere" }}>{selectedPendingEmissions.token_description}</td>
+            </tr>
+          </tbody>
+        </table>
+      )}
+      {(selectedPendingEmissions && selectedPendingEmissions.uuid) ?
+        <Row className="mt-4">
+          <Col>
+            <AsyncButton
+              className="w-100"
+              variant="danger"
+              onClick={()=>{ declineQuery.mutate() }}
+              loading={declineQuery.isLoading}
+            >Decline</AsyncButton>
+          </Col>
+          <Col>
+            <AsyncButton
+              className="w-100"
+              variant="primary"
+              size="lg"
+              onClick={()=>{ issueQuery.mutate() }}
+              loading={issueQuery.isLoading}
+            >Issue</AsyncButton>
+          </Col> 
+        </Row>
+        : null
     }
-    </>
+      </>
   );
 }
 

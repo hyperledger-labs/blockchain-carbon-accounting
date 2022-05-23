@@ -1,6 +1,6 @@
 import { FC, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Form, Button, Card, Spinner } from "react-bootstrap"
+import { Form, Button, Card } from "react-bootstrap"
 import { motion } from 'framer-motion';
 
 import { signInUser, requestPasswordReset, handleFormErrors } from '../services/api.service';
@@ -8,6 +8,7 @@ import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import { useTimer } from "../hooks/useTimer";
 import { Wallet } from "../components/static-data";
+import AsyncButton from "../components/AsyncButton";
 
 
 type SignInForm = {
@@ -148,19 +149,12 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
                 <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
                 <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
                 <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'reset', error: ''})}>Forgot your password?</Button>
-                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
-                  {!!form.loading ?
-                    <Spinner
-                      animation="border"
-                      className="me-2"
-                      size="sm"
-                      as="span"
-                      role="status"
-                      aria-hidden="true"
-                      /> : <></>
-                }
-                  Sign In
-                </Button>
+                <AsyncButton
+                    type="submit"
+                    className="w-100 mb-3"
+                    variant="success"
+                    loading={!!form.loading}
+                  >Sign In</AsyncButton>
                 {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, password: '', error:'' }) }}>
                   {form.error === 'Invalid credentials' && <div>If you just signed up, make sure to valid your email address first.</div>}
                 </ErrorAlert>}
@@ -186,20 +180,14 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
                 <p className="mt-4">Please check your inbox and click on the received link to reset your password.</p>
                 <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'signin'})}>Back to Sign In</Button>
                 <p className="mt-4">Did not receive our email? Please wait for a while or try again.</p>
-                <Button className="w-100 mb-3" variant="outline-primary"  disabled={!!form.loading || (timerStarted && timer > 0)} onClick={()=>setForm({...form, resetPasswordError:'', resetPasswordSuccess:'', email:''})}>
-                  <>
-                    {!!form.loading ?
-                      <><Spinner
-                        animation="border"
-                        className="me-2"
-                        size="sm"
-                        as="span"
-                        role="status"
-                        aria-hidden="true"
-                        /> Resend</> : timerStarted ? <>Please wait {timer} sec.</> : <>Try again</>
-                  }
-                    </>
-                </Button>
+                <AsyncButton
+                  className="w-100 mb-3"
+                  variant="outline-primary"
+                  loading={!!form.loading || (timerStarted && timer > 0)}
+                  onClick={()=>setForm({...form, resetPasswordError:'', resetPasswordSuccess:'', email:''})}
+                >
+                  {!form.loading && timerStarted ? <>Please wait {timer} sec.</> : <>Try again</>}
+                </AsyncButton>
 
                 </>
                 : <p className="mt-4">Enter the email you registered with to receive password reset instructions.</p>
@@ -215,19 +203,14 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
                 <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
                 <Button variant="link" className="p-0 mb-3" onClick={()=>setForm({...form, state: 'signin'})}>Remembered your password?</Button>
                 { form.resetPasswordError && <div className="alert alert-danger">{form.resetPasswordError}.</div> }
-                <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
-                  {!!form.loading ?
-                    <Spinner
-                      animation="border"
-                      className="me-2"
-                      size="sm"
-                      as="span"
-                      role="status"
-                      aria-hidden="true"
-                      /> : <></>
-                }
-                  Reset Password
-                </Button>
+                <AsyncButton
+                    type="submit"
+                    className="w-100 mb-3"
+                    variant="success"
+                    loading={!!form.loading}
+                  >
+                    Reset Password
+                 </AsyncButton>
               </Form>}
             </Card.Body>
           </motion.div>
