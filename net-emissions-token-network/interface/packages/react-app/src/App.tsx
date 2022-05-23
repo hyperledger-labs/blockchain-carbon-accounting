@@ -111,26 +111,26 @@ const App:FC = () => {
               <Suspense fallback={<p>Loading ...</p>}>
                 <Switch>
                   <Route path="/"><Redirect to="/dashboard" /></Route>
-                  <Route path="/dashboard/:address?">{params=>
+                  <Route path="/dashboard/:address?">{(params)=>
                     <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
                   }</Route>
                   <Route path="/governance">
                     <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
                   <Route path="/issue">
-                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet = {signedInWallet}  />
+                    <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet}  />
                   </Route>
                   <Route path="/requestAudit">
                     <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                   </Route>
-                  <Route path="/issuedtokens/:address?">{params=>
+                  <Route path="/issuedtokens/:address?">{(params)=>
                     <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
                   }</Route>
                   <Route path="/emissionsrequests">
                     <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
                   </Route>
-                  <Route path="/pendingemissions/:uuid">{params=>
-                    <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet = {signedInWallet}/>
+                  <Route path="/pendingemissions/:uuid">{(params)=>
+                    <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet={signedInWallet}/>
                   }</Route>
                   <Route path="/transfer">
                     <TransferForm provider={provider} roles={roles} />
