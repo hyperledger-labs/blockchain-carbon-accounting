@@ -45,7 +45,23 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
 
       // metadata conversion
       const _metadata = token.metadata as string;
-      const metaObj = JSON.parse(_metadata);
+      // eslint-disable-next-line
+      let metaObj: any = {};
+      try {
+        if (_metadata) metaObj = JSON.parse(_metadata);
+      } catch (error) {
+        console.error('Invalid JSON in token metadata:', _metadata);
+        metaObj = {}
+      }
+      const _manifest = token.manifest as string;
+      // eslint-disable-next-line
+      let manifestObj: any = {};
+      try {
+        if (_manifest) manifestObj = JSON.parse(_manifest);
+      } catch (error) {
+        console.error('Invalid JSON in token manifest:', _manifest);
+        manifestObj = {}
+      }
 
       // extract scope and type
       let scope = null, type = null;
@@ -56,14 +72,15 @@ export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
 
       // build token model
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { metadata,totalIssued, totalRetired, ..._tokenPayload } = { ...token };
+      const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
       const tokenPayload: TokenPayload = {
         ..._tokenPayload,
         scope,
         type,
         totalIssued: token.totalIssued,
         totalRetired: token.totalRetired,
-        metadata: metaObj
+        metadata: metaObj,
+        manifest: manifestObj
       }
 
       const db = await PostgresDBService.getInstance()
