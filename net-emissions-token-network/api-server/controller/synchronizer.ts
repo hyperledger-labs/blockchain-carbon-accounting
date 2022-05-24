@@ -1,29 +1,91 @@
 import { CreatedToken } from "../models/commonTypes";
 import { TokenPayload, BalancePayload } from 'blockchain-accounting-data-postgres/src/repositories/common'
 import { insertNewBalance } from "./balance.controller";
-import { Balance } from "blockchain-accounting-data-postgres/src/models/balance";
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
+import { Balance } from "blockchain-accounting-data-postgres/src/models/balance";
+import { Sync } from "blockchain-accounting-data-postgres/src/models/sync";
 import { Wallet } from "blockchain-accounting-data-postgres/src/models/wallet";
 import { OPTS_TYPE } from "../server";
 import { BURN, getContract, getWeb3 } from "../utils/web3";
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
-const FIRST_BLOCK = 18656095;
+const FIRST_BLOCK = Number(process.env['LEDGER_FIRST_BLOCK']) || 0;
+const EVENTS_BLOCK_INTERVAL = 5000;
 
-/* Read the event log and check the roles for each account, sync them into the Wallet DB (create entries if missing)
- * Note for the dealer events the actual role depends on the token.
- * Instead of relying on the event we just use them to collect the addresses of the accounts,
- * then use getRoles to get the final roles from the contract.
- */
-export const syncWallets = async (currentBlock: number, opts: OPTS_TYPE) => {
-    try {
-        // cleanup roles on Hardhat first
-        if (opts.network_name === 'hardhat') {
-            const db = await PostgresDBService.getInstance()
-            await db.getWalletRepo().clearWalletsRoles()
+/** Perform the startup synchronization with the blockchain and returns the current block number. */
+export const startupSync = async(opts: OPTS_TYPE) => {
+    // FIRST_BLOCK is the block number of the contract deployment as set in .env
+    const fromBlock = "hardhat" === opts.network_name ? 0 : FIRST_BLOCK;
+    let syncFromBlock = fromBlock;
+
+    // if we do not have a Sync entry or we are on Hardhat local network
+    // we clear the data and resync from the beginning.
+    if ("hardhat" !== opts.network_name) {
+        // get the last synced block
+        const lastSync = await getLastSync(opts);
+        if (lastSync) {
+            syncFromBlock = lastSync + 1;
         }
+    } else {
+        console.log('* Running on Hardhat local network. Clearing data and resyncing.');
+    }
 
-        const events = [
+    // so only clear if we want to start from fresh
+    if (syncFromBlock == fromBlock) {
+        try {
+            await clearTokensDBData();
+            await clearWalletsRolesDBData();
+        } catch (err) {
+            console.error('An error occurred while truncating the table', err)
+            throw err
+        }
+    }
+
+    let elapsed = 0;
+    const started = Date.now();
+    let lastBlock = 0;
+    console.log(`--- Synchronization from last block ${lastBlock} started at: `, new Date().toLocaleString());
+
+    try {
+        lastBlock = await fillTokens(opts);
+        console.log('-- blockchain last block: ', lastBlock);
+    } catch (err) {
+        console.error('An error occurred while fetching the tokens', err)
+        throw err
+    }
+
+    // check if we are already synced up to the current block
+    if (lastBlock < syncFromBlock) {
+        console.log('* Already synced up to the current block.');
+        return lastBlock;
+    }
+
+    try {
+        console.log('-- checking blockchain events for blocks: ', syncFromBlock, lastBlock);
+        await syncEvents(syncFromBlock, lastBlock, opts);
+    } catch (err) {
+        console.error('An error occurred while filling balances', err)
+        throw err
+    }
+
+    elapsed = Date.now() - started;
+    console.log(`elapsed ${elapsed / 1000} seconds.\n`);
+    return lastBlock;
+}
+
+
+/* Read the event log and process events.
+ * For wallet: check the roles for each account, sync them into the Wallet DB (create entries if missing)
+ *  Note for the dealer events the actual role depends on the token.
+ *  Instead of relying on the event we just use them to collect the addresses of the accounts,
+ *  then use getRoles to get the final roles from the contract.
+ * For balances: check transfers and update the balances in the DB
+ */
+export const syncEvents = async (fromBlock: number, currentBlock: number, opts: OPTS_TYPE) => {
+    try {
+        const db = await PostgresDBService.getInstance()
+
+        const account_events = [
             {event: 'RegisteredConsumer', role: 'Consumer'},
             {event: 'UnregisteredConsumer', role: 'Consumer'},
             {event: 'RegisteredDealer', role: 'Dealer'},
@@ -32,34 +94,43 @@ export const syncWallets = async (currentBlock: number, opts: OPTS_TYPE) => {
             {event: 'UnregisteredIndustry', role: 'Industry'},
         ];
         const accountAddresses: Record<string, boolean> = {};
-        const members: Record<string, Record<string, number>> = {};
-        let fromBlock: number = "hardhat" === opts.network_name ? 0 : FIRST_BLOCK;
-        let toBlock: number | string = fromBlock;
-        while(toBlock != currentBlock) {
-            if(fromBlock + 5000 > currentBlock) 
+        const syncedAccountAddresses: Record<string, boolean> = {};
+        let toBlock = fromBlock;
+        while (toBlock != currentBlock) {
+            if (fromBlock + EVENTS_BLOCK_INTERVAL > currentBlock) {
                 toBlock = currentBlock;
-            else 
-                toBlock = fromBlock + 5000; 
-            for (const {event} of events) {
-                console.log("event: ", event);
-                const logs = await getContract(opts).getPastEvents(event, {fromBlock, toBlock});
-                for (const {returnValues} of logs) {
+            } else {
+                toBlock = fromBlock + EVENTS_BLOCK_INTERVAL;
+            }
+            console.log(`Syncing events from block ${fromBlock} to ${toBlock} ...`);
+            const events = await getContract(opts).getPastEvents("allEvents", {fromBlock, toBlock});
+            for (const {event, returnValues} of events) {
+                console.log("? event: ", event);
+                if (account_events.find(ev => ev.event === event)) {
                     const account = returnValues.account
-                    accountAddresses[account] = true
+                    if (!accountAddresses[account]) {
+                      accountAddresses[account] = true
+                      console.log("- found account: ", account);
+                    }
+                } else if ('TransferSingle' === event) {
+                    // handle the transfers for calculating balances here as well
+                    await handleTransferEvent(returnValues, db);
                 }
             }
 
-            if(toBlock == currentBlock) break;
-            fromBlock += 5000;
-        }
-
-        const accountsWithRoles: Record<string, string[]> = {};
-        for (const role in members) {
-            for (const account in members[role]) {
-                console.log('Account',account,'should have role',role);
-                accountsWithRoles[account] = accountsWithRoles[account] || [];
-                accountsWithRoles[account].push(role);
+            // save the sync status so it can be resumed later
+            // the wallet roles should be saved as well before that or
+            // those addresses may be forgotten if we crash in this loop ...
+            for (const address in accountAddresses) {
+                if (!syncedAccountAddresses[address]) {
+                    await syncWalletRoles(address, opts);
+                    syncedAccountAddresses[address] = true;
+                }
             }
+            await saveLastSync(toBlock, opts);
+
+            if (toBlock == currentBlock) break;
+            fromBlock += EVENTS_BLOCK_INTERVAL;
         }
 
         for (const address in accountAddresses) {
@@ -75,6 +146,7 @@ export const getRoles = async (address: string, opts: OPTS_TYPE) => {
   return await getContract(opts).methods.getRoles(address).call();
 }
 
+/** Update a Wallet in the DB with the current roles from the contract. */
 export const syncWalletRoles = async (address: string, opts: OPTS_TYPE, data?: Partial<Wallet>) => {
     try {
         const db = await PostgresDBService.getInstance()
@@ -104,10 +176,10 @@ export const checkSignedMessage = (message: string, signature: string, opts: OPT
 }
 
 
-// get number of unique tokens
+/** Get number of unique tokens on the blockchain. */
 const getNumOfUniqueTokens = async (opts: OPTS_TYPE): Promise<number> => {
     try {
-        const result = await getContract(opts).methods.getNumOfUniqueTokens().call();    
+        const result = await getContract(opts).methods.getNumOfUniqueTokens().call();
         return result;
     } catch (err) {
         console.error(err)
@@ -115,6 +187,7 @@ const getNumOfUniqueTokens = async (opts: OPTS_TYPE): Promise<number> => {
     }
 }
 
+/** Get the token details from the blockchain, but totalIssued and totalRetired are set to 0. */
 async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenPayload> {
     try {
         const token: CreatedToken = await getContract(opts).methods.getTokenDetails(tokenId).call();
@@ -167,108 +240,177 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
     }
 }
 
-
-export const truncateTable = async () => {
+/** Clear the token and balance tables. */
+export const clearTokensDBData = async () => {
     const db = await PostgresDBService.getInstance()
     await db.getTokenRepo().truncateTokens();
     // truncate balances is also done by truncate tokens
     console.log('--- Tables has been cleared. ----\n')
 }
 
+/** Clear the wallet roles data. */
+export const clearWalletsRolesDBData = async () => {
+    const db = await PostgresDBService.getInstance()
+    await db.getWalletRepo().clearWalletsRoles()
+    console.log('--- Wallets roles have been cleared. ----\n')
+}
+
+/** Sync the tokens from the blockchain and returns the blockchain current block number.
+This does not depend on a starting block as we rely on the fact that token ids are sequential.
+*/
 export const fillTokens = async (opts: OPTS_TYPE): Promise<number> => {
     const db = await PostgresDBService.getInstance()
 
     // get number tokens from database
     const numOfSavedTokens = await db.getTokenRepo().countTokens([]);
-
     // get number tokens from network
     const numOfIssuedTokens = await getNumOfUniqueTokens(opts);
-    // getting tokens from network
-    // save to database
-    if(numOfIssuedTokens > numOfSavedTokens) {
-        for (let i = numOfSavedTokens + 1; i <= numOfIssuedTokens; i++) {
-            // getting token details and store
-            const token: TokenPayload = await getTokenDetails(i, opts);
-            await db.getTokenRepo().insertToken(token);
+
+    // get the token details from the network
+    if (numOfIssuedTokens > numOfSavedTokens) {
+        // note: this should only get NEW tokens as tokenId auto-increments, but double check anyway
+        for (let tokenId = numOfSavedTokens + 1; tokenId <= numOfIssuedTokens; tokenId++) {
+            // if the token is not in the database, get the initial details and save it
+            const t = await db.getTokenRepo().selectToken(tokenId);
+            if (!t) {
+                const token: TokenPayload = await getTokenDetails(tokenId, opts);
+                await db.getTokenRepo().insertToken(token);
+            }
         }
     }
     console.log(`${numOfIssuedTokens - numOfSavedTokens} new tokens of ${numOfIssuedTokens} are stored into database.`);
     return await getWeb3(opts).eth.getBlockNumber();
 }
 
-/**
- * TODOs
- * 1. Cannot insert with available!
- */
-export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
-
+// eslint-disable-next-line
+const handleTransferEvents = async (singleTransfers: any[]) => {
     const db = await PostgresDBService.getInstance()
-    let fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
-    let toBlock: number | string = fromBlock;
-    while(toBlock != currentBlock) {
-        // target event is TokenRetired & TransferSingle
-        if(fromBlock + 5000 > currentBlock) 
-            toBlock = currentBlock;
-        else
-            toBlock = fromBlock + 5000;
-        const singleTransfers = await getContract(opts).getPastEvents('TransferSingle', 
-            {fromBlock, toBlock});
-        const len = singleTransfers.length;
-        for (let i = 0; i < len; i++) {
-            const singleTransfer = singleTransfers[i].returnValues;
-            const tokenId: number = singleTransfer.id;
-            const from: string = singleTransfer.from;
-            const to: string = singleTransfer.to;
-            const amount = BigInt(singleTransfer.value); // it must be divided by 10^3
-            // issue case
-            if(from == BURN) {
-                const balancePayload: BalancePayload = {
-                    tokenId,
-                    issuedTo: to,
-                    available: amount,
-                    retired: 0n,
-                    transferred: 0n
-                }
+    const len = singleTransfers.length;
+    for (let i = 0; i < len; i++) {
+        const singleTransfer = singleTransfers[i].returnValues;
+        handleTransferEvent(singleTransfer, db);
+    }
+}
 
-                // resolve conflicts
-                const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
-                if(balance != undefined) continue;
-
-                await insertNewBalance(balancePayload);
-                await db.getTokenRepo().updateTotalIssued(tokenId, amount);
-                continue;
-            }
-
-            // retire case
-            if(to == BURN) {
-                // update issuee balance
-                await db.getBalanceRepo().retireBalance(from, tokenId, amount);
-
-                // update token balance
-                await db.getTokenRepo().updateTotalRetired(tokenId, amount);
-                continue;
-            }
-            // general transfer!
-            // 1) deduct 'from' balance
-            await db.getBalanceRepo().transferBalance(from, tokenId, amount);
-
-            // 2) add available 'to' balance
-            const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
-            if(balance == undefined) {
-                const balancePayload: BalancePayload = {
-                    tokenId,
-                    issuedTo: to,
-                    available: amount,
-                    retired: 0n,
-                    transferred: 0n
-                }
-                await insertNewBalance(balancePayload);
-            } else {
-                await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
-            }
+// eslint-disable-next-line
+const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) => {
+    console.log('handleTransferEvent', singleTransfer);
+    const tokenId: number = singleTransfer.id;
+    const from: string = singleTransfer.from;
+    const to: string = singleTransfer.to;
+    const amount = BigInt(singleTransfer.value); // it must be divided by 10^3
+    // issue case
+    if (from == BURN) {
+        const balancePayload: BalancePayload = {
+            tokenId,
+            issuedTo: to,
+            available: amount,
+            retired: 0n,
+            transferred: 0n
         }
 
-        if(toBlock == currentBlock) break;
-        fromBlock += 5000;
+        // resolve conflicts
+        const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
+        if(balance != undefined) return;
+
+        await insertNewBalance(balancePayload);
+        await db.getTokenRepo().updateTotalIssued(tokenId, amount);
+        return;
     }
+
+    // retire case
+    if (to == BURN) {
+        // update issuee balance
+        await db.getBalanceRepo().retireBalance(from, tokenId, amount);
+
+        // update token balance
+        await db.getTokenRepo().updateTotalRetired(tokenId, amount);
+        return;
+    }
+    // general transfer!
+    // 1) deduct 'from' balance
+    await db.getBalanceRepo().transferBalance(from, tokenId, amount);
+
+    // 2) add available 'to' balance
+    const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
+    if (balance == undefined) {
+        const balancePayload: BalancePayload = {
+            tokenId,
+            issuedTo: to,
+            available: amount,
+            retired: 0n,
+            transferred: 0n
+        }
+        await insertNewBalance(balancePayload);
+    } else {
+        await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
+    }
+}
+
+/** Updates the token balances since the last Sync. **Only for use in the synchronizeTokens middleware**. */
+export const fillBalances = async (currentBlock: number, opts: OPTS_TYPE) => {
+    const fromBlock: number = "hardhat" === process.env.LEDGER_ETH_NETWORK ? 0 : FIRST_BLOCK;
+    let syncFromBlock = fromBlock;
+    let toBlock: number | string = fromBlock;
+
+    // we do not have to resync from scratch since this was done during startup
+    // so we should always have a lastSync here.
+    // get the last synced block
+    const lastSync = await getLastSync(opts);
+    if (lastSync) {
+        syncFromBlock = lastSync + 1;
+    }
+    // check if we are already synced up to the current block
+    if (currentBlock < syncFromBlock) {
+        console.log('* Already synced up to the current block.');
+        return;
+    }
+
+    while (toBlock < currentBlock) {
+        // target event is TokenRetired & TransferSingle
+        if (syncFromBlock + EVENTS_BLOCK_INTERVAL > currentBlock) {
+            toBlock = currentBlock;
+        } else {
+            toBlock = syncFromBlock + EVENTS_BLOCK_INTERVAL;
+        }
+        console.log(`Syncing balances from block ${syncFromBlock} to ${toBlock} ...`);
+        const singleTransfers = await getContract(opts).getPastEvents('TransferSingle', {syncFromBlock, toBlock});
+        await handleTransferEvents(singleTransfers);
+
+        if (toBlock == currentBlock) break;
+        syncFromBlock += EVENTS_BLOCK_INTERVAL;
+    }
+
+    // save the lastSync
+    await saveLastSync(currentBlock, opts);
+}
+
+/** Save the current block in `Sync` with the contract network and address. */
+export const saveLastSync = async (currentBlock: number, opts: OPTS_TYPE) => {
+    const db = await PostgresDBService.getInstance();
+    await db.getConnection().getRepository(Sync).save({
+        id: 1,
+        block: currentBlock,
+        network: opts.network_name,
+        contract: opts.contract_address
+    });
+}
+
+/** Get the last block number in `Sync` for the contract network and address. */
+export const getLastSync = async (opts: OPTS_TYPE) => {
+    const db = await PostgresDBService.getInstance();
+    const lastSync = await db.getConnection().getRepository(Sync).findOneBy({id: 1});
+    if (lastSync && lastSync.block) {
+        // also check that the network and contract matches the record
+        // in case we changed or configuration (ie: when switching from local tests to deployed contracts)
+        if (lastSync.network === opts.network_name && lastSync.contract === opts.contract_address) {
+            return lastSync.block;
+        } else {
+            console.log('* Network or contract mismatch. Will be resyncing.');
+        }
+    } else {
+        console.log('* No last sync block found. Will be resyncing.');
+    }
+    // if no last sync or mistmatched config, return 0
+    return 0;
 }

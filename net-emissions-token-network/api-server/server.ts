@@ -31,7 +31,7 @@ export type OPTS_TYPE = {
 export const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
 
 // import synchronizer
-import { fillBalances, fillTokens, syncWallets, truncateTable } from './controller/synchronizer';
+import { startupSync } from './controller/synchronizer';
 
 import router from './router/router';
 import { subscribeEvent } from "./components/event.listener";
@@ -94,40 +94,12 @@ app.use('/trpc', trpcMiddleware);
  * 1. must make sure sync issued tokens between fillToken & subscribeEvent!
  */
 db.then(async () => {
-  // add truncate
-  try {
-    await truncateTable();
-  } catch (err) {
-    console.error('An error occurred while truncating the table', err)
-    throw err
-  }
-  let elapsed = 0;
-  const started = Date.now();
-  console.log('--- Synchronization started at: ', new Date().toLocaleString());
-  let lastBlock = 0;
-  try {
-    lastBlock = await fillTokens(OPTS);
-    console.log('--first last block: ', lastBlock);
-  } catch (err) {
-    console.error('An error occurred while fetching the tokens', err)
-    throw err
-  }
-  try {
-    await fillBalances(lastBlock, OPTS);
-  } catch (err) {
-    console.error('An error occurred while filling balances', err)
-    throw err
-  }
 
-  elapsed = Date.now() - started;
-  console.log(`elapsed ${elapsed / 1000} seconds.\n`);
-
-  // sync wallet roles
-  await syncWallets(lastBlock, OPTS);
+  const lastBlock = await startupSync(OPTS);
 
   try {
-    // for hardhat
-    if(network_name === 'bsctestnet') {
+    // for blockchains that support events subscriptions
+    if (network_name === 'bsctestnet') {
       subscribeEvent(lastBlock, OPTS);
     }
   } catch (err) {

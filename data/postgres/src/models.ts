@@ -9,6 +9,7 @@ import { Balance } from "./models/balance"
 import { EmissionsRequest, EmissionsRequestSupportingDocument } from "./models/emissionsRequest"
 import { UploadedFile } from "./models/uploadedFile"
 import { ActivityEmissionsFactorLookup } from "./models/activityEmissionsFactorLookup"
+import { Sync } from "./models/sync"
 
 
 export const initDb = async (opts: DbOpts) => {
@@ -21,6 +22,7 @@ export const initDb = async (opts: DbOpts) => {
     password: opts.dbPassword,
     database: opts.dbName,
     entities: [
+      Sync,
       EmissionsFactor,
       UtilityLookupItem,
       Wallet,

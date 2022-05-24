@@ -31,6 +31,7 @@ export interface TokenPayload {
   dateCreated: number;
   // eslint-disable-next-line
   metadata: Object;
+  // eslint-disable-next-line
   manifest: Object;
   description: string;
   totalIssued: bigint;

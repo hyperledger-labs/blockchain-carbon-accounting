@@ -26,6 +26,7 @@ const rolesChanged = async (address: string, opts: OPTS_TYPE) => {
   await syncWalletRoles(address, opts);
 }
 
+/** Add event subsciptions starting at the given block number. */
 export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
   const contract = getContract({...opts, use_web_socket: true})
 
