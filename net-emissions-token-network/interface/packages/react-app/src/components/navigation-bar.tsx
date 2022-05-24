@@ -60,10 +60,6 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
   const [cachedRoles, setCachedRoles] = useState<RolesInfo>({});
 
   useEffect(() => {
-    console.log('sign address', signedInAddress);
-  }, [signedInAddress]);
-
-  useEffect(() => {
     // if roles are fetched and (the display role is empty or cached roles differ from current roles), find the correct string to display
     if (roles && (role === "" || cachedRoles !== roles)) {
       if (roles.isAdmin) {

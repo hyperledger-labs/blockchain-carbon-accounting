@@ -17,6 +17,7 @@ const NETWORK_NAME = "mainnet";
 function useWeb3Modal(config: any = {}) {
   const [provider, setProvider] = useState<Web3Provider|JsonRpcProvider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
   const [signedInWallet, setSignedInWallet] = useState<Wallet | undefined>();
   const [roles, setRoles] = useState<RolesInfo>({});
@@ -49,8 +50,7 @@ function useWeb3Modal(config: any = {}) {
     const web3Provider = new Web3Provider(newProvider);
     setProvider(web3Provider);
     setSignedInAddress(newProvider.selectedAddress);
-    // in that case we don't need a login state
-    localStorage.removeItem("signedInAddress");
+    // in that case we don't need a wallet
     localStorage.removeItem("signedInWallet");
   }, [web3Modal]);
 
@@ -58,12 +58,32 @@ function useWeb3Modal(config: any = {}) {
     async function () {
       setSignedInAddress("");
       web3Modal.clearCachedProvider();
+      localStorage.removeItem("signedInAddress");
+      localStorage.removeItem("signedInWallet");
       window.location.reload();
     },
     [web3Modal],
   );
 
+
+  useEffect(() => {
+    // synchronize the local storage with the current signed in wallet
+    if (signedInWallet) {
+      localStorage.setItem("signedInWallet", JSON.stringify(signedInWallet));
+    }
+  }, [signedInWallet]);
+
+  useEffect(() => {
+    // synchronize the local storage with the current signed in address
+    if (signedInAddress) {
+      localStorage.setItem("signedInAddress", signedInAddress);
+    }
+  }, [signedInAddress]);
+
   useEffect(()=>{
+    // on mount restore the login state if we had any
+    // this keeps the user logged in until metamask reloads
+    // or until the user manually logs out
     const lw = localStorage.getItem("signedInWallet");
     const la = localStorage.getItem("signedInAddress");
     console.log('restore login ?', la, lw);
@@ -72,7 +92,10 @@ function useWeb3Modal(config: any = {}) {
       setProvider(web3Provider);
       setSignedInAddress(la);
       setSignedInWallet(JSON.parse(lw));
+    } else if (la) {
+      setSignedInAddress(la);
     }
+    setLoaded(true);
   }, []);
 
   const loadWalletInfo = (wallet:Wallet) => {
@@ -80,9 +103,6 @@ function useWeb3Modal(config: any = {}) {
     setProvider(web3Provider);
     setSignedInWallet(wallet);
     setSignedInAddress(wallet.address||'');
-    // save the login state
-    localStorage.setItem("signedInAddress", wallet.address||'');
-    localStorage.setItem("signedInWallet", JSON.stringify(wallet));
   }
 
   const logoutOfWalletInfo = () => {
@@ -90,7 +110,6 @@ function useWeb3Modal(config: any = {}) {
     setSignedInWallet(undefined);
     web3Modal.clearCachedProvider();
     setProvider(undefined);
-    // save the logout state
     localStorage.removeItem("signedInAddress");
     localStorage.removeItem("signedInWallet");
   }
@@ -125,7 +144,7 @@ function useWeb3Modal(config: any = {}) {
     refresh();
   }, [refresh]);
 
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh};
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh, loaded};
 }
 
 export default useWeb3Modal;

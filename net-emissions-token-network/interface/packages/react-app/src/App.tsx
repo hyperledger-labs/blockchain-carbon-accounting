@@ -35,7 +35,7 @@ const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
 
-  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh } = useWeb3Modal();
+  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh, loaded } = useWeb3Modal();
 
   const [location] = useLocation();
 
@@ -60,131 +60,132 @@ const App:FC = () => {
           limitedMode={limitedMode}
           />
 
-        {/* Tabs to pages, only displayed when the user is signed in */}
-        { signedInAddress && (
-          <Nav fill variant="tabs" className="mt-2 mb-4 border-bottom-0">
-            {/* On dashboard page, click this link to refresh the balances */}
-            {/* Else on other page, click this link to go to dashboard */}
-            {(location.substring(1) === "dashboard")
-              ? <Nav.Link onClick={() => dashboardRef.current?.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
-              : <Link href="/dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
-          }
+        { loaded ? <>
+          {/* Tabs to pages, only displayed when the user is signed in */}
+          { signedInAddress && (
+            <Nav fill variant="tabs" className="mt-2 mb-4 border-bottom-0">
+              {/* On dashboard page, click this link to refresh the balances */}
+              {/* Else on other page, click this link to go to dashboard */}
+              {(location.substring(1) === "dashboard")
+                ? <Nav.Link onClick={() => dashboardRef.current?.refresh()} eventKey="dashboard">Dashboard</Nav.Link>
+                : <Link href="/dashboard"><Nav.Link eventKey="dashboard">Dashboard</Nav.Link></Link>
+            }
 
-            <Link href="/governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
-            {isOwnerOrDealer ? 
-              <Link href="/issuedtokens"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
-              : null
-          }
-            <Link href="/requestAudit"><Nav.Link eventKey="requestAudit">Request audit</Nav.Link></Link>
+              <Link href="/governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
+              {isOwnerOrDealer ? 
+                <Link href="/issuedtokens"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
+                : null
+            }
+              <Link href="/requestAudit"><Nav.Link eventKey="requestAudit">Request audit</Nav.Link></Link>
 
-            {((limitedMode && isOwner) || !limitedMode) &&
-              <Link href="/transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
-          }
+              {((limitedMode && isOwner) || !limitedMode) &&
+                <Link href="/transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
+            }
 
-            <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
+              <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
-            {((limitedMode && isOwner) || !limitedMode) &&
-              <Link href="/track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
-          }
+              {((limitedMode && isOwner) || !limitedMode) &&
+                <Link href="/track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
+            }
 
-            {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
-            {(location.substring(1) === "access-control")
-              ? <Nav.Link onClick={() => accessControlRef.current?.refresh()} eventKey="access-control">
-                {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
-                  ? "Manage roles"
-                  : "My roles"
-              }
-              </Nav.Link>
-              : <Link href="/access-control"><Nav.Link eventKey="access-control">
-                {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
-                  ? "Manage roles"
-                  : "My roles"
-              }
-              </Nav.Link></Link> 
-          }
-        </Nav>)}
+              {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
+              {(location.substring(1) === "access-control")
+                ? <Nav.Link onClick={() => accessControlRef.current?.refresh()} eventKey="access-control">
+                  {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
+                    ? "Manage roles"
+                    : "My roles"
+                }
+                </Nav.Link>
+                : <Link href="/access-control"><Nav.Link eventKey="access-control">
+                  {( (!limitedMode && isOwnerOrDealer) || (limitedMode && isOwner) )
+                    ? "Manage roles"
+                    : "My roles"
+                }
+                </Nav.Link></Link> 
+            }
+            </Nav>)}
 
-        <Container className="my-2">
+          <Container className="my-2">
 
-          <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
-            <Tab.Content>
-              <Suspense fallback={<p>Loading ...</p>}>
-                { signedInAddress ? (
-                  <Switch>
-                    <Route path="/"><Redirect to="/dashboard" /></Route>
-                    <Route path="/dashboard/:address?">{(params)=>
-                      <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
-                    }</Route>
-                    <Route path="/governance">
-                      <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
-                    </Route>
-                    <Route path="/issue">
-                      <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet}  />
-                    </Route>
-                    <Route path="/requestAudit">
-                      <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
-                    </Route>
-                    <Route path="/issuedtokens/:address?">{(params)=>
-                      <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
-                    }</Route>
-                    <Route path="/emissionsrequests">
-                      <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
-                    </Route>
-                    <Route path="/pendingemissions/:uuid">{(params)=>
-                      <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet={signedInWallet}/>
-                    }</Route>
-                    <Route path="/transfer">
-                      <TransferForm provider={provider} roles={roles} />
-                    </Route>
-                    <Route path="/retire">
-                      <RetireForm provider={provider} roles={roles} />
-                    </Route>
-                    <Route path="/track">
-                      <TrackForm provider={provider} registeredTracker={registeredTracker}/>
-                    </Route>
-                    <Route path="/access-control">
-                      <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
-                    </Route>
-                    <Route path="/reset-password">
-                      <ChangePassword></ChangePassword>
-                    </Route>
-                    <Route path="/sign-up">
-                      <SignUp></SignUp>
-                    </Route>
-                    <Route path="/sign-in">
-                      <SignIn loadWalletInfo={loadWalletInfo} />
-                    </Route>
-                    <Route path="/export-pk">
-                      <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
-                    </Route>
-                    <Route>
-                      <Redirect to="/dashboard" />
-                    </Route>
-                  </Switch>
-                ) : (
-                  <Switch>
-                    <Route path="/"><Redirect to="/requestAudit" /></Route>
-                    <Route path="/sign-up">
-                      <SignUp></SignUp>
-                    </Route>
-                    <Route path="/sign-in">
-                      <SignIn loadWalletInfo={loadWalletInfo} />
-                    </Route>
-                    <Route path="/requestAudit">
-                      <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
-                    </Route>
-                    <Route>
-                      <Redirect to="/requestAudit" />
-                    </Route>
-                  </Switch>
-                  )
-              }
-              </Suspense>
-            </Tab.Content>
-          </Tab.Container>
-          <div className="my-5"></div>
-        </Container>
-
+            <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
+              <Tab.Content>
+                <Suspense fallback={<p>Loading ...</p>}>
+                  { signedInAddress ? (
+                    <Switch>
+                      <Route path="/"><Redirect to="/dashboard" /></Route>
+                      <Route path="/dashboard/:address?">{(params)=>
+                        <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                      }</Route>
+                      <Route path="/governance">
+                        <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
+                      </Route>
+                      <Route path="/issue">
+                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet}  />
+                      </Route>
+                      <Route path="/requestAudit">
+                        <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
+                      </Route>
+                      <Route path="/issuedtokens/:address?">{(params)=>
+                        <IssuedTokens provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                      }</Route>
+                      <Route path="/emissionsrequests">
+                        <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
+                      </Route>
+                      <Route path="/pendingemissions/:uuid">{(params)=>
+                        <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet={signedInWallet}/>
+                      }</Route>
+                      <Route path="/transfer">
+                        <TransferForm provider={provider} roles={roles} />
+                      </Route>
+                      <Route path="/retire">
+                        <RetireForm provider={provider} roles={roles} />
+                      </Route>
+                      <Route path="/track">
+                        <TrackForm provider={provider} registeredTracker={registeredTracker}/>
+                      </Route>
+                      <Route path="/access-control">
+                        <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
+                      </Route>
+                      <Route path="/reset-password">
+                        <ChangePassword></ChangePassword>
+                      </Route>
+                      <Route path="/sign-up">
+                        <SignUp></SignUp>
+                      </Route>
+                      <Route path="/sign-in">
+                        <SignIn loadWalletInfo={loadWalletInfo} />
+                      </Route>
+                      <Route path="/export-pk">
+                        <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
+                      </Route>
+                      <Route>
+                        <Redirect to="/dashboard" />
+                      </Route>
+                    </Switch>
+                  ) : (
+                      <Switch>
+                        <Route path="/"><Redirect to="/requestAudit" /></Route>
+                        <Route path="/sign-up">
+                          <SignUp></SignUp>
+                        </Route>
+                        <Route path="/sign-in">
+                          <SignIn loadWalletInfo={loadWalletInfo} />
+                        </Route>
+                        <Route path="/requestAudit">
+                          <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
+                        </Route>
+                        <Route>
+                          <Redirect to="/requestAudit" />
+                        </Route>
+                      </Switch>
+                    )
+                }
+                </Suspense>
+              </Tab.Content>
+            </Tab.Container>
+            <div className="my-5"></div>
+          </Container>
+        </> : <p>Loading ...</p>}
       </QueryClientProvider>
     </trpc.Provider>
   );
