@@ -133,13 +133,9 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
             if (toBlock == currentBlock) break;
             fromBlock += EVENTS_BLOCK_INTERVAL;
         }
-
-        for (const address in accountAddresses) {
-            await syncWalletRoles(address, opts);
-        }
     } catch (err) {
         console.error(err)
-        throw new Error('Error in getMembers: ' + err)
+        throw new Error('Error in syncEvents: ' + err)
     }
 }
 
