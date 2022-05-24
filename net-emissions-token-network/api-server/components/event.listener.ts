@@ -1,11 +1,9 @@
 import { EventData } from 'web3-eth-contract';
-import { insertNewBalance } from "../controller/balance.controller";
 import { CreatedToken } from "../models/commonTypes";
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
-import { BalancePayload, TokenPayload } from 'blockchain-accounting-data-postgres/src/repositories/common';
-import { syncWalletRoles } from "../controller/synchronizer";
+import { getCreatedToken, handleTransferEvent, syncWalletRoles } from "../controller/synchronizer";
 import { OPTS_TYPE } from "../server";
-import { BURN, getContract } from "../utils/web3";
+import { getContract } from "../utils/web3";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message
@@ -22,208 +20,81 @@ const makeErrorHandler = (name: string) => (err: unknown) => {
   }
 }
 
-const rolesChanged = async (address: string, opts: OPTS_TYPE) => {
-  await syncWalletRoles(address, opts);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const makeChangedHandler = (name: string) => (changed: any) => {
+  console.log(`On changed for ${name} event`, changed);
 }
 
-/** Add event subsciptions starting at the given block number. */
-export const subscribeEvent = (fromBlock: number, opts: OPTS_TYPE) => {
-  const contract = getContract({...opts, use_web_socket: true})
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const makeConnectedHandler = (name: string) => (str: any) => {
+  console.log(`On connected for ${name} event`, str);
+}
 
-  contract.events.TokenCreated({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const makeEventHandler = (contractEvent:any, name: string, onData: (event: EventData)=>void) => {
+  contractEvent({
     filter: { value: []},
-    fromBlock
+    fromBlock: 'latest'
   })
     .on('data', async (event: EventData) => {
-      const createdToken = event.returnValues as CreatedToken;
-
-      // build token
-      const token: CreatedToken = {
-        ...createdToken,
-        totalIssued: 0n,
-        totalRetired: 0n
-      };
-
-      // metadata conversion
-      const _metadata = token.metadata as string;
-      // eslint-disable-next-line
-      let metaObj: any = {};
-      try {
-        if (_metadata) metaObj = JSON.parse(_metadata);
-      } catch (error) {
-        console.error('Invalid JSON in token metadata:', _metadata);
-        metaObj = {}
-      }
-      const _manifest = token.manifest as string;
-      // eslint-disable-next-line
-      let manifestObj: any = {};
-      try {
-        if (_manifest) manifestObj = JSON.parse(_manifest);
-      } catch (error) {
-        console.error('Invalid JSON in token manifest:', _manifest);
-        manifestObj = {}
-      }
-
-      // extract scope and type
-      let scope = null, type = null;
-      if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope']; 
-      else if(Object.prototype.hasOwnProperty.call(metaObj,'scope')) scope = metaObj['scope'];
-      if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type']; 
-      else if(Object.prototype.hasOwnProperty.call(metaObj,'type')) type = metaObj['type'];
-
-      // build token model
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
-      const tokenPayload: TokenPayload = {
-        ..._tokenPayload,
-        scope,
-        type,
-        totalIssued: token.totalIssued,
-        totalRetired: token.totalRetired,
-        metadata: metaObj,
-        manifest: manifestObj
-      }
-
-      const db = await PostgresDBService.getInstance()
-      await db.getTokenRepo().insertToken(tokenPayload);
-      console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
+      console.log(`On ${name} event`, event)
+      onData(event)
     })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log('TokenCreated event changed', changed))
-    .on('error', makeErrorHandler('TokenCreated'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`Created Token event listener is connected: ${str}`));
+    .on('changed', makeChangedHandler(name))
+    .on('error', makeErrorHandler(name))
+    .on('connected', makeConnectedHandler(name))
+}
+
+
+const rolesChanged = async (address: string, opts: OPTS_TYPE) => {
+  await syncWalletRoles(address, opts)
+}
+
+/** Add event subsciptions.
+Listens to:
+ - TokenCreated -> save the token in the DB
+ - TransferSingle -> sync the token balances in the DB
+ - RegisteredX / UnregisteredX -> sync the wallet roles in the DB based on the current roles
+TODO: should this save the lastBlock synced or could this run multiple times per block thus would
+have to be resumable?
+*/
+export const subscribeToEvents = (opts: OPTS_TYPE) => {
+  const contract = getContract({...opts, use_web_socket: true})
+
+  makeEventHandler(contract.events.TokenCreated, 'TokenCreated', async (event: EventData) => {
+    const createdToken = event.returnValues as CreatedToken;
+    const token = getCreatedToken(createdToken)
+    const db = await PostgresDBService.getInstance()
+    await db.getTokenRepo().insertToken(token)
+    console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
+  })
 
   // Single transfer event catch.
   // It can be used for checking balance for each address
-  contract.events.TransferSingle({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.TransferSingle, 'TransferSingle', async (event: EventData) => {
+    const db = await PostgresDBService.getInstance()
+    const transferred = event.returnValues
+    handleTransferEvent(transferred, db)
   })
-    .on('data', async (event: EventData) => {
-      const db = await PostgresDBService.getInstance()
-      const transferred = event.returnValues;
-
-      const tokenId: number = transferred.id;
-      const from: string = transferred.from;
-      const to: string = transferred.to;
-      const amount = BigInt(transferred.value); // it must be divided by 10^3
-
-      // issue case
-      if(from == BURN) {
-        const balancePayload: BalancePayload = {
-          tokenId,
-          issuedTo: to,
-          available: amount,
-          retired: 0n,
-          transferred: 0n
-        }
-        await insertNewBalance(balancePayload);
-        await db.getTokenRepo().updateTotalIssued(tokenId, amount);
-        return;
-      }
-
-      // retire case
-      if(to == BURN) {
-        // update total retired
-        await db.getTokenRepo().updateTotalRetired(tokenId, amount);
-
-        // update issuee balance 
-        await db.getBalanceRepo().retireBalance(from, tokenId, amount);
-        console.log(`--- ${amount} of Token ${tokenId} Retired from ${from}`);
-        return;
-      }
-
-      // general transfer!
-      // 1) deduct 'from' balance
-      await db.getBalanceRepo().transferBalance(from, tokenId, amount);
-
-      // transfer case
-      const balance = await db.getBalanceRepo().selectBalance(to, tokenId);
-      if(balance == undefined) {
-        const balancePayload: BalancePayload = {
-          tokenId,
-          issuedTo: to,
-          available: amount,
-          retired: 0n,
-          transferred: 0n
-        }
-        await insertNewBalance(balancePayload);
-      } else {
-        await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
-      }
-      console.log(`--- ${amount} of Token ${tokenId} transferred from ${from} to ${to}`);
-    })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log('TransferSingle event changed', changed))
-    .on('error', makeErrorHandler('TransferSingle'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`Token Transferred event listener is connected: ${str}`));
-
 
   // listen to role changes
-  contract.events.RegisteredConsumer({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.RegisteredConsumer, 'RegisteredConsumer', async (event: EventData) => {
+    rolesChanged(event.returnValues.account, opts)
   })
-    .on('data', async (event: EventData) => { rolesChanged(event.returnValues.account, opts) })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log(changed))
-    .on('error', makeErrorHandler('RegisteredConsumer'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`RegisteredConsumer event listener is connected: ${str}`));
-  contract.events.UnregisteredConsumer({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.UnregisteredConsumer, 'UnregisteredConsumer', async (event: EventData) => {
+    rolesChanged(event.returnValues.account, opts)
   })
-    .on('data', async (event: EventData) => { rolesChanged(event.returnValues.account, opts) })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log(changed))
-    .on('error', makeErrorHandler('UnregisteredConsumer'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`UnregisteredConsumer event listener is connected: ${str}`));
-
-  contract.events.RegisteredDealer({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.RegisteredDealer, 'RegisteredDealer', async (event: EventData) => {
+    rolesChanged(event.returnValues.account, opts)
   })
-    .on('data', async (event: EventData) => { rolesChanged(event.returnValues.account, opts) })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log(changed))
-    .on('error', makeErrorHandler('RegisteredDealer'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`RegisteredDealer event listener is connected: ${str}`));
-  contract.events.UnregisteredDealer({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.UnregisteredDealer, 'UnregisteredDealer', async (event: EventData) => {
+    rolesChanged(event.returnValues.account, opts)
   })
-    .on('data', async (event: EventData) => { rolesChanged(event.returnValues.account, opts) })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log(changed))
-    .on('error', makeErrorHandler('UnregisteredDealer'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`UnregisteredDealer event listener is connected: ${str}`));
-
-  contract.events.RegisteredIndustry({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.RegisteredIndustry, 'RegisteredIndustry', async (event: EventData) => {
+    rolesChanged(event.returnValues.account, opts)
   })
-    .on('data', async (event: EventData) => { rolesChanged(event.returnValues.account, opts) })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log(changed))
-    .on('error', makeErrorHandler('RegisteredIndustry'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`RegisteredIndustry event listener is connected: ${str}`));
-  contract.events.UnregisteredIndustry({
-    filter: {value: []},
-    fromBlock: 'latest'
+  makeEventHandler(contract.events.UnregisteredIndustry, 'UnregisteredIndustry', async (event: EventData) => {
+    rolesChanged(event.returnValues.account, opts)
   })
-    .on('data', async (event: EventData) => { rolesChanged(event.returnValues.account, opts) })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('changed', (changed: any) => console.log(changed))
-    .on('error', makeErrorHandler('UnregisteredIndustry'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .on('connected', (str: any) => console.log(`UnregisteredIndustry event listener is connected: ${str}`));
 }
-
 

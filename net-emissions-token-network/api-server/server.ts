@@ -34,7 +34,7 @@ export const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url
 import { startupSync } from './controller/synchronizer';
 
 import router from './router/router';
-import { subscribeEvent } from "./components/event.listener";
+import { subscribeToEvents } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
 // for hardhat test!
@@ -100,7 +100,8 @@ db.then(async () => {
   try {
     // for blockchains that support events subscriptions
     if (network_name === 'bsctestnet') {
-      subscribeEvent(lastBlock, OPTS);
+      console.log('Subscribing to events starting from block:', lastBlock);
+      subscribeToEvents(OPTS);
     }
   } catch (err) {
     console.error('An error occurred while setting up the blockchain event handlers', err)

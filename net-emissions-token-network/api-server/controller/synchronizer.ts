@@ -191,53 +191,59 @@ const getNumOfUniqueTokens = async (opts: OPTS_TYPE): Promise<number> => {
 async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenPayload> {
     try {
         const token: CreatedToken = await getContract(opts).methods.getTokenDetails(tokenId).call();
-
-        // restructure 
-        const _metadata = token.metadata as string;
-        // eslint-disable-next-line
-        let metaObj: any = {};
-        try {
-          if (_metadata) metaObj = JSON.parse(_metadata);
-        } catch (error) {
-          console.error('Invalid JSON in token metadata:', _metadata);
-          metaObj = {}
-        }
-        const _manifest = token.manifest as string;
-        // eslint-disable-next-line
-        let manifestObj: any = {};
-        try {
-          if (_manifest) manifestObj = JSON.parse(_manifest);
-        } catch (error) {
-          console.error('Invalid JSON in token manifest:', _manifest);
-          manifestObj = {}
-        }
-
-        // extract scope and type
-        let scope = null, type = null;
-        if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope']; 
-        else if(Object.prototype.hasOwnProperty.call(metaObj,'scope')) scope = metaObj['scope'];
-        if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type']; 
-        else if(Object.prototype.hasOwnProperty.call(metaObj,'type')) type = metaObj['type'];
-
-        // build token model
-        // eslint-disable-next-line
-        const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
-        const tokenPayload: TokenPayload = {
-            ..._tokenPayload,
-            scope,
-            type,
-            // reset totalIssued and totalRetired
-            totalIssued: 0n,
-            totalRetired: 0n,
-            metadata: metaObj,
-            manifest: manifestObj
-        };
-
-        return tokenPayload;
+        return getCreatedToken(token);
     } catch (err) {
         console.error(err);
         throw new Error('Error in getTokenDetails: ' + err);
     }
+}
+
+
+export const getCreatedToken = (token: CreatedToken) => {
+
+    // restructure 
+    const _metadata = token.metadata as string;
+    // eslint-disable-next-line
+    let metaObj: any = {};
+    try {
+        if (_metadata) metaObj = JSON.parse(_metadata);
+    } catch (error) {
+        console.error('Invalid JSON in token metadata:', _metadata);
+        metaObj = {}
+    }
+    const _manifest = token.manifest as string;
+    // eslint-disable-next-line
+    let manifestObj: any = {};
+    try {
+        if (_manifest) manifestObj = JSON.parse(_manifest);
+    } catch (error) {
+        console.error('Invalid JSON in token manifest:', _manifest);
+        manifestObj = {}
+    }
+
+    // extract scope and type
+    let scope = null, type = null;
+    if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope']; 
+    else if(Object.prototype.hasOwnProperty.call(metaObj,'scope')) scope = metaObj['scope'];
+    if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type']; 
+    else if(Object.prototype.hasOwnProperty.call(metaObj,'type')) type = metaObj['type'];
+
+    // build token model
+    // eslint-disable-next-line
+    const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
+    const tokenPayload: TokenPayload = {
+        ..._tokenPayload,
+        scope,
+        type,
+        // reset totalIssued and totalRetired
+        totalIssued: 0n,
+        totalRetired: 0n,
+        metadata: metaObj,
+        manifest: manifestObj
+    };
+
+    return tokenPayload;
+
 }
 
 /** Clear the token and balance tables. */
@@ -293,8 +299,7 @@ const handleTransferEvents = async (singleTransfers: any[]) => {
 }
 
 // eslint-disable-next-line
-const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) => {
-    console.log('handleTransferEvent', singleTransfer);
+export const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) => {
     const tokenId: number = singleTransfer.id;
     const from: string = singleTransfer.from;
     const to: string = singleTransfer.to;
@@ -311,10 +316,14 @@ const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) =
 
         // resolve conflicts
         const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
-        if(balance != undefined) return;
+        if (balance != undefined) {
+            console.error(`Error in handleTransferEvent: balance already exists for ${to} and ${tokenId} and token was just issued.`);
+            return;
+        }
 
         await insertNewBalance(balancePayload);
         await db.getTokenRepo().updateTotalIssued(tokenId, amount);
+        console.log(`--- ${amount} of Token ${tokenId} Issued to ${to}`);
         return;
     }
 
@@ -325,8 +334,10 @@ const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) =
 
         // update token balance
         await db.getTokenRepo().updateTotalRetired(tokenId, amount);
+        console.log(`--- ${amount} of Token ${tokenId} Retired from ${from}`);
         return;
     }
+
     // general transfer!
     // 1) deduct 'from' balance
     await db.getBalanceRepo().transferBalance(from, tokenId, amount);
@@ -345,6 +356,7 @@ const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) =
     } else {
         await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
     }
+    console.log(`--- ${amount} of Token ${tokenId} transferred from ${from} to ${to}`);
 }
 
 /** Updates the token balances since the last Sync. **Only for use in the synchronizeTokens middleware**. */

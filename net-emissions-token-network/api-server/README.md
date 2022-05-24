@@ -144,6 +144,8 @@ The server will synchronize with the blockchain on startup based on the `Sync` e
  * token balances, by looking at `TransferSingle` events.
  * wallet roles, by looking at the role related events (`Registered` and `Unregistered`) to get a list of account addresses then by fetching the contract current roles for those addresses.
 
-Tokens are synced regardless of block numbers by checking the contract token IDs (which are sequential).
+Tokens themselves are synced regardless of block numbers by checking the contract token IDs (which are sequential).
 
 On the `hardhat` network (when `.env` has `LEDGER_ETH_NETWORK="hardhat"`) the startup sync will always start at block 0 since fetching events locally is cheap and the state resets whenever `hardhat` restarts.
+
+For blockchain networks that support event subscription we listen to the same events that are parsed during startup.
