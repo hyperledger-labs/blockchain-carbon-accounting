@@ -12,6 +12,7 @@ import DisplayTokenAmount from "../components/display-token-amount";
 import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
 import { trpc } from "../services/trpc";
 import { useMutation } from "react-query";
+import { useLocation } from "wouter";
 import AsyncButton from "../components/AsyncButton";
 
 type PendingEmissionsProps = {
@@ -25,6 +26,7 @@ type PendingEmissionsProps = {
 const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid, signedInWallet }) => {
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
+  const [, setLocation] = useLocation();
 
   const issueFromQuery = trpc.useQuery(['wallet.get', {address: selectedPendingEmissions?.issued_from || ''}], {
     enabled: !!selectedPendingEmissions?.issued_from,
@@ -39,7 +41,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
         let result = await declineEmissionsRequest(selectedPendingEmissions.uuid);
         if (result && result.status === 'success') {
           setError("");
-          window.location.replace('/emissionsrequests');
+          setLocation('/emissionsrequests');
         } else {
           setError("Cannot decline emissions request.");
         }
@@ -100,7 +102,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
             let result = await issueEmissionsRequest(selectedPendingEmissions.uuid);
             if (result && result.status === 'success') {
               setError("");
-              window.location.replace('/issuedtokens');
+              setLocation('/issuedtokens');
             } else {
               setError("Cannot update emissions request status.");
             }
