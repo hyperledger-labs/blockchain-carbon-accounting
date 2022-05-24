@@ -166,7 +166,7 @@ To manage the process and restart on crash use `pm2`:
 npm install pm2 -g
 ```
 
-Start it with:
+Start it with (must be from the `api-server` directory):
 ```
 pm2 start "npx ts-node server" --name bca-api-server
 ```
@@ -177,7 +177,18 @@ For example to see the app logs:
 ```
 pm2 log bca-api-server
 ```
+or check the files: `~/.pm2/log/bca-api-server.*`
 
+To restart one can do (must be from the `api-server` directory):
+```
+pm2 restart bca-api-server --update-env
+```
+or if needed one can clear the pm2 process altogether with:
+```
+pm2 delete bca-api-server
+# which then need to be restarted with
+pm2 start "npx ts-node server" --name bca-api-server
+```
 
 ### Check Web Server config
 
