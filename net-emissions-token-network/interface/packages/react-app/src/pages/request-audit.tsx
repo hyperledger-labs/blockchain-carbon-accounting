@@ -722,7 +722,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
               variant="success"
               loading={loading}
               type="submit"
-            >{ signedInAddress ? "Submit Request" : "Estimate Emissions" }</AsyncButton>
+            >{ signedInAddress ? "Request Audit" : "Estimate Emissions" }</AsyncButton>
         }
           </>}
       </Form>
