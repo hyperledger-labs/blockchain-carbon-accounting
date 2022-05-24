@@ -1,3 +1,4 @@
+import { EventData } from 'web3-eth-contract';
 import { CreatedToken } from "../models/commonTypes";
 import { TokenPayload, BalancePayload } from 'blockchain-accounting-data-postgres/src/repositories/common'
 import { insertNewBalance } from "./balance.controller";
@@ -41,10 +42,9 @@ export const startupSync = async(opts: OPTS_TYPE) => {
         }
     }
 
-    let elapsed = 0;
+    console.log(`--- Synchronization from block ${syncFromBlock} started at: `, new Date().toLocaleString());
     const started = Date.now();
     let lastBlock = 0;
-    console.log(`--- Synchronization from last block ${lastBlock} started at: `, new Date().toLocaleString());
 
     try {
         lastBlock = await fillTokens(opts);
@@ -68,7 +68,7 @@ export const startupSync = async(opts: OPTS_TYPE) => {
         throw err
     }
 
-    elapsed = Date.now() - started;
+    const elapsed = Date.now() - started;
     console.log(`elapsed ${elapsed / 1000} seconds.\n`);
     return lastBlock;
 }
@@ -104,17 +104,18 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
             }
             console.log(`Syncing events from block ${fromBlock} to ${toBlock} ...`);
             const events = await getContract(opts).getPastEvents("allEvents", {fromBlock, toBlock});
-            for (const {event, returnValues} of events) {
+            for (const event of events) {
+                const eventName = event.event;
                 console.log("? event: ", event);
-                if (account_events.find(ev => ev.event === event)) {
-                    const account = returnValues.account
+                if (account_events.find(ev => ev.event === eventName)) {
+                    const account = event.returnValues.account
                     if (!accountAddresses[account]) {
                       accountAddresses[account] = true
                       console.log("- found account: ", account);
                     }
-                } else if ('TransferSingle' === event) {
+                } else if ('TransferSingle' === eventName) {
                     // handle the transfers for calculating balances here as well
-                    await handleTransferEvent(returnValues, db);
+                    await handleTransferEvent(event, db);
                 }
             }
 
@@ -293,13 +294,13 @@ const handleTransferEvents = async (singleTransfers: any[]) => {
     const db = await PostgresDBService.getInstance()
     const len = singleTransfers.length;
     for (let i = 0; i < len; i++) {
-        const singleTransfer = singleTransfers[i].returnValues;
-        handleTransferEvent(singleTransfer, db);
+        handleTransferEvent(singleTransfers[i], db);
     }
 }
 
 // eslint-disable-next-line
-export const handleTransferEvent = async (singleTransfer: any, db: PostgresDBService) => {
+export const handleTransferEvent = async (event: EventData, db: PostgresDBService) => {
+    const singleTransfer = event.returnValues;
     const tokenId: number = singleTransfer.id;
     const from: string = singleTransfer.from;
     const to: string = singleTransfer.to;
@@ -317,7 +318,7 @@ export const handleTransferEvent = async (singleTransfer: any, db: PostgresDBSer
         // resolve conflicts
         const balance: Balance | null = await db.getBalanceRepo().selectBalance(to, tokenId);
         if (balance != undefined) {
-            console.error(`Error in handleTransferEvent: balance already exists for ${to} and ${tokenId} and token was just issued.`);
+            console.error(`Error in handleTransferEvent: balance already exists for ${to} and tokenId ${tokenId} and token was just issued.`);
             return;
         }
 

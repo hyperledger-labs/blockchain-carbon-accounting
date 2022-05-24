@@ -1,7 +1,7 @@
 import { EventData } from 'web3-eth-contract';
 import { CreatedToken } from "../models/commonTypes";
 import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
-import { getCreatedToken, handleTransferEvent, syncWalletRoles } from "../controller/synchronizer";
+import { getCreatedToken, handleTransferEvent, saveLastSync, syncWalletRoles } from "../controller/synchronizer";
 import { OPTS_TYPE } from "../server";
 import { getContract } from "../utils/web3";
 
@@ -31,14 +31,16 @@ const makeConnectedHandler = (name: string) => (str: any) => {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const makeEventHandler = (contractEvent:any, name: string, onData: (event: EventData)=>void) => {
+const makeEventHandler = (opts: OPTS_TYPE, contractEvent:any, name: string, onData: (event: EventData)=>Promise<void>) => {
   contractEvent({
     filter: { value: []},
     fromBlock: 'latest'
   })
     .on('data', async (event: EventData) => {
       console.log(`On ${name} event`, event)
-      onData(event)
+      await onData(event)
+      // here we want to save the lastSync block number or events will be reprocessed during startup
+      await saveLastSync(event.blockNumber, opts)
     })
     .on('changed', makeChangedHandler(name))
     .on('error', makeErrorHandler(name))
@@ -55,45 +57,70 @@ Listens to:
  - TokenCreated -> save the token in the DB
  - TransferSingle -> sync the token balances in the DB
  - RegisteredX / UnregisteredX -> sync the wallet roles in the DB based on the current roles
-TODO: should this save the lastBlock synced or could this run multiple times per block thus would
-have to be resumable?
+Every events also saves the lastSync block number in the DB
 */
 export const subscribeToEvents = (opts: OPTS_TYPE) => {
   const contract = getContract({...opts, use_web_socket: true})
+  const token_event_queue: Record<number, EventData[]> = {}
 
-  makeEventHandler(contract.events.TokenCreated, 'TokenCreated', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.TokenCreated, 'TokenCreated', async (event: EventData) => {
     const createdToken = event.returnValues as CreatedToken;
     const token = getCreatedToken(createdToken)
     const db = await PostgresDBService.getInstance()
-    await db.getTokenRepo().insertToken(token)
-    console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
+    // here we should not have that token already in the DB
+    const t = await db.getTokenRepo().selectToken(token.tokenId)
+    if (t) {
+      console.error(`Received a TokenCreated event for token ${token.tokenId} but it already exists in the DB !`)
+    } else {
+      await db.getTokenRepo().insertToken(token)
+      console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
+    }
+    // check for queued events relating to this token
+    const q = token_event_queue[token.tokenId]
+    if (q) {
+      for (const event of q) {
+        await handleTransferEvent(event, db)
+      }
+      // there should not have been any more events appended to the queue
+      // since we created the token prior to checking it
+      delete token_event_queue[token.tokenId]
+    }
   })
 
   // Single transfer event catch.
   // It can be used for checking balance for each address
-  makeEventHandler(contract.events.TransferSingle, 'TransferSingle', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.TransferSingle, 'TransferSingle', async (event: EventData) => {
     const db = await PostgresDBService.getInstance()
     const transferred = event.returnValues
-    handleTransferEvent(transferred, db)
+    // tis may fail if the Created event was not processed yet (because we received this event before the Created event)
+    const token = await db.getTokenRepo().selectToken(transferred.id)
+    if (token) {
+      await handleTransferEvent(event, db)
+    } else {
+      console.log(`\n--- Transfer event for token ${transferred.id} has been detected but the token was not found in the database. Possible out-of-order event, queueing ...`);
+      const q = token_event_queue[transferred.id] || []
+      q.push(event)
+      token_event_queue[transferred.id] = q
+    }
   })
 
   // listen to role changes
-  makeEventHandler(contract.events.RegisteredConsumer, 'RegisteredConsumer', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.RegisteredConsumer, 'RegisteredConsumer', async (event: EventData) => {
     rolesChanged(event.returnValues.account, opts)
   })
-  makeEventHandler(contract.events.UnregisteredConsumer, 'UnregisteredConsumer', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.UnregisteredConsumer, 'UnregisteredConsumer', async (event: EventData) => {
     rolesChanged(event.returnValues.account, opts)
   })
-  makeEventHandler(contract.events.RegisteredDealer, 'RegisteredDealer', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.RegisteredDealer, 'RegisteredDealer', async (event: EventData) => {
     rolesChanged(event.returnValues.account, opts)
   })
-  makeEventHandler(contract.events.UnregisteredDealer, 'UnregisteredDealer', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.UnregisteredDealer, 'UnregisteredDealer', async (event: EventData) => {
     rolesChanged(event.returnValues.account, opts)
   })
-  makeEventHandler(contract.events.RegisteredIndustry, 'RegisteredIndustry', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.RegisteredIndustry, 'RegisteredIndustry', async (event: EventData) => {
     rolesChanged(event.returnValues.account, opts)
   })
-  makeEventHandler(contract.events.UnregisteredIndustry, 'UnregisteredIndustry', async (event: EventData) => {
+  makeEventHandler(opts, contract.events.UnregisteredIndustry, 'UnregisteredIndustry', async (event: EventData) => {
     rolesChanged(event.returnValues.account, opts)
   })
 }
