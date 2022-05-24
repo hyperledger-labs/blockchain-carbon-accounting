@@ -232,10 +232,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
     const ls = localStorage.getItem('emissionsRequest')
     const stored = ls ? JSON.parse(ls) : []
     const fromAudit = localStorage.getItem('fromAudit')
-    if (fromAudit) {
+    if (fromAudit && stored.length > 0 && signedInAddress) {
       localStorage.removeItem('fromAudit')
-    }
-    if (stored.length > 0) {
       // restore the last one (should only store one anyway)
       const i = ''+(stored.length-1);
       const f = {...stored[i].request }
@@ -249,7 +247,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
       }
       setEmForm(f)
     }
-  }, [selectEmissionsFactor])
+  }, [selectEmissionsFactor, signedInAddress])
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {}], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
