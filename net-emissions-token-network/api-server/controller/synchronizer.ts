@@ -8,6 +8,10 @@ import { Sync } from "blockchain-accounting-data-postgres/src/models/sync";
 import { Wallet } from "blockchain-accounting-data-postgres/src/models/wallet";
 import { OPTS_TYPE } from "../server";
 import { BURN, getContract, getCurrentBlock, getWeb3 } from "../utils/web3";
+import { getMailer, getSiteAndAddress } from "../utils/email";
+import { readFileSync } from 'fs';
+import handlebars from 'handlebars';
+import path from 'path';
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
 const FIRST_BLOCK = Number(process.env['LEDGER_FIRST_BLOCK']) || 0;
@@ -47,13 +51,13 @@ export const startupSync = async(opts: OPTS_TYPE) => {
 }
 
 /** Runs token and events synchronization from the given block then saves the lastSync block in the DB. */
-export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE) => {
+export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE, sendEmail = false) => {
     console.log(`--- Synchronization from block ${syncFromBlock} started at: `, new Date().toLocaleString());
     const started = Date.now();
     let lastBlock = 0;
 
     try {
-        lastBlock = await fillTokens(opts);
+        lastBlock = await fillTokens(opts, sendEmail);
         console.log('-- blockchain last block: ', lastBlock);
     } catch (err) {
         console.error('An error occurred while fetching the tokens', err)
@@ -206,7 +210,7 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
 
 export const getCreatedToken = (token: CreatedToken) => {
 
-    // restructure 
+    // restructure
     const _metadata = token.metadata as string;
     // eslint-disable-next-line
     let metaObj: any = {};
@@ -228,9 +232,9 @@ export const getCreatedToken = (token: CreatedToken) => {
 
     // extract scope and type
     let scope = null, type = null;
-    if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope']; 
+    if(Object.prototype.hasOwnProperty.call(metaObj,'Scope')) scope = metaObj['Scope'];
     else if(Object.prototype.hasOwnProperty.call(metaObj,'scope')) scope = metaObj['scope'];
-    if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type']; 
+    if(Object.prototype.hasOwnProperty.call(metaObj,'Type')) type = metaObj['Type'];
     else if(Object.prototype.hasOwnProperty.call(metaObj,'type')) type = metaObj['type'];
 
     // build token model
@@ -269,7 +273,7 @@ export const clearWalletsRolesDBData = async () => {
 /** Sync the tokens from the blockchain and returns the blockchain current block number.
 This does not depend on a starting block as we rely on the fact that token ids are sequential.
 */
-export const fillTokens = async (opts: OPTS_TYPE): Promise<number> => {
+export const fillTokens = async (opts: OPTS_TYPE, sendEmail: boolean): Promise<number> => {
     const db = await PostgresDBService.getInstance()
 
     // get number tokens from database
@@ -286,6 +290,7 @@ export const fillTokens = async (opts: OPTS_TYPE): Promise<number> => {
             if (!t) {
                 const token: TokenPayload = await getTokenDetails(tokenId, opts);
                 await db.getTokenRepo().insertToken(token);
+                if (sendEmail) await sendTokenIssuedEmail(token);
             }
         }
     }
@@ -430,4 +435,56 @@ export const getLastSync = async (opts: OPTS_TYPE) => {
     }
     // if no last sync or mistmatched config, return 0
     return 0;
+}
+
+export const sendTokenIssuedEmail = async(token: TokenPayload) => {
+    // send email if token is Audited Emissions token
+    if (token.tokenTypeId == 3) {
+        console.log(`sendTokenIssuedEmail to address ${token.issuedTo}`);
+        // check wallet has email
+        const db = await PostgresDBService.getInstance();
+        const w = await db.getWalletRepo().selectWallet(token.issuedTo);
+        if (w) {
+            if (w.email) {
+                const transporter = getMailer();
+                const site_url = process.env.APP_ROOT_URL || 'http://localhost:3000';
+                const link = new URL(`${site_url}/dashboard/${token.tokenId}`);
+                const link_all = new URL(`${site_url}/dashboard`);
+                const emailTemplateSourceHtml = readFileSync(path.join(__dirname, "../email/templates/issue-token.html"), "utf8")
+                const emailTemplateSourceText = readFileSync(path.join(__dirname, "../email/templates/issue-token.txt"), "utf8")
+                const templateHtml = handlebars.compile(emailTemplateSourceHtml)
+                const templateText = handlebars.compile(emailTemplateSourceText)
+                const tpl = {
+                    ...getSiteAndAddress(),
+                    token_url: link.href,
+                    dashboard_url: link_all.href,
+                }
+
+                const html = templateHtml(tpl);
+                const text = templateText(tpl);
+                const message = {
+                    from: process.env.MAILER_FROM_ADDRESS,
+                    to: w.email,
+                    subject: 'An audited emissions token has been issued to you!',
+                    text,
+                    html
+                }
+                return new Promise((resolve, reject) => {
+                    transporter.sendMail(message, (err, info) => {
+                        if (err) {
+                            console.error('Error while sending the email:' ,err)
+                            reject(err)
+                        } else {
+                            console.log('Send email result:', info)
+                            resolve(info)
+                        }
+                    })
+                });
+            } else {
+                console.warn(`Wallet ${token.issuedTo} email address is not set.`);
+            }
+        } else {
+            console.warn(`There are no wallet ${token.issuedTo} in the database`);
+        }
+    }
 }

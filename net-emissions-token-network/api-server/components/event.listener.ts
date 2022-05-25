@@ -73,7 +73,7 @@ const task_runner = {
     task_runner.isRunning = true
     task_runner.verbose && console.log('---> task_runner now running')
     try {
-      await runSync(syncFromBlock, task_runner.opts);
+      await runSync(syncFromBlock, task_runner.opts, true);
     } catch (err) {
       console.error('!!! task_runner error during sync', err)
     }
