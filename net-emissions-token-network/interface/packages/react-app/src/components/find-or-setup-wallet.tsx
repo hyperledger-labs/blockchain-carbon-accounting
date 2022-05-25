@@ -230,17 +230,6 @@ const FindOrSetupWallet: FC<Props> = ({
         setRoleError(error);
         return;
       }
-      try {
-        const register = await trpcClient.mutation("wallet.registerRoles", {
-          address,
-          roles: [role],
-        });
-        setLookupWallet(register?.wallet || null);
-        setLookupError("");
-      } catch (error) {
-        console.error("trpc error;", error);
-        setLookupError("An error occurred while registering the wallet role.");
-      }
       setModalShow(true);
     }
   });
