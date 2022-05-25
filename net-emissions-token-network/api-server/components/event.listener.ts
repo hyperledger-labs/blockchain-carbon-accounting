@@ -60,9 +60,10 @@ const task_runner = {
     // check the lastSync block number, only run a sync if it's more than 10 blocks behind
     const syncFromBlock = await getLastSync(task_runner.opts) + 1;
     const currentBlock = await getCurrentBlock(task_runner.opts)
+    task_runner.verbose && console.log(`??? current is ${currentBlock} lastSync ${syncFromBlock-1} and would sync from ${syncFromBlock}`)
     const blockDiff = currentBlock - syncFromBlock
     if (blockDiff < task_runner.minBlockDiff) {
-      task_runner.verbose && console.log(`!!! not enough blocks behind (only ${blockDiff} but limit currently at ${task_runner.minBlockDiff}), not running sync`)
+      task_runner.verbose && console.log(`!!! not enough blocks behind, current is ${currentBlock} and would sync from ${syncFromBlock} (only ${blockDiff} but limit currently at ${task_runner.minBlockDiff}), not running sync`)
       // schedule the next run
       task_runner.reschedule(task_runner.retryInterval)
       return
@@ -86,10 +87,11 @@ const task_runner = {
       task_runner.verbose && console.log('!!! cancel previous schedule of task_runner')
       clearTimeout(task_runner.handle)
     }
-    task_runner.verbose && console.log('!!! scheduling task_runner to run in ' + delay + 'ms')
+    const nextRun = delay || task_runner.runInterval
+    task_runner.verbose && console.log('!!! scheduling task_runner to run in ' + nextRun + 'ms')
     task_runner.handle = setTimeout(async () => {
       await task_runner.runManualSync()
-    }, delay)
+    }, nextRun)
   }
 }
 
@@ -229,7 +231,14 @@ export const subscribeToEvents = (opts: OPTS_TYPE) => {
       console.error('!!! error in subscribeToEvents, scheduling task_runner should try to subscsribe again after the next sync', err)
     }
   } else {
-    console.log('NOTE: subscribeToEvents is not supported for this network ('+opts.network_name+'), but will still use the fallback polling methods (every' + task_runner.runInterval + 'ms)')
+    console.log(`NOTE: subscribeToEvents is not supported for this network (${opts.network_name}), but will still use the fallback polling methods (every ${task_runner.runInterval}ms)`)
+    if (opts.network_name === 'hardhat') {
+      // some peculiarities of hardhat is that it will auto mine blocks when transactions are sent
+      // so we need to adjust the minBlockDiff to zero (immediate next block)
+      // also we can poll at regular intervals here since we have no expected events
+      task_runner.minBlockDiff = 0
+      task_runner.runInterval = task_runner.retryInterval
+    }
   }
 
   // reschedule a run of the sync

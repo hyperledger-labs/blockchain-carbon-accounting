@@ -35,7 +35,7 @@ export const getContract = (opts: OPTS_TYPE) => {
   return new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], opts.contract_address);
 }
 
-export const getCurrentBlock = (opts: OPTS_TYPE) => {
+export const getCurrentBlock = async (opts: OPTS_TYPE) => {
   const web3 = getWeb3(opts);
   return web3.eth.getBlockNumber();
 }

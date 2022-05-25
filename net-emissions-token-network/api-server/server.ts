@@ -36,8 +36,6 @@ import router from './router/router';
 import { subscribeToEvents } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
-// for hardhat test!
-import { synchronizeTokens } from "./middleware/sync.middle";
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { trpcMiddleware } from './trpc/common';
 import { Contract } from 'ethers';
@@ -76,13 +74,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 // needed for rate limiting behind a proxy (since in production this is behind the Apache proxy)
 // this should still work locally even if no proxy are used
 app.set('trust proxy', 1)
-
-// for hardhat test sync
-if(network_name === 'hardhat') {
-    app.use('/tokens', synchronizeTokens);
-    app.use('/balances', synchronizeTokens);
-}
-
 
 // router
 app.use('/', queryProcessing, router);

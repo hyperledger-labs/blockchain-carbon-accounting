@@ -7,7 +7,7 @@ import { Balance } from "blockchain-accounting-data-postgres/src/models/balance"
 import { Sync } from "blockchain-accounting-data-postgres/src/models/sync";
 import { Wallet } from "blockchain-accounting-data-postgres/src/models/wallet";
 import { OPTS_TYPE } from "../server";
-import { BURN, getContract, getWeb3 } from "../utils/web3";
+import { BURN, getContract, getCurrentBlock, getWeb3 } from "../utils/web3";
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
 const FIRST_BLOCK = Number(process.env['LEDGER_FIRST_BLOCK']) || 0;
@@ -104,7 +104,7 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
         const accountAddresses: Record<string, boolean> = {};
         const syncedAccountAddresses: Record<string, boolean> = {};
         let toBlock = fromBlock;
-        while (toBlock != currentBlock) {
+        while (toBlock <= currentBlock) {
             if (fromBlock + EVENTS_BLOCK_INTERVAL > currentBlock) {
                 toBlock = currentBlock;
             } else {
@@ -290,7 +290,7 @@ export const fillTokens = async (opts: OPTS_TYPE): Promise<number> => {
         }
     }
     console.log(`${numOfIssuedTokens - numOfSavedTokens} new tokens of ${numOfIssuedTokens} are stored into database.`);
-    return await getWeb3(opts).eth.getBlockNumber();
+    return await getCurrentBlock(opts);
 }
 
 // eslint-disable-next-line
