@@ -97,10 +97,9 @@ const task_runner = {
 const makeErrorHandler = (name: string) => (err: unknown) => {
   const message = getErrorMessage(err);
   if (message.indexOf('connection not open on send') > -1) {
-    throw new Error(`Error in ${name} event: ${message} -> Check your LEDGER_ETH_WS_URL is correctly setup.`)
+    console.error(`Error in ${name} event: ${message} -> Check your LEDGER_ETH_WS_URL is correctly setup.`)
   } else {
     console.error(`Error in ${name} event: ${message}`)
-    throw err
   }
 }
 
@@ -160,72 +159,77 @@ Every events also saves the lastSync block number in the DB
 */
 export const subscribeToEvents = (opts: OPTS_TYPE) => {
   task_runner.opts = opts
-  try {
-    const contract = getContract({...opts, use_web_socket: true})
-    const token_event_queue: Record<number, EventData[]> = {}
+  // for blockchains that support events subscriptions
+  if (opts.network_name === 'bsctestnet') {
+    try {
+      const contract = getContract({...opts, use_web_socket: true})
+      const token_event_queue: Record<number, EventData[]> = {}
 
-    makeEventHandler(opts, contract.events.TokenCreated, 'TokenCreated', async (event: EventData) => {
-      const createdToken = event.returnValues as CreatedToken;
-      const token = getCreatedToken(createdToken)
-      const db = await PostgresDBService.getInstance()
-      // here we should not have that token already in the DB
-      const t = await db.getTokenRepo().selectToken(token.tokenId)
-      if (t) {
-        console.error(`Received a TokenCreated event for token ${token.tokenId} but it already exists in the DB !`)
-      } else {
-        await db.getTokenRepo().insertToken(token)
-        console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
-      }
-      // check for queued events relating to this token
-      const q = token_event_queue[token.tokenId]
-      if (q) {
-        for (const event of q) {
-          await handleTransferEvent(event, db)
+      makeEventHandler(opts, contract.events.TokenCreated, 'TokenCreated', async (event: EventData) => {
+        const createdToken = event.returnValues as CreatedToken;
+        const token = getCreatedToken(createdToken)
+        const db = await PostgresDBService.getInstance()
+        // here we should not have that token already in the DB
+        const t = await db.getTokenRepo().selectToken(token.tokenId)
+        if (t) {
+          console.error(`Received a TokenCreated event for token ${token.tokenId} but it already exists in the DB !`)
+        } else {
+          await db.getTokenRepo().insertToken(token)
+          console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
         }
-        // there should not have been any more events appended to the queue
-        // since we created the token prior to checking it
-        delete token_event_queue[token.tokenId]
-      }
-    })
+        // check for queued events relating to this token
+        const q = token_event_queue[token.tokenId]
+        if (q) {
+          for (const event of q) {
+            await handleTransferEvent(event, db)
+          }
+          // there should not have been any more events appended to the queue
+          // since we created the token prior to checking it
+          delete token_event_queue[token.tokenId]
+        }
+      })
 
-    // Single transfer event catch.
-    // It can be used for checking balance for each address
-    makeEventHandler(opts, contract.events.TransferSingle, 'TransferSingle', async (event: EventData) => {
-      const db = await PostgresDBService.getInstance()
-      const transferred = event.returnValues
-      // tis may fail if the Created event was not processed yet (because we received this event before the Created event)
-      const token = await db.getTokenRepo().selectToken(transferred.id)
-      if (token) {
-        await handleTransferEvent(event, db)
-      } else {
-        console.log(`\n--- Transfer event for token ${transferred.id} has been detected but the token was not found in the database. Possible out-of-order event, queueing ...`);
-        const q = token_event_queue[transferred.id] || []
-        q.push(event)
-        token_event_queue[transferred.id] = q
-      }
-    })
+      // Single transfer event catch.
+      // It can be used for checking balance for each address
+      makeEventHandler(opts, contract.events.TransferSingle, 'TransferSingle', async (event: EventData) => {
+        const db = await PostgresDBService.getInstance()
+        const transferred = event.returnValues
+        // tis may fail if the Created event was not processed yet (because we received this event before the Created event)
+        const token = await db.getTokenRepo().selectToken(transferred.id)
+        if (token) {
+          await handleTransferEvent(event, db)
+        } else {
+          console.log(`\n--- Transfer event for token ${transferred.id} has been detected but the token was not found in the database. Possible out-of-order event, queueing ...`);
+          const q = token_event_queue[transferred.id] || []
+          q.push(event)
+          token_event_queue[transferred.id] = q
+        }
+      })
 
-    // listen to role changes
-    makeEventHandler(opts, contract.events.RegisteredConsumer, 'RegisteredConsumer', async (event: EventData) => {
-      rolesChanged(event.returnValues.account, opts)
-    })
-    makeEventHandler(opts, contract.events.UnregisteredConsumer, 'UnregisteredConsumer', async (event: EventData) => {
-      rolesChanged(event.returnValues.account, opts)
-    })
-    makeEventHandler(opts, contract.events.RegisteredDealer, 'RegisteredDealer', async (event: EventData) => {
-      rolesChanged(event.returnValues.account, opts)
-    })
-    makeEventHandler(opts, contract.events.UnregisteredDealer, 'UnregisteredDealer', async (event: EventData) => {
-      rolesChanged(event.returnValues.account, opts)
-    })
-    makeEventHandler(opts, contract.events.RegisteredIndustry, 'RegisteredIndustry', async (event: EventData) => {
-      rolesChanged(event.returnValues.account, opts)
-    })
-    makeEventHandler(opts, contract.events.UnregisteredIndustry, 'UnregisteredIndustry', async (event: EventData) => {
-      rolesChanged(event.returnValues.account, opts)
-    })
-  } catch (err) {
-    console.error('!!! error in subscribeToEvents, scheduling task_runner should try to subscsribe again after the next sync', err)
+      // listen to role changes
+      makeEventHandler(opts, contract.events.RegisteredConsumer, 'RegisteredConsumer', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+      makeEventHandler(opts, contract.events.UnregisteredConsumer, 'UnregisteredConsumer', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+      makeEventHandler(opts, contract.events.RegisteredDealer, 'RegisteredDealer', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+      makeEventHandler(opts, contract.events.UnregisteredDealer, 'UnregisteredDealer', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+      makeEventHandler(opts, contract.events.RegisteredIndustry, 'RegisteredIndustry', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+      makeEventHandler(opts, contract.events.UnregisteredIndustry, 'UnregisteredIndustry', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+    } catch (err) {
+      console.error('!!! error in subscribeToEvents, scheduling task_runner should try to subscsribe again after the next sync', err)
+    }
+  } else {
+    console.log('NOTE: subscribeToEvents is not supported for this network ('+opts.network_name+'), but will still use the fallback polling methods (every' + task_runner.runInterval + 'ms)')
   }
 
   // reschedule a run of the sync

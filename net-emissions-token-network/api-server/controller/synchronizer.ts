@@ -75,7 +75,7 @@ export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE) => {
     }
 
     const elapsed = Date.now() - started;
-    console.log(`elapsed ${elapsed / 1000} seconds.\n`);
+    console.log(`--- Synchronization completed in ${elapsed / 1000} seconds.\n`);
     return lastBlock;
 }
 

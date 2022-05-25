@@ -98,11 +98,8 @@ db.then(async () => {
     const lastBlock = await startupSync(OPTS);
 
     try {
-      // for blockchains that support events subscriptions
-      if (network_name === 'bsctestnet') {
-        console.log('Subscribing to events starting from block:', lastBlock);
-        subscribeToEvents(OPTS);
-      }
+      console.log('Subscribing to events starting from block:', lastBlock);
+      subscribeToEvents(OPTS);
     } catch (err) {
       console.error('An error occurred while setting up the blockchain event handlers', err);
       throw err;
