@@ -255,44 +255,6 @@ export const walletRouter = trpc
         }
     },
 })
-.mutation('registerRoles', {
-    input: z.object({
-        address: validAddress,
-        roles: z.array(z.string()),
-    }),
-    async resolve({ input, ctx }) {
-        try {
-            // make sure the address is in the proper checksum format
-            const address = ethers.utils.getAddress(input.address);
-            // make sure the wallet exists
-            const wallet = await ctx.db.getWalletRepo().ensureWalletHasRoles(address, input.roles)
-            return {
-                wallet
-            }
-        } catch (error) {
-            handleError('registerRoles', error)
-        }
-    },
-})
-.mutation('unregisterRoles', {
-    input: z.object({
-        address: validAddress,
-        roles: z.array(z.string()),
-    }),
-    async resolve({ input, ctx }) {
-        try {
-            // make sure the address is in the proper checksum format
-            const address = ethers.utils.getAddress(input.address);
-            // make sure the wallet exists
-            const wallet = await ctx.db.getWalletRepo().ensureWalletHasNotRoles(address, input.roles)
-            return {
-                wallet
-            }
-        } catch (error) {
-            handleError('unregisterRoles', error)
-        }
-    },
-})
 
 // export type definition of API
 export type WalletRouter = typeof walletRouter 

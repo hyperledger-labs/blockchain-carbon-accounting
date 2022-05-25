@@ -230,6 +230,11 @@ const FindOrSetupWallet: FC<Props> = ({
         setRoleError(error);
         return;
       }
+      // update the lookup wallet so the UI reflects the change immediately
+      if (lookupWallet) {
+        setLookupWallet(w=>{ return w ? {...w, roles: w.roles?.split(',').concat(role).join(',') } : null });
+        setLookupError("");
+      }
       setModalShow(true);
     }
   });

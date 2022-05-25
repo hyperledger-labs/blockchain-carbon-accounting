@@ -143,16 +143,9 @@ const DisplayWalletDetails: FC<Props> = ({
       setError(error);
       return;
     }
-    try {
-      const unregister = await trpcClient.mutation("wallet.unregisterRoles", {
-        address: wallet.address!,
-        roles: [role],
-      });
-      setWallet(unregister?.wallet || null);
+    if (wallet) {
+      setWallet(wallet ? {...wallet, roles: wallet.roles?.split(',').filter(r=>r!==role).join(',') } : null);
       setError("");
-    } catch (error) {
-      console.error("trpc error;", error);
-      setError("An error occurred while unregistering the wallet role.");
     }
     if (onSuccess) onSuccess();
   }
