@@ -149,40 +149,6 @@ export const signUpUser =  async(email:string, password:string, passwordConfirm:
   return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm, name, organization})
 }
 
-export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {
-    try {
-        var params = {
-            address,
-            name,
-            organization,
-            public_key,
-            public_key_name,
-            roles
-        };
-        const { data } = await axios.post('/wallets', params);
-        console.log('registerUserRole response:', data);
-        if(data.status === 'success') return data.wallet;
-        else return null;
-    } catch(error) {
-        throw new Error(handleError(error, "Cannot register user role"))
-    }
-}
-
-export const unregisterUserRole = async (address: string, roles: string) => {
-    try {
-        var params = {
-            address,
-            roles
-        };
-        const { data } = await axios.post('/wallets', params);
-        console.log('unregisterUserRole response:', data);
-        if(data.status === 'success') return data;
-        else return {};
-    } catch(error) {
-       throw new Error(handleError(error, "Cannot unregister user role"))
-    }
-}
-
 export const lookupWallets = async (query: string): Promise<Wallet[]> => {
     try {
         var params = new URLSearchParams();
