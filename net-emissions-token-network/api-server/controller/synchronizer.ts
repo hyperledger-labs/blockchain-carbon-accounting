@@ -42,6 +42,12 @@ export const startupSync = async(opts: OPTS_TYPE) => {
         }
     }
 
+    // run the sync process
+    return await runSync(syncFromBlock, opts);
+}
+
+/** Runs token and events synchronization from the given block then saves the lastSync block in the DB. */
+export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE) => {
     console.log(`--- Synchronization from block ${syncFromBlock} started at: `, new Date().toLocaleString());
     const started = Date.now();
     let lastBlock = 0;
@@ -74,12 +80,14 @@ export const startupSync = async(opts: OPTS_TYPE) => {
 }
 
 
-/* Read the event log and process events.
- * For wallet: check the roles for each account, sync them into the Wallet DB (create entries if missing)
+/** Read the event log and process events.
+ * - For wallet: check the roles for each account, sync them into the Wallet DB (create entries if missing)
  *  Note for the dealer events the actual role depends on the token.
  *  Instead of relying on the event we just use them to collect the addresses of the accounts,
  *  then use getRoles to get the final roles from the contract.
- * For balances: check transfers and update the balances in the DB
+ * - For balances: check transfers and update the balances in the DB
+ *
+ * Finally saves the lastSync block in the DB
  */
 export const syncEvents = async (fromBlock: number, currentBlock: number, opts: OPTS_TYPE) => {
     try {
