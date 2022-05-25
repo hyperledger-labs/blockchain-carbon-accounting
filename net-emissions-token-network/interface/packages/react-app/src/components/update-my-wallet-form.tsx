@@ -52,7 +52,7 @@ const UpdateMyWalletForm: FC<Props> = ({
     setLoading(false)
   }}>
     <FloatingLabel className="mb-2" controlId="myPublicKeyInput" label="Public Key">
-      <Form.Control as="textarea" style={{height: '6em'}} placeholder="RSA Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
+      <Form.Control as="textarea" style={{height: '20em'}} placeholder="RSA Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
     </FloatingLabel>
 {/*
 
