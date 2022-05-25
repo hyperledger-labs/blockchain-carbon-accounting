@@ -27,14 +27,15 @@ import { Link } from "wouter";
 type DashboardProps = {
   provider?: Web3Provider | JsonRpcProvider, 
   signedInAddress: string, 
-  displayAddress: string
+  displayAddress: string,
+  tokenid?: string
 }
 
 type DashboardHandle = {
   refresh: ()=>void
 }
 
-const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ provider, signedInAddress, displayAddress }, ref) => {
+const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ provider, signedInAddress, displayAddress, tokenid }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
@@ -65,7 +66,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
 
   async function handleBalancePageSizeChanged(event: ChangeEvent<HTMLInputElement>) {
     await fetchBalances(1, parseInt(event.target.value), balanceQuery);
-
   }
 
   async function handleBalanceQueryChanged(_query: string[]) {
@@ -110,6 +110,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
 
     let _balanceCount = 0;
+    let newMyBalances = null;
     try {
       // get total count of balance
       const query = `issuedTo,string,${signedInAddress},eq`;
@@ -121,7 +122,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       // this count means total pages of balances
       _balanceCount = count % _balancePageSize === 0 ? count / _balancePageSize : Math.floor(count / _balancePageSize) + 1;
 
-      const newMyBalances = balances.map((balance) => {
+      newMyBalances = balances.map((balance) => {
         return {
           ...balance,
           tokenId: balance.token.tokenId,
@@ -144,6 +145,8 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     setBalancePageSize(_balancePageSize);
     setBalanceQuery(_balanceQuery);
     setFetchingTokens(false);
+
+    return newMyBalances;
   }, [signedInAddress]);
 
 
@@ -153,14 +156,29 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
       if (provider && signedInAddress) {
         if (myBalances !== [] && !fetchingTokens) {
           setFetchingTokens(true);
-          await fetchBalances(balancePage, balancePageSize, balanceQuery);
+          const bl = await fetchBalances(balancePage, balancePageSize, balanceQuery);
+          if (bl && tokenid) {
+            const tid = Number(tokenid);
+            let ptoken = null;
+            for (let i=0; i<bl.length; i++) {
+              if (bl[i].token.tokenId == tid) {
+                ptoken = bl[i].token;
+              }
+            }
+            if (ptoken) {
+               setSelectedToken({
+                ...ptoken,
+              });
+              setModalShow(true);
+            }
+          }
         }
         let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
         setEmissionsRequestsCount(_emissionsRequestsCount);
 
     } }
     init();
-  }, [provider, signedInAddress]);
+  }, [provider, signedInAddress, tokenid]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -260,7 +278,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
             /> : <></>}
           </div>
         }
-
 
       </div>
     </>

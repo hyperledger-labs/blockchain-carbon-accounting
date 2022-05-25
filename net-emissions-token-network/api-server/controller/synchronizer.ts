@@ -448,7 +448,7 @@ export const sendTokenIssuedEmail = async(token: TokenPayload) => {
             if (w.email) {
                 const transporter = getMailer();
                 const site_url = process.env.APP_ROOT_URL || 'http://localhost:3000';
-                const link = new URL(`${site_url}/dashboard/${token.tokenId}`);
+                const link = new URL(`${site_url}/dashboard/token/${token.tokenId}`);
                 const link_all = new URL(`${site_url}/dashboard`);
                 const emailTemplateSourceHtml = readFileSync(path.join(__dirname, "../email/templates/issue-token.html"), "utf8")
                 const emailTemplateSourceText = readFileSync(path.join(__dirname, "../email/templates/issue-token.txt"), "utf8")

@@ -113,8 +113,14 @@ const App:FC = () => {
                   { signedInAddress ? (
                     <Switch>
                       <Route path="/"><Redirect to="/dashboard" /></Route>
-                      <Route path="/dashboard/:address?">{(params)=>
+                      <Route path="/dashboard">
+                        <Dashboard ref={dashboardRef} provider={provider} signedInAddress={signedInAddress} displayAddress=""/>
+                      </Route>
+                      <Route path="/dashboard/address/:address?">{(params)=>
                         <Dashboard ref={dashboardRef} provider={provider} signedInAddress={params.address||signedInAddress} displayAddress={params.address} />
+                      }</Route>
+                      <Route path="/dashboard/token/:tokenid?">{(params)=>
+                        <Dashboard ref={dashboardRef} provider={provider} signedInAddress={signedInAddress} displayAddress="" tokenid={params.tokenid} />
                       }</Route>
                       <Route path="/governance">
                         <GovernanceDashboard provider={provider} roles={roles} signedInAddress={signedInAddress} />
