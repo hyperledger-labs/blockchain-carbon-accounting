@@ -396,13 +396,13 @@ const FindOrSetupWallet: FC<Props> = ({
                   {roleError}
                 </Form.Control.Feedback>
               </Form.Group>
-              <AsyncButton
+              {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 && <AsyncButton
                 type="submit"
                 className="w-100 mb-3"
                 variant="success"
                 onClick={() =>{ addRoleQuery.mutate() }}
                 loading={addRoleQuery.isLoading}
-              >Add Role</AsyncButton>
+              >Add Role</AsyncButton>}
             </Form>
             </>
         )}
