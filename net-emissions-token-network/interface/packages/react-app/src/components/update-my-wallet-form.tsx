@@ -1,10 +1,31 @@
 import { FC,  useEffect,  useState } from "react";
-import { Button, FloatingLabel, Form, Spinner } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { trpcClient } from "../services/trpc";
 import { Wallet } from "./static-data";
 import AsyncButton from "./AsyncButton";
+import { FormInputRow } from "./forms-util";
+import { handleFormErrors } from "../services/api.service";
+import ErrorAlert from "./error-alert";
 // import ProvideMetamaskEncryptionKeyButton from "./provide-metamask-encryption-key-button";
+
+type WalletForm = {
+  public_key: string,
+  public_key_name: string,
+  error: string,
+  success: string,
+  loading: string
+}
+type WalletFormErrors = Partial<WalletForm>
+
+const defaultWalletForm: WalletForm = {
+  public_key: "",
+  public_key_name: "",
+  error: "",
+  success: "",
+  loading: ""
+} as const;
+
 
 type Props = {
   provider: Web3Provider | JsonRpcProvider
@@ -20,21 +41,27 @@ const UpdateMyWalletForm: FC<Props> = ({
   onSuccess
 }) => {
 
-  const [loading, setLoading] = useState(false);
-  const [myPublicKey, setMyPublicKey] = useState("");
+  const [form, setForm] = useState<WalletForm>(defaultWalletForm)
+  const [formErrors, setFormErrors] = useState<WalletFormErrors>({})
 
   useEffect(()=>{
-    setMyPublicKey(wallet?.public_key || '');
+    setForm({
+      ...defaultWalletForm,
+      public_key: wallet?.public_key || '',
+      public_key_name: wallet?.public_key_name || ''
+    })
   }, [wallet])
 
   return <Form onSubmit={async(e)=>{
-    setLoading(true)
+    setForm(f=>{return {...f, error:'', loading:'true'} })
+    setFormErrors({})
     e.preventDefault()
     e.stopPropagation()
     try {
       const payload = {
         address: signedInAddress,
-        public_key: myPublicKey
+        public_key: form.public_key,
+        public_key_name: form.public_key_name
       }
       const message = JSON.stringify(payload)
       const signature = await provider.getSigner().signMessage(message)
@@ -47,13 +74,14 @@ const UpdateMyWalletForm: FC<Props> = ({
       if (onSuccess) onSuccess()
     } catch (error) {
       console.error('trpc error;', error)
+      handleFormErrors(error, setFormErrors, setForm)
     }
 
-    setLoading(false)
+    setForm(f=>{return {...f, loading:''} })
   }}>
-    <FloatingLabel className="mb-2" controlId="myPublicKeyInput" label="Public Key">
-      <Form.Control as="textarea" style={{height: '20em'}} placeholder="RSA Public Key" value={myPublicKey} onChange={(e)=>{ setMyPublicKey(e.currentTarget.value) }}/>
-    </FloatingLabel>
+    <FormInputRow form={form} setForm={setForm} errors={formErrors} field="public_key_name" label="Key Name" />
+    <FormInputRow form={form} setForm={setForm} errors={formErrors} field="public_key" label="Public Key" as="textarea" style={{height: '20em'}} />
+    {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }}/>}
 {/*
 
 Commented out for now because Metamask decrypt is slow.
@@ -67,7 +95,7 @@ Commented out for now because Metamask decrypt is slow.
     <AsyncButton
       className="w-100 mb-3"
       variant="primary"
-      loading={loading}
+      loading={!!form.loading}
       type="submit"
     >Update</AsyncButton>
 

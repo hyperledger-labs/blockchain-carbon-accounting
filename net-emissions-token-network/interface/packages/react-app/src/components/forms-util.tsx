@@ -1,4 +1,4 @@
-import { PropsWithChildren } from "react";
+import { CSSProperties, ElementType, PropsWithChildren } from "react";
 import { FloatingLabel, Form, InputGroup } from "react-bootstrap";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import WalletLookupInput from "../components/wallet-lookup-input";
@@ -15,11 +15,13 @@ type FormInputRowProps<T extends GenericForm, T2 extends Partial<T>> = {
   field: keyof T & string,
   label: string
   type?: 'input' | 'number' | 'password' | 'email'
+  as?: ElementType,
   min?: number,
   minlength?: number,
   max?: number,
   step?: number | 'any',
   placeholder?: string,
+  style?: CSSProperties,
   required?: boolean,
   disabled?: boolean,
   errors?: T2,
@@ -78,12 +80,14 @@ export const FormAddressRow = <T extends GenericForm, T2 extends Partial<T>,>({ 
   </Form.Group>
 }
 
-export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, min, minlength, max, step, required, disabled, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
+export const FormInputRow = <T extends GenericForm, T2 extends Partial<T>,>({ form, setForm, field, label, placeholder, type, as, style, min, minlength, max, step, required, disabled, errors, onChange }:PropsWithChildren<FormInputRowProps<T,T2>>) => {
   return <FloatingLabel className="mb-3" controlId={field} label={label}>
     <Form.Control
       type={type||"input"}
       isInvalid={errors && !!errors[field]}
       disabled={disabled}
+      as={as}
+      style={style}
       min={min}
       minLength={minlength}
       max={max}
