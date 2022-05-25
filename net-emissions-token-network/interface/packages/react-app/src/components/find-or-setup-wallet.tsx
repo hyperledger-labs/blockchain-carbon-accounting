@@ -35,6 +35,8 @@ import {
 import RolesList from "./roles-list";
 import AddWalletForm from "./add-wallet-form";
 import DisplayWalletDetails from "./display-wallet-details";
+import AsyncButton from "./AsyncButton";
+import { useMutation } from "react-query";
 
 
 type Props = {
@@ -204,7 +206,7 @@ const FindOrSetupWallet: FC<Props> = ({
     }
   }, [lookupWallet, provider, address, theirRoles, hasAssignRolePermissions]);
 
-  async function handleSingleRegister() {
+  const addRoleQuery = useMutation(async () => {
     if (!provider) return;
     // validate
     if (formRef.current && formRef.current.checkValidity() === false) {
@@ -241,7 +243,7 @@ const FindOrSetupWallet: FC<Props> = ({
       }
       setModalShow(true);
     }
-  }
+  });
 
   const unregisterRoleInContract = useCallback(
     async (provider: Web3Provider | JsonRpcProvider, address: string, role: Role) => {
@@ -400,15 +402,13 @@ const FindOrSetupWallet: FC<Props> = ({
                   {roleError}
                 </Form.Control.Feedback>
               </Form.Group>
-              <Form.Group className="d-grid gap-2 mt-3">
-                <Button
-                  variant="success"
-                  size="lg"
-                  onClick={handleSingleRegister}
-                >
-                  Add Role
-                </Button>
-              </Form.Group>
+              <AsyncButton
+                type="submit"
+                className="w-100 mb-3"
+                variant="success"
+                onClick={() =>{ addRoleQuery.mutate() }}
+                loading={addRoleQuery.isLoading}
+              >Add Role</AsyncButton>
             </Form>
             </>
         )}
