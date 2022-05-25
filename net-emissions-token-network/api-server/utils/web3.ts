@@ -6,7 +6,6 @@ import { OPTS_TYPE } from "../server";
 export const BURN = '0x0000000000000000000000000000000000000000';
 
 
-const web3_cache: Record<string, Web3> = {}
 
 export const getWeb3 = (opts: OPTS_TYPE) => {
   let url = opts.network_rpc_url;
@@ -19,13 +18,7 @@ export const getWeb3 = (opts: OPTS_TYPE) => {
       url = url.replace('https:', 'wss:');
     }
   }
-  // only cache when using http connection (because ws may hang better recreate them?)
-  const canCache = (url.startsWith('http'))
-  if (canCache && web3_cache[url]) {
-    return web3_cache[url];
-  }
   const web3 = new Web3(url);
-  if (canCache) web3_cache[url] = web3;
   return web3;
 }
 
