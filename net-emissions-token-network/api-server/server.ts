@@ -13,7 +13,6 @@ const assertEnv = (key: string): string => {
   }
   return process.env[key] || '';
 }
-// assertEnv('MORALIS_API_KEY')
 const contract_address = assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
 const network_name = assertEnv('LEDGER_ETH_NETWORK')
 const network_rpc_url = assertEnv('LEDGER_ETH_JSON_RPC_URL')

@@ -13,7 +13,7 @@ function getErrorMessage(error: unknown) {
 const makeErrorHandler = (name: string) => (err: unknown) => {
   const message = getErrorMessage(err);
   if (message.indexOf('connection not open on send') > -1) {
-    throw new Error(`Error in ${name} event: ${message} -> Check your MORALIS_API_KEY is correctly setup.`)
+    throw new Error(`Error in ${name} event: ${message} -> Check your LEDGER_ETH_WS_URL is correctly setup.`)
   } else {
     console.error(`Error in ${name} event: ${message}`)
     throw err

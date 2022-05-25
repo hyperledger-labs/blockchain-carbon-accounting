@@ -11,8 +11,11 @@ To synchronize with public networks, we will need an API from Moralis:
 * Sign up [Moralis](https://moralis.io/)
 * Go to admin page and select `Speedy Nodes` tab.
 * Select `Binance Network Endpoints` and switch into `WS`.
-* You can find `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws`.
-* You can use this `API_KEY` as `MORALIS_API_KEY` in `.env`.
+* You can use `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws` as `LEDGER_ETH_WS_URL`.
+
+Alternative:
+* Try [GetBlock.io](https://getblock.io/)
+* Use `wss://bsc.getblock.io/testnet/?api_key=YOUR_API_KEY_HERE` as `LEDGER_ETH_WS_URL`
 
 ## Run server
 
