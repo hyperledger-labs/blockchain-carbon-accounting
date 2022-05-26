@@ -735,7 +735,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
           </>}
       </Form>
       <div>
-       Questions?&nbsp;&nbsp;  Check out our <a rel="noreferrer" target="_blank" href="https://discord.gg/7jmwnTyyQ8">Discord channel</a>.
+       <br/><br/><br/><p>Questions?&nbsp;&nbsp;  Check out our <a rel="noreferrer" target="_blank" href="https://discord.gg/7jmwnTyyQ8">Discord channel</a>.
+       </p>
       </div>
       </>
   );
