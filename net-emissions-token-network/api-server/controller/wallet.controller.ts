@@ -220,8 +220,9 @@ export async function signupWallet(a_email: string, password: string, name?: str
     // check that a wallet with this email does not already exist
     const w = await db.getWalletRepo().findWalletByEmail(email, true);
     if (w) {
-        // if we previously failed at sending the verification_token then just send it again
-        if (!w.verification_token_sent_at) {
+        // if we previously failed at sending the verification_token or the email is not verified
+        // and the verification link is a least 15 minutes old, then just send it again
+        if (!w.verification_token_sent_at || (!w.email_verified && w.verification_token_sent_at.getTime() + (15 * 60 * 1000) < Date.now())) {
             try {
                 await sendVerificationEmail(email, w.verification_token);
                 verification_token_sent_at = new Date();
@@ -244,7 +245,7 @@ export async function signupWallet(a_email: string, password: string, name?: str
             }
             return
         } else {
-            throw new DomainError('Wallet already exists, try signing in instead');
+            throw new DomainError('Wallet already exists, try signing in instead. If you did not the verification email please try signing up again in 15 minutes');
         }
     }
 
