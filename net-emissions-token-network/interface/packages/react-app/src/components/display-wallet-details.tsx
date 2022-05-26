@@ -9,6 +9,7 @@ import { FormInputRow } from "./forms-util";
 import ErrorAlert from "./error-alert";
 import { handleFormErrors } from "../services/api.service";
 import AsyncButton from "./AsyncButton";
+import { useMutation } from "react-query";
 
 function CustomToggle({
   children,
@@ -45,10 +46,12 @@ function RolesCodesToLi({
   currentRoles,
   roles,
   unregister,
+  loading,
 }: {
   currentRoles: RolesInfo;
   roles: string | Role[] | undefined;
   unregister?: (r: Role) => void;
+  loading?: boolean;
 }) {
   if (!roles) return null;
   const arr: Role[] = Array.isArray(roles)
@@ -63,16 +66,17 @@ function RolesCodesToLi({
             (currentRoles.isAdmin ||
               ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) &&
                 r === "Consumer")) && (
-              <Button
+              <AsyncButton
                 variant="outline-danger"
                 className="ms-2 my-1"
                 size="sm"
+                loading={!!loading}
                 onClick={() => {
                   unregister(r);
                 }}
               >
                 Unregister
-              </Button>
+              </AsyncButton>
             )}
         </li>
       ))}
@@ -132,23 +136,23 @@ const DisplayWalletDetails: FC<Props> = ({
     })
   }, [wallet])
 
-  async function handleSingleUnregister(wallet: Wallet, role: Role) {
+  const unregisterRoleQuery = useMutation(async (input: {wallet: Wallet, role: Role}) => {
     if (!provider) return;
     const error = await unregisterRoleInContract(
       provider,
-      wallet.address!,
-      role
+      input.wallet.address!,
+      input.role
     );
     if (error) {
       setError(error);
       return;
     }
     if (wallet) {
-      setWallet(wallet ? {...wallet, roles: wallet.roles?.split(',').filter(r=>r!==role).join(',') } : null);
+      setWallet(wallet ? {...wallet, roles: wallet.roles?.split(',').filter(r=>r!==input.role).join(',') } : null);
       setError("");
     }
     if (onSuccess) onSuccess();
-  }
+  });
 
   async function handleUpdate() {
     setForm({...form, error:'', loading:'true'})
@@ -239,8 +243,9 @@ const DisplayWalletDetails: FC<Props> = ({
                 <RolesCodesToLi
                   currentRoles={roles}
                   roles={wallet.roles}
-                  unregister={(r) => {
-                    handleSingleUnregister(wallet, r);
+                  loading={unregisterRoleQuery.isLoading}
+                  unregister={(role) => {
+                    unregisterRoleQuery.mutate({wallet, role});
                   }}
                   />
               </ul>
@@ -300,8 +305,9 @@ const DisplayWalletDetails: FC<Props> = ({
               <RolesCodesToLi
                 currentRoles={roles}
                 roles={wallet.roles}
-                unregister={(r) => {
-                  handleSingleUnregister(wallet, r);
+                loading={unregisterRoleQuery.isLoading}
+                unregister={(role) => {
+                  unregisterRoleQuery.mutate({wallet, role});
                 }}
                 />
             </ul>
