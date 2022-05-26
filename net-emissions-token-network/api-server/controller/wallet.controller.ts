@@ -231,12 +231,10 @@ export async function signupWallet(a_email: string, password: string, name?: str
                 throw new DomainError('We could not send your verification email, please try again later.', 'INTERNAL_SERVER_ERROR', undefined, err);
             } finally {
                 const { password_hash, password_salt } = Wallet.generateHash(password);
-                const verification_token = Wallet.generateVerificationToken();
                 await db.getWalletRepo().mergeWallet({
                     address: w.address,
                     password_hash,
                     password_salt,
-                    verification_token,
                     verification_token_sent_at,
                     email_verified: false,
                     name,
