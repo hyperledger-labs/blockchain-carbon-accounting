@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# send report email to
-MAILTO="email@example.com"
+# send report email to, provide MAILTO as environment variable
+# to enable this, else will just print to the terminal
+# MAILTO="email@example.com"
 
 LOGFILE="/tmp/update_emissions_tokens_apps.log"
-LOGFILECURR="/tmp/update_emissions_tokens_apps_curr.log"
 LOGFILEBUILD="/tmp/update_emissions_tokens_apps_build.log"
 
 SOURCE_DIR="/home/opentaps/blockchain-carbon-accounting"
@@ -14,6 +14,9 @@ APP_DIR="/var/www/html/emissions-test.opentaps.org"
 FORCE_UPDATE=${1}
 
 mailerror() {
+  # if MAILTO is set
+  if [ -n "$MAILTO" ]; then
+    echo "Sending error email to $MAILTO"
     (
     echo "To: ${MAILTO}"
     echo "From: admin@opentaps.com"
@@ -23,12 +26,19 @@ mailerror() {
     echo
     echo "Please check emissions tokens apps update. See ${LOGFILE}"
     echo
-    tail -n 80 ${LOGFILE}
+    tail -n 80 ${LOGFILEBUILD}
     ) | /usr/sbin/sendmail -t
+  else
+    echo "See ${LOGFILEBUILD} for error details"
+    echo "-------------------------------------"
+    echo ""
+    tail -n 80 ${LOGFILEBUILD}
+  fi
 }
 
 die() {
     echo "ERROR: $*"
+    echo "ERROR: $*" >> ${LOGFILEBUILD}
     echo "ERROR: $*" >> ${LOGFILE}
     mailerror
     exit 1
@@ -45,14 +55,14 @@ git checkout -- open-offsets-directory/react/package-lock.json
 git checkout -- open-offsets-directory/node-server/package-lock.json
 
 echo "Pulling Git changes ..."
-git pull > ${LOGFILECURR}  2>&1
+git pull > ${LOGFILEBUILD}  2>&1
 echo "Done"
-cat ${LOGFILECURR} >> ${LOGFILE}
+cat ${LOGFILEBUILD} >> ${LOGFILE}
 
-RES=`cat ${LOGFILECURR} | grep "Aborting"`
+RES=`cat ${LOGFILEBUILD} | grep "Aborting"`
 if [ -z "$RES" ]
 then
-    RES1=`cat ${LOGFILECURR} | grep "Already up to date"`
+    RES1=`cat ${LOGFILEBUILD} | grep "Already up to date"`
     if [ -z "$RES1" ] || [ "$FORCE_UPDATE" == "force_update" ]
     then
         echo " - restoring bsctestnet settings"
@@ -73,7 +83,7 @@ then
 
         cd interface || die "Can't cd to interface"
         echo " - installing dependencies for react-app"
-        npm i  >> ${LOGFILEBUILD}  2>&1
+        npm i >> ${LOGFILEBUILD}  2>&1
         echo " - dependencies install done"
 
         # restart the backend
@@ -82,7 +92,7 @@ then
 
         # build the frontend
         echo " - building react-app"
-        npm run react-app:build > ${LOGFILEBUILD}  2>&1
+        npm run react-app:build >> ${LOGFILEBUILD}  2>&1
         echo " - build done"
 
         cat ${LOGFILEBUILD} >> ${LOGFILE}
@@ -91,20 +101,18 @@ then
 
         if [ -z "$RES2" ]
         then
-            echo "!!! ERROR during build."
-            tail -n 80 ${LOGFILE}
-            mailerror
-            exit
+            die "!!! ERROR during build."
         else
             # copy app to destination
             echo " - deploying build to ${APP_DIR}"
             rm -Rf ${APP_DIR:?}/*
             cd ${APP_DIR} || die "Can't cd to ${APP_DIR}"
             cp -r ${SOURCE_DIR}/net-emissions-token-network/interface/packages/react-app/build/* .
+            echo "App deployed to ${APP_DIR}" | tee --append ${LOGFILE} ${LOGFILEBUILD}
         fi
     else
         echo "Code was already up-to-date, to force a rebuild add the argument \"force_update\""
     fi
 else
-    mailerror
+    die "!!! ERROR during git pull."
 fi
