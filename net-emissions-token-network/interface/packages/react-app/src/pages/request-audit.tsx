@@ -513,12 +513,12 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
         <p>If you already have a wallet on the Binance Smart Chain Testnet, you can connect to it with Metamask now to login.</p>
 
         <p>If you don't have a wallet yet, you can either <a rel="noreferrer" target="_blank" href="https://medium.com/spartanprotocol/how-to-connect-metamask-to-bsc-testnet-7d89c111ab2">follow these instructions to get a wallet</a>{' '}
-        or <Link href="/sign-up">Sign Up</Link> with your email address to get an account and try it out.</p>
+        or <Link href="/sign-up">Sign Up</Link> with your email to get an account and try it out.</p>
 
-        <p>Finally, you can get an emissions estimate here:</p>
+        <p>Or you can start here to get an emissions estimate here, then request an emissions audit based on the result:</p>
 
       </div>}
-      <h2>Request audit</h2>
+      <h3>Request audit</h3>
       <Form
         onSubmit={handleSubmit}
         noValidate validated={validated}>
