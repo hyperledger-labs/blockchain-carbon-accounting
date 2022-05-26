@@ -72,7 +72,7 @@ const App:FC = () => {
             }
 
               <Link href="/governance"><Nav.Link eventKey="governance">Governance</Nav.Link></Link>
-              {isOwnerOrDealer ? 
+              {isOwnerOrDealer ?
                 <Link href="/issuedtokens"><Nav.Link eventKey="issue">Issue tokens</Nav.Link></Link>
                 : null
             }
@@ -101,7 +101,7 @@ const App:FC = () => {
                     ? "Manage roles"
                     : "My roles"
                 }
-                </Nav.Link></Link> 
+                </Nav.Link></Link>
             }
             </Nav>)}
 
@@ -176,6 +176,12 @@ const App:FC = () => {
                         </Route>
                         <Route path="/sign-in">
                           <SignIn loadWalletInfo={loadWalletInfo} />
+                        </Route>
+                        <Route path="/reset-password">
+                          <ChangePassword></ChangePassword>
+                        </Route>
+                        <Route path="/export-pk">
+                          <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
                         </Route>
                         <Route path="/requestAudit">
                           <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
