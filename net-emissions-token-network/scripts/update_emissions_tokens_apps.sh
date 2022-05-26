@@ -86,10 +86,6 @@ then
         npm i >> ${LOGFILEBUILD}  2>&1
         echo " - dependencies install done"
 
-        # restart the backend
-        echo " - restarting api-server process"
-        pm2 restart bca-api-server --update-env
-
         # build the frontend
         echo " - building react-app"
         npm run react-app:build >> ${LOGFILEBUILD}  2>&1
@@ -108,6 +104,11 @@ then
             rm -Rf ${APP_DIR:?}/*
             cd ${APP_DIR} || die "Can't cd to ${APP_DIR}"
             cp -r ${SOURCE_DIR}/net-emissions-token-network/interface/packages/react-app/build/* .
+
+            # restart the backend
+            echo " - restarting api-server process"
+            pm2 restart bca-api-server --update-env
+
             echo "App deployed to ${APP_DIR}" | tee --append ${LOGFILE} ${LOGFILEBUILD}
         fi
     else
