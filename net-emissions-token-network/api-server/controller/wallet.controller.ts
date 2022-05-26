@@ -243,7 +243,7 @@ export async function signupWallet(a_email: string, password: string, name?: str
             }
             return
         } else {
-            throw new DomainError('Wallet already exists, try signing in instead. If you did not the verification email please try signing up again in 15 minutes');
+            throw new DomainError('Wallet already exists, try signing in instead. If you did not receive the verification email please try signing up again in 15 minutes');
         }
     }
 
