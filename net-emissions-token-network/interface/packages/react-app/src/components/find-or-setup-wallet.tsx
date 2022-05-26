@@ -166,6 +166,7 @@ const FindOrSetupWallet: FC<Props> = ({
     if ((lookupWallet && lookupWallet.address) || provider) {
       if (theirRoles.hasAnyRole) setTheirRoles({});
       setFetchingTheirRoles(true);
+      setRole('None');
       setLookupError("");
       setLookupMessage("");
       setShowAddUserForm(false);
@@ -382,7 +383,7 @@ const FindOrSetupWallet: FC<Props> = ({
             <Form ref={formRef} noValidate validated={registerFormValidated}>
               <Form.Group className="mb-3" controlId="rolesInput">
                 {rolesThatCanBeAssigned && rolesThatCanBeAssigned.length > 0 ? (
-                  <Form.Select onChange={onRoleChange} isInvalid={!!roleError}>
+                  <Form.Select onChange={onRoleChange} isInvalid={!!roleError} value={role}>
                     {rolesThatCanBeAssigned.map((r, i) => (
                       <option key={i} value={r.value}>
                         {r.label}
