@@ -65,6 +65,13 @@ export class EmissionsRequest {
 
   @UpdateDateColumn()
   updated_at!: Date;
+
+  public static toRaw(v: EmissionsRequest) {
+    return { ...v };
+  }
+  public static toRaws(v: EmissionsRequest[]) {
+    return v.map(v => EmissionsRequest.toRaw(v));
+  }
 }
 
 @Entity()
@@ -85,6 +92,13 @@ export class EmissionsRequestSupportingDocument {
 
   @UpdateDateColumn()
   updated_at!: Date;
+
+  public static toRaw(v: EmissionsRequestSupportingDocument) {
+    return { ...v };
+  }
+  public static toRaws(v: EmissionsRequestSupportingDocument[]) {
+    return v.map(v => EmissionsRequestSupportingDocument.toRaw(v));
+  }
 }
 
 

@@ -5,6 +5,25 @@ import {
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
 
+
+export type IToken = {
+  tokenId: number;
+  tokenTypeId: number;
+  issuedBy: string;
+  issuedFrom: string;
+  issuedTo: string;
+  fromDate: number;
+  thruDate: number;
+  dateCreated: number;
+  metadata: Object; // eslint-disable-line
+  manifest: Object; // eslint-disable-line
+  description: string;
+  totalIssued: bigint;
+  totalRetired: bigint;
+  scope: number;
+  type: string;
+}
+
 @Entity()
 export class Token {
     @PrimaryColumn()
@@ -51,4 +70,11 @@ export class Token {
 
     @Column({nullable: true})
     type!: string;
+
+    public static toRaw(v: Token) {
+        return { ...v };
+    }
+    public static toRaws(v: Token[]) {
+        return v.map(v => Token.toRaw(v));
+    }
 }

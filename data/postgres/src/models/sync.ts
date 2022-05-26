@@ -19,6 +19,13 @@ export class Sync {
 
     @UpdateDateColumn()
     updated_at!: Date;
+
+    public static toRaw(v: Sync) {
+        return { ...v };
+    }
+    public static toRaws(v: Sync[]) {
+        return v.map(v => Sync.toRaw(v));
+    }
 }
 
 

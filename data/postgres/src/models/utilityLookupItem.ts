@@ -29,5 +29,12 @@ export class UtilityLookupItem implements UtilityLookupItemInterface {
   division_type?: string
   @Column({nullable:true})
   division_id?: string
+
+  public static toRaw(v: UtilityLookupItem) {
+    return { ...v };
+  }
+  public static toRaws(v: UtilityLookupItem[]) {
+    return v.map(v => UtilityLookupItem.toRaw(v));
+  }
 }
 

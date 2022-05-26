@@ -1,3 +1,4 @@
+import superjson from 'superjson';
 import * as trpc from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
@@ -34,6 +35,7 @@ const createRouter = () => {
   // this adds the zodError and domainError to the response which can then be
   // analyzed for input errors an user facing error messages
   return trpc.router<TrpcContext>()
+    .transformer(superjson)
     .formatError(({ shape, error }) => {
       return {
         ...shape,

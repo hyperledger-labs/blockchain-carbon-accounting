@@ -29,6 +29,7 @@
     "nodemailer": "^6.7.5",
     "pg": "^8.7.3",
     "rate-limiter-flexible": "^2.3.7",
+    "superjson": "^1.9.1",
     "supply-chain-lib": "file:../../supply-chain/lib",
     "useragent": "^2.3.0",
     "web3": "^1.7.3",

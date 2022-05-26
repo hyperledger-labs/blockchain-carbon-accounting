@@ -42,6 +42,7 @@
     "prettier-plugin-solidity": "1.0.0-beta.19",
     "sinon": "^14.0.0",
     "solidity-coverage": "0.7.21",
+    "superjson": "^1.9.1",
     "supertest": "^6.2.3",
     "supply-chain-lib": "file:../supply-chain/lib",
     "ts-node": "^10.8.0",

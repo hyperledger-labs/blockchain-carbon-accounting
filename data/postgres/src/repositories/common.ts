@@ -40,7 +40,7 @@ export interface TokenPayload {
   type: string;
 }
 
-export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
+export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at' | 'toJSON'>
 
 const OP_MAP: Record<string, string> = {
     'eq': '=',

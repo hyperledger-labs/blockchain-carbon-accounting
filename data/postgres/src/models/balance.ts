@@ -5,13 +5,18 @@ import {
     ManyToOne,
     JoinColumn
 } from 'typeorm';
-import { Token } from './token';
+import { IToken, Token } from './token';
 import { bigint_transformer } from './bigint_transformer'
 
-/**
- * primary key: issuee address & token id
- * data: 1) available 2) retired
- */
+
+export type IBalance = {
+  issuedTo: string;
+  tokenId: number;
+  token: IToken;
+  available: bigint;
+  retired: bigint;
+  transferred: bigint;
+}
 
 @Entity()
 export class Balance {
@@ -34,5 +39,12 @@ export class Balance {
 
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     transferred!: bigint;
+
+    public static toRaw(v: Balance) {
+        return { ...v, token: Token.toRaw(v.token) };
+    }
+    public static toRaws(v: Balance[]) {
+        return v.map(v => Balance.toRaw(v));
+    }
 }
 

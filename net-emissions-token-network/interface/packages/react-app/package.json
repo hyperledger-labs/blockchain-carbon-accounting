@@ -46,6 +46,7 @@
     "react-query": "^3.39.0",
     "react-scripts": "^5.0.1",
     "styled-components": "^5.3.5",
+    "superjson": "^1.9.1",
     "web3modal": "^1.9.7",
     "wouter": "^2.7.5"
   },

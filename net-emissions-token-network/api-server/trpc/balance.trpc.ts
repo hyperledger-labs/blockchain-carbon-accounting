@@ -1,4 +1,5 @@
 import * as trpc from '@trpc/server'
+import { Balance } from 'blockchain-accounting-data-postgres/src/models/balance';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 
@@ -42,8 +43,8 @@ export const balanceRouter = trpc
             const count = await ctx.db.getBalanceRepo().count(input.bundles);
             return {
                 status: 'success',
-                count, 
-                balances
+                count,
+                balances: Balance.toRaws(balances)
             }
         } catch (error) {
             console.error(error)
