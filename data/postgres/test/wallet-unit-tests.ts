@@ -19,6 +19,12 @@ describe("Wallet tests", function() {
     await db.getWalletRepo().insertWallet({address: '0x12345Test', name: 'test wallet'})
   });
 
+  after(async function () {
+    // close DB connection instance
+    const db = await PostgresDBService.getInstance();
+    db.close();
+  });
+
   it("should merge the given properties only", async function() {
     const db = await PostgresDBService.getInstance()
 

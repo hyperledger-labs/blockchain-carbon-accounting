@@ -3,6 +3,7 @@ import {
     PrimaryColumn,
     Column
 } from 'typeorm';
+import bigint_transformer from './bigint_transformer';
 
 @Entity()
 export class Token {
@@ -39,10 +40,10 @@ export class Token {
     @Column({nullable: true})
     description!: string;
 
-    @Column({type: 'bigint'})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
     totalIssued!: bigint;
 
-    @Column({type: 'bigint'})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
     totalRetired!: bigint;
 
     @Column({nullable: true})

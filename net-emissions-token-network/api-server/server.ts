@@ -79,38 +79,42 @@ app.set('trust proxy', 1)
 app.use('/', queryProcessing, router);
 app.use('/trpc', trpcMiddleware);
 
-/**
- * TODOs.
- * 1. must make sure sync issued tokens between fillToken & subscribeEvent!
- */
-db.then(async () => {
+if ('true' !== process.env.SKIP_SYNC) {
+  db.then(async () => {
 
-  async function sync() {
-    const lastBlock = await startupSync(OPTS);
+    async function sync() {
+      const lastBlock = await startupSync(OPTS);
 
-    try {
-      console.log('Subscribing to events starting from block:', lastBlock);
-      subscribeToEvents(OPTS);
-    } catch (err) {
-      console.error('An error occurred while setting up the blockchain event handlers', err);
-      throw err;
+      try {
+        console.log('Subscribing to events starting from block:', lastBlock);
+        subscribeToEvents(OPTS);
+      } catch (err) {
+        console.error('An error occurred while setting up the blockchain event handlers', err);
+        throw err;
+      }
     }
-  }
-  // call this without await so the server can sync but also serve other requests in the meantime
-  // unless we are on hardhat where to would conflict with the auto sync middleware
-  // this means we do not throw 500 errors while this is still loading but the tokens
-  // will show up with out of date or 0 balances until they are done loading
-  if (network_name !== 'hardhat') {
-    sync();
-  } else {
-    await sync();
-  }
+    // call this without await so the server can sync but also serve other requests in the meantime
+    // unless we are on hardhat where to would conflict with the auto sync middleware
+    // this means we do not throw 500 errors while this is still loading but the tokens
+    // will show up with out of date or 0 balances until they are done loading
+    if (network_name !== 'hardhat') {
+      sync();
+    } else {
+      await sync();
+    }
 
-  app.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`Server is listening on ${PORT}\n`)
-  });
-})
-  .catch((err) => {
-    console.log("Fatal Error: ", err);
-    process.exit(1);
-  });
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`Server is listening on ${PORT}\n`)
+    });
+  })
+    .catch((err) => {
+      console.log("Fatal Error: ", err);
+      process.exit(1);
+    });
+} else {
+  // in test environment, we do not want to sync
+  // test runner will do the listen call
+}
+
+
+export default app

@@ -6,6 +6,7 @@ import {
     JoinColumn
 } from 'typeorm';
 import { Token } from './token';
+import { bigint_transformer } from './bigint_transformer'
 
 /**
  * primary key: issuee address & token id
@@ -25,13 +26,13 @@ export class Balance {
     @JoinColumn({name: 'tokenId'})
     token!: Token;
 
-    @Column({type: 'bigint'})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     available!: bigint;
 
-    @Column({type: 'bigint'})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     retired!: bigint;
 
-    @Column({type: 'bigint'})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     transferred!: bigint;
 }
 
