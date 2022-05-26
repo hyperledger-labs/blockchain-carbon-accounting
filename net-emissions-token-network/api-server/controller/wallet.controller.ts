@@ -3,12 +3,12 @@ import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postg
 import { QueryBundle } from 'blockchain-accounting-data-postgres/src/repositories/common';
 import { ethers } from 'ethers';
 import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
-import nodemailer from 'nodemailer';
 import { DomainError } from '../trpc/common';
 import handlebars from 'handlebars';
 import { readFileSync } from 'fs';
 import path from 'path';
 import useragent from 'useragent';
+import { getMailer, getSiteAndAddress } from "../utils/email";
 
 export async function getWallets(req: Request, res: Response) {
     try {
@@ -95,22 +95,6 @@ export async function getNumOfWallets(req: Request, res: Response) {
     }
 }
 
-export function getMailer() {
-    const opts = {
-        host: process.env.MAILER_HOST || '',
-        port: Number(process.env.MAILER_PORT),
-        auth: {}
-    }
-    if (process.env.MAILER_USER && process.env.MAILER_PASS) {
-        opts.auth = {
-            user: process.env.MAILER_USER,
-            pass: process.env.MAILER_PASS
-        }
-    }
-    console.log('getMailer', opts)
-    return nodemailer.createTransport(opts)
-}
-
 export async function sendPasswordResetEmail(a_email: string, token: string, os?: string, browser?: string) {
     const email = a_email.trim();
     const transporter = getMailer();
@@ -124,12 +108,7 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
-        site_url: process.env.APP_ROOT_URL || 'http://localhost:3000',
-        site_name: process.env.MAIL_SITE_NAME || 'Blockchain Accounting',
-        company_name: process.env.MAIL_COMPANY_NAME || 'Blockchain Accounting',
-        company_address_1: process.env.MAIL_COMPANY_ADDRESS_1 || '123 Main St.',
-        company_address_2: process.env.MAIL_COMPANY_ADDRESS_2 || 'Suite 100',
-        support_url: process.env.MAIL_SUPPORT_URL || 'mailto:support@opentaps.com',
+        ...getSiteAndAddress(),
         request_from_os: os || 'unknown OS',
         request_from_browser: browser || 'unknown browser',
         action_url: link.href,
@@ -179,12 +158,7 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
-        site_url: process.env.APP_ROOT_URL || 'http://localhost:3000',
-        site_name: process.env.MAIL_SITE_NAME || 'Blockchain Accounting',
-        company_name: process.env.MAIL_COMPANY_NAME || 'Blockchain Accounting',
-        company_address_1: process.env.MAIL_COMPANY_ADDRESS_1 || '123 Main St.',
-        company_address_2: process.env.MAIL_COMPANY_ADDRESS_2 || 'Suite 100',
-        support_url: process.env.MAIL_SUPPORT_URL || 'mailto:support@opentaps.com',
+        ...getSiteAndAddress(),
         action_url: link.href,
     }
     const html = templateHtml(tpl)
@@ -374,7 +348,7 @@ export async function verifyWalletEmail(req: Request, res: Response) {
 export async function doPasswordRequest(req: Request, res: Response) {
     try {
         const email = req.params.email.trim();
-        // if we have a 
+        // if we have a
         const token = req.params.token;
 
         const w = await verify(email, token);
