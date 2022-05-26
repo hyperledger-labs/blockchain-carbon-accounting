@@ -76,9 +76,9 @@ export class WalletRepo {
         ...payload,
       })
     } else {
-      // only update non empty new values
+      // only update defined new values as API could accept optional values
       const toMerge = Object.fromEntries(
-        Object.entries(payload).filter(([, v]) => !!v)
+        Object.entries(payload).filter(([, v]) => !!v || v === '')
       )
       // never update the address
       toMerge.address = wallet.address
