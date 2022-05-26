@@ -1,10 +1,11 @@
 /** Transform a database string into a JS bigint and vice versa. */
 export const bigint_transformer = {
-  from: (value: string): bigint => {
+  from: (value?: string): bigint | undefined => {
+    if (!value) return undefined;
     return BigInt(value);
   },
-  to: (value: bigint): string => {
-    return value.toString();
+  to: (value?: bigint): string | undefined => {
+    return value?.toString();
   }
 }
 
