@@ -148,7 +148,7 @@ const DisplayWalletDetails: FC<Props> = ({
       return;
     }
     if (wallet) {
-      setWallet(wallet ? {...wallet, roles: wallet.roles?.split(',').filter(r=>r!==input.role).join(',') } : null);
+      setWallet(wallet ? {...wallet, roles: (wallet.roles?.split(',') ?? []).filter(r=>!!r&&r!==input.role).join(',') } : null);
       setError("");
     }
     if (onSuccess) onSuccess();
