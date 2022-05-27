@@ -44,8 +44,8 @@ describe('fabric-registry', () => {
             cert.type.should.be.eq('Vault-X.509');
         });
 
-        it('enroll throws if wrong secret passed', () => {
-            return fabricRegistry
+        it('enroll throws if wrong secret passed', async () => {
+            await fabricRegistry
                 .enroll(
                     {
                         userId: 'admin',
@@ -127,8 +127,8 @@ describe('fabric-registry', () => {
             cert.type.should.be.eq('WS-X.509');
         });
 
-        it('enroll throws if wrong secret passed', () => {
-            return fabricRegistry
+        it('enroll throws if wrong secret passed', async () => {
+            await fabricRegistry
                 .enroll(
                     {
                         userId: 'admin',
