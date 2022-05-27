@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
+import { addresses } from "@blockchain-carbon-accounting/contracts";
 import { BigNumber } from "@ethersproject/bignumber";
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
-import { addresses } from "@project/contracts";
-import { FC, ChangeEventHandler, useCallback, useEffect, useState } from "react";
+import { ChangeEventHandler, FC, useCallback, useEffect, useState } from "react";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
@@ -11,26 +11,26 @@ import FormControl from "react-bootstrap/FormControl";
 import InputGroup from "react-bootstrap/InputGroup";
 import Row from "react-bootstrap/Row";
 import Spinner from "react-bootstrap/Spinner";
-import {
-  castVote,
-  daoTokenBalanceOf,
-  daoTokenTotalSupply,
-  delegates,
-  getActions,
-  getBlockNumber,
-  getDescription,
-  getProposalCount,
-  getProposalDetails,
-  getProposalState,
-  getProposalThreshold,
-  getQuorum,
-  getReceipt,
-  refund
-} from "../services/contract-functions";
 import DelegateDaoTokensModal from "../components/delegate-dao-tokens-modal";
 import ProposalCallDetailsModal from "../components/proposal-call-details-modal";
 import QueueExecuteProposalModal from "../components/queue-execute-proposal-modal";
 import { Proposal, RolesInfo } from "../components/static-data";
+import {
+    castVote,
+    daoTokenBalanceOf,
+    daoTokenTotalSupply,
+    delegates,
+    getActions,
+    getBlockNumber,
+    getDescription,
+    getProposalCount,
+    getProposalDetails,
+    getProposalState,
+    getProposalThreshold,
+    getQuorum,
+    getReceipt,
+    refund
+} from "../services/contract-functions";
 
 function addCommas(value: string|number){
   let str = value+'';
@@ -49,8 +49,8 @@ const networkNameLowercase = (addresses.network.split(" "))[0].toLowerCase(); //
 const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.dao.governor.address}/transactions`;
 
 type GovernanceDashboardProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo
 }
 

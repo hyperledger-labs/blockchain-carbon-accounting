@@ -1,5 +1,5 @@
+import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
 import { LatLngLiteral } from "@googlemaps/google-maps-services-js";
-import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
 import { UpsResponse } from './ups-types';
 
 export type ValueAndUnit = {

@@ -1,41 +1,27 @@
+import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+import BCGatewayConfig from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/config";
+import {
+    IEthNetEmissionsTokenIssueInput,
+    IEthTxCaller
+} from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/I-gateway";
+import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
+import Signer from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/signer";
+import { setup } from "@blockchain-carbon-accounting/emissions_data/src/utils/logger";
+import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
 import { BigNumber } from "bignumber.js";
-import BCGatewayConfig from "emissions_data/src/blockchain-gateway/config";
+import { readFileSync } from "fs";
+import { extname } from "path";
 import {
-  IEthNetEmissionsTokenIssueInput,
-  IEthTxCaller,
-} from "emissions_data/src/blockchain-gateway/I-gateway";
-import EthNetEmissionsTokenGateway from "emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
-import Signer from "emissions_data/src/blockchain-gateway/signer";
-import { setup } from "emissions_data/src/utils/logger";
-import { PostgresDBService } from "blockchain-carbon-accounting-data-postgres/src/postgresDbService";
-import {
-  Activity,
-  ActivityResult,
-  Distance,
-  Emissions,
-  FlightActivity,
-  is_shipment_activity,
-  is_flight_activity,
-  MetadataType,
-  ProcessedActivity,
-  ShipmentActivity,
-  ValueAndUnit,
-  is_emissions_factor_activity,
-  EmissionsFactorActivity,
-  ShippingMode,
-  is_natural_gas_activity,
-  NaturalGasActivity,
-  is_electricity_activity,
-  ElectricityActivity,
+    Activity,
+    ActivityResult,
+    Distance, ElectricityActivity, Emissions, EmissionsFactorActivity, FlightActivity, is_electricity_activity, is_emissions_factor_activity, is_flight_activity, is_natural_gas_activity, is_shipment_activity, MetadataType, NaturalGasActivity, ProcessedActivity,
+    ShipmentActivity, ShippingMode, ValueAndUnit
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileRSAEncrypted, uploadFileWalletEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
-import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
-import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import { readFileSync } from "fs";
-import { extname } from "path";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -51,7 +37,7 @@ export function emissions_in_kg_to_tokens(emissions: number) {
 export function weight_in_uom(weight: number, uom: string, to_uom: string) {
   const w1 = weight_in_kg(weight, uom)
   const w2 = weight_in_kg(1, to_uom)
-  //eg: 1 g is 0.001 kg 
+  //eg: 1 g is 0.001 kg
   //eg: 1 tonne is 1000 kg
   //eg: so 1g is 1*0.001/1000 tonne
   return w1 / w2;
@@ -329,7 +315,7 @@ async function gateway_issue_token(
   try {
     return await gateway.issue(caller, input);
   } catch (error) {
-    if (error instanceof Error) throw new Error(error.message) 
+    if (error instanceof Error) throw new Error(error.message)
     else throw new Error(String(error));
   }
 }
@@ -379,7 +365,7 @@ export async function process_flight(
 }
 
 export async function process_natural_gas(
-  a: NaturalGasActivity 
+  a: NaturalGasActivity
 ): Promise<ActivityResult> {
   return process_emissions_factor({
     ...a,
@@ -392,7 +378,7 @@ export async function process_natural_gas(
 }
 
 export async function process_electricity(
-  a: ElectricityActivity 
+  a: ElectricityActivity
 ): Promise<ActivityResult> {
   const from_year = a.from_date?.getFullYear()?.toString()
   const thru_year = a.thru_date?.getFullYear()?.toString()

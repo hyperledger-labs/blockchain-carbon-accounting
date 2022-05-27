@@ -1,0 +1,51 @@
+{
+  "name": "@blockchain-carbon-accounting/monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "clean:nodemodules": "find . -type d -name \"node_modules\" -exec rm -fr {} +",
+    "lint": "npm run lint --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "pg:init": "npm run init --workspace=@blockchain-carbon-accounting/data-postgres",
+    "pg:dataLoader": "npm run dataLoader --workspace=@blockchain-carbon-accounting/data-postgres",
+    "pg:getData": "npm run getData --workspace=@blockchain-carbon-accounting/data-postgres",
+    "supply-chain:api": "npm run dev --workspace=@blockchain-carbon-accounting/supply-chain-api",
+    "supply-chain:cli": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli",
+    "supply-chain:cli:processrequests": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- -processrequests",
+    "net-emissions-token-network:api": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
+    "net-emissions-token-network:react": "npm run dev --workspace=@blockchain-carbon-accounting/react-app",
+    "net-emissions-token-network:dev": "npm run dev --parallel --workspace=@blockchain-carbon-accounting/api-server --workspace=@blockchain-carbon-accounting/react-app --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
+    "net-emissions-token-network:dev-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token*"
+ 
+  },
+  "workspaces": {
+    "packages": [
+      "emissions-data/typescript_app",
+      "emissions-data/chaincode/emissionscontract/typescript",
+      "data/common",
+      "data/postgres",
+      "supply-chain/lib",
+      "supply-chain/api",
+      "supply-chain/cli",
+      "net-emissions-token-network",
+      "net-emissions-token-network/api-server",
+      "net-emissions-token-network/interface/packages/*"
+    ]
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
+    "nodemon": "^2.0.16",
+    "ts-node": "^10.8.0",
+    "typescript": "^4.7.2"
+  },
+  "overrides": {
+    "@blockchain-carbon-accounting/react-app": {
+      "react": "18.1.0",
+      "react-dom": "18.1.0"
+    }
+  }
+}

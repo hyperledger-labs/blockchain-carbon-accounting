@@ -1,6 +1,7 @@
 {
-  "name": "supply-chain-api",
+  "name": "@blockchain-carbon-accounting/supply-chain-api",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "main": "server.ts",
   "scripts": {
@@ -24,7 +25,7 @@
     "@types/cors": "^2.8.12"
   },
   "dependencies": {
-    "supply-chain-lib": "1.0.0",
+    "@blockchain-carbon-accounting/supply-chain-lib": "*",
     "cors": "^2.8.5",
     "axios": "^0.27.2",
     "dotenv": "^16.0.1",

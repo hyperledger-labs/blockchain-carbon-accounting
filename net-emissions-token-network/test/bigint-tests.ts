@@ -1,19 +1,13 @@
+import { runSync } from '@blockchain-carbon-accounting/api-server/controller/synchronizer';
+import type { OPTS_TYPE } from '@blockchain-carbon-accounting/api-server/server';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import { expect } from 'chai';
-import request from 'supertest';
-import { run, network, getNamedAccounts, deployments, ethers } from "hardhat";
-import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
 import { Contract } from 'ethers';
-import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
-import type { OPTS_TYPE } from 'api-server/server';
-import { runSync } from 'api-server/controller/synchronizer';
+import { deployments, ethers, getNamedAccounts, network, run } from "hardhat";
+import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
+import request from 'supertest';
 import {
-  fromDate,
-  thruDate,
-  metadata,
-  manifest,
-  description,
-  // eslint-disable-next-line
-  // @ts-ignore
+    description, fromDate, manifest, metadata, thruDate
 } from "./common";
 
 const OPTS: OPTS_TYPE = {

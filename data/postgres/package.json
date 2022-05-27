@@ -1,6 +1,7 @@
 {
-  "name": "blockchain-carbon-accounting-data-postgres",
+  "name": "@blockchain-carbon-accounting/data-postgres",
   "version": "1.0.0",
+  "private": true,
   "description": "Postgres database store for the blockchain-carbon-accounting project",
   "main": "src/dataLoader.ts",
   "engines": {
@@ -18,9 +19,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "blockchain-carbon-accounting-data-common": "file:../common",
+    "@blockchain-carbon-accounting/emissions_data_chaincode": "*",
+    "@blockchain-carbon-accounting/data-common": "*",
     "cli-progress": "^3.11.1",
-    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^10.8.0",

@@ -1,9 +1,8 @@
+import { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor';
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column
+  Column, Entity,
+  PrimaryGeneratedColumn
 } from 'typeorm';
-import { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor'
 
 @Entity()
 export class EmissionsFactor implements EmissionsFactorInterface {

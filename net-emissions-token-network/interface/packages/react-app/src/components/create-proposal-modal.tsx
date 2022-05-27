@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { addresses } from "@project/contracts";
+import { addresses } from "@blockchain-carbon-accounting/contracts";
+import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -15,7 +15,7 @@ type CreateProposalModalProps = {
   token:number
   calldata:string
   description:string
-  onHide:()=>void 
+  onHide:()=>void
 }
 
 const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {

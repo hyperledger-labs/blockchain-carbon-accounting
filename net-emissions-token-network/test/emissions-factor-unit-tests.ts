@@ -1,10 +1,10 @@
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor';
+import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/utilityLookupItem";
+import { Activity } from '@blockchain-carbon-accounting/supply-chain-lib/src/common-types';
+import { process_activity } from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
 import { expect } from 'chai';
 import { v4 as uuidv4 } from 'uuid';
-import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
-import type { EmissionsFactorInterface } from 'emissions_data_chaincode/src/lib/emissionsFactor';
-import type { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem";
-import { process_activity } from 'supply-chain-lib/src/emissions-utils';
-import { Activity } from 'supply-chain-lib/src/common-types';
 
 async function addTestEmissionsFactor(efl: EmissionsFactorInterface) {
   const db = await PostgresDBService.getInstance();

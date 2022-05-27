@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+import { abis, addresses } from "@blockchain-carbon-accounting/contracts";
 import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
-import { Wallet } from "@ethersproject/wallet"
-import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { abis, addresses } from "@project/contracts";
+import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
+import { Wallet } from "@ethersproject/wallet";
 import { RolesInfo } from "../components/static-data";
 
 
@@ -122,7 +122,7 @@ export async function getIssuedBy(w3provider: Web3Provider | JsonRpcProvider, to
   try {
     issuer = await contract.getIssuedBy(tokenId);
   } catch (error) {
-    issuer = getErrorMessage(error) 
+    issuer = getErrorMessage(error)
     console.error('getIssuedBy', error);
   }
   return issuer;
@@ -134,7 +134,7 @@ export async function getTokenDetails(w3provider: Web3Provider | JsonRpcProvider
   try {
     details = await contract.getTokenDetails(tokenId);
   } catch (error) {
-    details = getErrorMessage(error) 
+    details = getErrorMessage(error)
     console.error('getTokenDetails', error);
   }
   return details;
@@ -146,7 +146,7 @@ export async function getNumOfUniqueTokens(w3provider: Web3Provider | JsonRpcPro
   try {
     uniqueTokens = await contract.getNumOfUniqueTokens();
   } catch (error) {
-    uniqueTokens = getErrorMessage(error) 
+    uniqueTokens = getErrorMessage(error)
     console.error('getNumOfUniqueTokens', error);
   }
   return uniqueTokens;
@@ -158,7 +158,7 @@ export async function getAvailableRetiredAndTransferred(w3provider: Web3Provider
   try {
     balances = await contract.getAvailableRetiredAndTransferred(address, tokenId);
   } catch (error) {
-    balances = getErrorMessage(error) 
+    balances = getErrorMessage(error)
     console.error('getAvailableAndRetired', error);
   }
   return balances;
@@ -170,7 +170,7 @@ export async function getTokenType(w3provider: Web3Provider | JsonRpcProvider, t
   try {
     tokenType = await contract.getTokenType(tokenId);
   } catch (error) {
-    tokenType = getErrorMessage(error) 
+    tokenType = getErrorMessage(error)
     console.error('getTokenType', error);
   }
   return tokenType;
@@ -182,8 +182,8 @@ export async function getLimitedMode(w3provider: Web3Provider | JsonRpcProvider)
   try {
     limitedMode = await contract.limitedMode();
   } catch (error) {
-    // limitedMode = getErrorMessage(error) 
-    limitedMode = true 
+    // limitedMode = getErrorMessage(error)
+    limitedMode = true
     console.error('getLimitedMode', error);
   }
   return limitedMode;
@@ -195,7 +195,7 @@ export async function getAdmin(w3provider: Web3Provider | JsonRpcProvider) {
   try {
     admin = await contract.admin();
   } catch (error) {
-    admin = getErrorMessage(error) 
+    admin = getErrorMessage(error)
     console.error('getAdmin', error);
   }
   return admin;
@@ -401,7 +401,7 @@ export async function daoTokenBalanceOf(w3provider: Web3Provider | JsonRpcProvid
     let decimals = BigNumber.from("1000000000000000000");
     balance = fetchedBalance.div(decimals).toNumber();
   } catch (error) {
-    balance = getErrorMessage(error) 
+    balance = getErrorMessage(error)
   }
   return balance;
 }
@@ -426,7 +426,7 @@ export async function delegates(w3provider: Web3Provider | JsonRpcProvider, addr
   try {
     delegates = await contract.delegates(address);
   } catch (error) {
-    delegates = getErrorMessage(error) 
+    delegates = getErrorMessage(error)
   }
   return delegates;
 }
@@ -454,7 +454,7 @@ export async function getProposalDetails(w3provider: Web3Provider | JsonRpcProvi
   try {
     proposals = await contract.proposals(proposalId);
   } catch (error) {
-    proposals = getErrorMessage(error) 
+    proposals = getErrorMessage(error)
   }
   return proposals;
 }
@@ -465,7 +465,7 @@ export async function getProposalState(w3provider: Web3Provider | JsonRpcProvide
   try {
     state = await contract.state(proposalId);
   } catch (error) {
-    state = getErrorMessage(error) 
+    state = getErrorMessage(error)
   }
   return PROPOSAL_STATES[state];
 }
@@ -658,7 +658,7 @@ export async function getNumOfUniqueTrackers(w3provider: Web3Provider | JsonRpcP
   try {
     uniqueTrackers = await contract.getNumOfUniqueTrackers();
   } catch (error) {
-    uniqueTrackers = getErrorMessage(error) 
+    uniqueTrackers = getErrorMessage(error)
   }
   return uniqueTrackers;
 }
@@ -668,7 +668,7 @@ export async function getTrackerDetails(w3provider: Web3Provider | JsonRpcProvid
   try {
     details = await contract.getTrackerDetails(trackerId);
   } catch (error) {
-    details = getErrorMessage(error) 
+    details = getErrorMessage(error)
   }
   return details;
 }
@@ -678,7 +678,7 @@ export async function getTrackerIds(w3provider: Web3Provider | JsonRpcProvider, 
   try {
     trackerIds = await contract.getTrackerIds(trackerId);
   } catch (error) {
-    trackerIds = getErrorMessage(error) 
+    trackerIds = getErrorMessage(error)
   }
   return trackerIds;
 }
@@ -688,7 +688,7 @@ export async function getCarbonIntensity(w3provider: Web3Provider | JsonRpcProvi
   try {
     ci = await contract.carbonIntensity(trackerId,tokenTypeId);
   } catch (error) {
-    ci = getErrorMessage(error) 
+    ci = getErrorMessage(error)
   }
   return ci;
 }

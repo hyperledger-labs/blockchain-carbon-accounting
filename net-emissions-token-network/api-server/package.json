@@ -1,13 +1,13 @@
 {
-  "name": "api-server",
+  "name": "@blockchain-carbon-accounting/api-server",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.ts",
     "dev": "nodemon server.ts",
-    "build": "tsc",
-    "postinstall": "npm --prefix ../../data install && npm --prefix ../../supply-chain install"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -15,7 +15,8 @@
   "dependencies": {
     "@trpc/server": "^9.23.6",
     "@types/morgan": "^1.9.3",
-    "blockchain-accounting-data-postgres": "file:../../data/postgres",
+    "@blockchain-carbon-accounting/data-postgres": "*",
+    "@blockchain-carbon-accounting/supply-chain-lib": "*",
     "chalk": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
@@ -29,7 +30,6 @@
     "nodemailer": "^6.7.5",
     "pg": "^8.7.3",
     "rate-limiter-flexible": "^2.3.7",
-    "supply-chain-lib": "file:../../supply-chain/lib",
     "useragent": "^2.3.0",
     "web3": "^1.7.3",
     "zod": "^3.17.3"

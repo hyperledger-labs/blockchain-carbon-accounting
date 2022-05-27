@@ -1,6 +1,6 @@
-import { Response, Request } from 'express';
-import { BalancePayload, QueryBundle } from 'blockchain-accounting-data-postgres/src/repositories/common'
-import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+import { BalancePayload, QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { Request, Response } from 'express';
 
 export async function getBalances(req: Request, res: Response) {
     try {

@@ -1,11 +1,11 @@
-import * as trpc from '@trpc/server'
+import { Wallet } from '@blockchain-carbon-accounting/data-postgres/src/models/wallet';
+import * as trpc from '@trpc/server';
 import { ethers } from 'ethers';
-import { z } from 'zod'
+import { z } from 'zod';
 import { checkSignedMessage, getRoles } from '../controller/synchronizer';
-import { DomainError, DomainInputError, handleError, TrpcContext } from './common';
-import { Wallet } from 'blockchain-accounting-data-postgres/src/models/wallet';
 import { changePassword, markPkExported, signinWallet, signupWallet } from '../controller/wallet.controller';
 import { signinLimiter, signupAndResetLimiter } from '../utils/rateLimiter';
+import { DomainError, DomainInputError, handleError, TrpcContext } from './common';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -30,7 +30,7 @@ export const walletRouter = trpc
     async resolve({ input, ctx }) {
         try {
             return {
-                count: await ctx.db.getWalletRepo().countWallets(input.bundles) 
+                count: await ctx.db.getWalletRepo().countWallets(input.bundles)
             }
         } catch (error) {
             handleError('count', error)
@@ -48,7 +48,7 @@ export const walletRouter = trpc
             const wallets: Wallet[] = await ctx.db.getWalletRepo().selectPaginated(input.offset, input.limit, input.bundles);
             const count = await ctx.db.getWalletRepo().countWallets(input.bundles);
             return {
-                count, 
+                count,
                 wallets
             }
         } catch (error) {
@@ -258,5 +258,5 @@ export const walletRouter = trpc
 })
 
 // export type definition of API
-export type WalletRouter = typeof walletRouter 
+export type WalletRouter = typeof walletRouter
 

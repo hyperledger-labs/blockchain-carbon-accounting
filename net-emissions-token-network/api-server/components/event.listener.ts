@@ -1,10 +1,10 @@
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+import EventEmitter from 'node:events';
 import { EventData } from 'web3-eth-contract';
-import { CreatedToken } from "../models/commonTypes";
-import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
 import { getCreatedToken, getLastSync, handleTransferEvent, runSync, saveLastSync, syncWalletRoles } from "../controller/synchronizer";
+import { CreatedToken } from "../models/commonTypes";
 import { OPTS_TYPE } from "../server";
 import { getContract, getCurrentBlock } from "../utils/web3";
-import EventEmitter from 'node:events';
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message

@@ -1,10 +1,10 @@
 import yargs = require('yargs')
-import { hideBin } from "yargs/helpers"
-import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
-import { ActivityInterface } from "blockchain-carbon-accounting-data-common/utils"
-import { PostgresDBService } from "./postgresDbService"
-import type { DbOpts } from "./config"
+import { ActivityInterface } from "@blockchain-carbon-accounting/data-common/utils";
+import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
+import { hideBin } from "yargs/helpers";
+import type { DbOpts } from "./config";
+import { addCommonYargsOptions, parseCommonYargsOptions } from "./config";
+import { PostgresDBService } from "./postgresDbService";
 
 (async () => {
 
@@ -194,7 +194,7 @@ import type { DbOpts } from "./config"
             tonnesShipped: args.uom?.startsWith('tonne') ? 1 : undefined,
             passengers: args.uom?.startsWith('passenger') ? 1 : undefined,
           })
- 
+
         console.log(res)
       } catch (e) {
         console.log('Error', e)

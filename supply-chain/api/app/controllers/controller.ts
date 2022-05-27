@@ -1,14 +1,13 @@
-import { Response, Request } from 'express';
+// import from supply chain
+import {
+    GroupedResult,
+    GroupedResults, group_processed_activities,
+    issue_tokens_with_issuee, process_activities
+} from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
+import { Request, Response } from 'express';
 import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';
 
-// import from supply chain
-import { GroupedResult,
-  GroupedResults,
-  process_activities,
-  group_processed_activities,
-  issue_tokens_with_issuee
-} from 'supply-chain-lib/src/emissions-utils';
 
 type OutputActivity = {
     id: string,
@@ -61,7 +60,7 @@ export function issueToken(req: Request, res: Response) {
     let data: any = undefined;
     for (const group in files) {
         if (Object.prototype.hasOwnProperty.call(files, group)) {
-            const fileGroup: Express.Multer.File[] = files[group]; 
+            const fileGroup: Express.Multer.File[] = files[group];
             fileGroup.forEach(file => {
                 if(file.fieldname == 'keys') {
                     pubKeys.push(file.path);

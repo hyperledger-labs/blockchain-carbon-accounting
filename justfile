@@ -20,7 +20,7 @@ ncu-api-server update='':
 ncu-net-interface update='':
 	@echo "\n** Checking dependencies updates for react dapp in net-emissions-token-network/interface/"
 	@echo "-------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x @project/contracts {{update}}
+	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x @blockchain-carbon-accounting/contracts {{update}}
 
 ncu-supply-chain update='':
 	@echo "\n** Checking dependencies updates for supply-chain"
