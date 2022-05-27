@@ -58,6 +58,7 @@
     "eject": "react-app-rewired eject",
     "ipfs": "npm run build && node scripts/ipfs.js",
     "start": "react-app-rewired start",
+    "dev": "react-app-rewired start",
     "test": "react-app-rewired test"
   },
   "devDependencies": {

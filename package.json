@@ -14,8 +14,8 @@
     "supply-chain:cli:processrequests": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- -processrequests",
     "net-emissions-token-network:api": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
     "net-emissions-token-network:react": "npm run dev --workspace=@blockchain-carbon-accounting/react-app",
-    "net-emissions-token-network:dev": "npm run dev --parallel --workspace=@blockchain-carbon-accounting/api-server --workspace=@blockchain-carbon-accounting/react-app --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
-    "net-emissions-token-network:dev-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token*"
+    "net-emissions-token-network:hardhat": "npm run dev --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
+    "net-emissions-token-network:hardhat-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token-network"
  
   },
   "workspaces": {
