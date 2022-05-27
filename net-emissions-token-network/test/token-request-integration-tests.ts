@@ -39,6 +39,10 @@ const factor_fields = {
   co2_equivalent_emissions_uom: 'kg',
 };
 
+// hardhat instance
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let server: any;
+
 const TEST_WALLET_PRIVATE_KEY = '5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a';
 const TEST_WALLET_ENC_PUB_KEY = 'mgn9uRllOGtnBcc07TbDJlFElnuCPiOhtmWui+kiaDw=';
 
@@ -118,7 +122,7 @@ describe("Emissions and Tokens requests test", function() {
     await setupDBSeed();
 
     // run the JSON RPC server
-    const server = await run(TASK_NODE_CREATE_SERVER, {
+    server = await run(TASK_NODE_CREATE_SERVER, {
       hostname: "localhost",
       port: 8545,
       provider: network.provider,
@@ -264,6 +268,8 @@ describe("Emissions and Tokens requests test", function() {
   after(async function () {
     sinon.restore();
     cleanup();
+    // close hardhat instance
+    await server.close();
     // close DB connection instance
     const db = await PostgresDBService.getInstance();
     db.close();
