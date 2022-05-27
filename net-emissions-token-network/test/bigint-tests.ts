@@ -6,15 +6,6 @@ import { Contract } from 'ethers';
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import type { OPTS_TYPE } from 'api-server/server';
 import { runSync } from 'api-server/controller/synchronizer';
-import {
-  fromDate,
-  thruDate,
-  metadata,
-  manifest,
-  description,
-  // eslint-disable-next-line
-  // @ts-ignore
-} from "./common";
 
 const OPTS: OPTS_TYPE = {
   contract_address: '',
@@ -85,11 +76,11 @@ describe("BigInt tests", function() {
         consumer1,
         3,
         MAX256,
-        fromDate,
-        thruDate,
-        metadata,
-        manifest,
-        description
+        "1607463809",
+        "1607463909",
+        "metaData",
+        "manifest",
+        "description"
       );
     expect(issue);
 
