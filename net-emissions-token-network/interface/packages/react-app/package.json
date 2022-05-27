@@ -33,7 +33,7 @@
     "axios": "^0.27.2",
     "bootstrap": "5.1.3",
     "chalk": "^5.0.1",
-    "framer-motion": "^6.3.3",
+    "framer-motion": "^6.3.4",
     "ipfs-http-client": "^56.0.3",
     "moment": "^2.29.3",
     "react": "18.1.0",
