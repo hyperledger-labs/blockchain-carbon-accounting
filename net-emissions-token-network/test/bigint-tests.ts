@@ -118,7 +118,7 @@ describe("BigInt tests", function() {
   it("should get the correct amounts from the /tokens API", async function() {
     // check we get the correct types through the API server
     console.log('Starting server ...');
-    const { default: server } = await import('api-server/server');
+    const { default: server } = await import('@blockchain-carbon-accounting/api-server/server');
     // try to call the /ip API
     await request(server)
       .get('/ip')
@@ -142,7 +142,7 @@ describe("BigInt tests", function() {
   it("should get the correct amounts from the TRPC tokens.lookup API", async function() {
     // check we get the correct types through the API server
     console.log('Starting server ...');
-    const { default: server } = await import('api-server/server');
+    const { default: server } = await import('@blockchain-carbon-accounting/api-server/server');
     // try to call the /ip API
     const ip_req = request(server).get('/ip');
     const res = await ip_req;

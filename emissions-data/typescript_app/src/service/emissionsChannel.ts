@@ -30,7 +30,7 @@ interface EmissionsChannelServiceOptions {
 
 interface IRecordAuditedEmissionsTokenResponse {
     tokenId: string;
-    quantity: number;
+    quantity: bigint;
     fromDate: number;
     thruDate: number;
     metadata: string;
@@ -41,7 +41,7 @@ interface IRecordAuditedEmissionsTokenResponse {
 interface TokenMetadata {
     metadata: IEmissionsDataEmissionMetadata;
     manifest: string;
-    quantity: number;
+    quantity: bigint;
     fromDate: number;
     thruDate: number;
 }
@@ -422,7 +422,7 @@ export default class EmissionsChannelService {
             fromDates: [],
             thruDates: [],
         };
-        let quantity = 0;
+        let quantity = 0n;
         const manifestIds = []; // stores uuids
         let fromDate = Number.MAX_SAFE_INTEGER;
         let thruDate = 0;
@@ -463,7 +463,7 @@ export default class EmissionsChannelService {
             metadata.nonrenewableEnergyUseAmount += record.nonrenewableEnergyUseAmount;
 
             const qnt: number = +record.emissionsAmount.toFixed(3);
-            quantity += qnt * 1000;
+            quantity += BigInt(qnt * 1000);
             manifestIds.push(record.uuid);
         }
         return {

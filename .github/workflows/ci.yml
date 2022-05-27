@@ -9,10 +9,11 @@ jobs:
   lint: # Run lint script for all workspaces
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
+          cache: 'npm'
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -23,10 +24,11 @@ jobs:
   build: # Run build script for all workspaces
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
+          cache: 'npm'
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -40,8 +42,8 @@ jobs:
       run:
         working-directory: ./emissions-data/chaincode/datalock
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
         with:
           go-version: "1.18"
       - name: Run chaincode tests
@@ -65,10 +67,11 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
+          cache: 'npm'
       - name: Install dependencies
         run: |
           npm i -g npm@latest
@@ -90,10 +93,11 @@ jobs:
       run:
         working-directory: ./emissions-data
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
+          cache: 'npm'
       - name: Download Fabric binaries
         run: |
           sudo chmod +x /usr/local/bin/docker-compose
@@ -123,7 +127,7 @@ jobs:
           while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: test-results

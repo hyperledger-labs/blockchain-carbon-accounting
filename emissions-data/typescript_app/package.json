@@ -18,7 +18,7 @@
     "test:setup": "ts-node tests/setup.ts && sh tests/setup-s3.sh",
     "coverage": "nyc --reporter=html --reporter=text npm run test",
     "localS3": "serverless s3 start --address 0.0.0.0",
-    "prod": "yarn build && yarn start",
+    "prod": "npm run build && npm run start",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' 'tests/**/*.ts' --fix"
   },
