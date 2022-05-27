@@ -6,9 +6,6 @@ import { Contract } from 'ethers';
 import { deployments, ethers, getNamedAccounts, network, run } from "hardhat";
 import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
 import request from 'supertest';
-import {
-    description, fromDate, manifest, metadata, thruDate
-} from "./common";
 
 const OPTS: OPTS_TYPE = {
   contract_address: '',
@@ -56,7 +53,6 @@ describe("BigInt tests", function() {
     contract = (await ethers.getContract('NetEmissionsTokenNetwork')) as Contract;
     // set the contract address
     OPTS.contract_address = contract.address;
-    // OPTS.contract = contract;
   });
 
   it("should sync the correct amounts in DB", async function() {
@@ -79,11 +75,11 @@ describe("BigInt tests", function() {
         consumer1,
         3,
         MAX256,
-        fromDate,
-        thruDate,
-        metadata,
-        manifest,
-        description
+        "1607463809",
+        "1607463909",
+        "metaData",
+        "manifest",
+        "description"
       );
     expect(issue);
 
