@@ -9,6 +9,7 @@ import { balanceRouter } from './balance.trpc'
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
+import { tokenRouter } from './token.trpc';
 
 
 // created for each request, here set the DB connector
@@ -61,6 +62,7 @@ const createRouter = () => {
 
 const appRouter = createRouter()
   .merge('balance.', balanceRouter)
+  .merge('token.', tokenRouter)
   .merge('wallet.', walletRouter)
   .merge('emissionsFactors.', emissionsFactorsRouter)
   .merge('emissionsRequests.', emissionsRequestsRouter)
