@@ -23,10 +23,10 @@ import {
 } from "../services/contract-functions";
 import TokenInfoModal from "../components/token-info-modal";
 import TrackerInfoModal from "../components/tracker-info-modal";
-import { getBalances, getTokens, countAuditorEmissionsRequests } from '../services/api.service';
+import { getTokens, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
-import { Balance, RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
+import { RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import IssuedTypeSwitch from '../components/issue-type-switch';
 import DisplayTokenAmount from "../components/display-token-amount";
@@ -50,11 +50,10 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [modalTrackerShow, setModaltrackerShow] = useState(false);
-  const [selectedToken, setSelectedToken] = useState({});
+  const [selectedToken, setSelectedToken] = useState<Token | undefined>();
   const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
-  const [myBalances, setMyBalances] = useState<Balance[]>([]);
   const [myIssuedTokens, setMyIssuedTokens] = useState<Token[]>([]);
   const [myIssuedTrackers, setMyIssuedTrackers] = useState<Tracker[]>([]);
 
@@ -75,10 +74,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   const [ count, setCount ] = useState(0);
   const [ pageSize, setPageSize ] = useState(20);
   const [ query, setQuery ] = useState<string[]>([]);
-
-  const [ balancePage, setBalancePage ] = useState(1);
-  const [ balancePageSize, setBalancePageSize ] = useState(20);
-  const [ balanceQuery, setBalanceQuery ] = useState<string[]>([]);
 
   const [showQueryBuilder, setShowQueryBuilder] = useState(false);
 
@@ -126,10 +121,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     // clear localStorage
     let localStorage = window.localStorage;
     localStorage.setItem('token_balances', '');
-
-    setFetchingTokens(true);
     await fetchTokens(page, pageSize, query);
-    await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
   async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
@@ -147,44 +139,11 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     if(provider) fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
-  const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
-
-    try {
-      // get total count of balance
-      const query = `issuedTo,string,${signedInAddress},eq`;
-      const offset = (_balancePage - 1) * _balancePageSize;
-
-      // this count means total number of balances
-      let {balances} = await getBalances(offset, _balancePageSize, [..._balanceQuery, query]);
-
-
-      const newMyBalances = balances.map((balance) => {
-        return {
-          ...balance,
-          tokenId: balance.token.tokenId,
-          token: balance.token,
-          tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
-          issuedTo: balance.issuedTo,
-          availableBalance: balance.available,
-          retiredBalance: balance.retired,
-          transferredBalance: balance.transferred
-        }
-      });
-      setMyBalances(newMyBalances);
-    } catch (error) {
-      console.error(error)
-      setMyBalances([]);
-    }
-
-    setBalancePage(_balancePage);
-    setBalancePageSize(_balancePageSize);
-    setBalanceQuery(_balanceQuery);
-    setFetchingTokens(false);
-  }, [signedInAddress]);
-
   const fetchTokens = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
 
-    let newMyIssuedTokens = [];
+    setFetchingTokens(true);
+
+    let newMyIssuedTokens: Token[] = [];
     let newMyIssuedTrackers = [];
     let _issuedCount = 0;
     try {
@@ -203,27 +162,13 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
         let tokenDetails = tokens[i-1];
         if (!tokenDetails) continue;
 
-        let token: Token = {
-          tokenId: tokenDetails.tokenId,
-          scope: tokenDetails.scope,
-          type: tokenDetails.type,
-          tokenTypeId: tokenDetails.tokenTypeId,
+        const token: Token = {
+          ...tokenDetails,
           tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
-          issuedFrom: tokenDetails.issuedFrom,
-          issuedBy: tokenDetails.issuedBy,
-          issuedTo: tokenDetails.issuedTo,
-          dateCreated: tokenDetails.dateCreated,
-          fromDate: tokenDetails.fromDate,
-          thruDate: tokenDetails.thruDate,
-          metadata: tokenDetails.metadata,
-          manifest: tokenDetails.manifest,
-          description: tokenDetails.description,
-          totalIssued: tokenDetails.totalIssued,
-          totalRetired: tokenDetails.totalRetired,
+          isMyIssuedToken: true
         };
 
         newMyIssuedTokens.push(token);
-        token.isMyIssuedToken = true;
       }
 
     } catch (error) {
@@ -325,8 +270,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       setError("Could not connect to carbon tracker contract on the selected network. Check your wallet provider settings.");
     }
 
-    // setMyBalances(newMyBalances);
-    setMyIssuedTokens(newMyIssuedTokens);    
+    setMyIssuedTokens(newMyIssuedTokens);
     setFetchingTokens(false);
     setMyIssuedTrackers(newMyIssuedTrackers);
     setFetchingTrackers(false);
@@ -340,18 +284,18 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      if (provider && signedInAddress) {
-        if (myBalances !== [] && !fetchingTokens) {
-          setFetchingTokens(true);
-          setFetchingTrackers(true);
-          await fetchTokens(page, pageSize, query);
-          await fetchBalances(balancePage, balancePageSize, balanceQuery);
-        }
-        let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
-        setEmissionsRequestsCount(_emissionsRequestsCount);
-    } }
-    init();
-  }, [provider, signedInAddress]);
+      setFetchingTrackers(true);
+      await fetchTokens(1, 20, []);
+      let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
+      setEmissionsRequestsCount(_emissionsRequestsCount);
+    }
+    if (signedInAddress) {
+      init();
+    } else {
+      // pending for signedInAddress. display the spinner ...
+      setFetchingTokens(true);
+    }
+  }, [signedInAddress, fetchTokens]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -359,14 +303,14 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
   return (
     <>
-      <TokenInfoModal
+      {selectedToken && <TokenInfoModal
         show={modalShow}
         token={selectedToken}
         onHide={() => {
           setModalShow(false);
-          setSelectedToken({});
+          setSelectedToken(undefined);
         }}
-      />
+      />}
       <TrackerInfoModal
         show={modalTrackerShow}
         tracker={selectedTracker}
