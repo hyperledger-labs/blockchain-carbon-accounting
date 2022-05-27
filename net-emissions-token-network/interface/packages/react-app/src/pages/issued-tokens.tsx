@@ -54,7 +54,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
-  const [myBalances, setMyBalances] = useState<Balance[]>([]);
+  const [, setMyBalances] = useState<Balance[]>([]);
   const [myIssuedTokens, setMyIssuedTokens] = useState<Token[]>([]);
   const [myIssuedTrackers, setMyIssuedTrackers] = useState<Tracker[]>([]);
 
