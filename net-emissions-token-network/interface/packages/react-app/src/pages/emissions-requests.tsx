@@ -31,23 +31,6 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
   const [error, setError] = useState("");
   const [, setLocation] = useLocation();
 
-  useEffect(() => {
-    const init = async () => {
-      if (provider && signedInAddress) {
-        await fetchEmissionsRequests(signedInAddress);
-      }
-    }
-    init();
-  }, [provider, signedInAddress]);
-
-  function pointerHover(e: MouseEvent<HTMLElement>) {
-    e.currentTarget.style.cursor = "pointer";
-  };
-
-  function handleOpenPendingEmissions(emissions: EmissionsRequest) {
-    setLocation('/pendingemissions/' + emissions.uuid);
-  };
-
   const fetchEmissionsRequests = useCallback(async (auditorAddress: string) => {
     try {
       let newEmissionsRequests = await getAuditorEmissionsRequests(auditorAddress);
@@ -57,7 +40,24 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
       console.log(error);
       setError("Could not get emissions requests.");
     }
-  }, [provider, signedInAddress]);
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      if (provider && signedInAddress) {
+        await fetchEmissionsRequests(signedInAddress);
+      }
+    }
+    init();
+  }, [fetchEmissionsRequests, provider, signedInAddress]);
+
+  function pointerHover(e: MouseEvent<HTMLElement>) {
+    e.currentTarget.style.cursor = "pointer";
+  }
+
+  function handleOpenPendingEmissions(emissions: EmissionsRequest) {
+    setLocation('/pendingemissions/' + emissions.uuid);
+  }
 
 
   return (

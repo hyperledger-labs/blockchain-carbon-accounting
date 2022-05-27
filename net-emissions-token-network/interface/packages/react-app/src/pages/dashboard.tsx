@@ -80,7 +80,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   }));
 
   function switchQueryBuilder() {
-     setShowQueryBuilder(!showQueryBuilder);
+    setShowQueryBuilder(!showQueryBuilder);
   }
 
   async function handleRefresh() {
@@ -160,13 +160,14 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           if (bl && tokenid) {
             const tid = Number(tokenid);
             let ptoken = null;
-            for (let i=0; i<bl.length; i++) {
-              if (bl[i].token.tokenId == tid) {
-                ptoken = bl[i].token;
+            for (const b of bl) {
+              if (b.token.tokenId === tid) {
+                ptoken = b.token;
+                break;
               }
             }
             if (ptoken) {
-               setSelectedToken({
+              setSelectedToken({
                 ...ptoken,
               });
               setModalShow(true);

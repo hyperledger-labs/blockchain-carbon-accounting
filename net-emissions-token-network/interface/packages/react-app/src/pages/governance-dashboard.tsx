@@ -126,7 +126,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
     if (!provider) return;
     let balance = await daoTokenTotalSupply(provider);
     setDaoTokenSupply(balance);
-  }, [provider, signedInAddress]);
+  }, [provider]);
 
   const fetchDaoTokenBalance = useCallback(async () => {
     if (!provider) return;

@@ -63,26 +63,24 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
       ciphertext: toDecrypt.toString('utf8', 100, toDecrypt.length)
     }
     const encryptedMessage = Buffer.from(JSON.stringify(encryptedData)).toString('hex');
-    const decryptedMessage = await ethereum
-      .request({
+    return ethereum.request({
         method: 'eth_decrypt',
         params: [encryptedMessage, accounts[0]]
       });
-    return decryptedMessage;
   }
   
-  const downloadIpfs = async (manifest: any) => {
-    let decoded = undefined;
-    let url = "";
-    if(typeof manifest === 'string') {
-      try {
-        decoded = JSON.parse(manifest);
-      } catch (err) {
-        console.error('Could not parse JSON from ', manifest);
-      }
-    } else {
-      decoded = manifest
-    }
+  // const downloadIpfs = async (manifest: any) => {
+  //   let decoded = undefined;
+  //   let url = "";
+  //   if(typeof manifest === 'string') {
+  //     try {
+  //       decoded = JSON.parse(manifest);
+  //     } catch (err) {
+  //       console.error('Could not parse JSON from ', manifest);
+  //     }
+  //   } else {
+  //     decoded = manifest
+  //   }
 
     // extract ipfs url
     for(const key in decoded) {
