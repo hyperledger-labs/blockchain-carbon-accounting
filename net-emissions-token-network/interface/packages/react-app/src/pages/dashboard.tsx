@@ -154,32 +154,30 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   useEffect(() => {
     const init = async () => {
       if (provider && signedInAddress) {
-        if (myBalances !== [] && !fetchingTokens) {
-          setFetchingTokens(true);
-          const bl = await fetchBalances(balancePage, balancePageSize, balanceQuery);
-          if (bl && tokenid) {
-            const tid = Number(tokenid);
-            let ptoken = null;
-            for (const b of bl) {
-              if (b.token.tokenId === tid) {
-                ptoken = b.token;
-                break;
-              }
+        setFetchingTokens(true);
+        const bl = await fetchBalances(1, 20, []);
+        if (bl && tokenid) {
+          const tid = Number(tokenid);
+          let ptoken = null;
+          for (const b of bl) {
+            if (b.token.tokenId === tid) {
+              ptoken = b.token;
+              break;
             }
-            if (ptoken) {
-              setSelectedToken({
-                ...ptoken,
-              });
-              setModalShow(true);
-            }
+          }
+          if (ptoken) {
+            setSelectedToken({
+              ...ptoken,
+            });
+            setModalShow(true);
           }
         }
         let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
         setEmissionsRequestsCount(_emissionsRequestsCount);
-
-    } }
+      }
+    }
     init();
-  }, [provider, signedInAddress, tokenid]);
+  }, [fetchBalances, provider, signedInAddress, tokenid]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";

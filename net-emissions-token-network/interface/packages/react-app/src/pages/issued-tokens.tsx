@@ -341,17 +341,16 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   useEffect(() => {
     const init = async () => {
       if (provider && signedInAddress) {
-        if (myBalances !== [] && !fetchingTokens) {
-          setFetchingTokens(true);
-          setFetchingTrackers(true);
-          await fetchTokens(page, pageSize, query);
-          await fetchBalances(balancePage, balancePageSize, balanceQuery);
-        }
+        setFetchingTokens(true);
+        setFetchingTrackers(true);
+        await fetchTokens(1, 20, []);
+        await fetchBalances(1, 20, []);
         let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
         setEmissionsRequestsCount(_emissionsRequestsCount);
-    } }
+      }
+    }
     init();
-  }, [provider, signedInAddress]);
+  }, [fetchBalances, fetchTokens, provider, signedInAddress]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
