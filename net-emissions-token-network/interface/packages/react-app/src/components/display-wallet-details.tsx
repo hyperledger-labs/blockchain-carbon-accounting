@@ -1,5 +1,5 @@
-import { FC, ReactNode, useContext, useEffect, useState } from "react";
-import { Accordion, AccordionContext, Button, Form, OverlayTrigger, Spinner, Tooltip, useAccordionButton } from "react-bootstrap";
+import { FC, ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { Accordion, AccordionContext, Button, Form, OverlayTrigger, Tooltip, useAccordionButton } from "react-bootstrap";
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { trpcClient } from "../services/trpc";
 import { Role, RolesInfo, Wallet } from "./static-data";
@@ -42,16 +42,51 @@ function CustomToggle({
   );
 }
 
+function RolesCodeToLi({
+  wallet,
+  currentRoles,
+  role,
+  unregister,
+}: {
+  wallet: Wallet;
+  currentRoles: RolesInfo;
+  role: Role;
+  unregister: (input: {wallet: Wallet, role: Role}) => Promise<void>;
+}) {
+
+  const unregisterRoleQuery = useMutation(unregister);
+
+  if (!role) return null;
+  return (
+    <li>
+      {role}
+      { (currentRoles.isAdmin || ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) && role === "Consumer")) && (
+        <AsyncButton
+          variant="outline-danger"
+          className="ms-2 my-1"
+          size="sm"
+          loading={unregisterRoleQuery.isLoading}
+          onClick={() => {
+            unregisterRoleQuery.mutate({wallet, role});
+          }}
+        >
+          Unregister
+        </AsyncButton>
+      )}
+    </li>
+  );
+}
+
 function RolesCodesToLi({
+  wallet,
   currentRoles,
   roles,
   unregister,
-  loading,
 }: {
+  wallet: Wallet;
   currentRoles: RolesInfo;
   roles: string | Role[] | undefined;
-  unregister?: (r: Role) => void;
-  loading?: boolean;
+  unregister: (input: {wallet: Wallet, role: Role}) => Promise<void>;
 }) {
   if (!roles) return null;
   const arr: Role[] = Array.isArray(roles)
@@ -59,27 +94,15 @@ function RolesCodesToLi({
     : (roles.split(",") as Role[]);
   return (
     <>
-      {arr.sort().map((r) => (
-        <li key={r}>
-          {r}
-          {unregister &&
-            (currentRoles.isAdmin ||
-              ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) &&
-                r === "Consumer")) && (
-              <AsyncButton
-                variant="outline-danger"
-                className="ms-2 my-1"
-                size="sm"
-                loading={!!loading}
-                onClick={() => {
-                  unregister(r);
-                }}
-              >
-                Unregister
-              </AsyncButton>
-            )}
-        </li>
-      ))}
+      {arr.sort().map(r=>
+        <RolesCodeToLi
+          key={r}
+          wallet={wallet}
+          role={r}
+          currentRoles={currentRoles}
+          unregister={unregister}
+        />
+      )}
     </>
   );
 }
@@ -136,7 +159,7 @@ const DisplayWalletDetails: FC<Props> = ({
     })
   }, [wallet])
 
-  const unregisterRoleQuery = useMutation(async (input: {wallet: Wallet, role: Role}) => {
+  const unregisterRole = useCallback(async (input: {wallet: Wallet, role: Role}) => {
     if (!provider) return;
     const error = await unregisterRoleInContract(
       provider,
@@ -152,7 +175,7 @@ const DisplayWalletDetails: FC<Props> = ({
       setError("");
     }
     if (onSuccess) onSuccess();
-  });
+  }, [provider, unregisterRoleInContract, wallet, setWallet, setError, onSuccess])
 
   async function handleUpdate() {
     setForm({...form, error:'', loading:'true'})
@@ -243,10 +266,8 @@ const DisplayWalletDetails: FC<Props> = ({
                 <RolesCodesToLi
                   currentRoles={roles}
                   roles={wallet.roles}
-                  loading={unregisterRoleQuery.isLoading}
-                  unregister={(role) => {
-                    unregisterRoleQuery.mutate({wallet, role});
-                  }}
+                  wallet={wallet}
+                  unregister={unregisterRole}
                   />
               </ul>
             </li>
@@ -305,10 +326,8 @@ const DisplayWalletDetails: FC<Props> = ({
               <RolesCodesToLi
                 currentRoles={roles}
                 roles={wallet.roles}
-                loading={unregisterRoleQuery.isLoading}
-                unregister={(role) => {
-                  unregisterRoleQuery.mutate({wallet, role});
-                }}
+                wallet={wallet}
+                unregister={unregisterRole}
                 />
             </ul>
           </li>
