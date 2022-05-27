@@ -15,6 +15,10 @@ const OPTS: OPTS_TYPE = {
 
 const MAX256 = 115792089237316195423570985008687907853269984665640564039457584007913129639935n;
 
+// hardhat instance
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let server: any;
+
 describe("BigInt tests", function() {
   before(async function() {
     // create a test connection instance
@@ -30,7 +34,7 @@ describe("BigInt tests", function() {
     await db.getConnection().synchronize(true);
 
     // run the JSON RPC server
-    const server = await run(TASK_NODE_CREATE_SERVER, {
+    server = await run(TASK_NODE_CREATE_SERVER, {
       hostname: "localhost",
       port: 8545,
       provider: network.provider,
@@ -39,6 +43,8 @@ describe("BigInt tests", function() {
   });
 
   after(async function () {
+    // close hardhat instance
+    await server.close();
     // close DB connection instance
     const db = await PostgresDBService.getInstance();
     await db.close();
