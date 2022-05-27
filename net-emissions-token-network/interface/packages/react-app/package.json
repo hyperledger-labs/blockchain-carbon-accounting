@@ -82,6 +82,9 @@
   "overrides": {
     "react": "$react",
     "react-dom": "$react-dom",
+    "postcss-preset-env": {
+      "autoprefixer": "10.4.5"
+    },
     "ethjs-unit": {
       "bn.js": "^4.12.0"
     },
