@@ -87,8 +87,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     // clear localStorage
     let localStorage = window.localStorage;
     localStorage.setItem('token_balances', '');
-
-    setFetchingTokens(true);
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
@@ -103,11 +101,18 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     }
   }
 
+  useEffect(()=>{
+    console.log('myBalances', myBalances);
+
+  }, [myBalances]);
+
   useEffect(() => {
     if(provider) fetchAddressRoles(provider, displayAddress);
   }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
+
+    setFetchingTokens(true);
 
     let _balanceCount = 0;
     let newMyBalances = null;
@@ -126,9 +131,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         return {
           ...balance,
           tokenId: balance.token.tokenId,
-          token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
-          issuedTo: balance.issuedTo,
           availableBalance: balance.available,
           retiredBalance: balance.retired,
           transferredBalance: balance.transferred
@@ -153,32 +156,32 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      if (provider && signedInAddress) {
-        if (myBalances !== [] && !fetchingTokens) {
-          setFetchingTokens(true);
-          const bl = await fetchBalances(balancePage, balancePageSize, balanceQuery);
-          if (bl && tokenid) {
-            const tid = Number(tokenid);
-            let ptoken = null;
-            for (let i=0; i<bl.length; i++) {
-              if (bl[i].token.tokenId == tid) {
-                ptoken = bl[i].token;
-              }
-            }
-            if (ptoken) {
-               setSelectedToken({
-                ...ptoken,
-              });
-              setModalShow(true);
+      if (signedInAddress) {
+        const bl = await fetchBalances(1, 20, []);
+        if (bl && tokenid) {
+          const tid = Number(tokenid);
+          let ptoken = null;
+          for (let i=0; i<bl.length; i++) {
+            if (bl[i].token.tokenId === tid) {
+              ptoken = bl[i].token;
             }
           }
+          if (ptoken) {
+            setSelectedToken({ ...ptoken });
+            setModalShow(true);
+          }
         }
-        let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
-        setEmissionsRequestsCount(_emissionsRequestsCount);
-
-    } }
-    init();
-  }, [provider, signedInAddress, tokenid]);
+      }
+      let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
+      setEmissionsRequestsCount(_emissionsRequestsCount);
+    }
+    if (signedInAddress) {
+      init();
+    } else {
+      // pending for signedInAddress. display the spinner ...
+      setFetchingTokens(true);
+    }
+  }, [signedInAddress, tokenid, fetchBalances]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -213,9 +216,9 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         <p className="mb-1">You have {emissionsRequestsCount} pending <Link href='/emissionsrequests'>emissions audits</Link>.</p>
         : null
       }
-      <div className={fetchingTokens ? "dimmed" : ""}>
+      <div className={(fetchingTokens && (!myBalances || myBalances.length === 0)) ? "dimmed" : ""}>
 
-        {fetchingTokens && (
+        {(fetchingTokens && (!myBalances || myBalances.length === 0)) && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
               <span className="visually-hidden">Loading...</span>
@@ -245,7 +248,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                 </tr>
               </thead>
               <tbody>
-                {(myBalances !== [] && !fetchingTokens) &&
+                {!!myBalances &&
                   myBalances.map((balance) => (
                     <tr
                       key={balance.token.tokenId}
@@ -269,13 +272,15 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                   ))}
               </tbody>
             </Table>
-            {myBalances.length !== 0 ? <Paginator 
-              count={balanceCount}
-              page={balancePage}
-              pageSize={balancePageSize}
-              pageChangeHandler={handleBalancePageChange}
-              pageSizeHandler={handleBalancePageSizeChanged}
-            /> : <></>}
+            {myBalances.length !== 0 ?
+              <Paginator
+                count={balanceCount}
+                page={balancePage}
+                pageSize={balancePageSize}
+                pageChangeHandler={handleBalancePageChange}
+                pageSizeHandler={handleBalancePageSizeChanged}
+                loading={fetchingTokens}
+                /> : <></>}
           </div>
         }
 

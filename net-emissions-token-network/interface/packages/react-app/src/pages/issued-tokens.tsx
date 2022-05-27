@@ -322,9 +322,9 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
 
       <p className="text-danger">{error}</p>
 
-      <div className={fetchingTokens ? "dimmed" : ""}>
+      <div className={(fetchingTokens && (!myIssuedTokens || myIssuedTokens.length === 0)) ? "dimmed" : ""}>
 
-        {fetchingTokens && (
+        {(fetchingTokens && (!myIssuedTokens || myIssuedTokens.length === 0)) && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
               <span className="visually-hidden">Loading...</span>
@@ -375,7 +375,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                 </tr>
               </thead>
               <tbody>
-                {(myIssuedTokens !== [] && !fetchingTokens) &&
+                {!!myIssuedTokens &&
                   myIssuedTokens.map((token) => (
                     <tr
                       key={token.tokenId}
@@ -397,11 +397,12 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
               pageSize={pageSize}
               pageChangeHandler={handlePageChange}
               pageSizeHandler={handlePageSizeChange}
+              loading={fetchingTokens}
             /> : <></>}
           </div>
         }
       </div>
-      <div className={fetchingTrackers? "dimmed" : ""}>
+      <div className={(fetchingTrackers && (!myIssuedTrackers || myIssuedTrackers.length === 0)) ? "dimmed" : ""}>
         {/* Only display issued tokens if owner or dealer */}
         {((!displayAddress && isIndustry) || (displayAddress && displayAddressIsIndustry)) &&
           <div className="mt-4">
@@ -419,7 +420,7 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
                 </tr>
               </thead>
               <tbody>
-                {(myIssuedTrackers !== [] && !fetchingTrackers) &&
+                {!!myIssuedTrackers &&
                   myIssuedTrackers.map((tracker) => (
                     <tr
                       key={tracker.trackerId}
