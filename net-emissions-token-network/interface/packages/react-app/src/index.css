@@ -13,7 +13,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: #333333;
   background-color: #F1F1F1;
-  min-height: 100vh;
+}
+.main-container {
+  min-height: 60vh;
 }
 
 .btn:not(.btn-link):not(.input-group-append .btn) {

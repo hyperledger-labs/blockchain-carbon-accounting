@@ -30,6 +30,8 @@ const GovernanceDashboard = lazy(() => import("./pages/governance-dashboard"));
 const RequestAudit = lazy(() => import("./pages/request-audit"));
 const ChangePassword = lazy(() => import("./pages/change-password"));
 const ExportPk = lazy(() => import("./pages/export-pk"));
+const TermsOfUse = lazy(() => import("./pages/terms-of-use"));
+const AppFooter = lazy(() => import("./components/app-footer"));
 
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
@@ -104,7 +106,7 @@ const App:FC = () => {
             }
             </Nav>)}
 
-          <Container className="my-2">
+          <Container className="my-2 main-container">
 
             <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
               <Tab.Content>
@@ -172,6 +174,9 @@ const App:FC = () => {
                       <Route path="/export-pk">
                         <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
                       </Route>
+                      <Route path="/terms">
+                        <TermsOfUse></TermsOfUse>
+                      </Route>
                       <Route>
                         <Redirect to="/dashboard" />
                       </Route>
@@ -194,6 +199,9 @@ const App:FC = () => {
                         <Route path="/requestAudit">
                           <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                         </Route>
+                        <Route path="/terms">
+                          <TermsOfUse></TermsOfUse>
+                        </Route>
                         <Route>
                           <Redirect to="/requestAudit" />
                         </Route>
@@ -207,6 +215,9 @@ const App:FC = () => {
           </Container>
         </> : <p>Loading ...</p>}
       </QueryClientProvider>
+      <footer>
+        <AppFooter></AppFooter>
+      </footer>
     </trpc.Provider>
   );
 }
