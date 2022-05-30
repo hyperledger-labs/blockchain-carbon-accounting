@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
+import { FC, ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -8,11 +8,11 @@ import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { addresses } from "@project/contracts";
-import { encodeParameters, getAdmin, issue, track, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
+import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES, Wallet, Tracker } from "../components/static-data";
+import { RolesInfo, TOKEN_TYPES, Wallet } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
@@ -22,8 +22,8 @@ type KeyValuePair = {
 }
 
 type IssueFormProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo,
   limitedMode: boolean,
   signedInWallet?: Wallet,
@@ -41,16 +41,14 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // Form inputs
   const [address, setAddress] = useState("");
   const [issuedFrom, setIssuedFrom] = useState('');
-  
-  let andTrack = (typeof trackerId !== 'undefined');
-  //const [trackerId, setTrackerId] = useState("");
-  const [tracker, setTracker] = useState<any>(null);
+
+  const andTrack = useMemo(()=> (typeof trackerId !== 'undefined'), [trackerId]);
   const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
   const [description, setDescription] = useState("");
-  const [trackerDescription, setTrackerDescription] = useState("");
+  const [trackerDescription, /*setTrackerDescription*/] = useState("");
   const [result, setResult] = useState("");
 
   const [scope, setScope] = useState<number|null>(null);
@@ -69,14 +67,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
   const [initializedTrackerIdInput, setInitializedTrackerIdInput] = useState(false);
-  const [initializedProductNameInput, setinitializedProductNameInput] = useState(false);
-  const [initializedProductAmountInput, setinitializedProductAmountInput] = useState(false);
 
-  //const onTrackerIdChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerId(event.target.value); }, []);
   const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
   const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
-  const onTrackerDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerDescription(event.target.value); }, []);
   const onScopeChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setScope(parseInt(event.target.value)); }, []);
   const onTypeChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setType(event.target.value); }, []);
 
@@ -145,15 +139,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       if(!provider || !andTrack){
         return;
       }
-      const result = 
-        await getTrackerDetails(provider,Number(trackerId),signedInAddress);
+      const result = await getTrackerDetails(provider, Number(trackerId), signedInAddress);
       if (Number(trackerId)>0 && typeof result === 'object'  ) {
-        //setTrackerId(result.trackerId);
         setAddress(result.trackee)
       }
     }
     fetchTrackerDetails();
-  }, [provider, trackerId]);
+  }, [provider, trackerId, andTrack, signedInAddress]);
 
 
   // update calldata on input change
@@ -286,10 +278,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         Issue tokens
       </h2>
       <p>
-        {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null } 
+        {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null }
       </p>
 
-      {(andTrack) ? 
+      {(andTrack) ?
         <Form.Group className="mb-3" controlId="trackerIdInput">
           <Form.Label>TrackerId</Form.Label>
           <Form.Control
@@ -305,10 +297,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             Setting ID to 0 will issue a new tracker.
           </Form.Text>
           {/*<Form.Label>Tracker Description</Form.Label>
-            <Form.Control 
-              as="textarea" 
-              placeholder="" 
-              value={trackerDescription} 
+            <Form.Control
+              as="textarea"
+              placeholder=""
+              value={trackerDescription}
               onChange={onTrackerDescriptionChange} />*/}
         </Form.Group>
       : null}
@@ -317,13 +309,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <Form.Label>
             Issue From Address
           </Form.Label>
-          { true ? 
+          { true ?
             <InputGroup>
-              <WalletLookupInput 
-                onChange={(v: string) => { setIssuedFrom(v) }} 
+              <WalletLookupInput
+                onChange={(v: string) => { setIssuedFrom(v) }}
                 onWalletChange={(w)=>{
                   setIssuedFrom(w ? w.address! : '');
-                }} 
+                }}
                 onBlur={() => setInitializedAddressInput(true)}
                 style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
                 />
@@ -332,7 +324,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
               type="input"
               value={signedInAddress}
               disabled
-            /> 
+            />
           }
         </Form.Group>
 
@@ -342,13 +334,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <Form.Label>
             {(andTrack) ? "Issue To Address" : "Issue Tracker To Address" }
           </Form.Label>
-          {(!andTrack || trackerId==0) ?
+          {(!andTrack || trackerId === 0) ?
             <InputGroup>
-              <WalletLookupInput 
-                onChange={(v: string) => { setAddress(v) }} 
+              <WalletLookupInput
+                onChange={(v: string) => { setAddress(v) }}
                 onWalletChange={(w)=>{
                   setAddress(w ? w.address! : '');
-                }} 
+                }}
                 onBlur={() => setInitializedAddressInput(true)}
                 style={(address || !initializedAddressInput) ? {} : inputError}
                 />
@@ -358,7 +350,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
               type="input"
               value={address}
               disabled
-            />            
+            />
           }
 
           <Form.Text className="text-muted">
@@ -456,13 +448,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           </Col>
         </Row>
         <Form.Group>
-          {metadata.map((field, key) => 
+          {metadata.map((field, key) =>
             <Row key={key}>
               <Col md={3}>
-                <Form.Control 
-                  type="input" 
+                <Form.Control
+                  type="input"
                   placeholder="Key"
-                  value={field.key} 
+                  value={field.key}
                   onChange={e => { metadata[key].key = e.target.value; setMetadata([...metadata]); }}
                 />
               </Col>
@@ -471,9 +463,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                   <Form.Label column md={2}>
                   </Form.Label>
                   <Col md={10}>
-                    <Form.Control 
-                      type="input" 
-                      value={field.value} 
+                    <Form.Control
+                      type="input"
+                      value={field.value}
                       placeholder="Value"
                       onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
                       />

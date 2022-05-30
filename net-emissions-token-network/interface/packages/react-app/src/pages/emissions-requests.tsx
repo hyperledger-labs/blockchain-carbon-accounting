@@ -17,8 +17,8 @@ import DisplayDate from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 
 type EmissionsRequestsProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo
 }
 
@@ -26,27 +26,10 @@ type EmissionsRequestsHandle = {
   refresh: ()=>void
 }
 
-const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress, roles }, ref) => {
+const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress }) => {
   const [ pendingEmissions, setPendingEmissions ] = useState<EmissionsRequest[]>([]);
   const [error, setError] = useState("");
   const [, setLocation] = useLocation();
-
-  useEffect(() => {
-    const init = async () => {
-      if (provider && signedInAddress) {
-        await fetchEmissionsRequests(signedInAddress);
-      }
-    }
-    init();
-  }, [provider, signedInAddress]);
-
-  function pointerHover(e: MouseEvent<HTMLElement>) {
-    e.currentTarget.style.cursor = "pointer";
-  };
-
-  function handleOpenPendingEmissions(emissions: EmissionsRequest) {
-    setLocation('/pendingemissions/' + emissions.uuid);
-  };
 
   const fetchEmissionsRequests = useCallback(async (auditorAddress: string) => {
     try {
@@ -57,7 +40,24 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
       console.log(error);
       setError("Could not get emissions requests.");
     }
-  }, [provider, signedInAddress]);
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      if (provider && signedInAddress) {
+        await fetchEmissionsRequests(signedInAddress);
+      }
+    }
+    init();
+  }, [provider, signedInAddress, fetchEmissionsRequests]);
+
+  function pointerHover(e: MouseEvent<HTMLElement>) {
+    e.currentTarget.style.cursor = "pointer";
+  }
+
+  function handleOpenPendingEmissions(emissions: EmissionsRequest) {
+    setLocation('/pendingemissions/' + emissions.uuid);
+  }
 
 
   return (

@@ -4,25 +4,15 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { BsTrash, BsPlus } from 'react-icons/bs';
-import Datetime from "react-datetime";
-import "react-datetime/css/react-datetime.css";
-import { addresses } from "@project/contracts";
-import { encodeParameters, getAdmin, transferProduct, getTrackerDetails } from "../services/contract-functions";
-import CreateProposalModal from "../components/create-proposal-modal";
+import { transferProduct, getTrackerDetails } from "../services/contract-functions";
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo, TOKEN_TYPES, Tracker } from "../components/static-data";
+import { RolesInfo } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
 
-type KeyValuePair = {
-  key: string
-  value: string
-}
-
 type ProductTransferFormProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
+  provider?: Web3Provider | JsonRpcProvider,
   roles: RolesInfo,
   trackerId: number,
   productId: number,
@@ -33,20 +23,15 @@ type ProductInfo = {
   conversion: bigint,
   unit: string
 }
- 
+
 const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAddress, trackerId, productId }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
-  const [createModalShow, setCreateModalShow] = useState(false);
-
-  // admin address (if contract is in limitedMode)
-  const [adminAddress, setAdminAddress] = useState("");
 
   // Form inputs
   const [address, setAddress] = useState("");
-  const [issuedFrom, setIssuedFrom] = useState("");
   const [product, setProduct] = useState<ProductInfo>();
-  
+
   //const [trackerId, setTrackerId] = useState("");
   const [productAmount, setProductAmount] = useState("");
   const [result, setResult] = useState("");
@@ -54,58 +39,43 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
   // After initial onFocus for retransferquired inputs, display red outline if invalid
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [fetchingProduct, setFetchingProduct] = useState(false);
-  // Calldata
-  const [calldata, setCalldata] = useState("");
 
   // After initial onFocus for required inputs, display red outline if invalid
-  //const [initializedTrackerIdInput, setInitializedTrackerIdInput] = useState(false);
   const [initializedProductAmountInput, setInitializedProductAmountInput] = useState(false);
 
   const onProductAmountChange  = useCallback((event: ChangeEvent<HTMLInputElement>) => { setProductAmount(event.target.value); }, []);
-  
+
   function handleSubmit() {
     submit();
     setSubmissionModalShow(true);
   }
 
-  function disableIssueButton(calldata: string, productAmount: number, address: string) {
-    let qty = Number(productAmount);
-    return (calldata.length === 0) || (qty === 0)
-  }
-
   useEffect(() => {
-    async function fetchAdmin() {
-      if (provider) setAdminAddress(await getAdmin(provider));
-    }
     const init = async () => {
       if (provider && signedInAddress && trackerId) {
-        if(!fetchingProduct){
+        setFetchingProduct(true);
+        let tracker = await getTrackerDetails(provider, trackerId, signedInAddress);
+        console.log(tracker)
+        if (typeof tracker === "object") {
+          let index = tracker.products.ids.indexOf(productId);
 
-          setFetchingProduct(true);
-          let tracker = await getTrackerDetails(provider, trackerId, signedInAddress);
-          console.log(tracker)
-          if(typeof tracker === "object"){
-            let index = tracker.products.ids.indexOf(productId);
-  
-            let product:ProductInfo = {
-              available: tracker.products.available[index],
-              conversion: tracker.products.conversions[index],
-              unit: tracker.products.units[index]
-            }
-            console.log("a",product)
-            setProduct(product)
-          };
-        } 
+          let product:ProductInfo = {
+            available: tracker.products.available[index],
+            conversion: tracker.products.conversions[index],
+            unit: tracker.products.units[index]
+          }
+          console.log("product", product)
+          setProduct(product)
+        }
       }
-  }
+    }
     init();
-  }, [provider,trackerId,signedInAddress]);
+  }, [provider, trackerId, signedInAddress, productId, fetchingProduct]);
 
   // populate form with URL params if found
   useEffect(() => {
     let queryParams = new URLSearchParams(window.location.search);
     let addressQueryParam = queryParams.get('address');
-    let tokenIdQueryParam = queryParams.get('tokenId');
     let quantityQueryParam = queryParams.get('quantity');
     if (addressQueryParam) {
       setAddress(addressQueryParam);
@@ -117,7 +87,7 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
 
   async function submit() {
     if (!provider) return;
-    let productAmount_formatted 
+    let productAmount_formatted
       = Math.round(Number(productAmount)/Number(product?.conversion));
 
     let result = await transferProduct(
@@ -146,9 +116,6 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
           type="input"
           value={trackerId}
           disabled={true}
-          //onChange={onTrackerIdChange}
-          //onBlur={() => setInitializedTrackerIdInput(true)}
-          //style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
         />
       </Form.Group>
       <Form.Group className="mb-3" controlId="productIdInput">
@@ -157,19 +124,16 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
           type="input"
           value={productId}
           disabled={true}
-          //onChange={onTrackerIdChange}
-          //onBlur={() => setInitializedTrackerIdInput(true)}
-          //style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
         />
       </Form.Group>
       <Form.Group className="mb-3" controlId="addressInput">
         <Form.Label>Address</Form.Label>
         <InputGroup>
-          <WalletLookupInput 
-            onChange={(v: string) => { setAddress(v) }} 
+          <WalletLookupInput
+            onChange={(v: string) => { setAddress(v) }}
             onWalletChange={(w)=>{
               setAddress(w ? w.address! : '');
-            }} 
+            }}
             onBlur={() => setInitializedAddressInput(true)}
             style={(address || !initializedAddressInput) ? {} : inputError}
             />
@@ -193,7 +157,6 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
       </Form.Group>
       <Row className="mt-4">
 
-
         <Col>
           {/* Only enable issue if any role is found */}
           { roles.hasAnyRole
@@ -203,7 +166,6 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
                 size="lg"
                 className="w-100"
                 onClick={handleSubmit}
-                //disabled={disableIssueButton(calldata, quantity, address)}
               >
                 Transfer
               </Button>

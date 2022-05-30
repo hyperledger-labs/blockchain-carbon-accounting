@@ -11,13 +11,11 @@ import {
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
-import { getRoles } from "../services/contract-functions";
 import TokenInfoModal, { TokenInfo } from "../components/token-info-modal";
-//import TrackerInfoModal, { TrackerInfo } from "../components/tracker-info-modal";
 import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
-import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
+import { BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayTokenAmount from "../components/display-token-amount";
 import Button from 'react-bootstrap/Button';
@@ -35,20 +33,14 @@ type DashboardHandle = {
   refresh: ()=>void
 }
 
-const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ provider, signedInAddress, displayAddress, tokenid }, ref) => {
+const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ signedInAddress, displayAddress, tokenid }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
-  const [modalTrackerShow, setModaltrackerShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenInfo>({});
 
   // Balances of my tokens and tokens I've issued
   const [myBalances, setMyBalances] = useState<any[]>([]);
   const [fetchingTokens, setFetchingTokens] = useState(false);
-
-  // const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
-  // const isIndustry = (roles[4] === true);
-  const [, setDisplayAddressIsDealer] = useState(false);
-  const [, setDisplayAddressIsIndustry] = useState(false);
 
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balanceCount, setBalanceCount ] = useState(0);
@@ -89,25 +81,10 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
-    if (!address || !address.length) {
-      setDisplayAddressIsDealer(false);
-      setDisplayAddressIsIndustry(false);
-    } else {
-      const dRoles = await getRoles(provider, address);
-      setDisplayAddressIsDealer(!!dRoles.hasDealerRole);
-      setDisplayAddressIsIndustry(!!dRoles.hasIndustryRole);
-    }
-  }
-
   useEffect(()=>{
     console.log('myBalances', myBalances);
 
   }, [myBalances]);
-
-  useEffect(() => {
-    if(provider) fetchAddressRoles(provider, displayAddress);
-  }, [provider, displayAddress])
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
 
