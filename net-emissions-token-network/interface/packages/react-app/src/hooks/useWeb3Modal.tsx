@@ -5,7 +5,7 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
 import { getRoles, getRegisteredTracker, getLimitedMode } from "../services/contract-functions";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Wallet } from "../components/static-data";
 import { RPC_URL } from "../services/api.config";
 
 // Enter a valid infura key here to avoid being rate limited
@@ -17,8 +17,9 @@ const NETWORK_NAME = "mainnet";
 function useWeb3Modal(config: any = {}) {
   const [provider, setProvider] = useState<Web3Provider|JsonRpcProvider>();
   const [autoLoaded, setAutoLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [signedInAddress, setSignedInAddress] = useState("");
-  const [privateKey, setPrivateKey] = useState("");
+  const [signedInWallet, setSignedInWallet] = useState<Wallet | undefined>();
   const [roles, setRoles] = useState<RolesInfo>({});
   const [registeredTracker, setRegisteredTracker] = useState(false);
   const [limitedMode, setLimitedMode] = useState(true);
@@ -39,7 +40,6 @@ function useWeb3Modal(config: any = {}) {
     },
   }), [NETWORK, infuraId]);
 
-
   // Open wallet selection modal.
   const loadWeb3Modal = useCallback(async () => {
     const newProvider = await web3Modal.connect();
@@ -50,30 +50,68 @@ function useWeb3Modal(config: any = {}) {
     const web3Provider = new Web3Provider(newProvider);
     setProvider(web3Provider);
     setSignedInAddress(newProvider.selectedAddress);
+    // in that case we don't need a wallet
+    localStorage.removeItem("signedInWallet");
   }, [web3Modal]);
-
-
 
   const logoutOfWeb3Modal = useCallback(
     async function () {
       setSignedInAddress("");
       web3Modal.clearCachedProvider();
+      localStorage.removeItem("signedInAddress");
+      localStorage.removeItem("signedInWallet");
       window.location.reload();
     },
     [web3Modal],
   );
 
-  const loadWalletInfo = (public_key:string, private_key:string) => {
+
+  useEffect(() => {
+    // synchronize the local storage with the current signed in wallet
+    if (signedInWallet) {
+      localStorage.setItem("signedInWallet", JSON.stringify(signedInWallet));
+    }
+  }, [signedInWallet]);
+
+  useEffect(() => {
+    // synchronize the local storage with the current signed in address
+    if (signedInAddress) {
+      localStorage.setItem("signedInAddress", signedInAddress);
+    }
+  }, [signedInAddress]);
+
+  useEffect(()=>{
+    // on mount restore the login state if we had any
+    // this keeps the user logged in until metamask reloads
+    // or until the user manually logs out
+    const lw = localStorage.getItem("signedInWallet");
+    const la = localStorage.getItem("signedInAddress");
+    console.log('restore login ?', la, lw);
+    if (lw && la) {
+      const web3Provider = new JsonRpcProvider(RPC_URL);
+      setProvider(web3Provider);
+      setSignedInAddress(la);
+      setSignedInWallet(JSON.parse(lw));
+    } else if (la) {
+      setSignedInAddress(la);
+    }
+    setLoaded(true);
+  }, []);
+
+  const loadWalletInfo = (wallet:Wallet) => {
     const web3Provider = new JsonRpcProvider(RPC_URL);
     setProvider(web3Provider);
-    setSignedInAddress(public_key);
-    setPrivateKey(private_key);
+    setSignedInWallet(wallet);
+    setSignedInAddress(wallet.address||'');
   }
 
   const logoutOfWalletInfo = () => {
     setSignedInAddress("");
-    setPrivateKey("");
-    window.location.reload();
+    setSignedInWallet(undefined);
+    web3Modal.clearCachedProvider();
+    setProvider(undefined);
+    localStorage.removeItem("signedInAddress");
+    localStorage.removeItem("signedInWallet");
   }
 
   const refresh = useCallback(async () => {
@@ -106,7 +144,7 @@ function useWeb3Modal(config: any = {}) {
     refresh();
   }, [refresh]);
 
-  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, privateKey, roles, registeredTracker, limitedMode, refresh};
+  return {provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh, loaded};
 }
 
 export default useWeb3Modal;

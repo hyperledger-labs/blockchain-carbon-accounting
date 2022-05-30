@@ -1,5 +1,7 @@
+import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import moment from 'moment';
+import { SetStateAction } from 'react';
 import type { QueryBundle } from '../../../../../../data/postgres/src/repositories/common';
 import type { Token, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
@@ -10,7 +12,7 @@ axios.defaults.baseURL = BASE_URL;
 
 function handleError(error: unknown, prefix: string) {
     const response = (error as any).response ?? error
-    const data_error = response?.data?.error ?? response?.error ?? response
+    const data_error = response?.data?.error ?? response?.error ?? response?.data ?? response
     console.error('Error response has data?:', data_error)
     let errMsg = prefix
     if (data_error) {
@@ -23,6 +25,35 @@ function handleError(error: unknown, prefix: string) {
     }
     console.error(`handleError: ${prefix} -->`, errMsg)
     return errMsg;
+}
+
+
+export function handleFormErrors<F extends {}, E extends {}>(err: unknown, setFormErrors: (e: SetStateAction<E>) => void, setForm: (f: SetStateAction<F>) => void) {
+  console.error(err)
+  if (err instanceof TRPCClientError) {
+    console.warn(err.data, err.message)
+    let topLevelError = err?.data?.domainError
+    if (err?.data?.zodError?.fieldErrors) {
+      const fieldErrors = err.data.zodError.fieldErrors
+      const errs: Partial<Record<keyof E, string>> = {};
+      for (const f in fieldErrors) {
+        errs[f as keyof E] = fieldErrors[f].join(', ')
+      }
+      setFormErrors(e=>{ return { ...e, ...errs} })
+    } else if (err?.data?.domainErrorPath) {
+      const errs: Partial<Record<keyof E, string>> = {};
+      errs[err?.data?.domainErrorPath as keyof E] = err?.data?.domainError
+      console.warn('Set field errors', errs)
+      // here no need to repeat as toplevel error
+      topLevelError = ''
+      setFormErrors(e=>{ return { ...e, ...errs} })
+    } else if (!topLevelError) {
+      topLevelError = err?.message || 'An unexpected error occurred'
+    }
+    setForm(f=>{ return { ...f, loading: '', error: topLevelError } })
+  } else {
+    setForm(f=>{ return { ...f, loading: '', error: ("" + ((err as any)?.message || err) as any) } })
+  }
 }
 
 
@@ -42,19 +73,16 @@ function buildBundlesFromQueries(query: string[]) {
 
 export const getTokens = async (offset: number, limit: number, query: string[]): Promise<{count:number, tokens:Token[], status:string}> => {
     try {
-        var params = new URLSearchParams();
-        params.append('offset', offset.toString());
-        params.append('limit', limit.toString());
-        query.forEach(elem => {
-            params.append('bundles', elem);
-        });
-        const { data } = await axios.get('/tokens', { params });
-        if(data.status === 'success') {
-            return data;
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getTokens:', offset, limit, bundles)
+        const { status, count, tokens, error } = await trpcClient.query('token.list', {offset, limit, bundles})
+        if (status === 'success' && tokens) {
+            return { count, tokens, status }
         } else {
-            return {count:0, tokens:[], status:'error'};
+            if (status !== 'success') console.error('getTokens error:', error)
+            return {count: 0, tokens: [], status};
         }
-    } catch (error) {
+    } catch(error) {
         throw new Error(handleError(error, "Cannot get tokens"))
     }
 }
@@ -63,13 +91,12 @@ export const getBalances = async (offset: number, limit: number, query: string[]
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getBalances:', offset, limit, bundles)
-        const list = await trpcClient.query('balance.list', {offset, limit, bundles})
-        console.info('getBalances result:', list)
-        if (list.status === 'success' && list.balances) {
-            return { count: list.count, balances: list.balances }
+        const { status, count, balances, error } = await trpcClient.query('balance.list', {offset, limit, bundles})
+        if (status === 'success' && balances) {
+            return { count, balances, status }
         } else {
-            if (list.status !== 'success') console.error('getBalances error:', list.error)
-            return {count: 0, balances: []};
+            if (status !== 'success') console.error('getBalances error:', error)
+            return {count: 0, balances: [], status};
         }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get balances"))
@@ -91,52 +118,31 @@ export const postSignedMessage = async (message: string, signature: string) => {
     }
 }
 
-/**
- * This is the function to login with mail and password by calling API Server
- */
- export const signInUser =  async(email:string, password:string) => {
+export const requestPasswordReset = async(email:string) => {
+  try {
+    const { data } = await axios.post(`/request-password-reset/${email}`);
+    console.log('requestPasswordReset response:', data);
+    if(data.status === 'success') return data.wallet;
+    else return null;
+  } catch(error) {
+    throw new Error(handleError(error, "Cannot request a password reset"))
+  }
+}
+
+export const markPkExported = async(email: string, password: string) => {
+  return trpcClient.mutation('wallet.markPkExported', {email, password})
+}
+
+export const changePassword = async(email: string, token: string, currentPassword: string, password: string, passwordConfirm: string) => {
+  return trpcClient.mutation('wallet.changePassword', {email, token, currentPassword, password, passwordConfirm})
+}
+
+export const signInUser =  async(email:string, password:string) => {
   return trpcClient.mutation('wallet.signin', {email, password})
 }
 
-/**
- * This is the function to create wallet with mail and password by calling API Server
- */
-export const signUpUser =  async(email:string, password:string, passwordConfirm:string) => {
-  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm})
-}
-
-export const registerUserRole = async (address: string, name: string, organization: string, public_key: string, public_key_name: string, roles: string): Promise<Wallet|null> => {
-    try {
-        var params = {
-            address,
-            name,
-            organization,
-            public_key,
-            public_key_name,
-            roles
-        };
-        const { data } = await axios.post('/wallets', params);
-        console.log('registerUserRole response:', data);
-        if(data.status === 'success') return data.wallet;
-        else return null;
-    } catch(error) {
-        throw new Error(handleError(error, "Cannot register user role"))
-    }
-}
-
-export const unregisterUserRole = async (address: string, roles: string) => {
-    try {
-        var params = {
-            address,
-            roles
-        };
-        const { data } = await axios.post('/wallets', params);
-        console.log('unregisterUserRole response:', data);
-        if(data.status === 'success') return data;
-        else return {};
-    } catch(error) {
-       throw new Error(handleError(error, "Cannot unregister user role"))
-    }
+export const signUpUser =  async(email:string, password:string, passwordConfirm:string, name:string|undefined, organization:string|undefined) => {
+  return trpcClient.mutation('wallet.signup', {email, password, passwordConfirm, name, organization})
 }
 
 export const lookupWallets = async (query: string): Promise<Wallet[]> => {
@@ -220,6 +226,34 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         }
         formData.append("supportingDocument", supportingDocument);
         formData.append("signedInAddress", signedInAddress);
+        if (fromDate) {
+            formData.append("fromDate", (moment(fromDate)).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        if (thruDate) {
+            formData.append("thruDate", (moment(thruDate.setHours(23,59,59,999))).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        const resp = await fetch(url, {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await resp.json();
+        if (data.status === 'success') {
+            return data;
+        } else {
+            throw data;
+        };
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot create emissions request"))
+    }
+}
+
+export const calculateEmissionsRequest = async (form: EmissionsFactorForm, fromDate: Date|null, thruDate: Date|null) => {
+    try {
+        const url = BASE_URL + '/calcemissionsrequest/';
+        const formData = new FormData();
+        for (const k in form) {
+            formData.append(k, form[k as keyof EmissionsFactorForm]);
+        }
         if (fromDate) {
             formData.append("fromDate", (moment(fromDate)).format('YYYY-MM-DD HH:mm:ss.SSS'));
         }

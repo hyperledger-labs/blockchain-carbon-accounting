@@ -1,4 +1,5 @@
 import * as trpc from '@trpc/server'
+import { Product } from 'blockchain-accounting-data-postgres/src/models/product';
 import { ethers } from 'ethers';
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
@@ -43,8 +44,8 @@ export const productRouter = trpc
             const products = await ctx.db.getProductRepo().selectPaginated(input.offset, input.limit, input.bundles);
             const count = await ctx.db.getProductRepo().countProducts(input.bundles);
             return {
-                count, 
-                products
+                count,
+                products: Product.toRaws(products)
             }
         } catch (error) {
             handleError('list', error)
@@ -56,11 +57,11 @@ export const productRouter = trpc
         productId: z.number(),
         trackerId: z.number(),
         auditor: validAddress,
-        amount: z.string(),
-        available: z.string(),
+        amount: z.bigint(),
+        available: z.bigint(),
         name: z.string(),
         unit: z.string(),
-        unitAmount: z.string(),
+        unitAmount: z.bigint(),
         hash: z.string(),
     }),
     async resolve({ input, ctx }) {
@@ -72,7 +73,7 @@ export const productRouter = trpc
             const product = await ctx.db.getProductRepo().insertProduct(input);
 
             return {
-                product
+                product: Product.toRaw(product)
             }
         } catch (error) {
             handleError('register', error)

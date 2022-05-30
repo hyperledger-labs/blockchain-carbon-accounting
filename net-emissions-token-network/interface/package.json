@@ -4,18 +4,16 @@
   "keywords": [
     "ethereum",
     "react",
-    "workspaces",
-    "yarn"
+    "workspaces"
   ],
   "private": true,
   "scripts": {
-    "preci": "rm -fr node_modules",
-    "ci": "yarn install --frozen-lockfile --ignore-engines --ignore-scripts",
-    "react-app:build": "yarn workspace @project/react-app build",
-    "react-app:eject": "yarn workspace @project/react-app eject",
-    "react-app:ipfs": "yarn workspace @project/react-app ipfs",
-    "react-app:start": "yarn workspace @project/react-app start",
-    "react-app:test": "yarn workspace @project/react-app test"
+    "react-app:build": "npm run build --workspace=@project/react-app",
+    "react-app:eject": "npm run eject --workspace=@project/react-app",
+    "react-app:ipfs": "npm run ipfs --workspace=@project/react-app",
+    "react-app:start": "npm run start --workspace=@project/react-app",
+    "react-app:test": "npm run test --workspace=@project/react-app",
+    "localdev": "BROWSER=none WDS_SOCKET_PORT=443 npm run start --workspace=@project/react-app"
   },
   "workspaces": {
     "packages": [
@@ -24,14 +22,28 @@
   },
   "type": "module",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.22.0",
-    "@typescript-eslint/parser": "^5.22.0",
-    "eslint": "^8.14.0",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^8.0.3",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-react": "^7.30.0",
     "eslint-plugin-react-hooks": "^4.5.0",
-    "typescript": "^4.6.4"
+    "typescript": "^4.7.2"
+  },
+  "overrides": {
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "autoprefixer": "10.4.5",
+    "ethjs-unit": {
+      "bn.js": "^4.12.0"
+    },
+    "number-to-bn": {
+      "bn.js": "^4.12.0"
+    },
+    "@walletconnect/utils": {
+      "bn.js": "^4.12.0"
+    }
   }
 }

@@ -1,3 +1,4 @@
+import superjson from 'superjson';
 import * as trpc from '@trpc/server'
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
@@ -8,19 +9,34 @@ import { balanceRouter } from './balance.trpc'
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
+import { tokenRouter } from './token.trpc';
 import { productRouter } from './product.trpc';
 
 // created for each request, here set the DB connector
-const createContext = async () => ({
-  db: await PostgresDBService.getInstance(),
-  opts: OPTS
-})
+const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
+  // get the client IP
+  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  console.log('Client IP:', ip);
+  // if ip is an array take the first element
+  if (ip instanceof Array) {
+    ip = ip[0];
+  }
+  if (!ip) {
+    console.warn('No client IP address found?', req.socket.remoteAddress, req.headers['x-forwarded-for']);
+  }
+  return {
+    ip,
+    db: await PostgresDBService.getInstance(),
+    opts: OPTS
+  }
+}
 export type TrpcContext = trpc.inferAsyncReturnType<typeof createContext>;
 
 const createRouter = () => {
   // this adds the zodError and domainError to the response which can then be
   // analyzed for input errors an user facing error messages
   return trpc.router<TrpcContext>()
+    .transformer(superjson)
     .formatError(({ shape, error }) => {
       return {
         ...shape,
@@ -32,8 +48,12 @@ const createRouter = () => {
             ? error.cause.flatten()
             : null,
           domainError:
-          error.cause instanceof DomainError
+          error instanceof DomainError || error.cause instanceof DomainError
             ? error.message
+            : null,
+          domainErrorPath:
+          error instanceof DomainInputError ? error.path : error.cause instanceof DomainInputError
+            ? error.cause.path
             : null,
         }
       }
@@ -42,6 +62,7 @@ const createRouter = () => {
 
 const appRouter = createRouter()
   .merge('balance.', balanceRouter)
+  .merge('token.', tokenRouter)
   .merge('wallet.', walletRouter)
   .merge('product.', productRouter)
   .merge('emissionsFactors.', emissionsFactorsRouter)
@@ -56,15 +77,28 @@ export const trpcMiddleware = trpcExpress.createExpressMiddleware({
 
 export class DomainError extends Error {
   status: TRPC_ERROR_CODE_KEY;
-  constructor(message: string, status: TRPC_ERROR_CODE_KEY = 'BAD_REQUEST') {
+  details?: string;
+  cause?: unknown;
+  constructor(message: string, status: TRPC_ERROR_CODE_KEY = 'BAD_REQUEST', details?: string, cause?: unknown) {
     super(message);
     // Ensure the name of this error is the same as the class name
     this.name = this.constructor.name;
     this.status = status;
+    this.details = details ?? message;
+    this.cause = cause;
     // This clips the constructor invocation from the stack trace.
     // It's not absolutely essential, but it does make the stack trace a little nicer.
     //  @see Node.js reference (bottom)
     Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+
+export class DomainInputError extends DomainError {
+  path: string
+  constructor(path: string, message: string, status: TRPC_ERROR_CODE_KEY = 'BAD_REQUEST', details?: string, cause?: unknown) {
+    super(message, status, details, cause);
+    this.path = path
   }
 }
 

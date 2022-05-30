@@ -4,9 +4,9 @@ import { EmissionsRequest } from "../models/emissionsRequest";
 export interface BalancePayload {
   issuedTo: string
   tokenId: number
-  available: string
-  retired: string
-  transferred: string
+  available: bigint
+  retired: bigint
+  transferred: bigint
 }
 
 export type QueryBundle = {
@@ -31,24 +31,28 @@ export interface TokenPayload {
   dateCreated: number;
   // eslint-disable-next-line
   metadata: Object;
+  // eslint-disable-next-line
   manifest: Object;
   description: string;
-  totalIssued: string;
-  totalRetired: string;
+  totalIssued: bigint;
+  totalRetired: bigint;
   scope: number;
   type: string;
 }
+
+export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at' | 'toJSON'>
 
 export interface TrackerPayload {
   trackerId: number;
   trackee: string;
   auditor: string;
-  totalProductAmounts: string;
-  totalEmissions: string;
-  totalOffset: string;
+  totalProductAmounts: bigint;
+  totalEmissions: bigint;
+  totalOffset: bigint;
   fromDate: number;
   thruDate: number;
   dateCreated: number;
+  // eslint-disable-next-line
   metadata: Object;
   description: string;
 }
@@ -57,17 +61,13 @@ export interface ProductPayload {
   productId: number;
   trackerId: number;
   auditor: string;
-  amount: string;
-  available: string;
+  amount: bigint;
+  available: bigint;
   name: string;
   unit: string;
-  unitAmount: string;
+  unitAmount: bigint;
   hash: string;
 }
-
-
-
-export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at'>
 
 const OP_MAP: Record<string, string> = {
     'eq': '=',

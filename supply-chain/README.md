@@ -44,16 +44,6 @@ Run by giving a JSON file of activities to process and RSA public keys
 npm run cli -- -rsapubk user1-public.pem [-pubk user2-public.pem] -f input.json
 ```
 
-Run by giving a JSON file of activities to process and wallet address
-```
-npm run cli -- -walletaddr <wallet_address> -f input.json
-```
-
-for example, 
-```
-npm run cli -- -walletaddr 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 -f input.json
-```
-
 To create emissions requests instead of issue token with given input.json run:
 ```
 npm run cli -- -f input.json -queue
@@ -87,6 +77,24 @@ In this case the IPFS content ID can be retrieved in the group "token.manifest" 
 Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of one of the associated public keys that were used above:
 ```
 npm run cli -- -rsapk user1-private.pem -fetch <content_id>/content.json
+```
+
+### Metamask Wallet Key
+
+The script also supports encrypting and decrypting using Metamask's wallet.  This requires:
+- Providing an encrypted public key from Metamask wallet
+- Decrypting with the private key of your wallet
+
+This feature is currently disabled in the dApp UI because Metamask decrypt can be very slow for large files.  You can however test it here by uncommenting the block for `ProvideMetamaskEncryptionKeyButton` in `update-my-wallet-form.tsx` in the `net-emissions-tokens/interface/` react app.  Then once you have the Metamask encrypted public key saved in Wallet.metamask_encrypted_public_key, you can use it to encrypt and decrypt files.
+
+Run by giving a JSON file of activities to process and wallet address
+```
+npm run cli -- -walletaddr <wallet_address> -f input.json
+```
+
+for example, 
+```
+npm run cli -- -walletaddr 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 -f input.json
 ```
 
 Try fetching the encrypted content from IPFS by specifying the IPFS content ID and the private key of wallet address that were used above:

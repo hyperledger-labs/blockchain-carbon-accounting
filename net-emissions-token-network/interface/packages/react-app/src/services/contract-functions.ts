@@ -104,7 +104,7 @@ export async function getRoles(w3provider: Web3Provider | JsonRpcProvider, addre
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   try {
     const r = await contract.getRoles(address) as RolesInfo;
-    // note: the returned value is not ext  ensible, so copy the values here
+    // note: the returned value is not extensible, so copy the values here
     const roles = {...r}
     if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasAnyRole = true;
     if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer ) roles.hasDealerRole = true;
@@ -765,11 +765,10 @@ export async function getTrackerDetails(
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let details;
   try {
-    let [trackerDetails,totalEmissions, productIds] = 
-      (await contract.getTrackerDetails(trackerId));
+    let [trackerDetails, totalEmissions, productIds] = (await contract.getTrackerDetails(trackerId));
     console.log('--- trackerDetails', productIds);
-    totalEmissions = (totalEmissions).toNumber();
-    let totalProductAmounts = trackerDetails.totalProductAmounts.toNumber();
+    totalEmissions = BigInt(totalEmissions);
+    let totalProductAmounts = BigInt(trackerDetails.totalProductAmounts);
 
     let owner = await contract.ownerOf(trackerId);
 
@@ -777,23 +776,24 @@ export async function getTrackerDetails(
     //let tokenIds =result[2][0].map(Number)
     //let tokenAmounts = result[2][1].map(String);
     
-    let divDecimals = (await contract.divDecimals()).toNumber();
-    let carbonIntensity = (await contract.carbonIntensity(trackerId))/divDecimals; 
+    let divDecimals = BigInt(await contract.divDecimals());
+    let carbonIntensity = BigInt(await contract.carbonIntensity(trackerId)) / divDecimals; 
 
 
-    let myProductBalances=[].map(Number);
-    let myTokenAmounts = [].map(Number);
-    let emissionFactors = [].map(Number);
-    let myProductsTotalEmissions = 0;
+    let myProductBalances = [].map(BigInt);
+    let myTokenAmounts = [].map(BigInt);
+    let emissionFactors = [].map(BigInt);
+    let myProductsTotalEmissions = BigInt(0);
 
-    let remainingEmissions = 0;
+    let remainingEmissions = BigInt(0);
 
     let productAmounts=[],available=[],productNames=[],conversions=[],units=[];
 
     let result;
     for (let i = 0; i < productIds.length; i++) {
-      result = (await contract.getProductDetails(productIds[i])).map(Number);//.map((e:[])=>(e.map(Number));
-      
+      const productDetails = await contract.getProductDetails(productIds[i]);
+      result = productDetails.map(BigInt);
+
       productAmounts.push(result[1]);
       available.push(result[2]);
 
@@ -802,24 +802,23 @@ export async function getTrackerDetails(
       conversions.push(result[1]/divDecimals);
       units.push(result[2].toString());
 
-      myProductBalances[i] = 
-        (await contract.getProductBalance(productIds[i],trackerId,address)).toNumber();
-      
-      myTokenAmounts = tokenAmounts.map((e:number) => (
-        (e*myProductBalances[i]/totalProductAmounts).toFixed(0)));
+      myProductBalances[i] = BigInt(await contract.getProductBalance(productIds[i],trackerId,address));
+
+      myTokenAmounts = tokenAmounts.map((e:bigint) => (
+        (e*myProductBalances[i]/totalProductAmounts)));
 
       myProductsTotalEmissions += myProductBalances[i]*carbonIntensity ;
 
-      productAmounts[i] = (productAmounts[i] * conversions[i] ).toFixed(0);
-      myProductBalances[i] = Number((myProductBalances[i]*conversions[i]).toFixed(0));
-      remainingEmissions += (available[i]*carbonIntensity);
-      available[i] = (available[i] * conversions[i] ).toFixed(0);
-      
-      emissionFactors[i] = Number((carbonIntensity / conversions[i]).toFixed(3));
+      productAmounts[i] = productAmounts[i] * conversions[i];
+      myProductBalances[i] = myProductBalances[i] * conversions[i];
+      remainingEmissions += available[i] * carbonIntensity;
+      available[i] = available[i] * conversions[i];
+
+      emissionFactors[i] = carbonIntensity / conversions[i];
     }
 
     if(myProductsTotalEmissions>0 && owner.toString().toLowerCase()!==address.toLowerCase()){
-      totalEmissions = myProductsTotalEmissions.toFixed(0);
+      totalEmissions = myProductsTotalEmissions;
       tokenAmounts = myTokenAmounts;
       available = myProductBalances;
     }

@@ -10,6 +10,7 @@ import {
     JoinColumn
 } from 'typeorm';
 import { UploadedFile } from './uploadedFile';
+import { bigint_transformer } from './bigint_transformer';
 
 @Entity()
 export class EmissionsRequest {
@@ -41,7 +42,7 @@ export class EmissionsRequest {
   @Column({type: 'timestamp', nullable: true})
   token_thru_date?: Date;
 
-  @Column({type: 'bigint'})
+  @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
   token_total_emissions!: bigint;
 
   @Column({nullable: true})
@@ -64,6 +65,13 @@ export class EmissionsRequest {
 
   @UpdateDateColumn()
   updated_at!: Date;
+
+  public static toRaw(v: EmissionsRequest) {
+    return { ...v };
+  }
+  public static toRaws(v: EmissionsRequest[]) {
+    return v.map(v => EmissionsRequest.toRaw(v));
+  }
 }
 
 @Entity()
@@ -84,6 +92,13 @@ export class EmissionsRequestSupportingDocument {
 
   @UpdateDateColumn()
   updated_at!: Date;
+
+  public static toRaw(v: EmissionsRequestSupportingDocument) {
+    return { ...v };
+  }
+  public static toRaws(v: EmissionsRequestSupportingDocument[]) {
+    return v.map(v => EmissionsRequestSupportingDocument.toRaw(v));
+  }
 }
 
 

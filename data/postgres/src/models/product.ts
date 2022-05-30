@@ -3,6 +3,7 @@ import {
     PrimaryColumn,
     Column
 } from 'typeorm';
+import bigint_transformer from './bigint_transformer';
 
 @Entity()
 export class Product {
@@ -15,11 +16,11 @@ export class Product {
     @Column()
     auditor!: string;
 
-    @Column({type: 'bigint'})
-    amount!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    amount!: bigint;
 
-    @Column({type: 'bigint'})
-    available!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    available!: bigint;
 
     @Column()
     name!: string;
@@ -27,9 +28,16 @@ export class Product {
     @Column()
     unit!: string;
 
-    @Column({type: 'bigint'})
-    unitAmount!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    unitAmount!: bigint;
 
     @Column()
     hash!: string;
+
+    public static toRaw(v: Product) {
+        return { ...v };
+    }
+    public static toRaws(v: Product[]) {
+        return v.map(v => Product.toRaw(v));
+    }
 }

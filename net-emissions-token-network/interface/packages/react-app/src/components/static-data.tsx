@@ -21,6 +21,7 @@ export type Wallet = {
   public_key?: string
   private_key?: string
   public_key_name?: string
+  metamask_encrypted_public_key?: string
 }
 
 export type Token = {
@@ -51,17 +52,17 @@ export type Tracker = {
   thruDate?: number
   metadata: string
   description: string
-  totalEmissions: number
-  myProductsTotalEmissions: number
+  totalEmissions: bigint
+  myProductsTotalEmissions: bigint
   auditor: string
   products:{ 
     ids: number[]
     names: string[]
-    myBalances: number[]
-    amounts: number[]
-    available: number[]
-    emissionFactors: number[]
-    conversions: number[]
+    myBalances: bigint[]
+    amounts: bigint[]
+    available: bigint[]
+    emissionFactors: bigint[]
+    conversions: bigint[]
     units: string[]
   }
   tokens:{

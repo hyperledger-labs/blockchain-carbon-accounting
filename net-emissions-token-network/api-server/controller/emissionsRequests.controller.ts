@@ -285,3 +285,30 @@ export async function postEmissionsRequest(req: Request, res: Response) {
   }
 }
 
+export async function postCalculateEmissionsRequest(req: Request, res: Response) {
+  try {
+    console.log('postCalculateEmissionsRequest...')
+
+    // build an Activity object to pass to supply-chain processActivity
+    // we also do some validation here
+    const activity = getActivity(req.body)
+    if (!activity) {
+      return res.status(400).json({ status: 'failed', error: 'Bad activity inputs!' })
+    }
+    const result = await process_activity(activity);
+    console.log('Processed activity:', result)
+    const total_emissions = result.emissions?.amount;
+    if (!total_emissions) {
+      return res.status(400).json({ status: 'failed', error: 'Could not get the total emissions for the activity!' })
+    }
+    const allresp = { status: 'success', result };
+    return res.status(200).send(JSON.stringify(allresp, (_, v) => typeof v === 'bigint' ? v.toString() : v));
+  } catch (error) {
+    console.error('postEmissionsRequest error: ', error);
+    if (error instanceof ApplicationError) {
+      return res.status(error.status).json({ status: 'failed', error })
+    }
+    return res.status(500).json({ status: 'failed', error:  (error as Error).message });
+  }
+}
+

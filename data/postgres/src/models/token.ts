@@ -3,6 +3,7 @@ import {
     PrimaryColumn,
     Column
 } from 'typeorm';
+import bigint_transformer from './bigint_transformer';
 
 @Entity()
 export class Token {
@@ -31,25 +32,30 @@ export class Token {
     dateCreated!: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    // eslint-disable-next-line
-    metadata!: Object;
+    metadata!: Object; // eslint-disable-line
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
-    // eslint-disable-next-line
-    manifest!: Object;
+    manifest!: Object; // eslint-disable-line
 
     @Column({nullable: true})
     description!: string;
 
-    @Column({type: 'bigint'})
-    totalIssued!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    totalIssued!: bigint;
 
-    @Column({type: 'bigint'})
-    totalRetired!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    totalRetired!: bigint;
 
     @Column({nullable: true})
     scope!: number;
 
     @Column({nullable: true})
     type!: string;
+
+    public static toRaw(v: Token) {
+        return { ...v };
+    }
+    public static toRaws(v: Token[]) {
+        return v.map(v => Token.toRaw(v));
+    }
 }

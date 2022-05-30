@@ -115,8 +115,8 @@ describe("Net Emissions Token Network - Unit tests", function() {
       error = err.toString();
       if (err.error) error = err.error.toString();
     }
-    expect(error).to.equal(
-      revertError("CLM8::getTokenType: tokenId does not exist")
+    expect(error).to.contain(
+      "CLM8::getTokenType: tokenId does not exist"
     );
   });
 
@@ -643,8 +643,8 @@ describe("Net Emissions Token Network - Unit tests", function() {
       error = err.toString();
       if (err.error) error = err.error.toString();
     }
-    expect(error).to.equal(
-      revertError("CLM8::getTokenRetiredAmount: tokenId does not exist")
+    expect(error).to.contain(
+      "CLM8::getTokenRetiredAmount: tokenId does not exist"
     );
 
   });

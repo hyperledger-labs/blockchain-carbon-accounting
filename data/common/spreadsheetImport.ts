@@ -8,6 +8,50 @@ import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from
 import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from "./db"
 
 
+class LoadInfo {
+  filename: string
+  sheet: string
+  progressBar: SingleBar
+  total: number
+  loaded: number
+  ignored: number
+  ignored_map: Record<string, number>
+  verbose = true
+  constructor(filename: string, sheet: string, progressBar: SingleBar, dataLength: number) {
+    this.filename = filename
+    this.sheet = sheet
+    progressBar.start(dataLength, 0);
+    this.progressBar = progressBar
+    this.total = 0
+    this.loaded = 0
+    this.ignored = 0
+    this.ignored_map = {}
+  }
+
+  public incLoaded() {
+    this.total++
+    this.loaded++
+    this.progressBar.increment();
+  }
+  public incIgnored(reason?: string) {
+    this.total++
+    this.ignored++
+    this.progressBar.increment();
+    if (reason) {
+      this.ignored_map[reason] = (this.ignored_map[reason] ?? 0) + 1
+    }
+  }
+  public done() {
+    this.progressBar.stop();
+    console.log(`=== Loaded ${this.filename} | ${this.sheet}: ${this.loaded} rows loaded, ${this.ignored} ignored.`)
+    if (this.verbose) {
+      for (const r in this.ignored_map) {
+        console.log(` - ignored ${this.ignored_map[r]} rows because: ${r}`)
+      }
+    }
+  }
+}
+
 export type ParseWorksheetOpts = {
   verbose?: boolean,
   file: string,
@@ -32,7 +76,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
       format:
         "Parsing worksheet |" +
         "{bar}" +
-        "| {percentage}% || {value}/{total} rows",
+        "| {percentage}% || {value}/{total}", // note sure what the unit is, it's not rows
       barCompleteChar: "\u2588",
       barIncompleteChar: "\u2591",
       hideCursor: true,
@@ -46,6 +90,7 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
 
   const sheet_name_list = workbook.SheetNames;
 
+  // eslint-disable-next-line
   let data: any[] = [];
   for (const sheet of sheet_name_list) {
     opts.verbose && console.log("Worksheet: ", sheet);
@@ -83,7 +128,9 @@ export const parseWorksheet = (opts: ParseWorksheetOpts) => {
 
       const col = z.substring(0, tt).trim();
       const row = parseInt(z.substring(tt));
-      const value = worksheet[z].v;
+      const v = worksheet[z].v
+      const value = v.trim ? v.trim?.() : v;
+      // console.log(`${row} : ${col} = `, value, worksheet[z])
 
       if (opts.skip_rows && opts.skip_rows >= row) continue;
 
@@ -125,12 +172,12 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
 
     if (opts.sheet.startsWith("NRL")) {
       const data = parseWorksheet(opts);
-      progressBar.start(data.length, 0);
+      const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
       for (const row of data) {
-        // skip empty rows
-        if (!row || !row["Data Year"]) continue;
-        // skip header rows
-        if (row["Data Year"] == "YEAR") continue;
+        if (!row) { loader.incIgnored('Undefined row'); continue; }
+        if (!row["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
+        if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
+        opts.verbose && console.log("-- Prepare to insert from ", row);
         // get annual generation and emissions
         const net_generation = row["NERC region annual net generation (MWh)"].toString();
         const total_net_generation = Number(net_generation);
@@ -150,7 +197,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           country: "USA",
           division_type: "NERC_REGION",
           division_id: row["NERC region acronym"],
-          division_name: (row["NERC region name "] || "").replace(/ /g, "_"),
+          division_name: (row["NERC region name"] || "").replace(/ /g, "_"),
           net_generation,
           net_generation_uom: "MWH",
           activity_uom: "MWH",
@@ -168,19 +215,17 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           percent_of_renewables: "",
         };
         await db.putEmissionFactor(d);
-        progressBar.increment();
+        loader.incLoaded();
       }
-      progressBar.stop();
+      loader.done();
       return;
     } else if (opts.sheet.startsWith("ST")) {
       const data = parseWorksheet(opts);
-      progressBar.start(data.length, 0);
-
+      const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
       for (const row of data) {
-        // skip empty rows
-        if (!row || !row["Data Year"]) continue;
-        // skip header rows
-        if (row["Data Year"] == "YEAR") continue;
+        if (!row) { loader.incIgnored('Undefined row'); continue; }
+        if (!row["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
+        if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
         opts.verbose && console.log("-- Prepare to insert from ", row);
         // get annual generation and emissions
         const net_generation = row["State annual net generation (MWh)"].toString();
@@ -217,19 +262,17 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           percent_of_renewables: "",
         };
         await db.putEmissionFactor(d);
-        progressBar.increment();
+        loader.incLoaded();
       }
-      progressBar.stop();
+      loader.done();
       return;
     } else if (opts.sheet.startsWith("US")) {
       const data = parseWorksheet(opts);
-      progressBar.start(data.length, 0);
-
+      const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
       for (const row of data) {
-        // skip empty rows
-        if (!row || !row["Data Year"]) continue;
-        // skip header rows
-        if (row["Data Year"] == "YEAR") continue;
+        if (!row) { loader.incIgnored('Undefined row'); continue; }
+        if (!row["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
+        if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
         // get annual generation and emissions
         const net_generation = row["U.S. annual net generation (MWh)"].toString();
         const total_net_generation = Number(net_generation);
@@ -266,25 +309,32 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           percent_of_renewables: "",
         };
         await db.putEmissionFactor(d);
-        progressBar.increment();
+        loader.incLoaded();
       }
-      progressBar.stop();
+      loader.done();
       return;
     } else {
       console.log(`Wrong sheet name ${opts.sheet} for egrid_data format, should start with NLR or ST or US`);
     }
   } else if (opts.format === "eea_res_proxies") {
     const data = parseWorksheet(opts);
-    progressBar.start(data.length, 0);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
 
     for (const row of data) {
       // skip empty rows
-      if (!row || row["CountryShort"].slice(0, 2) == "EU") continue;
+      if (!row) { loader.incIgnored('Undefined row'); continue; }
+      const countryShort = (row["CountryShort"]??row["MS short"])?.slice(0, 2)
+      if (countryShort == "EU") { loader.incIgnored('EU as country'); continue; }
+      const shareRenewable = row["ValueNumeric"]??row["Total RES share proxy"];
 
       // skip rows unrelated to electricity
-      if (row["Market_Sector"] !== "Electricity") continue;
+      const sector = row["Market_Sector"]
+      if (sector && sector !== "Electricity") { loader.incIgnored('Not Electricity sector: ' + sector); continue; }
 
-      const countryName = getCountryMapping(row["CountryShort"]);
+      const countryName = getCountryMapping(countryShort);
+      if (!countryName) { loader.incIgnored('No country mapping for short: ' + countryName); continue; }
+      opts.verbose && console.log("-- Prepare to insert from ", row);
+
       const d: EmissionsFactorInterface = {
         class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
         uuid: uuidv4(),
@@ -305,47 +355,37 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         source: opts.source || opts.file,
         non_renewables: "",
         renewables: "",
-        percent_of_renewables: (Number(row[" ValueNumeric"]) * 100).toString(),
+        percent_of_renewables: shareRenewable ? (Number(shareRenewable) * 100).toString() : undefined,
       };
       await db.putEmissionFactor(d);
-      progressBar.increment();
+      loader.incLoaded();
     }
-    progressBar.stop();
+    loader.done();
     return;
   } else if (opts.format === "eea_intensity") {
     console.log("Assuming eea_res_proxies has already been imported...");
     const data = parseWorksheet(opts);
-    progressBar.start(data.length, 0);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
     for (const row of data) {
-      // skip empty rows
-      if (!row) {
-        continue;
-      }
+      if (!row) { loader.incIgnored('Undefined row'); continue; }
 
       const year = row["Year"] || row["date:number"] || row["Date:year"];
-      if (!year) {
-        continue;
-      }
-      console.log("ROW", row);
+      if (!year) { loader.incIgnored('Missing "Year"'); continue; }
 
       // skip total EU
       const country = row["ugeo:text"] || row["Member State:text"] || row["CountryShort"];
-      if (!country || country.startsWith("EU") || country.startsWith("European Union")) continue;
+      if (!country || country.startsWith("EU") || country.startsWith("European Union")) { loader.incIgnored('EU as country'); continue; }
 
       // get country long name and abbreviation from long name
       const countryLong = row["ugeo:text"]?.replace(" ", "_") || row["CountryLong"]?.replace(" ", "_") || row["Member State:text"]?.replace(" ", "_");
       const countryShort = Object.keys(COUNTRY_MAPPINGS).find(
         (key) => getCountryMapping(key as keyof typeof COUNTRY_MAPPINGS) === countryLong
       );
-
-      // skip if country name not found
-      if (!countryShort) {
-        continue;
-      }
+      if (!countryShort) { loader.incIgnored('No country mapping for long: ' + countryLong); continue; }
 
       const document_id = uuidv4();
       const emissions = row["index:number"] || row["ValueNumeric"];
-      if (!emissions) continue;
+      if (!emissions) { loader.incIgnored('No emissions value'); continue; }
       const d = {
         uuid: document_id,
         type: EMISSIONS_FACTOR_TYPE,
@@ -371,8 +411,8 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           factor.activity_uom = d.activity_uom;
 
           await db.putEmissionFactor(factor);
-          progressBar.increment();
-          console.log('Updated factor ', factor.level_2,factor.year);
+          loader.incLoaded();
+          opts.verbose && console.log('Updated factor ', factor.level_2,factor.year);
         } else {
           console.log("Could not find imported factor");
         }
@@ -402,31 +442,24 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           percent_of_renewables: "",
         };
         await db.putEmissionFactor(factor);
-        console.log('--- IMPORTED factor ', factor.level_2,factor.year);
-        progressBar.increment();
+        opts.verbose && console.log('--- IMPORTED factor ', factor.level_2,factor.year);
+        loader.incLoaded();
       }
     }
-    progressBar.stop();
+    loader.done();
     return;
   } else if (opts.format === "conversion-factors-uk") {
     console.log("Import conversion-factors-uk data, year: ", opts.year);
     opts.skip_rows = 4;
     const data = parseWorksheet(opts);
-    progressBar.start(data.length, 0);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
     const emissions_column_name = "GHG Conversion Factor " + opts.year;
 
-    let i = 0;
     for (const row of data) {
-      i++;
-      // skip empty rows
-      if (!row) continue;
-
-      //skip non CO2e factors
-      if (row.GHG !== "kg CO2e") continue;
-
-      //skip rows with missing factors
-      if (!row[emissions_column_name]) continue;
-
+      if (!row) { loader.incIgnored('Undefined row'); continue; }
+      if (row.GHG !== "kg CO2e") { loader.incIgnored(`Non kg CO2e factors: [${row.GHG}]`); continue; }
+      const emissions = row[emissions_column_name];
+      if (!emissions) { loader.incIgnored('No emissions value'); continue; }
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
       // generate a unique for the rows
@@ -443,15 +476,15 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         uuid: document_id,
         year: opts.year,
         activity_uom: row.UOM,
-        co2_equivalent_emissions: "" + row[emissions_column_name],
+        co2_equivalent_emissions: "" + emissions,
         co2_equivalent_emissions_uom: "kg",
         source: opts.source || opts.file,
       };
 
       await db.putEmissionFactor(d);
-      progressBar.update(i);
+      loader.incLoaded();
     }
-    progressBar.stop();
+    loader.done();
     return;
   } else {
     console.log(`Format ${opts.format} is not supported`);
@@ -463,7 +496,7 @@ export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progres
 
   if (opts.file == "Utility_Data_2019.xlsx" || opts.file == "Utility_Data_2020.xlsx") {
     const data = parseWorksheet(opts);
-    progressBar.start(data.length, 0);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
 
     // import data for each valid row, eg:
     // Utility_Number = value from 'Utility Number'
@@ -474,7 +507,8 @@ export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progres
     // -- Division_type = NERC_REGION
     // -- Division_id = value from 'NERC Region'
     for (const row of data) {
-      if (!row || !row["Data Year"]) continue;
+      if (!row) { loader.incIgnored('Undefined row'); continue; }
+      if (!row["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
       opts.verbose && console.log("-- Prepare to insert from ", row);
       const d: UtilityLookupItemInterface = {
         class: UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER,
@@ -491,9 +525,9 @@ export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progres
       };
 
       await db.putUtilityLookupItem(d);
-      progressBar.increment();
+      loader.incLoaded();
     }
-    progressBar.stop();
+    loader.done();
   } else {
     console.log("This sheet or PDF is not currently supported.");
   }

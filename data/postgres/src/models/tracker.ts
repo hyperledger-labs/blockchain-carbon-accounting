@@ -3,6 +3,7 @@ import {
     PrimaryColumn,
     Column
 } from 'typeorm';
+import bigint_transformer from './bigint_transformer';
 
 @Entity()
 export class Tracker {
@@ -15,14 +16,14 @@ export class Tracker {
     @Column()
     auditor!: string;
 
-    @Column({type: 'bigint'})
-    totalProductAmounts!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    totalProductAmounts!: bigint;
 
-    @Column({type: 'bigint'})
-    totalEmissions!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    totalEmissions!: bigint;
 
-    @Column({type: 'bigint'})
-    totalOffsets!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    totalOffsets!: bigint;
 
     @Column({nullable: true})
     fromDate!: number;
@@ -39,4 +40,11 @@ export class Tracker {
 
     @Column({nullable: true})
     description!: string;
+
+    public static toRaw(v: Tracker) {
+        return { ...v };
+    }
+    public static toRaws(v: Tracker[]) {
+        return v.map(v => Tracker.toRaw(v));
+    }
 }

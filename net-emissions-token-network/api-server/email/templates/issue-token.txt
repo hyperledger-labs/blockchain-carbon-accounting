@@ -1,0 +1,14 @@
+An audited emissions token has been issued to you.
+Please click here {{ token_url }} to see your new token or here {{ dashboard_url }} to see all your tokens.
+
+If you did not sign-up to our website, please ignore this email.
+
+Thanks,
+
+© 2021 {{ site_name }}. All rights reserved.
+
+{{ company_name }}
+
+{{ company_address_1 }}
+
+{{ company_address_2 }}

@@ -15,6 +15,36 @@ Copy the `.env.SAMPLE` into `.env` if you need any custom DB connection configur
 
 ## Load Data
 
+Run the script
+```
+sh loadData.sh
+```
+
+to load all the emissions factors and seed data.
+
+## Test
+
+Test the results:
+
+The script `getData` can be used to query the database specific rows of the database, like this:
+```
+npm run getData activity-emissions 'scope 1' 'REFRIGERANT & OTHER' 'KYOTO PROTOCOL - STANDARD' 'PERFLUOROBUTANE (PFC-3-1-10)' '' '' 12 'kg'
+....
+{ emission: { value: 106320, uom: 'kg' }, year: 2021 }
+
+npm run getData  activity-emissions 'scope 3' 'HOTEL STAY' 'HOTEL STAY' 'ROMANIA' '' '' 4 'Room per night'
+....
+{ emission: { value: 102, uom: 'kg' }, year: 2021 }
+
+npm run getData  activity-emissions 'scope 3' 'WTT- business travel- air' 'WTT- flights' 'International, to/from non-UK' 'First class' 'With RF' 2500 'passenger.km'
+{ emission: { value: 153.975, uom: 'kg' }, year: 2021 }
+
+npm run getData  activity-emissions 'scope 3' 'WTT- business travel- air' 'WTT- flights' 'International, to/from non-UK' 'Premium economy class' 'With RF' 2500 'passenger.km
+{ emission: { value: 61.599999999999994, uom: 'kg' }, year: 2021 }
+```
+
+## Reference
+
 ### Emissions Factors
 
 #### Sources
@@ -38,10 +68,9 @@ All needed factors are in this directory, for other versions of those files the 
   * `co2-emission-intensity-from-electricity-generation-5.csv`
   * `co2-emission-intensity-6.csv`
 
-
 #### Load scripts
 
-Load the data with the `dataLoader` script:
+The data is loaded the `dataLoader` script:
 
 * Year is required parameter for UK conversion-factors format and it is ignored in other formats.
 * Source is an optional tag to record where you downloaded the data from.
@@ -73,29 +102,9 @@ npm run dataLoader load_emissions_factors co2-emission-intensity-6.csv -- --form
 
 ### Other Seed Data
 
-Load the rest of the seed data:
+The seed data is in the `seeds/` directory and could also be loaded like this:
 ```
 psql blockchain-carbon-accounting < seeds/*
 ```
 
 
-## Test
-
-Test the results:
-
-The script `getData` can be used to query the database specific rows of the database, like this:
-```
-npm run getData activity-emissions 'scope 1' 'REFRIGERANT & OTHER' 'KYOTO PROTOCOL - STANDARD' 'PERFLUOROBUTANE (PFC-3-1-10)' '' '' 12 'kg'
-....
-{ emission: { value: 106320, uom: 'kg' }, year: 2021 }
-
-npm run getData  activity-emissions 'scope 3' 'HOTEL STAY' 'HOTEL STAY' 'ROMANIA' '' '' 4 'Room per night'
-....
-{ emission: { value: 102, uom: 'kg' }, year: 2021 }
-
-npm run getData  activity-emissions 'scope 3' 'WTT- business travel- air' 'WTT- flights' 'International, to/from non-UK' 'First class' 'With RF' 2500 'passenger.km'
-{ emission: { value: 153.975, uom: 'kg' }, year: 2021 }
-
-npm run getData  activity-emissions 'scope 3' 'WTT- business travel- air' 'WTT- flights' 'International, to/from non-UK' 'Premium economy class' 'With RF' 2500 'passenger.km
-{ emission: { value: 61.599999999999994, uom: 'kg' }, year: 2021 }
-```

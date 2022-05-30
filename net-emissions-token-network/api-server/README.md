@@ -11,8 +11,11 @@ To synchronize with public networks, we will need an API from Moralis:
 * Sign up [Moralis](https://moralis.io/)
 * Go to admin page and select `Speedy Nodes` tab.
 * Select `Binance Network Endpoints` and switch into `WS`.
-* You can find `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws`.
-* You can use this `API_KEY` as `MORALIS_API_KEY` in `.env`.
+* You can use `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws` as `LEDGER_ETH_WS_URL`.
+
+Alternative:
+* Try [GetBlock.io](https://getblock.io/)
+* Use `wss://bsc.getblock.io/testnet/?api_key=YOUR_API_KEY_HERE` as `LEDGER_ETH_WS_URL`
 
 ## Run server
 
@@ -133,3 +136,19 @@ Curl sample command
 curl -H "Accept: application/json" -X GET http://localhost:8000/balances?bundles=issuee,string,0xA2D69B8B08FA9C5987544B6c27F69F848d746Ed6,eq
 
 Query format is same as tokens.
+
+
+## Synchronization
+
+The `firstBlock` should be configured in `.env` based on the contract creation which can be obtained from a chain explorer tool, for example on Binance testnet `https://testnet.bscscan.com/address/<CONTRACT_ADDRESS>`.
+This allows setting a sane starting block for the event fetching.
+
+The server will synchronize with the blockchain on startup based on the `Sync` entity that stores the last synced block number. This include:
+ * token balances, by looking at `TransferSingle` events.
+ * wallet roles, by looking at the role related events (`Registered` and `Unregistered`) to get a list of account addresses then by fetching the contract current roles for those addresses.
+
+Tokens themselves are synced regardless of block numbers by checking the contract token IDs (which are sequential).
+
+On the `hardhat` network (when `.env` has `LEDGER_ETH_NETWORK="hardhat"`) the startup sync will always start at block 0 since fetching events locally is cheap and the state resets whenever `hardhat` restarts.
+
+For blockchain networks that support event subscription we listen to the same events that are parsed during startup.

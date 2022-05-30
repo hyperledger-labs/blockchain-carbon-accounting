@@ -1,6 +1,10 @@
  @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
-
+html {
+  padding:0;
+  margin:0;
+}
 body {
+  padding:0;
   margin: 0;
   font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -10,14 +14,20 @@ body {
   color: #333333;
   background-color: #F1F1F1;
 }
+.main-container {
+  min-height: 60vh;
+}
 
-.btn:not(.input-group-append .btn) {
+.btn:not(.btn-link):not(.input-group-append .btn) {
   border-radius: 10px !important;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
 }
 
 .navbar {
   background-color: #F1F1F1 !important;
+}
+.navbar .btn {
+  line-height: 2em;
 }
 
 .nav-tabs {

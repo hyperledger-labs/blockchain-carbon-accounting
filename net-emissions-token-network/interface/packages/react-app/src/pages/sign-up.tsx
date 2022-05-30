@@ -1,14 +1,16 @@
 import { FC, useState } from "react";
 import { Link } from "wouter"
-import { Form, Button, Card, Spinner } from "react-bootstrap";
+import { Form, Card } from "react-bootstrap";
 
-import { signUpUser } from "../services/api.service";
-import { TRPCClientError } from "@trpc/client";
+import { handleFormErrors, signUpUser } from "../services/api.service";
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
+import AsyncButton from "../components/AsyncButton";
 
 
 type SignUpForm = {
+  name: string,
+  organization: string,
   email: string,
   password: string,
   passwordConfirm: string
@@ -19,6 +21,8 @@ type SignUpForm = {
 type SignUpFormErrors = Partial<SignUpForm>
 
 const defaultSignUpForm: SignUpForm = {
+  name: "",
+  organization: "",
   email: "",
   password: "",
   passwordConfirm: "",
@@ -36,7 +40,7 @@ const SignUp: FC<{}> = () => {
     try {
       setFormErrors({})
       setForm({ ...form, error: "", success: "", loading: "true" })
-      const result = await signUpUser(form.email, form.password, form.passwordConfirm);
+      const result = await signUpUser(form.email, form.password, form.passwordConfirm, form.name, form.organization);
       if (result) {
         setForm({
           ...defaultSignUpForm,
@@ -45,21 +49,7 @@ const SignUp: FC<{}> = () => {
         });
       }
     } catch (err) {
-      console.error(err);
-      if (err instanceof TRPCClientError) {
-        console.warn(err.data)
-        if (err?.data?.zodError?.fieldErrors) {
-          const fieldErrors = err.data.zodError.fieldErrors;
-          const errs: SignUpFormErrors = {};
-          for (const f in fieldErrors) {
-            errs[f as keyof SignUpFormErrors] = fieldErrors[f].join(', ');
-          }
-          setFormErrors({ ...errs })
-        }
-        setForm({ ...form, loading: '', error: err?.data?.domainError });
-      } else {
-        setForm({ ...form, loading: '', error: ("" + ((err instanceof Error) ? err.message : err)) });
-      }
+      handleFormErrors(err, setFormErrors, setForm);
     }
   }
 
@@ -81,23 +71,18 @@ const SignUp: FC<{}> = () => {
                 if (e.currentTarget.checkValidity() === false) return
                 handleSignUp()
               }}>
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} type="input" field="name" label="Name" />
+              <FormInputRow form={form} setForm={setForm} errors={formErrors} type="input" field="organization" label="Organization" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} required type="email" field="email" label="Email" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="passwordConfirm" label="Confirm Password" />
 
-              <Button type="submit" className="w-100 mb-3" variant="success" size="lg" disabled={!!form.loading}>
-                {!!form.loading ?
-                  <Spinner
-                    animation="border"
-                    className="me-2"
-                    size="sm"
-                    as="span"
-                    role="status"
-                    aria-hidden="true"
-                    /> : <></>
-              }
-                Sign Up
-              </Button>
+              <AsyncButton
+                type="submit"
+                className="w-100 mb-3"
+                variant="success"
+                loading={!!form.loading}
+              >Sign Up</AsyncButton>
               {form.error && <ErrorAlert error={form.error} onDismiss={()=>{ setForm({ ...form, error:'' }) }} />}
               <p className="text-muted">If you already have an account, you can <Link href="/sign-in">sign in here</Link>.</p>
             </Form>

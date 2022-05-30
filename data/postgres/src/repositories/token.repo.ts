@@ -41,7 +41,7 @@ export class TokenRepo {
     })
   }
 
-  public updateTotalIssued = async (tokenId: number, amount: string) => {
+  public updateTotalIssued = async (tokenId: number, amount: bigint) => {
     try {
       await this._db.getRepository(Token)
       .createQueryBuilder('token')
@@ -54,7 +54,7 @@ export class TokenRepo {
     }
   }
 
-  public updateTotalRetired = async (tokenId: number, amount: string) => {
+  public updateTotalRetired = async (tokenId: number, amount: bigint) => {
     try {
       await this._db.getRepository(Token)
       .createQueryBuilder('token')

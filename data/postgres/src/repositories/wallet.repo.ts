@@ -76,9 +76,9 @@ export class WalletRepo {
         ...payload,
       })
     } else {
-      // only update non empty new values
+      // only update defined new values as API could accept optional values
       const toMerge = Object.fromEntries(
-        Object.entries(payload).filter(([, v]) => !!v)
+        Object.entries(payload).filter(([, v]) => !!v || v === '')
       )
       // never update the address
       toMerge.address = wallet.address
@@ -99,16 +99,65 @@ export class WalletRepo {
   public findWalletByEmail = async (email: string, with_private_fields?: boolean): Promise<Wallet | null> => {
     const q = this.getRepository()
       .createQueryBuilder(ALIAS)
-      .where(`LOWER(${ALIAS}.email) LIKE LOWER(:email)`, { email })
+      .where(`LOWER(${ALIAS}.email) LIKE LOWER(:email)`, { email: email.trim() })
 
     if (with_private_fields) {
       q.addSelect(`${ALIAS}.email_verified`)
+      q.addSelect(`${ALIAS}.password_reset_token`)
+      q.addSelect(`${ALIAS}.password_reset_token_sent_at`)
+      q.addSelect(`${ALIAS}.verification_token`)
+      q.addSelect(`${ALIAS}.verification_token_sent_at`)
       q.addSelect(`${ALIAS}.private_key`)
       q.addSelect(`${ALIAS}.password_hash`)
       q.addSelect(`${ALIAS}.password_salt`)
       q.addSelect(`${ALIAS}.private_key`)
     }
     return await q.getOne()
+  }
+
+  public changePassword = async (email: string, password: string) => {
+    const { password_hash, password_salt } = Wallet.generateHash(password);
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        password_reset_token: '',
+        password_hash,
+        password_salt
+      })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email: email.trim() })
+      .execute();
+  }
+
+  public markPasswordResetRequested = async (email: string, token: string) => {
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        password_reset_token: token,
+        password_reset_token_sent_at: new Date(),
+      })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email : email.trim()})
+      .execute();
+  }
+
+  public markEmailVerified = async (email: string) => {
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        verification_token: '', 
+        email_verified: true,
+      })
+      .where(`LOWER(email) LIKE LOWER(:email)`, { email: email.trim() })
+      .execute();
+  }
+
+  public markPkExported = async (address: string) => {
+    this.getRepository().createQueryBuilder()
+      .update(Wallet)
+      .set({
+        private_key: '',
+      })
+      .where(`LOWER(address) LIKE LOWER(:address)`, { address })
+      .execute();
   }
 
   public countWallets = async (bundles: Array<QueryBundle>): Promise<number> => {
@@ -138,16 +187,27 @@ export class WalletRepo {
   }
 
   public lookupPaginated = async (offset: number, limit: number, query: string): Promise<Array<Wallet>> => {
-    return await this.makeLookupQuery(query)
-      .limit(limit)
-      .offset(offset)
-      .orderBy(`${ALIAS}.name`, 'ASC')
-      .addOrderBy(`${ALIAS}.address`, 'ASC')
-      .getMany()
+    // i want to customize the orderby so that better matches are put first
+    // this means escaping the user given value and generating a WHERE like statement
+    // to use as order clause, perhaps the best way here is to use a custom
+    // prepared statement:
+    const res = await this.getRepository().query(
+      `SELECT address, name, organization, roles, email FROM wallet
+       WHERE LOWER(address) LIKE LOWER($1)
+       OR LOWER(name) LIKE LOWER($1)
+       OR LOWER(organization) LIKE LOWER($1)
+       ORDER BY LOWER(address) LIKE LOWER($1) DESC,
+       LOWER(name) LIKE LOWER($1) DESC,
+       LOWER(organization) LIKE LOWER($1) DESC,
+       LOWER(name) ASC
+       LIMIT $2 OFFSET $3`,
+      [ query, limit, offset ])
+    return res as Wallet[];
   }
 
   public countLookupWallets = async (query: string): Promise<number> => {
     try {
+      // special ordering from above does not matter for the count
       return await this.makeLookupQuery(query)
         .getCount()
     } catch (error) {

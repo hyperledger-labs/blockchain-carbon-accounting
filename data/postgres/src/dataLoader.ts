@@ -31,6 +31,7 @@ const progressBar = new SingleBar(
   .command(
     "init",
     "DB init and table sync",
+    // eslint-disable-next-line
     async (argv: any) => {
       console.log("=== Init ...")
       const db = await init(parseCommonYargsOptions(argv))
@@ -41,6 +42,7 @@ const progressBar = new SingleBar(
   .command(
     "load_emissions_factors <file> [sheet]",
     "load data from XLSX file",
+    // eslint-disable-next-line
     (yargs: any) => {
       yargs
         .positional("file", {
@@ -64,6 +66,7 @@ const progressBar = new SingleBar(
           description: 'Source data year, required for conversion-factors-uk, skipped for other formats',
         });
     },
+    // eslint-disable-next-line
     async (argv: any) => {
       console.log("=== Starting load_emissions_factors ...")
       if (argv.format === 'conversion-factors-uk' && !argv.year) {
@@ -80,6 +83,7 @@ const progressBar = new SingleBar(
   .command(
     "load_utility_identifiers <file> [sheet]",
     "load data from XLSX file",
+    // eslint-disable-next-line
     (yargs: any) => {
       yargs
         .positional("file", {
@@ -90,6 +94,7 @@ const progressBar = new SingleBar(
           describe: "Name of the worksheet to load from",
         })
     },
+    // eslint-disable-next-line
     async (argv: any) => {
       const db = await init(parseCommonYargsOptions(argv))
       console.log("=== Starting import_utility_identifiers ...")

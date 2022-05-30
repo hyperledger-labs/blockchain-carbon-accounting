@@ -1,10 +1,11 @@
 import { FC, useReducer } from "react";
-import { Button, Form, Spinner } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 
 import ErrorAlert from "./error-alert";
 import { registerIndustry } from "../services/contract-functions";
 import SuccessAlert from "./success-alert";
+import AsyncButton from "./AsyncButton";
 
 type Action = {
   type: 'loading' | 'success' | 'error' | 'dismissError'
@@ -76,18 +77,11 @@ const RegisterSelfIndustry: FC<RegisterSelfIndustryProps> = ({provider, signedIn
   return <>
     <h4 className="mt-4">Register my account as industry</h4>
     {!state.success && <Form.Group className="d-grid gap-2 mt-3 mb-2">
-      <Button disabled={state.loading} variant="success" size="lg" onClick={registerSelfIndustry}>
-        {state.loading ?
-          <Spinner
-            animation="border"
-            className="me-2"
-            size="sm"
-            as="span"
-            role="status"
-            aria-hidden="true"
-            /> : <></>}
-        Register
-      </Button>
+      <AsyncButton
+        loading={state.loading}
+        variant="success"
+        onClick={registerSelfIndustry}
+      >Register</AsyncButton>
     </Form.Group>}
     {state.error && <ErrorAlert error={state.error} onDismiss={()=>{ dispatch({type: 'dismissError'}) }} />}
     {state.success && <SuccessAlert title="Success" noDismiss>{state.success}</SuccessAlert>}

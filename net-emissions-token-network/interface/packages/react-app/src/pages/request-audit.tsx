@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
-import { ChangeEvent, FC, useMemo, useState } from "react";
+import { ChangeEvent, FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Breadcrumb, Button, Col, Form, ListGroup, Row, Spinner } from "react-bootstrap";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
-import { trpc } from "../services/trpc";
+import { trpc, trpcClient } from "../services/trpc";
 import { EmissionsFactorInterface } from "../../../../../../emissions-data/chaincode/emissionscontract/typescript/src/lib/emissionsFactor";
 import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
-import { createEmissionsRequest } from "../services/api.service";
+import { calculateEmissionsRequest, createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
+import { Link } from "wouter";
+import AsyncButton from "../components/AsyncButton";
 
 type RequestAuditProps = {
   provider?: Web3Provider | JsonRpcProvider, 
@@ -21,10 +23,11 @@ type RequestAuditProps = {
 
 
 type ShipmentMode = 'air' | 'ground' | 'sea' | '';
+type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
 
 export type EmissionsFactorForm = {
   issued_from: string,
-  activity_type: 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
+  activity_type: ActivityType
   ups_tracking: string
   shipment_mode: ShipmentMode
   weight: string
@@ -188,9 +191,10 @@ type SuccessResultType = {
     unit: string,
     value: number
   }
+  title?: string
 }
 
-const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
+const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
 
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
   function resetForm() {
@@ -211,6 +215,39 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
   const [loading, setLoading] = useState(false);
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
+
+
+  const selectEmissionsFactor = useCallback((factor: EmissionsFactorInterface|null) => {
+    setEmissionsFactor(factor)
+    setEmForm(e=>{return {
+      ...e,
+      emissions_factor_uuid: factor?.uuid??'',
+      activity_uom: factor?.activity_uom??''
+    }})
+  }, []);
+
+  useEffect(()=>{
+    // if we had saved emissionsRequest and we got redirected
+    // we can auto restore the latest saved request
+    const ls = localStorage.getItem('emissionsRequest')
+    const stored = ls ? JSON.parse(ls) : []
+    const fromAudit = localStorage.getItem('fromAudit')
+    if (fromAudit && stored.length > 0 && signedInAddress) {
+      localStorage.removeItem('fromAudit')
+      // restore the last one (should only store one anyway)
+      const i = ''+(stored.length-1);
+      const f = {...stored[i].request }
+      console.log('Switch to previous request ', f)
+      if (f.emissions_factor_uuid) {
+        trpcClient.query('emissionsFactors.get', { uuid: f.emissions_factor_uuid }).then((factor)=>{
+          if (factor?.emissionsFactor) {
+            selectEmissionsFactor(factor.emissionsFactor)
+          }
+        });
+      }
+      setEmForm(f)
+    }
+  }, [selectEmissionsFactor, signedInAddress])
 
   const level1sQuery = trpc.useQuery(['emissionsFactors.getLevel1s', {}], {
     enabled: !emForm.emissions_factor_uuid && emForm.activity_type === 'emissions_factor',
@@ -300,20 +337,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
     enabled: emForm.activity_type === 'natural_gas',
   })
 
-  const selectEmissionsFactor = (factor: EmissionsFactorInterface|null) => {
-    setEmissionsFactor(factor)
-    setEmForm({
-      ...emForm,
-      emissions_factor_uuid: factor?.uuid??'',
-      activity_uom: factor?.activity_uom??''
-    })
-  }
-
   // Form validation logic
   const formNotReady = useMemo(()=>{
     console.log('Check if form is ready?', emForm, supportingDoc)
     const errors:EmissionsFactorFormErrors = {}
-    if (!supportingDoc || !supportingDoc.name) {
+    if (signedInAddress && (!supportingDoc || !supportingDoc.name)) {
       // must give a file
       errors.supportingDoc = 'A supporting document is required';
       errors.hasErrors = true
@@ -420,54 +448,82 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
           }
         }
       }
-
-
     }
     setFormErrors(errors)
     return !!errors.hasErrors
-  }, [emForm, supportingDoc])
+  }, [emForm, supportingDoc, signedInAddress])
 
-  return roles.hasAnyRole ? (
+  // Form submit
+  const handleSubmit = async(e:any)=>{
+    // autoselect emissionsFactor when drilled down to only one choice if this mode was selected
+    if (emForm.activity_type === 'emissions_factor' && !emForm.emissions_factor_uuid && lookupQuery.data?.emissionsFactors.length === 1) {
+      selectEmissionsFactor(lookupQuery.data.emissionsFactors[0])
+    }
+    // always stop the event as we handle all in this function
+    e.preventDefault()
+    e.stopPropagation()
+    const form = e.currentTarget
+    let valid = true
+    if (form.checkValidity() === false || formNotReady) {
+      valid = false
+    }
+    // mark the form to render validation errors
+    setValidated(true)
+    setTopError('')
+    setTopSuccess(null)
+    if (valid) {
+      setLoading(true)
+      console.log('Form valid, submit with', emForm, supportingDoc)
+      try {
+        // registered users will create an emissions request, non-registered users will just
+        // get the calculated emissions
+        const res = signedInAddress ?
+          await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
+          : await calculateEmissionsRequest(emForm, fromDate, thruDate)
+        console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
+        const distance = res?.result?.distance
+        const emissions = res?.result?.emissions?.amount
+        if (signedInAddress) {
+          setTopSuccess({ distance, emissions })
+          // remove the saved emissions request
+          localStorage.removeItem('emissionsRequest')
+        } else {
+          // save the request in local storage so we can restore it after the user signs in
+          const stored = [{request: {...emForm}, result: { emissions, distance }}];
+          localStorage.setItem('emissionsRequest', JSON.stringify(stored))
+          setTopSuccess({ distance, emissions, title: 'Emissions calculated' })
+        }
+      } catch (err) {
+        console.warn('Form error ', err)
+        setTopError(err instanceof Error ? err.message : String(err))
+      } finally {
+        setLoading(false)
+      }
+      // resetForm()
+    } else {
+      console.log('Form invalid, check errors:', formErrors)
+    }
+  }
+
+  return (
     <>
-      <h2>Request audit</h2>
+      {!signedInAddress && <div>
+        <h2>Welcome to Blockchain Carbon Accounting</h2>
+
+        <p>If you already have a wallet on the Binance Smart Chain Testnet, you can connect to it with Metamask now to login.</p>
+
+        <p>If you don't have a wallet yet, you can either <a rel="noreferrer" target="_blank" href="https://medium.com/spartanprotocol/how-to-connect-metamask-to-bsc-testnet-7d89c111ab2">follow these instructions to get a wallet</a>{' '}
+        or <Link href="/sign-up">Sign Up</Link> with your email to get an account and try it out.</p>
+
+        <p>Or you can start here to get an emissions estimate here, then request an emissions audit based on the result:</p>
+
+      </div>}
+      <h3>Request audit</h3>
       <Form
-        onSubmit={async(e)=>{
-          // autoselect emissionsFactor when drilled down to only one choice if this mode was selected
-          if (emForm.activity_type === 'emissions_factor' && !emForm.emissions_factor_uuid && lookupQuery.data?.emissionsFactors.length === 1) {
-            selectEmissionsFactor(lookupQuery.data.emissionsFactors[0])
-          }
-          // always stop the event as we handle all in this function
-          e.preventDefault()
-          e.stopPropagation()
-          const form = e.currentTarget
-          let valid = true
-          if (form.checkValidity() === false || formNotReady) {
-            valid = false
-          }
-          // mark the form to render validation errors
-          setValidated(true)
-          setTopError('')
-          setTopSuccess(null)
-          if (valid) {
-            setLoading(true)
-            console.log('Form valid, submit with', emForm, supportingDoc)
-            try {
-              const res = await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
-              console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
-              setTopSuccess({distance: res?.result?.distance, emissions: res?.result?.emissions?.amount})
-            } catch (err) {
-              console.warn('Form error ', err)
-              setTopError(err instanceof Error ? err.message : String(err))
-            } finally {
-              setLoading(false)
-            }
-            // resetForm()
-          } else {
-            console.log('Form invalid, check errors:', formErrors)
-          }
-        }}
+        onSubmit={handleSubmit}
         noValidate validated={validated}>
 
+        { signedInAddress &&
         <FormWalletRow form={emForm} setForm={setEmForm} errors={formErrors} field="issued_from" label="Issue From Address" showValidation={validated} disabled={!!topSuccess} onWalletChange={(w)=>{
           setEmForm({
             ...emForm,
@@ -475,21 +531,21 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             flight_carrier: w?.organization ?? '',
             carrier: w?.organization ?? ''
           })
-        }} />
-            <Row>
-              <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
-                <Form.Label>From date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-              <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
-                <Form.Label>Through date</Form.Label>
-                {/* @ts-ignore : some weird thing with the types ... */}
-                {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
-                  <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
-              </Form.Group>
-            </Row>
+        }} /> }
+        <Row>
+          <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
+            <Form.Label>From date</Form.Label>
+            {/* @ts-ignore : some weird thing with the types ... */}
+            {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+              <Form.Control disabled value={fromDate?.toLocaleString() || ''}/>}
+          </Form.Group>
+          <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
+            <Form.Label>Through date</Form.Label>
+            {/* @ts-ignore : some weird thing with the types ... */}
+            {!topSuccess ? <Datetime disabled={!!topSuccess} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/> :
+              <Form.Control disabled value={thruDate?.toLocaleString() || ''}/>}
+          </Form.Group>
+        </Row>
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
           values={[
             {value:'flight', label:'Flight'},
@@ -648,6 +704,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
 
             </>}
 
+          { signedInAddress &&
           <Form.Group controlId="supportingDoc" className="mb-3">
             <Form.Label>Supporting Document</Form.Label>
             {supportingDoc && supportingDoc.name ? 
@@ -656,43 +713,32 @@ const RequestAudit: FC<RequestAuditProps> = ({ roles, signedInAddress }) => {
             <Form.Control.Feedback type="invalid">
               {(formErrors && formErrors.supportingDoc) || "This value is required"}
             </Form.Control.Feedback>
-          </Form.Group>
+          </Form.Group>}
 
           {topError && <ErrorAlert error={topError} onDismiss={()=>{resetForm()}} />}
 
-          {topSuccess ?
-            <SuccessAlert title="Request Submitted Successfully" onDismiss={()=>{resetForm()}}>
+          {topSuccess ? <>
+            <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
               <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
             </SuccessAlert>
-            : 
+            {!signedInAddress && <Link href="/sign-up" onClick={()=>{localStorage.setItem('fromAudit', 'true')}}><Button className="w-100" size="lg" variant="primary">Sign Up to Request to Audit</Button></Link>}
+            </> :
 
-            <Button 
+            <AsyncButton
               className="w-100"
               variant="success"
-              size="lg"
-              disabled={loading}
-              onClick={e=>{ e.currentTarget?.form?.checkValidity(); setValidated(true); }}
+              loading={loading}
               type="submit"
-            >
-              {loading ? 
-                <Spinner 
-                  animation="border" 
-                  className="me-2"
-                  size="sm"   
-                  as="span"
-                  role="status"
-                  aria-hidden="true"
-                  /> : <></>
-            }
-              Submit Request
-            </Button>
+            >{ signedInAddress ? "Request Audit" : "Estimate Emissions" }</AsyncButton>
         }
           </>}
       </Form>
+      <div>
+       <br/><br/><br/><p>Questions?&nbsp;&nbsp;  Check out our <a rel="noreferrer" target="_blank" href="https://discord.gg/7jmwnTyyQ8">Discord channel</a>.
+       </p>
+      </div>
       </>
-  ) : (
-    <p>You must be a registered user to request audits.</p>
   );
 }
 

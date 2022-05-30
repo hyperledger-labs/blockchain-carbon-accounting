@@ -4,6 +4,7 @@ import expressContext from "express-request-context";
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import 'dotenv/config';
+import morgan from 'morgan';
 // sanity checks
 const assertEnv = (key: string): string => {
   if (!process.env[key]) {
@@ -12,7 +13,6 @@ const assertEnv = (key: string): string => {
   }
   return process.env[key] || '';
 }
-// assertEnv('MORALIS_API_KEY')
 const contract_address = assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
 const network_name = assertEnv('LEDGER_ETH_NETWORK')
 const network_rpc_url = assertEnv('LEDGER_ETH_JSON_RPC_URL')
@@ -30,14 +30,12 @@ export type OPTS_TYPE = {
 export const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
 
 // import synchronizer
-import { fillBalances, fillTokens, syncWallets, truncateTable } from './controller/synchronizer';
+import { startupSync } from './controller/synchronizer';
 
 import router from './router/router';
-import { subscribeEvent } from "./components/event.listener";
+import { subscribeToEvents } from "./components/event.listener";
 import { queryProcessing } from "./middleware/query.middle";
 
-// for hardhat test!
-import { synchronizeTokens } from "./middleware/sync.middle";
 import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { trpcMiddleware } from './trpc/common';
 import { Contract } from 'ethers';
@@ -46,10 +44,14 @@ import { Contract } from 'ethers';
 const db = PostgresDBService.getInstance()
 
 const app: Application = express();
-const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
+const PORT: number | string = process.env.API_SERVER_PORT || 8000;
+const CORS: string[] = (process.env.API_SERVER_CORS || 'http://localhost:3000').split(',');
 const corsOptions = {
-    origin: "http://localhost:3000"
+    origin: CORS
 }
+
+// express-winston logger makes sense BEFORE the router
+app.use(morgan('dev'));
 
 // pass some context to all requests
 app.use(expressContext());
@@ -70,68 +72,50 @@ app.use(fileUpload({
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-
-// for hardhat test sync
-if(network_name === 'hardhat') {
-    app.use('/tokens', synchronizeTokens);
-    app.use('/balances', synchronizeTokens);
-}
-
+// needed for rate limiting behind a proxy (since in production this is behind the Apache proxy)
+// this should still work locally even if no proxy are used
+app.set('trust proxy', 1)
 
 // router
 app.use('/', queryProcessing, router);
 app.use('/trpc', trpcMiddleware);
 
-/**
- * TODOs.
- * 1. must make sure sync issued tokens between fillToken & subscribeEvent!
- */
-db.then(async () => {
-  // add truncate
-  try {
-    await truncateTable();
-  } catch (err) {
-    console.error('An error occurred while truncating the table', err)
-    throw err
-  }
-  let elapsed = 0;
-  const started = Date.now();
-  console.log('--- Synchronization started at: ', new Date().toLocaleString());
-  let lastBlock = 0;
-  try {
-    lastBlock = await fillTokens(OPTS);
-    console.log('--first last block: ', lastBlock);
-  } catch (err) {
-    console.error('An error occurred while fetching the tokens', err)
-    throw err
-  }
-  try {
-    await fillBalances(lastBlock, OPTS);
-  } catch (err) {
-    console.error('An error occurred while filling balances', err)
-    throw err
-  }
+if ('true' !== process.env.SKIP_SYNC) {
+  db.then(async () => {
 
-  elapsed = Date.now() - started;
-  console.log(`elapsed ${elapsed / 1000} seconds.\n`);
+    async function sync() {
+      const lastBlock = await startupSync(OPTS);
 
-  // sync wallet roles
-  await syncWallets(lastBlock, OPTS);
-
-  try {
-    // for hardhat
-    if(network_name === 'bsctestnet') {
-      subscribeEvent(lastBlock, OPTS);
+      try {
+        console.log('Subscribing to events starting from block:', lastBlock);
+        subscribeToEvents(OPTS);
+      } catch (err) {
+        console.error('An error occurred while setting up the blockchain event handlers', err);
+        throw err;
+      }
     }
-  } catch (err) {
-    console.error('An error occurred while setting up the blockchain event handlers', err)
-    throw err
-  }
-  app.listen(PORT, () => {
-    console.log(`Server is listening on ${PORT}\n`)
-  });
-})
-  .catch((err) => {
-    console.log("Fatal Error: ", err);
-    process.exit(1);
-  });
+    // call this without await so the server can sync but also serve other requests in the meantime
+    // unless we are on hardhat where to would conflict with the auto sync middleware
+    // this means we do not throw 500 errors while this is still loading but the tokens
+    // will show up with out of date or 0 balances until they are done loading
+    if (network_name !== 'hardhat') {
+      sync();
+    } else {
+      await sync();
+    }
+
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`Server is listening on ${PORT}\n`)
+    });
+  })
+    .catch((err) => {
+      console.log("Fatal Error: ", err);
+      process.exit(1);
+    });
+} else {
+  // in test environment, we do not want to sync
+  // test runner will do the listen call
+}
+
+
+export default app

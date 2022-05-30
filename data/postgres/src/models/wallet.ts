@@ -19,7 +19,12 @@ export class Wallet {
   @Column({nullable:true, select: false})
   email_verified?: boolean
   @Column({nullable:true, select: false})
+  password_reset_token?: string
+  @Column({nullable:true, select: false})
+  password_reset_token_sent_at?: Date
+  @Column({nullable:true, select: false})
   verification_token?: string
+  @Column({nullable:true, select: false})
   verification_token_sent_at?: Date
   @Column({nullable:true, select: false})
   password_hash?: string
@@ -53,7 +58,12 @@ export class Wallet {
   @UpdateDateColumn()
   updated_at!: Date;
 
-
+  public static toRaw(v: Wallet) {
+    return { ...v };
+  }
+  public static toRaws(v: Wallet[]) {
+    return v.map(v => Wallet.toRaw(v));
+  }
 
   public static generateVerificationToken() {
     return randomBytes(32).toString('hex')

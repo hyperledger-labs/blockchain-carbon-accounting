@@ -49,8 +49,8 @@ const networkNameLowercase = (addresses.network.split(" "))[0].toLowerCase(); //
 const blockscoutPage = `https://blockscout.com/xdai/mainnet/address/${addresses.dao.governor.address}/transactions`;
 
 type GovernanceDashboardProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo
 }
 
@@ -126,7 +126,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
     if (!provider) return;
     let balance = await daoTokenTotalSupply(provider);
     setDaoTokenSupply(balance);
-  }, [provider, signedInAddress]);
+  }, [provider]);
 
   const fetchDaoTokenBalance = useCallback(async () => {
     if (!provider) return;
