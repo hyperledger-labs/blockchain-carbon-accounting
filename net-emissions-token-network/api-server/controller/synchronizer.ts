@@ -433,8 +433,8 @@ export const getLastSync = async (opts: OPTS_TYPE) => {
     } else {
         console.log('* No last sync block found. Will be resyncing.');
     }
-    // if no last sync or mistmatched config, return 0
-    return 0;
+    // if no last sync or mistmatched config, return FIRST_BLOCK
+    return FIRST_BLOCK;
 }
 
 export const sendTokenIssuedEmail = async(token: TokenPayload) => {
