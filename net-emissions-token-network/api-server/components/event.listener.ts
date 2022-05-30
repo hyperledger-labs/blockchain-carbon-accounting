@@ -11,6 +11,37 @@ function getErrorMessage(error: unknown) {
   return String(error)
 }
 
+
+/** Keep queue of out-of-order events. */
+const token_event_queue: Record<number, EventData[]> = {}
+
+const add_event_to_queue = (tokenId: number, event: EventData) => {
+  const q = token_event_queue[tokenId] || []
+  q.push(event)
+  token_event_queue[tokenId] = q
+}
+
+const process_token_queued_events = async (tokenId: number) => {
+  const q = token_event_queue[tokenId]
+  if (q) {
+    const db = await PostgresDBService.getInstance()
+    for (const event of q) {
+      await handleTransferEvent(event, db)
+    }
+    // there should not have been any more events appended to the queue
+    // since we created the token prior to checking it
+    delete token_event_queue[tokenId]
+  }
+}
+
+const process_queued_events = async () => {
+  for (const tokenId in token_event_queue) {
+    // check tokenId is a number
+    if (typeof tokenId !== 'number') continue
+    await process_token_queued_events(tokenId)
+  }
+}
+
 // because the events may not always be emitted from the WS, we want to manually sync
 // the past events at given intervals
 // optimal parameters dpend on the blockchain, but for example the BSC makes a block every ~3 seconds
@@ -74,6 +105,8 @@ const task_runner = {
     task_runner.verbose && console.log('---> task_runner now running')
     try {
       await runSync(syncFromBlock, task_runner.opts, true);
+      // also run any queued event here
+      await process_queued_events()
     } catch (err) {
       console.error('!!! task_runner error during sync', err)
     }
@@ -125,7 +158,7 @@ const makeEventHandler = (opts: OPTS_TYPE, contractEvent:any, name: string, onDa
     console.log(`On ${name} event`, event)
     // do not run if we are running the task_runner
     if (task_runner.isRunning) {
-      console.error('!!! task_runner is running, skipping')
+      console.error('!!! task_runner is running, skipping event', name)
       return
     }
     // mark it as running
@@ -165,7 +198,6 @@ export const subscribeToEvents = (opts: OPTS_TYPE) => {
   if (opts.network_name === 'bsctestnet') {
     try {
       const contract = getContract({...opts, use_web_socket: true})
-      const token_event_queue: Record<number, EventData[]> = {}
 
       makeEventHandler(opts, contract.events.TokenCreated, 'TokenCreated', async (event: EventData) => {
         const createdToken = event.returnValues as CreatedToken;
@@ -180,15 +212,7 @@ export const subscribeToEvents = (opts: OPTS_TYPE) => {
           console.log(`\n--- Newly Issued Token ${token.tokenId} has been detected and added to database.`);
         }
         // check for queued events relating to this token
-        const q = token_event_queue[token.tokenId]
-        if (q) {
-          for (const event of q) {
-            await handleTransferEvent(event, db)
-          }
-          // there should not have been any more events appended to the queue
-          // since we created the token prior to checking it
-          delete token_event_queue[token.tokenId]
-        }
+        process_token_queued_events(token.tokenId)
       })
 
       // Single transfer event catch.
@@ -202,9 +226,7 @@ export const subscribeToEvents = (opts: OPTS_TYPE) => {
           await handleTransferEvent(event, db)
         } else {
           console.log(`\n--- Transfer event for token ${transferred.id} has been detected but the token was not found in the database. Possible out-of-order event, queueing ...`);
-          const q = token_event_queue[transferred.id] || []
-          q.push(event)
-          token_event_queue[transferred.id] = q
+          add_event_to_queue(transferred.id, event)
         }
       })
 
