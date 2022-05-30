@@ -49,8 +49,10 @@ const process_queued_events = async () => {
 const task_runner = {
   /** Must pass around the OPTS_TYPE used for web3 connectors */
   opts: {} as OPTS_TYPE,
-  /** If something is running, could be the manual sync or an eventHandler */
+  /** If the manual sync is running */
   isRunning: false,
+  /** If an eventHandler is running */
+  eventsRunning: 0,
   /** For more verbose logging */
   verbose: false,
   /** Interval between the last sync event and running a manual sync */
@@ -82,13 +84,10 @@ const task_runner = {
   /** Run the manual sync process, includes getting new Tokens, Balances and Wallet roles */
   runManualSync: async () => {
     // if isRunning is set do nothing as we might be in the middle of a sync or an eventHandler
-    if (task_runner.isRunning) {
-      console.error('!!! task_runner is already running, skipping')
-      // schedule the next run
-      task_runner.reschedule(task_runner.retryInterval)
+    if (task_runner.reschedule_if_running()) {
       return
     }
-    task_runner.isRunning = true
+
     // check the lastSync block number, only run a sync if it's more than 10 blocks behind
     const syncFromBlock = await getLastSync(task_runner.opts) + 1;
     const currentBlock = await getCurrentBlock(task_runner.opts)
@@ -101,6 +100,10 @@ const task_runner = {
       return
     }
 
+    if (task_runner.reschedule_if_running()) {
+      return
+    }
+    task_runner.isRunning = true
     task_runner.discardEventHandlers()
     task_runner.verbose && console.log('---> task_runner now running')
     try {
@@ -125,6 +128,16 @@ const task_runner = {
     task_runner.handle = setTimeout(async () => {
       await task_runner.runManualSync()
     }, nextRun)
+  },
+  reschedule_if_running: (delay?: number) => {
+    if (task_runner.isRunning || task_runner.eventsRunning) {
+      if (task_runner.isRunning)  console.error('!!! task_runner is already running, skipping')
+      if (task_runner.eventsRunning)  console.error(`!!! task_runner ${task_runner.eventsRunning} events are running, skipping`)
+      // schedule the next run
+      task_runner.reschedule(delay || task_runner.retryInterval)
+      return true
+    }
+    return false
   }
 }
 
@@ -162,7 +175,7 @@ const makeEventHandler = (opts: OPTS_TYPE, contractEvent:any, name: string, onDa
       return
     }
     // mark it as running
-    task_runner.isRunning = true
+    task_runner.eventsRunning++
     try {
       await onData(event)
       // here we want to save the lastSync block number or events will be reprocessed during startup
@@ -172,7 +185,7 @@ const makeEventHandler = (opts: OPTS_TYPE, contractEvent:any, name: string, onDa
     }
     // reschedule the task_runner
     task_runner.reschedule()
-    task_runner.isRunning = false
+    task_runner.eventsRunning--
   })
   .on('changed', makeChangedHandler(name))
   .on('error', makeErrorHandler(name))
