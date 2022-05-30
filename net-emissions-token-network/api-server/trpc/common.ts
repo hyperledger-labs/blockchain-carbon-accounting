@@ -10,7 +10,7 @@ import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
 import { tokenRouter } from './token.trpc';
-
+import { productRouter } from './product.trpc';
 
 // created for each request, here set the DB connector
 const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
@@ -64,6 +64,7 @@ const appRouter = createRouter()
   .merge('balance.', balanceRouter)
   .merge('token.', tokenRouter)
   .merge('wallet.', walletRouter)
+  .merge('product.', productRouter)
   .merge('emissionsFactors.', emissionsFactorsRouter)
   .merge('emissionsRequests.', emissionsRequestsRouter)
 

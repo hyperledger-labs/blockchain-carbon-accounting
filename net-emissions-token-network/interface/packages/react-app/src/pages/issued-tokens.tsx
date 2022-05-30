@@ -14,26 +14,20 @@ import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
 import { BsFunnel } from 'react-icons/bs';
 import {
-  getNumOfUniqueTrackers,
   getRoles,
-  getTrackerDetails,
-  getTrackerIds,
-  getTokenAmounts,
-  getCarbonIntensity
 } from "../services/contract-functions";
 import TokenInfoModal from "../components/token-info-modal";
-import TrackerInfoModal from "../components/tracker-info-modal";
 import { getTokens, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
-import { RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES, Tracker } from "../components/static-data";
+import { RolesInfo, Token, TOKEN_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import IssuedTypeSwitch from '../components/issue-type-switch';
 import DisplayTokenAmount from "../components/display-token-amount";
 import { Link } from "wouter";
 
 type IssuedTokensProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
+  provider?: Web3Provider | JsonRpcProvider,
   signedInAddress: string, 
   displayAddress: string,
   roles: RolesInfo
@@ -49,25 +43,18 @@ let issuedType = 'issuedBy';
 const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensProps> = ({ provider, signedInAddress, roles, displayAddress }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
-  const [modalTrackerShow, setModaltrackerShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState<Token | undefined>();
-  const [selectedTracker, setSelectedTracker] = useState({});
-
   // Balances of my tokens and tokens I've issued
   const [myIssuedTokens, setMyIssuedTokens] = useState<Token[]>([]);
-  const [myIssuedTrackers, setMyIssuedTrackers] = useState<Tracker[]>([]);
 
   const [fetchingTokens, setFetchingTokens] = useState(false);
-  const [fetchingTrackers, setFetchingTrackers] = useState(false);
 
   const [ emissionsRequestsCount, setEmissionsRequestsCount ] = useState(0);
 
   const [error, setError] = useState("");
 
   const isDealer = roles.hasDealerRole;
-  const isIndustry = roles.hasIndustryRole;
   const [displayAddressIsDealer, setDisplayAddressIsDealer] = useState(false);
-  const [displayAddressIsIndustry, setDisplayAddressIsIndustry] = useState(false);
 
   // state vars for pagination
   const [ page, setPage ] = useState(1);
@@ -100,12 +87,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     setModalShow(true);
   }
 
-  function handleOpenTrackerInfoModal(tracker: Tracker) {
-    setSelectedTracker(tracker);
-    setModaltrackerShow(true);
-    console.log(tracker)
-  }
-
   // Allows the parent component to refresh balances on clicking the button in the navigation
   useImperativeHandle(ref, () => ({
     refresh() {
@@ -127,11 +108,9 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
     if (!address || !address.length) {
       setDisplayAddressIsDealer(false);
-      setDisplayAddressIsIndustry(false);
     } else {
       const dRoles = await getRoles(provider, address);
       setDisplayAddressIsDealer(!!dRoles.hasDealerRole);
-      setDisplayAddressIsIndustry(!!dRoles.hasIndustryRole);
     }
   }
 
@@ -144,7 +123,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
     setFetchingTokens(true);
 
     let newMyIssuedTokens: Token[] = [];
-    let newMyIssuedTrackers = [];
     let _issuedCount = 0;
     try {
       // First, fetch number of unique tokens
@@ -176,115 +154,18 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
       setError("Could not connect to contract on the selected network. Check your wallet provider settings.");
     }
 
-    try {
-      // First, fetch number of unique tokens
-      if(!provider) return;
-      let numOfUniqueTrackers = (await getNumOfUniqueTrackers(provider)).toNumber();
-      // Iterate over each tokenId and find balance of signed in address
-      for (let i = 1; i <= numOfUniqueTrackers; i++) {
-        // Fetch tracker details
-        let trackerDetails = await getTrackerDetails(provider, i);
-        console.log('--- trackerDetails', trackerDetails);
-
-        let totalEmissions = "";
-        try {
-          totalEmissions = (trackerDetails.totalEmissions.toNumber() / 1000).toFixed(3);
-        } catch (error) {
-          console.warn("Cannot convert total Issued to number", trackerDetails.totalEmissions);
-          totalEmissions = "";
-        }
-
-        let totalAudited = "";
-        try {
-          totalAudited = (trackerDetails.totalAudited.toNumber() / 1000).toFixed(3);
-        } catch (error) {
-          console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
-          totalAudited = "";
-        }
-
-        let trackerIds = await getTrackerIds(provider, i);
-        console.log('--- trackerIds', trackerIds);
-        let totalOutNumber=0;
-        let totalOut='';
-        try {
-          let tokenAmounts;
-          let sourceTracker = 0;
-          for (let j = 0; j <= trackerIds.length; j++) {
-            tokenAmounts = await getTokenAmounts(provider,i,sourceTracker);
-            for (let k = 0; k < tokenAmounts[2].length; k++) {
-              totalOutNumber += ( tokenAmounts[2][k].toNumber()/ 1000);
-            }
-            sourceTracker = trackerIds[j];
-          }
-          totalOut = totalOutNumber.toFixed(3);
-        } catch (error) {
-          console.warn("Cannot convert tracker totalOut to number", totalOut);
-          totalOut = "";
-        }
-        let ciAecRes = await getCarbonIntensity(provider,0,3);
-        let ciAec = '';
-        try {
-          ciAec = (ciAecRes.toNumber() / 1000000).toFixed(3);
-        } catch (error) {
-          console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
-          ciAec = "";
-        }
-        let ciVctRes = await getCarbonIntensity(provider,0,4);
-        let ciVct = '';
-        try {
-          ciVct = (ciVctRes.toNumber() / 1000000).toFixed(3);
-        } catch (error) {
-          console.warn("Cannot convert total Audited to number", trackerDetails.totalAudited);
-          ciVct = "";
-        }
-
-        let tracker: Tracker = {
-          trackerId: i,
-          trackee: trackerDetails.trackee,
-          fromDate: trackerDetails.fromDate,
-          thruDate: trackerDetails.thruDate,
-          metadata: trackerDetails.metadata,
-          description: trackerDetails.description,
-          totalEmissions: totalEmissions,
-          totalAudited: totalAudited,
-          totalOut: totalOut,
-          ciAec: ciAec,
-          ciVct: ciVct,
-          sourceTrackers: {
-            trackerIds: [],
-            trackerAmounts: [{
-            }],
-            tokenIds: [],
-            totalOut: [],
-            totalTracked: []
-          },
-        };
-
-        if (tracker.trackee.toLowerCase() === signedInAddress.toLowerCase()) {
-          newMyIssuedTrackers.push({...tracker});
-        }
-      }
-
-    } catch (error) {
-      console.log(error);
-      setError("Could not connect to carbon tracker contract on the selected network. Check your wallet provider settings.");
-    }
-
     setMyIssuedTokens(newMyIssuedTokens);
     setFetchingTokens(false);
-    setMyIssuedTrackers(newMyIssuedTrackers);
-    setFetchingTrackers(false);
     setError("");
     setCount(_issuedCount);
     setPage(_page);
     setPageSize(_pageSize);
     setQuery(_query);
-  }, [provider, signedInAddress]);
+  }, [signedInAddress]);
 
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      setFetchingTrackers(true);
       await fetchTokens(1, 20, []);
       let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
       setEmissionsRequestsCount(_emissionsRequestsCount);
@@ -311,14 +192,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
           setSelectedToken(undefined);
         }}
       />}
-      <TrackerInfoModal
-        show={modalTrackerShow}
-        tracker={selectedTracker}
-        onHide={() => {
-          setModaltrackerShow(false);
-          setSelectedTracker({});
-        }}
-      />
 
       <p className="text-danger">{error}</p>
 
@@ -399,42 +272,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
               pageSizeHandler={handlePageSizeChange}
               loading={fetchingTokens}
             /> : <></>}
-          </div>
-        }
-      </div>
-      <div className={(fetchingTrackers && (!myIssuedTrackers || myIssuedTrackers.length === 0)) ? "dimmed" : ""}>
-        {/* Only display issued tokens if owner or dealer */}
-        {((!displayAddress && isIndustry) || (displayAddress && displayAddressIsIndustry)) &&
-          <div className="mt-4">
-            <h4>Carbon Tracker Tokens {(displayAddress) ? 'They' : 'You'}'ve Issued</h4>
-            <Table hover size="sm">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Description</th>
-                  <th>Total Emissions</th>
-                  <th>Total Audited</th>
-                  <th>Tracker IDs</th>
-                  {/* <th>Total Output</th>
-                      <th>Outputs Tracked</th>*/}
-                </tr>
-              </thead>
-              <tbody>
-                {!!myIssuedTrackers &&
-                  myIssuedTrackers.map((tracker) => (
-                    <tr
-                      key={tracker.trackerId}
-                      onClick={() => handleOpenTrackerInfoModal(tracker)}
-                      onMouseOver={pointerHover}
-                    >
-                      <td>{tracker.trackerId}</td>
-                      <td>{tracker.description}</td>
-                      <td>{tracker.totalEmissions}</td>
-                      <td>{tracker.totalAudited}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </Table>
           </div>
         }
       </div>

@@ -5,18 +5,9 @@ import {
     ManyToOne,
     JoinColumn
 } from 'typeorm';
-import { IToken, Token } from './token';
+import { Token } from './token';
 import { bigint_transformer } from './bigint_transformer'
 
-
-export type IBalance = {
-  issuedTo: string;
-  tokenId: number;
-  token: IToken;
-  available: bigint;
-  retired: bigint;
-  transferred: bigint;
-}
 
 @Entity()
 export class Balance {

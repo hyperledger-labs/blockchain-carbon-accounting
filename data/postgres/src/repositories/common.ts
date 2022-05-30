@@ -42,6 +42,33 @@ export interface TokenPayload {
 
 export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at' | 'toJSON'>
 
+export interface TrackerPayload {
+  trackerId: number;
+  trackee: string;
+  auditor: string;
+  totalProductAmounts: bigint;
+  totalEmissions: bigint;
+  totalOffset: bigint;
+  fromDate: number;
+  thruDate: number;
+  dateCreated: number;
+  // eslint-disable-next-line
+  metadata: Object;
+  description: string;
+}
+
+export interface ProductPayload {
+  productId: number;
+  trackerId: number;
+  auditor: string;
+  amount: bigint;
+  available: bigint;
+  name: string;
+  unit: string;
+  unitAmount: bigint;
+  hash: string;
+}
+
 const OP_MAP: Record<string, string> = {
     'eq': '=',
     'like': 'like',

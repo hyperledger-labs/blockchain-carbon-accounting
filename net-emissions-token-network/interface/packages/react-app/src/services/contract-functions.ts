@@ -5,7 +5,7 @@ import { Contract } from "@ethersproject/contracts";
 import { Wallet } from "@ethersproject/wallet"
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { abis, addresses } from "@project/contracts";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Tracker } from "../components/static-data";
 
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
@@ -107,8 +107,8 @@ export async function getRoles(w3provider: Web3Provider | JsonRpcProvider, addre
     // note: the returned value is not extensible, so copy the values here
     const roles = {...r}
     if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasAnyRole = true;
-    if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasDealerRole = true;
-    if (roles.isIndustryDealer || roles.isIndustry) roles.hasIndustryRole = true;
+    if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer ) roles.hasDealerRole = true;
+    if (roles.isIndustry) roles.hasIndustryRole = true;
     return roles;
   } catch (error) {
     console.error('getRoles', address, error);
@@ -150,18 +150,6 @@ export async function getNumOfUniqueTokens(w3provider: Web3Provider | JsonRpcPro
     console.error('getNumOfUniqueTokens', error);
   }
   return uniqueTokens;
-}
-
-export async function getAvailableRetiredAndTransferred(w3provider: Web3Provider | JsonRpcProvider, address: string, tokenId: number) {
-  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
-  let balances;
-  try {
-    balances = await contract.getAvailableRetiredAndTransferred(address, tokenId);
-  } catch (error) {
-    balances = getErrorMessage(error) 
-    console.error('getAvailableAndRetired', error);
-  }
-  return balances;
 }
 
 export async function getTokenType(w3provider: Web3Provider | JsonRpcProvider, tokenId: number) {
@@ -261,6 +249,114 @@ export async function issue(
 
   return issue_result;
 }
+
+export async function issueAndTrack(
+  w3provider: Web3Provider | JsonRpcProvider,
+  issuedFrom: string,
+  issuedTo: string,
+  trackerId: number,
+  trackerDescription: string,
+  tokenTypeId: number,
+  quantity: number,
+  fromDate: number|Date,
+  thruDate: number|Date,
+  metadata: string,
+  manifest: string,
+  description: string,
+) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
+  let signed = contract.connect(signer);
+  let issue_result;
+  try {
+    await signed.issueAndTrack(
+      issuedFrom,
+      issuedTo,
+      addresses.carbonTracker.address,
+      trackerId,
+      //trackerDescription,
+      tokenTypeId,
+      quantity,
+      convertToZeroIfBlank(toUnixTime(fromDate)),
+      convertToZeroIfBlank(toUnixTime(thruDate)),
+      metadata,
+      manifest,
+      description
+    );
+    //let tokenId = await signed.getNumOfUniqueTokens();
+    issue_result = SUCCESS_MSG;
+  } catch (error) {
+    issue_result = catchError(error);
+  }
+  return issue_result;
+}
+
+export async function productUpdate(
+  w3provider: Web3Provider | JsonRpcProvider,
+  trackerId: number,
+  productAmount: number,
+  productName: string,
+  productUnit: string,
+  productUnitAmount: number,
+) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let issue_result,response;
+  try {
+    response = await signed.productsUpdate(
+      trackerId,
+      [0].map(Number),
+      [productAmount].map(Number),
+      convertStringToArray(productName),
+      convertStringToArray(productUnit),
+      [productUnitAmount].map(Number)
+    );
+    issue_result = SUCCESS_MSG;
+  } catch (error) {
+    issue_result = catchError(error);
+  }
+  return [issue_result,response];
+}
+
+export async function verifyTracker(
+  w3provider: Web3Provider | JsonRpcProvider,
+  trackerId: number
+) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let audit_result;
+  try {
+    await signed.audit(trackerId);
+    audit_result = SUCCESS_MSG;
+  } catch (error) {
+    audit_result = catchError(error);
+  }
+  return audit_result;
+}
+
+export async function transferProduct(
+  w3provider: Web3Provider | JsonRpcProvider,
+  sourceTrackerId: number,
+  productId: number,
+  productAmount: number,
+  trackee: string,
+) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let transfer_result;
+  try {
+    await signed.transferProduct(productId,productAmount,sourceTrackerId,trackee);
+    transfer_result = SUCCESS_MSG;
+  } catch (error) {
+    transfer_result = catchError(error);
+  }
+  return transfer_result;
+}
+
+
 
 export async function retire(w3provider: Web3Provider | JsonRpcProvider, tokenId: number, amount: number) {
   let signer = w3provider.getSigner();
@@ -662,11 +758,103 @@ export async function getNumOfUniqueTrackers(w3provider: Web3Provider | JsonRpcP
   }
   return uniqueTrackers;
 }
-export async function getTrackerDetails(w3provider: Web3Provider | JsonRpcProvider, trackerId: number) {
+export async function getTrackerDetails(
+  w3provider: Web3Provider | JsonRpcProvider, 
+  trackerId: number, 
+  address: string): Promise<Tracker|string> {
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let details;
   try {
-    details = await contract.getTrackerDetails(trackerId);
+    let [trackerDetails, totalEmissions, productIds] = (await contract.getTrackerDetails(trackerId));
+    console.log('--- trackerDetails', productIds);
+    totalEmissions = BigInt(totalEmissions);
+    let totalProductAmounts = BigInt(trackerDetails.totalProductAmounts);
+
+    let owner = await contract.ownerOf(trackerId);
+
+    let [tokenIds,tokenAmounts] =  await contract.getTrackerTokenDetails(trackerId);
+    //let tokenIds =result[2][0].map(Number)
+    //let tokenAmounts = result[2][1].map(String);
+    
+    let divDecimals = BigInt(await contract.divDecimals());
+    let carbonIntensity = BigInt(await contract.carbonIntensity(trackerId)) / divDecimals; 
+
+
+    let myProductBalances = [].map(BigInt);
+    let myTokenAmounts = [].map(BigInt);
+    let emissionFactors = [].map(BigInt);
+    let myProductsTotalEmissions = BigInt(0);
+
+    let remainingEmissions = BigInt(0);
+
+    let productAmounts=[],available=[],productNames=[],conversions=[],units=[];
+
+    let result;
+    for (let i = 0; i < productIds.length; i++) {
+      const productDetails = await contract.getProductDetails(productIds[i]);
+      result = productDetails.map(BigInt);
+
+      productAmounts.push(result[1]);
+      available.push(result[2]);
+
+      result = await contract.getProductOptionalDetails(productIds[i]);
+      productNames.push(result[0].toString());
+      conversions.push(result[1]/divDecimals);
+      units.push(result[2].toString());
+
+      myProductBalances[i] = BigInt(await contract.getProductBalance(productIds[i],trackerId,address));
+
+      myTokenAmounts = tokenAmounts.map((e:bigint) => (
+        (e*myProductBalances[i]/totalProductAmounts)));
+
+      myProductsTotalEmissions += myProductBalances[i]*carbonIntensity ;
+
+      productAmounts[i] = productAmounts[i] * conversions[i];
+      myProductBalances[i] = myProductBalances[i] * conversions[i];
+      remainingEmissions += available[i] * carbonIntensity;
+      available[i] = available[i] * conversions[i];
+
+      emissionFactors[i] = carbonIntensity / conversions[i];
+    }
+
+    if(myProductsTotalEmissions>0 && owner.toString().toLowerCase()!==address.toLowerCase()){
+      totalEmissions = myProductsTotalEmissions;
+      tokenAmounts = myTokenAmounts;
+      available = myProductBalances;
+    }
+    let tokenDetails = [];
+    for (let i = 0; i < tokenIds.length; i++) {
+      tokenDetails[i]= await getTokenDetails(w3provider,tokenIds[i]);
+    }
+
+    let tracker: Tracker = {
+      trackerId,
+      auditor: trackerDetails.auditor,
+      trackee: trackerDetails.trackee,
+      fromDate: Number(trackerDetails.fromDate),
+      thruDate: Number(trackerDetails.thruDate),
+      metadata: trackerDetails.metadata,
+      description: trackerDetails.description,
+      totalEmissions,
+      //: Number(remainingEmissions.toFixed(0)),
+      myProductsTotalEmissions,
+      //totalOffset: totalOffset,
+      products: {
+        ids: productIds,
+        myBalances: myProductBalances,
+        names: productNames,
+        amounts: productAmounts,
+        available,
+        emissionFactors: emissionFactors,
+        units,
+        conversions
+      },
+      tokens: {
+        amounts: tokenAmounts,
+        details: tokenDetails
+      },
+    };
+    details = tracker
   } catch (error) {
     details = getErrorMessage(error) 
   }
@@ -692,7 +880,6 @@ export async function getCarbonIntensity(w3provider: Web3Provider | JsonRpcProvi
   }
   return ci;
 }
-
 
 export async function getTokenAmounts(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, sourceTrackerId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
@@ -721,27 +908,22 @@ export async function track(
   w3provider: Web3Provider | JsonRpcProvider,
   trackee: string,
   tokenIds: string,
-  inAmounts: string,
-  outAmounts: string,
-  trackerIds: string,
-  fromDate: Date,
-  thruDate: Date
-) {
+  tokenAmounts: string,
+  fromDate: number|Date, //number|
+  thruDate: number|Date, //number|
+  description: string){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
   let track_result;
   try {
-    await signed.track(
+    track_result=await signed.track(
       trackee,
-      convertStringToArray(tokenIds),
-      convertToTons(inAmounts),
-      convertToTons(outAmounts),
-      convertToTons(trackerIds),
+      convertStringToNumArray(tokenIds),
+      convertToTons(tokenAmounts),
       convertToZeroIfBlank(toUnixTime(fromDate)),
       convertToZeroIfBlank(toUnixTime(thruDate)),
-      "",
-      ""
+      description
     );
     track_result = SUCCESS_MSG;
   } catch (error) {
@@ -750,10 +932,38 @@ export async function track(
   return track_result;
 }
 
-function convertStringToArray(params: string){
+export async function trackUpdate(
+  w3provider: Web3Provider | JsonRpcProvider, trackerId: number,
+  tokenIds: string,tokenAmounts: string, 
+  fromDate: number|Date,thruDate: number|Date, 
+  description: string){
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let track_result;
+  try {
+    track_result=await signed.trackUpdate(
+      trackerId,
+      convertStringToNumArray(tokenIds),
+      convertToTons(tokenAmounts),
+      convertToZeroIfBlank(toUnixTime(fromDate)),
+      convertToZeroIfBlank(toUnixTime(thruDate)),
+      description
+    );
+    track_result = SUCCESS_MSG;
+  } catch (error) {
+    track_result = catchError(error);
+  }
+  return track_result;
+}
+
+function convertStringToNumArray(params: string){
   return params.replace(/\s/g,'').split(',').map(Number);
 }
+function convertStringToArray(params: string){
+  return params.split(',').map(String);
+}
 function convertToTons(params: string){
-  return convertStringToArray(params).map(function(item){ return item*1000 })
+  return convertStringToNumArray(params).map(function(item){ return item*1000 })
 }
 

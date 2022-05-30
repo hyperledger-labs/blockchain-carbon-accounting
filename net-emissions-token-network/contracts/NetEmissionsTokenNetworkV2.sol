@@ -69,7 +69,6 @@ contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, Access
     // Token metadata and retired balances
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
-    mapping(uint256 => mapping(address => uint256)) private _transferredBalances;
 
     // Nonce for tokeTypeId 4 transfer from => to account
     mapping(address => mapping(address => uint32)) private carbonTransferNonce;
