@@ -15,8 +15,8 @@ import { Link } from "wouter";
 import AsyncButton from "../components/AsyncButton";
 
 type RequestAuditProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo,
   limitedMode: boolean
 }
@@ -93,7 +93,7 @@ const EmissionsFactor: FC<{emissionsFactor: EmissionsFactorInterface}> = ({emiss
 
 const EmissionsFactorListItem: FC<{
   emissionsFactor: EmissionsFactorInterface,
-  href: string, 
+  href: string,
   setForm: React.Dispatch<React.SetStateAction<EmissionsFactorForm>>,
   form: EmissionsFactorForm
 }> = ({emissionsFactor, href, setForm, form}) => {
@@ -117,14 +117,14 @@ const EmissionsFactorListItem: FC<{
       ...form,
       level_1: emissionsFactor.level_1,
       level_2: emissionsFactor.level_2,
-      level_3: emissionsFactor.level_3, 
+      level_3: emissionsFactor.level_3,
       level_4:''
     })}}>{emissionsFactor.level_3}</Breadcrumb.Item>
     <Breadcrumb.Item href={href} onClick={(e)=>{ e.stopPropagation(); setForm({
       ...form,
       level_1: emissionsFactor.level_1,
       level_2: emissionsFactor.level_2,
-      level_3: emissionsFactor.level_3, 
+      level_3: emissionsFactor.level_3,
       level_4: emissionsFactor.level_4||''
     })}}>{emissionsFactor.level_4}</Breadcrumb.Item>
     <Breadcrumb.Item active>{emissionsFactor.text} / {emissionsFactor.year} / <b>{Number(emissionsFactor.co2_equivalent_emissions).toFixed(5)} {emissionsFactor.co2_equivalent_emissions_uom}</b> per <b>{emissionsFactor.activity_uom}</b></Breadcrumb.Item>
@@ -178,7 +178,7 @@ const EmissionsFactorUomInputs: FC<{
       </Col>
     </Row>
     else return <FormInputRow key={i} form={form} setForm={setForm} field="activity_amount" type="number" min={0} step="any" label={uom} required errors={errors} disabled={disabled}/>
- 
+
   })}</>
 }
 
@@ -510,7 +510,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
       {!signedInAddress && <div>
         <h2>Welcome to Blockchain Carbon Accounting</h2>
 
-        <p>If you already have a wallet on the Binance Smart Chain Testnet, you can connect to it with Metamask now to login.  If you don't have a wallet yet, you can <a rel="noreferrer" target="_blank" href="https://medium.com/spartanprotocol/how-to-connect-metamask-to-bsc-testnet-7d89c111ab2">follow these instructions to get a wallet</a>.  Then please <a rel="noreferrer" target="_blank" href="https://www.opensourcestrategies.com/contact-us/">contact us</a> so we can register your wallet on the network.</a></p>{' '}
+        <p>If you already have a wallet on the Binance Smart Chain Testnet, you can connect to it with Metamask now to login.  If you don't have a wallet yet, you can <a rel="noreferrer" target="_blank" href="https://medium.com/spartanprotocol/how-to-connect-metamask-to-bsc-testnet-7d89c111ab2">follow these instructions to get a wallet</a>.  Then please <a rel="noreferrer" target="_blank" href="https://www.opensourcestrategies.com/contact-us/">contact us</a> so we can register your wallet on the network.</p>
         <p>You can also <Link href="/sign-up">Sign Up</Link> with your email to get an account and try it out.</p>
 
         <p>Or you can start here to get an emissions estimate here, then request an emissions audit based on the result:</p>
@@ -685,9 +685,9 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
                   </ListGroup>
                   : lookupQuery.isLoading && <div>
                     <span className="me-3">Fetching emissions factors ...</span>
-                    <Spinner 
+                    <Spinner
                       className="me-2"
-                      animation="border" 
+                      animation="border"
                       role="status"
                       size="sm"
                       aria-hidden="true"
@@ -705,7 +705,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
           { signedInAddress &&
           <Form.Group controlId="supportingDoc" className="mb-3">
             <Form.Label>Supporting Document</Form.Label>
-            {supportingDoc && supportingDoc.name ? 
+            {supportingDoc && supportingDoc.name ?
               <p><i>File:</i> <b>{supportingDoc.name}</b> ({supportingDoc.size} bytes) <Button className="ms-2" variant="outline-secondary" size="sm" disabled={!!topSuccess} onClick={_=>{setSupportingDoc(null)}}>Clear</Button></p> :
               <Form.Control required disabled={!!topSuccess} type="file" onChange={(e:ChangeEvent<HTMLInputElement>)=>{ setSupportingDoc(e.currentTarget.files?e.currentTarget.files[0]:null) }} />}
             <Form.Control.Feedback type="invalid">
