@@ -88,6 +88,7 @@ const task_runner = {
       task_runner.reschedule(task_runner.retryInterval)
       return
     }
+    task_runner.isRunning = true
     // check the lastSync block number, only run a sync if it's more than 10 blocks behind
     const syncFromBlock = await getLastSync(task_runner.opts) + 1;
     const currentBlock = await getCurrentBlock(task_runner.opts)
@@ -101,7 +102,6 @@ const task_runner = {
     }
 
     task_runner.discardEventHandlers()
-    task_runner.isRunning = true
     task_runner.verbose && console.log('---> task_runner now running')
     try {
       await runSync(syncFromBlock, task_runner.opts, true);
@@ -170,9 +170,9 @@ const makeEventHandler = (opts: OPTS_TYPE, contractEvent:any, name: string, onDa
     } catch (err) {
       console.error('!!! error in event handler', err)
     }
-    task_runner.isRunning = false
     // reschedule the task_runner
     task_runner.reschedule()
+    task_runner.isRunning = false
   })
   .on('changed', makeChangedHandler(name))
   .on('error', makeErrorHandler(name))
