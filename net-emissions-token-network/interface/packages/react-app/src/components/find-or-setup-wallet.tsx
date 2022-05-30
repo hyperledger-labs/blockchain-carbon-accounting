@@ -233,7 +233,8 @@ const FindOrSetupWallet: FC<Props> = ({
       }
       // update the lookup wallet so the UI reflects the change immediately
       if (lookupWallet) {
-        setLookupWallet(w=>{ return w ? {...w, roles: (w.roles?.split(',') ?? []).concat(role).filter(r=>r).join(',') } : null });
+        // optimistic update of the roles, add it to the list
+        setLookupWallet(w=>{ return w ? {...w, roles: (w.roles?.split(',') ?? []).concat(`${role} (pending)`).filter(r=>r).join(',') } : null });
         setLookupError("");
       }
       setModalShow(true);

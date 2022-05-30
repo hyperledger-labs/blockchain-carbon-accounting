@@ -60,7 +60,7 @@ function RolesCodeToLi({
   return (
     <li>
       {role}
-      { (currentRoles.isAdmin || ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) && role === "Consumer")) && (
+      { !role.endsWith('(pending)') && (currentRoles.isAdmin || ((currentRoles.hasDealerRole || currentRoles.hasIndustryRole) && role === "Consumer")) && (
         <AsyncButton
           variant="outline-danger"
           className="ms-2 my-1"
@@ -171,6 +171,7 @@ const DisplayWalletDetails: FC<Props> = ({
       return;
     }
     if (wallet) {
+      // optimistic update of the roles, remove it from the current roles
       setWallet(wallet ? {...wallet, roles: (wallet.roles?.split(',') ?? []).filter(r=>!!r&&r!==input.role).join(',') } : null);
       setError("");
     }
