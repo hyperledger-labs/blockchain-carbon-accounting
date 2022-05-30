@@ -44,7 +44,7 @@ import { Contract } from 'ethers';
 const db = PostgresDBService.getInstance()
 
 const app: Application = express();
-const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
+const PORT: number | string = process.env.API_SERVER_PORT || 8000;
 const corsOptions = {
     origin: "http://localhost:3000"
 }

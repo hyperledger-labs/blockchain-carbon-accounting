@@ -131,8 +131,8 @@ Note:
 * have your UPS and Google credentials setup
 
 ```
-# TOKEN QUERY SERVER PORT
-TOKEN_QUERY_PORT=8002
+# API SERVER PORT
+API_SERVER_PORT=8002
 
 # needed for the imported modules and SC call
 LEDGER_ETH_JSON_RPC_URL="https://data-seed-prebsc-1-s1.binance.org:8545"
