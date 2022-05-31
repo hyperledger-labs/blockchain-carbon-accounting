@@ -1,6 +1,14 @@
 # Getting Started Instructions
 
-These are some general notes for developers to get started.  Please also read the README.md documentations and installation instructions in each component.
+These are some general notes for developers to get started.  
+
+You will need to run `npm install` in the following directories:
+- data/
+- supply-chain/
+- net-emissions-tokens/api-server/
+- net-emissions-tokens/interface/
+
+Please also read the README.md documentations, net-emissions-tokens/docs/ directory, and installation instructions in each component.  
 
 Run ipfs daemon --enable-pubsub-experiment
 
