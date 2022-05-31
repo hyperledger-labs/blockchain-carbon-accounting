@@ -46,15 +46,15 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee):
                         activity["from_date"] = from_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z')
                         activity["thru_date"] = thru_timestamp.strftime('%Y-%m-%dT%H:%M:%S.000%z')
 
-                        # # test overrides for weight / tracking
-                        # # ONLY FOR TESTING
-                        # if not activity.get("weight"):
-                        #     activity["weight"] = "5"
-                        # if not activity.get("weight_uom"):
-                        #     activity["weight_uom"] = "lbs"
-                        # # set a valid UPS tracking number
-                        # activity["tracking"] = "1Z038EY90300111662"
-                        # # END -- ONLY FOR TESTING
+                        # test overrides for weight / tracking
+                        # ONLY FOR TESTING
+                        if not activity.get("weight"):
+                            activity["weight"] = "5"
+                        if not activity.get("weight_uom"):
+                            activity["weight_uom"] = "lbs"
+                        # set a valid UPS tracking number
+                        activity["tracking"] = "1Z038EY90300111662"
+                        # END -- ONLY FOR TESTING
 
                         activities.append(activity)
                         logging.info(" -- activity {}".format(activity))
@@ -106,15 +106,15 @@ def tokenize_emissions(conn, from_date, thru_date, facility_id, issuee):
                         if billing_weight_uom_id:
                             activity["weight_uom"] = billing_weight_uom_id.lower()
 
-                    # # test overrides for weight / tracking
-                    # # ONLY FOR TESTING
-                    # if not activity.get("weight"):
-                    #     activity["weight"] = "5"
-                    # if not activity.get("weight_uom"):
-                    #     activity["weight_uom"] = "lbs"
-                    # # set a valid UPS tracking number
-                    # activity["tracking"] = "1Z038EY90300111662"
-                    # # END -- ONLY FOR TESTING
+                    # test overrides for weight / tracking
+                    # ONLY FOR TESTING
+                    if not activity.get("weight"):
+                        activity["weight"] = "5"
+                    if not activity.get("weight_uom"):
+                        activity["weight_uom"] = "lbs"
+                    # set a valid UPS tracking number
+                    activity["tracking"] = "1Z038EY90300111662"
+                    # END -- ONLY FOR TESTING
 
                     activities.append(activity)
                     logging.info(" -- activity {}".format(activity))
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     parser.add_argument("--from_date", help="shipments from date, format YYYY-MM-DD HH:MM:SS", required=True)
     parser.add_argument("--thru_date", help="shipments thru date, format YYYY-MM-DD HH:MM:SS", required=True)
     parser.add_argument("--facility_id", required=True)
-    parser.add_argument("--issuee", required=False, help="a wallet address to issue tokens, optional, defaults to .env ETH_ISSUE_TO_ACCT")
+    parser.add_argument("--issuee", required=True, help="a wallet address to issue tokens to")
 
     args = parser.parse_args()
     main(args)

@@ -32,9 +32,18 @@ export function issueToken(req: Request, res: Response) {
 
     const verbose = req.body.verbose;
     const pretend = req.body.pretend;
+    const issuedTo = req.body.issuedTo || req.body.issuee;
     // those are optional since we are queuing
     const issuedFrom = req.body.issuedFrom;
-    const issuedTo = req.body.issuedTo;
+
+    console.log(`Start request, issue to ${issuedTo} verbose? ${verbose} pretend? ${pretend}`)
+    if(!pretend && issuedTo == undefined) {
+        console.log('== 400 No issuee.')
+        return res.status(400).json({
+            status: "failed",
+            msg: "Issuee was not given."
+        });
+    }
 
     // user can upload multiple files, those are the input file and the keys
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };

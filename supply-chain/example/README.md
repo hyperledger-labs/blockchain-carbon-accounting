@@ -33,8 +33,6 @@ Make sure all of the following are running:
 - IPFS daemon must be running
 - The `supply-chain/interface` REST API must be running 
 
-NOTE: `issuee` address on both scripts is optional.
-
 Then you can tokenize the shipments in OFBiz/opentaps database using:
 ```
 python tokenize-ofbiz.py --from_date "2022-01-01 00:00:01" \
