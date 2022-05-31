@@ -52,7 +52,7 @@ export const walletRouter = trpc
             const count = await ctx.db.getWalletRepo().countWallets(input.bundles);
             return {
                 count,
-                wallets
+                wallets: Wallet.toRaws(wallets)
             }
         } catch (error) {
             handleError('list', error)
@@ -71,7 +71,7 @@ export const walletRouter = trpc
             const count = await ctx.db.getWalletRepo().countLookupWallets(input.query);
             return {
                 count,
-                wallets
+                wallets: Wallet.toRaws(wallets)
             }
         } catch (error) {
             handleError('lookup', error)
@@ -106,7 +106,7 @@ export const walletRouter = trpc
                 throw new DomainError('Too many signin attempts from this IP address', 'BAD_REQUEST');
             }
             const wallet = await signinWallet(input.email, input.password);
-            return { wallet }
+            return { wallet: Wallet.toRaw(wallet) }
         } catch (error) {
             handleError('signin', error)
         }
@@ -225,7 +225,7 @@ export const walletRouter = trpc
                 }
 
                 const wallet = await ctx.db.getWalletRepo().getRepository().save(toSave)
-                return { wallet }
+                return { wallet: Wallet.toRaw(wallet) }
             }
             // deny access
             throw new DomainError("You don't have permission to update this wallet", 'FORBIDDEN')
@@ -251,9 +251,7 @@ export const walletRouter = trpc
             const {address: _address, roles :_roles, ...data} = input
             const wallet = await ctx.db.getWalletRepo().ensureWalletWithRoles(address, input.roles, data);
 
-            return {
-                wallet
-            }
+            return { wallet: Wallet.toRaw(wallet) }
         } catch (error) {
             handleError('register', error)
         }
