@@ -34,7 +34,7 @@
     "bootstrap": "5.1.3",
     "chalk": "^5.0.1",
     "framer-motion": "^6.3.5",
-    "ipfs-http-client": "^57.0.0",
+    "ipfs-http-client": "^56.0.3",
     "moment": "^2.29.3",
     "react": "18.1.0",
     "react-bootstrap": "^2.4.0",

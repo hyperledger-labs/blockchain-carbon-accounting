@@ -2,35 +2,45 @@ _list:
 	@just --list
 
 # list the available updates for all the npm dependencies
-ncu: ncu-data ncu-supply-chain ncu-net ncu-net-interface ncu-api-server
+ncu *ARGS:
+  just ncu-data {{ARGS}}
+  just ncu-supply-chain {{ARGS}}
+  just ncu-net {{ARGS}}
+  just ncu-net-interface {{ARGS}}
+  just ncu-api-server {{ARGS}}
 
 # apply the available updates for all the npm dependencies, changing the package.json files
-ncu-update: (ncu-data "-u") (ncu-supply-chain "-u") (ncu-net "-u") (ncu-net-interface "-u") (ncu-api-server "-u")
+ncu-update *ARGS:
+  just ncu-data "-u" {{ARGS}}
+  just ncu-supply-chain "-u" {{ARGS}}
+  just ncu-net "-u" {{ARGS}}
+  just ncu-net-interface "-u" {{ARGS}}
+  just ncu-api-server "-u" {{ARGS}}
 
-ncu-net update='':
+ncu-net *ARGS:
 	@echo "\n** Checking dependencies updates for net-emissions-token-network"
 	@echo "------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/package.json' -x ipfsd-ctl {{update}}
+	ncu --packageFile 'net-emissions-token-network/package.json' -x ipfsd-ctl,ipfs-http-client {{ARGS}}
 
-ncu-api-server update='':
+ncu-api-server *ARGS:
 	@echo "\n** Checking dependencies updates for api-server in net-emissions-token-network/api-server/"
 	@echo "--------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/api-server/package.json' {{update}}
+	ncu --packageFile 'net-emissions-token-network/api-server/package.json' {{ARGS}}
 
-ncu-net-interface update='':
+ncu-net-interface *ARGS:
 	@echo "\n** Checking dependencies updates for react dapp in net-emissions-token-network/interface/"
 	@echo "-------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x @project/contracts {{update}}
+	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x @project/contracts,ipfs-http-client {{ARGS}}
 
-ncu-supply-chain update='':
+ncu-supply-chain *ARGS:
 	@echo "\n** Checking dependencies updates for supply-chain"
 	@echo "---------------------------------------------------"
-	ncu --packageFile 'supply-chain/**/package.json' -x supply-chain-lib {{update}}
+	ncu --packageFile 'supply-chain/**/package.json' -x supply-chain-lib,ipfs-http-client {{ARGS}}
 
-ncu-data update='':
+ncu-data *ARGS:
 	@echo "\n** Checking dependencies updates for data"
 	@echo "-------------------------------------------"
-	ncu --packageFile 'data/**/package.json' {{update}}
+	ncu --packageFile 'data/**/package.json' {{ARGS}}
 
 
 # run npm install for all the modules
