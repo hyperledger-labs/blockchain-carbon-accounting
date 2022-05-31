@@ -69,3 +69,16 @@ process-requests:
 update-deploy:
 	./net-emissions-token-network/scripts/update_emissions_tokens_apps.sh
 
+# Run hardhat tests
+hardhat-test *TESTS:
+	# check if ipfs is running with pgrep then kill it
+	@if pgrep ipfs; then \
+		pkill ipfs; \
+	fi
+	# check if hardhat is running with pgrep then kill it
+	@if pgrep hardhat; then \
+		pkill hardhat; \
+	fi
+	# run hardhat tests
+	cd net-emissions-token-network && npx hardhat test {{TESTS}}
+
