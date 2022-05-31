@@ -126,7 +126,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--from_date", help="shipments from date, format YYYY-MM-DD HH:MM:SS", required=True)
     parser.add_argument("--thru_date", help="shipments thru date, format YYYY-MM-DD HH:MM:SS", required=True)
-    parser.add_argument("--issuee", required=False, help="a wallet address to issue tokens, optional")
+    parser.add_argument("--issuee", required=False, help="a wallet address to issue tokens, optional, defaults to .env ETH_ISSUE_TO_ACCT")
 
     args = parser.parse_args()
     main(args)
