@@ -118,9 +118,9 @@ function useWeb3Modal(config: any = {}) {
     async function fetchRoles(provider: Web3Provider | JsonRpcProvider) {
       setRoles(await getRoles(provider, signedInAddress));
     };
-    async function fetchRegisteredTracker(provider: Web3Provider | JsonRpcProvider) {
-      setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
-    };
+    // async function fetchRegisteredTracker(provider: Web3Provider | JsonRpcProvider) {
+    //   setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
+    // };
     async function fetchLimitedMode(provider: Web3Provider | JsonRpcProvider) {
       setLimitedMode(await getLimitedMode(provider));
     }
