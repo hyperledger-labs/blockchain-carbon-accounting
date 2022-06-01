@@ -12,6 +12,7 @@ import { PostgresDBService } from "./postgresDbService";
     return await PostgresDBService.getInstance(dbopts)
   }
   addCommonYargsOptions(yargs(hideBin(process.argv)))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .command("test", "Run some test queries", {}, async (args: any) => {
     const db = await init(parseCommonYargsOptions(args))
 
@@ -69,6 +70,7 @@ import { PostgresDBService } from "./postgresDbService";
     }
     await db.close()
   })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .command("factors", "Query all factors from the DB", {}, async (args: any) => {
     const db = await init(parseCommonYargsOptions(args))
     try {
@@ -89,6 +91,7 @@ import { PostgresDBService } from "./postgresDbService";
   .command(
     "factor <scope> [level1] [level2] [level3] [level4] [text] [uom]",
     "Lookup an emission factor",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (yargs: any) => {
       yargs
         .positional("scope", {
@@ -120,6 +123,7 @@ import { PostgresDBService } from "./postgresDbService";
           type: "string",
         })
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
@@ -143,6 +147,7 @@ import { PostgresDBService } from "./postgresDbService";
   .command(
     "activity-emissions <scope> <level1> <level2> <level3> <level4> <text> <amount> [uom]",
     "Calculate the emissions for an activity",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (yargs: any) => {
       yargs
         .positional("scope", {
@@ -179,6 +184,7 @@ import { PostgresDBService } from "./postgresDbService";
           default: "kg",
         })
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
