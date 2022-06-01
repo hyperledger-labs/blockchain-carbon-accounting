@@ -24,7 +24,6 @@ const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
   const [result, setResult] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [proposalAttributes, setProposalAttributes] = useState<{description:string}[]>([]);
-  // const proposalAttributeRefs = useRef([]);
 
   async function submit() {
     if (!props.provider) return;
@@ -70,12 +69,7 @@ const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
 
   const createProposalAttributes = (desc: string[]) => {
-    const newAttrs = [...proposalAttributes];
-    desc.forEach(e => {
-      newAttrs.push({description: e});
-    });
-    setProposalAttributes(newAttrs);
-    // proposalAttributeRefs.current = newAttrs.map((_, i) => proposalAttributeRefs.current[i] ? proposalAttributeRefs.current[i] : createRef());
+    setProposalAttributes(p=>[...p, ...desc.map(e => ({description: e}))]);
   };
 
   useEffect(() => {
@@ -95,7 +89,6 @@ const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
       ]);
     } else {
       setProposalAttributes([]);
-      // proposalAttributeRefs.current = [];
     }
   }, [props.token]);
 

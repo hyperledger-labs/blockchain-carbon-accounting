@@ -5,12 +5,11 @@ import Modal from "react-bootstrap/Modal";
 import Row from "react-bootstrap/Row";
 import { FaLink } from 'react-icons/fa';
 import Form from 'react-bootstrap/Form';
-import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
+import { FC, ChangeEvent, useCallback, useState } from "react";
 import { trackUpdate } from "../services/contract-functions";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
-import { Tracker } from "../components/static-data";
 
 import { trpc } from "../services/trpc";
 import { Wallet } from "./static-data";
@@ -23,44 +22,36 @@ type TrackerInfoModalProps = {
   isDealer?:boolean,
 }
 
-type KeyValuePair = {
-  key: string
-  value: string
-}
-
 const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHide,isDealer}) => {
 
   const [trackerDescription, setTrackerDescription] = useState("");
   const onTrackerDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerDescription(event.target.value); }, []);
-  const [result, setResult] = useState("");
   const [trackeeWallet, setTrackeeWallet] = useState<(Wallet)>();
   const [auditorWallet, setAuditorWallet] = useState<(Wallet)>();
 
   function handleSubmit() {
     submit();
-    //setSubmissionModalShow(true);
   }
 
   async function submit() {
     if (!provider) return;
-    let result = await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription);
-    setResult(result.toString());
+    await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription);
   }
-  
-  const name = trpc.useQuery(['wallet.lookup', {query: tracker.trackee}], {
-    onSettled: (output, error) => {
+
+  trpc.useQuery(['wallet.lookup', {query: tracker.trackee}], {
+    onSettled: (output) => {
       console.log('lookup query settled with', output?.wallets)
       if (output?.wallets) {
         setTrackeeWallet([...output?.wallets][0])
-      } 
+      }
     }
   })
   trpc.useQuery(['wallet.lookup', {query: tracker.auditor}], {
-    onSettled: (output, error) => {
+    onSettled: (output) => {
       console.log('lookup query settled with', output?.wallets)
       if (output?.wallets) {
         setAuditorWallet([...output?.wallets][0])
-      } 
+      }
     }
   })
 
@@ -88,7 +79,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             <h5>
                 Reported emissions: {Math.round(tracker.totalEmissions).toLocaleString('en-US')} kgCO2e
             </h5>
-  
+
           </Col>
         </Row>
         <table className="table">
@@ -106,10 +97,10 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                   <small>({trackeeWallet?.address?.substring(0,7)+"..."})</small>
               </td>
             </tr>
-            {(tracker.auditor!=="0x0000000000000000000000000000000000000000" ? 
+            {(tracker.auditor!=="0x0000000000000000000000000000000000000000" ?
               <tr>
                 <td>Auditor</td>
-                <td className="text-monospace">                  
+                <td className="text-monospace">
                   {auditorWallet?.name+"\n"}
                   <small>({auditorWallet?.address?.substring(0,7)+"..."})</small></td>
               </tr>
@@ -124,8 +115,8 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             </tr>
             <tr>
               <td>Description</td>
-  
-              {(isDealer && tracker.auditor=="0x0000000000000000000000000000000000000000") ?
+
+              {(isDealer && tracker.auditor==="0x0000000000000000000000000000000000000000") ?
                 <td style={{ overflowWrap: "anywhere" }}>
                   <Form.Group className="mb-3" controlId="trackerDescriptionInput">
                     <Form.Control as="textarea" placeholder={tracker.description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
@@ -135,7 +126,6 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                     size="lg"
                     className="w-100"
                     onClick={handleSubmit}
-                    //disabled={disableIssueButton(calldata, quantity, address)}
                   >
                     Submit
                   </Button>
@@ -156,7 +146,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             {tracker.products?.names.map((name: any,i: number) => (
               <tr key={name+i}>
                 <td>
-                  {name}{":"+" "}
+                  {name}{": "}
                   <div key={'intensityLabel'+i}>Emission factor</div>
                 </td>
                 <td>
