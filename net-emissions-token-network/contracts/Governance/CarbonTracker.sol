@@ -42,7 +42,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         string metadata;
         string description;
     }
-    /**
+    /** 
      * @dev tracker mappings
      * tokenIds - array of ids of carbon tokens (direct/indirect/offsets)
      * idIndex - mapping tokenId to its index in array. 1st index is 1, 0 reserved for unindexed
@@ -104,7 +104,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     mapping(uint => mapping(uint => mapping(address => uint))) public productBalance;
 
     // map verifier to trackee
-    mapping(address => mapping(address => bool)) isVerifierApproved;
+    mapping(address => mapping (address => bool)) isVerifierApproved;
 
     uint public divDecimals; // decimal expansion for division
 
@@ -132,11 +132,9 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         __ERC721_init('NET Carbon Tracker', "NETT");
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(REGISTERED_TRACKER, _admin);
-    }
-
-    modifier notAudited(uint256 trackerId) {
-        require(
-            _trackerData[trackerId].auditor == address(0),
+    }  
+    modifier notAudited(uint trackerId){
+        require(_trackerData[trackerId].auditor==address(0),
             "CLM8::notAudited: trackerId is already audited"
         );
         _;
@@ -196,20 +194,14 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     /**
      * @dev require msg.sender has admin role
      */
-    modifier selfOrAdmin(address _address) {
-        require(
-            _address == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "CLM8::selfOrAdmin: msg.sender does not own this address or is not an admin"
-        );
+    modifier selfOrAdmin(address _address){
+        require( _address==msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "CLM8::selfOrAdmin: msg.sender does not own this address or is not an admin");               
         _;
     }
 
-    function _verifyTotalTracked(uint256 outAmount, uint256 totalTracked)
-        public
-        pure
-    {
-        require(
-            outAmount >= totalTracked,
+    function _verifyTotalTracked(uint256 outAmount, uint256 totalTracked) public pure {
+        require(outAmount >= totalTracked,
             "CLM8::_verifyTotalTracked: total amount tracked exceeds output of tokenId from trackerId"
         );
     }
@@ -240,14 +232,13 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         super._mint(trackee,trackerData.trackerId);
         return trackerData.trackerId;
     }
-
     /**
-     * @dev update a tracker Token
+     * @dev update a tracker Token 
      * @param trackerId of the token
      * see tracker() function for description of other inputs
-     **/
+    **/ 
     function trackUpdate(
-        uint256 trackerId,
+        uint trackerId,
         uint256[] memory tokenIds,
         uint256[] memory tokenAmounts,
         uint256 fromDate,
@@ -440,7 +431,6 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         }
         emit ProductsUpdated(trackerData.trackerId,productIds,productAmounts);
     }
-
     /**
      * @dev update the token data within the Tracker
      * @param tokenId to be updated
@@ -569,18 +559,17 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         _trackerData[trackerId].auditor=msg.sender;   
     }
 
-    function removeAudit(uint256 trackerId) public isAuditor(trackerId) {
+    function removeAudit(uint trackerId) public isAuditor(trackerId){
         delete _trackerData[trackerId].auditor;
     }
-
     /**
      * @dev msg.sender can volunteer themselves as registered tracker or admin
      */
-    function registerTracker(address tracker) external selfOrAdmin(tracker) {
+    function registerTracker(address tracker) selfOrAdmin(tracker) external
+    {
         _setupRole(REGISTERED_TRACKER, tracker);
         emit RegisteredTracker(tracker);
     }
-
     /**
      * @dev change trackee of trackerId
      * @param trackerId - id of token tp be changed
@@ -602,15 +591,14 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             net.isAuditor(verifier) || !approve,
             "CLM8::approveVerifier: address is not a registered emissions auditor"
         );
-        require(
-            verifier != msg.sender,
+        require(verifier!=msg.sender,
             "CLM8::approveVerifier: auditor cannot be msg.sender"
         );
-        isVerifierApproved[verifier][msg.sender] = approve;
-        if (approve) {
-            emit VerifierApproved(verifier, msg.sender);
-        } else {
-            emit VerifierRemoved(verifier, msg.sender);
+        isVerifierApproved[verifier][msg.sender]=approve;
+        if(approve){
+            emit VerifierApproved(verifier,msg.sender);
+        }else{
+            emit VerifierRemoved(verifier,msg.sender);
         }
     }
 
@@ -708,7 +696,6 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     function getNumOfUniqueTrackers() public view returns (uint256) {
         return _numOfUniqueTrackers.current();
     }
-
     /**
      * @dev returns the details of a given trackerId
      */
@@ -760,12 +747,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     function getNumOfProducts() public view returns (uint256) {
         return _numOfProducts.current();
     }
-
-    function getTrackerIds(uint256 trackerId)
-        public
-        view
-        returns (uint256[] memory)
-    {
+    function getTrackerIds(uint trackerId) public view returns(uint[] memory) {
         return (_trackerMappings[trackerId].trackerIds);
     }
     function getTokenIds(uint trackerId) 

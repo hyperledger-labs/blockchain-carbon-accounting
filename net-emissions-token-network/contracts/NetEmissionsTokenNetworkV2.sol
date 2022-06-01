@@ -11,20 +11,18 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 // V2 example file for testing upgrades
 // This is NOT up to date or a real upgrade of NetEmissionsTokenNetwork.sol
 
-contract NetEmissionsTokenNetworkV2 is
-    Initializable,
-    ERC1155Upgradeable,
-    AccessControlUpgradeable
-{
+contract NetEmissionsTokenNetworkV2 is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
+
     using SafeMathUpgradeable for uint256;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    bool public limitedMode; // disables some features like arbitrary token transfers and issuing without proposals
-    address public admin; // address that has permission to register dealers, transfer in limitedMode, etc.
+    bool public limitedMode;  // disables some features like arbitrary token transfers and issuing without proposals
+    address public admin;     // address that has permission to register dealers, transfer in limitedMode, etc.
     address private timelock; // DAO contract that executes proposals to issue tokens after a successful vote
 
     // Generic dealer role for registering/unregistering consumers
-    bytes32 public constant REGISTERED_DEALER = keccak256("REGISTERED_DEALER");
+    bytes32 public constant REGISTERED_DEALER =
+        keccak256("REGISTERED_DEALER");
     // Token type specific roles
     bytes32 public constant REGISTERED_REC_DEALER =
         keccak256("REGISTERED_REC_DEALER");
@@ -105,6 +103,7 @@ contract NetEmissionsTokenNetworkV2 is
 
     // Replaces constructor in OpenZeppelin Upgrades
     function initialize(address _admin) public initializer {
+
         __ERC1155_init("");
 
         // Allow dealers to register consumers
@@ -169,7 +168,7 @@ contract NetEmissionsTokenNetworkV2 is
     /**
      * @dev returns true if the tokenTypeId is valid
      */
-    function tokenTypeIdIsValid(uint8 tokenTypeId) private pure returns (bool) {
+    function tokenTypeIdIsValid(uint8 tokenTypeId) pure private returns (bool) {
         if ((tokenTypeId > 0) && (tokenTypeId <= 3)) {
             return true;
         }
@@ -183,18 +182,10 @@ contract NetEmissionsTokenNetworkV2 is
         return _numOfUniqueTokens.current();
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC1155Upgradeable, AccessControlUpgradeable)
-        returns (bool)
-    {
-        return
-            interfaceId == type(IAccessControlUpgradeable).interfaceId ||
-            super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual 
+        override(ERC1155Upgradeable,AccessControlUpgradeable) returns (bool) {
+        return interfaceId == type(IAccessControlUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
-
     /**
      * @dev hook to prevent transfers from non-admin account if limitedMode is on
      */
@@ -205,14 +196,20 @@ contract NetEmissionsTokenNetworkV2 is
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) internal virtual override {
+    )
+        internal
+        virtual
+        override
+    {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
 
-        for (uint256 i = 0; i < ids.length; i++) {
+        for (uint i = 0; i < ids.length; i++) {
+
             CarbonTokenDetails storage token = _tokenDetails[ids[i]];
 
             // disable most transfers if limitedMode is on
             if (limitedMode) {
+
                 // allow retiring/burning one's tokens
                 if (to == address(0)) {
                     continue;
@@ -223,8 +220,7 @@ contract NetEmissionsTokenNetworkV2 is
                 // (and they are automatically retired right after)
                 if (token.tokenTypeId != 3) {
                     require(
-                        operator == timelock ||
-                            hasRole(DEFAULT_ADMIN_ROLE, operator),
+                        operator == timelock || hasRole(DEFAULT_ADMIN_ROLE, operator),
                         "CLM8::_beforeTokenTransfer(limited): only admin and DAO can transfer tokens"
                     );
                 } else {
@@ -254,19 +250,18 @@ contract NetEmissionsTokenNetworkV2 is
         string memory manifest,
         string memory description
     ) public onlyDealer {
-        return
-            _issue(
-                msg.sender, // issuedBy
-                issuedFrom,
-                issuedTo,
-                tokenTypeId,
-                quantity,
-                fromDate,
-                thruDate,
-                metadata,
-                manifest,
-                description
-            );
+        return _issue(
+            msg.sender, // issuedBy
+            issuedFrom,
+            issuedTo,
+            tokenTypeId,
+            quantity,
+            fromDate,
+            thruDate,
+            metadata,
+            manifest,
+            description
+        );
     }
 
     /**
@@ -286,24 +281,24 @@ contract NetEmissionsTokenNetworkV2 is
         string memory manifest,
         string memory description
     ) public {
+
         require(
             (msg.sender == timelock) || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
             "CLM8::issueOnBehalf: call must come from DAO or admin"
         );
 
-        return
-            _issue(
-                issuedBy,
-                issuedFrom,
-                issuedTo,
-                tokenTypeId,
-                quantity,
-                fromDate,
-                thruDate,
-                metadata,
-                manifest,
-                description
-            );
+        return _issue(
+            issuedBy,
+            issuedFrom,
+            issuedTo,
+            tokenTypeId,
+            quantity,
+            fromDate,
+            thruDate,
+            metadata,
+            manifest,
+            description
+        );
     }
 
     function _issue(
@@ -318,13 +313,14 @@ contract NetEmissionsTokenNetworkV2 is
         string memory _manifest,
         string memory _description
     ) internal {
+
         require(
             tokenTypeIdIsValid(_tokenTypeId),
             "CLM8::_issue: tokenTypeId is invalid"
         );
 
         if (limitedMode) {
-            if (_tokenTypeId == 1 || _tokenTypeId == 2) {
+            if (_tokenTypeId == 1 || _tokenTypeId == 2 ) {
                 require(
                     msg.sender == timelock,
                     "CLM8::_issue(limited): msg.sender not timelock"
@@ -334,8 +330,7 @@ contract NetEmissionsTokenNetworkV2 is
                     "CLM8::_issue(limited): issuee not admin"
                 );
                 require(
-                    hasRole(REGISTERED_REC_DEALER, _issuedBy) ||
-                        hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
+                    hasRole(REGISTERED_REC_DEALER, _issuedBy) || hasRole(REGISTERED_OFFSET_DEALER, _issuedBy),
                     "CLM8::_issue(limited): proposer not a registered dealer"
                 );
             } else if (_tokenTypeId == 3) {
@@ -371,9 +366,7 @@ contract NetEmissionsTokenNetworkV2 is
         _numOfUniqueTokens.increment();
 
         // create token details
-        CarbonTokenDetails storage tokenInfo = _tokenDetails[
-            _numOfUniqueTokens.current()
-        ];
+        CarbonTokenDetails storage tokenInfo = _tokenDetails[_numOfUniqueTokens.current()];
 
         tokenInfo.tokenId = _numOfUniqueTokens.current();
         tokenInfo.tokenTypeId = _tokenTypeId;
@@ -420,16 +413,12 @@ contract NetEmissionsTokenNetworkV2 is
      * @param tokenId token to mint more of
      * @param quantity amount to mint
      */
-    function mint(
-        address to,
-        uint256 tokenId,
-        uint256 quantity
-    ) external onlyAdmin {
+    function mint(address to, uint256 tokenId, uint256 quantity)
+        external
+        onlyAdmin
+    {
         require(tokenExists(tokenId), "CLM8::mint: tokenId does not exist");
-        require(
-            !limitedMode,
-            "CLM8::mint: cannot mint new tokens in limited mode"
-        );
+        require(!limitedMode, "CLM8::mint: cannot mint new tokens in limited mode");
         super._mint(to, tokenId, quantity, "");
     }
 
@@ -442,10 +431,7 @@ contract NetEmissionsTokenNetworkV2 is
         view
         returns (string memory)
     {
-        require(
-            tokenExists(tokenId),
-            "CLM8::getTokenType: tokenId does not exist"
-        );
+        require(tokenExists(tokenId), "CLM8::getTokenType: tokenId does not exist");
         CarbonTokenDetails storage token = _tokenDetails[tokenId];
 
         if (token.tokenTypeId == 1) {
@@ -454,6 +440,7 @@ contract NetEmissionsTokenNetworkV2 is
             return "Carbon Emissions Offset";
         }
         return "Audited Emissions";
+
     }
 
     /**
@@ -465,10 +452,7 @@ contract NetEmissionsTokenNetworkV2 is
         view
         returns (uint256)
     {
-        require(
-            tokenExists(tokenId),
-            "CLM8::getTokenRetiredAmount: tokenId does not exist"
-        );
+        require(tokenExists(tokenId), "CLM8::getTokenRetiredAmount: tokenId does not exist");
         uint256 amount = _retiredBalances[tokenId][account];
         return amount;
     }
@@ -478,15 +462,19 @@ contract NetEmissionsTokenNetworkV2 is
      * @param tokenId token to set in pause state
      *   Only contract owner can pause or resume tokens
      */
-    function retire(uint256 tokenId, uint256 amount) external consumerOrDealer {
+    function retire(
+        uint256 tokenId,
+        uint256 amount
+    ) external consumerOrDealer {
         require(tokenExists(tokenId), "CLM8::retire: tokenId does not exist");
-        require(
-            (amount <= super.balanceOf(msg.sender, tokenId)),
-            "CLM8::retire: not enough available balance to retire"
-        );
+        require( (amount <= super.balanceOf(msg.sender, tokenId)), "CLM8::retire: not enough available balance to retire" );
 
         _retire(msg.sender, tokenId, amount);
-        emit TokenRetired(msg.sender, tokenId, amount);
+        emit TokenRetired(
+            msg.sender,
+            tokenId,
+            amount
+        );
     }
 
     function _retire(
@@ -495,12 +483,8 @@ contract NetEmissionsTokenNetworkV2 is
         uint256 _quantity
     ) internal {
         super._burn(_address, tokenId, _quantity);
-        _tokenDetails[tokenId].totalRetired = _tokenDetails[tokenId]
-            .totalRetired
-            .add(_quantity);
-        _retiredBalances[tokenId][_address] = _retiredBalances[tokenId][
-            _address
-        ].add(_quantity);
+        _tokenDetails[tokenId].totalRetired = _tokenDetails[tokenId].totalRetired.add(_quantity);
+        _retiredBalances[tokenId][_address] = _retiredBalances[tokenId][_address].add(_quantity);
     }
 
     /**
@@ -535,17 +519,7 @@ contract NetEmissionsTokenNetworkV2 is
      * @dev Helper function for returning tuple of bools of role membership
      * @param account address to check roles
      */
-    function getRoles(address account)
-        external
-        view
-        returns (
-            bool,
-            bool,
-            bool,
-            bool,
-            bool
-        )
-    {
+    function getRoles(address account) external view returns (bool, bool, bool, bool, bool) {
         bool isAdmin = hasRole(DEFAULT_ADMIN_ROLE, account);
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, account);
         bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, account);
@@ -563,10 +537,7 @@ contract NetEmissionsTokenNetworkV2 is
         external
         onlyAdmin
     {
-        require(
-            tokenTypeIdIsValid(tokenTypeId),
-            "CLM8::registerDealer: tokenTypeId does not exist"
-        );
+        require(tokenTypeIdIsValid(tokenTypeId), "CLM8::registerDealer: tokenTypeId does not exist");
         if (tokenTypeId == 1) {
             grantRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
@@ -585,10 +556,7 @@ contract NetEmissionsTokenNetworkV2 is
      */
     function registerConsumer(address account) external onlyDealer {
         if (limitedMode) {
-            require(
-                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-                "CLM8::registerConsumer(limited): only admin can register consumers"
-            );
+            require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "CLM8::registerConsumer(limited): only admin can register consumers");
         }
         grantRole(REGISTERED_CONSUMER, account);
         emit RegisteredConsumer(account);
@@ -602,10 +570,7 @@ contract NetEmissionsTokenNetworkV2 is
         external
         onlyAdmin
     {
-        require(
-            tokenTypeIdIsValid(tokenTypeId),
-            "CLM8::unregisterDealer: tokenTypeId does not exist"
-        );
+        require(tokenTypeIdIsValid(tokenTypeId), "CLM8::unregisterDealer: tokenTypeId does not exist");
         if (tokenTypeId == 1) {
             super.revokeRole(REGISTERED_REC_DEALER, account);
         } else if (tokenTypeId == 2) {
@@ -628,10 +593,7 @@ contract NetEmissionsTokenNetworkV2 is
      */
     function unregisterConsumer(address account) external onlyDealer {
         if (limitedMode) {
-            require(
-                hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-                "CLM8::unregisterConsumer(limited): only admin can unregister consumers"
-            );
+            require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "CLM8::unregisterConsumer(limited): only admin can unregister consumers");
         }
         super.revokeRole(REGISTERED_CONSUMER, account);
         emit UnregisteredConsumer(account);
@@ -651,14 +613,13 @@ contract NetEmissionsTokenNetworkV2 is
         uint256 value
     ) external consumerOrDealer {
         require(tokenExists(tokenId), "CLM8::transfer: tokenId does not exist");
-        require(
-            (msg.sender != to),
-            "CLM8::transfer: sender and receiver cannot be the same"
-        );
+        require((msg.sender != to), "CLM8::transfer: sender and receiver cannot be the same");
         super.safeTransferFrom(msg.sender, to, tokenId, value, "0x00");
     }
 
-    function setTimelock(address _timelock) external onlyAdmin {
+    function setTimelock(
+        address _timelock
+    ) external onlyAdmin {
         timelock = _timelock;
     }
 
@@ -675,7 +636,11 @@ contract NetEmissionsTokenNetworkV2 is
     /**
      * @dev returns issuer of a given tokenId
      */
-    function getIssuedBy(uint256 tokenId) external view returns (address) {
+    function getIssuedBy(uint256 tokenId)
+        external
+        view
+        returns (address)
+    {
         return _tokenDetails[tokenId].issuedBy;
     }
 
@@ -695,7 +660,11 @@ contract NetEmissionsTokenNetworkV2 is
      * @dev turns off or on limited mode
      * @param _limitedMode boolean value
      */
-    function setLimitedMode(bool _limitedMode) external onlyAdmin {
+    function setLimitedMode(bool _limitedMode)
+        external
+        onlyAdmin
+    {
         limitedMode = _limitedMode;
     }
+
 }
