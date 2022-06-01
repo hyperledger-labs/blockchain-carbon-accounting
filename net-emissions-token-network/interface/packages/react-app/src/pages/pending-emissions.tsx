@@ -9,7 +9,7 @@ import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayJSON from "../components/display-json";
 import DisplayDate, { parseDate } from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
-import type { EmissionsRequest } from "../../../../../../data/postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres/src/models/emissionsRequest";
 import { trpc } from "../services/trpc";
 import { useMutation } from "react-query";
 import { useLocation } from "wouter";

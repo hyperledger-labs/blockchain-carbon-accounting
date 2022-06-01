@@ -42,6 +42,25 @@ ncu-data *ARGS:
 	@echo "-------------------------------------------"
 	ncu --packageFile 'data/**/package.json' {{ARGS}}
 
+# Start the supply-chain api server
+supply-chain-api:
+	cd supply-chain && npm run api:dev
+
+# Start the api-server
+api-server:
+	cd net-emissions-token-network/api-server && npm run dev
+
+# Start the react-app frontend
+frontend:
+	cd net-emissions-token-network/interface/packages/react-app && npm run localdev
+
+frontend-build:
+	cd net-emissions-token-network/interface/packages/react-app && npm run build
+
+# Start the ipfs daemon
+ipfs:
+	ipfs daemon
+
 
 # run npm install for all the modules
 npm:

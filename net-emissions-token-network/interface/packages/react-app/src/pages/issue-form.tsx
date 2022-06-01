@@ -7,7 +7,7 @@ import Row from 'react-bootstrap/Row';
 import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { addresses } from "@project/contracts";
+import { addresses } from "@blockchain-carbon-accounting/contracts";
 import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
