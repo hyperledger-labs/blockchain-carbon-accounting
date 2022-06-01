@@ -585,9 +585,9 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     // verify only industry can issue carbon tokens.  Dealer or any consumer issuing would fail.
     let issue = await contract
-      .connect(await ethers.getSigner(industry1))
+      .connect(await ethers.getSigner(dealer1))
       .issue(
-        industry1,
+        dealer1,
         industry1,
         allTokenTypeId[3],
         quantity,
@@ -600,6 +600,24 @@ describe("Net Emissions Token Network - Integration tests", function() {
     // Check to be certain mint did not return errors
     expect(issue);
 
+
+    try {
+      await contract
+        .connect(await ethers.getSigner(industry1))
+        .issue(
+          industry1,
+          industry1,
+          allTokenTypeId[3],
+          quantity,
+          fromDate,
+          thruDate,
+          metadata,
+          manifest,
+          description
+        );
+    } catch (err) {
+      expect(err.toString()).to.equal(revertError("CLM8::_issue: issuer not a registered emissions auditor"));
+    }
 
     try {
       await contract
@@ -621,9 +639,9 @@ describe("Net Emissions Token Network - Integration tests", function() {
 
     try {
       await contract
-        .connect(await ethers.getSigner(industry2))
+        .connect(await ethers.getSigner(dealer1))
         .issue(
-          industry2,
+          industry1,
           industry1,
           allTokenTypeId[3],
           quantity,
@@ -634,27 +652,7 @@ describe("Net Emissions Token Network - Integration tests", function() {
           description
         );
     } catch (err) {
-      expect(err.toString()).to.equal(
-        revertError("CLM8::_issue: registered industry can only issue carbon to itself")
-      );
-    }
-
-    try {
-      await contract
-        .connect(await ethers.getSigner(dealer1))
-        .issue(
-          dealer1,
-          dealer1,
-          allTokenTypeId[3],
-          quantity,
-          fromDate,
-          thruDate,
-          metadata,
-          manifest,
-          description
-        );
-    } catch (err) {
-      expect(err.toString()).to.equal(revertError("CLM8::_issue: issuer not a registered industry"));
+      expect(err.toString()).to.equal(revertError("CLM8::_issue: issuer not a registered emissions auditor"));
     }
 
     // Get ID of token just issued

@@ -11,13 +11,11 @@ import {
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
-import { getRoles } from "../services/contract-functions";
 import TokenInfoModal, { TokenInfo } from "../components/token-info-modal";
-import TrackerInfoModal from "../components/tracker-info-modal";
 import { getBalances, countAuditorEmissionsRequests } from '../services/api.service';
 import Paginator from "../components/paginate";
 import QueryBuilder from "../components/query-builder";
-import { Balance, BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
+import { BALANCE_FIELDS, TOKEN_TYPES } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayTokenAmount from "../components/display-token-amount";
 import Button from 'react-bootstrap/Button';
@@ -35,21 +33,14 @@ type DashboardHandle = {
   refresh: ()=>void
 }
 
-const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ provider, signedInAddress, displayAddress, tokenid }, ref) => {
+const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ signedInAddress, displayAddress, tokenid }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
-  const [modalTrackerShow, setModaltrackerShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenInfo>({});
-  const [selectedTracker, setSelectedTracker] = useState({});
 
   // Balances of my tokens and tokens I've issued
-  const [myBalances, setMyBalances] = useState<Balance[]>([]);
+  const [myBalances, setMyBalances] = useState<any[]>([]);
   const [fetchingTokens, setFetchingTokens] = useState(false);
-
-  // const isDealer = (roles[0] === true || roles[1] === true || roles[2] === true || roles[3] === true || roles[4] === true);
-  // const isIndustry = (roles[4] === true);
-  const [, setDisplayAddressIsDealer] = useState(false);
-  const [, setDisplayAddressIsIndustry] = useState(false);
 
   const [ balancePage, setBalancePage ] = useState(1);
   const [ balanceCount, setBalanceCount ] = useState(0);
@@ -87,27 +78,17 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
     // clear localStorage
     let localStorage = window.localStorage;
     localStorage.setItem('token_balances', '');
-
-    setFetchingTokens(true);
     await fetchBalances(balancePage, balancePageSize, balanceQuery);
   }
 
-  async function fetchAddressRoles(provider: Web3Provider | JsonRpcProvider, address: string) {
-    if (!address || !address.length) {
-      setDisplayAddressIsDealer(false);
-      setDisplayAddressIsIndustry(false);
-    } else {
-      const dRoles = await getRoles(provider, address);
-      setDisplayAddressIsDealer(!!dRoles.hasDealerRole);
-      setDisplayAddressIsIndustry(!!dRoles.hasIndustryRole);
-    }
-  }
+  useEffect(()=>{
+    console.log('myBalances', myBalances);
 
-  useEffect(() => {
-    if(provider) fetchAddressRoles(provider, displayAddress);
-  }, [provider, displayAddress])
+  }, [myBalances]);
 
   const fetchBalances = useCallback(async (_balancePage: number, _balancePageSize: number, _balanceQuery: string[]) => {
+
+    setFetchingTokens(true);
 
     let _balanceCount = 0;
     let newMyBalances = null;
@@ -126,12 +107,9 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         return {
           ...balance,
           tokenId: balance.token.tokenId,
-          token: balance.token,
           tokenType: TOKEN_TYPES[balance.token.tokenTypeId - 1],
-          issuedTo: balance.issuedTo,
           availableBalance: balance.available,
           retiredBalance: balance.retired,
-          transferredBalance: balance.transferred
         }
       });
       setMyBalances(newMyBalances);
@@ -153,31 +131,32 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      if (provider && signedInAddress) {
-        setFetchingTokens(true);
+      if (signedInAddress) {
         const bl = await fetchBalances(1, 20, []);
         if (bl && tokenid) {
           const tid = Number(tokenid);
           let ptoken = null;
-          for (const b of bl) {
-            if (b.token.tokenId === tid) {
-              ptoken = b.token;
-              break;
+          for (let i=0; i<bl.length; i++) {
+            if (bl[i].token.tokenId === tid) {
+              ptoken = bl[i].token;
             }
           }
           if (ptoken) {
-            setSelectedToken({
-              ...ptoken,
-            });
+            setSelectedToken({ ...ptoken });
             setModalShow(true);
           }
         }
-        let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
-        setEmissionsRequestsCount(_emissionsRequestsCount);
       }
+      let _emissionsRequestsCount = await countAuditorEmissionsRequests(signedInAddress);
+      setEmissionsRequestsCount(_emissionsRequestsCount);
     }
-    init();
-  }, [fetchBalances, provider, signedInAddress, tokenid]);
+    if (signedInAddress) {
+      init();
+    } else {
+      // pending for signedInAddress. display the spinner ...
+      setFetchingTokens(true);
+    }
+  }, [signedInAddress, tokenid, fetchBalances]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -193,15 +172,6 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
           setSelectedToken({});
         }}
       />
-      <TrackerInfoModal
-        show={modalTrackerShow}
-        tracker={selectedTracker}
-        onHide={() => {
-          setModaltrackerShow(false);
-          setSelectedTracker({});
-        }}
-      />
-
       <h2>Dashboard</h2>
       {(displayAddress) ? 
         <p className="mb-1">View token balances for {displayAddress}.</p>
@@ -212,9 +182,9 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
         <p className="mb-1">You have {emissionsRequestsCount} pending <Link href='/emissionsrequests'>emissions audits</Link>.</p>
         : null
       }
-      <div className={fetchingTokens ? "dimmed" : ""}>
+      <div className={(fetchingTokens && (!myBalances || myBalances.length === 0)) ? "dimmed" : ""}>
 
-        {fetchingTokens && (
+        {(fetchingTokens && (!myBalances || myBalances.length === 0)) && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
               <span className="visually-hidden">Loading...</span>
@@ -240,11 +210,10 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                   <th>Type</th>
                   <th>Balance</th>
                   <th>Retired</th>
-                  <th>Transferred (carbon tracker)</th>
                 </tr>
               </thead>
               <tbody>
-                {(myBalances !== [] && !fetchingTokens) &&
+                {!!myBalances &&
                   myBalances.map((balance) => (
                     <tr
                       key={balance.token.tokenId}
@@ -263,18 +232,19 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
                       <td>{balance.tokenType}</td>
                       <td><DisplayTokenAmount amount={balance.availableBalance}/></td>
                       <td><DisplayTokenAmount amount={balance.retiredBalance}/></td>
-                      <td><DisplayTokenAmount amount={balance.transferredBalance}/></td>
                     </tr>
                   ))}
               </tbody>
             </Table>
-            {myBalances.length !== 0 ? <Paginator 
-              count={balanceCount}
-              page={balancePage}
-              pageSize={balancePageSize}
-              pageChangeHandler={handleBalancePageChange}
-              pageSizeHandler={handleBalancePageSizeChanged}
-            /> : <></>}
+            {myBalances.length !== 0 ?
+              <Paginator
+                count={balanceCount}
+                page={balancePage}
+                pageSize={balancePageSize}
+                pageChangeHandler={handleBalancePageChange}
+                pageSizeHandler={handleBalancePageSizeChanged}
+                loading={fetchingTokens}
+                /> : <></>}
           </div>
         }
 

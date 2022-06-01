@@ -4,10 +4,9 @@ from common import logging
 import config
 
 
-def tokenize(issuee, pubkey, input_file_name):
+def tokenize(issuee, input_file_name):
     form_data = {"issuee": issuee}
     files = {
-        'keys': open(pubkey, 'rb'),
         'input': open(input_file_name, 'rb')
     }
     try:

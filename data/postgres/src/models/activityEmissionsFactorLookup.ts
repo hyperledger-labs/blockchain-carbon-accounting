@@ -27,5 +27,12 @@ export class ActivityEmissionsFactorLookup {
   text?: string
   @Column({nullable:false})
   activity_uom!: string
+
+  public static toRaw(v: ActivityEmissionsFactorLookup) {
+    return { ...v };
+  }
+  public static toRaws(v: ActivityEmissionsFactorLookup[]) {
+    return v.map(v => ActivityEmissionsFactorLookup.toRaw(v));
+  }
 }
 

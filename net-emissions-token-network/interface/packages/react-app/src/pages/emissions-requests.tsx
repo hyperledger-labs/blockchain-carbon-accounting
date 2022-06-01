@@ -17,8 +17,8 @@ import DisplayDate from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 
 type EmissionsRequestsProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo
 }
 
@@ -26,7 +26,7 @@ type EmissionsRequestsHandle = {
   refresh: ()=>void
 }
 
-const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress, roles }, ref) => {
+const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress }) => {
   const [ pendingEmissions, setPendingEmissions ] = useState<EmissionsRequest[]>([]);
   const [error, setError] = useState("");
   const [, setLocation] = useLocation();
@@ -49,7 +49,7 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
       }
     }
     init();
-  }, [fetchEmissionsRequests, provider, signedInAddress]);
+  }, [provider, signedInAddress, fetchEmissionsRequests]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";

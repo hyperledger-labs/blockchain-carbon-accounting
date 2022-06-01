@@ -44,9 +44,10 @@ export const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url
 const db = PostgresDBService.getInstance()
 
 const app: Application = express();
-const PORT: number | string = process.env.TOKEN_QUERY_PORT || 8000;
+const PORT: number | string = process.env.API_SERVER_PORT || 8000;
+const CORS: string[] = (process.env.API_SERVER_CORS || 'http://localhost:3000').split(',');
 const corsOptions = {
-    origin: "http://localhost:3000"
+    origin: CORS
 }
 
 // express-winston logger makes sense BEFORE the router

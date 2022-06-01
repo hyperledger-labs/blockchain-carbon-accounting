@@ -23,7 +23,7 @@ type PendingEmissionsProps = {
   signedInWallet?: Wallet
 }
 
-const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedInAddress, uuid, signedInWallet }) => {
+const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress, uuid, signedInWallet }) => {
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [error, setError] = useState("");
   const [, setLocation] = useLocation();
@@ -226,7 +226,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, roles, signedIn
               onClick={()=>{ issueQuery.mutate() }}
               loading={issueQuery.isLoading}
             >Issue</AsyncButton>
-          </Col> 
+          </Col>
         </Row>
         : null
     }

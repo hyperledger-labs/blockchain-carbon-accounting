@@ -23,5 +23,12 @@ export class UploadedFile {
 
   @UpdateDateColumn()
   updated_at!: Date;
+
+  public static toRaw(v: UploadedFile) {
+    return { ...v };
+  }
+  public static toRaws(v: UploadedFile[]) {
+    return v.map(v => UploadedFile.toRaw(v));
+  }
 }
 

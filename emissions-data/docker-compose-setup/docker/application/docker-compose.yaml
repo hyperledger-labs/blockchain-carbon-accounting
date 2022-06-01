@@ -30,7 +30,7 @@ services:
         command: server -dev -dev-root-token-id tokenId
     api:
         container_name: api
-        image: zzocker20/emissions-api:0.0.3
+        image: zzocker20/utilityemissions-api:0.0.3
         environment:
             # Ethereum configs
             - LEDGER_ETH_JSON_RPC_URL=http://localhost:8545

@@ -167,10 +167,12 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     const message = {
         from: process.env.MAILER_FROM_ADDRESS,
         to: email,
+        bcc: process.env.VERIFICATION_EMAIL_BCC,
         subject: 'Verify your email',
         text,
         html
     }
+
     return new Promise((resolve, reject) => {
         transporter.sendMail(message, (err, info) => {
             if (err) {

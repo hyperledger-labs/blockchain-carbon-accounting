@@ -1,41 +1,43 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ElementRef, FC, useRef, useState, lazy, Suspense } from "react";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Tab from 'react-bootstrap/Tab';
 
+import { trpc, useTrpcClient } from "./services/trpc";
 import useWeb3Modal from "./hooks/useWeb3Modal";
 import NavigationBar from "./components/navigation-bar";
-
-import { Link, Route, Switch, Redirect, useLocation } from "wouter"
-
-import { QueryClient, QueryClientProvider } from "react-query";
-import { trpc, useTrpcClient } from "./services/trpc";
-
 
 // lazy load routes
 const Dashboard = lazy(() => import("./pages/dashboard"));
 const SignUp = lazy(() => import("./pages/sign-up"));
 const SignIn = lazy(() => import("./pages/sign-in"));
 const IssuedTokens = lazy(() => import("./pages/issued-tokens"));
+const IssuedTrackers = lazy(() => import("./pages/issued-trackers"));
 const EmissionsRequests = lazy(() => import("./pages/emissions-requests"));
 const PendingEmissions = lazy(() => import("./pages/pending-emissions"));
 const IssueForm = lazy(() => import("./pages/issue-form"));
 const TrackForm = lazy(() => import("./pages/track-form"));
 const TransferForm = lazy(() => import("./pages/transfer-form"));
 const RetireForm = lazy(() => import("./pages/retire-form"));
+const ProductForm = lazy(() => import("./pages/product-form"));
+const ProductTransferForm = lazy(() => import("./pages/product-transfer-form"));
 const AccessControlForm = lazy(() => import("./pages/access-control-form"));
 const GovernanceDashboard = lazy(() => import("./pages/governance-dashboard"));
 const RequestAudit = lazy(() => import("./pages/request-audit"));
 const ChangePassword = lazy(() => import("./pages/change-password"));
 const ExportPk = lazy(() => import("./pages/export-pk"));
+const TermsOfUse = lazy(() => import("./pages/terms-of-use"));
+const AppFooter = lazy(() => import("./components/app-footer"));
 
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
 
-  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, registeredTracker, limitedMode, refresh, loaded } = useWeb3Modal();
+  const { provider, loadWeb3Modal, logoutOfWeb3Modal, loadWalletInfo, logoutOfWalletInfo, signedInAddress, signedInWallet, roles,  limitedMode, refresh, loaded } = useWeb3Modal();
 
   const [location] = useLocation();
 
@@ -77,7 +79,6 @@ const App:FC = () => {
                 : null
             }
               <Link href="/requestAudit"><Nav.Link eventKey="requestAudit">Request audit</Nav.Link></Link>
-
               {((limitedMode && isOwner) || !limitedMode) &&
                 <Link href="/transfer"><Nav.Link eventKey="transfer">Transfer tokens</Nav.Link></Link>
             }
@@ -105,7 +106,7 @@ const App:FC = () => {
             }
             </Nav>)}
 
-          <Container className="my-2">
+          <Container className="my-2 main-container">
 
             <Tab.Container defaultActiveKey={location.substring(1) || "dashboard"}>
               <Tab.Content>
@@ -147,8 +148,17 @@ const App:FC = () => {
                         <RetireForm provider={provider} roles={roles} />
                       </Route>
                       <Route path="/track">
-                        <TrackForm provider={provider} registeredTracker={registeredTracker}/>
+                        <TrackForm provider={provider} roles={roles}/>
                       </Route>
+                      <Route path="/addProduct/:trackerId?">{params=>
+                        <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                      }</Route>
+                      <Route path="/transferProduct/:trackerId/:productId?">{params=>
+                        <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} trackerId={Number(params.trackerId)} productId={Number(params.productId)}/>
+                      }</Route>
+                      <Route path="/issuedTrackers/:address?">{params=>
+                        <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
+                      }</Route>
                       <Route path="/access-control">
                         <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
                       </Route>
@@ -163,6 +173,9 @@ const App:FC = () => {
                       </Route>
                       <Route path="/export-pk">
                         <ExportPk signedInWallet={signedInWallet} logoutOfWalletInfo={logoutOfWalletInfo} />
+                      </Route>
+                      <Route path="/terms">
+                        <TermsOfUse></TermsOfUse>
                       </Route>
                       <Route>
                         <Redirect to="/dashboard" />
@@ -186,6 +199,9 @@ const App:FC = () => {
                         <Route path="/requestAudit">
                           <RequestAudit provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} />
                         </Route>
+                        <Route path="/terms">
+                          <TermsOfUse></TermsOfUse>
+                        </Route>
                         <Route>
                           <Redirect to="/requestAudit" />
                         </Route>
@@ -199,6 +215,9 @@ const App:FC = () => {
           </Container>
         </> : <p>Loading ...</p>}
       </QueryClientProvider>
+      <footer>
+        <AppFooter></AppFooter>
+      </footer>
     </trpc.Provider>
   );
 }

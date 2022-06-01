@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
+import { FC, ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -7,7 +7,8 @@ import Row from 'react-bootstrap/Row';
 import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { encodeParameters, getAdmin, issue } from "../services/contract-functions";
+import { addresses } from "@project/contracts";
+import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
@@ -21,14 +22,15 @@ type KeyValuePair = {
 }
 
 type IssueFormProps = {
-  provider?: Web3Provider | JsonRpcProvider, 
-  signedInAddress: string, 
+  provider?: Web3Provider | JsonRpcProvider,
+  signedInAddress: string,
   roles: RolesInfo,
   limitedMode: boolean,
-  signedInWallet?: Wallet
+  signedInWallet?: Wallet,
+  trackerId?: number,
 }
 
-const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet }) => {
+const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -39,12 +41,14 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // Form inputs
   const [address, setAddress] = useState("");
   const [issuedFrom, setIssuedFrom] = useState('');
-  
+
+  const andTrack = useMemo(()=> (typeof trackerId !== 'undefined'), [trackerId]);
   const [tokenTypeId, setTokenTypeId] = useState(1);
   const [quantity, setQuantity] = useState("");
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
   const [description, setDescription] = useState("");
+  const [trackerDescription, /*setTrackerDescription*/] = useState("");
   const [result, setResult] = useState("");
 
   const [scope, setScope] = useState<number|null>(null);
@@ -62,6 +66,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // After initial onFocus for required inputs, display red outline if invalid
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
+  const [initializedTrackerIdInput, setInitializedTrackerIdInput] = useState(false);
 
   const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
   const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
@@ -128,6 +133,20 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     let qty = Number(quantity);
     return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
   }
+
+  useEffect(() => {
+    async function fetchTrackerDetails() {
+      if(!provider || !andTrack){
+        return;
+      }
+      const result = await getTrackerDetails(provider, Number(trackerId), signedInAddress);
+      if (Number(trackerId)>0 && typeof result === 'object'  ) {
+        setAddress(result.trackee)
+      }
+    }
+    fetchTrackerDetails();
+  }, [provider, trackerId, andTrack, signedInAddress]);
+
 
   // update calldata on input change
   useEffect(() => {
@@ -217,8 +236,12 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
-
-    let result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
+    let result;
+    if(andTrack && typeof trackerId !== 'undefined'){
+      result = await issueAndTrack(provider, issuedFrom, address, Number(trackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
+    }else{
+      result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
+    }
     setResult(result.toString());
   }
 
@@ -230,7 +253,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
 
-  return roles.hasAnyRole ? (
+  return (roles.hasAnyRole && provider!==null) ? (
     <>
 
       <CreateProposalModal
@@ -251,37 +274,85 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         body={result}
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
-      <h2>Issue tokens</h2>
-      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered consumers.</p>
+      <h2>
+        Issue tokens
+      </h2>
+      <p>
+        {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null }
+      </p>
 
+      {(andTrack) ?
+        <Form.Group className="mb-3" controlId="trackerIdInput">
+          <Form.Label>TrackerId</Form.Label>
+          <Form.Control
+            type="input"
+            placeholder="set to 0 to issue a new tracker"
+            value={trackerId}
+            //onChange={onTrackerIdChange}
+            disabled
+            onBlur={() => setInitializedTrackerIdInput(true)}
+            style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
+          />
+          <Form.Text className="text-muted">
+            Setting ID to 0 will issue a new tracker.
+          </Form.Text>
+          {/*<Form.Label>Tracker Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              placeholder=""
+              value={trackerDescription}
+              onChange={onTrackerDescriptionChange} />*/}
+        </Form.Group>
+      : null}
+      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered {(andTrack) ? "industry" : "consumers"}.</p>
       <Form.Group className="mb-3">
-          <Form.Label>Issue From Address</Form.Label>
-          <InputGroup>
-            <WalletLookupInput 
-              onChange={(v: string) => { setIssuedFrom(v) }} 
-              onWalletChange={(w)=>{
-                setIssuedFrom(w ? w.address! : '');
-              }} 
-              onBlur={() => setInitializedAddressInput(true)}
-              style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
-              />
-          </InputGroup>
+          <Form.Label>
+            Issue From Address
+          </Form.Label>
+          { true ?
+            <InputGroup>
+              <WalletLookupInput
+                onChange={(v: string) => { setIssuedFrom(v) }}
+                onWalletChange={(w)=>{
+                  setIssuedFrom(w ? w.address! : '');
+                }}
+                onBlur={() => setInitializedAddressInput(true)}
+                style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
+                />
+            </InputGroup>
+            :<Form.Control
+              type="input"
+              value={signedInAddress}
+              disabled
+            />
+          }
         </Form.Group>
 
       { ((!limitedMode) || (tokenTypeId === 3))
         ?
         <Form.Group className="mb-3">
-          <Form.Label>Issue To Address</Form.Label>
-          <InputGroup>
-            <WalletLookupInput 
-              onChange={(v: string) => { setAddress(v) }} 
-              onWalletChange={(w)=>{
-                setAddress(w ? w.address! : '');
-              }} 
-              onBlur={() => setInitializedAddressInput(true)}
-              style={(address || !initializedAddressInput) ? {} : inputError}
-              />
-          </InputGroup>
+          <Form.Label>
+            {(andTrack) ? "Issue To Address" : "Issue Tracker To Address" }
+          </Form.Label>
+          {(!andTrack || trackerId === 0) ?
+            <InputGroup>
+              <WalletLookupInput
+                onChange={(v: string) => { setAddress(v) }}
+                onWalletChange={(w)=>{
+                  setAddress(w ? w.address! : '');
+                }}
+                onBlur={() => setInitializedAddressInput(true)}
+                style={(address || !initializedAddressInput) ? {} : inputError}
+                />
+            </InputGroup>
+          :
+            <Form.Control
+              type="input"
+              value={address}
+              disabled
+            />
+          }
+
           <Form.Text className="text-muted">
             Must be a registered consumer or industry.
           </Form.Text>
@@ -302,15 +373,14 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         </Form.Group>
       }
 
-
       <Form.Group className="mb-3" controlId="tokenTypeInput">
         <Form.Label>Token Type</Form.Label>
         <Form.Select onChange={onTokenTypeIdChange}>
           <option value={0}>{}</option>
           {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
           {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
-          {(roles.isAdmin || roles.isAeDealer) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
-          {(roles.isAdmin || roles.isIndustry) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
+          {(roles.isAdmin || roles.isAeDealer) && !andTrack ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
+          {(roles.isAdmin || roles.isAeDealer) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
         </Form.Select>
       </Form.Group>
       <Form.Group className="mb-3" controlId="quantityInput">
@@ -325,7 +395,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         />
         {/* Display whether decimal is needed or not */}
         <Form.Text className="text-muted">
-          Must not contain more than three decimal values.
+          In tons of CO2e. Must not contain more than three decimal values.
         </Form.Text>
       </Form.Group>
       <Row>
@@ -378,13 +448,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           </Col>
         </Row>
         <Form.Group>
-          {metadata.map((field, key) => 
+          {metadata.map((field, key) =>
             <Row key={key}>
               <Col md={3}>
-                <Form.Control 
-                  type="input" 
+                <Form.Control
+                  type="input"
                   placeholder="Key"
-                  value={field.key} 
+                  value={field.key}
                   onChange={e => { metadata[key].key = e.target.value; setMetadata([...metadata]); }}
                 />
               </Col>
@@ -393,9 +463,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                   <Form.Label column md={2}>
                   </Form.Label>
                   <Col md={10}>
-                    <Form.Control 
-                      type="input" 
-                      value={field.value} 
+                    <Form.Control
+                      type="input"
+                      value={field.value}
                       placeholder="Value"
                       onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
                       />
@@ -463,7 +533,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         <Col>
 
           {/* if in limited mode, require dealer role (except AE & CarbonTacker) to make a DAO proposal */}
-          { (limitedMode && (!roles.isAdmin && !roles.isRecDealer && !roles.isCeoDealer && !roles.isIndustry))
+          { (limitedMode && (!roles.isAdmin && !roles.isRecDealer && !roles.isCeoDealer))
             ?
             <Button
               variant="success"

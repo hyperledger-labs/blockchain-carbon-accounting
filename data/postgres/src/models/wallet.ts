@@ -58,7 +58,12 @@ export class Wallet {
   @UpdateDateColumn()
   updated_at!: Date;
 
-
+  public static toRaw(v: Wallet) {
+    return { ...v };
+  }
+  public static toRaws(v: Wallet[]) {
+    return v.map(v => Wallet.toRaw(v));
+  }
 
   public static generateVerificationToken() {
     return randomBytes(32).toString('hex')

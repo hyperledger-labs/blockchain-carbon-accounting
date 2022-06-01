@@ -2,7 +2,6 @@ import * as trpc from '@trpc/server'
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
 
-
 export const emissionsFactorsRouter = trpc
 .router<TrpcContext>()
 .query('getLevel1s', {
@@ -13,7 +12,7 @@ export const emissionsFactorsRouter = trpc
         try {
             const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactorsLevel1s(input);
             return {
-                emissionsFactors, 
+                emissionsFactors,
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.getLevel1s', error)
@@ -29,7 +28,7 @@ export const emissionsFactorsRouter = trpc
         try {
             const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactorsLevel2s(input);
             return {
-                emissionsFactors, 
+                emissionsFactors,
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.getLevel2s', error)
@@ -46,7 +45,7 @@ export const emissionsFactorsRouter = trpc
         try {
             const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactorsLevel3s(input);
             return {
-                emissionsFactors, 
+                emissionsFactors,
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.getLevel3s', error)
@@ -64,7 +63,7 @@ export const emissionsFactorsRouter = trpc
         try {
             const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactorsLevel4s(input);
             return {
-                emissionsFactors, 
+                emissionsFactors,
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.getLevel4s', error)
@@ -158,7 +157,7 @@ export const emissionsFactorsRouter = trpc
             const { fallback, ...query} = input;
             const emissionsFactors = await ctx.db.getEmissionsFactorRepo().getEmissionsFactors(query, fallback);
             return {
-                emissionsFactors, 
+                emissionsFactors,
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.lookup', error)

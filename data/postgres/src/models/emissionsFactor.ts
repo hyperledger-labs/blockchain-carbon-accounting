@@ -56,4 +56,11 @@ export class EmissionsFactor implements EmissionsFactorInterface {
   renewables?: string
   @Column({nullable:true})
   percent_of_renewables?: string
+
+  public static toRaw(v: EmissionsFactor) {
+    return { ...v };
+  }
+  public static toRaws(v: EmissionsFactor[]) {
+    return v.map(v => EmissionsFactor.toRaw(v));
+  }
 }

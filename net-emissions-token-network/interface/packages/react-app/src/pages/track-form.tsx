@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { FC, ChangeEventHandler, useCallback, useState } from "react";
+import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { InputGroup } from "react-bootstrap";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -8,16 +8,17 @@ import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
-import { track, registerTracker } from "../services/contract-functions";
+import { track } from "../services/contract-functions";
 import SubmissionModal from "../components/submission-modal";
 import WalletLookupInput from "../components/wallet-lookup-input";
+import { RolesInfo } from "../components/static-data";
 
 type TrackFormProps = {
   provider?: Web3Provider | JsonRpcProvider
-  registeredTracker: boolean
+  roles: RolesInfo
 }
 
-const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
+const TrackForm:FC<TrackFormProps> = ({ provider, roles }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
 
@@ -29,17 +30,18 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
   const [trackerIds, setTrackerIds] = useState("");
   const [fromDate, setFromDate] = useState<Date|null>(null);
   const [thruDate, setThruDate] = useState<Date|null>(null);
+  const [description, setDescription] = useState("");
   const [result, setResult] = useState("");
 
   // After initial onFocus for required inputs, display red outline if invalid
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
 
-  const onAddressChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setAddress(event.target.value); }, []);
   const onTokenIdsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setTokenIds(event.target.value); }, []);
   const onInAmountsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setInAmounts(event.target.value); }, []);
   const onOutAmountsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setOutAmounts(event.target.value); }, []);
   const onTrackerIdsChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setTrackerIds(event.target.value); }, []);
+  const onDescriptionChange: ChangeEventHandler<HTMLInputElement> = useCallback((event) => { setDescription(event.target.value); }, []);
 
   function handleSubmit() {
     submit();
@@ -56,20 +58,14 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
       setResult("Invalid thru date");
       return;
     }
-
     // we consider inAmounts has 3 decimals, multiply by 1000 before passing to the contract
-    //let quantity_formatted;
-    //quantity_formatted = Math.round(inAmounts * 1000);
-    let result = await track(provider, address, tokenIds, inAmounts, outAmounts, trackerIds, fromDate, thruDate);
-    setResult(result.toString());
-  }
-
-  async function register() {
-    if (!provider) return;
-    // we consider inAmounts has 3 decimals, multiply by 1000 before passing to the contract
-    //let quantity_formatted;
-    //quantity_formatted = Math.round(inAmounts * 1000);
-    let result = await registerTracker(provider, address);
+    let result = await track(provider,
+      address,
+      tokenIds,
+      inAmounts,
+      fromDate,
+      thruDate,
+      description);
     setResult(result.toString());
   }
 
@@ -80,30 +76,11 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
 
   return (
     <>
-      {(!registeredTracker) ?
-        <div className="mt-4">{registeredTracker}
-          <h4>Register tracker</h4>
-          <Form.Group className="mb-3" controlId="addressInput">
-            <Form.Label>Address</Form.Label>
-            <Form.Control type="input" placeholder="0x000..." value={address} onChange={onAddressChange} />
-          </Form.Group>
-          <Form.Group className="mb-3" controlId="roleInput">
-            <Form.Label>Role</Form.Label>
-            <Form.Select disabled>
-              <option value="REGISTERED_TRACKER">Registered Tracker</option>
-            </Form.Select>
-          </Form.Group>
-          <Form.Group>
-            <Row>
-              <Col>
-                <Button className="w-100" variant="success" size="lg" onClick={register}>
-                  Register
-                </Button>
-              </Col>
-            </Row>
-          </Form.Group>
+      {(!roles.isAeDealer) ?
+        <div className="mt-4">
+          <h4>Only emission auditor can issue a tracker</h4>
         </div>
-        : 
+        :
         <div className="mt-4">
           <SubmissionModal
             show={submissionModalShow}
@@ -111,16 +88,16 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
             body={result}
             onHide={() => {setSubmissionModalShow(false); setResult("")} }
           />
-          <h2>Track</h2>
-          <p>Create emission profile using RECs, offsets, audited emission certificates, and voluntary carbon tracker tokens.</p>
+          <h2>Carbon Tracker NFT</h2>
+          <p>Create emission profile (C-NFT) using voluntary carbon tracker tokens, audited emission certificates, RECs, and offset credits. </p>
           <Form.Group className="mb-3" controlId="addressInput">
             <Form.Label>Address</Form.Label>
             <InputGroup>
-              <WalletLookupInput 
-                onChange={(v: string) => { setAddress(v) }} 
+              <WalletLookupInput
+                onChange={(v: string) => { setAddress(v) }}
                 onWalletChange={(w)=>{
                   setAddress(w ? w.address! : '');
-                }} 
+                }}
                 onBlur={() => setInitializedAddressInput(true)}
                 style={(address || !initializedAddressInput) ? {} : inputError}
                 />
@@ -201,6 +178,10 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
               Provide the source tracker nft here.
             </Form.Text>
           </Form.Group>
+          <Form.Group>
+            <Form.Label>Description</Form.Label>
+            <Form.Control as="textarea" placeholder="" value={description} onChange={onDescriptionChange} />
+          </Form.Group>
           <Row className="mt-4">
             <Col>
               <Button
@@ -208,13 +189,12 @@ const TrackForm:FC<TrackFormProps> = ({ provider, registeredTracker }) => {
                 variant="primary"
                 size="lg"
                 onClick={handleSubmit}
-                //disabled={disableIssueButton(calldata, quantity, address)}
               >
                 Track
               </Button>
             </Col>
           </Row>
-        </div> 
+        </div>
       }
     </>
   )

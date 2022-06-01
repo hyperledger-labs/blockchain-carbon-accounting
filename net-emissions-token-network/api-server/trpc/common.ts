@@ -1,4 +1,5 @@
 import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import superjson from 'superjson';
 import * as trpc from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
@@ -8,7 +9,8 @@ import { balanceRouter } from './balance.trpc';
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
-
+import { tokenRouter } from './token.trpc';
+import { productRouter } from './product.trpc';
 
 // created for each request, here set the DB connector
 const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
@@ -34,6 +36,7 @@ const createRouter = () => {
   // this adds the zodError and domainError to the response which can then be
   // analyzed for input errors an user facing error messages
   return trpc.router<TrpcContext>()
+    .transformer(superjson)
     .formatError(({ shape, error }) => {
       return {
         ...shape,
@@ -59,7 +62,9 @@ const createRouter = () => {
 
 const appRouter = createRouter()
   .merge('balance.', balanceRouter)
+  .merge('token.', tokenRouter)
   .merge('wallet.', walletRouter)
+  .merge('product.', productRouter)
   .merge('emissionsFactors.', emissionsFactorsRouter)
   .merge('emissionsRequests.', emissionsRequestsRouter)
 

@@ -2,6 +2,7 @@ import { runSync } from '@blockchain-carbon-accounting/api-server/controller/syn
 import type { OPTS_TYPE } from '@blockchain-carbon-accounting/api-server/server';
 import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import { expect } from 'chai';
+import superjson from 'superjson';
 import { Contract } from 'ethers';
 import { deployments, ethers, getNamedAccounts, network, run } from "hardhat";
 import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
@@ -154,15 +155,21 @@ describe("BigInt tests", function() {
     const input = {}
     const trpc_res = await request(server).get(`/trpc/balance.list?batch=1&input=${JSON.stringify(input)}`);
     expect(trpc_res.status).to.equal(200);
-    const d = trpc_res.body[0].result.data;
+    console.log('Got trpc response:', trpc_res.text);
+    const j = trpc_res.body[0].result.data;
+    const { json, meta } = j;
+    const d = superjson.deserialize({ json, meta }) as any;
+    console.log('JSON response:', d);
     expect(d.status).to.equal('success');
     expect(d.count).to.equal(1);
     expect(d.balances).to.be.an('array');
     // those bigints serialized to strings
-    expect(d.balances[0].transferred).to.equal('0');
-    expect(d.balances[0].retired).to.equal(MAX256.toString());
-    expect(d.balances[0].token.totalIssued).to.equal(MAX256.toString());
-    expect(d.balances[0].token.totalRetired).to.equal(MAX256.toString());
+    console.log('JSON response balance:', d.balances[0]);
+    console.log('JSON response token:', d.balances[0]?.token);
+    expect(d.balances[0].transferred).to.equal(0n);
+    expect(d.balances[0].retired).to.equal(MAX256);
+    expect(d.balances[0].token.totalIssued).to.equal(MAX256);
+    expect(d.balances[0].token.totalRetired).to.equal(MAX256);
   })
 });
 

@@ -1,5 +1,5 @@
 import * as trpc from '@trpc/server'
-import { Balance } from 'blockchain-accounting-data-postgres/src/models/balance';
+import { Token } from 'blockchain-accounting-data-postgres/src/models/token';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 
@@ -10,7 +10,7 @@ export const zQueryBundles = z.array(z.object({
     op: z.string(),
 }))
 
-export const balanceRouter = trpc
+export const tokenRouter = trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({
@@ -20,7 +20,7 @@ export const balanceRouter = trpc
         try {
             return {
                 status: 'success',
-                count: await ctx.db.getBalanceRepo().count(input.bundles) 
+                count: await ctx.db.getTokenRepo().countTokens(input.bundles) 
             }
         } catch (error) {
             console.error(error)
@@ -39,12 +39,12 @@ export const balanceRouter = trpc
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const balances = await ctx.db.getBalanceRepo().selectPaginated(input.offset, input.limit, input.bundles);
-            const count = await ctx.db.getBalanceRepo().count(input.bundles);
+            const tokens = await ctx.db.getTokenRepo().selectPaginated(input.offset, input.limit, input.bundles);
+            const count = await ctx.db.getTokenRepo().countTokens(input.bundles);
             return {
                 status: 'success',
                 count,
-                balances: Balance.toRaws(balances)
+                tokens: Token.toRaws(tokens)
             }
         } catch (error) {
             console.error(error)
@@ -57,5 +57,6 @@ export const balanceRouter = trpc
 })
 
 // export type definition of API
-export type BalanceRouter = typeof balanceRouter 
+export type TokenRouter = typeof tokenRouter
+
 

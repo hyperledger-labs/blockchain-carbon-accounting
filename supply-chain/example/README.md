@@ -38,7 +38,6 @@ Then you can tokenize the shipments in OFBiz/opentaps database using:
 python tokenize-ofbiz.py --from_date "2022-01-01 00:00:01" \
 --thru_date "2022-01-02 23:59:59" \
 --facility_id "<ofbiz-facility-id>" \
---pubkey ../user1-public.pem \
 --issuee "0x<issuee-wallet-address>"
 ```
 
@@ -46,6 +45,5 @@ Or for Quantum View records:
 ```
 python tokenize-upsqv.py --from_date "2022-01-29 00:00:01" \
 --thru_date "2022-01-29 23:59:59" \
---pubkey ../user1-public.pem \
 --issuee "0x<issuee-wallet-address>"
 ```

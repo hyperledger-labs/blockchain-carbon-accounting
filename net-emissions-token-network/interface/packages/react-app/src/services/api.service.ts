@@ -73,19 +73,16 @@ function buildBundlesFromQueries(query: string[]) {
 
 export const getTokens = async (offset: number, limit: number, query: string[]): Promise<{count:number, tokens:Token[], status:string}> => {
     try {
-        var params = new URLSearchParams();
-        params.append('offset', offset.toString());
-        params.append('limit', limit.toString());
-        query.forEach(elem => {
-            params.append('bundles', elem);
-        });
-        const { data } = await axios.get('/tokens', { params });
-        if(data.status === 'success') {
-            return data;
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getTokens:', offset, limit, bundles)
+        const { status, count, tokens, error } = await trpcClient.query('token.list', {offset, limit, bundles})
+        if (status === 'success' && tokens) {
+            return { count, tokens, status }
         } else {
-            return {count:0, tokens:[], status:'error'};
+            if (status !== 'success') console.error('getTokens error:', error)
+            return {count: 0, tokens: [], status};
         }
-    } catch (error) {
+    } catch(error) {
         throw new Error(handleError(error, "Cannot get tokens"))
     }
 }
@@ -94,13 +91,12 @@ export const getBalances = async (offset: number, limit: number, query: string[]
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getBalances:', offset, limit, bundles)
-        const list = await trpcClient.query('balance.list', {offset, limit, bundles})
-        console.info('getBalances result:', list)
-        if (list.status === 'success' && list.balances) {
-            return { count: list.count, balances: list.balances }
+        const { status, count, balances, error } = await trpcClient.query('balance.list', {offset, limit, bundles})
+        if (status === 'success' && balances) {
+            return { count, balances, status }
         } else {
-            if (list.status !== 'success') console.error('getBalances error:', list.error)
-            return {count: 0, balances: []};
+            if (status !== 'success') console.error('getBalances error:', error)
+            return {count: 0, balances: [], status};
         }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get balances"))

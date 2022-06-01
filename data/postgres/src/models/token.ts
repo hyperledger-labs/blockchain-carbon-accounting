@@ -51,4 +51,11 @@ export class Token {
 
     @Column({nullable: true})
     type!: string;
+
+    public static toRaw(v: Token) {
+        return { ...v };
+    }
+    public static toRaws(v: Token[]) {
+        return v.map(v => Token.toRaw(v));
+    }
 }

@@ -2,12 +2,11 @@
 import {
     GroupedResult,
     GroupedResults, group_processed_activities,
-    issue_tokens_with_issuee, process_activities
+    queue_issue_tokens, process_activities
 } from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
 import { Request, Response } from 'express';
 import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';
-
 
 type OutputActivity = {
     id: string,
@@ -15,13 +14,13 @@ type OutputActivity = {
     error?: string
 };
 
-async function process_group(issuedFrom: string, issuedTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, publicKeys: string[], mode?: string) {
-    const token_res = await issue_tokens_with_issuee(issuedFrom, issuedTo, g, activity_type, publicKeys, mode);
+async function process_group(issuedFrom: string, issuedTo: string, output_array: OutputActivity[], g: GroupedResult, activity_type: string, mode?: string) {
+    const token_res = await queue_issue_tokens(g, activity_type, mode, issuedFrom, issuedTo);
     // add each activity to output array
     for (const a of g.content) {
         const out: OutputActivity = { id: a.activity.id };
         if (a.error) out.error = a.error;
-        if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId;
+        else if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId;
         else out.error = 'cannot issue';
         output_array.push(out);
     }
@@ -31,8 +30,9 @@ export function issueToken(req: Request, res: Response) {
 
     const verbose = req.body.verbose;
     const pretend = req.body.pretend;
+    const issuedTo = req.body.issuedTo || req.body.issuee;
+    // those are optional since we are queuing
     const issuedFrom = req.body.issuedFrom;
-    const issuedTo = req.body.issuedTo;
 
     console.log(`Start request, issue to ${issuedTo} verbose? ${verbose} pretend? ${pretend}`)
     if(!pretend && issuedTo == undefined) {
@@ -43,42 +43,25 @@ export function issueToken(req: Request, res: Response) {
         });
     }
 
-    console.log(`issue from ${issuedFrom} verbose? ${verbose} pretend? ${pretend}`)
-    if(!pretend && issuedFrom == undefined) {
-        console.log('== 400 No issuee.')
-        return res.status(400).json({
-            status: "failed",
-            msg: "Issuee was not given."
-        });
-    }
-
     // user can upload multiple files, those are the input file and the keys
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
     console.log('== files?', files)
-    const pubKeys: string[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let data: any = undefined;
     for (const group in files) {
         if (Object.prototype.hasOwnProperty.call(files, group)) {
             const fileGroup: Express.Multer.File[] = files[group];
             fileGroup.forEach(file => {
-                if(file.fieldname == 'keys') {
-                    pubKeys.push(file.path);
-                } else if(file.fieldname == 'input') {
+                if(file.fieldname == 'input') {
                     const data_raw = readFileSync(file.path, 'utf-8');
                     data = JSON.parse(data_raw);
+                } else {
+                    console.error(`== unknown fieldname ${file.fieldname}`);
                 }
             });
         }
     }
 
-    if (!pubKeys.length && !pretend) {
-        console.log('== 400 No keys.')
-        return res.status(400).json({
-            status: "failed",
-            msg: "There was no public key file given."
-        });
-    }
     if (!data || !data.activities) {
         console.log('== 400 No activities.')
         return res.status(400).json({
@@ -103,7 +86,7 @@ export function issueToken(req: Request, res: Response) {
                     // Note: this issueToken endpoint forces the issuedFrom from the posted value.
                     for (const issued_from in issue_group) {
                         const doc = issue_group[issued_from] as GroupedResult;
-                        await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys, mode);
+                        await process_group(issuedFrom, issuedTo, output_array, doc, t, mode);
                     }
                 }
             } else {
@@ -111,7 +94,7 @@ export function issueToken(req: Request, res: Response) {
                 // Note: this issueToken endpoint forces the issuedFrom from the posted value.
                 for (const issued_from in issue_group) {
                     const doc = issue_group[issued_from] as GroupedResult;
-                    await process_group(issuedFrom, issuedTo, output_array, doc, t, pubKeys);
+                    await process_group(issuedFrom, issuedTo, output_array, doc, t);
                 }
             }
         }
