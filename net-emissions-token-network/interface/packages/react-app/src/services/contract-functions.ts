@@ -294,7 +294,7 @@ export async function issueAndTrack(
 export async function productUpdate(
   w3provider: Web3Provider | JsonRpcProvider,
   trackerId: number,
-  productAmount: number,
+  productAmount: bigint,
   productName: string,
   productUnit: string,
   productUnitAmount: number,
@@ -766,52 +766,55 @@ export async function getTrackerDetails(
   let details;
   try {
     let [trackerDetails, totalEmissions, productIds] = (await contract.getTrackerDetails(trackerId));
-    console.log('--- trackerDetails', productIds);
     totalEmissions = BigInt(totalEmissions);
-    let totalProductAmounts = BigInt(trackerDetails.totalProductAmounts);
+    productIds = productIds.map(Number)
+    let totalProductAmounts = Number(trackerDetails.totalProductAmounts);
 
     let owner = await contract.ownerOf(trackerId);
 
     let [tokenIds,tokenAmounts] = await contract.getTrackerTokenDetails(trackerId);
 
-    let divDecimals = BigInt(await contract.divDecimals());
-    let carbonIntensity = BigInt(await contract.carbonIntensity(trackerId)) / divDecimals;
+    let decimals = (await contract.decimalsEf()).toNumber();
+    let emissionFactor = await contract.emissionFactor(trackerId) / decimals;
 
-
-    let myProductBalances = [].map(BigInt);
     let myTokenAmounts = [].map(BigInt);
-    let emissionFactors = [].map(BigInt);
+    let emissionFactors = [];
     let myProductsTotalEmissions = BigInt(0);
 
-    let productAmounts=[],available=[],productNames=[],conversions=[],units=[];
+    let myProductBalances =[].map(Number);
+    let productAmounts=[].map(Number),available=[],productNames=[],conversions=[],units=[];
 
     let result;
     for (let i = 0; i < productIds.length; i++) {
       const productDetails = await contract.getProductDetails(productIds[i]);
-      result = productDetails.map(BigInt);
+      result = productDetails;
 
-      productAmounts.push(result[1]);
-      available.push(result[2]);
+      productAmounts.push(Number(result[1]));
+      available.push(Number(result[2]));
 
       result = await contract.getProductOptionalDetails(productIds[i]);
+      
       productNames.push(result[0].toString());
-      conversions.push(result[1]/divDecimals);
+      //conversions.push(result[1].toNumber()/decimals);
       units.push(result[2].toString());
 
-      myProductBalances[i] = BigInt(await contract.getProductBalance(productIds[i],trackerId,address));
+      result = await contract._productData(productIds[i]);
+      conversions.push(result[2].toNumber()/result[6].toNumber())
 
-      myTokenAmounts = tokenAmounts.map((e:bigint) => (
+      myProductBalances[i] = Number(await contract.getProductBalance(productIds[i],trackerId,address));
+
+      myTokenAmounts = tokenAmounts.map((e:number) => (
         (e*myProductBalances[i]/totalProductAmounts)));
 
-      myProductsTotalEmissions += myProductBalances[i]*carbonIntensity ;
+      myProductsTotalEmissions += BigInt(Math.floor(myProductBalances[i]*emissionFactor)) ;
 
-      productAmounts[i] = productAmounts[i] * conversions[i];
-      myProductBalances[i] = myProductBalances[i] * conversions[i];
-      available[i] = available[i] * conversions[i];
 
-      emissionFactors[i] = carbonIntensity / conversions[i];
+      productAmounts[i] = (productAmounts[i] * conversions[i]);
+      myProductBalances[i] = (myProductBalances[i] * conversions[i]);
+      available[i] = (available[i] * conversions[i]);
+
+      emissionFactors[i] = (emissionFactor / conversions[i]);
     }
-
     if(myProductsTotalEmissions>0 && owner.toString().toLowerCase()!==address.toLowerCase()){
       totalEmissions = myProductsTotalEmissions;
       tokenAmounts = myTokenAmounts;
@@ -832,11 +835,11 @@ export async function getTrackerDetails(
       description: trackerDetails.description,
       totalEmissions,
       //: Number(remainingEmissions.toFixed(0)),
-      myProductsTotalEmissions,
+      myProductsTotalEmissions: myProductsTotalEmissions,
       //totalOffset: totalOffset,
       products: {
         ids: productIds,
-        myBalances: myProductBalances,
+        myBalances: myProductBalances.map(BigInt),
         names: productNames,
         amounts: productAmounts,
         available,
@@ -865,15 +868,15 @@ export async function getTrackerIds(w3provider: Web3Provider | JsonRpcProvider, 
   }
   return trackerIds;
 }
-export async function getCarbonIntensity(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, tokenTypeId: number){
+export async function getEmissionFactor(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, tokenTypeId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let ci;
+  let ef;
   try {
-    ci = await contract.carbonIntensity(trackerId,tokenTypeId);
+    ef = await contract.emissionFactor(trackerId,tokenTypeId);
   } catch (error) {
-    ci = getErrorMessage(error)
+    ef = getErrorMessage(error)
   }
-  return ci;
+  return ef;
 }
 
 export async function getTokenAmounts(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, sourceTrackerId: number){

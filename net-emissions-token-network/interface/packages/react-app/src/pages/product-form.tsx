@@ -47,8 +47,8 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
 
   async function submit() {
     if (!provider) return;
-    let productAmount_formatted = Math.round(Number(productAmount));
-    let productUnitAmount_formatted = Math.round(Number(productUnitAmount));
+    let productAmount_formatted = BigInt(productAmount);
+    let productUnitAmount_formatted = Number(productUnitAmount);
 
     let result = await productUpdate(
       provider,trackerId,productAmount_formatted,
@@ -64,7 +64,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
         available: BigInt(productAmount),
         name: productName,
         unit: productUnit,
-        unitAmount: BigInt(productUnitAmount),
+        unitAmount: productUnitAmount_formatted,
         hash: result[1].hash.toString(),
       })
     } catch (error) {

@@ -10,6 +10,7 @@ import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
+import { Tracker } from "../components/static-data";
 
 type ProductTransferFormProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -19,8 +20,9 @@ type ProductTransferFormProps = {
   signedInAddress: string
 }
 type ProductInfo = {
-  available: bigint,
-  conversion: bigint,
+  available: number,
+  name: string,
+  conversion: number,
   unit: string
 }
 
@@ -31,6 +33,7 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
   // Form inputs
   const [address, setAddress] = useState("");
   const [product, setProduct] = useState<ProductInfo>();
+  const [tracker, setTracker] = useState<Tracker>();
 
   //const [trackerId, setTrackerId] = useState("");
   const [productAmount, setProductAmount] = useState("");
@@ -55,17 +58,17 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
       if (provider && signedInAddress && trackerId) {
         setFetchingProduct(true);
         let tracker = await getTrackerDetails(provider, trackerId, signedInAddress);
-        console.log(tracker)
         if (typeof tracker === "object") {
           let index = tracker.products.ids.indexOf(productId);
 
           let product:ProductInfo = {
             available: tracker.products.available[index],
+            name: tracker.products.names[index],
             conversion: tracker.products.conversions[index],
             unit: tracker.products.units[index]
           }
-          console.log("product", product)
           setProduct(product)
+          setTracker(tracker)
         }
       }
     }
@@ -109,7 +112,9 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
       <h2>Transfer product</h2>
-      <p>Send available product ID in your possession from a tracker ID to any address.</p>
+      <p>{"Send your available products ("+["ID = "+productId,product?.name].join(', ')
+          +") sourced from tracker ("+["ID = "+ trackerId,tracker?.description].join(', ') +") to any address."
+      }</p>
       <Form.Group className="mb-3" controlId="trackerIdInput">
         <Form.Label>Tracker ID</Form.Label>
         <Form.Control

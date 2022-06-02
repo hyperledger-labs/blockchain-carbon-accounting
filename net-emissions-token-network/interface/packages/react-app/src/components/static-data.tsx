@@ -48,21 +48,21 @@ export type Token = {
 export type Tracker = {
   trackerId: number
   trackee: string
+  auditor: string
   fromDate?: number
   thruDate?: number
   metadata: string
   description: string
   totalEmissions: bigint
   myProductsTotalEmissions: bigint
-  auditor: string
   products:{ 
     ids: number[]
     names: string[]
     myBalances: bigint[]
-    amounts: bigint[]
-    available: bigint[]
-    emissionFactors: bigint[]
-    conversions: bigint[]
+    amounts: number[]
+    available: number[]
+    emissionFactors: number[]
+    conversions: number[]
     units: string[]
   }
   tokens:{

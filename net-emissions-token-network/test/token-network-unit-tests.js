@@ -128,7 +128,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     let registerRecdealer = await contract.registerDealer(dealer1, allTokenTypeId[0]);
     let registerCeodealer = await contract.registerDealer(dealer2, allTokenTypeId[1]);
     let registerAedealer = await contract.registerDealer(dealer3, allTokenTypeId[2]);
-    let registerIndustry = await contract.registerDealer(industry1, allTokenTypeId[3]);
+    let registerIndustry = await contract.registerIndustry(industry1);
     let registerconsumer = await contract.registerConsumer(consumer1);
     expect(registerRecdealer);
     expect(registerCeodealer);
@@ -139,35 +139,38 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // @TODO: Remove owner role from dealers
     await contract
       .getRoles(deployer)
-      .then((response) => expect(response).to.deep.equal([true, false, true, true, true, true, true]));
+      .then((response) => expect(response).to.deep.equal([true, false, true, true, true, false]));
     await contract
       .getRoles(dealer1)
-      .then((response) => expect(response).to.deep.equal([false, false, true, false, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, true, false, false, false]));
     await contract
       .getRoles(dealer2)
-      .then((response) => expect(response).to.deep.equal([false, false, false, true, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, true, false, false]));
     await contract
       .getRoles(dealer3)
-      .then((response) => expect(response).to.deep.equal([false, false, false, false, true, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, false, true, false]));
     await contract
       .getRoles(consumer1)
-      .then((response) => expect(response).to.deep.equal([false, true, false, false, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, true, false, false, false, false]));
+    await contract
+      .getRoles(industry1)
+      .then((response) => expect(response).to.deep.equal([false, false, false, false, false, true]));
     await contract
       .getRoles(unregistered)
-      .then((response) => expect(response).to.deep.equal([false, false, false, false, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, false, false, false, false]));
 
     // check assigning another dealer role to recDealer
     let registerRecdealerTwo = await contract.registerDealer(dealer1, allTokenTypeId[1]);
     expect(registerRecdealerTwo);
     await contract
       .getRoles(dealer1)
-      .then((response) => expect(response).to.deep.equal([false, false, true, true, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, true, true, false, false]));
 
     // check unregistering that role from recDealer
     await contract.unregisterDealer(dealer1, allTokenTypeId[1]);
     await contract
       .getRoles(dealer1)
-      .then((response) => expect(response).to.deep.equal([false, false, true, false, false, false, false]));
+      .then((response) => expect(response).to.deep.equal([false, false, true, false, false, false]));
 
     // check if recDealer is dealer
     await contract

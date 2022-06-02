@@ -28,8 +28,8 @@ export class Product {
     @Column()
     unit!: string;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    unitAmount!: bigint;
+    @Column()
+    unitAmount!: number;
 
     @Column()
     hash!: string;
