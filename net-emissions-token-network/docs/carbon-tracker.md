@@ -1,45 +1,60 @@
 # CarbonTracker token and Contract:
 
-See [the CarbonTracker token for registered industry dealers](#carbontracker-token-for-registered-industry-dealers) section below for updates to the [net-emission-token (NET) network contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/contracts/NetEmissionsTokenNetwork.sol).
+## Deploying the emission certificate contract and interface
+
+Here we summarize the deployment process deploying the CarbonTracker contract and DAPP interface. This covers installation and configuration of software in different subdirectoreis of blockchain-carbon-accouting repository. You'll need to make sure you are running version of node >= 16.x.x
+
+First run `npm install` of dependency libraries in the following subdirectories
+- [data](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data). This is where the postgres server and tables are configured for convenient storage for on and off-chain data. Follow the [readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data/postgres/README.md) for instructions on setting up and seeding the postgres database.
+- [emissions-data/typescript_app](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/emissions-data/typescript_app).
+- [net-emissions-token-network](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network). Follow the [using-the-contracts readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/docs/using-the-contracts.md).
+- [net-emissions-token-network/interface](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/interface).
+- [net-emissions-token-network/api-server](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/api-server)
+- [supply-chain](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/supply-chain)
+ 
+- Next run the hardhat node in net-emissions-token-network subdirectory where the contracts (NET/CarbonTracker) are deployed locally
+```
+npx hardhat node
+```
+[using-the-react-applicaiton readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/docs/using-the-contracts.md) provides instructions on seeding the network, e.g.:
+```npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>``` 
+to assign roles to network addresses.
+```npx hardhat issueOilAndGasTrackers --network localhost --contract <NetEmissionsTokeNetwork address>``` 
+to issue exmaple tracker tokens for oil and gas producers.
+
+- Run the api-server for synchronizing postgress database with contract state in net-emissions-token-network/api-server
+```npm run dev``` 
+[README](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/api-server/README.md) provides instructions on seeding the postgres database with user and other data.
+
+- Run the node.js react UI
+`yarn react-app:start` in net-emissions-token-network/interface 
+
+
+
+
 
 ## ERC721Upgradeable contract for carbon tracker NFTs
 
-The Carbon Tracker Contract is used to issue a non fungible tokens (NFT). They represent the emission pofile of a facility that produces industrial goods or a commerical service such as international travel and transportation of goods.
+The Carbon Tracker Contract is used to issue non fungible tokenz (NFT) as emission certificates of a facility that produces industrial commodities or a commerical service such as international travel and transportation of goods.
 
-The contract is implemented as a child of the [NET contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/contracts/NetEmissionsTokenNetwork.sol). Each Carbon Tracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
-- retied emission certificates, 
-- retired/transffered offset credits
-- retired (burnt)/transffered carbon tracker tokens
+The contract is implemented as ERC1155Holder of the [NET contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/contracts/NetEmissionsTokenNetwork.sol). Each Carbon Tracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
+    
+- audited emission tokens (tokenTypeId = 4 as transferable emission tokens) 
+- offset credits (retired or transferable)
+- Renewable energy certificates
 
-NETs listed within an NFT can be mapped from previous NFT trackerIds. This connects emission profiles of different facilities to achieve embedded emission tracking. See the [CarbonTracker NFT example](#carbon-tracker-nft-example).
+Each NFT is assigned product tokens used for tracking emissions in trade of goods or services. Multiple product tokens are issued to a certicate to describe the ditribution across a facility with multiple product types (e.g. a refinery that produces gasoline and deisel).
+
+Product tokens also enable the tracking of emission certificates across the trade of goods, by seeding a new certificate. See the [CarbonTracker NFT example](#carbon-tracker-nft-example).
+
 
 ### Attribute description  
 
-Each NFT is defined by `_trackerData` mapping to `struct CarbonTrackerDetails`.
-Within each tracker previous `trackerIds` are mapped to `struct CarboCBM the NET network
-- `_verifyTransferred()`: check that the tokenId output amounts registered as transferred out with what is reported in the NET network 
+Each NFT is defined by a unique trackerId with the following attribtues:
+- `_trackerData` details about the certificate
+- `_trackerMappings` listing all the emission and products tokens issued to the certificate
 
-
-### Public view function - `carbonIntensity()`
-
-A library of view functions is provided to access contract state, including the `carbonIntensity(trackerId, audited)`. **Never call these in functions that update the network to avoid excessive gas fees**.
-
-
-This is a recursive function that cycles through all previous trackerIds.
-It measures the carbon intensity of offset credits, audited emission certificates, or outgoing carbon tracker tokens.
-
-![Carbon tracker variables and indices](carbon-tracker-vars.png)
-
-![Carbon tracker equations](carbon-tracker-eqns.png)
-
-Note: in equation 4 the carbon intensity of emission certificates is the ratio of total emissions including any embbeded carbon tracked for inputs, over the total emission reported (i.e., >= 1).
-
-
-### Constraints
-
-The following internal contraints are also applied across all NFTs
-
-![Carbon tracker constrinats](carbon-tracker-constraints.png)
+`_trackerMappings` can also list  products tracked from other trackers as a way to bootstrap the emission certificate of derived products.
 
 ## Carbon tracker NFT applications
 
@@ -49,37 +64,4 @@ For example, the [Carbon Border Adjustement Mechanism drafted by the European Co
 
 Another application is the creation of emission performance certificates issued to fuel and other commodity producers. For exmaple, to certify that a producer has low gas flaring and methane leakage on its production. [Flare Intel](https://flareintel.com/) provoides a service that could be used to verify flaring from facilities on a global scale. The World Bank has also set up an [Imported Flared Gas (IFG) index](https://www.ggfrdata.org/#imported-flare-gas-index) as a measure of the embedded flared emission in international oil trade. The Carbon Tracker NFTs could be issued in conjunction with such an index to prove an importer has committed to lowering its IFG index.
 
-### CarbonTracker NFT example
 
-The following digram illustrates the flow of different token typs (see legend on right hand side). Each column or vertical lane identifies the carbon tracker NFT constructed for different industrial facilities:
-- Oil & gas producer
-- Combined heat and power (CHP) plant 
-- Oil Refinery
-- Steam methane reforming (SMR) plant for hydrogen fuel production
-- Carbon torage facility
-
-![Carbon tracker diagram](carbon-tracker.png)
-
-
-## CarbonTracker token for registered industry dealers
-
-TokenTypeId=4 for carbon Tokens issued by registered industry of the Net Emission Token (NET) Network. This supply side token and CarbonTracker contract enable shared emission inventories across organizations and  embedded emission tracking.
-Carbon tokens can only be transferred with the approval of the receiving party using the openzepplin ECDSAUpgradeable
-
-Additions/changes to the NetEmissionTokenNetwork contract:
-- Role `REGISTERED_INDUSTRY`: new industry actors, self assigned or admin elected
-- Role `REGISTERED_INDUSTRY_DEALER`: elected by admin as official Carbon Token industry dealers
-- Mapping `_transferredBalances` allows CarbonTracker contract to check that the  balances of a tokenId transffered by a given address do not exceed what was reported in NET. 
-- mapping `carbonTransferNonce`: 
-    - prevent processing of carbon token transfers (tokenTypeID=4) multiple times. 
-    - Used in getTransferHash (see below)
-    - Increment in `_beforeTokenTransfer()` hook. When `approveCarbon` is true require `verifySignature()` (see below).
-- Modifier `consumerOrDealer(address from,address to)`: modifer for from and to addresses.
-    - `from!=address(0)`: if not minting require sender is consumerOrDealer
-    - `to!=address(0)`: if not burning require receiver is consumerOrDealer  
-- function `_beforeTokenTransfer()` hook:
-    - Ensures that requires are enforced for all `safeTransferFrom()` calls 
-    - Also applies to issue `super._mint` and retire `super._burn`.
-    - if condition `tokenTypeId == 4`, require `verifySignature()`.
-- `getTransferHash(from, to ,ids ,amounts)`: create Hash of token transfer 
-- `verifySignature()`: require address that signed `getTransferHash()` matches the to address

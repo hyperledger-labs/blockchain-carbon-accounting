@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
-import "./Governance/CarbonTracker.sol";
+import "./CarbonTracker.sol";
 contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessControlUpgradeable {
 
     using SafeMathUpgradeable for uint256;
@@ -33,12 +33,9 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     // Consumer role
     bytes32 public constant REGISTERED_CONSUMER =
         keccak256("REGISTERED_CONSUMER");
-    // Industry role (voluntary/nominate)
+    // Industry role (admin/dealer assigned)
     bytes32 public constant REGISTERED_INDUSTRY =
         keccak256("REGISTERED_INDUSTRY");
-    // Registered Industry Dealer (admin assignment)
-    bytes32 public constant REGISTERED_INDUSTRY_DEALER =
-        keccak256("REGISTERED_INDUSTRY_DEALER");
 
     /**
      * @dev Structure of all tokens issued in this contract
@@ -47,8 +44,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      *   1 => Renewable Energy Certificate
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
-     *   4 => Carbon Tracker tokens (traded, burnt or stored fuel/feed stock)
-     *   TO-DO define carbon tracker storage transactions (i.e. captured CO2 management) 
+     *   4 => Carbon Tracker tokens (traceable emission tokens)
      * issuedBy - Address of transaction runner
      * issuedFrom - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
@@ -124,8 +120,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         _setupRole(REGISTERED_REC_DEALER, _admin);
         _setupRole(REGISTERED_OFFSET_DEALER, _admin);
         _setupRole(REGISTERED_EMISSIONS_AUDITOR, _admin);
-        _setupRole(REGISTERED_INDUSTRY_DEALER, _admin);
-        _setupRole(REGISTERED_INDUSTRY, _admin);
+        //_setupRole(REGISTERED_INDUSTRY, _admin);
         admin = _admin;
 
         // initialize
@@ -169,18 +164,13 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         bool isRecDealer = hasRole(REGISTERED_REC_DEALER, msg.sender);
         bool isCeoDealer = hasRole(REGISTERED_OFFSET_DEALER, msg.sender);
         bool isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender);
-        bool isInDealer = hasRole(REGISTERED_INDUSTRY_DEALER, msg.sender);
         */
         require(
             //hasRole(REGISTERED_REC_DEALER, msg.sender) ||
             //hasRole(REGISTERED_OFFSET_DEALER, msg.sender) ||
             //hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender) ||
-            //hasRole(REGISTERED_INDUSTRY_DEALER, msg.sender) ||
             // the below will achieve the same as the above
             hasRole(REGISTERED_DEALER,msg.sender) 
-            // REGISTERED_INDSUTRY are considered dealers of carbon tokens
-            // but have not be assigned REGISTERED_DEALER role by admin
-            // || hasRole(REGISTERED_INDUSTRY,msg.sender)
             ,"CLM8::onlyDealer: msg.sender not a dealer"
         );
     }
@@ -501,12 +491,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
                 //     hasRole(REGISTERED_EMISSIONS_AUDITOR, _issuer),
                 //     "CLM8::_issue: issuer not a registered emissions auditor"
                 // );
-            }/*else if (_tokenTypeId == 4) {
-                require(
-                    hasRole(REGISTERED_INDUSTRY_DEALER, _issuedBy),
-                    "CLM8::_issue(limited): issuer not a registered industry dealer"
-                );
-            }*/
+            }
         }
 
         // increment token identifier
@@ -656,8 +641,7 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
     function isDealerRegistered(address account) public view returns (bool) {
         if (hasRole(REGISTERED_REC_DEALER, account) ||
             hasRole(REGISTERED_OFFSET_DEALER, account) ||
-            hasRole(REGISTERED_EMISSIONS_AUDITOR, account) ||
-            hasRole(REGISTERED_INDUSTRY_DEALER, account) 
+            hasRole(REGISTERED_EMISSIONS_AUDITOR, account)
         ) return true;
         return false;
     }
@@ -685,7 +669,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
       bool isCeoDealer;
       bool isAeDealer;
       bool isIndustry;
-      bool isIndustryDealer;
     }
 
     /**
@@ -700,7 +683,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
         roles.isAeDealer = hasRole(REGISTERED_EMISSIONS_AUDITOR, account);
         roles.isIndustry = hasRole(REGISTERED_INDUSTRY, account);
         roles.isConsumer = hasRole(REGISTERED_CONSUMER, account);
-        roles.isIndustryDealer = hasRole(REGISTERED_INDUSTRY_DEALER, account);
         return roles;
     }
 
@@ -719,9 +701,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             grantRole(REGISTERED_OFFSET_DEALER, account);
         } else if (tokenTypeId == 3){
             grantRole(REGISTERED_EMISSIONS_AUDITOR, account);
-        } else if (tokenTypeId == 4) {
-            grantRole(REGISTERED_INDUSTRY, account);
-            grantRole(REGISTERED_INDUSTRY_DEALER, account);
         }
         // Also grant generic dealer role for registering/unregistering dealer
         grantRole(REGISTERED_DEALER, account);
@@ -734,12 +713,10 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
      */
     function registerIndustry(address account) external
     {
-        if(msg.sender != account){
-            // only dealer can register industry
-            _onlyDealer();
-        }
         if (limitedMode) {
             require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "CLM8::registerIndustry(limited): only admin can register industries");
+        }else{
+            _onlyDealer();
         }
         _setupRole(REGISTERED_INDUSTRY, account);
         emit RegisteredIndustry(account);
@@ -789,8 +766,6 @@ contract NetEmissionsTokenNetwork is Initializable, ERC1155Upgradeable, AccessCo
             super.revokeRole(REGISTERED_OFFSET_DEALER, account);
         } else if (tokenTypeId == 3) {
             super.revokeRole(REGISTERED_EMISSIONS_AUDITOR, account);
-        } else if (tokenTypeId == 4) {
-            super.revokeRole(REGISTERED_INDUSTRY_DEALER, account);
         }
         // If no longer a dealer of any token type, remove generic dealer role
         if (!isDealerRegistered(account)) {

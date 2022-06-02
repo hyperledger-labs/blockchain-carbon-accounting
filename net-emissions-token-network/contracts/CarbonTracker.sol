@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
-import "../NetEmissionsTokenNetwork.sol";
+import "./NetEmissionsTokenNetwork.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -106,7 +106,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     // map verifier to trackee
     mapping(address => mapping (address => bool)) isVerifierApproved;
 
-    uint public divDecimals; // decimal expansion for division
+    uint public decimalsEf; // decimals for emission factor calculations
 
     event RegisteredTracker(address indexed account);
     event TrackerUpdated(
@@ -128,7 +128,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     function initialize(address _net, address _admin) public initializer {
         net = NetEmissionsTokenNetwork(_net);
         netAddress = _net;
-        divDecimals = 1000000;
+        decimalsEf = 1000000;
         __ERC721_init('NET Carbon Tracker', "NETT");
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(REGISTERED_TRACKER, _admin);
@@ -332,7 +332,9 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
         uint productAmount,
         uint sourceTrackerId,
         address trackee ) public isAudited(sourceTrackerId) 
-        isOwner(sourceTrackerId) isIndustry(trackee){ 
+        isOwner(sourceTrackerId) 
+        //isIndustry(trackee)
+        { 
         ProductDetails storage product;
         
         //for (uint i = 0; i < productIds.length; i++) { }
@@ -496,7 +498,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     **/
     function _updateTrackedProducts(
         uint trackerId, 
-        uint256 sourceTrackerId, 
+        uint sourceTrackerId, 
         uint productId,
         uint productAmount) internal  {
         CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId]; 
@@ -607,11 +609,11 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
      * These are public view functions
      * Warning: should never be called within functions that update the network to avoid excessive gas fees
     */
-    function carbonIntensity(uint trackerId)
+    function emissionFactor(uint trackerId)
         public view returns (uint) {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
         if(trackerData.totalProductAmounts>0){
-            return(getTotalEmissions(trackerId).mul(divDecimals)
+            return(getTotalEmissions(trackerId).mul(decimalsEf)
             .div(trackerData.totalProductAmounts));
         }else{return(0);}
     } 
@@ -679,8 +681,8 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
             for (uint j = 0; j < productIds.length; j++) {
                 productAmount = productsTracked.amount[productIds[j]];
                 totalEmissions = totalEmissions.add(
-                    productAmount.mul(carbonIntensity(trackerIds[i]))
-                    .div(divDecimals)
+                    productAmount.mul(emissionFactor(trackerIds[i]))
+                    .div(decimalsEf)
                 );
             }
         }
@@ -722,9 +724,7 @@ contract CarbonTracker is Initializable, ERC721Upgradeable, AccessControlUpgrade
     {
         uint productConv;
         ProductDetails memory product= _productData[productId];
-        productConv = divDecimals
-            //total unit amount of products
-            .mul(product.unitAmount)
+        productConv = (product.unitAmount.mul(decimalsEf))
             .div(product.amount);
 
         return (product.name,productConv,product.unit);

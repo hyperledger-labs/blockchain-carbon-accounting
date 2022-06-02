@@ -86,7 +86,7 @@ const App:FC = () => {
               <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
               {((limitedMode && isOwner) || !limitedMode) &&
-                <Link href="/track"><Nav.Link eventKey="track">Track</Nav.Link></Link>
+                <Link href="/issuedTrackers"><Nav.Link eventKey="issuedTrackers">Track</Nav.Link></Link>
             }
 
               {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
@@ -147,17 +147,17 @@ const App:FC = () => {
                       <Route path="/retire">
                         <RetireForm provider={provider} roles={roles} />
                       </Route>
-                      <Route path="/track">
-                        <TrackForm provider={provider} roles={roles}/>
-                      </Route>
+                      <Route path="/issuedTrackers/:address?">{params=>
+                        <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
+                      }</Route>
+                      <Route path="/track/:trackerId?">{params=>
+                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                      }</Route>
                       <Route path="/addProduct/:trackerId?">{params=>
                         <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
                       }</Route>
                       <Route path="/transferProduct/:trackerId/:productId?">{params=>
                         <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} trackerId={Number(params.trackerId)} productId={Number(params.productId)}/>
-                      }</Route>
-                      <Route path="/issuedTrackers/:address?">{params=>
-                        <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
                       }</Route>
                       <Route path="/access-control">
                         <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
