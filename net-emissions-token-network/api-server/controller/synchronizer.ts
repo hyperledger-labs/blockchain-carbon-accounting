@@ -239,11 +239,16 @@ export const getCreatedToken = (token: CreatedToken) => {
 
     // build token model
     // eslint-disable-next-line
-    const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
+    const { metadata, manifest, totalIssued, totalRetired, issuedFrom, ..._tokenPayload } = { ...token };
+    let issuedFromAddr = '';
+    if (issuedFrom && issuedFrom !== '0') {
+        issuedFromAddr = '0x' + BigInt(issuedFrom).toString(16);
+    }
     const tokenPayload: TokenPayload = {
         ..._tokenPayload,
         scope,
         type,
+        issuedFrom: issuedFromAddr,
         // reset totalIssued and totalRetired
         totalIssued: 0n,
         totalRetired: 0n,
@@ -252,7 +257,6 @@ export const getCreatedToken = (token: CreatedToken) => {
     };
 
     return tokenPayload;
-
 }
 
 /** Clear the token and balance tables. */
