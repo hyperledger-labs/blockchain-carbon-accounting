@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "emissions.js",
+  "main": "cli/emissions.ts",
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
@@ -25,10 +25,5 @@
     "@typescript-eslint/parser": "^5.27.0",
     "eslint": "^8.16.0",
     "typescript": "^4.7.2"
-  },
-  "workspaces": [
-    "cli",
-    "lib",
-    "api"
-  ]
+  }
 }
