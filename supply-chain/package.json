@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "cli/emissions.ts",
+  "main": "emissions.js",
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "api": "npm run start --workspace=api",
     "api:dev": "npm run dev --workspace=api",
-    "cli": "ts-node cli/emissions.ts",
+    "cli": "npm run cli --workspace=cli",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -25,5 +25,10 @@
     "@typescript-eslint/parser": "^5.27.0",
     "eslint": "^8.16.0",
     "typescript": "^4.7.2"
-  }
+  },
+  "workspaces": [
+    "cli",
+    "lib",
+    "api"
+  ]
 }

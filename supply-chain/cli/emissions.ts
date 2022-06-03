@@ -9,7 +9,8 @@ import {
     queue_issue_tokens
 } from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
 import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from '@blockchain-carbon-accounting/supply-chain-lib/src/ipfs-utils';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({path: '../.env'});
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { sep } from 'path';
 
