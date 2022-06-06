@@ -9,11 +9,14 @@
     "pg:init": "npm run init --workspace=@blockchain-carbon-accounting/data-postgres",
     "pg:dataLoader": "npm run dataLoader --workspace=@blockchain-carbon-accounting/data-postgres",
     "pg:getData": "npm run getData --workspace=@blockchain-carbon-accounting/data-postgres",
+    "loadSeeds": "npm run loadSeeds --workspace=@blockchain-carbon-accounting/data-postgres",
     "supply-chain:api": "npm run dev --workspace=@blockchain-carbon-accounting/supply-chain-api",
-    "supply-chain:cli": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli",
+    "supply-chain:cli": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- ",
     "supply-chain:cli:processrequests": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- -processrequests",
     "net-emissions-token-network:api": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
+    "net-emissions-token-network:api-loadDemoSeeds": "npm run loadDemoSeeds --workspace=@blockchain-carbon-accounting/api-server",
     "net-emissions-token-network:react": "npm run dev --workspace=@blockchain-carbon-accounting/react-app",
+    "net-emissions-token-network:react-https": "npm run dev-https --workspace=@blockchain-carbon-accounting/react-app",
     "net-emissions-token-network:hardhat": "npm run dev --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
     "net-emissions-token-network:hardhat-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token-network"
  

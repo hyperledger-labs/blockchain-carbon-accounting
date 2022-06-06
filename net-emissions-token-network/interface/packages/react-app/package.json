@@ -60,7 +60,7 @@
     "ipfs": "npm run build && node scripts/ipfs.js",
     "start": "react-app-rewired start",
     "dev": "react-app-rewired start",
-    "localdev": "BROWSER=none WDS_SOCKET_PORT=443 react-app-rewired start",
+    "dev-https": "BROWSER=none WDS_SOCKET_PORT=443 react-app-rewired start",
     "test": "react-app-rewired test"
   },
   "devDependencies": {
