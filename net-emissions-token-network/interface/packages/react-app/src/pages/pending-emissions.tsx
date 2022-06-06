@@ -82,6 +82,14 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
           return;
         }
 
+
+        console.warn('token metadata is : ', selectedPendingEmissions.token_metadata);
+        // add the request uuid to the metadata
+        const metadata = JSON.parse(selectedPendingEmissions.token_metadata);
+        if (!metadata.request_uuid) {
+          metadata.request_uuid = selectedPendingEmissions.uuid;
+        }
+
         let result = await issue(provider,
           selectedPendingEmissions.issued_from,
           selectedPendingEmissions.issued_to,
@@ -89,7 +97,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
           selectedPendingEmissions.token_total_emissions,
           from_date,
           thru_date,
-          selectedPendingEmissions.token_metadata,
+          JSON.stringify(metadata),
           selectedPendingEmissions.token_manifest,
           selectedPendingEmissions.token_description,
           signedInWallet?.private_key || ''
