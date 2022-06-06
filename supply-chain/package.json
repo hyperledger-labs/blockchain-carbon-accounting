@@ -9,7 +9,7 @@
     "lint": "npm run lint --workspaces --if-present",
     "api": "npm run start --workspace=api",
     "api:dev": "npm run dev --workspace=api",
-    "cli": "ts-node cli/emissions.ts",
+    "cli": "npm run cli --workspace=cli",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

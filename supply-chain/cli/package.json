@@ -5,6 +5,7 @@
   "description": "",
   "main": "emissions.ts",
   "scripts": {
+    "cli": "ts-node emissions.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts",
     "build": "tsc"
