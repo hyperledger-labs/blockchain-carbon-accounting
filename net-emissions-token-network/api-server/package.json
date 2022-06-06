@@ -14,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@trpc/server": "^9.23.6",
+    "@trpc/server": "^9.24.0",
     "@types/morgan": "^1.9.3",
     "@blockchain-carbon-accounting/data-postgres": "*",
     "@blockchain-carbon-accounting/supply-chain-lib": "*",

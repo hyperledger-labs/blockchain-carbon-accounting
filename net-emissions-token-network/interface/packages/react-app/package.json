@@ -27,7 +27,7 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^14.2.0",
-    "@trpc/client": "^9.23.6",
+    "@trpc/client": "^9.24.0",
     "@trpc/react": "^9.23.6",
     "@walletconnect/web3-provider": "^1.7.8",
     "axios": "^0.27.2",
