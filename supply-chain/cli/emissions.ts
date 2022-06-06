@@ -9,10 +9,11 @@ import {
     queue_issue_tokens
 } from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
 import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from '@blockchain-carbon-accounting/supply-chain-lib/src/ipfs-utils';
-import dotenv from 'dotenv';
-dotenv.config({path: '../.env'});
+import { config } from 'dotenv';
+import findConfig from "find-config";
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { sep } from 'path';
+config({ path: findConfig(".env") || '.' });
 
 function print_usage() {
   console.log('Usapubkge: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');

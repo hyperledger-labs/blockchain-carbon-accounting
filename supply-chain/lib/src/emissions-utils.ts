@@ -10,8 +10,8 @@ import Signer from "@blockchain-carbon-accounting/emissions_data/src/blockchain-
 import { setup } from "@blockchain-carbon-accounting/emissions_data/src/utils/logger";
 import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
 import { BigNumber } from "bignumber.js";
-import { readFileSync } from "fs";
-import { extname } from "path";
+import { existsSync, readFileSync } from "fs";
+import { extname, resolve } from "path";
 import {
     Activity,
     ActivityResult,
@@ -941,6 +941,27 @@ function get_random_auditor(auditors: Wallet[]) {
   return null;
 }
 
+
+function get_upload_doc_path() {
+  const upload_dir = (process.env.DOC_UPLOAD_PATH || './upload/');
+  // if upload_dir is absolute, always use it
+  if (upload_dir.startsWith('/')) return upload_dir;
+  // check the path exists
+  let upload_doc_path = resolve(upload_dir);
+  if (existsSync(upload_doc_path)) return upload_doc_path;
+  console.log(`Upload directory ${upload_doc_path} does not exist.`);
+  // check if a directory net-emissions-token-network/api-server exists
+  const api_server_dir = resolve('./net-emissions-token-network/api-server');
+  if (existsSync(api_server_dir)) {
+    // resolve upload_dir from api_server_dir
+    upload_doc_path = resolve(api_server_dir, upload_dir);
+    if (existsSync(upload_doc_path)) return upload_doc_path;
+    console.log(`Upload directory ${upload_doc_path} does not exist.`);
+  }
+  console.log(`Cannot find the upload directory, current directory: ${process.cwd()}`);
+  return undefined;
+}
+
 export async function process_emissions_requests() {
   const db = await getDBInstance();
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated(true);
@@ -975,8 +996,13 @@ export async function process_emissions_requests() {
     // check if we have a supporting Document for it
     const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
     const supporting_docs_ipfs_paths: string[] = [];
+    const upload_path = get_upload_doc_path();
     for (const doc of docs) {
-      const filename = (process.env.DOC_UPLOAD_PATH || './upload/') + doc.file.uuid;
+      if (!upload_path) {
+        throw new Error('Cannot find the upload directory.');
+      }
+      // resolve the file path
+      const filename = resolve(upload_path, doc.file.uuid);
       const data = readFileSync(filename);
       // if we want the original filename use doc.file.name directly but this might be suitable
       // in all cases, we only need the file extension so that it can be opened once downloaded

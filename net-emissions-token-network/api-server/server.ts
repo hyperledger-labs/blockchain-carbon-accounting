@@ -1,7 +1,9 @@
 import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import 'dotenv/config';
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env") || '.' });
 import { Contract } from 'ethers';
 import express, { Application } from 'express';
 import fileUpload from 'express-fileupload';
@@ -13,6 +15,7 @@ import { startupSync } from './controller/synchronizer';
 import { queryProcessing } from "./middleware/query.middle";
 import router from './router/router';
 import { trpcMiddleware } from './trpc/common';
+
 // sanity checks
 const assertEnv = (key: string): string => {
   if (!process.env[key]) {
@@ -115,6 +118,7 @@ if ('true' !== process.env.SKIP_SYNC) {
 } else {
   // in test environment, we do not want to sync
   // test runner will do the listen call
+  console.log('Skipping sync, we are in test environment');
 }
 
 

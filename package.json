@@ -11,7 +11,7 @@
     "pg:getData": "npm run getData --workspace=@blockchain-carbon-accounting/data-postgres",
     "loadSeeds": "npm run loadSeeds --workspace=@blockchain-carbon-accounting/data-postgres",
     "supply-chain:api": "npm run dev --workspace=@blockchain-carbon-accounting/supply-chain-api",
-    "supply-chain:cli": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- ",
+    "supply-chain:cli": "ts-node supply-chain/cli/emissions.ts",
     "supply-chain:cli:processrequests": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- -processrequests",
     "net-emissions-token-network:api": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
     "net-emissions-token-network:api-loadDemoSeeds": "npm run loadDemoSeeds --workspace=@blockchain-carbon-accounting/api-server",
@@ -19,7 +19,6 @@
     "net-emissions-token-network:react-https": "npm run dev-https --workspace=@blockchain-carbon-accounting/react-app",
     "net-emissions-token-network:hardhat": "npm run dev --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
     "net-emissions-token-network:hardhat-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token-network"
- 
   },
   "workspaces": {
     "packages": [
@@ -37,6 +36,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@types/find-config": "^1.0.1",
     "@types/node": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^5.26.0",
     "@typescript-eslint/parser": "^5.26.0",
@@ -51,5 +51,8 @@
       "react-dom": "18.1.0",
       "autoprefixer": "10.4.5"
     }
+  },
+  "dependencies": {
+    "find-config": "^1.0.0"
   }
 }

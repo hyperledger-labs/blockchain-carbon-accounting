@@ -18,6 +18,9 @@ import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
 import Ctl from 'ipfsd-ctl';
 import sinon from 'sinon';
 import { v4 as uuidv4 } from 'uuid';
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env.TEST") || '.' });
 
 function cleanup() {
   if (existsSync('tests-private.pem')) unlinkSync('tests-private.pem');

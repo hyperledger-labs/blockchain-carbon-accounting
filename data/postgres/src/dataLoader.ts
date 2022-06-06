@@ -5,6 +5,9 @@ import { hideBin } from "yargs/helpers"
 import type { DbOpts } from "./config"
 import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
 import { PostgresDBService } from "./postgresDbService"
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env") || '.' });
 
 const progressBar = new SingleBar(
   {
