@@ -116,9 +116,9 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
       // Iterate over each trackerId and find balance of signed in address
       for (let i = 1; i <= numOfUniqueTrackers; i++) {
         // Fetch tracker details
-        let tracker:Tracker|string
+        let tracker:Tracker | string
           = await getTrackerDetails(provider, i, signedInAddress);
-        console.log("TrackerDetails", tracker)
+        console.log('--- trackerDetails', tracker);
         if(typeof tracker === "object"){
           if (tracker.trackerId===4){
             newRefTracker = tracker;
@@ -179,25 +179,25 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
       <div key={tracker.trackerId+"ProductInfo"+productId}>
         <div key={tracker.trackerId+name+productId+"Amount"}>
           {
-            name+": "+tracker.products?.available[productId].toLocaleString('en-US')+" "+units
+            name+": "+Math.round(tracker.products?.available[productId]).toLocaleString('en-US')+" "+units
             //name+": "+amount+" ("+tracker.products?.available[productId]+") "+units
           }
         </div>
         <div key={tracker.trackerId+name+productId+"intensity"}>
-            <>{tracker.products?.emissionFactors[productId]}
+            <>{tracker.products?.emissionFactors[productId].toFixed(1)}
               {" kgCO2e/"+units}</>
         </div>
       </div>)
     }
   }
 
-  function rowShading(emissionFactor: bigint){
+  function rowShading(emissionFactor: number){
     // TO-DO create an admin configurable reference tracking for product emissino factors
     // that share common units.
     let referenceEmissionFactor = refTracker?.products?.emissionFactors[1];
     if(!referenceEmissionFactor){return}
 
-    let opacity = Number(BigInt(100) * (referenceEmissionFactor-emissionFactor) / referenceEmissionFactor) / 100;
+    let opacity = 1-emissionFactor/referenceEmissionFactor;
     if(referenceEmissionFactor > emissionFactor){
       return 'rgba(60, 179, 113,'+opacity.toString()+')';
     }else if(referenceEmissionFactor < emissionFactor){

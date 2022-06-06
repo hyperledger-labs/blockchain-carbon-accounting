@@ -105,32 +105,32 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerDealer(dealer7, 2); // offsets dealer
     console.log("Account " + dealer7 + " is now an offsets  dealer");
 
-    await contract.connect(admin).registerDealer(industry1,4);
+    await contract.connect(admin).registerIndustry(industry1);
     console.log("Account " + industry1 + " is now an industry")
     // self registered industry dealer
-    await contract.connect(await hre.ethers.getSigner(industry1)).registerIndustry(industry2);
+    await contract.connect(admin).registerIndustry(industry2);
     console.log("Account " + industry2 + " is now an industry")
-    await contract.connect(admin).registerDealer(industry3,4);
+    await contract.connect(admin).registerIndustry(industry3);
     console.log("Account " + industry3 + " is now an industry")
-    await contract.connect(admin).registerDealer(industry4,4);
+    await contract.connect(admin).registerIndustry(industry4);
     console.log("Account " + industry4 + " is now an industry")
-    await contract.connect(admin).registerDealer(industry5,4);
+    await contract.connect(admin).registerIndustry(industry5);
     console.log("Account " + industry5 + " is now an industry")
-    await contract.connect(admin).registerDealer(industry6,4);
+    await contract.connect(admin).registerIndustry(industry6);
     console.log("Account " + industry6 + " is now an industry")
 
     await contract.connect(admin).registerConsumer(investor1);
     console.log("Account " + investor1 + " is now an consumer (investor)")
 
 
-    await contract.connect(await hre.ethers.getSigner(industry1)).registerConsumer(consumer1);
+    await contract.connect(await hre.ethers.getSigner(dealer1)).registerConsumer(consumer1);
     console.log("Account " + consumer1 + " is now a consumer");
     await contract.connect(admin).registerConsumer(consumer2);
     console.log("Account " + consumer2 + " is now a consumer");
     // special carrier accounts
-    await contract.connect(admin).registerDealer(ups,4);
+    await contract.connect(admin).registerIndustry(ups);
     console.log("Account " + ups + " is now an industry")
-    await contract.connect(admin).registerDealer(airfrance,4);
+    await contract.connect(admin).registerIndustry(airfrance);
     console.log("Account " + airfrance + " is now an industry")
   });
 task("issueTestTokens", "Create some test issued tokens")

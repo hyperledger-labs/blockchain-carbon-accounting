@@ -65,7 +65,7 @@ export interface ProductPayload {
   available: bigint;
   name: string;
   unit: string;
-  unitAmount: bigint;
+  unitAmount: number;
   hash: string;
 }
 

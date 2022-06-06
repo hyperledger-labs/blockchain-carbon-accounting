@@ -77,7 +77,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
           </Col>
           <Col className="col-9">
             <h5>
-                Reported emissions: {Math.round(tracker.totalEmissions).toLocaleString('en-US')} kgCO2e
+                Reported emissions: {Math.round(Number(tracker.totalEmissions)).toLocaleString('en-US')} kgCO2e
             </h5>
 
           </Col>
