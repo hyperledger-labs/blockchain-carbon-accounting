@@ -28,7 +28,7 @@
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^14.2.0",
     "@trpc/client": "^9.24.0",
-    "@trpc/react": "^9.23.6",
+    "@trpc/react": "^9.24.0",
     "@walletconnect/web3-provider": "^1.7.8",
     "axios": "^0.27.2",
     "bootstrap": "5.1.3",
