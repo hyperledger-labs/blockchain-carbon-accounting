@@ -69,26 +69,14 @@ then
         # bsctestnet setup for the frontend connection
         sed -i -e 's!const addresses =.*!const addresses = networksAndAddresses.bsctestnet;!g' net-emissions-token-network/interface/packages/contracts/src/addresses.ts
 
-        echo " - installing dependencies for /data"
-        npm --prefix data i >> ${LOGFILEBUILD}  2>&1
-        echo " - installing dependencies for /supply-chain"
-        npm --prefix supply-chain i >> ${LOGFILEBUILD}  2>&1
-
-        cd net-emissions-token-network || die "Can't cd to net-emissions-token-network"
-        echo " - installing dependencies for /net-emissions-token-network"
-        npm i >> ${LOGFILEBUILD}  2>&1
-
-        echo " - installing dependencies for /api-server"
-        npm --prefix api-server i >> ${LOGFILEBUILD}  2>&1
-
-        cd interface || die "Can't cd to interface"
-        echo " - installing dependencies for react-app"
-        npm i >> ${LOGFILEBUILD}  2>&1
+        echo " - installing all dependencies"
+        npm install >> ${LOGFILEBUILD}  2>&1
         echo " - dependencies install done"
 
+        cd net-emissions-token-network/interface/packages/react-app || die "Can't cd to interface"
         # build the frontend
         echo " - building react-app"
-        npm run react-app:build >> ${LOGFILEBUILD}  2>&1
+        npm run build >> ${LOGFILEBUILD}  2>&1
         echo " - build done"
 
         cat ${LOGFILEBUILD} >> ${LOGFILE}
