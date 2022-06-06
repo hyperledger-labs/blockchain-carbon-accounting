@@ -17,7 +17,7 @@
     "@nomiclabs/hardhat-ethers": "2.0.6",
     "@nomiclabs/hardhat-etherscan": "3.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@openzeppelin/hardhat-upgrades": "^1.17.0",
+    "@openzeppelin/hardhat-upgrades": "^1.18.1",
     "@types/chai": "^4.3.1",
     "@types/mocha": "^9.1.1",
     "@types/supertest": "^2.0.12",
@@ -35,7 +35,7 @@
     "hardhat-deploy": "^0.11.10",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
     "hardhat-gas-reporter": "1.0.8",
-    "ipfs": "^0.63.1",
+    "ipfs": "^0.63.2",
     "ipfs-http-client": "^56.0.3",
     "ipfsd-ctl": "^10.0.6",
     "mocha": "^10.0.0",
@@ -45,7 +45,7 @@
     "solidity-coverage": "0.7.21",
     "superjson": "^1.9.1",
     "supertest": "^6.2.3",
-    "ts-node": "^10.8.0",
+    "ts-node": "^10.8.1",
     "uuid": "^8.3.2"
   },
   "dependencies": {
