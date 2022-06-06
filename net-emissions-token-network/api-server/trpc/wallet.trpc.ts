@@ -86,7 +86,7 @@ export const walletRouter = trpc
         try {
             const wallet = await ctx.db.getWalletRepo().findWalletByAddress(input.address);
             return {
-                wallet
+                wallet: wallet ? Wallet.toRaw(wallet) : null
             }
         } catch (error) {
             handleError('get', error)
