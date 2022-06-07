@@ -903,6 +903,7 @@ export async function create_emissions_request(
 
   const db = await getDBInstance();
   const em_request = await db.getEmissionsRequestRepo().insert({
+    node_id: process.env.APP_NODE_ID,
     input_content: input_content,
     issued_from: issuee_from,
     issued_to: issuee_to,

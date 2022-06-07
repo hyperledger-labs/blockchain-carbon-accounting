@@ -89,6 +89,9 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
         if (!metadata.request_uuid) {
           metadata.request_uuid = selectedPendingEmissions.uuid;
         }
+        if (!metadata.node_id) {
+          metadata.node_id = selectedPendingEmissions.node_id;
+        }
 
         let result = await issue(provider,
           selectedPendingEmissions.issued_from,
