@@ -1,6 +1,7 @@
 {
-  "name": "blockchain-carbon-accounting-data-common",
+  "name": "@blockchain-carbon-accounting/data-common",
   "version": "1.0.0",
+  "private": true,
   "description": "Common data module for use in blockchain-carbon-accounting project",
   "engines": {
     "node": ">=16"
@@ -17,13 +18,13 @@
     "@typescript-eslint/parser": "^5.27.0",
     "esbuild": "^0.14.42",
     "esbuild-runner": "^2.2.1",
-    "eslint": "^8.16.0",
-    "typescript": "^4.7.2"
+    "eslint": "^8.17.0",
+    "typescript": "^4.7.3"
   },
   "dependencies": {
     "cli-progress": "^3.11.1",
     "uuid": "^8.3.2",
     "xlsx": "^0.18.5",
-    "emissions_data_chaincode": "file:../../emissions-data/chaincode/emissionscontract/typescript"
+    "@blockchain-carbon-accounting/emissions_data_chaincode": "*"
   }
 }

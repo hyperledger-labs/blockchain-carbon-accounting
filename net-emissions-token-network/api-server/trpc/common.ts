@@ -1,11 +1,11 @@
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import superjson from 'superjson';
-import * as trpc from '@trpc/server'
+import * as trpc from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
-import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
 import { ZodError } from 'zod';
 import { OPTS } from '../server';
-import { balanceRouter } from './balance.trpc'
+import { balanceRouter } from './balance.trpc';
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';

@@ -36,6 +36,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
             return value.type === 'event' && value.name === 'TokenCreated';
         });
         Checks.truthy(tokenCreatedABI, `EthNetEmissionsTokenGateway tokenCreated event abi`);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         this.EventTokenCreatedInput = tokenCreatedABI!.inputs;
     }
 
@@ -97,6 +98,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         }
 
         // There is no 'out' on invokeContractV1Response .. does this even work?
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const txReceipt = (result as any).out.transactionReceipt;
         // TODO move decode logic to cactus xdai connector
         ledgerLogger.debug(`${fnTag} decoding ethereum response`);

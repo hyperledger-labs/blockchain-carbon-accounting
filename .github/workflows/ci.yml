@@ -1,114 +1,61 @@
 name: "CI"
 on: # Run the workflows on push/PR to the main branch
   push:
-    branches: [main]
+    branches: [main,monorepo]
   pull_request:
-    branches: [main]
+    branches: [main,monorepo]
 
 jobs:
-  build-supply-chain:
+  lint: # Run lint script for all workspaces
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./supply-chain
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
-      - name: Install dependencies
-        run: |
-          npm i -g npm@latest
-          npm ci
-      - name: Run build script
-        run: npm run build
-
-  build-api-server:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./net-emissions-token-network/api-server
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+          cache: 'npm'
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
         with:
-          node-version: "16.15.0"
+          path: ./node_modules
+          key: modules-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
-        run: |
-          npm i -g npm@latest
-          npm ci
-      - name: Run build script
-        run: npm run build
-
-  build-react-app:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./net-emissions-token-network/interface
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: "16.15.0"
-      - name: Install dependencies
-        run: |
-          npm i -g npm@latest
-          npm ci --prefix ../api-server
-          npm ci
-      - name: Run build script
-        run: CI=false npm run react-app:build
-
-  lint-typescript-app: # Run lint script for the typescript_app directory
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./emissions-data/typescript_app
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: "16.15.0"
-      - name: Install dependencies
-        run: |
-          npm i -g npm@latest
-          npm ci
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Run lint script
         run: npm run lint
 
-  lint-utility-emissions-chaincode: # Run lint script for the chaincode/emissionscontract/typescript directory
+  build: # Run build script for all workspaces
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./emissions-data/chaincode/emissionscontract/typescript
+    needs: lint
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
-      - name: Install dependencies
-        run: |
-          npm i -g npm@latest
-          npm ci
-      - name: Run lint script
-        run: npm run lint
-
-  lint-datalock-chaincode: # Run linting for the chaincode/datalock directory using golangci-lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run lint script
-        uses: golangci/golangci-lint-action@v2
+          cache: 'npm'
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
         with:
-          working-directory: ./emissions-data/chaincode/datalock
+          path: ./node_modules
+          key: modules-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Run build script
+        run: npm run build
 
   test-datalock-chaincode: # Run chaincode tests for the chaincode/datalock directory
     runs-on: ubuntu-latest
+    needs: lint
     defaults:
       run:
         working-directory: ./emissions-data/chaincode/datalock
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
         with:
           go-version: "1.18"
       - name: Run chaincode tests
@@ -116,6 +63,7 @@ jobs:
 
   test-net-emissions-token-network: # Run tests for the net-emissions-token-network directory
     runs-on: ubuntu-latest
+    needs: lint
     services:
       postgres:
         image: postgres
@@ -131,48 +79,62 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    defaults:
-      run:
-        working-directory: ./net-emissions-token-network
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
+          cache: 'npm'
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: modules-${{ hashFiles('package-lock.json') }}
       - name: Install dependencies
-        run: |
-          npm i -g npm@latest
-          npm ci
-      - name: Run tests
-        run: npx hardhat test
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Run data tests
+        run: npm run test --prefix ./data/postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+      - name: Run net-emissions-token-network tests
+        run: npm run test --prefix ./net-emissions-token-network
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
 
   test-typescript-app: # Build and test the typescript_app project
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./emissions-data
+    needs: lint
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
+          cache: 'npm'
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ./node_modules
+          key: modules-${{ hashFiles('package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
       - name: Download Fabric binaries
         run: |
           sudo chmod +x /usr/local/bin/docker-compose
-          cd docker-compose-setup/
+          cd ./emissions-data/docker-compose-setup/
           ./bootstrap.sh  2.4.2 1.5.2 -d -s
       - name: Start local Hardhat network # Start local Hardhat network needed for running net emissions token network
         run: |
-          cd ../net-emissions-token-network/
-          npm i -g npm@latest
-          npm ci
+          cd ./net-emissions-token-network/
           echo "n" | npx hardhat node &
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
-          cd docker-compose-setup/
+          cd ./emissions-data/docker-compose-setup/
           echo "127.0.0.1       auditor1.carbonAccounting.com
           127.0.0.1       auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com
@@ -181,11 +143,11 @@ jobs:
           ./startDev.sh &
       - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
-          cd typescript_app/
+          cd ./emissions-data/typescript_app/
           while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: success() || failure()
         with:
           name: test-results

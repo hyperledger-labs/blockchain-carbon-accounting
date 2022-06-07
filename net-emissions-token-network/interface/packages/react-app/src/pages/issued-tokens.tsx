@@ -44,7 +44,6 @@ const IssuedTokens: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTokensPro
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [selectedToken, setSelectedToken] = useState<Token | undefined>();
-  // Balances of my tokens and tokens I've issued
   const [myIssuedTokens, setMyIssuedTokens] = useState<Token[]>([]);
 
   const [fetchingTokens, setFetchingTokens] = useState(false);

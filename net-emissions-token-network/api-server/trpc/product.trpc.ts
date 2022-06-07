@@ -1,5 +1,5 @@
 import * as trpc from '@trpc/server'
-import { Product } from 'blockchain-accounting-data-postgres/src/models/product';
+import { Product } from '@blockchain-carbon-accounting/data-postgres/src/models/product';
 import { ethers } from 'ethers';
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';

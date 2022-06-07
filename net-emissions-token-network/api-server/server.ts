@@ -1,10 +1,21 @@
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env") || '.' });
+import { Contract } from 'ethers';
 import express, { Application } from 'express';
 import fileUpload from 'express-fileupload';
 import expressContext from "express-request-context";
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import 'dotenv/config';
 import morgan from 'morgan';
+import { subscribeToEvents } from "./components/event.listener";
+// import synchronizer
+import { startupSync } from './controller/synchronizer';
+import { queryProcessing } from "./middleware/query.middle";
+import router from './router/router';
+import { trpcMiddleware } from './trpc/common';
+
 // sanity checks
 const assertEnv = (key: string): string => {
   if (!process.env[key]) {
@@ -29,16 +40,8 @@ export type OPTS_TYPE = {
 }
 export const OPTS: OPTS_TYPE = { contract_address, network_name, network_rpc_url, network_ws_url }
 
-// import synchronizer
-import { startupSync } from './controller/synchronizer';
 
-import router from './router/router';
-import { subscribeToEvents } from "./components/event.listener";
-import { queryProcessing } from "./middleware/query.middle";
 
-import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
-import { trpcMiddleware } from './trpc/common';
-import { Contract } from 'ethers';
 
 // DB connector
 const db = PostgresDBService.getInstance()
@@ -115,6 +118,7 @@ if ('true' !== process.env.SKIP_SYNC) {
 } else {
   // in test environment, we do not want to sync
   // test runner will do the listen call
+  console.log('Skipping sync, we are in test environment');
 }
 
 

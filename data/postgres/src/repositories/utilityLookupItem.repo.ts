@@ -1,10 +1,10 @@
-import { UtilityLookupItemDbInterface } from "blockchain-carbon-accounting-data-common/db"
-import { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem"
+import { UtilityLookupItemDbInterface } from "@blockchain-carbon-accounting/data-common/db"
+import { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/utilityLookupItem"
 import { DataSource } from "typeorm"
 import { UtilityLookupItem } from "../models/utilityLookupItem"
 
 export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
-  
+
   private _db: DataSource
 
   constructor(dbConnection: DataSource) {

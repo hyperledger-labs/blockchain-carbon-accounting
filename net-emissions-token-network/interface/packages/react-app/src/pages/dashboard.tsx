@@ -71,7 +71,7 @@ const Dashboard: ForwardRefRenderFunction<DashboardHandle, DashboardProps> = ({ 
   }));
 
   function switchQueryBuilder() {
-     setShowQueryBuilder(!showQueryBuilder);
+    setShowQueryBuilder(!showQueryBuilder);
   }
 
   async function handleRefresh() {

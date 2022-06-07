@@ -1,14 +1,14 @@
-import { QueryBundle } from "blockchain-accounting-data-postgres/src/repositories/common";
-import { FIELD, IFIELDS, FIELDS, OP_MAP, IOP_MAP } from "../models/commonTypes";
+import { QueryBundle } from "@blockchain-carbon-accounting/data-postgres/src/repositories/common";
+import { FIELD, FIELDS, IFIELDS, IOP_MAP, OP_MAP } from "../models/commonTypes";
 
 function validateQuery(bundle: QueryBundle) : boolean {
     // field name checking
     const validator: FIELD = FIELDS[bundle.field as keyof IFIELDS];
     if(validator == null) return false;
-    
+
     // type checking
     if(validator.fieldType != bundle.fieldType) return false;
-    
+
     // op checking
     if(!validator.op.includes(bundle.op)) return false;
     bundle.op = OP_MAP[bundle.op as keyof IOP_MAP];

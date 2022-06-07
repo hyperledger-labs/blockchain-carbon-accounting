@@ -1,5 +1,7 @@
 *.DS_Store
+.env
 minifab/
+node_modules
 slitherlog.json
 
 

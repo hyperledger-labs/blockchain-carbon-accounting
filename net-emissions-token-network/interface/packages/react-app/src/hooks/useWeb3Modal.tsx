@@ -4,7 +4,7 @@ import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 
-import { getRoles, getRegisteredTracker, getLimitedMode } from "../services/contract-functions";
+import { getRoles, getLimitedMode } from "../services/contract-functions";
 import { RolesInfo, Wallet } from "../components/static-data";
 import { RPC_URL } from "../services/api.config";
 
@@ -21,7 +21,7 @@ function useWeb3Modal(config: any = {}) {
   const [signedInAddress, setSignedInAddress] = useState("");
   const [signedInWallet, setSignedInWallet] = useState<Wallet | undefined>();
   const [roles, setRoles] = useState<RolesInfo>({});
-  const [registeredTracker, setRegisteredTracker] = useState(false);
+  const [registeredTracker, ] = useState(false);
   const [limitedMode, setLimitedMode] = useState(true);
   const { autoLoad = true, infuraId = INFURA_ID, NETWORK = NETWORK_NAME } = config;
 
@@ -118,9 +118,9 @@ function useWeb3Modal(config: any = {}) {
     async function fetchRoles(provider: Web3Provider | JsonRpcProvider) {
       setRoles(await getRoles(provider, signedInAddress));
     };
-    async function fetchRegisteredTracker(provider: Web3Provider | JsonRpcProvider) {
-      setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
-    };
+    // async function fetchRegisteredTracker(provider: Web3Provider | JsonRpcProvider) {
+    //   setRegisteredTracker(await getRegisteredTracker(provider, signedInAddress));
+    // };
     async function fetchLimitedMode(provider: Web3Provider | JsonRpcProvider) {
       setLimitedMode(await getLimitedMode(provider));
     }

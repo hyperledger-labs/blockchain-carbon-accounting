@@ -62,6 +62,7 @@ class EmissionsChaincode {
             'url',
             'md5',
         ];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fieldsMap: Record<string, any> = {
             utilityId: null,
             partyId: null,

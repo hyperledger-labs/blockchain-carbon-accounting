@@ -9,6 +9,7 @@ export type DbOpts = {
   dbVerbose: boolean,
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const addCommonYargsOptions = (yargs: any) => {
   return yargs
     .option('dbname', {
@@ -38,6 +39,7 @@ export const addCommonYargsOptions = (yargs: any) => {
     })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const parseCommonYargsOptions = (argv: any): DbOpts => {
   const opts = {
     dbName: argv['dbname'] || process.env.DB_NAME as string || 'blockchain-carbon-accounting',

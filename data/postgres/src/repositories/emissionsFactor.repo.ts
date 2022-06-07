@@ -1,10 +1,10 @@
-import { EmissionFactorDbInterface } from "blockchain-carbon-accounting-data-common/db"
-import { ActivityInterface, getYearFromDate } from "blockchain-carbon-accounting-data-common/utils"
-import { CO2EmissionFactorInterface, getUomFactor } from "emissions_data_chaincode/src/lib/emissions-calc"
-import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor"
-import { UtilityLookupItemInterface } from "emissions_data_chaincode/src/lib/utilityLookupItem"
-import { ErrInvalidFactorForActivity } from "emissions_data_chaincode/src/util/const"
-import { DataSource, FindOptionsWhere, ILike, MoreThanOrEqual, LessThanOrEqual, Between, SelectQueryBuilder } from "typeorm"
+import { EmissionFactorDbInterface } from "@blockchain-carbon-accounting/data-common/db"
+import { ActivityInterface, getYearFromDate } from "@blockchain-carbon-accounting/data-common/utils"
+import { CO2EmissionFactorInterface, getUomFactor } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissions-calc"
+import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor"
+import { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/utilityLookupItem"
+import { ErrInvalidFactorForActivity } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/util/const"
+import { Between, DataSource, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, SelectQueryBuilder } from "typeorm"
 import { EmissionsFactor } from "../models/emissionsFactor"
 import { UtilityLookupItem } from "../models/utilityLookupItem"
 
@@ -76,7 +76,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     if (activity.activity_uom && doc.activity_uom?.toUpperCase() !== activity.activity_uom.toUpperCase()) return false
     return true
   }
-  
+
   public putEmissionFactor = async (doc: EmissionsFactorInterface) => {
     // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
     const repo = this._db.getRepository(EmissionsFactor)
@@ -96,7 +96,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
   public countAllFactors = async (): Promise<number> => {
     return await this._db.getRepository(EmissionsFactor).count()
   }
-  
+
   public getEmissionsFactorsByDivision = async (
     divisionID: string,
     divisionType: string,

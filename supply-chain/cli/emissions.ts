@@ -1,17 +1,19 @@
-import 'dotenv/config';
-import { mkdirSync, readFileSync, writeFileSync } from 'fs'
-import { sep } from 'path';
-import { generateKeyPair, hash_content } from 'supply-chain-lib/src/crypto-utils';
+import { generateKeyPair, hash_content } from '@blockchain-carbon-accounting/supply-chain-lib/src/crypto-utils';
 import {
-  GroupedResult,
-  GroupedResults,
-  group_processed_activities,
-  issue_tokens,
-  process_activities,
-  process_emissions_requests,
-  queue_issue_tokens
-} from 'supply-chain-lib/src/emissions-utils';
-import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from 'supply-chain-lib/src/ipfs-utils';
+    GroupedResult,
+    GroupedResults,
+    group_processed_activities,
+    issue_tokens,
+    process_activities,
+    process_emissions_requests,
+    queue_issue_tokens
+} from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
+import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from '@blockchain-carbon-accounting/supply-chain-lib/src/ipfs-utils';
+import { config } from 'dotenv';
+import findConfig from "find-config";
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { sep } from 'path';
+config({ path: findConfig(".env") || '.' });
 
 function print_usage() {
   console.log('Usapubkge: node emissions.js [-f input.json] [-pubk pubkey1.pem] [-pubk pubkey2.pem] ...');
@@ -123,7 +125,7 @@ async function process_group(output_array: OutputActivity[], g: GroupedResult, a
   let token_res;
   let token_error: string | undefined = undefined;
   try {
-    token_res = queue ? 
+    token_res = queue ?
       await queue_issue_tokens(g, activity_type, mode, issued_from) :
       await issue_tokens(g, activity_type, publicKeys, encMode, mode, issued_from);
   } catch (e) {

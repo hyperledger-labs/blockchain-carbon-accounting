@@ -1,10 +1,13 @@
 import yargs = require('yargs')
-import { hideBin } from "yargs/helpers"
-import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
-import { ActivityInterface } from "blockchain-carbon-accounting-data-common/utils"
-import { PostgresDBService } from "./postgresDbService"
-import type { DbOpts } from "./config"
+import { ActivityInterface } from "@blockchain-carbon-accounting/data-common/utils";
+import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
+import { hideBin } from "yargs/helpers";
+import type { DbOpts } from "./config";
+import { addCommonYargsOptions, parseCommonYargsOptions } from "./config";
+import { PostgresDBService } from "./postgresDbService";
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env") || '.' });
 
 (async () => {
 
@@ -12,6 +15,7 @@ import type { DbOpts } from "./config"
     return await PostgresDBService.getInstance(dbopts)
   }
   addCommonYargsOptions(yargs(hideBin(process.argv)))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .command("test", "Run some test queries", {}, async (args: any) => {
     const db = await init(parseCommonYargsOptions(args))
 
@@ -69,6 +73,7 @@ import type { DbOpts } from "./config"
     }
     await db.close()
   })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   .command("factors", "Query all factors from the DB", {}, async (args: any) => {
     const db = await init(parseCommonYargsOptions(args))
     try {
@@ -89,6 +94,7 @@ import type { DbOpts } from "./config"
   .command(
     "factor <scope> [level1] [level2] [level3] [level4] [text] [uom]",
     "Lookup an emission factor",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (yargs: any) => {
       yargs
         .positional("scope", {
@@ -120,6 +126,7 @@ import type { DbOpts } from "./config"
           type: "string",
         })
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
@@ -143,6 +150,7 @@ import type { DbOpts } from "./config"
   .command(
     "activity-emissions <scope> <level1> <level2> <level3> <level4> <text> <amount> [uom]",
     "Calculate the emissions for an activity",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (yargs: any) => {
       yargs
         .positional("scope", {
@@ -179,6 +187,7 @@ import type { DbOpts } from "./config"
           default: "kg",
         })
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (args: any) => {
       const db = await init(parseCommonYargsOptions(args))
       try {
@@ -194,7 +203,7 @@ import type { DbOpts } from "./config"
             tonnesShipped: args.uom?.startsWith('tonne') ? 1 : undefined,
             passengers: args.uom?.startsWith('passenger') ? 1 : undefined,
           })
- 
+
         console.log(res)
       } catch (e) {
         console.log('Error', e)

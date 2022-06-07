@@ -1,10 +1,13 @@
+import { importUtilityIdentifiers, loadEmissionsFactors } from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
 import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
-import { PostgresDBService } from "./postgresDbService"
-import { importUtilityIdentifiers, loadEmissionsFactors } from "blockchain-carbon-accounting-data-common/spreadsheetImport"
-import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
 import type { DbOpts } from "./config"
+import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
+import { PostgresDBService } from "./postgresDbService"
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env") || '.' });
 
 const progressBar = new SingleBar(
   {

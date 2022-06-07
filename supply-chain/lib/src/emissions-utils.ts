@@ -1,41 +1,27 @@
+import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+import BCGatewayConfig from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/config";
+import {
+    IEthNetEmissionsTokenIssueInput,
+    IEthTxCaller
+} from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/I-gateway";
+import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
+import Signer from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/signer";
+import { setup } from "@blockchain-carbon-accounting/emissions_data/src/utils/logger";
+import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
 import { BigNumber } from "bignumber.js";
-import BCGatewayConfig from "emissions_data/src/blockchain-gateway/config";
+import { existsSync, readFileSync } from "fs";
+import { extname, resolve } from "path";
 import {
-  IEthNetEmissionsTokenIssueInput,
-  IEthTxCaller,
-} from "emissions_data/src/blockchain-gateway/I-gateway";
-import EthNetEmissionsTokenGateway from "emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
-import Signer from "emissions_data/src/blockchain-gateway/signer";
-import { setup } from "emissions_data/src/utils/logger";
-import { PostgresDBService } from "blockchain-carbon-accounting-data-postgres/src/postgresDbService";
-import {
-  Activity,
-  ActivityResult,
-  Distance,
-  Emissions,
-  FlightActivity,
-  is_shipment_activity,
-  is_flight_activity,
-  MetadataType,
-  ProcessedActivity,
-  ShipmentActivity,
-  ValueAndUnit,
-  is_emissions_factor_activity,
-  EmissionsFactorActivity,
-  ShippingMode,
-  is_natural_gas_activity,
-  NaturalGasActivity,
-  is_electricity_activity,
-  ElectricityActivity,
+    Activity,
+    ActivityResult,
+    Distance, ElectricityActivity, Emissions, EmissionsFactorActivity, FlightActivity, is_electricity_activity, is_emissions_factor_activity, is_flight_activity, is_natural_gas_activity, is_shipment_activity, MetadataType, NaturalGasActivity, ProcessedActivity,
+    ShipmentActivity, ShippingMode, ValueAndUnit
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileRSAEncrypted, uploadFileWalletEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
-import { Wallet } from "blockchain-carbon-accounting-data-postgres/src/models/wallet";
-import { EmissionsFactorInterface } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import { readFileSync } from "fs";
-import { extname } from "path";
 
 let logger_setup = false;
 const LOG_LEVEL = "silent";
@@ -51,7 +37,7 @@ export function emissions_in_kg_to_tokens(emissions: number) {
 export function weight_in_uom(weight: number, uom: string, to_uom: string) {
   const w1 = weight_in_kg(weight, uom)
   const w2 = weight_in_kg(1, to_uom)
-  //eg: 1 g is 0.001 kg 
+  //eg: 1 g is 0.001 kg
   //eg: 1 tonne is 1000 kg
   //eg: so 1g is 1*0.001/1000 tonne
   return w1 / w2;
@@ -329,7 +315,7 @@ async function gateway_issue_token(
   try {
     return await gateway.issue(caller, input);
   } catch (error) {
-    if (error instanceof Error) throw new Error(error.message) 
+    if (error instanceof Error) throw new Error(error.message)
     else throw new Error(String(error));
   }
 }
@@ -379,7 +365,7 @@ export async function process_flight(
 }
 
 export async function process_natural_gas(
-  a: NaturalGasActivity 
+  a: NaturalGasActivity
 ): Promise<ActivityResult> {
   return process_emissions_factor({
     ...a,
@@ -392,7 +378,7 @@ export async function process_natural_gas(
 }
 
 export async function process_electricity(
-  a: ElectricityActivity 
+  a: ElectricityActivity
 ): Promise<ActivityResult> {
   const from_year = a.from_date?.getFullYear()?.toString()
   const thru_year = a.thru_date?.getFullYear()?.toString()
@@ -917,6 +903,7 @@ export async function create_emissions_request(
 
   const db = await getDBInstance();
   const em_request = await db.getEmissionsRequestRepo().insert({
+    node_id: process.env.APP_NODE_ID,
     input_content: input_content,
     issued_from: issuee_from,
     issued_to: issuee_to,
@@ -955,6 +942,27 @@ function get_random_auditor(auditors: Wallet[]) {
   return null;
 }
 
+
+function get_upload_doc_path() {
+  const upload_dir = (process.env.DOC_UPLOAD_PATH || './upload/');
+  // if upload_dir is absolute, always use it
+  if (upload_dir.startsWith('/')) return upload_dir;
+  // check the path exists
+  let upload_doc_path = resolve(upload_dir);
+  if (existsSync(upload_doc_path)) return upload_doc_path;
+  console.log(`Upload directory ${upload_doc_path} does not exist.`);
+  // check if a directory net-emissions-token-network/api-server exists
+  const api_server_dir = resolve('./net-emissions-token-network/api-server');
+  if (existsSync(api_server_dir)) {
+    // resolve upload_dir from api_server_dir
+    upload_doc_path = resolve(api_server_dir, upload_dir);
+    if (existsSync(upload_doc_path)) return upload_doc_path;
+    console.log(`Upload directory ${upload_doc_path} does not exist.`);
+  }
+  console.log(`Cannot find the upload directory, current directory: ${process.cwd()}`);
+  return undefined;
+}
+
 export async function process_emissions_requests() {
   const db = await getDBInstance();
   const emissions_requests = await db.getEmissionsRequestRepo().selectCreated(true);
@@ -989,8 +997,13 @@ export async function process_emissions_requests() {
     // check if we have a supporting Document for it
     const docs = await db.getEmissionsRequestRepo().selectSupportingDocuments(er);
     const supporting_docs_ipfs_paths: string[] = [];
+    const upload_path = get_upload_doc_path();
     for (const doc of docs) {
-      const filename = (process.env.DOC_UPLOAD_PATH || './upload/') + doc.file.uuid;
+      if (!upload_path) {
+        throw new Error('Cannot find the upload directory.');
+      }
+      // resolve the file path
+      const filename = resolve(upload_path, doc.file.uuid);
       const data = readFileSync(filename);
       // if we want the original filename use doc.file.name directly but this might be suitable
       // in all cases, we only need the file extension so that it can be opened once downloaded

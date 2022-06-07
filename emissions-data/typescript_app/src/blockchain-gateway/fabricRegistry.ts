@@ -34,6 +34,7 @@ export default class FabricRegistryGateway implements IFabricRegistryGateway {
             });
             ledgerLogger.debug(`${fnTag} client enrolled with fabric-ca`);
         } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const errors = (error as any)?.errors;
             if (errors && errors[0] && errors[0].code === 20) {
                 throw new ClientError(`${fnTag} invalid enrollmentSecret`, 403);

@@ -1,9 +1,8 @@
+import { UtilityLookupItemInterface } from '@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/utilityLookupItem';
 import {
-    Entity,
-    PrimaryGeneratedColumn,
-    Column
+    Column, Entity,
+    PrimaryGeneratedColumn
 } from 'typeorm';
-import { UtilityLookupItemInterface } from 'emissions_data_chaincode/src/lib/utilityLookupItem'
 
 @Entity()
 export class UtilityLookupItem implements UtilityLookupItemInterface {

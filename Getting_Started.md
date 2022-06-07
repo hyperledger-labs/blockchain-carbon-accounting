@@ -2,40 +2,76 @@
 
 These are some general notes for developers to get started.  
 
-You will need to run `npm install` in the following directories:
-- data/
-- supply-chain/
-- net-emissions-tokens/api-server/
-- net-emissions-tokens/interface/
-
 Please also read the README.md documentations, net-emissions-tokens/docs/ directory, and installation instructions in each component.  
 
-Run ipfs daemon --enable-pubsub-experiment
-
+Create database:
+```
 createdb blockchain-carbon-accounting
-
-From ./net-emissions-token-network
-npx hardhat node
-npx hardhat setTestAccountRoles --network localhost --contract 0x610178dA211FEF7D417bC0e6FeD39F05609AD788
-
-From ./data/postgres/
-
-run loadData.sh
-
-psql blockchain-carbon-accounting < seeds/*
-
-From ./net-emissions-token-network/api-server/
-
-npm run dev
-psql blockchain-carbon-accounting < seedHardhatDemoWallets.sql
-
-Emissions audit requests can be requested in the dApp by any wallet with the Consumer role, or from `supply-chain/` directory by running 
-
-```
-npm run cli -- -f input.json -queue
 ```
 
-Emissions audit requests can be sent to auditors with `npm run cli -- -processrequests`
+Set parameters in the the repository root .env
 
-To get the documents for tokens from IPFS, `npm run cli -- -rsapk <auditor-private.pem> -fetch <content>`  Note this works even if the file is uploaded to IPFS on a remote server.
+Install ipfs and run:
+```
+ipfs daemon --enable-pubsub-experiment
+```
+
+In the repository root directory run:
+
+```
+npm install
+npm run loadSeeds
+```
+
+Run hardhat:
+
+```
+npm run net-emissions-token-network:hardhat
+```
+
+Setup default roles and some demo issued tokens,
+in other terminal run:
+```
+npm run net-emissions-token-network:hardhat-setup
+```
+
+Start api-server from repository root directory:
+```
+npm run net-emissions-token-network:api
+```
+
+Set demo hardhat seed wallets:
+```
+npm run net-emissions-token-network:api-loadDemoSeeds
+```
+
+Issue tokens using cli:
+```
+npm run supply-chain:cli -- -rsapubk supply-chain/demo1-public.pem -f supply-chain/input.json
+```
+
+Create emissions audit requests using cli:
+```
+npm run supply-chain:cli -- -f supply-chain/input.json -queue
+```
+
+Process requests (sent to auditors):
+```
+npm run supply-chain:cli -- -processrequests
+```
+
+Run interface app:
+```
+npm run net-emissions-token-network:react
+```
+
+Emissions audit requests can be requested in the dApp by any wallet with the Consumer role.
+
+
+To get the documents for tokens from IPFS:
+```
+npm run supply-chain:cli -- -fetch <content> -rsapk supply-chain/<auditor-private.pem>
+```
+
+Note this works even if the file is uploaded to IPFS on a remote server.
 

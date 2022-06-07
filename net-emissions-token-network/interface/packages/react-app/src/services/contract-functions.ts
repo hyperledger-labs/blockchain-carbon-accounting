@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+import { abis, addresses } from "@blockchain-carbon-accounting/contracts";
 import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
 import { Wallet } from "@ethersproject/wallet"
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { abis, addresses } from "@project/contracts";
 import { RolesInfo, Tracker } from "../components/static-data";
 
 

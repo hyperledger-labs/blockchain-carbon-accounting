@@ -1,17 +1,17 @@
-import { EventData } from 'web3-eth-contract';
-import { CreatedToken } from "../models/commonTypes";
-import { TokenPayload, BalancePayload } from 'blockchain-accounting-data-postgres/src/repositories/common'
-import { insertNewBalance } from "./balance.controller";
-import { PostgresDBService } from "blockchain-accounting-data-postgres/src/postgresDbService";
-import { Balance } from "blockchain-accounting-data-postgres/src/models/balance";
-import { Sync } from "blockchain-accounting-data-postgres/src/models/sync";
-import { Wallet } from "blockchain-accounting-data-postgres/src/models/wallet";
-import { OPTS_TYPE } from "../server";
-import { BURN, getContract, getCurrentBlock, getWeb3 } from "../utils/web3";
-import { getMailer, getSiteAndAddress } from "../utils/email";
+import { Balance } from "@blockchain-carbon-accounting/data-postgres/src/models/balance";
+import { Sync } from "@blockchain-carbon-accounting/data-postgres/src/models/sync";
+import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+import { BalancePayload, TokenPayload } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
 import { readFileSync } from 'fs';
 import handlebars from 'handlebars';
 import path from 'path';
+import { EventData } from 'web3-eth-contract';
+import { CreatedToken } from "../models/commonTypes";
+import { OPTS_TYPE } from "../server";
+import { getMailer, getSiteAndAddress } from "../utils/email";
+import { BURN, getContract, getCurrentBlock, getWeb3 } from "../utils/web3";
+import { insertNewBalance } from "./balance.controller";
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
 const FIRST_BLOCK = Number(process.env['LEDGER_FIRST_BLOCK']) || 0;
@@ -239,11 +239,16 @@ export const getCreatedToken = (token: CreatedToken) => {
 
     // build token model
     // eslint-disable-next-line
-    const { metadata, manifest, totalIssued, totalRetired, ..._tokenPayload } = { ...token };
+    const { metadata, manifest, totalIssued, totalRetired, issuedFrom, ..._tokenPayload } = { ...token };
+    let issuedFromAddr = '';
+    if (issuedFrom && issuedFrom !== '0') {
+        issuedFromAddr = '0x' + BigInt(issuedFrom).toString(16);
+    }
     const tokenPayload: TokenPayload = {
         ..._tokenPayload,
         scope,
         type,
+        issuedFrom: issuedFromAddr,
         // reset totalIssued and totalRetired
         totalIssued: 0n,
         totalRetired: 0n,
@@ -252,7 +257,6 @@ export const getCreatedToken = (token: CreatedToken) => {
     };
 
     return tokenPayload;
-
 }
 
 /** Clear the token and balance tables. */

@@ -1,8 +1,9 @@
 import express, { Application } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
-dotenv.config({path: '../.env'});
+import { config } from 'dotenv';
+import findConfig from "find-config";
+config({ path: findConfig(".env") || '.' });
 
 // import router
 import { router } from './app/routers/router';

@@ -30,46 +30,41 @@ ncu-api-server *ARGS:
 ncu-net-interface *ARGS:
 	@echo "\n** Checking dependencies updates for react dapp in net-emissions-token-network/interface/"
 	@echo "-------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x @project/contracts,ipfs-http-client {{ARGS}}
+	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x ipfs-http-client {{ARGS}}
 
 ncu-supply-chain *ARGS:
 	@echo "\n** Checking dependencies updates for supply-chain"
 	@echo "---------------------------------------------------"
-	ncu --packageFile 'supply-chain/**/package.json' -x supply-chain-lib,ipfs-http-client {{ARGS}}
+	ncu --packageFile 'supply-chain/**/package.json' -x ipfs-http-client {{ARGS}}
 
 ncu-data *ARGS:
 	@echo "\n** Checking dependencies updates for data"
 	@echo "-------------------------------------------"
 	ncu --packageFile 'data/**/package.json' {{ARGS}}
 
+# Start the supply-chain api server
+supply-chain-api:
+	npm run supply-chain:api
+
+# Start the api-server
+api-server:
+	npm run net-emissions-token-network:api 
+
+# Start the react-app frontend
+frontend:
+	npm run net-emissions-token-network:react-https
+
+frontend-build:
+	cd net-emissions-token-network/interface/packages/react-app && npm run build
+
+# Start the ipfs daemon
+ipfs:
+	ipfs daemon
+
 
 # run npm install for all the modules
-npm: npm-data npm-supply-chain npm-net npm-net-interface npm-api-server
-
-npm-net:
-	@echo "\n** Installing dependencies updates for net-emissions-token-network"
-	@echo "------------------------------------------------------------------"
-	npm --prefix 'net-emissions-token-network' install
-
-npm-api-server:
-	@echo "\n** Installing dependencies updates for api-server in net-emissions-token-network/api-server/"
-	@echo "--------------------------------------------------------------------------------------------"
-	npm --prefix 'net-emissions-token-network/api-server' install
-
-npm-net-interface:
-	@echo "\n** Installing dependencies updates for react dapp in net-emissions-token-network/interface/"
-	@echo "-------------------------------------------------------------------------------------------"
-	npm --prefix 'net-emissions-token-network/interface' install
-
-npm-supply-chain:
-	@echo "\n** Installing dependencies updates for supply-chain"
-	@echo "---------------------------------------------------"
-	npm --prefix 'supply-chain' install
-
-npm-data:
-	@echo "\n** Installing dependencies updates for data"
-	@echo "-------------------------------------------"
-	npm --prefix 'data' install
+npm:
+	npm install
 
 # Process pending audit requests
 process-requests:
@@ -78,6 +73,10 @@ process-requests:
 # Run the app update and deploy script
 update-deploy:
 	./net-emissions-token-network/scripts/update_emissions_tokens_apps.sh
+
+# Start the hardhat backend
+hardhat:
+	cd net-emissions-token-network && npx hardhat node
 
 # Run hardhat tests
 hardhat-test *TESTS:

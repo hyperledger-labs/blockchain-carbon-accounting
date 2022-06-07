@@ -1,12 +1,12 @@
+import { runSync } from '@blockchain-carbon-accounting/api-server/controller/synchronizer';
+import type { OPTS_TYPE } from '@blockchain-carbon-accounting/api-server/server';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import { expect } from 'chai';
 import superjson from 'superjson';
-import request from 'supertest';
-import { run, network, getNamedAccounts, deployments, ethers } from "hardhat";
-import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
 import { Contract } from 'ethers';
-import { PostgresDBService } from 'blockchain-accounting-data-postgres/src/postgresDbService';
-import type { OPTS_TYPE } from 'api-server/server';
-import { runSync } from 'api-server/controller/synchronizer';
+import { deployments, ethers, getNamedAccounts, network, run } from "hardhat";
+import { TASK_NODE_CREATE_SERVER } from "hardhat/builtin-tasks/task-names";
+import request from 'supertest';
 
 const OPTS: OPTS_TYPE = {
   contract_address: '',
@@ -60,7 +60,6 @@ describe("BigInt tests", function() {
     contract = (await ethers.getContract('NetEmissionsTokenNetwork')) as Contract;
     // set the contract address
     OPTS.contract_address = contract.address;
-    // OPTS.contract = contract;
   });
 
   it("should sync the correct amounts in DB", async function() {
@@ -122,7 +121,7 @@ describe("BigInt tests", function() {
   it("should get the correct amounts from the /tokens API", async function() {
     // check we get the correct types through the API server
     console.log('Starting server ...');
-    const { default: server } = await import('api-server/server');
+    const { default: server } = await import('@blockchain-carbon-accounting/api-server/server');
     // try to call the /ip API
     await request(server)
       .get('/ip')
@@ -146,7 +145,7 @@ describe("BigInt tests", function() {
   it("should get the correct amounts from the TRPC tokens.lookup API", async function() {
     // check we get the correct types through the API server
     console.log('Starting server ...');
-    const { default: server } = await import('api-server/server');
+    const { default: server } = await import('@blockchain-carbon-accounting/api-server/server');
     // try to call the /ip API
     const ip_req = request(server).get('/ip');
     const res = await ip_req;

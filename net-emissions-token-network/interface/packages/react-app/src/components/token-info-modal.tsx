@@ -43,7 +43,6 @@ type TokenInfoModalProps = {
 const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
   // const ethereum: EthereumType = (window as any).ethereum;
   // const ipfs_client = create({url: 'http://localhost:5001'});
-  // 
   // const saveToText = (jsonString: string) => {
   //   const element = document.createElement('a');
   //   const jsonFile = new Blob([jsonString as BlobPart], {type: 'text/plain'});
@@ -83,7 +82,6 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
   //   } else {
   //     decoded = manifest
   //   }
-
   //   // extract ipfs url
   //   for(const key in decoded) {
   //     if(key === 'Location') {
@@ -97,7 +95,6 @@ const TokenInfoModal:FC<TokenInfoModalProps> = (props) => {
   //   }
   //   const edata0 = Buffer.concat(data);
   //   const decryptedMessage = await decryptWithPrivateKey(edata0);
-  //   
   //   // save to local json
   //   saveToText(decryptedMessage);
   // }

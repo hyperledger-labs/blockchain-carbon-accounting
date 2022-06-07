@@ -1,11 +1,11 @@
+import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
+import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/utilityLookupItem";
 import { Presets, SingleBar } from "cli-progress";
-import { readFile } from "xlsx";
 import { v4 as uuidv4 } from 'uuid';
-import { EMISSIONS_FACTOR_TYPE } from "./utils";
+import { readFile } from "xlsx";
 import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
-import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "emissions_data_chaincode/src/lib/emissionsFactor";
-import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "emissions_data_chaincode/src/lib/utilityLookupItem";
-import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from "./db"
+import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from "./db";
+import { EMISSIONS_FACTOR_TYPE } from "./utils";
 
 
 class LoadInfo {

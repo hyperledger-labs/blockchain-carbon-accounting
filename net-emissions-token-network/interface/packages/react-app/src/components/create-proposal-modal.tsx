@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
-import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { addresses } from "@project/contracts";
+import { addresses } from "@blockchain-carbon-accounting/contracts";
+import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { ChangeEvent, FC, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -15,7 +15,7 @@ type CreateProposalModalProps = {
   token:number
   calldata:string
   description:string
-  onHide:()=>void 
+  onHide:()=>void
 }
 
 const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
@@ -68,9 +68,12 @@ const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
 
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
 
-  const createProposalAttributes = (desc: string[]) => {
-    setProposalAttributes(p=>[...p, ...desc.map(e => ({description: e}))]);
-  };
+  const createProposalAttributes = useCallback((desc: string[]) => {
+    const newAttrs = desc.map(e => {
+      return {description: e};
+    });
+    setProposalAttributes(attrs=>[...attrs, ...newAttrs]);
+  }, []);
 
   useEffect(() => {
     setDescription(props.description);
@@ -90,7 +93,7 @@ const CreateProposalModal:FC<CreateProposalModalProps> = (props) => {
     } else {
       setProposalAttributes([]);
     }
-  }, [props.token]);
+  }, [props.token, createProposalAttributes]);
 
   return (
     <Modal

@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, useState, useEffect } from "react";
-import {Link} from "wouter";
-
-import { addresses } from "@project/contracts";
-
+import { addresses } from "@blockchain-carbon-accounting/contracts";
+import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
+import { FC, useEffect, useState } from "react";
+import { Tooltip } from "react-bootstrap";
 import Button from 'react-bootstrap/Button';
-import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Row from 'react-bootstrap/Row';
-
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-
-import { FaRegClipboard } from 'react-icons/fa'
-import { FaGithub } from 'react-icons/fa'
-import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
+import { FaGithub, FaRegClipboard } from 'react-icons/fa';
+import { Link } from "wouter";
 import { RolesInfo, Wallet } from "./static-data";
-import { Tooltip } from "react-bootstrap";
+
+
+
+
 
 type WalletButtonProps = {
   provider?: Web3Provider | JsonRpcProvider
-  loadWeb3Modal: ()=>void 
-  logoutOfWeb3Modal:()=>void 
+  loadWeb3Modal: ()=>void
+  logoutOfWeb3Modal:()=>void
 }
 
 const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal }) => {
@@ -45,7 +44,7 @@ const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfW
 
 type NavigationBarProps = {
   provider?: Web3Provider | JsonRpcProvider
-  loadWeb3Modal: ()=>void 
+  loadWeb3Modal: ()=>void
   logoutOfWeb3Modal:()=>void
   logoutOfWalletInfo: () =>void
   signedInAddress?: string

@@ -5,8 +5,9 @@
     "pretty": true,
     "strict": true,
     "sourceMap": true,
-    "target": "es6",
+    "target": "es2020",
     "allowJs": true,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "outDir": "./dist"
