@@ -20,7 +20,6 @@ const IssuedTrackers = lazy(() => import("./pages/issued-trackers"));
 const EmissionsRequests = lazy(() => import("./pages/emissions-requests"));
 const PendingEmissions = lazy(() => import("./pages/pending-emissions"));
 const IssueForm = lazy(() => import("./pages/issue-form"));
-const TrackForm = lazy(() => import("./pages/track-form"));
 const TransferForm = lazy(() => import("./pages/transfer-form"));
 const RetireForm = lazy(() => import("./pages/retire-form"));
 const ProductForm = lazy(() => import("./pages/product-form"));
