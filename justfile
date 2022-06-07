@@ -44,15 +44,15 @@ ncu-data *ARGS:
 
 # Start the supply-chain api server
 supply-chain-api:
-	cd supply-chain && npm run api:dev
+	npm run supply-chain:api
 
 # Start the api-server
 api-server:
-	cd net-emissions-token-network/api-server && npm run dev
+	npm run net-emissions-token-network:api 
 
 # Start the react-app frontend
 frontend:
-	cd net-emissions-token-network/interface/packages/react-app && npm run localdev
+	npm run net-emissions-token-network:react-https
 
 frontend-build:
 	cd net-emissions-token-network/interface/packages/react-app && npm run build
@@ -73,6 +73,10 @@ process-requests:
 # Run the app update and deploy script
 update-deploy:
 	./net-emissions-token-network/scripts/update_emissions_tokens_apps.sh
+
+# Start the hardhat backend
+hardhat:
+	cd net-emissions-token-network && npx hardhat node
 
 # Run hardhat tests
 hardhat-test *TESTS:
