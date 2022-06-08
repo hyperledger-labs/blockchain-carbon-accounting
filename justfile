@@ -37,7 +37,7 @@ ncu-frontend *ARGS:
 ncu-supply-chain *ARGS:
 	@echo "\n** Checking dependencies updates for supply-chain"
 	@echo "---------------------------------------------------"
-	ncu --packageFile 'supply-chain/**/package.json' -x ipfs-http-client {{ARGS}}
+	ncu --packageFile 'app/supply-chain*/package.json' -x ipfs-http-client {{ARGS}}
 
 ncu-data *ARGS:
 	@echo "\n** Checking dependencies updates for data"

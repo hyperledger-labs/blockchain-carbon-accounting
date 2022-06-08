@@ -11,7 +11,7 @@
     "pg:getData": "npm run getData --workspace=@blockchain-carbon-accounting/data-postgres",
     "loadSeeds": "npm run loadSeeds --workspace=@blockchain-carbon-accounting/data-postgres",
     "supply-chain:api": "npm run dev --workspace=@blockchain-carbon-accounting/supply-chain-api",
-    "supply-chain:cli": "ts-node supply-chain/cli/emissions.ts",
+    "supply-chain:cli": "ts-node app/supply-chain/emissions.ts",
     "supply-chain:cli:processrequests": "npm run cli --workspace=@blockchain-carbon-accounting/supply-chain-cli -- -processrequests",
     "frontend": "npm run dev --workspace=@blockchain-carbon-accounting/react-app",
     "frontend-https": "npm run dev-https --workspace=@blockchain-carbon-accounting/react-app",
@@ -25,12 +25,12 @@
       "app/frontend/*",
       "app/data-loader",
       "app/api-server",
+      "app/supply-chain",
+      "app/supply-chain-api",
       "emissions-data/typescript_app",
       "emissions-data/chaincode/emissionscontract/typescript",
       "data/common",
       "supply-chain/lib",
-      "supply-chain/api",
-      "supply-chain/cli",
       "net-emissions-token-network"
     ]
   },

@@ -111,9 +111,6 @@ open-offsets-directory/node-server/node_modules/.pnpm
 open-offsets-directory/node-server/node_modules
 open-offsets-directory/react/build
 open-offsets-directory/react/node_modules
-supply-chain/node_modules
-supply-chain/.env
-supply-chain/*.js
 net-emissions-token-network/deployments/goerli/solcInputs
 open-offsets-directory/node-server/pnpm-lock.yaml
 open-offsets-directory/react/pnpm-lock.yaml
@@ -137,18 +134,9 @@ emissions-data/chaincode/emissionscontract/typescript/**/*.js
 open-offsets-directory/data/.~lock.VCS_retirements.csv#
 net-emissions-token-network/my_notes.txt
 
-supply-chain/src/*.js
-supply-chain/**/*.pem
-supply-chain/interface/node_modules
-supply-chain/interface/.env
-supply-chain/interface/keys
 
-supply-chain/interface/**/*.js
-supply-chain/interface/test/output.txt
-
-
-supply-chain/input.json
-supply-chain/example/venv
+supply-chain/*.pem
+app/supply-chain-api/example/venv
 __pycache__
 .idea
 
