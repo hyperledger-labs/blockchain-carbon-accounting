@@ -83,14 +83,13 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
         }
 
 
-        console.warn('token metadata is : ', selectedPendingEmissions.token_metadata);
-        // add the request uuid to the metadata
-        const metadata = JSON.parse(selectedPendingEmissions.token_metadata);
-        if (!metadata.request_uuid) {
-          metadata.request_uuid = selectedPendingEmissions.uuid;
+        // add the request uuid to the manifest
+        const manifest = JSON.parse(selectedPendingEmissions.token_manifest);
+        if (!manifest.request_uuid) {
+          manifest.request_uuid = selectedPendingEmissions.uuid;
         }
-        if (!metadata.node_id) {
-          metadata.node_id = selectedPendingEmissions.node_id;
+        if (!manifest.node_id) {
+          manifest.node_id = selectedPendingEmissions.node_id;
         }
 
         let result = await issue(provider,
@@ -100,8 +99,8 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
           selectedPendingEmissions.token_total_emissions,
           from_date,
           thru_date,
-          JSON.stringify(metadata),
-          selectedPendingEmissions.token_manifest,
+          selectedPendingEmissions.token_metadata,
+          JSON.stringify(manifest),
           selectedPendingEmissions.token_description,
           signedInWallet?.private_key || ''
         );
