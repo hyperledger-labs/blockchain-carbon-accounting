@@ -18,7 +18,9 @@
     "api-server": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
     "api-server:loadDemoSeeds": "npm run loadDemoSeeds --workspace=@blockchain-carbon-accounting/api-server",
     "net-emissions-token-network:hardhat": "npm run dev --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
-    "net-emissions-token-network:hardhat-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token-network"
+    "net-emissions-token-network:hardhat-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/net-emissions-token-network",
+    "open-offsets-directory:api": "npm run dev --workspace=@open-offsets-directory/node-server",
+    "open-offsets-directory:react": "npm run start --workspace=@open-offsets-directory/react"
   },
   "workspaces": {
     "packages": [
@@ -30,7 +32,9 @@
       "emissions-data/typescript_app",
       "emissions-data/chaincode/emissionscontract/typescript",
       "lib/*",
-      "net-emissions-token-network"
+      "net-emissions-token-network",
+      "open-offsets-directory/node-server",
+      "open-offsets-directory/react"
     ]
   },
   "type": "module",

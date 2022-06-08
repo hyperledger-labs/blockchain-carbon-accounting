@@ -1,5 +1,5 @@
 {
-  "name": "voluntary-carbon-offsets-directory-react",
+  "name": "@open-offsets-directory/react",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
