@@ -7,9 +7,12 @@
         "target": "es2020",
         "moduleResolution": "node",
         "module": "commonjs",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
         "declaration": true,
+        "skipLibCheck": true,
         "sourceMap": true
     },
-    "include": ["*"]
+    "include": ["src/**/*.ts"]
 }
 

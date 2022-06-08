@@ -3,6 +3,7 @@
 minifab/
 node_modules
 slitherlog.json
+dist
 
 
 # 1. multi-cloud-deployment
