@@ -3,8 +3,8 @@ import Tabs from "@material-ui/core/Tabs";
 import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
 import Linkify from "react-linkify";
-import { ActivityIndicator } from "react-native";
 import { useNavigate, useParams } from "react-router-dom";
+import CircularProgress from '@mui/material/CircularProgress';
 import ProjectDataService from "../services/project.service";
 
 const componentDecorator = (href, text, key) => (
@@ -429,7 +429,7 @@ class Project extends Component {
   renderSpinner(loading) {
     return loading ? (
       <div className="spinner-placeholder">
-        <ActivityIndicator size="large" color="blue" animating={loading} />
+        <CircularProgress />
       </div>
     ) : (
       ""
