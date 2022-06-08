@@ -63,22 +63,7 @@ To make sure all the packages dependencies are up to date:
 ```
 git fetch
 git merge origin/main
-
-cd supply-chain
 rm -rf node_modules */node_modules
-npm i
-
-cd ../data
-rm -rf node_modules */node_modules
-npm i
-
-cd net-emissions-token-network
-rm -rf node_modules */node_modules
-npm i
-
-npm --prefix api-server i
-
-cd interface
 npm i
 ```
 
@@ -117,7 +102,7 @@ psql blockchain-carbon-accounting < seeds/*
 
 ### Build API server
 
-Go to `net-emissions-token-network/api-server/` and run:
+Go to `app/api-server/` and run:
 
 ```
 npm i

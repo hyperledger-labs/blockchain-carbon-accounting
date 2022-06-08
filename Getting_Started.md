@@ -37,12 +37,12 @@ npm run net-emissions-token-network:hardhat-setup
 
 Start api-server from repository root directory:
 ```
-npm run net-emissions-token-network:api
+npm run api-server
 ```
 
 Set demo hardhat seed wallets:
 ```
-npm run net-emissions-token-network:api-loadDemoSeeds
+npm run api-server:loadDemoSeeds
 ```
 
 Issue tokens using cli:

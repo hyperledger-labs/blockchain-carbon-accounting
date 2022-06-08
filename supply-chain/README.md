@@ -51,7 +51,7 @@ npm run cli -- -f input.json -queue
 
 To randomly assign emission auditors for new emissions requests, first make sure that you have run `setTestAccountRoles` (see [Net Emissions Contracts Docs](../net-emissions-token-network/docs/using-the-contracts.md ).) 
 
-Then load the emissions auditors with `seedHardhatDemoWallets.sql` from [Net Emissions Contract API Server](../net-emissions-token-network/api-server/README.md) 
+Then load the emissions auditors with `seedHardhatDemoWallets.sql` from [Net Emissions Contract API Server](../app/api-server/README.md) 
 
 Finally run:
 ```

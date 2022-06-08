@@ -4,17 +4,19 @@ _list:
 # list the available updates for all the npm dependencies
 ncu *ARGS:
   just ncu-data {{ARGS}}
+  just ncu-data-loader {{ARGS}}
   just ncu-supply-chain {{ARGS}}
   just ncu-net {{ARGS}}
-  just ncu-net-interface {{ARGS}}
+  just ncu-frontend {{ARGS}}
   just ncu-api-server {{ARGS}}
 
 # apply the available updates for all the npm dependencies, changing the package.json files
 ncu-update *ARGS:
   just ncu-data "-u" {{ARGS}}
+  just ncu-data-loader "-u" {{ARGS}}
   just ncu-supply-chain "-u" {{ARGS}}
   just ncu-net "-u" {{ARGS}}
-  just ncu-net-interface "-u" {{ARGS}}
+  just ncu-frontend "-u" {{ARGS}}
   just ncu-api-server "-u" {{ARGS}}
 
 ncu-net *ARGS:
@@ -23,14 +25,14 @@ ncu-net *ARGS:
 	ncu --packageFile 'net-emissions-token-network/package.json' -x ipfsd-ctl,ipfs-http-client {{ARGS}}
 
 ncu-api-server *ARGS:
-	@echo "\n** Checking dependencies updates for api-server in net-emissions-token-network/api-server/"
+	@echo "\n** Checking dependencies updates for api-server in app/api-server/"
 	@echo "--------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/api-server/package.json' {{ARGS}}
+	ncu --packageFile 'app/api-server/package.json' {{ARGS}}
 
-ncu-net-interface *ARGS:
-	@echo "\n** Checking dependencies updates for react dapp in net-emissions-token-network/interface/"
+ncu-frontend *ARGS:
+	@echo "\n** Checking dependencies updates for react dapp in app/frontend/"
 	@echo "-------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x ipfs-http-client {{ARGS}}
+	ncu --packageFile 'app/frontend/**/package.json' -x ipfs-http-client {{ARGS}}
 
 ncu-supply-chain *ARGS:
 	@echo "\n** Checking dependencies updates for supply-chain"
@@ -42,13 +44,18 @@ ncu-data *ARGS:
 	@echo "-------------------------------------------"
 	ncu --packageFile 'data/**/package.json' {{ARGS}}
 
+ncu-data-loader *ARGS:
+	@echo "\n** Checking dependencies updates for data-loader"
+	@echo "--------------------------------------------------"
+	ncu --packageFile 'app/data-loader/package.json' {{ARGS}}
+
 # Start the supply-chain api server
 supply-chain-api:
 	npm run supply-chain:api
 
 # Start the api-server
 api-server:
-	npm run net-emissions-token-network:api 
+	npm run api-server 
 
 # Start the react-app frontend
 frontend:
