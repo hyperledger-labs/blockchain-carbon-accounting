@@ -50,7 +50,7 @@ date +%Y-%m-%dT%H:%M:%S >> ${LOGFILE}
 cd ${SOURCE_DIR} || die "Can't cd to ${SOURCE_DIR}"
 source /home/opentaps/.bashrc
 
-git checkout -- net-emissions-token-network/interface/packages/contracts/src/addresses.ts
+git checkout -- app/frontend/contracts/src/addresses.ts
 git checkout -- open-offsets-directory/react/package-lock.json
 git checkout -- open-offsets-directory/node-server/package-lock.json
 
@@ -67,13 +67,13 @@ then
     then
         echo " - restoring bsctestnet settings"
         # bsctestnet setup for the frontend connection
-        sed -i -e 's!const addresses =.*!const addresses = networksAndAddresses.bsctestnet;!g' net-emissions-token-network/interface/packages/contracts/src/addresses.ts
+        sed -i -e 's!const addresses =.*!const addresses = networksAndAddresses.bsctestnet;!g' app/frontend/contracts/src/addresses.ts
 
         echo " - installing all dependencies"
         npm install >> ${LOGFILEBUILD}  2>&1
         echo " - dependencies install done"
 
-        cd net-emissions-token-network/interface/packages/react-app || die "Can't cd to interface"
+        cd app/frontend/react-app || die "Can't cd to frontend react-app"
         # build the frontend
         echo " - building react-app"
         npm run build >> ${LOGFILEBUILD}  2>&1
@@ -91,7 +91,7 @@ then
             echo " - deploying build to ${APP_DIR}"
             rm -Rf ${APP_DIR:?}/*
             cd ${APP_DIR} || die "Can't cd to ${APP_DIR}"
-            cp -r ${SOURCE_DIR}/net-emissions-token-network/interface/packages/react-app/build/* .
+            cp -r ${SOURCE_DIR}/app/frontend/react-app/build/* .
 
             # restart the backend
             echo " - restarting api-server process"

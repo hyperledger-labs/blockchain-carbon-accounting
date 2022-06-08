@@ -24,26 +24,11 @@ net-emissions-token-network/coverage.json
 net-emissions-token-network/.ethereum-config.js
 net-emissions-token-network/deployments/localhost
 net-emissions-token-network/deployments/SlitherResults
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-# dependencies
-net-emissions-token-network/interface/node_modules
-net-emissions-token-network/interface/.pnp
-net-emissions-token-network/interface/.pnp.js
-# testing
-net-emissions-token-network/interface/coverage
-# production
-net-emissions-token-network/interface/build
-# misc
-net-emissions-token-network/interface/.DS_Store
-net-emissions-token-network/interface/.env*
-# debug
-net-emissions-token-network/interface/npm-debug.log*
-net-emissions-token-network/interface/yarn-debug.log*
-net-emissions-token-network/interface/yarn-error.log*
-# subgraph
-net-emissions-token-network/interface/packages/subgraph/build/
-net-emissions-token-network/interface/packages/subgraph/src/types/
 
+app/frontend/.DS_Store
+app/frontend/coverage
+app/frontend/react-app/.env
+app/frontend/react-app/build
 
 # 3. open-offsets-directory
 open-offsets-directory/node_modules/
@@ -117,9 +102,6 @@ secure-identities/identity-ui/package-lock.json
 secure-identities/identity-ui/dist
 .vscode
 
-net-emissions-token-network/interface/packages/react-app/node_modules
-net-emissions-token-network/interface/packages/react-app/build
-net-emissions-token-network/interface/packages/subgraph/node_modules
 net-emissions-token-network/token-query-server/node_modules
 net-emissions-token-network/token-query-server/.env
 net-emissions-token-network/token-query-server/**/*.js

@@ -11,15 +11,8 @@ multiplied or divided by 1000.
 
 We use a React application for interacting with the NetEmissionsTokenNetwork.sol and DAO contracts. The interface was created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app). The MetaMask browser extension is required for testing.
 
-The application connects to the contract of the address specified in `net-emissions-token-network/interface/packages/contracts/src/addresses.js`, which is by default set to the default address of deployment on the Hardhat Network. To instead connect to an Ethereum testnet (like Goerli), read *Starting the React application and connecting to Goerli testnet*, otherwise, read the instructions below.
+The application connects to the contract of the address specified in `app/frontend/contracts/src/addresses.js`, which is by default set to the default address of deployment on the Hardhat Network. To instead connect to an Ethereum testnet (like Goerli), read *Starting the React application and connecting to Goerli testnet*, otherwise, read the instructions below.
 
-## Installation
-
-From the `net-emissions-token-network/interface` directory, run
-
-```bash
-npm install
-```
 
 ## Api Server
 
@@ -59,9 +52,9 @@ _IMPORTANT NOTE: When restarting the Hardhat Network after interacting with the 
 
 ## With Goerli testnet
 
-Goerli is a public Ethereum testnet. When interacting with the contracts on Goerli, access to the owner private key is needed to register dealers via the interface, and new wallets can be created via MetaMask (be sure to fund newly created wallets with Goerli ETH via a faucet or transferring funds for gas fees). Transactions can be viewed by anyone on [Etherscan](https://goerli.etherscan.io/) (to see the history of transactions, one can enter the current contract address at `net-emissions-token-network/interface/packages/contracts/src/addresses.js`). After deploying the contracts to Goerli (as also outlined in the docs), connect the interface with the following steps:
+Goerli is a public Ethereum testnet. When interacting with the contracts on Goerli, access to the owner private key is needed to register dealers via the interface, and new wallets can be created via MetaMask (be sure to fund newly created wallets with Goerli ETH via a faucet or transferring funds for gas fees). Transactions can be viewed by anyone on [Etherscan](https://goerli.etherscan.io/) (to see the history of transactions, one can enter the current contract address at `app/frontend/contracts/src/addresses.js`). After deploying the contracts to Goerli (as also outlined in the docs), connect the interface with the following steps:
 
-1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "goerli" since the contract addresses are already defined in the same file.
+1. In `app/frontend/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "goerli" since the contract addresses are already defined in the same file.
 
 2. Start the React app with
 
@@ -79,9 +72,9 @@ You should now be connected to the contracts in Goerli and be able to interact w
 
 ## With BSC testnet
 
-BSC testnet is a test environment for Binance Chain network, run by the Binance Chain development community, which is open to developers. Transactions can be viewed by anyone on [Bscscan](https://testnet.bscscan.com/) (to see the history of transactions, one can enter the current contract address at `net-emissions-token-network/interface/packages/contracts/src/addresses.js`). After deploying the contracts to BSC testnet (as also outlined in the docs), connect the interface with the following steps:
+BSC testnet is a test environment for Binance Chain network, run by the Binance Chain development community, which is open to developers. Transactions can be viewed by anyone on [Bscscan](https://testnet.bscscan.com/) (to see the history of transactions, one can enter the current contract address at `app/frontend/contracts/src/addresses.js`). After deploying the contracts to BSC testnet (as also outlined in the docs), connect the interface with the following steps:
 
-1. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "bsctestnet" since the contract addresses are already defined in the same file.
+1. In `app/frontend/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "bsctestnet" since the contract addresses are already defined in the same file.
 
 2. Start the React app with
 
@@ -109,7 +102,7 @@ Optimism is a layer-2 solution for EVM-based layer-1 chains. It runs in a separa
 npx hardhat deploy --network ovm_localhost
 ```
 
-3. In `net-emissions-token-network/interface/packages/contracts/src/addresses.js`, uncomment the Optimism localhost contract addresses already in the file and comment out the Hardhat Network contract addresses.
+3. In `app/frontend/contracts/src/addresses.js`, uncomment the Optimism localhost contract addresses already in the file and comment out the Hardhat Network contract addresses.
 
 4. Start the React app with
 

@@ -18,6 +18,7 @@
     "@types/morgan": "^1.9.3",
     "@blockchain-carbon-accounting/data-postgres": "*",
     "@blockchain-carbon-accounting/supply-chain-lib": "*",
+    "@blockchain-carbon-accounting/contracts": "*",
     "chalk": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",

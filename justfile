@@ -52,10 +52,10 @@ api-server:
 
 # Start the react-app frontend
 frontend:
-	npm run net-emissions-token-network:react-https
+	npm run frontend-https
 
 frontend-build:
-	cd net-emissions-token-network/interface/packages/react-app && npm run build
+	cd app/frontend/react-app && npm run build
 
 # Start the ipfs daemon
 ipfs:

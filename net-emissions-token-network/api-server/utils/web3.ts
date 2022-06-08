@@ -1,6 +1,6 @@
 import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
-import NetEmissionsTokenNetwork from '../../interface/packages/contracts/src/abis/NetEmissionsTokenNetwork.json';
+import NetEmissionsTokenNetwork from '@blockchain-carbon-accounting/contracts/src/abis/NetEmissionsTokenNetwork.json';
 import { OPTS_TYPE } from "../server";
 
 export const BURN = '0x0000000000000000000000000000000000000000';
