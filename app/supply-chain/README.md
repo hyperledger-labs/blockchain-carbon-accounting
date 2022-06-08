@@ -6,7 +6,7 @@
 
 ## Installing
 
-Following the steps from [app/data-loader](../app/data-loader/README.md) to install the emissions factors database.
+Following the steps from [app/data-loader](../data-loader/README.md) to install the emissions factors database.
 
 Copy `.env.SAMPLE` to `.env`.  You will need to fill in:
 - Your PostgreSQL host, port, username, and password.
@@ -49,9 +49,9 @@ To create emissions requests instead of issue token with given input.json run:
 npm run cli -- -f input.json -queue
 ```
 
-To randomly assign emission auditors for new emissions requests, first make sure that you have run `setTestAccountRoles` (see [Net Emissions Contracts Docs](../net-emissions-token-network/docs/using-the-contracts.md ).) 
+To randomly assign emission auditors for new emissions requests, first make sure that you have run `setTestAccountRoles` (see [Net Emissions Contracts Docs](../../net-emissions-token-network/docs/using-the-contracts.md ).) 
 
-Then load the emissions auditors with `seedHardhatDemoWallets.sql` from [Net Emissions Contract API Server](../app/api-server/README.md) 
+Then load the emissions auditors with `seedHardhatDemoWallets.sql` from [Net Emissions Contract API Server](../api-server/README.md) 
 
 Finally run:
 ```
@@ -104,9 +104,9 @@ npm run cli -- -walletpk priv.key -fetch <content_id>/content.json
 
 ## REST API
 
-A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/api/`](api/README.md) directory.
+A REST API is provided for integration from another application, such as legacy shipping or ERP system, in the [`/api/`](../supply-chain-api/README.md) directory.
 
-Examples for using the REST API is in the [`/example`](example/README.md) directory.
+Examples for using the REST API is in the [`/example`](../supply-chain-api/example/README.md) directory.
 
 To start the API server:
 ```

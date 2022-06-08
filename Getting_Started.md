@@ -47,12 +47,12 @@ npm run api-server:loadDemoSeeds
 
 Issue tokens using cli:
 ```
-npm run supply-chain:cli -- -rsapubk supply-chain/demo1-public.pem -f supply-chain/input.json
+npm run supply-chain:cli -- -rsapubk app/supply-chain/demo1-public.pem -f app/supply-chain/input.json
 ```
 
 Create emissions audit requests using cli:
 ```
-npm run supply-chain:cli -- -f supply-chain/input.json -queue
+npm run supply-chain:cli -- -f app/supply-chain/input.json -queue
 ```
 
 Process requests (sent to auditors):
@@ -70,7 +70,7 @@ Emissions audit requests can be requested in the dApp by any wallet with the Con
 
 To get the documents for tokens from IPFS:
 ```
-npm run supply-chain:cli -- -fetch <content> -rsapk supply-chain/<auditor-private.pem>
+npm run supply-chain:cli -- -fetch <content> -rsapk app/supply-chain/<auditor-private.pem>
 ```
 
 Note this works even if the file is uploaded to IPFS on a remote server.

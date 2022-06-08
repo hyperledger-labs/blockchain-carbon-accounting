@@ -355,7 +355,7 @@ describe("Emissions and Tokens requests test", function() {
     // Generate emissions audit requests from the input.json file. We can add a TEST mode so that the code will
     //  automatically return a fixed emissions for the shipments and flights, instead of requiring Google and UPS
     //  API's in the tests. Just hard code the actual numbers for input.json into the TEST mode.
-    const data_raw = readFileSync('../supply-chain/input.json', 'utf8');
+    const data_raw = readFileSync('../app/supply-chain/input.json', 'utf8');
     const data = JSON.parse(data_raw);
     // make suer we got activities
     expect(data).to.have.property('activities');
