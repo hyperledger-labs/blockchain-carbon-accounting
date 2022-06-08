@@ -99,9 +99,9 @@ In all cases it must be created:
 createdb blockchain-carbon-accounting
 ```
 
-Run the data loader from `data/postgres`:
+Run the data loader from `app/data-loader`:
 
-Make sure you have the DB crednetials setup in `.env`, for example:
+Make sure you have the DB credentials setup in `.env`, for example:
 ```
 DB_USER=opentaps
 DB_PASSWORD=opentaps

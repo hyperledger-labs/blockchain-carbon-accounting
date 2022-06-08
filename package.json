@@ -23,10 +23,10 @@
   "workspaces": {
     "packages": [
       "app/frontend/*",
+      "app/data-loader",
       "emissions-data/typescript_app",
       "emissions-data/chaincode/emissionscontract/typescript",
       "data/common",
-      "data/postgres",
       "supply-chain/lib",
       "supply-chain/api",
       "supply-chain/cli",
