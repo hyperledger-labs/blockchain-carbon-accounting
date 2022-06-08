@@ -62,7 +62,7 @@ npm run supply-chain:cli -- -processrequests
 
 Run interface app:
 ```
-npm run net-emissions-token-network:react
+npm run frontend
 ```
 
 Emissions audit requests can be requested in the dApp by any wallet with the Consumer role.
