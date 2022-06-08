@@ -29,8 +29,7 @@
       "app/supply-chain-api",
       "emissions-data/typescript_app",
       "emissions-data/chaincode/emissionscontract/typescript",
-      "data/common",
-      "supply-chain/lib",
+      "lib/*",
       "net-emissions-token-network"
     ]
   },
