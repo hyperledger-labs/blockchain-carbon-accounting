@@ -3,7 +3,7 @@ _list:
 
 # list the available updates for all the npm dependencies
 ncu *ARGS:
-  just ncu-data {{ARGS}}
+  just ncu-ood {{ARGS}}
   just ncu-data-loader {{ARGS}}
   just ncu-supply-chain {{ARGS}}
   just ncu-net {{ARGS}}
@@ -12,7 +12,7 @@ ncu *ARGS:
 
 # apply the available updates for all the npm dependencies, changing the package.json files
 ncu-update *ARGS:
-  just ncu-data "-u" {{ARGS}}
+  just ncu-ood "-u" {{ARGS}}
   just ncu-data-loader "-u" {{ARGS}}
   just ncu-supply-chain "-u" {{ARGS}}
   just ncu-net "-u" {{ARGS}}
@@ -39,15 +39,15 @@ ncu-supply-chain *ARGS:
 	@echo "---------------------------------------------------"
 	ncu --packageFile 'app/supply-chain*/package.json' -x ipfs-http-client {{ARGS}}
 
-ncu-data *ARGS:
-	@echo "\n** Checking dependencies updates for data"
-	@echo "-------------------------------------------"
-	ncu --packageFile 'data/**/package.json' {{ARGS}}
-
 ncu-data-loader *ARGS:
 	@echo "\n** Checking dependencies updates for data-loader"
 	@echo "--------------------------------------------------"
 	ncu --packageFile 'app/data-loader/package.json' {{ARGS}}
+
+ncu-ood *ARGS:
+	@echo "\n** Checking dependencies updates for open-offsets-directory"
+	@echo "--------------------------------------------------"
+	ncu --packageFile 'open-offsets-directory/*/package.json' {{ARGS}}
 
 # Start the supply-chain api server
 supply-chain-api:
