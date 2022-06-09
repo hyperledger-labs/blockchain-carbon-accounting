@@ -1,5 +1,6 @@
-FROM node:18-alpine as build
-RUN apk add --update python3 py3-pip
+FROM node:18-bullseye-slim as build
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update && apt install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -11,7 +12,7 @@ COPY src /app/src
 
 RUN npm run build
 
-FROM node:18-alpine
+FROM node:18-bullseye-slim
 WORKDIR /app
 
 COPY --from=build /app/dist /app
