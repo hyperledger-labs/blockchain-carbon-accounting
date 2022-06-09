@@ -25,6 +25,6 @@
     "cli-progress": "^3.11.1",
     "uuid": "^8.3.2",
     "xlsx": "^0.18.5",
-    "@blockchain-carbon-accounting/emissions_data_chaincode": "*"
+    "@blockchain-carbon-accounting/emissions_data_lib": "*"
   }
 }

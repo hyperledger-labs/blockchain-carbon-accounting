@@ -8,7 +8,7 @@ import {
 import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
 import Signer from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/signer";
 import { setup } from "@blockchain-carbon-accounting/emissions_data/src/utils/logger";
-import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
+import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
 import { BigNumber } from "bignumber.js";
 import { existsSync, readFileSync } from "fs";
 import { extname, resolve } from "path";

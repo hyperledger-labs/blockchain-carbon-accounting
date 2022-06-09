@@ -5,27 +5,10 @@
 import { ChaincodeStub } from 'fabric-shim';
 import { State } from '../util/state';
 import { QueryResult, WorldState } from '../util/worldstate';
+import { UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from '@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem';
+import type { UtilityLookupItemInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem';
 
 /* tslint:disable:max-classes-per-file */
-
-export const UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER =
-    'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist';
-
-export interface DivisionsInterface {
-    division_type: string;
-    division_id: string;
-}
-export interface UtilityLookupItemInterface {
-    class: string;
-    key?: string;
-    uuid: string;
-    year?: string;
-    utility_number?: string;
-    utility_name?: string;
-    country?: string;
-    state_province?: string;
-    divisions?: DivisionsInterface;
-}
 
 export class UtilityLookupItem extends State {
     item: UtilityLookupItemInterface;

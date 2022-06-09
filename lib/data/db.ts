@@ -1,5 +1,5 @@
-import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor"
-import { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/utilityLookupItem"
+import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
+import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
 
 export interface EmissionFactorDbInterface {
   putEmissionFactor: (doc: EmissionsFactorInterface) => Promise<void>

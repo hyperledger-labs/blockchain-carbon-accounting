@@ -1,0 +1,21 @@
+{
+  "name": "@blockchain-carbon-accounting/emissions_data_lib",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Emissions Data Lib",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.7.2"
+  }}

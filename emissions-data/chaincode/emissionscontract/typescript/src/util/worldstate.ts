@@ -4,7 +4,11 @@
 
 import { ChaincodeStub, Iterators } from 'fabric-shim';
 import { State } from './state';
-import { ErrStateNotFound, ErrInvalidQueryString, ErrStateAlreadyExists } from './const';
+import {
+    ErrStateNotFound,
+    ErrInvalidQueryString,
+    ErrStateAlreadyExists,
+} from '@blockchain-carbon-accounting/emissions_data_lib/src/const';
 /**
  * WorldState class is a wrapper around chaincode stub
  * for managing lifecycle of a asset of type T (interface) on HL fabric

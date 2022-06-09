@@ -24,7 +24,7 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@blockchain-carbon-accounting/api-server": "*",
-    "@blockchain-carbon-accounting/emissions_data_chaincode": "*",
+    "@blockchain-carbon-accounting/emissions_data_lib": "*",
     "@blockchain-carbon-accounting/data-postgres": "*",
     "@blockchain-carbon-accounting/supply-chain-lib": "*",
     "chai": "4.3.6",

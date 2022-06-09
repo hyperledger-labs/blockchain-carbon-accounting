@@ -6,7 +6,7 @@ import "react-datetime/css/react-datetime.css";
 import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc, trpcClient } from "../services/trpc";
-import { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor";
+import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';
 import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { calculateEmissionsRequest, createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";

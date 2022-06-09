@@ -3,7 +3,7 @@ import { syncWalletRoles } from '@blockchain-carbon-accounting/api-server/contro
 import type { OPTS_TYPE } from '@blockchain-carbon-accounting/api-server/server';
 import type { ActivityEmissionsFactorLookup } from '@blockchain-carbon-accounting/data-postgres/src/models/activityEmissionsFactorLookup';
 import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
-import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_chaincode/src/lib/emissionsFactor';
+import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';
 import { generateKeyPair, hash_content } from '@blockchain-carbon-accounting/supply-chain-lib/src/crypto-utils';
 import { get_gclient } from '@blockchain-carbon-accounting/supply-chain-lib/src/distance-utils';
 import type { GroupedResult, GroupedResults } from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';

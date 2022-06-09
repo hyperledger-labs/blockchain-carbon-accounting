@@ -20,8 +20,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@blockchain-carbon-accounting/emissions_data_chaincode": "*",
     "@blockchain-carbon-accounting/data-common": "*",
+    "@blockchain-carbon-accounting/emissions_data_lib": "*",
     "cli-progress": "^3.11.1",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",

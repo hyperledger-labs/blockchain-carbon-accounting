@@ -1,14 +1,17 @@
 import { ChaincodeResponse, ChaincodeStub, Shim } from 'fabric-shim';
 import { EmissionsRecordInterface } from './lib/emissions';
-import { EmissionsFactorInterface } from './lib/emissionsFactor';
 import { EmissionsRecordContract } from './lib/emissionsRecordContract';
-import { DivisionsInterface, UtilityLookupItemInterface } from './lib/utilityLookupItem';
+import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';
+import type {
+    DivisionsInterface,
+    UtilityLookupItemInterface,
+} from '@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem';
 import {
     ErrInvalidArgument,
     ErrInvalidNumberOfArgument,
     ErrMethodNotSupported,
     MsgSuccess,
-} from './util/const';
+} from '@blockchain-carbon-accounting/emissions_data_lib/src/const';
 import { logger, stringToBytes } from './util/util';
 
 class EmissionsChaincode {
