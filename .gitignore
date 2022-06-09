@@ -16,15 +16,15 @@ multi-cloud-deployment/deploy-aws/packaging/marbles-chaincode.tgz
 
 
 # 2. new-emission-token-network
-net-emissions-token-network/node_modules
+hardhat/node_modules
 #Hardhat files
-net-emissions-token-network/cache
-net-emissions-token-network/artifacts
-net-emissions-token-network/coverage
-net-emissions-token-network/coverage.json
-net-emissions-token-network/.ethereum-config.js
-net-emissions-token-network/deployments/localhost
-net-emissions-token-network/deployments/SlitherResults
+hardhat/cache
+hardhat/artifacts
+hardhat/coverage
+hardhat/coverage.json
+hardhat/.ethereum-config.js
+hardhat/deployments/localhost
+hardhat/deployments/SlitherResults
 
 app/frontend/.DS_Store
 app/frontend/coverage
@@ -103,16 +103,16 @@ secure-identities/identity-ui/package-lock.json
 secure-identities/identity-ui/dist
 .vscode
 
-net-emissions-token-network/token-query-server/node_modules
-net-emissions-token-network/token-query-server/.env
-net-emissions-token-network/token-query-server/**/*.js
+hardhat/token-query-server/node_modules
+hardhat/token-query-server/.env
+hardhat/token-query-server/**/*.js
 
 
 open-offsets-directory/node-server/node_modules/.pnpm
 open-offsets-directory/node-server/node_modules
 open-offsets-directory/react/build
 open-offsets-directory/react/node_modules
-net-emissions-token-network/deployments/goerli/solcInputs
+hardhat/deployments/goerli/solcInputs
 open-offsets-directory/node-server/pnpm-lock.yaml
 open-offsets-directory/react/pnpm-lock.yaml
 secure-identities/ws-wallet/pnpm-lock.yaml
@@ -133,7 +133,7 @@ emissions-data/typescript_app/src/errors/clientError.js
 emissions-data/typescript_app/src/utils/logger.js
 emissions-data/chaincode/emissionscontract/typescript/**/*.js
 open-offsets-directory/data/.~lock.VCS_retirements.csv#
-net-emissions-token-network/my_notes.txt
+hardhat/my_notes.txt
 
 
 supply-chain/*.pem
@@ -147,4 +147,4 @@ data/orbitdb/orbitdb*
 data/orbitdb/orbitIpfs*
 data/**/*.js
 
-net-emissions-token-network/deployments/bsctestnet/solcInputs
+hardhat/deployments/bsctestnet/solcInputs

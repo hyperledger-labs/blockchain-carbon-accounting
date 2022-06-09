@@ -20,9 +20,9 @@ ncu-update *ARGS:
   just ncu-api-server "-u" {{ARGS}}
 
 ncu-net *ARGS:
-	@echo "\n** Checking dependencies updates for net-emissions-token-network"
+	@echo "\n** Checking dependencies updates for hardhat"
 	@echo "------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/package.json' -x ipfsd-ctl,ipfs-http-client {{ARGS}}
+	ncu --packageFile 'hardhat/package.json' -x ipfsd-ctl,ipfs-http-client {{ARGS}}
 
 ncu-api-server *ARGS:
 	@echo "\n** Checking dependencies updates for api-server in app/api-server/"
@@ -79,11 +79,11 @@ process-requests:
 
 # Run the app update and deploy script
 update-deploy:
-	./net-emissions-token-network/scripts/update_emissions_tokens_apps.sh
+	./hardhat/scripts/update_emissions_tokens_apps.sh
 
 # Start the hardhat backend
 hardhat:
-	cd net-emissions-token-network && npx hardhat node
+	cd hardhat && npx hardhat node
 
 # Run hardhat tests
 hardhat-test *TESTS:
@@ -96,5 +96,5 @@ hardhat-test *TESTS:
 		pkill hardhat; \
 	fi
 	# run hardhat tests
-	cd net-emissions-token-network && npx hardhat test {{TESTS}}
+	cd hardhat && npx hardhat test {{TESTS}}
 

@@ -24,13 +24,13 @@ See [api-server README](../api-server/README.md) on how to configure and start i
 
 To run a testnet locally via Hardhat Network:
 
-1. Start the React app with
+1. Start the React app in the root directory with
 
 ```bash
-npm run react-app:start
+npm run frontend
 ```
 
-2. In a separate terminal, start a local Hardhat Network in `net-emissions-token-network/` with:
+2. In a separate terminal, start a local Hardhat Network in `hardhat/` with:
 
 ```bash
 npx hardhat node 
@@ -56,10 +56,10 @@ Goerli is a public Ethereum testnet. When interacting with the contracts on Goer
 
 1. In `app/frontend/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "goerli" since the contract addresses are already defined in the same file.
 
-2. Start the React app with
+2. Start the React app in the root directory with
 
 ```bash
-npm run react-app:start
+npm run frontend
 ```
 
 3. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Goerli Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
@@ -76,10 +76,10 @@ BSC testnet is a test environment for Binance Chain network, run by the Binance 
 
 1. In `app/frontend/contracts/src/addresses.js` at the bottom of the file where it says `const addresses = networksAndAddresses.hardhat`, replace "hardhat" with "bsctestnet" since the contract addresses are already defined in the same file.
 
-2. Start the React app with
+2. Start the React app in the root directory with
 
 ```bash
-npm run react-app:start
+npm run frontend
 ```
 
 3. After navigating to `localhost:3000` in the browser, change the network from Ethereum Mainnet to _Binance Test Network_. Make sure MetaMask says the account is "Connected" with a green dot.
@@ -96,7 +96,7 @@ Optimism is a layer-2 solution for EVM-based layer-1 chains. It runs in a separa
 
 1. Run a local Optimism testnet using the [`optimism-integration`](https://github.com/ethereum-optimism/optimism-integration) repository (see `using-the-contracts.md` for more information).
 
-2. In a separate terminal, deploy the contracts in `net-emissions-token-network/` with:
+2. In a separate terminal, deploy the contracts in `hardhat/` with:
 
 ```bash
 npx hardhat deploy --network ovm_localhost
@@ -104,10 +104,10 @@ npx hardhat deploy --network ovm_localhost
 
 3. In `app/frontend/contracts/src/addresses.js`, uncomment the Optimism localhost contract addresses already in the file and comment out the Hardhat Network contract addresses.
 
-4. Start the React app with
+4. Start the React app in the root directory with
 
 ```bash
-npm run react-app:start
+npm run frontend
 ```
 
 5. After navigating to `localhost:3000` in the browser, add a new network to MetaMask by clicking the networking at the top and Custom RPC with these settings:

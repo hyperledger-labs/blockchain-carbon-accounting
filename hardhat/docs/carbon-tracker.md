@@ -7,16 +7,16 @@ Here we summarize the deployment process deploying the CarbonTracker contract an
 First run `npm install` of dependency libraries in the following subdirectories
 - [data](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data). This is where the postgres server and tables are configured for convenient storage for on and off-chain data. Follow the [readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/data-loader/README.md) for instructions on setting up and seeding the postgres database.
 - [emissions-data/typescript_app](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/emissions-data/typescript_app).
-- [net-emissions-token-network](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network). Follow the [using-the-contracts readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/docs/using-the-contracts.md).
+- [hardhat](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat). Follow the [using-the-contracts readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/using-the-contracts.md).
 - [app/frontend](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/frontend).
 - [app/api-server](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/api-server)
-- [supply-chain](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/supply-chain)
+- [supply-chain](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/supply-chain)
  
-- Next run the hardhat node in net-emissions-token-network subdirectory where the contracts (NET/CarbonTracker) are deployed locally
+- Next run the hardhat node in hardhat subdirectory where the contracts (NET/CarbonTracker) are deployed locally
 ```
 npx hardhat node
 ```
-[using-the-react-applicaiton readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/docs/using-the-contracts.md) provides instructions on seeding the network, e.g.:
+[using-the-react-applicaiton readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/using-the-contracts.md) provides instructions on seeding the network, e.g.:
 ```npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>``` 
 to assign roles to network addresses.
 ```npx hardhat issueOilAndGasTrackers --network localhost --contract <NetEmissionsTokeNetwork address>``` 
@@ -27,8 +27,10 @@ to issue example tracker tokens for oil and gas producers.
 [README](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/api-server/README.md) provides instructions on seeding the postgres database with user and other data.
 
 - Run the node.js react UI
-`yarn react-app:start` in net-emissions-token-network/interface 
-
+```
+cd app/frontend/react-app
+npm run build
+```
 
 
 
@@ -37,7 +39,7 @@ to issue example tracker tokens for oil and gas producers.
 
 The Carbon Tracker Contract is used to issue non fungible tokenz (NFT) as emission certificates of a facility that produces industrial commodities or a commerical service such as international travel and transportation of goods.
 
-The contract is implemented as ERC1155Holder of the [NET contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/net-emissions-token-network/contracts/NetEmissionsTokenNetwork.sol). Each Carbon Tracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
+The contract is implemented as ERC1155Holder of the [NET contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/contracts/NetEmissionsTokenNetwork.sol). Each Carbon Tracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
     
 - audited emission tokens (tokenTypeId = 4 as transferable emission tokens) 
 - offset credits (retired or transferable)

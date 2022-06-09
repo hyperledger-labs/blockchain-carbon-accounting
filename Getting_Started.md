@@ -26,13 +26,13 @@ npm run loadSeeds
 Run hardhat:
 
 ```
-npm run net-emissions-token-network:hardhat
+npm run hardhat
 ```
 
 Setup default roles and some demo issued tokens,
 in other terminal run:
 ```
-npm run net-emissions-token-network:hardhat-setup
+npm run hardhat-setup
 ```
 
 Start api-server from repository root directory:

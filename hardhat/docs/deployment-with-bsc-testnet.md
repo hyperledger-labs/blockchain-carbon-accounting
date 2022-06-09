@@ -222,7 +222,7 @@ The Apache config would look like:
 ### Build React APP
 
 
-Goto `net-emissions-token-network/interface`
+Goto `app/frontend`
 
 Check the contract address, must point to the BSC testnet contract:
 

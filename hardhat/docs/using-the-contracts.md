@@ -14,11 +14,11 @@ The DAO in `contracts/Governance` is customized from the
 
 ## Installation and use
 
-After cloning this repository, navigate to the `net-emissions-token-network` directory, and run `npm install`
+After cloning this repository, navigate to the `hardhat` directory, and run `npm install`
 
 ## Testing with Hardhat
 
-[Hardhat](https://hardhat.org/) is an Ethereum development and testing environment which is great for deploying and testing the contracts locally.  Again from the `net-emissions-token-network` directory:
+[Hardhat](https://hardhat.org/) is an Ethereum development and testing environment which is great for deploying and testing the contracts locally.  Again from the `hardhat` directory:
 
 - To see all commands, run `npx hardhat`
 - To compile, run `npx hardhat compile`
@@ -165,13 +165,13 @@ In the case that new changes are made to the DAO (Governor.sol and/or its Timelo
 
 2. Rename or delete the current references in `deployments/<network>/` to the Governor and Timelock, which are `Governor.json` and `Timelock.json`
 
-3. From `net-emissions-token-network/`, run `npx hardhat deploy --network <network>` again
+3. From `hardhat/`, run `npx hardhat deploy --network <network>` again
 
 Now instead of running the full deployment for every contract, the deployment script will reuse the current DAOToken and NetEmissionsTokenNetwork addresses on the network you're using and point it to the new DAO contracts.
 
 ## Analyzing with Slither
 
-[Slither](https://github.com/crytic/slither) is a powerful Solidity static analysis framework written in Python.  To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 are installed.  Then from `net-emissions-token-network/` sub-directory, run the script with:
+[Slither](https://github.com/crytic/slither) is a powerful Solidity static analysis framework written in Python.  To install and run the Slither static analysis on the Solidity contracts, first ensure Python 3.6+ and Pip 3 are installed.  Then from `hardhat/` sub-directory, run the script with:
 
 ```bash
 sh runSlither.sh

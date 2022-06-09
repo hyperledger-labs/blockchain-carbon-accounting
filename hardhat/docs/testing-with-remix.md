@@ -8,7 +8,7 @@ First, the remixd plugin must be installed globally via NPM in order to run a da
 npm install -g @remix-project/remixd
 ```
 
-Install the dependencies for the contract in the net-emissions-token-network directory:
+Install the dependencies for the contract in the hardhat directory:
 
 ```bash
 npm install
@@ -17,12 +17,12 @@ npm install
 To start the volume, run the following replacing `/path/to/repo` with the absolute path of this folder on your machine (symbolic links are unsupported):
 
 ```bash
-remixd -s /path/to/repo/blockchain-carbon-accounting/net-emissions-token-network --remix-ide https://remix.ethereum.org
+remixd -s /path/to/repo/blockchain-carbon-accounting/hardhat --remix-ide https://remix.ethereum.org
 ```
 
 After installing, navigate to https://remix.ethereum.org/ in your web browser.
 
-Find the "plugins" tab on the left of the IDE user interface. Select remixd and connect. You will now see the entire net-emissions-token-network folder in the file explorer within remixd.
+Find the "plugins" tab on the left of the IDE user interface. Select remixd and connect. You will now see the entire hardhat folder in the file explorer within remixd.
 
 Under localhost -> contracts, select NetEmissionsTokenNetwork.sol in the file explorer.
 
