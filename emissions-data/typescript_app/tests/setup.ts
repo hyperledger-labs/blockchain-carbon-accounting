@@ -13,6 +13,7 @@ const bcConfig = new BCGatewayConfig();
 
 // insert mock utility identifier and factors
 async function mockEmissionsRecord() {
+    console.log('mockEmissionsRecord...');
     const signer: FabricSigningCredential = {
         keychainId: 'inMemoryKeychain',
         keychainRef: 'admin',
@@ -21,6 +22,7 @@ async function mockEmissionsRecord() {
     const hlfConnector = org.connector;
 
     // enroll admin
+    console.log('Enroll admin ...');
     await hlfConnector.enroll(signer, {
         enrollmentID: 'admin',
         enrollmentSecret: 'adminpw',
@@ -33,6 +35,7 @@ async function mockEmissionsRecord() {
     // import utility identifier
     const mockUtilityID = 'USA_EIA_11208';
 
+    console.log('importUtilityIdentifier 1 ...');
     const p1 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
@@ -53,6 +56,7 @@ async function mockEmissionsRecord() {
         ],
     });
 
+    console.log('importUtilityIdentifier 2 ...');
     const p2 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
@@ -74,6 +78,7 @@ async function mockEmissionsRecord() {
     });
 
     // import mock utility factor
+    console.log('importUtilityFactor 1 ...');
     const p3 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
@@ -98,6 +103,7 @@ async function mockEmissionsRecord() {
         ],
     });
 
+    console.log('importUtilityFactor 2 ...');
     const p4 = hlfConnector.transact({
         signingCredential: signer,
         channelName: channelName,
