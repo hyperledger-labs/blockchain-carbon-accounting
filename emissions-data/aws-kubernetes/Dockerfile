@@ -1,5 +1,5 @@
-FROM node:18-alpine
-RUN apk update && apk add python make g++
+FROM node:14-alpine
+RUN apk update && apk add python3 make g++
 
 ENV NPM_CONFIG_PREFIX=/home/node/.npm-global
 ENV PATH="/home/node/.npm-global/bin:${PATH}"
@@ -13,10 +13,7 @@ WORKDIR /typescript_app
 # Only copy the package.json file to work directory
 COPY --chown=node:node ./typescript_app/package.json .
 COPY --chown=node:node ./typescript_app/tsconfig.json .
-COPY --chown=node:node ./typescript_app/*.ts ./
 COPY --chown=node:node ./typescript_app/*.js ./
-COPY --chown=node:node ./typescript_app/*.sh ./
-COPY --chown=node:node ./typescript_app/swagger.json .
 
 USER node
 # Install all Packages
