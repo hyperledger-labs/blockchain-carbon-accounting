@@ -1,4 +1,4 @@
 #!/bin/sh
 
-cd /home/opentaps/blockchain-carbon-accounting/supply-chain || exit 1
-npm run cli -- -processrequests
+cd /home/opentaps/blockchain-carbon-accounting || exit 1
+npm run supply-chain:cli -- -processrequests
