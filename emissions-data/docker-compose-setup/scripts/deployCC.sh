@@ -108,8 +108,8 @@ elif [ "$CC_SRC_LANGUAGE" = "typescript" ]; then
 
 	echo Compiling TypeScript code into JavaScript ...
 	pushd $CC_SRC_PATH
-	yarn install --ignore-engines --immutable --immutable-cache --check-cache
-	yarn run build
+	npm install --workspaces=false || exit 1
+	npm run build || exit 1
 	popd
 	echo Finished compiling TypeScript code into JavaScript
 
