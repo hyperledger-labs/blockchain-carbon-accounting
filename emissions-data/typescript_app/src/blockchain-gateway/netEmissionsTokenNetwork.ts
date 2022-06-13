@@ -3,7 +3,7 @@ import {
     PluginLedgerConnectorXdai,
 } from '@hyperledger/cactus-plugin-ledger-connector-xdai';
 import ClientError from '../errors/clientError';
-import { ledgerLogger } from '../utils/logger';
+import { ledgerLogger, setup as loggerSetup } from '../utils/logger';
 import {
     IEthNetEmissionsTokenGateway,
     IEthTxCaller,
@@ -32,6 +32,9 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
         type: string;
     }[];
     constructor(private readonly opts: IEthNetEmissionsTokenGatewayOptions) {
+        if (!ledgerLogger) {
+          loggerSetup('silent', 'silent');
+        }
         const tokenCreatedABI = contractABI.find((value) => {
             return value.type === 'event' && value.name === 'TokenCreated';
         });

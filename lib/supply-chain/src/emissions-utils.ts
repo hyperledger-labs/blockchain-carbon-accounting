@@ -7,7 +7,6 @@ import {
 } from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/I-gateway";
 import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
 import Signer from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/signer";
-import { setup } from "@blockchain-carbon-accounting/emissions_data/src/utils/logger";
 import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
 import { BigNumber } from "bignumber.js";
 import { existsSync, readFileSync } from "fs";
@@ -22,9 +21,6 @@ import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileRSAEncrypted, uploadFileWalletEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
-
-let logger_setup = false;
-const LOG_LEVEL = "silent";
 
 async function getDBInstance() {
   return await PostgresDBService.getInstance();
@@ -284,11 +280,6 @@ async function gateway_issue_token(
   metadata: string,
   description: string
 ) {
-
-  if (!logger_setup) {
-    setup(LOG_LEVEL, LOG_LEVEL);
-    logger_setup = true;
-  }
   const bcConfig = new BCGatewayConfig();
   const ethConnector = await bcConfig.ethConnector();
   const signer = new Signer("vault", bcConfig.inMemoryKeychainID, "plain");
