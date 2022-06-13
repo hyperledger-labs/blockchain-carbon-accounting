@@ -79,7 +79,7 @@ process-requests:
 
 # Run the app update and deploy script
 update-deploy:
-	./hardhat/scripts/update_emissions_tokens_apps.sh
+	./app/scripts/update_emissions_tokens_apps.sh
 
 # Start the hardhat backend
 hardhat:
