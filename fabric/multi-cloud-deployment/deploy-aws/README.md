@@ -498,11 +498,11 @@ Committed chaincode definition for chaincode 'emissions' on channel 'emissions-d
 Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Approvals: [opentaps: true]
 ```
 
-2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/emissions-data#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
+2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/fabric/emissions-data#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
 
-Make sure you have node modules installed in the emissions-data/docker-compose-setup directory
+Make sure you have node modules installed in the fabric/emissions-data/docker-compose-setup directory
 
-    $ cd emissions-data/docker-compose-setup
+    $ cd fabric/emissions-data/docker-compose-setup
     $ npm install
 
 and in the `multi-cloud-deployment/deploy-aws` directory run

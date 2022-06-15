@@ -1,5 +1,5 @@
 # Secure Identities
-This directory provides packages used to secure client key files and setup credential types for signing blockchain transactions. The [emissions-data](../emissions-data) blockchain currently support two types of identity credential types used by the fabric network:
+This directory provides packages used to secure client key files and setup credential types for signing blockchain transactions. The [emissions-data](../fabric/emissions-data) blockchain currently support two types of identity credential types used by the fabric network:
 * cloud-based keystore based on Hashicorp's Vault to securely access secrets.
 * keys stored on the user’s external device using a secure (e.g., web-socket) connection.
 

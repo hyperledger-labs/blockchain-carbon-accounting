@@ -36,12 +36,12 @@ Run build from emissions-data directory
 
 Create connection config json
 
-    $ cd emissions-data/aws-kubernetes/ccp-generate
+    $ cd fabric/emissions-data/aws-kubernetes/ccp-generate
     $ ./ccp-generate.sh
 
 Create ConfigMap from connection config json
 
-    $ cd emissions-data/aws-kubernetes
+    $ cd fabric/emissions-data/aws-kubernetes
     $ kubectl create configmap emissions-api-config --from-file=./ccp-generate/connection-opentaps.json -n fabric-production
 
 Create ebs volume to store users wallets
