@@ -1,23 +1,18 @@
 {
-  "name": "voluntary-carbon-offsets-directory-react",
+  "name": "@open-offsets-directory/react",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@material-ui/core": "^4.12.3",
-    "@material-ui/lab": "^4.0.0-alpha.60",
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.4",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^0.26.1",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/lab": "^4.0.0-alpha.61",
+    "axios": "^0.27.2",
     "bootstrap": "^5.1.3",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-google-recaptcha-v3": "^1.9.7",
+    "react": "18.1.0",
+    "react-dom": "18.1.0",
+    "react-google-recaptcha-v3": "^1.9.8",
     "react-linkify": "^1.0.0-alpha",
-    "react-native": "^0.67.4",
-    "react-native-web": "^0.17.7",
-    "react-router-dom": "^6.2.2",
-    "react-scripts": "^5.0.0"
+    "react-router-dom": "^6.3.0",
+    "react-scripts": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -39,5 +34,14 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "overrides": {
+    "react": "$react",
+    "react-dom": "$react-dom",
+    "@material-ui/core": {
+      "react": "18.1.0",
+      "react-dom": "18.1.0"
+    }
   }
+
 }

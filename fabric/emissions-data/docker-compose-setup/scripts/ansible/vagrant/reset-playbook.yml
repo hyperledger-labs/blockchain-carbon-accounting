@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Reset docker setup
+      command: sh ./scripts/fabricNetwork.sh
+      args:
+        chdir: /opt/blockchain-carbon-accounting/fabric/emissions-data/docker-compose-setup

@@ -1,8 +1,8 @@
 import Pagination from "@material-ui/lab/Pagination";
 import React, { Component } from "react";
 import { withGoogleReCaptcha } from 'react-google-recaptcha-v3';
-import { ActivityIndicator } from "react-native";
 import { useNavigate, useParams } from "react-router-dom";
+import CircularProgress from '@mui/material/CircularProgress';
 import ProjectDataService from "../services/project.service";
 
 const FIELD_OPS = [
@@ -361,7 +361,7 @@ class ProjectsList extends Component {
   renderSpinner(loading) {
     return loading ? (
       <div className="spinner-placeholder">
-        <ActivityIndicator size="large" color="blue" animating={loading} />
+        <CircularProgress />
       </div>
     ) : (
       ""

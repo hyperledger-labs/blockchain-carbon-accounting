@@ -3,44 +3,51 @@ _list:
 
 # list the available updates for all the npm dependencies
 ncu *ARGS:
-  just ncu-data {{ARGS}}
+  just ncu-ood {{ARGS}}
+  just ncu-data-loader {{ARGS}}
   just ncu-supply-chain {{ARGS}}
   just ncu-net {{ARGS}}
-  just ncu-net-interface {{ARGS}}
+  just ncu-frontend {{ARGS}}
   just ncu-api-server {{ARGS}}
 
 # apply the available updates for all the npm dependencies, changing the package.json files
 ncu-update *ARGS:
-  just ncu-data "-u" {{ARGS}}
+  just ncu-ood "-u" {{ARGS}}
+  just ncu-data-loader "-u" {{ARGS}}
   just ncu-supply-chain "-u" {{ARGS}}
   just ncu-net "-u" {{ARGS}}
-  just ncu-net-interface "-u" {{ARGS}}
+  just ncu-frontend "-u" {{ARGS}}
   just ncu-api-server "-u" {{ARGS}}
 
 ncu-net *ARGS:
-	@echo "\n** Checking dependencies updates for net-emissions-token-network"
+	@echo "\n** Checking dependencies updates for hardhat"
 	@echo "------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/package.json' -x ipfsd-ctl,ipfs-http-client {{ARGS}}
+	ncu --packageFile 'hardhat/package.json' -x ipfsd-ctl,ipfs-http-client {{ARGS}}
 
 ncu-api-server *ARGS:
-	@echo "\n** Checking dependencies updates for api-server in net-emissions-token-network/api-server/"
+	@echo "\n** Checking dependencies updates for api-server in app/api-server/"
 	@echo "--------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/api-server/package.json' {{ARGS}}
+	ncu --packageFile 'app/api-server/package.json' {{ARGS}}
 
-ncu-net-interface *ARGS:
-	@echo "\n** Checking dependencies updates for react dapp in net-emissions-token-network/interface/"
+ncu-frontend *ARGS:
+	@echo "\n** Checking dependencies updates for react dapp in app/frontend/"
 	@echo "-------------------------------------------------------------------------------------------"
-	ncu --packageFile 'net-emissions-token-network/interface/**/package.json' -x ipfs-http-client {{ARGS}}
+	ncu --packageFile 'app/frontend/**/package.json' -x ipfs-http-client {{ARGS}}
 
 ncu-supply-chain *ARGS:
 	@echo "\n** Checking dependencies updates for supply-chain"
 	@echo "---------------------------------------------------"
-	ncu --packageFile 'supply-chain/**/package.json' -x ipfs-http-client {{ARGS}}
+	ncu --packageFile 'app/supply-chain*/package.json' -x ipfs-http-client {{ARGS}}
 
-ncu-data *ARGS:
-	@echo "\n** Checking dependencies updates for data"
-	@echo "-------------------------------------------"
-	ncu --packageFile 'data/**/package.json' {{ARGS}}
+ncu-data-loader *ARGS:
+	@echo "\n** Checking dependencies updates for data-loader"
+	@echo "--------------------------------------------------"
+	ncu --packageFile 'app/data-loader/package.json' {{ARGS}}
+
+ncu-ood *ARGS:
+	@echo "\n** Checking dependencies updates for open-offsets-directory"
+	@echo "--------------------------------------------------"
+	ncu --packageFile 'open-offsets-directory/*/package.json' {{ARGS}}
 
 # Start the supply-chain api server
 supply-chain-api:
@@ -48,14 +55,14 @@ supply-chain-api:
 
 # Start the api-server
 api-server:
-	npm run net-emissions-token-network:api 
+	npm run api-server 
 
 # Start the react-app frontend
 frontend:
-	npm run net-emissions-token-network:react-https
+	npm run frontend-https
 
 frontend-build:
-	cd net-emissions-token-network/interface/packages/react-app && npm run build
+	cd app/frontend/react-app && npm run build
 
 # Start the ipfs daemon
 ipfs:
@@ -72,11 +79,11 @@ process-requests:
 
 # Run the app update and deploy script
 update-deploy:
-	./net-emissions-token-network/scripts/update_emissions_tokens_apps.sh
+	./app/scripts/update_emissions_tokens_apps.sh
 
 # Start the hardhat backend
 hardhat:
-	cd net-emissions-token-network && npx hardhat node
+	cd hardhat && npx hardhat node
 
 # Run hardhat tests
 hardhat-test *TESTS:
@@ -89,5 +96,5 @@ hardhat-test *TESTS:
 		pkill hardhat; \
 	fi
 	# run hardhat tests
-	cd net-emissions-token-network && npx hardhat test {{TESTS}}
+	cd hardhat && npx hardhat test {{TESTS}}
 

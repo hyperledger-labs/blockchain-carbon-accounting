@@ -1,0 +1,85 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Docker
+      tags: docker
+      block:
+        - name: Install docker packages
+          apt:
+            pkg:
+              - apt-transport-https
+              - ca-certificates
+              - curl
+              - software-properties-common
+            state: present
+            update_cache: yes
+        - name: Add Docker s official GPG key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
+        - name: Verify that we have the key with the fingerprint
+          apt_key:
+            id: 0EBFCD88
+            state: present
+        - name: Set up the stable repository
+          apt_repository:
+            repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+            state: present
+            update_cache: yes
+        - name: Update apt packages
+          apt:
+            update_cache: yes
+        - name: Install docker
+          apt:
+            pkg:
+              - docker-ce
+              - docker-ce-cli
+              - python-docker
+            state: present
+            update_cache: yes
+        - name: Install Docker-compose
+          get_url:
+            url: https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64
+            dest: /usr/local/bin/docker-compose
+            mode: "u+x,g+x"
+
+    - name: Git
+      tags: git
+      block:
+        - name: Ensure Git is installed
+          apt:
+            name: git
+        - name: Git checkout
+          git:
+            repo: "https://github.com/opentaps/blockchain-carbon-accounting"
+            dest: /opt/blockchain-carbon-accounting
+            version: deployment
+
+    - name: Setup AWS config
+      block:
+        - name: Copy template
+          copy:
+            remote_src: true
+            src: /opt/blockchain-carbon-accounting/fabric/emissions-data/chaincode/typescript/lib/aws-config.js.template
+            dest: /opt/blockchain-carbon-accounting/fabric/emissions-data/chaincode/typescript/lib/aws-config.js
+        - name: Insert AWS config values
+          block:
+            - name: AWS access key
+              replace:
+                path: /opt/blockchain-carbon-accounting/fabric/emissions-data/chaincode/typescript/lib/aws-config.js
+                regexp: "exports.AWS_ACCESS_KEY_ID = .*$"
+                replace: 'exports.AWS_ACCESS_KEY_ID = "{{ lookup(''env'',''AWS_ACCESS_KEY_ID'') }}";'
+            - name: AWS secret
+              replace:
+                path: /opt/blockchain-carbon-accounting/fabric/emissions-data/chaincode/typescript/lib/aws-config.js
+                regexp: "exports.AWS_SECRET_ACCESS_KEY = .*$"
+                replace: 'exports.AWS_SECRET_ACCESS_KEY = "{{ lookup(''env'',''AWS_SECRET_ACCESS_KEY'') }}";'
+
+    - name: Setup Docker network config
+      block:
+        - name: Insert Network interface config
+          replace:
+            path: /opt/blockchain-carbon-accounting/fabric/emissions-data/docker-compose-setup/scripts/startNetwork.sh
+            regexp: "docker swarm init$"
+            replace: "docker swarm init --advertise-addr eth1"
