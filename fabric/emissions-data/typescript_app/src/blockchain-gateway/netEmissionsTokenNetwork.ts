@@ -33,7 +33,7 @@ export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsToke
     }[];
     constructor(private readonly opts: IEthNetEmissionsTokenGatewayOptions) {
         if (!ledgerLogger) {
-          loggerSetup('silent', 'silent');
+            loggerSetup('silent', 'silent');
         }
         const tokenCreatedABI = contractABI.find((value) => {
             return value.type === 'event' && value.name === 'TokenCreated';
