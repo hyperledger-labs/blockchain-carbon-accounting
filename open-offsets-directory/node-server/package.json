@@ -15,7 +15,7 @@
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "express-recaptcha": "^5.1.0",
-    "node-fetch": "^3.2.5",
+    "node-fetch": "^3.2.6",
     "pg": "^8.7.3",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.20.1"
