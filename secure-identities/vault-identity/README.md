@@ -27,7 +27,7 @@ Steps required before running the server.
 A quick setup for development purpose:
 
 - Install: `npm install`
-- Start vault server - This is usually already started by `startApi.sh` in `fabric/emissions-data/docker-compose-setup/scripts/`, but if you don't see a vault docker container running, then : `npm run vault`
+- Start vault server - This is usually already started by `startApi.sh` in `fabric/docker-compose-setup/scripts/`, but if you don't see a vault docker container running, then : `npm run vault`
 - Setup : `npm run test:setup`
 
 ## Using Vault
