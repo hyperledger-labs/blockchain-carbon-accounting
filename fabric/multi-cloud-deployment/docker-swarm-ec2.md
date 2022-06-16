@@ -16,8 +16,8 @@ For this deployment, we will need two servers. For the purpose of this documenta
 1. Create server A, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You will want a decent amount of RAM on this server, probably 6-8. (t2.large)
 1. Create server B, make sure to allow all sources and incoming traffic in the security settings for the purpose of this demo. You can most likely get away with using a t2 micro instance for this server.
 1. SSH into both servers and `git clone https://github.com/opentaps/blockchain-carbon-accounting ; cd blockchain-carbon-accounting ; git checkout deployment`.
-1. Fill out the AWS credentials in a separate file called `aws-config.js` based on `emissions-data/typescript_app/src/config/aws-config.js.template`.
-1. Install docker on both machines by running `cd ~/blockchain-carbon-accounting/emissions-data/docker-compose-setup ; ./scripts/deploy/install-docker.sh`
+1. Fill out the AWS credentials in a separate file called `aws-config.js` based on `fabric/typescript_app/src/config/aws-config.js.template`.
+1. Install docker on both machines by running `cd ~/blockchain-carbon-accounting/fabric/docker-compose-setup ; ./scripts/deploy/install-docker.sh`
 1. Exit and re-enter the SSH session on both servers to activate changes
 1. Setup SSH keys needed to run SCP later on, copy the EC2 private key in `~/ssh_key` on both servers and `chmod 600 ~/ssh_key`
 1. Note the IP of both servers they will be referred to later **x.x.x.x** as Server A and **y.y.y.y** as Server B
