@@ -423,10 +423,10 @@ peer chaincode query -C emissions-data -n marbles -c '{"Args":["readMarble","mar
 
 Next, we deploy a emissions chaincode to the emissions-data. Follow the next steps carefully.
 
-2.1. First, we package and install the chaincode to one peer. In `emissions-data/chaincode/packaging/connection.json` set the value of `your address` (e.g., "address": "chaincode-emissions.fabric-production:7052"). If you use `fabric-production` namespace, than
+2.1. First, we package and install the chaincode to one peer. In `fabric/chaincode/packaging/connection.json` set the value of `your address` (e.g., "address": "chaincode-emissions.fabric-production:7052"). If you use `fabric-production` namespace, than
 ``` shell
-# change dir to emissions-data/chaincode/packaging
-cd emissions-data/chaincode/packaging
+# change dir to fabric/chaincode/packaging
+cd fabric/chaincode/packaging
 source ../../../multi-cloud-deployment/deploy-aws/setEnv.sh
 
 # tar connection.json and metadata.json
@@ -441,7 +441,7 @@ tar cfz emissions-chaincode.tgz code.tar.gz metadata.json
 2021-02-26 19:59:09.241 EET [cli.lifecycle.chaincode] submitInstallProposal -> INFO 002 Chaincode code package identifier: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97
 ```
 
-2.2. Copy the chaincode package identifier (here: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `emissions-data/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
+2.2. Copy the chaincode package identifier (here: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97) and paste into `fabric/chaincode/deploy/chaincode-deployment.yaml`. Replace the value of `CHAINCODE_CCID`. You can query installed chaincode as follows if the chaincode package identifier gets lost.
 ```shell
 # Query installed chaincode of peer
 ../../../multi-cloud-deployment/deploy-aws/bin/peer lifecycle chaincode queryinstalled
@@ -451,7 +451,7 @@ Installed chaincodes on peer:
 Package ID: emissions:0ee431100d9b7ab740c0e72ec86db561b052fd1b9b1e47de198bbabd0954ee97, Label: emissions
 ```
 
-2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `emissions-data/chaincode/typescript`.
+2.3. At this point, we need to build a docker image containing the chaincode as well as its runtime environment. See `fabric/chaincode/typescript`.
 ``` shell
 docker build -t krybalko/emissions-chaincode:0.0.3 .
 ```
@@ -500,9 +500,9 @@ Version: 1.0, Sequence: 1, Endorsement Plugin: escc, Validation Plugin: vscc, Ap
 
 2.6. In order to test chaincode we need to [seed Fabric](https://github.com/opentaps/blockchain-carbon-accounting/tree/main/fabric/emissions-data#seeding-the-fabric-database) database first from the `multi-cloud-deployment/deploy-aws` directory.
 
-Make sure you have node modules installed in the fabric/emissions-data/docker-compose-setup directory
+Make sure you have node modules installed in the fabric/docker-compose-setup directory
 
-    $ cd fabric/emissions-data/docker-compose-setup
+    $ cd fabric/docker-compose-setup
     $ npm install
 
 and in the `multi-cloud-deployment/deploy-aws` directory run
@@ -511,11 +511,11 @@ and in the `multi-cloud-deployment/deploy-aws` directory run
 
 and
 
-    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
-    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
-    $ node ../../emissions-data/docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
+    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
+    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
+    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
+    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
+    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
 
 
 After seeding  you can run a script to record and get the emissions:

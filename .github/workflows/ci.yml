@@ -38,7 +38,7 @@ jobs:
     needs: lint
     defaults:
       run:
-        working-directory: ./fabric/emissions-data/chaincode/datalock
+        working-directory: ./fabric/chaincode/datalock
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -98,7 +98,7 @@ jobs:
       - name: Download Fabric binaries
         run: |
           sudo chmod +x /usr/local/bin/docker-compose
-          cd ./fabric/emissions-data/docker-compose-setup/
+          cd ./fabric/docker-compose-setup/
           ./bootstrap.sh  2.4.2 1.5.2 -d -s
       - name: Start local Hardhat network # Start local Hardhat network needed for running net emissions token network
         run: |
@@ -106,7 +106,7 @@ jobs:
           echo "n" | npx hardhat node &
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
-          cd ./fabric/emissions-data/docker-compose-setup/
+          cd ./fabric/docker-compose-setup/
           echo "127.0.0.1       auditor1.carbonAccounting.com
           127.0.0.1       auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com
@@ -115,7 +115,7 @@ jobs:
           ./startDev.sh &
       - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
-          cd ./fabric/emissions-data/typescript_app/
+          cd ./fabric/typescript_app/
           while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
@@ -123,4 +123,4 @@ jobs:
         if: success() || failure()
         with:
           name: test-results
-          path: fabric/emissions-data/typescript_app/test-results.json
+          path: fabric/typescript_app/test-results.json

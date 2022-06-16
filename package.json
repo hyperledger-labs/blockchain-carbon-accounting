@@ -29,8 +29,8 @@
       "app/api-server",
       "app/supply-chain",
       "app/supply-chain-api",
-      "fabric/emissions-data/typescript_app",
-      "fabric/emissions-data/chaincode/emissionscontract/typescript",
+      "fabric/typescript_app",
+      "fabric/chaincode/emissionscontract/typescript",
       "lib/*",
       "hardhat",
       "open-offsets-directory/node-server",
@@ -50,13 +50,13 @@
   },
   "overrides": {
     "@blockchain-carbon-accounting/react-app": {
-      "react": "18.1.0",
-      "react-dom": "18.1.0",
+      "react": "18.2.0",
+      "react-dom": "18.2.0",
       "autoprefixer": "10.4.5"
     },
     "@open-offsets-directory/react": {
-      "react": "18.1.0",
-      "react-dom": "18.1.0"
+      "react": "18.2.0",
+      "react-dom": "18.2.0"
     }
   },
   "dependencies": {
