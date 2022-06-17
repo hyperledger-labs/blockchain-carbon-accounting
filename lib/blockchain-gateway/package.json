@@ -1,0 +1,33 @@
+{
+  "name": "@blockchain-carbon-accounting/blockchain-gateway-lib",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Blockchain Gateway Lib",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@hyperledger/cactus-common": "1.0.0",
+    "@hyperledger/cactus-core": "1.0.0",
+    "@hyperledger/cactus-core-api": "1.0.0",
+    "@hyperledger/cactus-plugin-keychain-memory": "1.0.0",
+    "@hyperledger/cactus-plugin-keychain-vault": "1.0.0",
+    "@hyperledger/cactus-plugin-ledger-connector-fabric": "1.0.0",
+    "@hyperledger/cactus-plugin-ledger-connector-xdai": "1.0.0",
+    "uuid": "^8.3.2",
+    "web3": "1.7.3"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.26.0",
+    "@typescript-eslint/parser": "^5.26.0",
+    "@types/uuid": "8.3.4",
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.7.2"
+  }}

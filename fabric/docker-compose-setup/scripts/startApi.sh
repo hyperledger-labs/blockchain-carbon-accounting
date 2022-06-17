@@ -14,6 +14,7 @@ case $MODE in
         docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3
         docker run --rm --name ws-identity -d --cap-add=IPC_LOCK -p 8700:8700 ghcr.io/brioux/ws-identity
         cd ../typescript_app
+        ./cp-blockchain-gateway-lib.sh
 
         if [ ! -d "node_modules" ];then
             npm i

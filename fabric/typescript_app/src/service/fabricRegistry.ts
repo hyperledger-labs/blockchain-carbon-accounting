@@ -1,7 +1,7 @@
 import { Input } from './input';
 import Joi from 'joi';
 import ClientError from '../errors/clientError';
-import { IFabricRegistryGateway, IWebSocketKey } from '../blockchain-gateway/I-gateway';
+import { IFabricRegistryGateway, IWebSocketKey } from '../blockchain-gateway-lib/I-gateway';
 import { appLogger, ledgerLogger } from '../utils/logger';
 
 interface registerOutput {

@@ -10,3 +10,4 @@ cp -fv artifacts/contracts/Governance/Governor.sol/Governor.json ../app/frontend
 cp -fv artifacts/contracts/NetEmissionsTokenNetwork.sol/NetEmissionsTokenNetwork.json ../app/frontend/contracts/src/abis/
 echo "Regen ABI from artifacts/contracts/NetEmissionsTokenNetwork.sol/NetEmissionsTokenNetwork.json into ../fabric/typescript_app/src/static/contract-NetEmissionsTokenNetwork.json using jq ..."
 jq .abi artifacts/contracts/NetEmissionsTokenNetwork.sol/NetEmissionsTokenNetwork.json > ../fabric/typescript_app/src/static/contract-NetEmissionsTokenNetwork.json
+cp ../fabric/typescript_app/src/static/contract-NetEmissionsTokenNetwork.json ../lib/blockchain-gateway/src/static/

@@ -19,5 +19,6 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 ### Running Tests
 
 1. Start Hardhat ethereum node : `cd hardhat && npx hardhat node`
-2. Insert some mock data, configure vault server for the testing : `npm run test:setup`
-3. Run Test Coverage : `npm run coverage`
+2. Copy blockchain-gateway-lib files : `./cp-blockchain-gateway-lib.sh`
+3. Insert some mock data, configure vault server for the testing : `npm run test:setup`
+4. Run Test Coverage : `npm run coverage`

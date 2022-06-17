@@ -4,8 +4,8 @@ import {
     IFabricTxCaller,
     IFabricRegisterInput,
     IFabricRegisterOutput,
-} from './I-gateway';
-import Signer from './signer';
+} from '../blockchain-gateway-lib/I-gateway';
+import Signer from '../blockchain-gateway-lib/signer';
 import { ledgerLogger } from '../utils/logger';
 import ClientError from '../errors/clientError';
 

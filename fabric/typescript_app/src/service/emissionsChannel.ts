@@ -12,7 +12,7 @@ import {
     IFabricTxCaller,
     ITxDetails,
     IWebSocketKey,
-} from '../blockchain-gateway/I-gateway';
+} from '../blockchain-gateway-lib/I-gateway';
 import AWSS3 from '../datasource/awsS3';
 import ClientError from '../errors/clientError';
 import { checkDateConflict, toTimestamp } from '../utils/dateUtils';
