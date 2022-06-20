@@ -15,7 +15,7 @@
     "test:emissionsChannel": "mocha -exit -require ts-node/register 'tests/blockchain-gateway/emissionsChannel.test.ts' --timeout 30000",
     "test:signer": "mocha -exit -require ts-node/register 'tests/blockchain-gateway/signer.test.ts' --timeout 30000",
     "test:fabric": "mocha -exit -require ts-node/register 'tests/blockchain-gateway/fabric-registry.test.ts' --timeout 30000",
-    "test:setup": "ts-node tests/setup.ts && sh tests/setup-s3.sh",
+    "test:setup": "./cp-blockchain-gateway-lib.sh && ts-node tests/setup.ts && sh tests/setup-s3.sh",
     "coverage": "nyc --reporter=html --reporter=text npm run test",
     "localS3": "serverless s3 start --address 0.0.0.0",
     "prod": "npm run build && npm run start",
