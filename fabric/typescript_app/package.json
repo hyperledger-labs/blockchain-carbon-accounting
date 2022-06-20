@@ -5,7 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "./cp-blockchain-gateway-lib.sh && tsc",
     "dev": "ts-node src/index.ts",
     "start": "node ./dist/index.js",
     "test": "mocha -exit -require ts-node/register --reporter list -colors 'tests/**/*.test.ts' --timeout 30000",
