@@ -1,12 +1,12 @@
 import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
 import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import BCGatewayConfig from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/config";
+import BCGatewayConfig from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/config";
 import {
     IEthNetEmissionsTokenIssueInput,
     IEthTxCaller
-} from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/I-gateway";
-import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/netEmissionsTokenNetwork";
-import Signer from "@blockchain-carbon-accounting/emissions_data/src/blockchain-gateway/signer";
+} from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/I-gateway";
+import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/netEmissionsTokenNetwork";
+import Signer from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/signer";
 import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
 import { BigNumber } from "bignumber.js";
 import { existsSync, readFileSync } from "fs";

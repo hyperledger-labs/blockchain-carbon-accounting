@@ -27,7 +27,7 @@ RUN npm install -g mocha
 # Copy all other source code to work directory
 ADD --chown=node:node ./typescript_app/src /typescript_app/src
 
-RUN npm run-script build
+RUN npm run-script buildtsc
 
 EXPOSE 9000
 

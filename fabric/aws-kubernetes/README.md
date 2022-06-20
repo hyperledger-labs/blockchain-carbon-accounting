@@ -27,7 +27,12 @@ export const CHANNEL_NAME = "emissions-data"
 
 * Set S3_LOCAL = false and S3 BUCKET_NAME in the aws-config.js, access keys should be null and be set in the emissions-api-deployment.yaml
 
-Run build from emissions-data directory
+Make sure you copy blockchain-gateway-lib files:
+
+    $ cd fabric/typescript_app
+    $ ./cp-blockchain-gateway-lib.sh
+
+To create and push emissions-api docker image run thos commands from fabric directory
 
     $ docker build -t krybalko/emissions-api:0.0.1 -f aws-kubernetes/Dockerfile .
     $ docker image push krybalko/emissions-api:0.0.1
@@ -36,12 +41,12 @@ Run build from emissions-data directory
 
 Create connection config json
 
-    $ cd fabric/emissions-data/aws-kubernetes/ccp-generate
+    $ cd fabric/aws-kubernetes/ccp-generate
     $ ./ccp-generate.sh
 
 Create ConfigMap from connection config json
 
-    $ cd fabric/emissions-data/aws-kubernetes
+    $ cd fabric/aws-kubernetes
     $ kubectl create configmap emissions-api-config --from-file=./ccp-generate/connection-opentaps.json -n fabric-production
 
 Create ebs volume to store users wallets

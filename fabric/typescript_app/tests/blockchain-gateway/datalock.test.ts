@@ -1,11 +1,11 @@
 import chai from 'chai';
 import { config } from 'dotenv';
 import { v4 as uuid4 } from 'uuid';
-import BCGatewayConfig from '../../src/blockchain-gateway/config';
+import BCGatewayConfig from '../../src/blockchain-gateway-lib/config';
 import { DataLockGateway } from '../../src/blockchain-gateway/datalock';
 import EmissionsDataGateway from '../../src/blockchain-gateway/emissionsChannel';
-import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway/I-gateway';
-import Signer from '../../src/blockchain-gateway/signer';
+import { IFabricTxCaller, TxState } from '../../src/blockchain-gateway-lib/I-gateway';
+import Signer from '../../src/blockchain-gateway-lib/signer';
 import { setup } from '../../src/utils/logger';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
