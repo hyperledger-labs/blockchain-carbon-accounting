@@ -1,5 +1,5 @@
 import { WsWallet } from 'ws-wallet';
-import { IWebSocketKey } from '../src/blockchain-gateway/I-gateway';
+import { IWebSocketKey } from '../src/blockchain-gateway-lib/I-gateway';
 import { WsIdentityClient } from 'ws-identity-client';
 
 async function setupWebSocket(keyName: string): Promise<IWebSocketKey> {

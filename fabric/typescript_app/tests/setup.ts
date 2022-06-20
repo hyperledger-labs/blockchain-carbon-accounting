@@ -6,7 +6,7 @@ import {
 import axios from 'axios';
 // import { execSync } from 'child_process';
 import { config } from 'dotenv';
-import BCGatewayConfig from '../src/blockchain-gateway/config';
+import BCGatewayConfig from '../src/blockchain-gateway-lib/config';
 config();
 
 const bcConfig = new BCGatewayConfig();
