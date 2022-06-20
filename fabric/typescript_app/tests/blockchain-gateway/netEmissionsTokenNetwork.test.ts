@@ -1,10 +1,10 @@
-import BCGatewayConfig from '../../src/blockchain-gateway/config';
-import EthNetEmissionsTokenGateway from '../../src/blockchain-gateway/netEmissionsTokenNetwork';
-import Signer from '../../src/blockchain-gateway/signer';
+import BCGatewayConfig from '../../src/blockchain-gateway-lib/config';
+import EthNetEmissionsTokenGateway from '../../src/blockchain-gateway-lib/netEmissionsTokenNetwork';
+import Signer from '../../src/blockchain-gateway-lib/signer';
 import {
     IEthTxCaller,
     IEthNetEmissionsTokenIssueInput,
-} from '../../src/blockchain-gateway/I-gateway';
+} from '../../src/blockchain-gateway-lib/I-gateway';
 import { config } from 'dotenv';
 import { setup } from '../../src/utils/logger';
 import ClientError from '../../src/errors/clientError';
