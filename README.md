@@ -6,8 +6,10 @@
 This repository contains the code for the [Hyperledger Carbon Accounting and Neutrality Working Group](https://wiki.hyperledger.org/display/CASIG/Carbon+Accounting+and+Certification+Working+Group). Each
 sub-folder is for a different project of the Working Group and has its own code and instructions:
 
+- [lib](lib/README.md): Common library of code
 - [fabric](fabric/README.md): [Emissions Data Channel](https://wiki.hyperledger.org/display/CASIG/Emissions+Data+Channel)
 - [hardhat](hardhat/README.md): [Net Emissions Token Network](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network) and [Climate DAO](https://wiki.hyperledger.org/display/CASIG/DAO)
+- [app](app/README.md): Applications built on these components, including React user interface and supply chain emissions calculations.
 - [open-offsets-directory](open-offsets-directory/README.md): [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research)
 - [secure-identities](secure-identities/README.md): Support for signing transactions using Vault or web-socket
 - [supply-chain](app/supply-chain/README.md): [Supply Chain Decarbonization](https://wiki.hyperledger.org/display/CASIG/Supply+Chain+Decarbonization)
