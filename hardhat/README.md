@@ -9,7 +9,7 @@ To see a demo of how it works, check out [this video](https://youtu.be/C-cUjQLDG
 See the documentation for more information and instructions: 
 
 - [`docs/using-the-contracts.md`](docs/using-the-contracts.md) for a broad overview of the contracts and how to compile, test, and deploy with Hardhat
-- [`docs/using-the-react-application.md`](docs/using-the-react-application.md) for running the React interface that connects to the contracts either locally with Hardhat Network or to a public chain
+- [`../app/frontend/README.md`](../app/frontend/README.md) for running the React interface that connects to the contracts either locally with Hardhat Network or to a public chain
 - [`docs/verifying-contracts-with-etherscan.md`](docs/verifying-contracts-with-etherscan.md) for verifying with Etherscan to be able to format and make contract calls from their interface
 - [`docs/testing-with-remix.md`](docs/testing-with-remix.md) for testing with the web-based Remix IDE with the remixd daemon
 - [`docs/deployment.md`](docs/deployment.md) for instructions on deploying the contracts to different networks
