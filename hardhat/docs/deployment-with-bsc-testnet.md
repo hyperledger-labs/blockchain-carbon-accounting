@@ -84,7 +84,7 @@ In all cases it must be created:
 createdb blockchain-carbon-accounting
 ```
 
-Run the data loader from `app/data-loader`:
+Run the data loader from `data`:
 
 Make sure you have the DB credentials setup in `.env`, for example:
 ```

@@ -42,7 +42,7 @@ ncu-supply-chain *ARGS:
 ncu-data-loader *ARGS:
 	@echo "\n** Checking dependencies updates for data-loader"
 	@echo "--------------------------------------------------"
-	ncu --packageFile 'app/data-loader/package.json' {{ARGS}}
+	ncu --packageFile 'data/package.json' {{ARGS}}
 
 ncu-ood *ARGS:
 	@echo "\n** Checking dependencies updates for open-offsets-directory"

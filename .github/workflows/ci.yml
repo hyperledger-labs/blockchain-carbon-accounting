@@ -74,7 +74,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run data tests
-        run: npm run test --prefix ./app/data-loader
+        run: npm run test --prefix ./data
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

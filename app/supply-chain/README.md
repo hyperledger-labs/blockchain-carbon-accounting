@@ -6,7 +6,7 @@
 
 ## Installing
 
-Following the steps from [app/data-loader](../data-loader/README.md) to install the emissions factors database.
+Following the steps from [data](../../data/README.md) to install the emissions factors database.
 
 Copy `.env.SAMPLE` to `.env`.  You will need to fill in:
 - Your PostgreSQL host, port, username, and password.
