@@ -62,6 +62,8 @@ Then modify the file `emissions-data/docker-compose-setup/scripts/invokeChaincod
 
 ### Start network, create channel, and deployCC
 
+NOTE: We're currently working on fixing `start.sh`, so use `startDev.sh` for now.
+
 If you are doing it for the first time, run the start.sh either in local or docker mode. Run in local mode if you want to use hardhat ethereum node for testing locally or run in docker mode when you want to use the ethereum network via Infura. Please note that this script is to run the chaincode as an external service, in case of a production deployment:
 
 ```bash
@@ -73,7 +75,7 @@ sh start.sh {local|docker}
 If you would like to install the chaincode on the peers in your local network (ideal for chaincode development where you can test out your chaincode by installing it locally), run the startDev.sh script.
 
 ```bash
-sh start.sh {local|docker}
+sh startDev.sh {local|docker}
 ```
 
 In order to run API in local mode, Paste following inside `/etc/hosts` file

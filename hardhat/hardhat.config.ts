@@ -619,6 +619,12 @@ module.exports = {
   // etherscan: {
   //   apiKey: `${ethereumConfig.ETHERSCAN_API_KEY}`
   // },
+  paths: {
+    sources: "./solidity",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
   ovm: {
     solcVersion: '0.7.6'
   }

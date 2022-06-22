@@ -25,10 +25,10 @@
   "workspaces": {
     "packages": [
       "app/frontend/*",
-      "app/data-loader",
       "app/api-server",
       "app/supply-chain",
-      "app/supply-chain-api",
+      "app/supply-chain/api",
+      "data",
       "fabric/typescript_app",
       "fabric/chaincode/emissionscontract/typescript",
       "lib/*",

@@ -1,18 +1,12 @@
-# Setup
+# REST API
 
-## preliminary
-
-* Run `ipfs daemon` on local computer.
-* Emissions contract is running on a network, either local hardhat or a public testnet or livenet.
-* Configure `supply-chain/.env` with issuer wallet and private key and API keys.
-* The `SUPPLY_CHAIN_API_PORT` key in that `.env` is to setup the API server port, by default it will use port 5000.
-* Create public/private key pair for encrypting your file base on instructions in [`supply-chain/README.md`](../README.md)
 
 ## Run server
 
-Run `npm install`.
-
-Run `npm run dev`.
+To start the API server run following command in the repository root directory:
+```
+npm run supply-chain:api
+```
 
 ## Usage
 
@@ -35,6 +29,5 @@ curl --location --request POST 'http://127.0.0.1:5000/issue' \
 --form 'input=@"input.json"'
 ```
 
-## Decrypting the data file
+Python script examples for using the REST API is in the [`/example`](../example/README.md) directory.
 
-This must be done with the public/private key you created using `emissions.js`.  See instructions from [`supply-chain/README.md`](../README.md)

@@ -2,35 +2,19 @@
 
 These are some general notes for developers to get started.  
 
-Please also read the README.md documentations, net-emissions-tokens/docs/ directory, and installation instructions in each component.  
+Please also read the Setup.md, README.md and instructions in each component.
 
-Create database:
-```
-createdb blockchain-carbon-accounting
-```
-
-Set parameters in the the repository root .env
-
-Install ipfs and run:
+Run IPFS.
 ```
 ipfs daemon --enable-pubsub-experiment
 ```
 
-In the repository root directory run:
-
-```
-npm install
-npm run loadSeeds
-```
-
-Run hardhat:
-
+In the repository root directory run hardhat:
 ```
 npm run hardhat
 ```
 
-Setup default roles and some demo issued tokens,
-in other terminal run:
+In another terminal, setup default roles and some demo issued tokens by running:
 ```
 npm run hardhat-setup
 ```
@@ -40,24 +24,9 @@ Start api-server from repository root directory:
 npm run api-server
 ```
 
-Set demo hardhat seed wallets:
+In another terminal, set demo hardhat seed wallets:
 ```
 npm run api-server:loadDemoSeeds
-```
-
-Issue tokens using cli:
-```
-npm run supply-chain:cli -- -rsapubk app/supply-chain/demo1-public.pem -f app/supply-chain/input.json
-```
-
-Create emissions audit requests using cli:
-```
-npm run supply-chain:cli -- -f app/supply-chain/input.json -queue
-```
-
-Process requests (sent to auditors):
-```
-npm run supply-chain:cli -- -processrequests
 ```
 
 Run interface app:
@@ -65,8 +34,24 @@ Run interface app:
 npm run frontend
 ```
 
-Emissions audit requests can be requested in the dApp by any wallet with the Consumer role.
+You can now use the dApp at localhost:3000 to request emissions audits, issue audits, and issue, transfer, and retire carbon offsets.  
 
+You can also issue emissions audit tokens using cli:
+```
+npm run supply-chain:cli -- -rsapubk app/supply-chain/demo1-public.pem -f app/supply-chain/input.json
+```
+
+These audited emissions tokens will be issued by the `ETH_ISSUE_BY_ACCT` in your `.env` configuration file.
+
+You can also create emissions audit requests using cli:
+```
+npm run supply-chain:cli -- -f app/supply-chain/input.json -queue
+```
+
+These requests can be processed and sent to auditors:
+```
+npm run supply-chain:cli -- -processrequests
+```
 
 To get the documents for tokens from IPFS:
 ```
