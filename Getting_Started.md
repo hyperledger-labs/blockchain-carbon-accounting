@@ -2,39 +2,14 @@
 
 These are some general notes for developers to get started.  
 
-Please also read the README.md and installation instructions in each component.  
+Please also read the Setup.md, README.md and instructions in each component.
 
-Create database:
-```
-createdb blockchain-carbon-accounting
-```
-
-Set parameters in the the repository root .env
-
-Install ipfs and run:
+Run IPFS.
 ```
 ipfs daemon --enable-pubsub-experiment
 ```
 
-Make sure you're using node version 16.  Check it with this command in every terminal:
-```
-node -v
-```
-
-If it's not switch to node version 16
-```
-nvm use 16
-```
-
-In the repository root directory run:
-
-```
-npm install
-npm run loadSeeds
-```
-
-Run hardhat:
-
+In the repository root directory run hardhat:
 ```
 npm run hardhat
 ```
@@ -43,8 +18,6 @@ In another terminal, setup default roles and some demo issued tokens by running:
 ```
 npm run hardhat-setup
 ```
-
-Copy `.env.SAMPLE` to `.env` and fill in the configuraiton set up.
 
 Start api-server from repository root directory:
 ```

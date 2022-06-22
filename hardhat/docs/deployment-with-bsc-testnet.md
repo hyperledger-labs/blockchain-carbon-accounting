@@ -109,7 +109,19 @@ npm i
 npm run build
 ```
 
-Prepare the `.env`:
+To synchronize with public networks, we will need an API from Moralis:
+
+* Sign up [Moralis](https://moralis.io/)
+* Go to admin page and select `Speedy Nodes` tab.
+* Select `Binance Network Endpoints` and switch into `WS`.
+* You can use `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws` as `LEDGER_ETH_WS_URL`.
+
+Alternative:
+* Try [GetBlock.io](https://getblock.io/)
+* Use `wss://bsc.getblock.io/testnet/?api_key=YOUR_API_KEY_HERE` as `LEDGER_ETH_WS_URL`
+
+
+Set parameters in the repository root `.env`:
 Note:
 * contract address must match your previous deployment
 * use your Moralis API key in `LEDGER_ETH_WS_URL` and `MORALIS_API_KEY`

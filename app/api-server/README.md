@@ -1,39 +1,25 @@
-# Database Layer and API Server 
+# API Server
 
-This component contains a postgresql database layer and API server for searching for tokens and wallets.  It can be used to search for tokens by fields and json metadata of token and for wallets to get the user's identities, which are not published on the blockchain but may be known to the operator the dApp.
-
-## Setting Up
-
-Copy the file `.env.SAMPLE` to `.env` and fill in your database information.
-
-To synchronize with public networks, we will need an API from Moralis:
-
-* Sign up [Moralis](https://moralis.io/)
-* Go to admin page and select `Speedy Nodes` tab.
-* Select `Binance Network Endpoints` and switch into `WS`.
-* You can use `wss://speedy-nodes-nyc.moralis.io/<API_KEY>/bsc/testnet/ws` as `LEDGER_ETH_WS_URL`.
-
-Alternative:
-* Try [GetBlock.io](https://getblock.io/)
-* Use `wss://bsc.getblock.io/testnet/?api_key=YOUR_API_KEY_HERE` as `LEDGER_ETH_WS_URL`
+This component contains API server for searching for tokens and wallets.  It can be used to search for tokens by fields and json metadata of token and for wallets to get the user's identities, which are not published on the blockchain but may be known to the operator the dApp.
 
 ## Run server
 
-Run `npm install`.
+Start api-server from repository root directory:
+```
+npm run api-server
+```
 
-Run `npm run dev`.
-
-If you are using Hardhat local development mode and have used the `npx hardhat setTestAccountRoles` to set up some test wallets with roles, then you can load them into the database with
-
-`psql blockchain-carbon-accounting < seedHardhatDemoWallets.sql `
+If you are using Hardhat local development mode, set demo hardhat seed wallets.
+In another terminal run:
+```
+npm run api-server:loadDemoSeeds
+```
 
 # Usage
 
-* Issue some tokens by `emissions.js` or from the Issue Tokens screen. 
-* Go to the Dashboard or Issue Tokens screens, and you'll be able to search for your tokens.  This search uses the database.
-* Go to the Manage Roles screen, search for a wallet or a name, and you'll be able to see the wallet and its roles.  The search and the identities are both from the database.
-
-## API Server
+* Issue some tokens by `npm run supply-chain:cli` or from the frontend Issue Tokens screen.
+* Go to the Dashboard or Issue Tokens screens, and you'll be able to search for your tokens. This search uses the database.
+* Go to the Manage Roles screen, search for a wallet or a name, and you'll be able to see the wallet and its roles. The search and the identities are both from the database.
 
 The api server can be accessed at  `http://127.0.0.1:8000`.  To use it, for example to get Tokens data:
 

@@ -30,10 +30,15 @@ To run a testnet locally via Hardhat Network:
 npm run frontend
 ```
 
-2. In a separate terminal, start a local Hardhat Network in `hardhat/` with:
+2. In a separate terminal, start a local Hardhat Network in the root directory with:
 
 ```bash
-npx hardhat node 
+npm run hardhat
+```
+
+In another terminal, setup default roles and some demo issued tokens by running:
+```bash
+npm run hardhat-setup
 ```
 
 3. Import the private keys of the accounts from Hardhat in the terminal window after clicking the account icon then Import Account.
