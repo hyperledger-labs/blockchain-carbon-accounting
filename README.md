@@ -3,8 +3,15 @@
 [![CI](https://github.com/hyperledger-labs/blockchain-carbon-accounting/actions/workflows/ci.yml/badge.svg)](https://github.com/hyperledger-labs/blockchain-carbon-accounting/actions/workflows/ci.yml)
 [![Test Report](https://github.com/hyperledger-labs/blockchain-carbon-accounting/actions/workflows/test-report.yml/badge.svg)](https://github.com/hyperledger-labs/blockchain-carbon-accounting/actions/workflows/test-report.yml)
 
-This repository contains the code for the [Hyperledger Carbon Accounting and Neutrality Working Group](https://wiki.hyperledger.org/display/CASIG/Carbon+Accounting+and+Certification+Working+Group). Each
-sub-folder is for a different project of the Working Group and has its own code and instructions:
+This project uses web3/blockchain/distributed ledger to solve several key challenges for climate change:
+
+- Storing data from energy use, renewable energy production, carbon removal or reduction projects in a permissioned data ledger.
+- Tokenizing emissions audits, carbon credits, and energy attribute certificates.
+- Validating climate projects by voting through a Distributed Autonomous Organization (DAO).
+
+With it you could implement a variety of use cases, such as developing and monetizing carbon emissions reductions projects; emissions calculations for individuals, companies, and supply chains; and using carbon credits to implement emissions reduction plans.
+
+The code is divided into the following components:
 
 - [lib](lib/README.md): Common library of code
 - [fabric](fabric/README.md): [Emissions Data Channel](https://wiki.hyperledger.org/display/CASIG/Emissions+Data+Channel)
@@ -14,6 +21,15 @@ sub-folder is for a different project of the Working Group and has its own code 
 - [secure-identities](secure-identities/README.md): Support for signing transactions using Vault or web-socket
 - [supply-chain](app/supply-chain/README.md): [Supply Chain Decarbonization](https://wiki.hyperledger.org/display/CASIG/Supply+Chain+Decarbonization)
 - [data](data/README.md): Data for setting up the applications
+
+To try it out, use the demo at [emissions-test.opentaps.org](https://emissions-test.opentaps.org/) or follow the steps in [Getting Started](Getting_Started.md) to set it up yourself.
+
+For more details, see the
+
+- [User's Guide](User_Guide.md)
+- [Open Source Carbon Accounting video](https://www.youtube.com/watch?v=eNM7V8vQCg4)
+- [Hyperledger Carbon Accounting and Neutrality Working Group](https://wiki.hyperledger.org/display/CASIG/Carbon+Accounting+and+Certification+Working+Group)
+- [Setup Guide](Setup.md) and documentation in each component.
 
 Get involved!  Please see [How to Contribute](https://wiki.hyperledger.org/display/CASIG/How+to+Contribute) to help us build this open source platform for climate action.
 
