@@ -9,7 +9,7 @@ from common import logging
 # Note: Quantum View is a UPS service, so all deliveries are from UPS and have a UPS tracking number
 CARRIER_PARTY_ID = "UPS"
 
-def tokenize_emissions(conn, from_date, thru_date, issuee):
+def tokenize_emissions(conn, from_date, thru_date, issued_to):
     json_file_name = '/tmp/tokenize_qv_input.json'
     from_timestamp = datetime.strptime(from_date, '%Y-%m-%d %H:%M:%S')
     thru_timestamp = datetime.strptime(thru_date, '%Y-%m-%d %H:%M:%S')
@@ -65,7 +65,7 @@ def tokenize_emissions(conn, from_date, thru_date, issuee):
             with open(json_file_name, 'w') as outfile:
                 json.dump(input_data, outfile, sort_keys=True, indent=4, default=str)
             logging.info("Calling API ...")
-            tokenize_data = supply_chain_api.tokenize(issuee, json_file_name)
+            tokenize_data = supply_chain_api.tokenize(issued_to, json_file_name)
             logging.info("API response: {}".format(tokenize_data))
             if tokenize_data:
                 save_tokenize_result(conn, tokenize_data)
@@ -91,12 +91,15 @@ def save_tokenize_result(conn, tokenize_data):
         if len(tmp) > 1:
             tracking = tmp[1]
         token_id = None
+        emissions_request_uuid = None
         error = None
         status = "failed"
         if "tokenId" in item:
             token_id = item["tokenId"]
             status = "success"
             success_count += 1
+            if "emissionsRequestUuid" in item:
+                emissions_request_uuid = item["emissionsRequestUuid"]
         else:
             error_count += 1
             if "error" in item:
@@ -108,7 +111,7 @@ def save_tokenize_result(conn, tokenize_data):
                      .format(tmp[0], tracking, status, error or 'queued'))
         if error:
             error = str(error)
-        db.save_q_v_delivery_token(conn, tmp[0], tracking, status, token_id, error)
+        db.save_q_v_delivery_token(conn, tmp[0], tracking, status, token_id, emissions_request_uuid, error)
     logging.info("Results: success: {} error: {}".format(success_count, error_count))
 
 
@@ -118,7 +121,7 @@ def main(args):
     except Exception as e:
         logging.exception("Cannot connect to database")
     else:
-        tokenize_emissions(conn, args.from_date, args.thru_date, args.issuee)
+        tokenize_emissions(conn, args.from_date, args.thru_date, args.issued_to)
         conn.close()
 
 
@@ -126,7 +129,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--from_date", help="shipments from date, format YYYY-MM-DD HH:MM:SS", required=True)
     parser.add_argument("--thru_date", help="shipments thru date, format YYYY-MM-DD HH:MM:SS", required=True)
-    parser.add_argument("--issuee", required=True, help="a wallet address to issue tokens to")
+    parser.add_argument("--issued_to", required=True, help="a wallet address to issue tokens to")
 
     args = parser.parse_args()
     main(args)

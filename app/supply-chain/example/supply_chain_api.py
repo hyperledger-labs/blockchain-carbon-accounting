@@ -4,8 +4,8 @@ from common import logging
 import config
 
 
-def tokenize(issuee, input_file_name):
-    form_data = {"issuee": issuee}
+def tokenize(issued_to, input_file_name):
+    form_data = {"issuedTo": issued_to}
     files = {
         'input': open(input_file_name, 'rb')
     }
