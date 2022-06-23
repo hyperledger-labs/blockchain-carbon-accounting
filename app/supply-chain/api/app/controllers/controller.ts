@@ -11,6 +11,7 @@ import path from 'path';
 type OutputActivity = {
     id: string,
     tokenId?: string,
+    emissionsRequestUuid?: string,
     error?: string
 };
 
@@ -19,9 +20,16 @@ async function process_group(issuedFrom: string, issuedTo: string, output_array:
     // add each activity to output array
     for (const a of g.content) {
         const out: OutputActivity = { id: a.activity.id };
-        if (a.error) out.error = a.error;
-        else if (token_res && token_res.tokenId) out.tokenId = token_res.tokenId;
-        else out.error = 'cannot issue';
+        if (a.error) {
+            out.error = a.error;
+        } else if (token_res && token_res.tokenId) {
+            out.tokenId = token_res.tokenId;
+            if (token_res.request && token_res.request.uuid) {
+                out.emissionsRequestUuid = token_res.request.uuid;
+            }
+        } else {
+            out.error = 'cannot issue';
+        }
         output_array.push(out);
     }
 }
