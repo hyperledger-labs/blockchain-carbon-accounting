@@ -11,6 +11,7 @@ import path from 'path';
 type OutputActivity = {
     id: string,
     tokenId?: string,
+    nodeId?: string,
     emissionsRequestUuid?: string,
     error?: string
 };
@@ -24,8 +25,13 @@ async function process_group(issuedFrom: string, issuedTo: string, output_array:
             out.error = a.error;
         } else if (token_res && token_res.tokenId) {
             out.tokenId = token_res.tokenId;
-            if (token_res.request && token_res.request.uuid) {
-                out.emissionsRequestUuid = token_res.request.uuid;
+            if (token_res.request) {
+                if (token_res.request.uuid) {
+                    out.emissionsRequestUuid = token_res.request.uuid;
+                }
+                if (token_res.request.node_id) {
+                    out.nodeId = token_res.request.node_id;
+                }
             }
         } else {
             out.error = 'cannot issue';

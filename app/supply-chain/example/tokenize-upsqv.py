@@ -91,6 +91,7 @@ def save_tokenize_result(conn, tokenize_data):
         if len(tmp) > 1:
             tracking = tmp[1]
         token_id = None
+        node_id = None
         emissions_request_uuid = None
         error = None
         status = "failed"
@@ -100,6 +101,8 @@ def save_tokenize_result(conn, tokenize_data):
             success_count += 1
             if "emissionsRequestUuid" in item:
                 emissions_request_uuid = item["emissionsRequestUuid"]
+            if "nodeId" in item:
+                node_id = item["nodeId"]
         else:
             error_count += 1
             if "error" in item:
@@ -111,8 +114,27 @@ def save_tokenize_result(conn, tokenize_data):
                      .format(tmp[0], tracking, status, error or 'queued'))
         if error:
             error = str(error)
-        db.save_q_v_delivery_token(conn, tmp[0], tracking, status, token_id, emissions_request_uuid, error)
+        db.save_q_v_delivery_token(conn, tmp[0], tracking, status, token_id, node_id, emissions_request_uuid, error)
     logging.info("Results: success: {} error: {}".format(success_count, error_count))
+
+
+def update_token_status(conn):
+    q_v_delivery_tokens = db.get_queued_q_v_delivery_tokens(conn)
+    try:
+        while True:
+            rows = q_v_delivery_tokens.fetchmany(1000)
+            if len(rows) == 0:
+                break
+
+            for row in rows:
+                print(row)
+                # TODO: implement get token by node_id emissions_request_id
+                #       and update q_v_delivery_token.token_id
+
+    except Exception as e1:
+        logging.exception(e1)
+    finally:
+        q_v_delivery_tokens.close()
 
 
 def main(args):
@@ -121,15 +143,22 @@ def main(args):
     except Exception as e:
         logging.exception("Cannot connect to database")
     else:
-        tokenize_emissions(conn, args.from_date, args.thru_date, args.issued_to)
+        if args.cmd == "issue":
+            tokenize_emissions(conn, args.from_date, args.thru_date, args.issued_to)
+        else:
+            update_token_status(conn)
+
         conn.close()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--from_date", help="shipments from date, format YYYY-MM-DD HH:MM:SS", required=True)
-    parser.add_argument("--thru_date", help="shipments thru date, format YYYY-MM-DD HH:MM:SS", required=True)
-    parser.add_argument("--issued_to", required=True, help="a wallet address to issue tokens to")
+    subparsers = parser.add_subparsers(dest='cmd', required=True)
+    parser_a = subparsers.add_parser('issue', help='issue tokens for deliveries')
+    parser_b = subparsers.add_parser('update', help='update deliveries tokens status')
+    parser_a.add_argument("--from_date", help="shipments from date, format YYYY-MM-DD HH:MM:SS", required=True)
+    parser_a.add_argument("--thru_date", help="shipments thru date, format YYYY-MM-DD HH:MM:SS", required=True)
+    parser_a.add_argument("--issued_to", required=True, help="a wallet address to issue tokens to")
 
     args = parser.parse_args()
     main(args)

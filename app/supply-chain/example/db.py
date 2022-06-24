@@ -86,14 +86,14 @@ def get_q_v_subscription_file_deliveries(conn, from_date, thru_date):
     return cursor
 
 
-def save_q_v_delivery_token(conn, delivery_id, tracking, status, token_id, emissions_request_uuid, error):
+def save_q_v_delivery_token(conn, delivery_id, tracking, status, token_id, node_id, emissions_request_uuid, error):
     q_v_delivery_token = get_q_v_delivery_token(conn, delivery_id, tracking)
     if q_v_delivery_token:
         update_q_v_delivery_token(conn, delivery_id, tracking,
                                   status, token_id, error)
     else:
         create_q_v_delivery_token(conn, delivery_id, tracking,
-                                  status, token_id, emissions_request_uuid, error)
+                                  status, token_id, node_id, emissions_request_uuid, error)
 
 
 def get_q_v_delivery_token(conn, delivery_id, tracking):
@@ -116,14 +116,14 @@ def get_q_v_delivery_token(conn, delivery_id, tracking):
 
 
 def create_q_v_delivery_token(conn, delivery_id, tracking, status,
-                              token_id, emissions_request_uuid, error):
+                              token_id, node_id, emissions_request_uuid, error):
     cursor = conn.cursor()
     try:
         cursor.execute(''' insert into q_v_delivery_token
-        (delivery_id, tracking_number, status, token_id, emissions_request_uuid, error,
+        (delivery_id, tracking_number, status, token_id, node_id, emissions_request_uuid, error,
         created_stamp, created_tx_stamp, last_updated_stamp, last_updated_tx_stamp)
-        values (%s, %s, %s, %s, %s, %s, now(), now(), now(), now())
-        ''', (delivery_id, tracking, status, token_id, emissions_request_uuid, error,))
+        values (%s, %s, %s, %s, %s, %s, %s, now(), now(), now(), now())
+        ''', (delivery_id, tracking, status, token_id, node_id, emissions_request_uuid, error,))
 
         conn.commit()
 
@@ -134,8 +134,7 @@ def create_q_v_delivery_token(conn, delivery_id, tracking, status,
     cursor.close()
 
 
-def update_q_v_delivery_token(conn, delivery_id,
-                                        tracking, status, token_id, error):
+def update_q_v_delivery_token(conn, delivery_id, tracking, status, token_id, error):
     cursor = conn.cursor()
     try:
         cursor.execute(''' update q_v_delivery_token
@@ -157,7 +156,7 @@ def update_q_v_delivery_token(conn, delivery_id,
 
 
 def save_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking, status,
-                                      token_id, emissions_request_uuid, error):
+                                      token_id, node_id, emissions_request_uuid, error):
     shipment_route_segment_token = get_shipment_route_segment_token(conn, shipment_id,
                                                                     shipment_route_segment_id, tracking)
     if shipment_route_segment_token:
@@ -165,7 +164,7 @@ def save_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_
                                             status, token_id, error)
     else:
         create_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking,
-                                            status, token_id, emissions_request_uuid, error)
+                                            status, token_id, node_id, emissions_request_uuid, error)
 
 
 def get_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id, tracking):
@@ -188,14 +187,15 @@ def get_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_i
 
 
 def create_shipment_route_segment_token(conn, shipment_id, shipment_route_segment_id,
-                                        tracking, status, token_id, emissions_request_uuid, error):
+                                        tracking, status, token_id, node_id, emissions_request_uuid, error):
     cursor = conn.cursor()
     try:
         cursor.execute(''' insert into shipment_route_segment_token
-        (shipment_id, shipment_route_segment_id, tracking_number, status, token_id, emissions_request_uuid,
+        (shipment_id, shipment_route_segment_id, tracking_number, status, token_id, node_id, emissions_request_uuid,
         error, created_stamp, created_tx_stamp, last_updated_stamp, last_updated_tx_stamp)
-        values (%s, %s, %s, %s, %s, %s, %s, now(), now(), now(), now())
-        ''', (shipment_id, shipment_route_segment_id, tracking, status, token_id, emissions_request_uuid, error,))
+        values (%s, %s, %s, %s, %s, %s, %s, %s, now(), now(), now(), now())
+        ''', (shipment_id, shipment_route_segment_id, tracking, status, token_id,
+              node_id, emissions_request_uuid, error,))
 
         conn.commit()
 
@@ -226,3 +226,36 @@ def update_shipment_route_segment_token(conn, shipment_id, shipment_route_segmen
         logging.exception(e)
 
     cursor.close()
+
+
+def get_queued_shipment_route_segment_tokens(conn):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(''' select shipment_id, shipment_route_segment_id, tracking_number,
+        node_id, emissions_request_uuid
+        from shipment_route_segment_token
+        where token_id = %s
+        and node_id is not null
+        and emissions_request_uuid is not null
+        order by created_stamp
+        ''', ('queued',))
+    except Exception as e:
+        logging.exception(e)
+
+    return cursor
+
+
+def get_queued_q_v_delivery_tokens(conn):
+    cursor = conn.cursor()
+    try:
+        cursor.execute(''' select delivery_id, tracking_number, node_id, emissions_request_uuid
+        from q_v_delivery_token
+        where token_id = %s
+        and node_id is not null
+        and emissions_request_uuid is not null
+        order by created_stamp
+        ''', ('queued',))
+    except Exception as e:
+        logging.exception(e)
+
+    return cursor
