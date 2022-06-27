@@ -4,6 +4,7 @@ from datetime import datetime
 
 import db
 import supply_chain_api
+import api_server
 from common import logging
 
 
@@ -195,16 +196,21 @@ def save_tokenize_result(conn, tokenize_data):
 def update_token_status(conn):
     shipment_route_segment_tokens = db.get_queued_shipment_route_segment_tokens(conn)
     try:
+        update_counter = 0
         while True:
             rows = shipment_route_segment_tokens.fetchmany(1000)
             if len(rows) == 0:
                 break
 
             for row in rows:
-                print(row)
-                # TODO: implement get token by node_id emissions_request_id
-                #       and update shipment_route_segment_token.token_id
+                token = api_server.get_token(row.node_id, row.emissions_request_uuid)
+                if token and token["status"] == 'success' and token["token"]:
+                    db.update_shipment_route_segment_token(conn, row.shipment_id, row.shipment_route_segment_id,
+                                                           row.tracking_number, 'success',
+                                                           token["token"]["tokenId"], None)
+                    update_counter += 1
 
+            logging.info("Results: updated: {}".format(update_counter))
     except Exception as e1:
         logging.exception(e1)
     finally:
