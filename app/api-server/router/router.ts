@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { getBalances } from '../controller/balance.controller';
 import { countEmissionsRequests, declineEmissionsRequest, getEmissionsRequest, getEmissionsRequests, postEmissionsRequest, issueEmissionsRequest, postCalculateEmissionsRequest } from '../controller/emissionsRequests.controller';
 import { handleSignedMessage } from '../controller/signedMessage.controller';
-import { getTokens } from '../controller/token.controller';
+import { getTokens, getEmissionsRequestToken } from '../controller/token.controller';
 import { getWallets, insertNewWallet, generateWalletWithCredentials, getWalletWithCredentials, verifyWalletEmail, passwordResetRequest } from '../controller/wallet.controller';
 import { makeRateLimiterMiddleware, signinLimiter, signupAndResetLimiter } from '../utils/rateLimiter';
 
@@ -37,6 +37,8 @@ router.post('/emissionsrequest', postEmissionsRequest);
 router.get('/emissionsrequest/:uuid', getEmissionsRequest);
 router.get('/emissionsrequests/:auditor', getEmissionsRequests);
 router.get('/emissionsrequests/:auditor/:op', countEmissionsRequests);
+
+router.get('/emissionsrequesttoken/:nodeid/:requestuuid', getEmissionsRequestToken);
 
 // for non-registered users
 router.post('/calcemissionsrequest', postCalculateEmissionsRequest);
