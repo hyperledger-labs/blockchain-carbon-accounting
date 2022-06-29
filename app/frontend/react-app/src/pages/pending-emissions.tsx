@@ -82,16 +82,6 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
           return;
         }
 
-
-        // add the request uuid to the manifest
-        const manifest = JSON.parse(selectedPendingEmissions.token_manifest);
-        if (!manifest.request_uuid) {
-          manifest.request_uuid = selectedPendingEmissions.uuid;
-        }
-        if (!manifest.node_id) {
-          manifest.node_id = selectedPendingEmissions.node_id;
-        }
-
         let result = await issue(provider,
           selectedPendingEmissions.issued_from,
           selectedPendingEmissions.issued_to,
@@ -100,7 +90,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
           from_date,
           thru_date,
           selectedPendingEmissions.token_metadata,
-          JSON.stringify(manifest),
+          selectedPendingEmissions.token_manifest,
           selectedPendingEmissions.token_description,
           signedInWallet?.private_key || ''
         );
@@ -134,7 +124,23 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
     try {
       let newEmissionsRequest = await getAuditorEmissionsRequest(uuid);
       if (newEmissionsRequest && newEmissionsRequest.emission_auditor && signedInAddress
-        && newEmissionsRequest.emission_auditor.toLowerCase() === signedInAddress.toLowerCase()) {
+          && newEmissionsRequest.emission_auditor.toLowerCase() === signedInAddress.toLowerCase()) {
+
+        if (newEmissionsRequest.token_manifest) {
+          const manifest = JSON.parse(newEmissionsRequest.token_manifest);
+          let changed = false;
+          if (!manifest.request_uuid) {
+            manifest.request_uuid = newEmissionsRequest.uuid;
+            changed = true;
+          }
+          if (!manifest.node_id) {
+            manifest.node_id = newEmissionsRequest.node_id;
+            changed = true;
+          }
+          if (changed) {
+            newEmissionsRequest.token_manifest = JSON.stringify(manifest);
+          }
+        }
         setSelectedPendingEmissions(newEmissionsRequest);
         setError("");
       } else {

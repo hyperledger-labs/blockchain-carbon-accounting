@@ -908,16 +908,26 @@ export async function create_emissions_request(
   return em_request
 }
 
-function create_manifest(publickey_name: string | undefined, ipfs_path: string, hash: string): {
-  "Public Key":string,
-  "Location":string,
-  "SHA256":string,
-} & Record<string, any> { // eslint-disable-line @typescript-eslint/no-explicit-any
-  return {
+function create_manifest(
+  publickey_name: string | undefined,
+  ipfs_path: string,
+  hash: string,
+  node_id?: string,
+  request_uuid?: string
+) {
+  const manifest: any = { // eslint-disable-line @typescript-eslint/no-explicit-any
     "Public Key": publickey_name ?? 'unknown',
     "Location": ipfs_path,
     "SHA256": hash,
   }
+  if (node_id) {
+   manifest["node_id"] = node_id;
+  }
+  if (request_uuid) {
+    manifest["request_uuid"] = request_uuid;
+  }
+
+  return manifest;
 }
 
 function get_random_auditor(auditors: Wallet[]) {
@@ -1003,7 +1013,7 @@ export async function process_emissions_requests() {
       const h_content = hash_content(data);
       supporting_docs_ipfs_paths.push(ipfs_content.path);
       console.log(`document [${doc.file.name}]: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value);
+      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value, er.node_id, er.uuid);
       // only upload one document
       uploaded = true;
       if (docs.length > 1) {
@@ -1017,7 +1027,7 @@ export async function process_emissions_requests() {
       const ipfs_content = await encryptFn(er.input_content, [pubkey], true);
       const h_content = hash_content(er.input_content);
       console.log(`input_content: IPFS ${ipfs_content.path}, Hash: ${h_content.value}`)
-      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value);
+      manifest = create_manifest(pubkey_name, ipfs_content.ipfs_path, h_content.value, er.node_id, er.uuid);
     }
 
     await db.getEmissionsRequestRepo().updateToPending(
