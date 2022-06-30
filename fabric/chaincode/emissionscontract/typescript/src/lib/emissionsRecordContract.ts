@@ -1,7 +1,8 @@
 import { MD5, SHA256 } from 'crypto-js';
 import { ChaincodeStub } from 'fabric-shim';
+// import fetch from 'node-fetch';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
-import { getCO2EmissionFactor } from './emissions-calc';
+// import { getCO2EmissionFactor } from './emissions-calc';
 import { EmissionsFactor, EmissionsFactorInterface, EmissionsFactorState } from './emissionsFactor';
 import {
     UtilityLookupItem,
@@ -45,11 +46,28 @@ export class EmissionsRecordContract {
             lookup.item,
             thruDate,
         );
-        const co2Emission = getCO2EmissionFactor(
-            factor.factor,
-            Number(energyUseAmount),
-            energyUseUom,
-        );
+        const apifactors = { factor: factor, usage: energyUseAmount, usageUom: energyUseUom };
+        let co2Emission;
+        fetch('https://localhost:3001/postgres', {
+            method: 'POST', // or 'PUT'
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(apifactors),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                co2Emission = JSON.parse(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+        // const co2Emission = getCO2EmissionFactor(
+        //     factor.factor,
+        //     Number(energyUseAmount),
+        //     energyUseUom,
+        // );
 
         const factorSource = `eGrid ${co2Emission.year} ${co2Emission.division_type} ${co2Emission.division_id}`;
 

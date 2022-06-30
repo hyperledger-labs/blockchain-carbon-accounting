@@ -15,6 +15,7 @@
         "indent": ["off"],
         "semi": ["error", "always"],
         "new-cap": ["off"],
-        "comma-dangle": ["warn", "always-multiline"]
+        "comma-dangle": ["warn", "always-multiline"],
+        "prettier/prettier": ["error",{"endOfLine": "auto",}]
     }
 }
