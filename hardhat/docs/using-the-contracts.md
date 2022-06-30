@@ -12,17 +12,20 @@ The DAO in `contracts/Governance` is customized from the
 
 # Using the Contracts
 
-## Installation and use
+[Hardhat](https://hardhat.org/) is an Ethereum development and testing environment which is great for deploying and testing the contracts locally.
 
-After cloning this repository, navigate to the `hardhat` directory, and run `npm install`
+## Local development
+
+For local development on can simply run those commands from the project root directory:
+ - To start hardhat locally: `npm run hardhat`
+ - After it started to setup the default test accounts and demo transactions: `npm run hardhat-setup`
 
 ## Testing with Hardhat
 
-[Hardhat](https://hardhat.org/) is an Ethereum development and testing environment which is great for deploying and testing the contracts locally.  Again from the `hardhat` directory:
-
+For more advanced commands, tests and deployment, you can also run from the `hardhat` directory:
 - To see all commands, run `npx hardhat`
 - To compile, run `npx hardhat compile`
-- To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`)
+- To test, run `npx hardhat test` (and `npx hardhat test [filename] to run a specific test`) make sure that neither `hardhat` nor `ipfs` is already running because some tests will start those manually.
 - To run a local test network without deploying the contracts, run `npx hardhat node --no-deploy`
 - To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node`
 - To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
@@ -30,7 +33,7 @@ After cloning this repository, navigate to the `hardhat` directory, and run `npm
 After deploying to hardhat locally, and you will see the addresses of the deployed contracts as well as 20 accounts available for testing:
 
 ```
-$ npx hardhat node 
+$ npx hardhat node
 Nothing to compile
 Deploying DAO with account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 Timelock deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
