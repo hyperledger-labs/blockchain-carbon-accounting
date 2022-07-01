@@ -33,6 +33,26 @@ export async function getTokens(req: Request, res: Response) {
     }
 }
 
+export async function getEmissionsRequestToken(req: Request, res: Response) {
+    try {
+        const db = await PostgresDBService.getInstance()
+
+        const token = await db.getTokenRepo().selectTokenByEmissionsRequest(req.params.nodeid, req.params.requestuuid);
+        return res.status(200).json({
+            status: 'success',
+            token,
+        });
+
+    } catch (error) {
+        console.error(error)
+        return res.status(500).json({
+            status: 'failed',
+            error
+        });
+    }
+}
+
+
 export async function getNumOfTokens (req: Request, res: Response) {
     try {
         const db = await PostgresDBService.getInstance()

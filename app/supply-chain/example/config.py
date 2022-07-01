@@ -9,4 +9,5 @@ DB_PORT = "5432"
 LOG_FILE = "/tmp/tokenize-ofbiz.log"
 LOG_LEVEL = logging.INFO
 
-API_BASE_URL = "http://127.0.0.1:5002"
+SUPPLY_CHAIN_API_BASE_URL = "http://127.0.0.1:5000"
+API_SERVER_BASE_URL = "http://127.0.0.1:8000"

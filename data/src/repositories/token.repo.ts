@@ -32,6 +32,18 @@ export class TokenRepo {
     return await this._db.getRepository(Token).findOneBy({tokenId})
   }
 
+  public selectTokenByEmissionsRequest = async (nodeId: string, requestUuid: string): Promise<Token | null> => {
+    try {
+      return await this._db.getRepository(Token)
+        .createQueryBuilder('token')
+        .where("manifest -> 'request_uuid' = :requestUuid", {requestUuid})
+        .andWhere("manifest -> 'node_id' = :nodeId", {nodeId})
+        .getOne()
+    } catch (error) {
+      throw new Error('cannot select a token')
+    }
+  }
+
   public insertToken = async (payload: TokenPayload): Promise<Token> => {
     const tokenRepository = this._db.getRepository(Token)
     const token = new Token()

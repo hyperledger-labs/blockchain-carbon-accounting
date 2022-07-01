@@ -25,7 +25,7 @@ Parameters:
 ```
 curl --location --request POST 'http://127.0.0.1:5000/issue' \
 --form 'keys=@"test-public.pem"' \
---form 'issuee="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"' \
+--form 'issuedTo="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"' \
 --form 'input=@"input.json"'
 ```
 

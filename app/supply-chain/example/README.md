@@ -27,23 +27,21 @@ Create a new table using sql/create_table.sql
 
 ### Run all required applications
 
-Make sure all of the following are running:
-- The emissions tokens contracts must be running on a network which is configured in your `supply-chain/.env` file.  The issuer must have the role of Emissions Auditor.
-- You have generated a public/private key based on the instructions in [`supply-chain/README.md`](../README.md)
-- IPFS daemon must be running
-- The `supply-chain/interface` REST API must be running 
+Make sure all the following are running:
+- All required applications should be running, see [Getting Started](../../../Getting_Started.md).
+- The `supply-chain/api` REST API must be running 
 
 Then you can tokenize the shipments in OFBiz/opentaps database using:
 ```
-python tokenize-ofbiz.py --from_date "2022-01-01 00:00:01" \
+python tokenize-ofbiz.py issue --from_date "2022-01-01 00:00:01" \
 --thru_date "2022-01-02 23:59:59" \
 --facility_id "<ofbiz-facility-id>" \
---issuee "0x<issuee-wallet-address>"
+--issued_to "0x<issuee-wallet-address>"
 ```
 
 Or for Quantum View records:
 ```
-python tokenize-upsqv.py --from_date "2022-01-29 00:00:01" \
+python tokenize-upsqv.py issue --from_date "2022-01-29 00:00:01" \
 --thru_date "2022-01-29 23:59:59" \
---issuee "0x<issuee-wallet-address>"
+--issued_to "0x<issuee-wallet-address>"
 ```
