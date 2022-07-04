@@ -24,22 +24,25 @@ const port = 3001;
 //     password: process.env.DB_PASSWORD,
 //     port: 5432,
 // });
-
-const getCO2EmissionFactor = (request, response) => {
-    const a = new EmissionsFactorRepo(AppDataSource);
-    const factor = JSON.parse(request.params.factor);
-    const usage = Number(request.params.usage);
-    const usageUom = request.params.usageUom;
-    const m = a.getCO2EmissionFactor(factor, usage, usageUom);
-    response.status(200).json(m);
-};
-
 app.use(bodyParser.json());
 app.use(
     bodyParser.urlencoded({
         extended: true,
     }),
 );
+
+const getCO2EmissionFactor = (request, response) => {
+    const a = new EmissionsFactorRepo(AppDataSource);
+    const parameters=request.body;
+    console.log(parameters);
+    const factor = parameters.factor;
+    const usage = Number(parameters.usage);
+    const usageUom = parameters.usageUom;
+    const m = a.getCO2EmissionFactor(factor, usage, usageUom);
+    response.status(200).json(m);
+};
+
+
 
 app.get('/', (request, response) => {
     response.json({ info: 'Node.js, Express, and Postgres API' });

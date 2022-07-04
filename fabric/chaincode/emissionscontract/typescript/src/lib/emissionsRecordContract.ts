@@ -58,6 +58,7 @@ export class EmissionsRecordContract {
             .then((response) => response.json())
             .then((data) => {
                 co2Emission = JSON.parse(data);
+                console.log(co2Emission);
             })
             .catch((error) => {
                 console.error('Error:', error);
