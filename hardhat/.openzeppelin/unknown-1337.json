@@ -2,12 +2,12 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
-    "txHash": "0x240f35ffd9ef30a833f0058eea39362d93a1220eab99bbd63718e5604ee62f54"
+    "txHash": "0x2bf4c05d5b395c628b2857f91347e58bf5d9fa1bc55ad3cc7eb581f4a7567893"
   },
   "proxies": [
     {
       "address": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
-      "txHash": "0xfbd3e3a4050fe13ad8f0ec411bf0b72a47e7569f7d203408c872bf7235afdb6e",
+      "txHash": "0xfb82c43a4915c51856792a35e69c621e07383187345ad099e36f6915d04995af",
       "kind": "transparent"
     }
   ],
@@ -290,9 +290,9 @@
         }
       }
     },
-    "1a30e017b6d5e0cb871f9f71455a33d1d8bac48dabb6ffccbbc935a22dca70cf": {
-      "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
-      "txHash": "0x94c6d27a51cafe51434df1227b28682310a151b575db842e9787e99dace0be30",
+    "55477c3d0ac7b60094b7d351b84f6a961e49e687efa66dcb1738b62221344e4f": {
+      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      "txHash": "0xc36dea2cf71dcf1e42fa074ee2b8ddec5d3e4da9215e06ede84c89296d789f1b",
       "layout": {
         "storage": [
           {
@@ -381,64 +381,48 @@
             "offset": 0,
             "slot": "201",
             "type": "t_bool",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:22"
-          },
-          {
-            "label": "admin",
-            "offset": 1,
-            "slot": "201",
-            "type": "t_address",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:23"
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "solidity/NetEmissionsTokenNetwork.sol:23"
           },
           {
             "label": "timelock",
-            "offset": 0,
-            "slot": "202",
+            "offset": 1,
+            "slot": "201",
             "type": "t_address",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:24"
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "solidity/NetEmissionsTokenNetwork.sol:24"
           },
           {
             "label": "_numOfUniqueTokens",
             "offset": 0,
-            "slot": "203",
+            "slot": "202",
             "type": "t_struct(Counter)3445_storage",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:69"
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "solidity/NetEmissionsTokenNetwork.sol:74"
           },
           {
             "label": "_tokenDetails",
             "offset": 0,
-            "slot": "204",
-            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8872_storage)",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:72"
+            "slot": "203",
+            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6940_storage)",
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "solidity/NetEmissionsTokenNetwork.sol:77"
           },
           {
             "label": "_retiredBalances",
             "offset": 0,
-            "slot": "205",
+            "slot": "204",
             "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:73"
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "solidity/NetEmissionsTokenNetwork.sol:78"
           },
           {
             "label": "carbonTransferNonce",
             "offset": 0,
-            "slot": "206",
+            "slot": "205",
             "type": "t_mapping(t_address,t_mapping(t_address,t_uint32))",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:76"
-          },
-          {
-            "label": "newTestVariable",
-            "offset": 0,
-            "slot": "207",
-            "type": "t_address",
-            "contract": "NetEmissionsTokenNetworkV2",
-            "src": "solidity/NetEmissionsTokenNetworkV2.sol:78"
+            "contract": "NetEmissionsTokenNetwork",
+            "src": "solidity/NetEmissionsTokenNetwork.sol:81"
           }
         ],
         "types": {
@@ -494,16 +478,16 @@
             "label": "mapping(uint256 => mapping(address => uint256))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8872_storage)": {
-            "label": "mapping(uint256 => struct NetEmissionsTokenNetworkV2.CarbonTokenDetails)",
+          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6940_storage)": {
+            "label": "mapping(uint256 => struct NetEmissionsTokenNetwork.CarbonTokenDetails)",
             "numberOfBytes": "32"
           },
           "t_string_storage": {
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CarbonTokenDetails)8872_storage": {
-            "label": "struct NetEmissionsTokenNetworkV2.CarbonTokenDetails",
+          "t_struct(CarbonTokenDetails)6940_storage": {
+            "label": "struct NetEmissionsTokenNetwork.CarbonTokenDetails",
             "members": [
               {
                 "label": "tokenId",
@@ -635,9 +619,9 @@
         }
       }
     },
-    "dd2d31796732b8dfccc05efcfaa4c2d813a54511b107c18c343339092d723ea2": {
-      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0xd70d78d40872bd1cbd12c1031401408ae0fbb5fc9a5655cc10812fefccf628ff",
+    "67d0aeb12aefde2bd139ca1803a27b3df225c516b7e0827c3fc6a57a184001f7": {
+      "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+      "txHash": "0xb759f31d8226ad264fb141c461322f0c9ce65e0efad4905480f499fa172e21ae",
       "layout": {
         "storage": [
           {
@@ -726,56 +710,56 @@
             "offset": 0,
             "slot": "201",
             "type": "t_bool",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:23"
-          },
-          {
-            "label": "admin",
-            "offset": 1,
-            "slot": "201",
-            "type": "t_address",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:24"
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:22"
           },
           {
             "label": "timelock",
-            "offset": 0,
-            "slot": "202",
+            "offset": 1,
+            "slot": "201",
             "type": "t_address",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:25"
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:23"
           },
           {
             "label": "_numOfUniqueTokens",
             "offset": 0,
-            "slot": "203",
+            "slot": "202",
             "type": "t_struct(Counter)3445_storage",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:75"
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:68"
           },
           {
             "label": "_tokenDetails",
             "offset": 0,
-            "slot": "204",
-            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6942_storage)",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:78"
+            "slot": "203",
+            "type": "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8864_storage)",
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:71"
           },
           {
             "label": "_retiredBalances",
             "offset": 0,
-            "slot": "205",
+            "slot": "204",
             "type": "t_mapping(t_uint256,t_mapping(t_address,t_uint256))",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:79"
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:72"
           },
           {
             "label": "carbonTransferNonce",
             "offset": 0,
-            "slot": "206",
+            "slot": "205",
             "type": "t_mapping(t_address,t_mapping(t_address,t_uint32))",
-            "contract": "NetEmissionsTokenNetwork",
-            "src": "solidity/NetEmissionsTokenNetwork.sol:82"
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:75"
+          },
+          {
+            "label": "newTestVariable",
+            "offset": 0,
+            "slot": "206",
+            "type": "t_address",
+            "contract": "NetEmissionsTokenNetworkV2",
+            "src": "solidity/NetEmissionsTokenNetworkV2.sol:77"
           }
         ],
         "types": {
@@ -831,16 +815,16 @@
             "label": "mapping(uint256 => mapping(address => uint256))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)6942_storage)": {
-            "label": "mapping(uint256 => struct NetEmissionsTokenNetwork.CarbonTokenDetails)",
+          "t_mapping(t_uint256,t_struct(CarbonTokenDetails)8864_storage)": {
+            "label": "mapping(uint256 => struct NetEmissionsTokenNetworkV2.CarbonTokenDetails)",
             "numberOfBytes": "32"
           },
           "t_string_storage": {
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(CarbonTokenDetails)6942_storage": {
-            "label": "struct NetEmissionsTokenNetwork.CarbonTokenDetails",
+          "t_struct(CarbonTokenDetails)8864_storage": {
+            "label": "struct NetEmissionsTokenNetworkV2.CarbonTokenDetails",
             "members": [
               {
                 "label": "tokenId",

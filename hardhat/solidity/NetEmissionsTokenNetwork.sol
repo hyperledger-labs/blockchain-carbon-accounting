@@ -21,7 +21,6 @@ contract NetEmissionsTokenNetwork is
     using ECDSAUpgradeable for address;
 
     bool public limitedMode; // disables some features like arbitrary token transfers and issuing without proposals
-    address public admin; // address that has permission to register dealers, transfer in limitedMode, etc.
     address private timelock; // DAO contract that executes proposals to issue tokens after a successful vote
 
     // Generic dealer role for registering/unregistering consumers
@@ -123,7 +122,6 @@ contract NetEmissionsTokenNetwork is
         _setupRole(REGISTERED_OFFSET_DEALER, _admin);
         _setupRole(REGISTERED_EMISSIONS_AUDITOR, _admin);
         //_setupRole(REGISTERED_INDUSTRY, _admin);
-        admin = _admin;
 
         // initialize
         timelock = address(0);
