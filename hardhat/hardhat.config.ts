@@ -561,6 +561,22 @@ module.exports = {
       url: `http://localhost:9545`
     },
 
+    // Uncomment the following lines if deploying contract to Avalanche testnet
+    // "avalanche-testnet": {
+    //   url: "https://api.avax-test.network/ext/bc/C/rpc",
+    //   chainId: 43113,
+    //   accounts: [`0x${ethereumConfig.AVALANCHE_PRIVATE_KEY}`]
+    // },
+    // Deploy with npx hardhat --network avalanche-testnet deploy --reset
+
+    // Uncomment the following lines if deploying contract to Avalanche
+    // avalanche: {
+    //   url: "https://api.avax.network/ext/bc/C/rpc",
+    //   chainId: 43114,
+    //   accounts: [`0x${ethereumConfig.AVALANCHE_PRIVATE_KEY}`],
+    //   gasPrice: 225000000000,
+    // },
+    // Deploy with npx hardhat --network avalanche deploy --reset
 
     // Uncomment the following lines if deploying contract to Binance BSC testnet
     //bsctestnet: {

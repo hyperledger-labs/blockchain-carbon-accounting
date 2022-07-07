@@ -16,3 +16,5 @@ exports.ETHERSCAN_API_KEY = "";
 // Only required for BSC deployments
 exports.BSC_PRIVATE_KEY = "";
 
+// Only required for Avalanche deployments
+exports.AVALANCHE_PRIVATE_KEY = ""
