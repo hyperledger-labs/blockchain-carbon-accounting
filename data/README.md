@@ -23,6 +23,25 @@ npm run pg:getData  activity-emissions 'scope 3' 'WTT- business travel- air' 'WT
 
 ## Reference
 
+
+### Oil & Gas data
+
+#### sources
+
+This data is not currenlty stored in the directory to avoid overloading the repository with large data sets (>0.5 GB).
+
+Download data for single state (e.g. Texas) to avoid issue parsing all asset data as json (512 MB limit).
+
+[US O&G Asset Data](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore?location=35.579785%2C-95.254322%2C4.37)
+`Oil_and_Natural_Gas_Wells.csv`
+[US O&G Asset Data for Texas](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore?filters=eyJTVEFURSI6WyJUWCJdfQ%3D%3D&location=35.579785%2C-95.254322%2C4.37))
+`Oil__and__Natural__Gas__Wells.csv`
+
+#### Load scripts
+```
+npm run dataLoader load_og_assets Oil__and__Natural__Gas__Wells.csv -- --format US_asset_data
+```
+
 ### Emissions Factors
 
 #### Sources
