@@ -3,6 +3,7 @@ import { DbOpts, parseCommonYargsOptions } from "./config"
 import { initDb } from './models'
 import { BalanceRepo } from "./repositories/balance.repo"
 import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
+import { OilAndGasAssetRepo } from "./repositories/oilAndGasAsset.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { TrackerRepo } from "./repositories/tracker.repo"
 import { ProductRepo } from "./repositories/product.repo"
@@ -63,6 +64,10 @@ export class PostgresDBService {
 
   public getUtilityLookupItemRepo() {
     return new UtilityLookupItemRepo(this._db)
+  }
+
+  public getOilAndGasAssetRepo() {
+    return new OilAndGasAssetRepo(this._db)
   }
 
   public getTokenRepo() {

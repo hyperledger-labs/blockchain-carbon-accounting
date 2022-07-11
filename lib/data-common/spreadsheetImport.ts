@@ -1,12 +1,15 @@
 import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
+import { OilAndGasAssetInterface, OIL_AND_GAS_ASSET_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";//../oilandgas-data/src/oilAndGasAsset";
 import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem";
 import { Presets, SingleBar } from "cli-progress";
 import { v4 as uuidv4 } from 'uuid';
 import { readFile } from "xlsx";
 import { COUNTRY_MAPPINGS, STATE_NAME_MAPPING } from "./abbrevToName";
-import { EmissionFactorDbInterface, UtilityLookupItemDbInterface } from "./db";
+import { EmissionFactorDbInterface, UtilityLookupItemDbInterface, OilAndGasAssetDbInterface } from "./db";
+
 import { EMISSIONS_FACTOR_TYPE } from "./utils";
 
+//import { chain } from 'stream-chain';
 
 class LoadInfo {
   filename: string
@@ -530,5 +533,50 @@ export const importUtilityIdentifiers = async (opts: ParseWorksheetOpts, progres
     loader.done();
   } else {
     console.log("This sheet or PDF is not currently supported.");
+  }
+}
+
+export const importOilAndGasAssets = async (opts: ParseWorksheetOpts, progressBar: SingleBar, db: OilAndGasAssetDbInterface) => {
+  if (opts.format === "US_asset_data") {
+    // import data for each valid row, eg:
+
+    const data = parseWorksheet(opts);
+    console.log(opts.file);
+    //console.log(data);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
+    for (const row of data) {
+      if (!row) { loader.incIgnored('Undefined row'); continue; }
+      //if (!row["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
+      //if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
+      opts.verbose && console.log("-- Prepare to insert from ", row);
+      const d: OilAndGasAssetInterface = {
+        uuid: uuidv4(),
+        class: OIL_AND_GAS_ASSET_CLASS_IDENTIFER,
+        type: row["TYPE"],
+        country: row["COUNTRY"],
+        latitude: row["LATITUDE"],
+        longitude: row["LONGITUDE"],
+        name: row["NAME"],//row["NAME"] !== "NOT AVAILABLE" ? row["NAME"] : null,
+        operator: row["OPERATOR"],
+        division_type: "State",
+        division_name: row["STATE"],
+        sub_division_type: "County",
+        sub_division_name: row["COUNTY"],
+        status: row["STATUS"],
+        api: row["API"],
+        description: row["NAICS_DESC"],
+        source: row["SOURCE"],
+        source_date: row["SOURCEDATE"],
+        validation_method: row["VAL_METHOD"],
+        validation_date: row["VAL_DATE"],
+        product: row["PRODTYPE"],
+        field: row["FILED"],
+        depth: row["TOTDEPTH"] !== '-999' ? row["TOTDEPTH"] : null,
+      };
+      await db.putAsset(d);
+      loader.incLoaded();
+    }
+    loader.done();
+    return;
   }
 }
