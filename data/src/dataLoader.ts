@@ -1,4 +1,5 @@
-import { importUtilityIdentifiers, loadEmissionsFactors } from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
+import { importUtilityIdentifiers, loadEmissionsFactors, importOilAndGasAssets} from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
+//import { importOilAndGasAssets } from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
 import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -104,6 +105,31 @@ const progressBar = new SingleBar(
       await importUtilityIdentifiers(argv, progressBar, db.getUtilityLookupItemRepo())
       const count = await db.getUtilityLookupItemRepo().countAllUtilityLookupItems()
       console.log(`=== Done, we now have ${count} UtilityLookupItems in the DB`)
+      await db.close()
+    }
+  )
+  .command(
+    "load_og_assets <file> [sheet]",
+    "load data from csv file",
+    // eslint-disable-next-line
+    (yargs: any) => {
+      yargs
+        .positional("file", {
+          describe: "CSV file to load from",
+        })
+        .option('format', {
+          type: 'string',
+          description: 'Data format to load',
+        })
+    },
+    // eslint-disable-next-line
+    async (argv: any) => {
+      console.log("=== Starting load_og_assets ...")
+      const db = await init(parseCommonYargsOptions(argv))
+      await importOilAndGasAssets(argv, progressBar, db.getOilAndGasAssetRepo())
+      //const count = await db.getEmissionsFactorRepo().countAllFactors()
+      //console.log(`=== Done, we now have ${count} EmissionFactors in the DB`)
+      console.log(`=== Done, we now have o&g assets in the DB`)
       await db.close()
     }
   )
