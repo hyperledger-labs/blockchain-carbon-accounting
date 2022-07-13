@@ -35,7 +35,7 @@
     "chalk": "^5.0.1",
     "framer-motion": "^6.3.11",
     "ipfs-http-client": "^56.0.3",
-    "moment": "^2.29.3",
+    "moment": "^2.29.4",
     "react": "18.2.0",
     "react-bootstrap": "^2.4.0",
     "react-copy-to-clipboard": "^5.1.0",
