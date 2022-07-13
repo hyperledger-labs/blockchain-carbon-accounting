@@ -6,7 +6,7 @@ import {
 import bigint_transformer from './bigint_transformer';
 
 @Entity()
-export class Product {
+export class ProductToken {
     @PrimaryColumn()
     productId!: number;
 
@@ -28,16 +28,16 @@ export class Product {
     @Column()
     unit!: string;
 
-    @Column()
-    unitAmount!: number;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    unitAmount!: bigint;
 
-    @Column()
-    hash!: string;
+    @Column({nullable:true, select: false})
+    hash?: string;
 
-    public static toRaw(v: Product) {
+    public static toRaw(v: ProductToken) {
         return { ...v };
     }
-    public static toRaws(v: Product[]) {
-        return v.map(v => Product.toRaw(v));
+    public static toRaws(v: ProductToken[]) {
+        return v.map(v => ProductToken.toRaw(v));
     }
 }

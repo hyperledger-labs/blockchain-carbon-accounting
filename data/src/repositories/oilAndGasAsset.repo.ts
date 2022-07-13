@@ -33,9 +33,9 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
     await repo.save(doc)
   }
 
-/*  public getAsset = async (uuid: string): Promise<OilAndGasAssetInterface | null> => {
+  public getAsset = async (uuid: string): Promise<OilAndGasAssetInterface | null> => {
     return await this._db.getRepository(OilAndGasAsset).findOneBy({uuid})
-  }*/
+  }
 
 
   public getAllAssets = async (): Promise<OilAndGasAssetInterface[]> => {

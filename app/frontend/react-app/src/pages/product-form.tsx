@@ -48,7 +48,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
   async function submit() {
     if (!provider) return;
     let productAmount_formatted = BigInt(productAmount);
-    let productUnitAmount_formatted = Number(productUnitAmount);
+    let productUnitAmount_formatted = BigInt(productUnitAmount);
 
     let result = await productUpdate(
       provider,trackerId,productAmount_formatted,
@@ -56,12 +56,12 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
       let address = await provider.getSigner().getAddress();
       console.log(result)
     try {
-      await trpcClient.mutation('product.insert', {
+      await trpcClient.mutation('producToken.insert', {
         productId: 0,
         trackerId: trackerId,
         auditor: address,
-        amount: BigInt(productAmount),
-        available: BigInt(productAmount),
+        amount: productAmount_formatted,
+        available: productAmount_formatted,
         name: productName,
         unit: productUnit,
         unitAmount: productUnitAmount_formatted,
