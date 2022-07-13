@@ -23,6 +23,7 @@
     "@blockchain-carbon-accounting/data-common": "*",
     "@blockchain-carbon-accounting/emissions_data_lib": "*",
     "cli-progress": "^3.11.1",
+    "dotenv": "^16.0.1",
     "pg": "^8.7.3",
     "reflect-metadata": "^0.1.13",
     "ts-node": "^10.8.1",
