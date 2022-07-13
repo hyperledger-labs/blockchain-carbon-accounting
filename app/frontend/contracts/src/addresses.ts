@@ -113,6 +113,24 @@ const networksAndAddresses = {
       }
     }
   },
+
+  avalanchetestnet: {
+    network: "Avalanche Testnet",
+    tokenNetwork: {
+      address: "0x91883251A8964dDB40F07Bc55298284a07431d1d", // deployed 2022-07-07
+    },
+    carbonTracker: {
+      address: "",
+    },
+    dao: {
+      governor: {
+        address: "0xBEc5DE921587403faf0b83A9779e3F30d6109199", // deployed 2022-07-07
+      },
+      daoToken: {
+        address: "0x64197Ed54e8C63F99D5d2A9b2b3007BCA55376A3", // deployed 2022-07-07
+      }
+    }
+  },
 }
 
 // change this to the network you want
