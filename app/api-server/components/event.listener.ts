@@ -208,7 +208,7 @@ Every events also saves the lastSync block number in the DB
 export const subscribeToEvents = (opts: OPTS_TYPE) => {
   task_runner.opts = opts
   // for blockchains that support events subscriptions
-  if (opts.network_name === 'bsctestnet') {
+  if (opts.network_name === 'bsctestnet' || opts.network_name === 'avalanchetestnet') {
     try {
       const contract = getContract({...opts, use_web_socket: true})
 
