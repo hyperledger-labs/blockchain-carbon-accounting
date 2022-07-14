@@ -2,7 +2,7 @@ import { Balance } from "@blockchain-carbon-accounting/data-postgres/src/models/
 import { Sync } from "@blockchain-carbon-accounting/data-postgres/src/models/sync";
 import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
 import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { BalancePayload, TokenPayload } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { BalancePayload, TokenPayload, ProductPayload, TrackerPayload } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
 import { readFileSync } from 'fs';
 import handlebars from 'handlebars';
 import path from 'path';
@@ -10,7 +10,7 @@ import { EventData } from 'web3-eth-contract';
 import { CreatedToken } from "../models/commonTypes";
 import { OPTS_TYPE } from "../server";
 import { getMailer, getSiteAndAddress } from "../utils/email";
-import { BURN, getContract, getCurrentBlock, getWeb3 } from "../utils/web3";
+import { BURN, getContract, getTrackerContract, getCurrentBlock, getWeb3 } from "../utils/web3";
 import { insertNewBalance } from "./balance.controller";
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
@@ -57,6 +57,8 @@ export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE, sendEmail 
     let lastBlock = 0;
 
     try {
+        await fillProductTokens(opts, sendEmail);
+        await fillTrackers(opts, sendEmail);
         lastBlock = await fillTokens(opts, sendEmail);
         console.log('-- blockchain last block: ', lastBlock);
     } catch (err) {
@@ -196,6 +198,28 @@ const getNumOfUniqueTokens = async (opts: OPTS_TYPE): Promise<number> => {
     }
 }
 
+/** Get number of unique tokens on the blockchain. */
+const getNumOfProductTokens = async (opts: OPTS_TYPE): Promise<number> => {
+    try {
+        const result = await getTrackerContract(opts).methods._numOfProducts().call();
+        return result;
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in _numOfProducts: ' + err)
+    }
+}
+
+/** Get number of unique tokens on the blockchain. */
+const getNumOfTrackers = async (opts: OPTS_TYPE): Promise<number> => {
+    try {
+        const result = await getTrackerContract(opts).methods._numOfUniqueTrackers().call();
+        return result;
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in _numOfUniqueTrackers: ' + err)
+    }
+}
+
 /** Get the token details from the blockchain, but totalIssued and totalRetired are set to 0. */
 async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenPayload> {
     try {
@@ -204,6 +228,33 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
     } catch (err) {
         console.error(err);
         throw new Error('Error in getTokenDetails: ' + err);
+    }
+}
+
+/** Get the product details from the blockchain */
+async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductPayload> {
+    try {
+        const product: ProductPayload = await getTrackerContract(opts).methods._productData(productId).call();
+        //getProductOptionalDetails
+        product.productId = productId;
+        return product;
+    } catch (err) {
+        console.error(err);
+        throw new Error('Error in getProductDetails: ' + err);
+    }
+}
+
+/** Get the product details from the blockchain */
+async function getTrackerDetails(trackerId: number, opts: OPTS_TYPE): Promise<TrackerPayload> {
+    try {
+        const result: any = await getTrackerContract(opts).methods.getTrackerDetails(trackerId).call();
+        const tracker: TrackerPayload = Object.assign({}, result[0]);
+        console.log(result);
+        tracker.totalEmissions = result[1];
+        return tracker;
+    } catch (err) {
+        console.error(err);
+        throw new Error('Error in getTrackerDetails: ' + err);
     }
 }
 
@@ -299,6 +350,70 @@ export const fillTokens = async (opts: OPTS_TYPE, sendEmail: boolean): Promise<n
         }
     }
     console.log(`${numOfIssuedTokens - numOfSavedTokens} new tokens of ${numOfIssuedTokens} are stored into database.`);
+    return await getCurrentBlock(opts);
+}
+
+/** Sync the tokens from the blockchain and returns the blockchain current block number.
+This does not depend on a starting block as we rely on the fact that token ids are sequential.
+*/
+export const fillProductTokens = async (opts: OPTS_TYPE, sendEmail: boolean) => {
+    const db = await PostgresDBService.getInstance()
+
+    // get number tokens from database
+    const numOfSavedProducts = await db.getProductTokenRepo().countProducts([]);
+    // get number tokens from network
+    const numOfIssuedProducts = await getNumOfProductTokens(opts);
+
+    // get the token details from the network
+    if (numOfIssuedProducts > numOfSavedProducts) {
+        // note: this should only get NEW tokens as tokenId auto-increments, but double check anyway
+        for (let productId = numOfSavedProducts + 1; productId <= numOfIssuedProducts; productId++) {
+            // if the token is not in the database, get the initial details and save it
+            const t = await db.getProductTokenRepo().selectProduct(productId);
+            if (!t) {
+                const product: ProductPayload = await getProductDetails(productId, opts);
+                await db.getProductTokenRepo().insertProductToken(product);
+                // TO-DO sendProductIssuedEmail ?
+                //if (sendEmail) await sendTokenIssuedEmail(token);
+            }
+        }
+    }
+    console.log(`${numOfIssuedProducts - numOfSavedProducts} new tokens of ${numOfIssuedProducts} are stored into database.`);
+    return await getCurrentBlock(opts);
+}
+
+/** Sync the tokens from the blockchain and returns the blockchain current block number.
+This does not depend on a starting block as we rely on the fact that token ids are sequential.
+*/
+export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
+    const db = await PostgresDBService.getInstance()
+
+    // get number tokens from database
+    const numOfSavedTrackers = await db.getTrackerRepo().countTrackers([]);
+    console.log(numOfSavedTrackers)
+    // get number tokens from network
+    const numOfIssuedTrackers = await getNumOfTrackers(opts);
+    console.log(numOfIssuedTrackers)
+    console.log('num of trackers');
+    // get the token details from the network
+    if (numOfIssuedTrackers > numOfSavedTrackers) {
+        // note: this should only get NEW tokens as tokenId auto-increments, but double check anyway
+        for (let trackerId = numOfSavedTrackers + 1; trackerId <= numOfIssuedTrackers; trackerId++) {
+            // if the token is not in the database, get the initial details and save it
+            const t = await db.getTrackerRepo().selectTracker(trackerId);
+            if (!t) {
+                const tracker: TrackerPayload = await getTrackerDetails(trackerId, opts);
+                // TO-DO get metaObj from result[0]
+                console.log('save tracker to postgres');
+                console.log(trackerId);
+                console.log(tracker);
+                await db.getTrackerRepo().insertTracker(tracker);
+                // TO-DO sendTrackerIssuedEmail ?
+                //if (sendEmail) await sendTrackerIssuedEmail(tracker);
+            }
+        }
+    }
+    console.log(`${numOfIssuedTrackers - numOfSavedTrackers} new tokens of ${numOfIssuedTrackers} are stored into database.`);
     return await getCurrentBlock(opts);
 }
 

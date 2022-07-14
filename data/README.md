@@ -23,25 +23,6 @@ npm run pg:getData  activity-emissions 'scope 3' 'WTT- business travel- air' 'WT
 
 ## Reference
 
-
-### Oil & Gas data
-
-#### sources
-
-This data is not currenlty stored in the directory to avoid overloading the repository with large data sets (>0.5 GB).
-
-Download data for single state (e.g. Texas) to avoid issue parsing all asset data as json (512 MB limit).
-
-[US O&G Asset Data](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore?location=35.579785%2C-95.254322%2C4.37)
-`Oil_and_Natural_Gas_Wells.csv`
-[US O&G Asset Data for Texas](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore?filters=eyJTVEFURSI6WyJUWCJdfQ%3D%3D&location=35.579785%2C-95.254322%2C4.37))
-`Oil__and__Natural__Gas__Wells.csv`
-
-#### Load scripts
-```
-npm run dataLoader load_og_assets Oil__and__Natural__Gas__Wells.csv -- --format US_asset_data
-```
-
 ### Emissions Factors
 
 #### Sources
@@ -105,3 +86,31 @@ psql blockchain-carbon-accounting < seeds/*
 ```
 
 
+### Oil & Gas data
+
+#### sources
+
+- [US Oil & Gas Asset Data](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore?location=35.579785%2C-95.254322%2C4.37)
+`Oil_and_Natural_Gas_Wells.csv`
+
+Not stored in the directory to avoid overloading the repository (>0.5 GB).s
+
+The csv file has been split into two files stored in the public [Oil & Gas Data Google Drive](https://drive.google.com/drive/folders/1Kifnuj4x2uhzm3oxS4nqh-OQszTuqlWU?usp=sharing) not to exceed parsing limit on json file (512 MB).
+`Oil_and_Natural_Gas_Wells-1.csv`
+`Oil_and_Natural_Gas_Wells-2.csv`
+
+- [US State level venting and flaring (monthly)](https://www.eia.gov/dnav/ng/xls/NG_PROD_SUM_A_EPG0_VGV_MMCF_M.xls)
+
+- [US State level crude oil production (monthly)](https://www.eia.gov/dnav/ng/xls/NG_PROD_SUM_A_EPG0_VGV_MMCF_A.xls)
+
+- [US State level natural gas marketed production (monthly)](https://www.eia.gov/dnav/ng/xls/NG_PROD_SUM_A_EPG0_VGM_MMCF_M.xls)
+
+- [US State level natural gas marketed repressuring (monthly)](https://www.eia.gov/dnav/ng/xls/NG_PROD_SUM_A_EPG0_VGQ_MMCF_M.xls)
+
+- [US State level NGPL production gaseous equivalent (monthly)](https://www.eia.gov/dnav/ng/xls/NG_PROD_SUM_A_EPG0_VG9_MMCF_M.xls)
+
+
+#### Load scripts
+```
+npm run dataLoader load_og_assets Oil_and_Natural_Gas_Wells-1.csv -- --format US_asset_data
+```
