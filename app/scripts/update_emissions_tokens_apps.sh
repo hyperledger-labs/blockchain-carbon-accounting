@@ -65,9 +65,9 @@ then
     RES1=`cat ${LOGFILEBUILD} | grep "Already up to date"`
     if [ -z "$RES1" ] || [ "$FORCE_UPDATE" == "force_update" ]
     then
-        echo " - restoring bsctestnet settings"
-        # bsctestnet setup for the frontend connection
-        sed -i -e 's!const addresses =.*!const addresses = networksAndAddresses.bsctestnet;!g' app/frontend/contracts/src/addresses.ts
+        echo " - restoring avalanchetestnet settings"
+        # avalanchetestnet setup for the frontend connection
+        sed -i -e 's!const addresses =.*!const addresses = networksAndAddresses.avalanchetestnet;!g' app/frontend/contracts/src/addresses.ts
 
         echo " - installing all dependencies"
         npm install >> ${LOGFILEBUILD}  2>&1
