@@ -37,7 +37,7 @@ export async function getNumOfTokens (req: Request, res: Response) {
     try {
         const db = await PostgresDBService.getInstance()
         const queryBundles: Array<QueryBundle> = req.body.queryBundles;
-        const numOfTokens = await db.getProductTokenRepo().countTokens(queryBundles);
+        const numOfTokens = await db.getProductTokenRepo().countProducts(queryBundles);
         return res.status(200).json({
             status: 'success',
             count: numOfTokens
