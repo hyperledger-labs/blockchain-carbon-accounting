@@ -15,7 +15,7 @@ import { insertNewBalance } from "./balance.controller";
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
 const FIRST_BLOCK = Number(process.env['LEDGER_FIRST_BLOCK']) || 0;
-const EVENTS_BLOCK_INTERVAL = 5000;
+const EVENTS_BLOCK_INTERVAL = Number(process.env['LEDGER_EVENTS_BLOCK_INTERVAL']) || 2048;
 
 /** Perform the startup synchronization with the blockchain and returns the current block number. */
 export const startupSync = async(opts: OPTS_TYPE) => {
