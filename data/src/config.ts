@@ -1,3 +1,5 @@
+import * as dotenv from 'dotenv'
+dotenv.config({path:'../../.env'})
 const dbName = process.env.DB_NAME as string || 'blockchain-carbon-accounting'
 
 export type DbOpts = {
