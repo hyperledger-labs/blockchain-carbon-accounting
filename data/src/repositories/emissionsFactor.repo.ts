@@ -495,7 +495,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
   public getCO2EmissionFactorByLookup = async (lookup: UtilityLookupItemInterface,usage: number,usageUOM: string,thruDate: string)=> {
       const factor = await this.getEmissionsFactorByLookupItem(lookup,thruDate);
       if (factor===null) {
-        return Error(`${ErrInvalidFactorForActivity} This emission factor does not match the given activity`);
+        return Error(` This emission factor does not match the given lookup`);
       }
       else {
         const co2Emission= await this.getCO2EmissionFactor(factor,usage,usageUOM);

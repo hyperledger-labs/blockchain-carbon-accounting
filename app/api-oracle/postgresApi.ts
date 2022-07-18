@@ -26,18 +26,19 @@ app.post('/postgres/uuid', async(req,res)=>{
     const db = await PostgresDBService.getInstance(parseCommonYargsOptions(argv))
     const uuid = req.body.uuid.toString()
     const usage = Number(req.body.usage)
-    // const mockUtilityID = 'USA_EIA_11208';
     const usageUOM = req.body.usageUOM.toString()
     const thruDate= req.body.thruDate.toString()
     const lookup= await db.getUtilityLookupItemRepo().getUtilityLookupItem(uuid)
-    if(lookup==null){ 
-    res.status(500);
+
+    if(lookup===null){ 
+    res.status(500);    
     }
-        else{
+    else
+    {
     const ans= await db.getEmissionsFactorRepo().getCO2EmissionFactorByLookup(lookup,usage,usageUOM,thruDate);
     db.close();
-    res.json(ans);
-        }
+    return res.status(200).json(ans);
+    }
 })
 
 
@@ -57,9 +58,10 @@ app.post('/postgres/Activity', async(req,res)=>{
 
     const ans= await db.getEmissionsFactorRepo().getCO2EmissionByActivity(activity);
     db.close();
-       res.json(ans);
+       res.status(200).json(ans);
 });
 
 app.listen(port, () => {
-    console.log(`App running on port ${port}.`);
+    console.log('App running on port',port);
 });
+export default app
