@@ -26,19 +26,17 @@ app.post('/postgres/uuid', async(req,res)=>{
     const db = await PostgresDBService.getInstance(parseCommonYargsOptions(argv))
     const uuid = req.body.uuid.toString()
     const usage = Number(req.body.usage)
-    const mockUtilityID = 'USA_EIA_11208';
+    // const mockUtilityID = 'USA_EIA_11208';
     const usageUOM = req.body.usageUOM.toString()
     const thruDate= req.body.thruDate.toString()
     const lookup= await db.getUtilityLookupItemRepo().getUtilityLookupItem(uuid)
-    console.log("water")
     if(lookup==null){ 
     res.status(500);
     }
         else{
     const ans= await db.getEmissionsFactorRepo().getCO2EmissionFactorByLookup(lookup,usage,usageUOM,thruDate);
     db.close();
-        
-       res.json(ans);
+    res.json(ans);
         }
 })
 
