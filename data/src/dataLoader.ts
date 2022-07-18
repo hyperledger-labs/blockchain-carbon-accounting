@@ -1,5 +1,4 @@
 import { importUtilityIdentifiers, loadEmissionsFactors, importOilAndGasAssets} from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
-//import { importOilAndGasAssets } from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
 import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"

@@ -10,6 +10,7 @@ import request from 'supertest';
 
 const OPTS: OPTS_TYPE = {
   contract_address: '',
+  tracker_address: '',
   network_name: 'hardhat',
   network_rpc_url: 'http://localhost:8545'
 }
@@ -60,6 +61,17 @@ describe("BigInt tests", function() {
     contract = (await ethers.getContract('NetEmissionsTokenNetwork')) as Contract;
     // set the contract address
     OPTS.contract_address = contract.address;
+  });
+
+  let trackerContract: Contract;
+  beforeEach(async () => {
+    await deployments.fixture();
+    // this is needed because of a weird bug in the hardhat plugin not registering in TS
+    // eslint-disable-next-line
+    // @ts-ignore
+    trackerContract = (await ethers.getContract('CarbonTracker')) as Contract;
+    // set the contract address
+    OPTS.tracker_address = trackerContract.address;
   });
 
   it("should sync the correct amounts in DB", async function() {

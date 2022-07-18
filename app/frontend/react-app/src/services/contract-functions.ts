@@ -297,7 +297,7 @@ export async function productUpdate(
   productAmount: bigint,
   productName: string,
   productUnit: string,
-  productUnitAmount: number,
+  productUnitAmount: bigint,
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);

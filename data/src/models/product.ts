@@ -1,43 +1,76 @@
+import type { ProductInterface } from '@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product';
 import {
-    Entity,
-    PrimaryColumn,
-    Column
+  Entity,
+  PrimaryGeneratedColumn,
+  Column
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
 
 @Entity()
-export class Product {
-    @PrimaryColumn()
-    productId!: number;
+export class Product implements ProductInterface{
+    
+  @PrimaryGeneratedColumn("uuid")
+  uuid!: string;
 
-    @Column()
-    trackerId!: number;
+  @Column()
+  class!: string;
 
-    @Column()
-    auditor!: string;
+  @Column()
+  type!: string;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    amount!: bigint;
+  @Column()
+  name!: string;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    available!: bigint;
+  @Column()
+  amount!: string;
 
-    @Column()
-    name!: string;
+  @Column()
+  unit!: string;
 
-    @Column()
-    unit!: string;
+  @Column({nullable:true})
+  asset_uuid?: string;
 
-    @Column()
-    unitAmount!: number;
+  @Column({nullable:true})
+  country?: string;
+  
+  @Column({nullable:true})  
+  division_type?: string;
 
-    @Column()
-    hash!: string;
+  @Column({nullable:true})
+  division_name?: string;
 
-    public static toRaw(v: Product) {
-        return { ...v };
-    }
-    public static toRaws(v: Product[]) {
-        return v.map(v => Product.toRaw(v));
-    }
+  @Column({nullable:true})
+  year?: string;
+
+  @Column({nullable:true})
+  month?: string;
+
+  @Column({nullable:true})
+  from_date?: number;
+
+  @Column({nullable:true})
+  thru_date?: number;
+
+  @Column({nullable:true})
+  description?: string;
+
+  @Column({nullable:true})
+  source?: string;
+
+  @Column({nullable:true})
+  source_date?: string;
+    
+  @Column({nullable:true})
+  validation_method?: string;
+
+  @Column({nullable:true})
+  validation_date?: string;
+
+  public static toRaw(v: Product) {
+    return { ...v };
+  }
+  public static toRaws(v: Product[]) {
+    return v.map(v => Product.toRaw(v));
+  }
+
 }

@@ -1,6 +1,7 @@
 import Web3 from "web3";
 import { AbiItem } from 'web3-utils';
 import NetEmissionsTokenNetwork from '@blockchain-carbon-accounting/contracts/src/abis/NetEmissionsTokenNetwork.json';
+import CarbonTracker from '@blockchain-carbon-accounting/contracts/src/abis/CarbonTracker.json';
 import { OPTS_TYPE } from "../server";
 
 export const BURN = '0x0000000000000000000000000000000000000000';
@@ -26,6 +27,12 @@ export const getContract = (opts: OPTS_TYPE) => {
   if (opts.contract) return opts.contract;
   const web3 = getWeb3(opts);
   return new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], opts.contract_address);
+}
+
+export const getTrackerContract = (opts: OPTS_TYPE) => {
+  //if (opts.trackerContract) return opts.trackerContract;
+  const web3 = getWeb3(opts);
+  return new web3.eth.Contract(CarbonTracker.abi as AbiItem[], opts.tracker_address);
 }
 
 export const getCurrentBlock = async (opts: OPTS_TYPE) => {

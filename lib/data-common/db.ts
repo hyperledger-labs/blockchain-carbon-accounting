@@ -1,6 +1,8 @@
 import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
 import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
 import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset"
+import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product"
+
 
 export interface EmissionFactorDbInterface {
   putEmissionFactor: (doc: EmissionsFactorInterface) => Promise<void>
@@ -16,7 +18,13 @@ export interface UtilityLookupItemDbInterface {
 
 export interface OilAndGasAssetDbInterface {
   putAsset: (doc: OilAndGasAssetInterface) => Promise<void>
-  //getAsset: (uuid: string) => Promise<OilAndGasAssetInterface | null>
+  getAsset: (uuid: string) => Promise<OilAndGasAssetInterface | null>
   getAllAssets: (query: Partial<OilAndGasAssetInterface>) => Promise<OilAndGasAssetInterface[]>
+}
+
+export interface ProductDbInterface {
+  putProduct: (doc: ProductInterface) => Promise<void>
+  getProduct: (uuid: string) => Promise<ProductInterface | null>
+  getAllProducts: (query: Partial<ProductInterface>) => Promise<ProductInterface[]>
 }
 
