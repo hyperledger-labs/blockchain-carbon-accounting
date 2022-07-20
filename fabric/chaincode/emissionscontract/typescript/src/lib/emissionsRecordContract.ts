@@ -1,7 +1,6 @@
 import { MD5, SHA256 } from 'crypto-js';
 import { ChaincodeStub } from 'fabric-shim';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
-import { getCO2EmissionFactor } from './emissions-calc';
 import { EmissionsFactor, EmissionsFactorInterface, EmissionsFactorState } from './emissionsFactor';
 import {
     UtilityLookupItem,
@@ -40,15 +39,38 @@ export class EmissionsRecordContract {
         md5: string,
     ): Promise<Uint8Array> {
         // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
-        const lookup = await this.utilityLookupState.getUtilityLookupItem(utilityId);
-        const factor = await this.EmissionsFactorState.getEmissionsFactorByLookupItem(
-            lookup.item,
+        // const lookup = await this.utilityLookupState.getUtilityLookupItem(utilityId);
+        // const factor = await this.EmissionsFactorState.getEmissionsFactorByLookupItem(
+        //     lookup.item,
+        //     thruDate,
+        // );
+        // const co2Emission = getCO2EmissionFactor(
+        //     factor.factor,
+        //     Number(energyUseAmount),
+        //     energyUseUom,
+        // );
+        const emissionapirequest = {
+            utilityId,
             thruDate,
-        );
-        const co2Emission = getCO2EmissionFactor(
-            factor.factor,
-            Number(energyUseAmount),
+            energyUseAmount,
             energyUseUom,
+        };
+
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(emissionapirequest),
+        };
+
+        const co2Emission = await fetch('https://localhost:3002/postgres/uuid', options).then(
+            (data) => {
+                if (!data.ok) {
+                    throw Error(data.status.toString());
+                }
+                return data.json();
+            },
         );
 
         const factorSource = `eGrid ${co2Emission.year} ${co2Emission.division_type} ${co2Emission.division_id}`;

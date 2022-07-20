@@ -62,6 +62,6 @@ app.post('/postgres/Activity', async(req,res)=>{
 });
 
 app.listen(port, () => {
-    console.log('App running on port',port);
+    console.log('Api is running on port',port);
 });
 export default app
