@@ -50,10 +50,10 @@ export class EmissionsRecordContract {
         //     energyUseUom,
         // );
         const emissionapirequest = {
-            utilityId,
+            uuid: utilityId,
             thruDate,
-            energyUseAmount,
-            energyUseUom,
+            usage: energyUseAmount,
+            usageUOM: energyUseUom,
         };
 
         const options = {
