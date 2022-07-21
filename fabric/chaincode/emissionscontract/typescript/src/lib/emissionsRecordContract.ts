@@ -7,7 +7,7 @@ import {
     UtilityLookupItemInterface,
     UtilityLookupItemState,
 } from './utilityLookupItem';
-
+import fetch from 'node-fetch';
 // EmissionsRecordContract : core bushiness logic of emissions record chaincode
 export class EmissionsRecordContract {
     protected emissionsState: EmissionRecordState;
