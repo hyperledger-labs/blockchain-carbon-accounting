@@ -30,6 +30,7 @@ function cleanup() {
 
 const OPTS: OPTS_TYPE = {
   contract_address: '',
+  tracker_address: '',
   network_name: 'hardhat',
   network_rpc_url: 'http://localhost:8545'
 }

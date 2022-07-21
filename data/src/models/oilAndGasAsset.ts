@@ -8,7 +8,7 @@ import {
 export class OilAndGasAsset implements OilAndGasAssetInterface {
 
   @PrimaryGeneratedColumn("uuid")
-  uuid!: string
+  uuid!: string;
   @Column()
   class!: string;
   @Column()

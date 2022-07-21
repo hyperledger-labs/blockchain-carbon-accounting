@@ -1,5 +1,5 @@
 import * as trpc from '@trpc/server'
-import { Product } from '@blockchain-carbon-accounting/data-postgres/src/models/product';
+import { ProductToken } from '@blockchain-carbon-accounting/data-postgres/src/models/productToken';
 import { ethers } from 'ethers';
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
@@ -17,7 +17,7 @@ const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
 })
 
 
-export const productRouter = trpc
+export const productTokenRouter = trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({
@@ -26,7 +26,7 @@ export const productRouter = trpc
     async resolve({ input, ctx }) {
         try {
             return {
-                count: await ctx.db.getProductRepo().countProducts(input.bundles) 
+                count: await ctx.db.getProductTokenRepo().countProducts(input.bundles) 
             }
         } catch (error) {
             handleError('count', error)
@@ -41,11 +41,11 @@ export const productRouter = trpc
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const products = await ctx.db.getProductRepo().selectPaginated(input.offset, input.limit, input.bundles);
-            const count = await ctx.db.getProductRepo().countProducts(input.bundles);
+            const products = await ctx.db.getProductTokenRepo().selectPaginated(input.offset, input.limit, input.bundles);
+            const count = await ctx.db.getProductTokenRepo().countProducts(input.bundles);
             return {
                 count,
-                products: Product.toRaws(products)
+                products: ProductToken.toRaws(products)
             }
         } catch (error) {
             handleError('list', error)
@@ -61,7 +61,7 @@ export const productRouter = trpc
         available: z.bigint(),
         name: z.string(),
         unit: z.string(),
-        unitAmount: z.number(),
+        unitAmount: z.bigint(),
         hash: z.string(),
     }),
     async resolve({ input, ctx }) {
@@ -70,15 +70,15 @@ export const productRouter = trpc
             //const address = ethers.utils.getAddress(input.address);
             // note: use mergeWallet which allows updating an existing entry
             //const {address: _address, ...data} = input
-            const product = await ctx.db.getProductRepo().insertProduct(input);
+            const product = await ctx.db.getProductTokenRepo().insertProductToken(input);
 
             return {
-                product: Product.toRaw(product)
+                product: ProductToken.toRaw(product)
             }
         } catch (error) {
             handleError('register', error)
         }
     },
 })
-export type ProductRouter = typeof productRouter 
+export type ProductTokenRouter = typeof productTokenRouter 
 
