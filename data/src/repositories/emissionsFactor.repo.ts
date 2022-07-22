@@ -345,54 +345,28 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     usage: number,
     usageUOM: string
   ): CO2EmissionFactorInterface => {
+    // Note: EmissionsFactore defines the emissions as [co2_equivalent_emissions, co2_equivalent_emissions_uom] per [1 activity_uom]
+    // so emissionsValue = usage * factor.co2_equivalent_emissions * (usageUOM in factor.activity_uom)
+    // and emissionsUOM = factor.co2_equivalent_emissions_uom
+    if (!factor.co2_equivalent_emissions || !factor.co2_equivalent_emissions_uom) {
+      throw new Error(`EmissionsFactor ${factor.uuid} has no CO2 equivalent emissions`)
+    }
+
     // initialize return variables
-    let emissionsValue: number
-    let emissionsUOM: string
-    let renewableEnergyUseAmount: number
-    let nonrenewableEnergyUseAmount: number
+    const emissionsUOM: string = factor.co2_equivalent_emissions_uom
+    let renewable_energy_use_amount = 0
+    let nonrenewable_energy_use_amount = usage
+
+    const usageFactor = getUomFactor(usageUOM)
+    const emissionsFactor = getUomFactor(emissionsUOM)
+    const usageUOMConversion = usageFactor / emissionsFactor
+    const emissionsValue = usage * usageUOMConversion
 
     // calculate emissions using percent_of_renewables if found
     if (factor.percent_of_renewables && factor.percent_of_renewables.length !== 0) {
-      emissionsUOM = "g"
-      const co2EquivalentEmissionsUOM = factor?.co2_equivalent_emissions_uom?.split("/")
-      if (!co2EquivalentEmissionsUOM || co2EquivalentEmissionsUOM.length === 0) {
-        throw new Error("co2_equivalent_emissions_uom not found in factor")
-      } else {
-        emissionsValue =
-          (Number(factor.co2_equivalent_emissions) *
-            usage *
-            getUomFactor(co2EquivalentEmissionsUOM[0])) /
-            getUomFactor(co2EquivalentEmissionsUOM[1])
-        const percentOfRenewables = Number(factor.percent_of_renewables) / 100
-        renewableEnergyUseAmount = usage * percentOfRenewables
-        nonrenewableEnergyUseAmount = usage * (1 - percentOfRenewables)
-      }
-    } else {
-      emissionsUOM = "tons"
-
-      const net_generation_uom = factor.net_generation_uom
-      const co2_equivalent_emissions_uom = factor.co2_equivalent_emissions_uom
-
-      if (net_generation_uom && co2_equivalent_emissions_uom) {
-        const usageUOMConversion = getUomFactor(usageUOM) / getUomFactor(net_generation_uom)
-        const emissionsUOMConversion = getUomFactor(co2_equivalent_emissions_uom) / getUomFactor(emissionsUOM)
-
-        emissionsValue =
-          (Number(factor.co2_equivalent_emissions) /
-            Number(factor.net_generation)) *
-            usage *
-            usageUOMConversion *
-            emissionsUOMConversion
-
-        const totalGeneration =
-          Number(factor.non_renewables) + Number(factor.renewables)
-        renewableEnergyUseAmount =
-          usage * (Number(factor.renewables) / totalGeneration)
-        nonrenewableEnergyUseAmount =
-          usage * (Number(factor.non_renewables) / totalGeneration)
-      } else {
-        throw new Error(`co2_equivalent_emissions_uom ${co2_equivalent_emissions_uom} or net_generation_uom ${net_generation_uom} was undefined`)
-      }
+      const percentOfRenewables = Number(factor.percent_of_renewables) / 100
+      renewable_energy_use_amount = usage * percentOfRenewables
+      nonrenewable_energy_use_amount = usage * (1 - percentOfRenewables)
     }
 
     return {
@@ -402,8 +376,8 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
       },
       division_type: factor.division_type,
       division_id: factor.division_id,
-      renewable_energy_use_amount: renewableEnergyUseAmount,
-      nonrenewable_energy_use_amount: nonrenewableEnergyUseAmount,
+      renewable_energy_use_amount,
+      nonrenewable_energy_use_amount,
       year: Number(factor.year),
     }
   }
