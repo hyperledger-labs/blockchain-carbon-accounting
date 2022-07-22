@@ -190,6 +190,13 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         const total_co2_equivalent_emissions = us_ton_in_kg * Number(row["NERC region annual CO2 equivalent emissions (tons)"].toString());
         // get the co2e per MWh
         const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
+        // get renewables data if available
+        const non_renewables = row["NERC region annual total nonrenewables net generation (MWh)"].toString()
+        const renewables = row["NERC region annual total renewables net generation (MWh)"].toString()
+        let percent_of_renewables = "";
+        if (non_renewables !== "" && renewables !== "") {
+          percent_of_renewables = String(100.0 * Number(renewables) / (Number(non_renewables) + Number(renewables)));
+        }
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
@@ -210,15 +217,9 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "kg",
           source: opts.source || opts.file,
-          non_renewables:
-            row[
-              "NERC region annual total nonrenewables net generation (MWh)"
-            ].toString(),
-          renewables:
-            row[
-              "NERC region annual total renewables net generation (MWh)"
-            ].toString(),
-          percent_of_renewables: "",
+          non_renewables,
+          renewables,
+          percent_of_renewables,
         };
         await db.putEmissionFactor(d);
         loader.incLoaded();
@@ -239,6 +240,13 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         const total_co2_equivalent_emissions = us_ton_in_kg * Number(row["State annual CO2 equivalent emissions (tons)"].toString());
         // get the co2e per MWh
         const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
+        // get renewables data if available
+        const non_renewables = row["State annual total nonrenewables net generation (MWh)"].toString()
+        const renewables = row["State annual total renewables net generation (MWh)"].toString()
+        let percent_of_renewables = "";
+        if (non_renewables !== "" && renewables !== "") {
+          percent_of_renewables = String(100.0 * Number(renewables) / (Number(non_renewables) + Number(renewables)));
+        }
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
           class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
@@ -259,13 +267,9 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "kg",
           source: opts.source || opts.file,
-          non_renewables:
-            row[
-              "State annual total nonrenewables net generation (MWh)"
-            ].toString(),
-          renewables:
-            row["State annual total renewables net generation (MWh)"].toString(),
-          percent_of_renewables: "",
+          non_renewables,
+          renewables,
+          percent_of_renewables,
         };
         await db.putEmissionFactor(d);
         loader.incLoaded();
@@ -285,6 +289,13 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         const total_co2_equivalent_emissions = us_ton_in_kg * Number(row["U.S. annual CO2 equivalent emissions (tons)"].toString());
         // get the co2e per MWh
         const co2_equivalent_emissions = String(total_co2_equivalent_emissions / total_net_generation);
+        // get renewables data if available
+        const non_renewables = row["U.S. annual total nonrenewables net generation (MWh)"].toString()
+        const renewables = row["U.S. annual total renewables net generation (MWh)"].toString()
+        let percent_of_renewables = "";
+        if (non_renewables !== "" && renewables !== "") {
+          percent_of_renewables = String(100.0 * Number(renewables) / (Number(non_renewables) + Number(renewables)));
+        }
         opts.verbose && console.log("-- Prepare to insert from ", row);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
@@ -306,13 +317,9 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
           co2_equivalent_emissions,
           co2_equivalent_emissions_uom: "kg",
           source: opts.source || opts.file,
-          non_renewables:
-            row[
-              "U.S. annual total nonrenewables net generation (MWh)"
-            ].toString(),
-          renewables:
-            row["U.S. annual total renewables net generation (MWh)"].toString(),
-          percent_of_renewables: "",
+          non_renewables,
+          renewables,
+          percent_of_renewables,
         };
         await db.putEmissionFactor(d);
         loader.incLoaded();
