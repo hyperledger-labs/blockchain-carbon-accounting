@@ -9,7 +9,8 @@ import { RolesInfo, Tracker } from "../components/static-data";
 
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
-const EXTRACT_ERROR_MESSAGE = /(?<="message":")(.*?)(?=")/g;
+// was /(?<="message":")(.*?)(?=")/ but that does not work in Safari
+const EXTRACT_ERROR_MESSAGE = /"message":"(.*?)="/;
 
 const PROPOSAL_STATES = [
   "Pending",
@@ -45,6 +46,7 @@ function catchError(error: unknown) {
     try {
       let errors = JSON.stringify(error).match(EXTRACT_ERROR_MESSAGE);
       if (errors) {
+        // last element is the captured group
         formatted_error = errors[errors.length - 1];
       } else {
         formatted_error = 'Unknown error: ' + err;

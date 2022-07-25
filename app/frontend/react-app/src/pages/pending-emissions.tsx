@@ -107,7 +107,7 @@ const PendingEmissions: FC<PendingEmissionsProps> = ({ provider, signedInAddress
               setError("Cannot update emissions request status.");
             }
           } else {
-            setError("Cannot issue emissions request.");
+            setError("Cannot issue emissions request. " + result.toString());
           }
         }
 

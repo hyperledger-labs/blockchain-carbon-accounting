@@ -510,7 +510,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
       {!signedInAddress && <div>
         <h2>Welcome to Blockchain Carbon Accounting</h2>
 
-        <p>If you already have a wallet on the Binance Smart Chain Testnet, you can connect to it with Metamask now to login.  If you don't have a wallet yet, you can <a rel="noreferrer" target="_blank" href="https://medium.com/spartanprotocol/how-to-connect-metamask-to-bsc-testnet-7d89c111ab2">follow these instructions to get a wallet</a>.  Then please <a rel="noreferrer" target="_blank" href="https://www.opensourcestrategies.com/contact-us/">contact us</a> so we can register your wallet on the network.</p>
+        <p>If you already have a wallet on the Avalanche Fuji Testnet, you can connect to it with Metamask now to login.  If you don't have a wallet yet, you can <a rel="noreferrer" target="_blank" href="https://umbria.network/connect/avalanche-fuji-testnet">follow these instructions to get a wallet</a>.  Then please <a rel="noreferrer" target="_blank" href="https://www.opensourcestrategies.com/contact-us/">contact us</a> so we can register your wallet on the network.</p>
         <p>You can also <Link href="/sign-up">Sign Up</Link> with your email to get an account and try it out.</p>
 
         <p>Or you can start here to get an emissions estimate here, then request an emissions audit based on the result:</p>
