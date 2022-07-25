@@ -496,6 +496,20 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
       }
     }
   });
+
+task("grantAdminRole", "Grants an account the DEFAULT_ADMIN_ROLE for a given contract")
+  .addParam("contract", "")
+  .addParam("newAdmin", "")
+  .setAction(async (taskArgs, hre) => {
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const netEmissionsTokenNetwork = NetEmissionsTokenNetwork.attach(taskArgs.contract);
+
+    await netEmissionsTokenNetwork.grantRole(
+      hre.ethers.constants.HashZero,
+      taskArgs.newAdmin,
+    );
+    console.log(`Executed grantRole() on ${taskArgs.contract}. Done.`);
+  });
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
