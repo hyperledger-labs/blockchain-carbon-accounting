@@ -362,7 +362,13 @@ export const fillProductTokens = async (opts: OPTS_TYPE, sendEmail: boolean) => 
     // get number tokens from database
     const numOfSavedProducts = await db.getProductTokenRepo().countProducts([]);
     // get number tokens from network
-    const numOfIssuedProducts = await getNumOfProductTokens(opts);
+    let numOfIssuedProducts = 0;
+    try {
+        numOfIssuedProducts = await getNumOfProductTokens(opts);
+    } catch (err) {
+        console.error(err);
+        numOfIssuedProducts = 0;
+    }
 
     // get the token details from the network
     if (numOfIssuedProducts > numOfSavedProducts) {
@@ -392,7 +398,13 @@ export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
     const numOfSavedTrackers = await db.getTrackerRepo().countTrackers([]);
     console.log(numOfSavedTrackers)
     // get number tokens from network
-    const numOfIssuedTrackers = await getNumOfTrackers(opts);
+    let numOfIssuedTrackers = 0;
+    try {
+        numOfIssuedTrackers = await getNumOfTrackers(opts);
+    } catch (err) {
+        console.error(err);
+        numOfIssuedTrackers = 0;
+    }
     console.log(numOfIssuedTrackers)
     console.log('num of trackers');
     // get the token details from the network
