@@ -13,6 +13,7 @@ case $MODE in
   local)
         docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3
         docker run --rm --name ws-identity -d --cap-add=IPC_LOCK -p 8700:8700 ghcr.io/brioux/ws-identity
+        docker run --rm --name oracle -d --cap-add=IPC_LOCK -p 3200:3200 ghcr.io/ackintya/oracles
         cd ../typescript_app
         ./cp-blockchain-gateway-lib.sh
 

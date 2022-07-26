@@ -7,6 +7,8 @@ import {
     UtilityLookupItemInterface,
     UtilityLookupItemState,
 } from './utilityLookupItem';
+import { CO2EmissionFactorInterface } from './emissions-calc';
+
 import fetch from 'node-fetch';
 // EmissionsRecordContract : core bushiness logic of emissions record chaincode
 export class EmissionsRecordContract {
@@ -38,17 +40,6 @@ export class EmissionsRecordContract {
         url: string,
         md5: string,
     ): Promise<Uint8Array> {
-        // get emissions factors from eGRID database; convert energy use to emissions factor UOM; calculate energy use
-        // const lookup = await this.utilityLookupState.getUtilityLookupItem(utilityId);
-        // const factor = await this.EmissionsFactorState.getEmissionsFactorByLookupItem(
-        //     lookup.item,
-        //     thruDate,
-        // );
-        // const co2Emission = getCO2EmissionFactor(
-        //     factor.factor,
-        //     Number(energyUseAmount),
-        //     energyUseUom,
-        // );
         const emissionapirequest = {
             uuid: utilityId,
             thruDate,
@@ -64,15 +55,14 @@ export class EmissionsRecordContract {
             body: JSON.stringify(emissionapirequest),
         };
 
-        const co2Emission = await fetch('https://localhost:3002/postgres/uuid', options).then(
-            (data) => {
-                if (!data.ok) {
-                    throw Error(data.status.toString());
-                }
-                return data.json();
-            },
-        );
-
+        async function getCO2EmissionFactor(): Promise<CO2EmissionFactorInterface> {
+            return fetch('https://localhost:3002/postgres/mock', options)
+                .then((response) => response.json())
+                .then((response) => {
+                    return response as CO2EmissionFactorInterface;
+                });
+        }
+        const co2Emission = await getCO2EmissionFactor();
         const factorSource = `eGrid ${co2Emission.year} ${co2Emission.division_type} ${co2Emission.division_id}`;
 
         // create an instance of the emissions record
