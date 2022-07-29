@@ -186,24 +186,26 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             newEmissionsRequest.token_manifest = JSON.stringify(tokenManifest);
           }
 
-          setManifest([]);
+          let mf: KeyValuePair[] = [];
+          setManifest(mf);
           setManifestjson("");
           for (const key in tokenManifest) {
-            manifest.push({key: key, value: tokenManifest[key]});
+            mf.push({key: key, value: tokenManifest[key]});
           }
-          setManifest([...manifest]);
-          setManifestjson(castManifest(manifest));
+          setManifest([...mf]);
+          setManifestjson(castManifest(mf));
         }
 
-        setMetadata([]);
+        let md: KeyValuePair[] = [];
+        setMetadata(md);
         setMetajson("");
         if (newEmissionsRequest.token_metadata) {
           const tokenMetadata = JSON.parse(newEmissionsRequest.token_metadata);
           for (const key in tokenMetadata) {
-                metadata.push({key: key, value: tokenMetadata[key]});
+                md.push({key: key, value: tokenMetadata[key]});
           }
-          setMetadata([...metadata]);
-          setMetajson(castMetadata(metadata));
+          setMetadata([...md]);
+          setMetajson(castManifest(md));
         }
 
         setSelectedPendingEmissions(newEmissionsRequest);
