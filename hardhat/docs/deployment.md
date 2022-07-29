@@ -10,7 +10,7 @@ This project utilizes [hardhat-deploy](https://hardhat.org/plugins/hardhat-deplo
 
 ## Under the hood
 
-The deploy scripts are located in the `deploy/` folder.
+The deploy scripts are located in the `deploy/` folder.  All the contracts referenced in these files will be deployed.  If you do not want to deploy some of the contracts, move them out of the directory before running `npx hardhat deploy`
 
 The contracts are deployed in this order:
 
@@ -94,7 +94,7 @@ Now follow these steps to deploy the contract to the Goerli testnet and update r
 cp .ethereum-config.js.template .ethereum-config.js
 ```
 
-2.  Edit `.ethereum-config.js` and set the private key for your Ethereum deployment address and Infura key.
+2.  Edit `.ethereum-config.ts` and set the private key for your Ethereum deployment address and Infura key.
 
 3. Edit the file `hardhat.config.js` and uncomment these lines (or uncomment the network you want to deploy to):
 
