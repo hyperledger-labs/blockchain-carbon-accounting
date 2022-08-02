@@ -23,7 +23,7 @@ type RequestAuditProps = {
 
 
 type ShipmentMode = 'air' | 'ground' | 'sea' | '';
-type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
+type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | 'other' |''
 
 export type EmissionsFactorForm = {
   issued_from: string,
@@ -550,7 +550,8 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
             {value:'shipment', label:'Shipment' },
             {value:'electricity', label:'Electricity' },
             {value:'natural_gas', label:'Natural Gas' },
-            {value:'emissions_factor', label:'Emissions Factor'}
+            {value:'emissions_factor', label:'Emissions Factor'},
+            {value:'other', label:'Other'}
           ]}
           onChange={_=>{ setValidated(false) }}
           alsoSet={{
