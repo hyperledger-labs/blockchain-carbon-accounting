@@ -9,12 +9,18 @@ import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { addresses } from "@blockchain-carbon-accounting/contracts";
 import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
+import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres/src/models/emissionsRequest";
+import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo, TOKEN_TYPES, Wallet } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
+import { useMutation } from "react-query";
+import { useLocation } from "wouter";
+import AsyncButton from "../components/AsyncButton";
+import { parseDate } from "../components/display-date";
 
 type KeyValuePair = {
   key: string
@@ -28,12 +34,15 @@ type IssueFormProps = {
   limitedMode: boolean,
   signedInWallet?: Wallet,
   trackerId?: number,
+  requestId?: string
 }
 
-const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId }) => {
-
+const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId, requestId}) => {
+  const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
+  const [, setLocation] = useLocation();
+  const [error, setError] = useState("");
 
   // admin address (if contract is in limitedMode)
   const [adminAddress, setAdminAddress] = useState("");
@@ -129,10 +138,116 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     setSubmissionModalShow(true);
   }
 
-  function disableIssueButton(calldata: string, quantity: number|string, address: string) {
+  function disableIssueButton(calldata: string, quantity: number|string, address: string, requestId?: string) {
     let qty = Number(quantity);
+    if (requestId) {
+      return (qty === 0) || (String(address).length === 0)
+    }
     return (calldata.length === 0) || (qty === 0) || (String(address).length === 0)
   }
+
+  const declineQuery = useMutation(async () => {
+    if (selectedPendingEmissions && selectedPendingEmissions.uuid) {
+      try {
+        let result = await declineEmissionsRequest(selectedPendingEmissions.uuid);
+        if (result && result.status === 'success') {
+          setError("");
+          setLocation('/emissionsrequests');
+        } else {
+          setError("Cannot decline emissions request.");
+        }
+      } catch (error) {
+        console.log(error);
+        setError("Cannot decline emissions request.");
+      }
+    } else {
+      setError("Empty current pending emission request.");
+    }
+  });
+
+  const fetchEmissionsRequest = useCallback(async (uuid: string, signedInAddress: string) => {
+    try {
+      let newEmissionsRequest = await getAuditorEmissionsRequest(uuid);
+      if (newEmissionsRequest && newEmissionsRequest.emission_auditor && signedInAddress
+          && newEmissionsRequest.emission_auditor.toLowerCase() === signedInAddress.toLowerCase()) {
+
+        if (newEmissionsRequest.token_manifest) {
+          const tokenManifest = JSON.parse(newEmissionsRequest.token_manifest);
+          let changed = false;
+          if (!tokenManifest.request_uuid) {
+            tokenManifest.request_uuid = newEmissionsRequest.uuid;
+            changed = true;
+          }
+          if (!tokenManifest.node_id) {
+            tokenManifest.node_id = newEmissionsRequest.node_id;
+            changed = true;
+          }
+          if (changed) {
+            newEmissionsRequest.token_manifest = JSON.stringify(tokenManifest);
+          }
+
+          let mf: KeyValuePair[] = [];
+          setManifest(mf);
+          setManifestjson("");
+          for (const key in tokenManifest) {
+            mf.push({key: key, value: tokenManifest[key]});
+          }
+          setManifest([...mf]);
+          setManifestjson(castManifest(mf));
+        }
+
+        let md: KeyValuePair[] = [];
+        setMetadata(md);
+        setMetajson("");
+        if (newEmissionsRequest.token_metadata) {
+          const tokenMetadata = JSON.parse(newEmissionsRequest.token_metadata);
+          for (const key in tokenMetadata) {
+                md.push({key: key, value: tokenMetadata[key]});
+          }
+          setMetadata([...md]);
+          setMetajson(castManifest(md));
+        }
+
+        setSelectedPendingEmissions(newEmissionsRequest);
+        if (newEmissionsRequest.issued_from) {
+          setIssuedFrom(newEmissionsRequest.issued_from);
+        }
+        if (newEmissionsRequest.issued_to) {
+          setAddress(newEmissionsRequest.issued_to);
+        }
+        if (newEmissionsRequest.token_total_emissions) {
+          const qtx = (Number(newEmissionsRequest.token_total_emissions) / 1000).toFixed(3)
+          setQuantity(qtx.toString());
+        }
+
+        if (newEmissionsRequest.token_from_date) {
+          const tokenFromDate = parseDate(newEmissionsRequest.token_from_date);
+          if (tokenFromDate) {
+            setFromDate(tokenFromDate);
+          }
+        }
+        if (newEmissionsRequest.token_thru_date) {
+          const tokenThruDate = parseDate(newEmissionsRequest.token_thru_date);
+          if (tokenThruDate) {
+            setThruDate(tokenThruDate);
+          }
+        }
+
+        if (newEmissionsRequest.token_description) {
+            setDescription(newEmissionsRequest.token_description);
+        }
+
+        setTokenTypeId(3);
+        setError("");
+      } else {
+        console.warn('Wrong emission_auditor ?', newEmissionsRequest, signedInAddress)
+        setError("Wrong emission auditor address.");
+      }
+    } catch (error) {
+      console.log(error);
+      setError("Cannot get emissions request.");
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchTrackerDetails() {
@@ -221,6 +336,15 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     }
   }, [roles]);
 
+  useEffect(() => {
+    const init = async () => {
+      if (provider && requestId && signedInAddress) {
+        await fetchEmissionsRequest(requestId, signedInAddress);
+      }
+    }
+    init();
+  }, [provider, requestId, signedInAddress, fetchEmissionsRequest]);
+
   async function submit() {
     if (!provider) return;
     if (!fromDate) {
@@ -241,6 +365,19 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       result = await issueAndTrack(provider, issuedFrom, address, Number(trackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     }else{
       result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
+      if (requestId) {
+        if (result.toLowerCase().includes("success")) {
+          let resultStatus = await issueEmissionsRequest(requestId);
+          if (resultStatus && resultStatus.status === 'success') {
+            setError("");
+            setLocation('/issuedtokens');
+          } else {
+            setError("Cannot update emissions request status.");
+          }
+        } else {
+          setError("Cannot issue emissions request. " + result.toString());
+        }
+      }
     }
     setResult(result.toString());
   }
@@ -252,6 +389,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
+
+  if (andTrack && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
 
   return (roles.hasAnyRole && provider!==null) ? (
     <>
@@ -274,37 +413,47 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         body={result}
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
-      <h2>
-        Issue tokens
-      </h2>
-      <p>
-        {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null }
-      </p>
 
-      {(andTrack) ?
-        <Form.Group className="mb-3" controlId="trackerIdInput">
-          <Form.Label>TrackerId</Form.Label>
-          <Form.Control
-            type="input"
-            placeholder="set to 0 to issue a new tracker"
-            value={trackerId}
-            //onChange={onTrackerIdChange}
-            disabled
-            onBlur={() => setInitializedTrackerIdInput(true)}
-            style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
-          />
-          <Form.Text className="text-muted">
-            Setting ID to 0 will issue a new tracker.
-          </Form.Text>
-          {/*<Form.Label>Tracker Description</Form.Label>
+      {(requestId) ?
+        <>
+          <h2>Pending Emissions Request</h2>
+          <p className="text-danger">{error}</p>
+        </>
+      :
+      <>
+        <h2>
+          Issue tokens
+        </h2>
+        <p>
+          {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null }
+        </p>
+
+        {(andTrack) ?
+          <Form.Group className="mb-3" controlId="trackerIdInput">
+            <Form.Label>TrackerId</Form.Label>
             <Form.Control
-              as="textarea"
-              placeholder=""
-              value={trackerDescription}
-              onChange={onTrackerDescriptionChange} />*/}
-        </Form.Group>
-      : null}
-      <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered {(andTrack) ? "industry" : "consumers"}.</p>
+              type="input"
+              placeholder="set to 0 to issue a new tracker"
+              value={trackerId}
+              //onChange={onTrackerIdChange}
+              disabled
+              onBlur={() => setInitializedTrackerIdInput(true)}
+              style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
+            />
+            <Form.Text className="text-muted">
+              Setting ID to 0 will issue a new tracker.
+            </Form.Text>
+            {/*<Form.Label>Tracker Description</Form.Label>
+              <Form.Control
+                as="textarea"
+                placeholder=""
+                value={trackerDescription}
+                onChange={onTrackerDescriptionChange} />*/}
+          </Form.Group>
+        : null}
+        <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered {(andTrack) ? "industry" : "consumers"}.</p>
+      </>
+      }
       <Form.Group className="mb-3">
           <Form.Label>
             Issue From Address
@@ -318,6 +467,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                 }}
                 onBlur={() => setInitializedAddressInput(true)}
                 style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
+                value={issuedFrom ? issuedFrom : ''}
                 />
             </InputGroup>
             :<Form.Control
@@ -332,7 +482,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         ?
         <Form.Group className="mb-3">
           <Form.Label>
-            {(andTrack) ? "Issue To Address" : "Issue Tracker To Address" }
+            {(andTrack) ? "Issue Tracker To Address" : "Issue To Address" }
           </Form.Label>
           {(!andTrack || trackerId === 0) ?
             <InputGroup>
@@ -343,6 +493,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                 }}
                 onBlur={() => setInitializedAddressInput(true)}
                 style={(address || !initializedAddressInput) ? {} : inputError}
+                value={address ? address : ''}
                 />
             </InputGroup>
           :
@@ -375,14 +526,22 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
       <Form.Group className="mb-3" controlId="tokenTypeInput">
         <Form.Label>Token Type</Form.Label>
-        <Form.Select onChange={onTokenTypeIdChange}>
-          <option value={0}>{}</option>
-          {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
-          {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
-          {(roles.isAdmin || roles.isAeDealer) && !andTrack ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
-          {(roles.isAdmin || roles.isAeDealer) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
-        </Form.Select>
+
+       {(selectedPendingEmissions && selectedPendingEmissions.uuid) ?
+        <Form.Text className="text-muted">
+          <div>{TOKEN_TYPES[tokenTypeId-1]}</div>
+        </Form.Text>
+       :
+         <Form.Select onChange={onTokenTypeIdChange}>
+           <option value={0}>{}</option>
+           {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
+           {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
+           {(roles.isAdmin || roles.isAeDealer) && !andTrack ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
+           {(roles.isAdmin || roles.isAeDealer) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
+         </Form.Select>
+       }
       </Form.Group>
+
       <Form.Group className="mb-3" controlId="quantityInput">
         <Form.Label>Quantity</Form.Label>
         <Form.Control
@@ -402,12 +561,12 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         <Form.Group as={Col} className="mb-3" controlId="fromDateInput">
           <Form.Label>From date</Form.Label>
           {/* @ts-ignore : some weird thing with the types ... */}
-          <Datetime onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
+          <Datetime value={fromDate} onChange={(moment)=>{setFromDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
         </Form.Group>
         <Form.Group as={Col} className="mb-3" controlId="thruDateInput">
           <Form.Label>Through date</Form.Label>
           {/* @ts-ignore : some weird thing with the types ... */}
-          <Datetime onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
+          <Datetime value={thruDate} onChange={(moment)=>{setThruDate((typeof moment !== 'string') ? moment.toDate() : null)}}/>
         </Form.Group>
       </Row>
       <Form.Group className="mb-3" controlId="descriptionInput">
@@ -544,19 +703,29 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
               Must be a registered dealer
             </Button>
             :
-            <Button
-              variant="success"
-              size="lg"
-              className="w-100"
-              onClick={() => setCreateModalShow(true)}
-              disabled={
-                (calldata.length === 0) ||
-                Number(quantity) === 0 ||
-                tokenTypeId === 3
-              }
-            >
-              Create a DAO proposal token
-            </Button>
+            <>
+            {(selectedPendingEmissions && selectedPendingEmissions.uuid) ?
+              <AsyncButton
+                className="w-100"
+                variant="danger"
+                onClick={()=>{ declineQuery.mutate() }}
+                loading={declineQuery.isLoading}
+              >Decline</AsyncButton> :
+              <Button
+                variant="success"
+                size="lg"
+                className="w-100"
+                onClick={() => setCreateModalShow(true)}
+                disabled={
+                  (calldata.length === 0) ||
+                  Number(quantity) === 0 ||
+                  tokenTypeId === 3
+                }
+              >
+                Create a DAO proposal token
+              </Button>
+            }
+            </>
           }
 
         </Col>
@@ -571,7 +740,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                   size="lg"
                   className="w-100"
                   onClick={handleSubmit}
-                  disabled={disableIssueButton(calldata, quantity, address)}
+                  disabled={disableIssueButton(calldata, quantity, address, requestId)}
                 >
                   Issue
                 </Button>

@@ -18,7 +18,6 @@ const SignIn = lazy(() => import("./pages/sign-in"));
 const IssuedTokens = lazy(() => import("./pages/issued-tokens"));
 const IssuedTrackers = lazy(() => import("./pages/issued-trackers"));
 const EmissionsRequests = lazy(() => import("./pages/emissions-requests"));
-const PendingEmissions = lazy(() => import("./pages/pending-emissions"));
 const IssueForm = lazy(() => import("./pages/issue-form"));
 const TransferForm = lazy(() => import("./pages/transfer-form"));
 const RetireForm = lazy(() => import("./pages/retire-form"));
@@ -137,8 +136,8 @@ const App:FC = () => {
                       <Route path="/emissionsrequests">
                         <EmissionsRequests provider={provider} roles={roles} signedInAddress={signedInAddress} />
                       </Route>
-                      <Route path="/pendingemissions/:uuid">{(params)=>
-                        <PendingEmissions provider={provider} roles={roles} signedInAddress={signedInAddress} uuid={params.uuid} signedInWallet={signedInWallet}/>
+                      <Route path="/pendingemissions/:requestId?">{(params)=>
+                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet} requestId={params.requestId} />
                       }</Route>
                       <Route path="/transfer">
                         <TransferForm provider={provider} roles={roles} />

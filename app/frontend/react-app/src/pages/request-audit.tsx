@@ -23,7 +23,7 @@ type RequestAuditProps = {
 
 
 type ShipmentMode = 'air' | 'ground' | 'sea' | '';
-type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | ''
+type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | 'other' |''
 
 export type EmissionsFactorForm = {
   issued_from: string,
@@ -141,6 +141,21 @@ function uomIsDistance(uom: string) {
   if (!uom) return false
   const luom = uom.toLowerCase()
   return (luom === 'km' || luom === 'miles' || luom === 'mi')
+}
+
+function getActivitiesTypes(signedInAddress?: string) {
+  const atypes = [
+            {value:'flight', label:'Flight'},
+            {value:'shipment', label:'Shipment' },
+            {value:'electricity', label:'Electricity' },
+            {value:'natural_gas', label:'Natural Gas' },
+            {value:'emissions_factor', label:'Emissions Factor'}
+          ]
+
+  if (signedInAddress) {
+    atypes.push({value:'other', label:'Other'});
+  }
+  return atypes;
 }
 
 const EmissionsFactorUomInputs: FC<{
@@ -545,13 +560,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
           </Form.Group>
         </Row>
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
-          values={[
-            {value:'flight', label:'Flight'},
-            {value:'shipment', label:'Shipment' },
-            {value:'electricity', label:'Electricity' },
-            {value:'natural_gas', label:'Natural Gas' },
-            {value:'emissions_factor', label:'Emissions Factor'}
-          ]}
+          values={getActivitiesTypes(signedInAddress)}
           onChange={_=>{ setValidated(false) }}
           alsoSet={{
             'electricity': {activity_uom: 'kwh'},

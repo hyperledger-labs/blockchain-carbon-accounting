@@ -14,7 +14,12 @@ import { extname, resolve } from "path";
 import {
     Activity,
     ActivityResult,
-    Distance, ElectricityActivity, Emissions, EmissionsFactorActivity, FlightActivity, is_electricity_activity, is_emissions_factor_activity, is_flight_activity, is_natural_gas_activity, is_shipment_activity, MetadataType, NaturalGasActivity, ProcessedActivity,
+    Distance, ElectricityActivity, Emissions,
+    EmissionsFactorActivity, FlightActivity,
+    is_electricity_activity, is_emissions_factor_activity,
+    is_flight_activity, is_natural_gas_activity,
+    is_other_activity, is_shipment_activity, MetadataType,
+    NaturalGasActivity, OtherActivity, ProcessedActivity,
     ShipmentActivity, ShippingMode, ValueAndUnit
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
@@ -569,6 +574,23 @@ export async function process_emissions_factor(
   return results;
 }
 
+export async function process_other(
+  a: OtherActivity
+): Promise<ActivityResult> {
+
+  const emissions: Emissions = {
+    amount: {
+      value: 0.00,
+      unit: "kgCO2e"
+    }
+  }
+  const results: {
+    emissions: Emissions,
+  } = { emissions };
+
+  return results;
+}
+
 export async function process_activity(activity: Activity) {
   // all activity must have an ID
   if (!activity.id) {
@@ -584,6 +606,8 @@ export async function process_activity(activity: Activity) {
     return await process_natural_gas(activity);
   } else if (is_electricity_activity(activity)) {
     return await process_electricity(activity);
+  } else if (is_other_activity(activity)) {
+    return await process_other(activity);
   } else {
     throw new Error('activity not recognized');
   }
