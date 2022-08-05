@@ -510,6 +510,18 @@ task("grantAdminRole", "Grants an account the DEFAULT_ADMIN_ROLE for a given con
     );
     console.log(`Executed grantRole() on ${taskArgs.contract}. Done.`);
   });
+
+  task("roles", "Prints the keccak256 hashed roles for the NetEmissionsTokenNetwork contract")
+  .setAction(async (taskArgs, hre) => {
+    console.log(`DEFAULT_ADMIN_ROLE: ${hre.ethers.constants.HashZero}`);
+    console.log(`REGISTERED_DEALER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_DEALER"))}`);
+    console.log(`REGISTERED_REC_DEALER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_REC_DEALER"))}`);
+    console.log(`REGISTERED_OFFSET_DEALER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_OFFSET_DEALER"))}`);
+    console.log(`REGISTERED_EMISSIONS_AUDITOR: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_EMISSIONS_AUDITOR"))}`);
+    console.log(`REGISTERED_CONSUMER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_CONSUMER"))}`);
+    console.log(`REGISTERED_INDUSTRY: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_INDUSTRY"))}`);
+  });
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
