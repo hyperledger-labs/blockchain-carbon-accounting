@@ -390,6 +390,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
 
+  if (andTrack && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
+
   return (roles.hasAnyRole && provider!==null) ? (
     <>
 
