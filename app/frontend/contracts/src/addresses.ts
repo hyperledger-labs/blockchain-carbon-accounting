@@ -44,6 +44,9 @@ const networksAndAddresses = {
     tokenNetwork: {
       address: "0xa94ec9484BfC9aB8d3fD80eB2735f132d257a135", // npx hardhat deploy --network ovm_localhost
     },
+    carbonTracker: {
+      address: "",
+    },
     dao: {
       governor: {
         address: "0x251b0aEbbe9D3e5281a699f45517D80Dd938eDa0", // npx hardhat deploy --network ovm_localhost
@@ -58,6 +61,9 @@ const networksAndAddresses = {
     network: "Arbitrum Kovan",
     tokenNetwork: {
       address: "0x0D4F2bbE6d6A035769A97C72BD8bBeBE2338C500", // deployed 2021-03-25 on arbitrum kovan v4
+    },
+    carbonTracker: {
+      address: "",
     },
     dao: {
       governor: {
@@ -74,6 +80,9 @@ const networksAndAddresses = {
     tokenNetwork: {
       address: "0xf7B361Fe2dE41Cd092D2c777D2136CB8E3C2B146", // deployed 2021-04-06
     },
+    carbonTracker: {
+      address: "",
+    },
     dao: {
       governor: {
         address: "0x7137EB87725D61d69e6543E7b498bC4780AF1608", // deployed 2021-04-06
@@ -88,6 +97,9 @@ const networksAndAddresses = {
     network: "Ropsten",
     tokenNetwork: {
       address: "0xDf582cE97A933f6987b19838985874E4434207A2", // deployed 2021-04-06
+    },
+    carbonTracker: {
+      address: "",
     },
     dao: {
       governor: {
