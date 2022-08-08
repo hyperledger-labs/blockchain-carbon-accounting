@@ -139,27 +139,6 @@ To check the total supply, use
 npx hardhat getTotalSupply --network localhost --contract <DAO Token deployed address>
 ```
 
-
-## Upgrading CLM8 contract implementation
-
-A Hardhat task `upgradeClm8Contract` is provided to upgrade the contract with new features while keeping the same address, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades) to create separate contracts for the implementation and the contract you call (like an API and its implementation.)  When the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.
-
-To test upgrading contracts locally:
-
-1. Deploy the first set of contracts (including `NetEmissionsTokenNetwork.sol`) with `npx hardhat node`.
-
-2. Create some tokens on the contract by connecting through the React interface.
-
-3. Run the command (after ensuring the `deployments/localhost` directory has your current implementation) to upgrade to `NetEmissionsTokenNetworkV2.sol`:
-
-```bash
-npx hardhat upgradeClm8Contract --network localhost
-```
-
-If successful, the script will return both the old implementation contract address and the new one, and the contract address to be called, which remains the same.  The state of the current variables will remain the same. The old implementation will automatically be made unusable, so there is no need to self-destruct it.
-
-Upgrading contracts on a testnet is similar -- just make sure that the network and Ethereum config is in `hardhat.config.js` and that it isn't commented out. If upgrading on an network via an Infura URL (like Goerli), you'll need an Infura key too. See more information on using the config files at the top of this document.
-
 ## Upgrading Governor.sol and Timelock.sol without upgrading DAOToken.sol
 
 In the case that new changes are made to the DAO (Governor.sol and/or its Timelock.sol) and we want to deploy a new version of it to a production environment but we also want to keep the same DAOToken.sol contract, we can utilize the hardhat-deploy plugin's tags/dependencies features to easily deploy some contracts individually while reusing others. To upgrade just the DAO:

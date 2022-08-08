@@ -356,33 +356,6 @@ task("addToSupply", "Add a given amount to the total supply of DAO tokens")
     console.log("Total supply is (dCLM8): " + supply);
   });
 
-// Task to upgrade NetEmissionsTokenNetwork contract
-task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
-  .setAction(async (_, hre) => {
-    const {deployer} = await hre.getNamedAccounts();
-
-    const {deploy, get} = hre.deployments;
-
-    // output current implementation address
-    const current = await get("NetEmissionsTokenNetwork");
-    console.log("Current NetEmissionsTokenNetwork (to be overwritten):", current.implementation);
-
-    // deploy V2
-    const netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
-      from: deployer,
-      proxy: {
-        owner: deployer,
-        proxyContract: "OptimizedTransparentProxy",
-      },
-      contract: "NetEmissionsTokenNetworkV2",
-      args: [ deployer ],
-    });
-
-    // output new implementation address
-    console.log("New NetEmissionsTokenNetwork implementation deployed to:", netEmissionsTokenNetwork.implementation);
-    console.log(`The same address ${netEmissionsTokenNetwork.address} can be used to interact with the contract.`);
-  });
-
 task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live DAO contract")
   .addParam("timelock", "")
   .addParam("governor", "")

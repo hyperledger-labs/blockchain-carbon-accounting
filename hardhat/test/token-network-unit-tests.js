@@ -842,37 +842,4 @@ describe("Net Emissions Token Network - Unit tests", function() {
 
   });
 
-  it("should allow upgrading by admin", async function() {
-    const { deployer } = await getNamedAccounts();
-
-    const NetEmissionsTokenNetwork = await ethers.getContractFactory("NetEmissionsTokenNetwork");
-    const NetEmissionsTokenNetworkV2 = await ethers.getContractFactory("NetEmissionsTokenNetworkV2");
-
-    // deploy first contract
-    const instance = await upgrades.deployProxy(NetEmissionsTokenNetwork, [deployer]);
-
-    await instance.getNumOfUniqueTokens().then((response) => expect(response).to.equal(0));
-
-    // issue token on first contract
-    await instance.connect(await ethers.getSigner(deployer)).issue(
-      deployer,
-      deployer,
-      allTokenTypeId[0],
-      quantity,
-      fromDate,
-      thruDate,
-      metadata,
-      manifest,
-      description
-    );
-
-    await instance.getNumOfUniqueTokens().then((response) => expect(response).to.equal(1));
-
-    // deploy second contract and check
-    const upgraded = await upgrades.upgradeProxy(instance.address, NetEmissionsTokenNetworkV2);
-    expect(upgraded);
-
-    await upgraded.getNumOfUniqueTokens().then((response) => expect(response).to.equal(1));
-  });
-
 });
