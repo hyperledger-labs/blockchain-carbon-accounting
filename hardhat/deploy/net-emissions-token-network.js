@@ -11,14 +11,9 @@ module.exports = async ({
 
   let netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
     from: deployer,
-    proxy: {
-      owner: deployer,
-      proxyContract: "OptimizedTransparentProxy",
-      execute: {
-        methodName: 'initialize',
-        args: [ deployer ]
-      }
-    },
+    args: [
+      deployer,
+    ]
   });
 
   console.log("NetEmissionsTokenNetwork deployed to:", netEmissionsTokenNetwork.address);
