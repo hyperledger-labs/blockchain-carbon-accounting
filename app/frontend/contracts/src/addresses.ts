@@ -26,6 +26,9 @@ const networksAndAddresses = {
     tokenNetwork: {
       address: "0x45Cd99F9C3b657D092c5BA81C8c39C99a81DA4C4",   
     },
+    carbonTracker: {
+      address: "",
+    },
     dao: {
       governor: {
         address: "0x9F4590684d1DD950dF65Dc71D39f782bc3af317A", 
