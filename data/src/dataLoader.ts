@@ -1,4 +1,5 @@
-import { importUtilityIdentifiers, loadEmissionsFactors, importOilAndGasAssets} from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
+import { importUtilityIdentifiers, loadEmissionsFactors } from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
+import { importOilAndGasAssets, importFlareData } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/import"
 import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -113,9 +114,9 @@ const progressBar = new SingleBar(
     // eslint-disable-next-line
     (yargs: any) => {
       yargs
-        .positional("file", {
+        /*.positional("file", {
           describe: "CSV file to load from",
-        })
+        })*/
         .option('format', {
           type: 'string',
           description: 'Data format to load',
@@ -125,10 +126,66 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_og_assets ...")
       const db = await init(parseCommonYargsOptions(argv))
-      await importOilAndGasAssets(argv, progressBar, db.getOilAndGasAssetRepo())
-      //const count = await db.getEmissionsFactorRepo().countAllFactors()
-      //console.log(`=== Done, we now have ${count} EmissionFactors in the DB`)
-      console.log(`=== Done, we now have o&g assets in the DB`)
+      await importOilAndGasAssets(argv, progressBar, db)
+    }
+  )
+  .command(
+    "load_product_data <file> [sheet]",
+    "load data from xls, xlsx, or csv file",
+    // eslint-disable-next-line
+    (yargs: any) => {
+      yargs
+        .positional("file", {
+          describe: "XLS file to load from",
+        })
+        .positional("sheet", {
+          describe: "Name of the worksheet to load from",
+          default: "Data 1",
+        })
+        .option('format', {
+          type: 'string',
+          description: 'Data format to load',
+        })
+        .option('year', {
+          type: 'string',
+          description: 'Year of data to load',
+        })
+        .option('source', {
+          type: 'string',
+          description: 'Source of product data',
+        })
+        .option('name', {
+          type: 'string',
+          description: 'Product name',
+        })
+        .option('type', {
+          type: 'string',
+          description: 'Product type',
+        })
+        .option('unit', {
+          type: 'string',
+          description: 'unit of data being loaded',
+        })
+        .option('skip_rows', {
+          type: 'string',
+          description: 'Number of rows to skip for header',
+        })
+        .option('cellDates', {
+          type: 'boolean',
+          description: 'Identify cell dates',
+        })        
+        .option('raw', {
+          type: 'boolean',
+          description: 'Use raw spreadsheet data',
+        });
+    },
+    // eslint-disable-next-line
+    async (argv: any) => {
+      console.log("=== Starting load_product_data ...")
+      const db = await init(parseCommonYargsOptions(argv))
+      await importFlareData(argv, progressBar, db.getProductRepo())
+      const count = await db.getProductRepo().countAllProducts();
+      console.log(`=== Done, we now have ${count} product entries in the DB`)
       await db.close()
     }
   )

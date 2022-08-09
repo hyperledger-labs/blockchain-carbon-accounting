@@ -6,6 +6,7 @@ import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
 import { OilAndGasAssetRepo } from "./repositories/oilAndGasAsset.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { TrackerRepo } from "./repositories/tracker.repo"
+import { ProductRepo } from "./repositories/product.repo"
 import { ProductTokenRepo } from "./repositories/productToken.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
@@ -68,6 +69,10 @@ export class PostgresDBService {
 
   public getOilAndGasAssetRepo() {
     return new OilAndGasAssetRepo(this._db)
+  }
+
+  public getProductRepo() {
+    return new ProductRepo(this._db)
   }
 
   public getTokenRepo() {

@@ -1,3 +1,6 @@
+import { SingleBar } from "cli-progress";
+
+
 export const EMISSIONS_FACTOR_TYPE = "EMISSIONS_ELECTRICITY";
 
 export interface ActivityInterface {
@@ -20,4 +23,3 @@ export const getYearFromDate = (date: string): number => {
   }
   return time.getFullYear();
 };
-
