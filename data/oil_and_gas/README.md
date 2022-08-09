@@ -18,6 +18,10 @@ sh loadOGdata.sh
 *Can be downloaded from google drive*
 *This file exceed 1.5 GB and will take time to write to postrges db*
 
+### [CATF U.S. benchmarking reoprt](https://cdn.catf.us/wp-content/uploads/2022/07/14094726/oilandgas_benchmarkingreport2022.pdf)
+
+- [Raw data files](https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx)
+
 
 ### [EIA Crude Oil](https://www.eia.gov/dnav/pet/pet_crd_crpdn_adc_mbbl_m.htm)
 
@@ -65,27 +69,23 @@ sh loadOGdata.sh
 - [Basin Stats](https://raw.githubusercontent.com/flaringmonitor/viirs-flare-data/main/processed/flaring_monitor_basin_stats.csv)
 
 
-# Load scripts
-## HILF oil and natural gas assets
+# Exmaple dateLoader scripts
+
+See `../loadOGdata.sh` for all dataLoader scripts for oil and gas data.
+
+## HIFLD oil and gas assets
 ```
 npm run dataLoader load_og_assets "./oil_and_gas/files/Oil_and_Natural_Gas_Wells.geojson" -- --format US_asset_data --source "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore"
+```
+
+## CATF U.S. Benchmarking
+```
+npm run dataLoader load_product_data "./oil_and_gas/files/2022-og-benchmarking-report-data.xlsx" "Company_basin" -- --format Benchmark --source "https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx" --skip_rows 7
 ```
 
 ## VIIRS flaring data processed 
 ```
 npm run dataLoader load_product_data "./oil_and_gas/files/VIIRS_Global_flaring_d.7_slope_0.029353_2021_web.xlsx" "flare upstream" -- --format VIIRS --year 2021 --source "https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2021_web.xlsx"
-```
-```
-npm run dataLoader load_product_data "./oil_and_gas/files/VIIRS_Global_flaring_d.7_slope_0.029353_2020_web_v1.xlsx" "flare upstream" -- --format VIIRS --year 2020 --source "https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2020_web_v1.xlsx"
-```
-```
-npm run dataLoader load_product_data "./oil_and_gas/files/VIIRS_Global_flaring_d.7_slope_0.029353_2019_web_v20201114.xlsx" "flare upstream" -- --format VIIRS --year 2019 --source "https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2019_web_v20201114.xlsx"
-```
-```
-npm run dataLoader load_product_data "./oil_and_gas/files/VIIRS_Global_flaring_d.7_slope_0.029353_2018_web.xlsx" "flare upstream" -- --format VIIRS --year 2018 --source "https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2018_web.xlsx"
-```
-```
-npm run dataLoader load_product_data "./oil_and_gas/files/VIIRS_Global_flaring_d.7_slope_0.029353_2017_web_v1.xlsx" "flare upstream" -- --format VIIRS --year 2017 --source "https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2017_web_v1.xlsx"
 ```
 
 ## EIA Crude Oil

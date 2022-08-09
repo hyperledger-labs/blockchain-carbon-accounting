@@ -109,15 +109,19 @@ const progressBar = new SingleBar(
     }
   )
   .command(
-    "load_og_assets <file> [sheet]",
-    "load data from csv file",
+    "load_og_assets <file>",
+    "load data from geojson file",
     // eslint-disable-next-line
     (yargs: any) => {
       yargs
-        /*.positional("file", {
+        .positional("file", {
           describe: "CSV file to load from",
-        })*/
+        })
         .option('format', {
+          type: 'string',
+          description: 'Data format to load',
+        })
+        .option('source', {
           type: 'string',
           description: 'Data format to load',
         })

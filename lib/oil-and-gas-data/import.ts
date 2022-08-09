@@ -96,22 +96,25 @@ export const importFlareData = async (opts: any,
       //if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // get annual generation and emissions
-      const country = row["Country"].toString();
+      const country = row["Country"]?.toString();
+      let det_freq = row["Detection frequency "+opts.year] | row["Detection freq."];
+      let avg_temp = row["Avg. temp., K"] | row["Avg. temp"];
+      let clear_obs = row["Clear Obs."] | row["Clear obs. "] | row["Clear obs "+opts.year] | row["Clear_obs_"+opts.year];
       const details = JSON.stringify({
-        "detectionFreq": row["Detection frequency "+opts.year].toString(),
-        "avgTempK": row["Avg. temp., K"].toString(),
-        "ellipticity": row["Ellipticity"].toString(),
+        "detectionFreq": det_freq?.toString(),
+        "avgTempK": avg_temp?.toString(),
+        "ellipticity": row["Ellipticity"]?.toString(),
         "sector": row["Type"].toString(),
-        "clearObs": row["Clear Obs."].toString()
+        "clearObs": clear_obs?.toString()
       });
-
+      let amount = row["BCM "+opts.year] | row["BCM_"+opts.year]
       // generate a unique for the row
       const d: ProductInterface = {
         class: PRODUCT_CLASS_IDENTIFER,
         type: "Flaring",
         uuid: uuidv4(),
         name: "methane",
-        amount: row["BCM "+opts.year].toString(),
+        amount: amount?.toString(),
         unit: "bcm",
         year: opts.year,
         country: country,
@@ -263,6 +266,85 @@ export const importFlareData = async (opts: any,
         } 
       }else{
         loader.incIgnored('No row identifier'); continue
+      }
+    }
+    loader.done();
+    return;
+  }else if(opts.format === "Benchmark"){
+
+    const data = parseWorksheet(opts);
+    
+    let cols:string[] = ["Gas (MBOE)",  "Oil (MBOE)", 
+      "CO2", "CH4", "N2O", "GHG", 
+      "NGSI Methane Intensity",  "GHG Emissions Intensity", 
+      "Process & Equipment Vented", "Process & Equipment Flared",  
+      "Fugitive",  "Other Combustion",  "Associated Gas Vented/Flared"]; 
+    let loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length*cols.length);
+    for (const row of data) {
+      
+      if (!row) { loader.incIgnored('Undefined row'); continue; }
+
+      opts.verbose && console.log("-- Prepare to insert from ", row);
+      let d: ProductInterface = {
+        uuid: uuidv4(),
+        class: PRODUCT_CLASS_IDENTIFER,
+        source: opts.source || opts.file,
+        description: "CATF U.S. O&G Benchmarking",
+        type: opts.type,
+        name: opts.name,
+        unit: opts.unit,
+        amount: '0',
+        year: row["Data Year"],
+        division_type: "Company",
+        division_name: row["Company"],
+        country: "USA",
+      };
+      if(row["Basin"]){
+        d["sub_division_name"]="basin";
+        d["sub_division_type"]=row["Basin"];
+      }
+      for (const col of cols){
+        
+        d["amount"] = row[col];
+        if (!row[col]) { loader.incIgnored('Undefined col'); continue; }
+        switch(col) {
+          case "CO2": case "CH4": case "N2O": case "GHG" :
+            d["type"] = "Emissions";
+            d["unit"] = "MT";
+            d["name"] = col;
+            d["metadata"] = JSON.stringify({
+              "GWP": "IPCC AR6 100-year"
+            });
+            break;
+          case "Gas (MBOE)": case "Oil (MBOE)":
+            d["type"] = "Production";
+            d["unit"] = "MBOE";
+            d["name"] = col.slice(0,3);
+            break;
+          case "NGSI Methane Intensity":
+            d["type"] = "Performance metric";
+            d["name"] = col;
+            d["unit"] = "%";
+            break;
+          case "GHG Emissions Intensity":
+            d["type"] = "Performance metric";
+            d["unit"] = "ton CO2e/BOE";
+            d["name"] = col;
+            break;
+          case "Process & Equipment Vented": case "Process & Equipment Flared": case "Fugitive": case "Other Combustion": case "Associated Gas Vented/Flared":
+            d["type"] = "Emissions";
+            d["unit"] = "MT CO2e";
+            d["name"] = col;
+            d["metadata"] = JSON.stringify({
+              "GWP": "IPCC AR6 100-year"
+            });
+            break;
+          default:
+        }
+        await db.putProduct(d); 
+        d["uuid"] = uuidv4();
+        d["metadata"] = undefined;
+        loader.incLoaded();
       }
     }
     loader.done();
