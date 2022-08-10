@@ -495,6 +495,40 @@ task("grantAdminRole", "Grants an account the DEFAULT_ADMIN_ROLE for a given con
     console.log(`REGISTERED_INDUSTRY: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_INDUSTRY"))}`);
   });
 
+  task("verify-all", "Verifies all contacts for a given network on Etherscan")
+  .setAction(async (taskArgs, hre) => {
+    const { get } = hre.deployments;
+    const { deployer } = await hre.getNamedAccounts();
+
+    const daoToken = await get("DAOToken");
+    const timelock = await get("Timelock");
+    const governor = await get("Governor");
+    const netEmissionsTokenNetwork = await get("NetEmissionsTokenNetwork");
+
+    await hre.run("etherscan-verify", [
+      daoToken.address,
+      deployer
+    ]);
+    
+    await hre.run("etherscan-verify", [
+      timelock.address,
+      deployer,
+      172800
+    ]);
+
+    await hre.run("etherscan-verify", [
+      governor.address,
+      timelock.address,
+      daoToken.address,
+      deployer
+    ]);
+
+    await hre.run("etherscan-verify", [
+      netEmissionsTokenNetwork.address,
+      deployer
+    ]);
+  });
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
