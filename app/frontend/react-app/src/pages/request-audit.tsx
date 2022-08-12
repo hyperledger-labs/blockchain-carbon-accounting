@@ -597,13 +597,13 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
                 </Col>
               </Row>
               <h4>From</h4>
-              {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+              {process.env.REACT_APP_GOOGLE_MAPS_API_KEY ?
                 <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required disabled={!!topSuccess} showValidation={validated}/>
               : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="From Address" required disabled={!!topSuccess} />
               }
 
               <h4>Destination</h4>
-              {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+              {process.env.REACT_APP_GOOGLE_MAPS_API_KEY ?
                 <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required disabled={!!topSuccess} showValidation={validated}/>
               : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required disabled={!!topSuccess} />
               }
@@ -622,13 +622,13 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
             ]}/>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required disabled={!!topSuccess}/>
             <h4>From</h4>
-            {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+            {process.env.REACT_APP_GOOGLE_MAPS_API_KEY ?
               <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required disabled={!!topSuccess} showValidation={validated}/>
             : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="From Airport" required disabled={!!topSuccess} />
             }
 
             <h4>Destination</h4>
-            {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+            {process.env.REACT_APP_GOOGLE_MAPS_API_KEY ?
               <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required disabled={!!topSuccess} showValidation={validated}/>
             : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Airport" required disabled={!!topSuccess} />
             }
