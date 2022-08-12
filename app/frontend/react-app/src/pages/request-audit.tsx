@@ -143,6 +143,21 @@ function uomIsDistance(uom: string) {
   return (luom === 'km' || luom === 'miles' || luom === 'mi')
 }
 
+function getActivitiesTypes(signedInAddress?: string) {
+  const atypes = [
+            {value:'flight', label:'Flight'},
+            {value:'shipment', label:'Shipment' },
+            {value:'electricity', label:'Electricity' },
+            {value:'natural_gas', label:'Natural Gas' },
+            {value:'emissions_factor', label:'Emissions Factor'}
+          ]
+
+  if (signedInAddress) {
+    atypes.push({value:'other', label:'Other'});
+  }
+  return atypes;
+}
+
 const EmissionsFactorUomInputs: FC<{
   emissionsFactor: EmissionsFactorInterface,
   setForm: React.Dispatch<React.SetStateAction<EmissionsFactorForm>>,
@@ -545,14 +560,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
           </Form.Group>
         </Row>
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="activity_type" label="Activity Type" disabled={!!topSuccess}
-          values={[
-            {value:'flight', label:'Flight'},
-            {value:'shipment', label:'Shipment' },
-            {value:'electricity', label:'Electricity' },
-            {value:'natural_gas', label:'Natural Gas' },
-            {value:'emissions_factor', label:'Emissions Factor'},
-            {value:'other', label:'Other'}
-          ]}
+          values={getActivitiesTypes(signedInAddress)}
           onChange={_=>{ setValidated(false) }}
           alsoSet={{
             'electricity': {activity_uom: 'kwh'},
@@ -589,9 +597,16 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
                 </Col>
               </Row>
               <h4>From</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required disabled={!!topSuccess} showValidation={validated}/>
+              {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+                <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors}  field="from_address" label="From Address" required disabled={!!topSuccess} showValidation={validated}/>
+              : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="From Address" required disabled={!!topSuccess} />
+              }
+
               <h4>Destination</h4>
-              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required disabled={!!topSuccess} showValidation={validated}/>
+              {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+                <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required disabled={!!topSuccess} showValidation={validated}/>
+              : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Address" required disabled={!!topSuccess} />
+              }
               </>}
             </>}
 
@@ -607,9 +622,17 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
             ]}/>
             <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="num_passengers" type="number" min={1} label="Number of Passengers" required disabled={!!topSuccess}/>
             <h4>From</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required disabled={!!topSuccess} showValidation={validated}/>
+            {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="from_address" label="From Airport" required disabled={!!topSuccess} showValidation={validated}/>
+            : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="from_address" label="From Airport" required disabled={!!topSuccess} />
+            }
+
             <h4>Destination</h4>
-            <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required disabled={!!topSuccess} showValidation={validated}/>
+            {process.env.REACT_APP_GOOGLE_MAPS_API_KEY !== '' ?
+              <FormAddressRow form={emForm} setForm={setEmForm} errors={formErrors} types={['airport']} field="destination_address" label="Destination Airport" required disabled={!!topSuccess} showValidation={validated}/>
+            : <FormInputRow form={emForm} setForm={setEmForm} errors={formErrors} field="destination_address" label="Destination Airport" required disabled={!!topSuccess} />
+            }
+
             </>}
 
           {emForm.activity_type === 'electricity' && <>
@@ -719,7 +742,11 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
           {topSuccess ? <>
             <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
-              <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
+
+              {emForm.activity_type !== 'other' ?
+                <div>Calculated emissions: {topSuccess.emissions?.value?.toFixed(3)} {topSuccess.emissions?.unit}{topSuccess.emissions?.unit.endsWith('CO2e')?'':'CO2e'}</div>
+              :null}
+
             </SuccessAlert>
             {!signedInAddress && <Link href="/sign-up" onClick={()=>{localStorage.setItem('fromAudit', 'true')}}><Button className="w-100" size="lg" variant="primary">Sign Up to Request to Audit</Button></Link>}
             </> :

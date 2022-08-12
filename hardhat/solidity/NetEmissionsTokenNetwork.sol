@@ -2,23 +2,18 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./CarbonTracker.sol";
 
-contract NetEmissionsTokenNetwork is
-    Initializable,
-    ERC1155Upgradeable,
-    AccessControlUpgradeable
-{
-    using SafeMathUpgradeable for uint256;
-    using CountersUpgradeable for CountersUpgradeable.Counter;
-    using ECDSAUpgradeable for bytes32;
-    using ECDSAUpgradeable for address;
+contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+    using ECDSA for bytes32;
+    using ECDSA for address;
 
     bool public limitedMode; // disables some features like arbitrary token transfers and issuing without proposals
     address private timelock; // DAO contract that executes proposals to issue tokens after a successful vote
@@ -71,7 +66,7 @@ contract NetEmissionsTokenNetwork is
     }
 
     // Counts number of unique token IDs (auto-incrementing)
-    CountersUpgradeable.Counter private _numOfUniqueTokens;
+    Counters.Counter private _numOfUniqueTokens;
 
     // Token metadata and retired balances
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
@@ -108,10 +103,7 @@ contract NetEmissionsTokenNetwork is
     event RegisteredIndustry(address indexed account);
     event UnregisteredIndustry(address indexed account);
 
-    // Replaces constructor in OpenZeppelin Upgrades
-    function initialize(address _admin) public initializer {
-        __ERC1155_init("");
-
+    constructor(address _admin) ERC1155("") {
         // Allow dealers to register consumers
         _setRoleAdmin(REGISTERED_CONSUMER, REGISTERED_DEALER);
 
@@ -257,11 +249,11 @@ contract NetEmissionsTokenNetwork is
         public
         view
         virtual
-        override(ERC1155Upgradeable, AccessControlUpgradeable)
+        override(ERC1155, AccessControl)
         returns (bool)
     {
         return
-            interfaceId == type(IAccessControlUpgradeable).interfaceId ||
+            interfaceId == type(IAccessControl).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
