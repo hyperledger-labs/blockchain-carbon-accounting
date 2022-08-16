@@ -39,7 +39,7 @@ NetEmissionsTokenNetwork deployed to: 0xE8854ec567b3762046d8f773547f373e6A1A620A
 Once it's deployed, grant the admin role to the Gnosis Safe address:
 ```
 $ npx hardhat grantAdminRole --network goerli  --contract  0xE8854ec567b3762046d8f773547f373e6A1A620A --new-admin 0x1dF589cfb715C96236234e65C6a929094896d37C
-Executed grantRole() on 0x45Cd99F9C3b657D092c5BA81C8c39C99a81DA4C4
+Executed grantRole() on 0xE8854ec567b3762046d8f773547f373e6A1A620A. Done.
 ```
 
 The Gnosis Safe is now an admin of your contract, but so is the original deploying account.  So while the Gnosis Safe could manage your contract if you lost your original private key, someone who hacks into that key would also be able to take over your contract.  To prevent this from happening, you'll need to remove the original private key as the admin.
