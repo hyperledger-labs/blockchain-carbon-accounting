@@ -43,11 +43,31 @@ function get_address_string(address: Address): string {
   }
 }
 
-export async function calc_ground_distance(origin: Address, dest: Address): Promise<Distance> {
+async function get_random_distance(origin: string, dest: string, mode: ShippingMode): Promise<Distance> {
+  const val = Math.floor(Math.random() * 2500) + 100;
+  const res: Distance = {
+    origin: {
+      address: origin,
+    },
+    destination: {
+      address: dest,
+    },
+    value: val,
+    unit: 'km',
+    source: 'random',
+    mode
+  };
+  return  res;
+}
 
+export async function calc_ground_distance(origin: Address, dest: Address): Promise<Distance> {
   const gclient = get_gclient();
   const o = get_address_string(origin);
   const d = get_address_string(dest);
+
+  if (!process.env.GOOGLE_KEY) {
+    return get_random_distance(o, d, 'ground');
+  }
 
   return new Promise((resolve, reject) => {
     gclient.distancematrix({
@@ -77,6 +97,7 @@ export async function calc_ground_distance(origin: Address, dest: Address): Prom
         },
         value: dist_km,
         unit: 'km',
+        source: 'calculated',
         mode: 'ground'
       };
 
@@ -89,10 +110,13 @@ export async function calc_ground_distance(origin: Address, dest: Address): Prom
 }
 
 export async function calc_direct_distance(origin: Address, dest: Address, mode: ShippingMode): Promise<Distance> {
-
   const gclient = get_gclient();
   const o = get_address_string(origin);
   const d = get_address_string(dest);
+
+  if (!process.env.GOOGLE_KEY) {
+    return get_random_distance(o, d, mode);
+  }
 
   return new Promise((resolve, reject) => {
     gclient.geocode({
@@ -126,6 +150,7 @@ export async function calc_direct_distance(origin: Address, dest: Address, mode:
               },
               value: calc_coord_distance(origin_r, dest_r),
               unit: 'km',
+              source: 'calculated',
               mode
             };
             resolve(res);

@@ -28,7 +28,8 @@ export type Distance = {
   destination?: AddressAndCoordinates,
   value: number,
   unit: string,
-  mode: ShippingMode
+  mode: ShippingMode,
+  source?: string
 };
 export type Flight = {
   flight_number: string,
