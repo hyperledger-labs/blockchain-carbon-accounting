@@ -54,6 +54,7 @@ async function get_random_distance(origin: string, dest: string, mode: ShippingM
     },
     value: val,
     unit: 'km',
+    source: 'random',
     mode
   };
   return  res;
@@ -96,6 +97,7 @@ export async function calc_ground_distance(origin: Address, dest: Address): Prom
         },
         value: dist_km,
         unit: 'km',
+        source: 'calculated',
         mode: 'ground'
       };
 
@@ -148,6 +150,7 @@ export async function calc_direct_distance(origin: Address, dest: Address, mode:
               },
               value: calc_coord_distance(origin_r, dest_r),
               unit: 'km',
+              source: 'calculated',
               mode
             };
             resolve(res);

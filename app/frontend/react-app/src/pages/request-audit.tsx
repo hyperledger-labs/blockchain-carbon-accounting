@@ -200,7 +200,8 @@ const EmissionsFactorUomInputs: FC<{
 type SuccessResultType = {
   distance: {
     unit: string,
-    value: number
+    value: number,
+    source?: string
   }
   emissions: {
     unit: string,
@@ -741,6 +742,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
 
           {topSuccess ? <>
             <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{resetForm()}}>
+              {(topSuccess.distance && topSuccess.distance.source && topSuccess.distance.source === 'random') && <div>No API keys to calculate distance. Using a random value.</div>}
               {topSuccess.distance && <div>Calculated distance: {topSuccess.distance?.value?.toFixed(3)} {topSuccess.distance?.unit}</div>}
 
               {emForm.activity_type !== 'other' ?
