@@ -13,7 +13,5 @@ npm run dataLoader load_utility_identifiers Utility_Data_2019.xlsx
 npm run dataLoader load_emissions_factors co2-emission-intensity-6.csv -- --format eea_intensity --source https://www.eea.europa.eu/data-and-maps/daviz/sds/co2-emission-intensity-from-electricity-generation
 npm run dataLoader load_emissions_factors 2019-RES_proxies_EEA.csv -- --format eea_res_proxies --source https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4
 
-npm run dataLoader load_og_assets Oil__and__Natural__Gas__Wells.csv  -- --format US_asset_data
-
 psql blockchain-carbon-accounting < seeds/*
 

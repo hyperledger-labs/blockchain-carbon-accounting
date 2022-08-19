@@ -40,16 +40,31 @@ export class Product implements ProductInterface{
   division_name?: string;
 
   @Column({nullable:true})
+  sub_division_type?: string;
+
+  @Column({nullable:true})
+  sub_division_name?: string;
+
+  @Column({nullable:true})
+  latitude?: string;
+
+  @Column({nullable:true})
+  longitude?: string;
+
+  @Column({nullable:true})
   year?: string;
 
   @Column({nullable:true})
   month?: string;
 
-  @Column({nullable:true})
-  from_date?: number;
+  @Column({type: 'timestamp', nullable: true})
+  from_date?: Date;
+
+  @Column({type: 'timestamp', nullable: true})
+  thru_date?: Date;
 
   @Column({nullable:true})
-  thru_date?: number;
+  metadata?: string;
 
   @Column({nullable:true})
   description?: string;

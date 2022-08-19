@@ -4,19 +4,24 @@ export const PRODUCT_CLASS_IDENTIFER =
 export interface ProductInterface {
     uuid: string;
     class: string;
-    type: string;
     name: string;
+    type: string;
     amount: string;
     unit: string;
     asset_uuid?: string;
     country?: string;
     division_type?: string;
     division_name?: string;
+    sub_division_type?: string;
+    sub_division_name?: string;
+    latitude?: string;
+    longitude?: string;
     year?: string;
     month?: string;
-    from_date?: number;
-    thru_date?: number;
+    from_date?: Date;
+    thru_date?: Date;
     description?: string;
+    metadata?: string;
     source?: string;
     source_date?: string;
 }
