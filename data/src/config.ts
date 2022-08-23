@@ -1,4 +1,4 @@
-const dbName = process.env.DB_NAME as string || 'blockchain-carbon-accounting'
+const dbName = process.env.DB_NAME as string
 
 export type DbOpts = {
   dbName: string, 
@@ -42,7 +42,7 @@ export const addCommonYargsOptions = (yargs: any) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const parseCommonYargsOptions = (argv: any): DbOpts => {
   const opts = {
-    dbName: argv['dbname'] || process.env.DB_NAME as string || 'blockchain-carbon-accounting',
+    dbName: argv['dbname'] || process.env.DB_NAME as string,
     dbUser: argv['dbuser'] || process.env.DB_USER as string,
     dbPassword: argv['dbpassword'] || process.env.DB_PASSWORD as string,
     dbHost: argv['dbhost'] || process.env.DB_HOST as string,
