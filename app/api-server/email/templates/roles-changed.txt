@@ -34,6 +34,10 @@ The following roles have been removed:
 {{/each}}
 {{/if}}
 
+{{#if contact_us_url}}
+If you have any questions about this request, please contact us at {{ contact_us_url }}.
+{{/if}}
+
 If you did not sign-up to our website, please ignore this email.
 
 Thanks,

@@ -25,6 +25,7 @@ export function getSiteAndAddress() {
         company_address_1: process.env.MAIL_COMPANY_ADDRESS_1 || '123 Main St.',
         company_address_2: process.env.MAIL_COMPANY_ADDRESS_2 || 'Suite 100',
         support_url: process.env.MAIL_SUPPORT_URL || 'mailto:support@opentaps.com',
+        contact_us_url: process.env.MAIL_CONTACT_US_URL,
     }
 
     return tpl;
