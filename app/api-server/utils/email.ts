@@ -17,9 +17,8 @@ export function getMailer() {
     return nodemailer.createTransport(opts)
 }
 
-export function getSiteAndAddress(w: Wallet | null) {
+export function getSiteAndAddress() {
     const tpl = {
-        name: w?.name || 'user',
         site_url: process.env.APP_ROOT_URL || 'http://localhost:3000',
         site_name: process.env.MAIL_SITE_NAME || 'Blockchain Accounting',
         company_name: process.env.MAIL_COMPANY_NAME || 'Blockchain Accounting',
@@ -28,5 +27,12 @@ export function getSiteAndAddress(w: Wallet | null) {
         support_url: process.env.MAIL_SUPPORT_URL || 'mailto:support@opentaps.com',
     }
 
+    return tpl;
+}
+
+export function getWalletInfo(w: Wallet | null) {
+    const tpl = {
+        wallet_name: w?.name || 'user',
+    }
     return tpl;
 }

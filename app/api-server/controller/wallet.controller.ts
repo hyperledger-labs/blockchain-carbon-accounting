@@ -8,7 +8,7 @@ import handlebars from 'handlebars';
 import path from 'path';
 import useragent from 'useragent';
 import { DomainError } from '../trpc/common';
-import { getMailer, getSiteAndAddress } from "../utils/email";
+import { getMailer, getSiteAndAddress, getWalletInfo } from "../utils/email";
 
 export async function getWallets(req: Request, res: Response) {
     try {
@@ -110,7 +110,8 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
-        ...getSiteAndAddress(w),
+        ...getSiteAndAddress(),
+        ...getWalletInfo(w),
         request_from_os: os || 'unknown OS',
         request_from_browser: browser || 'unknown browser',
         action_url: link.href,
@@ -160,7 +161,8 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
-        ...getSiteAndAddress(w),
+        ...getSiteAndAddress(),
+        ...getWalletInfo(w),
         action_url: link.href,
     }
     const html = templateHtml(tpl)

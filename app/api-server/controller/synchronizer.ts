@@ -9,7 +9,7 @@ import path from 'path';
 import { EventData } from 'web3-eth-contract';
 import { CreatedToken } from "../models/commonTypes";
 import { OPTS_TYPE } from "../server";
-import { getMailer, getSiteAndAddress } from "../utils/email";
+import { getMailer, getSiteAndAddress, getWalletInfo } from "../utils/email";
 import { BURN, getContract, getTrackerContract, getCurrentBlock, getWeb3 } from "../utils/web3";
 import { insertNewBalance } from "./balance.controller";
 
@@ -586,7 +586,8 @@ export const sendTokenIssuedEmail = async(token: TokenPayload) => {
                 const templateHtml = handlebars.compile(emailTemplateSourceHtml)
                 const templateText = handlebars.compile(emailTemplateSourceText)
                 const tpl = {
-                    ...getSiteAndAddress(w),
+                    ...getSiteAndAddress(),
+                    ...getWalletInfo(w),
                     token_url: link.href,
                     dashboard_url: link_all.href,
                 }
