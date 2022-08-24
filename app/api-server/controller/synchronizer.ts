@@ -564,7 +564,7 @@ export const getLastSync = async (opts: OPTS_TYPE) => {
     } else {
         console.log('* No last sync block found. Will be resyncing.');
     }
-    // if no last sync or mistmatched config, return FIRST_BLOCK
+    // if no last sync or mismatched config, return FIRST_BLOCK
     return FIRST_BLOCK;
 }
 
