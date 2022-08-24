@@ -12,6 +12,9 @@ import { OPTS_TYPE } from "../server";
 import { getMailer, getSiteAndAddress, getWalletInfo } from "../utils/email";
 import { BURN, getContract, getTrackerContract, getCurrentBlock, getWeb3 } from "../utils/web3";
 import { insertNewBalance } from "./balance.controller";
+import helpers from 'handlebars-helpers';
+
+helpers({ handlebars })
 
 // set to block number of contract creation from the explorer such as https://testnet.bscscan.com/
 const FIRST_BLOCK = Number(process.env['LEDGER_FIRST_BLOCK']) || 0;
@@ -172,6 +175,28 @@ export const syncWalletRoles = async (address: string, opts: OPTS_TYPE, data?: P
         if (rolesInfo.isAeDealer) roles.push('Emission Auditor');
         if (rolesInfo.isIndustry) roles.push('Industry');
         if (rolesInfo.isIndustryDealer) roles.push('Industry Dealer');
+
+        // get the current wallet roles, so we can notify of roles that changed
+        const w0 = await db.getWalletRepo().findWalletByAddress(address);
+        if (w0) {
+            const addedRoles = []
+            const removedRoles = []
+            const currentRoles = w0.roles?.split(',') ?? []
+            for (const r of roles) {
+                if (currentRoles.indexOf(r) === -1) {
+                    addedRoles.push(r)
+                }
+            }
+            for (const r of currentRoles) {
+                if (r === '') continue;
+                if (roles.indexOf(r) === -1) {
+                    removedRoles.push(r)
+                }
+            }
+            if (addedRoles.length > 0 || removedRoles.length > 0) {
+                sendRolesChangedEmail(w0, addedRoles, removedRoles)
+            }
+        }
 
         const w = await db.getWalletRepo().ensureWalletWithRoles(address, roles, data);
         console.log('saved wallet',w)
@@ -566,6 +591,46 @@ export const getLastSync = async (opts: OPTS_TYPE) => {
     }
     // if no last sync or mismatched config, return FIRST_BLOCK
     return FIRST_BLOCK;
+}
+
+export const sendRolesChangedEmail = async(w: Wallet, added_roles: string[], removed_roles: string[]) => {
+    if (w && w.email) {
+        const transporter = getMailer();
+        const emailTemplateSourceHtml = readFileSync(path.join(__dirname, "../email/templates/roles-changed.html"), "utf8")
+        const emailTemplateSourceText = readFileSync(path.join(__dirname, "../email/templates/roles-changed.txt"), "utf8")
+        const templateHtml = handlebars.compile(emailTemplateSourceHtml)
+        const templateText = handlebars.compile(emailTemplateSourceText)
+        console.log('?? sendRolesChangedEmail ', w.email, w.roles, added_roles, removed_roles)
+        const tpl = {
+            ...getSiteAndAddress(),
+            ...getWalletInfo(w),
+            added_roles,
+            removed_roles,
+        }
+
+        const html = templateHtml(tpl);
+        const text = templateText(tpl);
+        const message = {
+            from: process.env.MAILER_FROM_ADDRESS,
+            to: w.email,
+            subject: 'Your roles have been updated!',
+            text,
+            html
+        }
+        return new Promise((resolve, reject) => {
+            transporter.sendMail(message, (err, info) => {
+                if (err) {
+                    console.error('Error while sending the email:' ,err)
+                    reject(err)
+                } else {
+                    console.log('Send email result:', info)
+                    resolve(info)
+                }
+            })
+        });
+    } else {
+        console.warn(`Wallet ${w.address} email address is not set.`);
+    }
 }
 
 export const sendTokenIssuedEmail = async(token: TokenPayload) => {
