@@ -1,3 +1,4 @@
+import { Wallet } from '@blockchain-carbon-accounting/data-postgres/src/models/wallet';
 import nodemailer from 'nodemailer';
 
 export function getMailer() {
@@ -16,8 +17,9 @@ export function getMailer() {
     return nodemailer.createTransport(opts)
 }
 
-export function getSiteAndAddress() {
+export function getSiteAndAddress(w: Wallet | null) {
     const tpl = {
+        name: w?.name || 'user',
         site_url: process.env.APP_ROOT_URL || 'http://localhost:3000',
         site_name: process.env.MAIL_SITE_NAME || 'Blockchain Accounting',
         company_name: process.env.MAIL_COMPANY_NAME || 'Blockchain Accounting',

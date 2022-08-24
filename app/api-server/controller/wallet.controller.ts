@@ -97,6 +97,8 @@ export async function getNumOfWallets(req: Request, res: Response) {
 
 export async function sendPasswordResetEmail(a_email: string, token: string, os?: string, browser?: string) {
     const email = a_email.trim();
+    const db = await PostgresDBService.getInstance();
+    const w = await db.getWalletRepo().findWalletByEmail(email);
     const transporter = getMailer();
 
     const link = new URL(`${process.env.APP_ROOT_URL}/reset-password`)
@@ -108,7 +110,7 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
-        ...getSiteAndAddress(),
+        ...getSiteAndAddress(w),
         request_from_os: os || 'unknown OS',
         request_from_browser: browser || 'unknown browser',
         action_url: link.href,
@@ -138,10 +140,10 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
 
 export async function sendVerificationEmail(a_email: string, token?: string) {
     const email = a_email.trim();
+    const db = await PostgresDBService.getInstance();
+    const w = await db.getWalletRepo().findWalletByEmail(email);
     if (!token) {
         // generate one again (this is a resend)
-        const db = await PostgresDBService.getInstance();
-        const w = await db.getWalletRepo().findWalletByEmail(email);
         if (!w) {
             throw new DomainError('No wallet found with that email');
         }
@@ -158,7 +160,7 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
-        ...getSiteAndAddress(),
+        ...getSiteAndAddress(w),
         action_url: link.href,
     }
     const html = templateHtml(tpl)

@@ -6,6 +6,7 @@ Thanks for trying out {{ site_name }}.
 Welcome!
 ******************
 
+Dear {{name}},
 Thanks for trying {{ site_name }}. To activate your account you'll need to verify your email 
 address by using the verification link below:
 

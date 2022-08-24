@@ -586,7 +586,7 @@ export const sendTokenIssuedEmail = async(token: TokenPayload) => {
                 const templateHtml = handlebars.compile(emailTemplateSourceHtml)
                 const templateText = handlebars.compile(emailTemplateSourceText)
                 const tpl = {
-                    ...getSiteAndAddress(),
+                    ...getSiteAndAddress(w),
                     token_url: link.href,
                     dashboard_url: link_all.href,
                 }
