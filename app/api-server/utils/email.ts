@@ -31,7 +31,7 @@ export function getSiteAndAddress() {
     return tpl;
 }
 
-export function getWalletInfo(w: Wallet | null) {
+export function getWalletInfo(w?: Partial<Wallet> | null) {
     const tpl = {
         wallet_name: w?.name || 'user',
     }

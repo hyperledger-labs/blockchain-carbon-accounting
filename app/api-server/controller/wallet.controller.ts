@@ -139,7 +139,7 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     });
 }
 
-export async function sendVerificationEmail(a_email: string, token?: string) {
+export async function sendVerificationEmail(a_email: string, token?: string, walletInfo?: Partial<Wallet>) {
     const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
     const w = await db.getWalletRepo().findWalletByEmail(email);
@@ -162,7 +162,7 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
         ...getSiteAndAddress(),
-        ...getWalletInfo(w),
+        ...getWalletInfo(w || walletInfo),
         action_url: link.href,
     }
     const html = templateHtml(tpl)
@@ -239,7 +239,14 @@ export async function signupWallet(a_email: string, password: string, name?: str
 
     // check we can send the email first
     try {
-        await sendVerificationEmail(email, verification_token);
+        await sendVerificationEmail(email, verification_token, {
+            address: newAccount.address,
+            public_key: newAccount.publicKey,
+            email,
+            email_verified: false,
+            name,
+            organization
+        });
         verification_token_sent_at = new Date();
     } catch (err) {
         console.error('Error while sending the email:', err);
