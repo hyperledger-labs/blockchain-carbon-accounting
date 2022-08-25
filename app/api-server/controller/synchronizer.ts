@@ -359,7 +359,13 @@ export const fillTokens = async (opts: OPTS_TYPE, sendEmail: boolean): Promise<n
     // get number tokens from database
     const numOfSavedTokens = await db.getTokenRepo().countTokens([]);
     // get number tokens from network
-    const numOfIssuedTokens = await getNumOfUniqueTokens(opts);
+    let numOfIssuedTokens = 0;
+    try {
+        numOfIssuedTokens = await getNumOfUniqueTokens(opts);
+    } catch (err) {
+        console.error(err);
+        numOfIssuedTokens = 0;
+    }
 
     // get the token details from the network
     if (numOfIssuedTokens > numOfSavedTokens) {
