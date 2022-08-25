@@ -35,14 +35,12 @@ The following roles have been removed:
 {{/if}}
 
 {{#if contact_us_url}}
-If you have any questions about this request, please contact us at {{ contact_us_url }}.
+If you have any questions about this update, please contact us at {{ contact_us_url }}.
 {{/if}}
-
-If you did not sign-up to our website, please ignore this email.
 
 Thanks,
 
-© 2021 {{ site_name }}. All rights reserved.
+© 2021 {{ company_name }}. All rights reserved.
 
 {{ company_name }}
 
