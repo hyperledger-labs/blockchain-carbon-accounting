@@ -241,7 +241,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         setError("");
       } else {
         console.warn('Wrong emission_auditor ?', newEmissionsRequest, signedInAddress)
-        setError("Wrong emission auditor address.");
+        setError("Wrong emissions auditor address.");
       }
     } catch (error) {
       console.log(error);

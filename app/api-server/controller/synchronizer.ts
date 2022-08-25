@@ -172,7 +172,7 @@ export const syncWalletRoles = async (address: string, opts: OPTS_TYPE, data?: P
         if (rolesInfo.isConsumer) roles.push('Consumer');
         if (rolesInfo.isRecDealer) roles.push('REC Dealer');
         if (rolesInfo.isCeoDealer) roles.push('Offset Dealer');
-        if (rolesInfo.isAeDealer) roles.push('Emission Auditor');
+        if (rolesInfo.isAeDealer) roles.push('Emissions Auditor');
         if (rolesInfo.isIndustry) roles.push('Industry');
         if (rolesInfo.isIndustryDealer) roles.push('Industry Dealer');
 

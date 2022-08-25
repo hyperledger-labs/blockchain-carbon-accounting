@@ -15,7 +15,7 @@ You have been granted the following roles:
 {{#eq name "Offset Dealer"}}
  - {{name}}: You can now create tokens of Offsets.
 {{/eq}}
-{{#eq name "Emission Auditor"}}
+{{#eq name "Emissions Auditor"}}
  - {{name}}: You can now create tokens of Emissions.
 {{/eq}}
 {{#eq name "Industry"}}
