@@ -977,7 +977,10 @@ function get_upload_doc_path() {
   if (existsSync(upload_doc_path)) return upload_doc_path;
   console.log(`Upload directory ${upload_doc_path} does not exist.`);
   // check if a directory app/api-server exists
-  const api_server_dir = resolve('./app/api-server');
+  let api_server_dir = resolve('./app/api-server');
+  if (!existsSync(api_server_dir)) {
+    api_server_dir = resolve('../../app/api-server');
+  }
   if (existsSync(api_server_dir)) {
     // resolve upload_dir from api_server_dir
     upload_doc_path = resolve(api_server_dir, upload_dir);

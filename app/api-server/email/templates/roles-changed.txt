@@ -1,0 +1,49 @@
+Dear {{ wallet_name }},
+
+{{#if added_roles}}
+You have been granted the following roles:
+{{#each added_roles as | name |}}
+{{#eq name "Admin"}}
+ - {{name}}: You now have all permissions.
+{{/eq}}
+{{#eq name "Consumer"}}
+ - {{name}}: You can now request and receive emissions audits and tokens. Go to {{ ../site_url }}/requestAudit to request an emissions audit.
+{{/eq}}
+{{#eq name "REC Dealer"}}
+ - {{name}}: You can now create tokens of REC (Renewable Energy Certificate).
+{{/eq}}
+{{#eq name "Offset Dealer"}}
+ - {{name}}: You can now create tokens of Offsets.
+{{/eq}}
+{{#eq name "Emissions Auditor"}}
+ - {{name}}: You can now create tokens of Emissions.
+{{/eq}}
+{{#eq name "Industry"}}
+ - {{name}}
+{{/eq}}
+{{#eq name "Industry Dealer"}}
+ - {{name}}
+{{/eq}}
+{{/each}}
+{{/if}}
+
+{{#if removed_roles}}
+The following roles have been removed:
+{{#each removed_roles as | name |}}
+ - {{name}}
+{{/each}}
+{{/if}}
+
+{{#if contact_us_url}}
+If you have any questions about this update, please contact us at {{ contact_us_url }}.
+{{/if}}
+
+Thanks,
+
+© 2021 {{ company_name }}. All rights reserved.
+
+{{ company_name }}
+
+{{ company_address_1 }}
+
+{{ company_address_2 }}
