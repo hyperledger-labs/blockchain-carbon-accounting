@@ -1,9 +1,9 @@
 import logging
 
 DB_HOST = "localhost"
-DB_NAME = "graciousstyle_3_0"
+DB_NAME = ""
 DB_USER = ""
-DB_PASS = ""
+DB_PASS = "" 
 DB_PORT = "5432"
 
 LOG_FILE = "/tmp/tokenize-ofbiz.log"
