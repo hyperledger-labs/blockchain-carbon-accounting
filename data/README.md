@@ -80,7 +80,7 @@ npm run dataLoader load_emissions_factors co2-emission-intensity-6.csv -- -- --f
 
 ### Other Seed Data
 
-The seed data is in the `seeds/` directory and could also be loaded like this:
+The seed data is in the `seeds/` directory and could also be loaded like this (NOTE: use the same DB you setup in `.env` here):
 ```
 psql blockchain-carbon-accounting < seeds/*
 ```

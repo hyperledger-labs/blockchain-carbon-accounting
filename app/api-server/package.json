@@ -8,6 +8,7 @@
     "start": "nodemon server.ts",
     "dev": "nodemon server.ts",
     "loadDemoSeeds": "psql blockchain-carbon-accounting -f ./seedHardhatDemoWallets.sql",
+    "loadDemoSeeds": "dotenv -e ../../.env -- bash -c 'psql ${DB_NAME} -f ./seedHardhatDemoWallets.sql'",
     "build": "tsc"
   },
   "keywords": [],
@@ -49,6 +50,7 @@
     "@types/useragent": "^2.3.1",
     "@typescript-eslint/eslint-plugin": "^5.28.0",
     "@typescript-eslint/parser": "^5.28.0",
+    "dotenv-cli": "^6.0.0",
     "eslint": "^8.17.0",
     "nodemon": "^2.0.16",
     "ts-node": "^10.8.1",
