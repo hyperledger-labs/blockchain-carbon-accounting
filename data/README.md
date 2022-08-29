@@ -1,5 +1,14 @@
 # PostgreSQL database component
 
+## Set up the Database
+
+Run these commands from the `blockchain-carbon-accounting` directory to set up the database and install the initial seed data:
+
+```
+npm run pg:init
+npm run loadSeeds
+```
+
 ## Query the database
 
 Those commands should be run in the repository root directory.
