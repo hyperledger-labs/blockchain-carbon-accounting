@@ -16,7 +16,7 @@ sh loadOGdata.sh
 [geojson](https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Oil_and_Natural_Gas_Wells/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson)
 
 *Can be downloaded from google drive*
-*This file exceed 1.5 GB and will take time to write to postrges db*
+*Note: this file exceeds 1.5 GB*
 
 ### [CATF U.S. benchmarking reoprt](https://cdn.catf.us/wp-content/uploads/2022/07/14094726/oilandgas_benchmarkingreport2022.pdf)
 
@@ -43,7 +43,7 @@ sh loadOGdata.sh
 
 ### VIIRS annual flaring data
 
-*Can be downloaded from google drive. annual public eogdata requires free subscription...*
+*These files are downloaded from google drive. annual public eogdata requires subscription to download from original source...*
 
 - [2021](https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2021_web.xlsx)
 
