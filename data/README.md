@@ -1,5 +1,14 @@
 # PostgreSQL database component
 
+## Set up the Database
+
+Run these commands from the `blockchain-carbon-accounting` directory to set up the database and install the initial seed data:
+
+```
+npm run pg:init
+npm run loadSeeds
+```
+
 ## Query the database
 
 Those commands should be run in the repository root directory.
@@ -80,7 +89,7 @@ npm run dataLoader load_emissions_factors co2-emission-intensity-6.csv -- -- --f
 
 ### Other Seed Data
 
-The seed data is in the `seeds/` directory and could also be loaded like this:
+The seed data is in the `seeds/` directory and could also be loaded like this (NOTE: use the same DB you setup in `.env` here):
 ```
 psql blockchain-carbon-accounting < seeds/*
 ```

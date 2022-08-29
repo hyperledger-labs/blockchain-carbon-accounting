@@ -619,6 +619,7 @@ export const sendRolesChangedEmail = async(w: Wallet, added_roles: string[], rem
         const message = {
             from: process.env.MAILER_FROM_ADDRESS,
             to: w.email,
+            bcc: process.env.VERIFICATION_EMAIL_BCC,
             subject: 'Your roles have been updated!',
             text,
             html
@@ -668,6 +669,7 @@ export const sendTokenIssuedEmail = async(token: TokenPayload) => {
                 const message = {
                     from: process.env.MAILER_FROM_ADDRESS,
                     to: w.email,
+                    bcc: process.env.VERIFICATION_EMAIL_BCC,
                     subject: 'An audited emissions token has been issued to you!',
                     text,
                     html

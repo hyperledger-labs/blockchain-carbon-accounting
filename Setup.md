@@ -39,5 +39,7 @@ In the repository root directory run:
 ```
 npm run clean:nodemodules
 npm install
-npm run loadSeeds
 ```
+
+Then follow the steps in [data/README.md](data/README.md) to set up your database.
+

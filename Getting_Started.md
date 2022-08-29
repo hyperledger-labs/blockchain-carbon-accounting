@@ -2,7 +2,7 @@
 
 These are some general notes for developers to get started.  
 
-Please also read the [Setup.md](./Setup.md), [README.md](./README.md) and instructions in each component.
+Please also read the [Setup.md](./Setup.md), [README.md](./README.md) and instructions in each component.  After you have set up the database according to [data/README.md](data/README.md), proceed with the steps below.
 
 Run IPFS.
 ```

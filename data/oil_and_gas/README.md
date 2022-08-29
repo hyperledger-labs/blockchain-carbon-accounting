@@ -1,13 +1,20 @@
 # Oil & Gas data
 
-## sources
+## Loading the Data
 
-Original files can be downloaded directly from sources listed below using `download.sh` or from [google dive](https://drive.google.com/drive/folders/1Kifnuj4x2uhzm3oxS4nqh-OQszTuqlWU?usp=sharing) (*Not stored in the directory*)
+Original files can be downloaded directly from sources listed or from [google dive](https://drive.google.com/drive/folders/1Kifnuj4x2uhzm3oxS4nqh-OQszTuqlWU?usp=sharing) (*Not stored in the directory*)
 
-To load data into postgres db (blockchain-carbon-accounting) run the following from `/data`.
+Or you can download the data
+```
+sh download.sh
+```
+
+Once you have the data, load them into postgres db (blockchain-carbon-accounting) by running the following from `/data`:
 ```
 sh loadOGdata.sh
 ```
+
+## Sources
 
 ### [US Oil & Gas Asset Data](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore)
 
