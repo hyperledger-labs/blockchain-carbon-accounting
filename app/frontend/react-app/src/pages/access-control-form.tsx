@@ -64,10 +64,27 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
         <>
           <h4>My Account</h4>
           <ul>
-            <li><b>Address:</b>{" "}
+            <li><b>Address:</b>
+              {" "}
               {signedInAddress}
               {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
-              <CopyToClipboard text={signedInAddress??''}>
+              <CopyToClipboard text={signedInAddress}>
+                <span className="text-secondary">
+                  <OverlayTrigger
+                    trigger="click"
+                    placement="bottom"
+                    rootClose={true}
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={<Tooltip id='copied-address-tooltip'>Copied to clipboard!</Tooltip>}
+                  >
+                    <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                  </OverlayTrigger>
+                </span>
+              </CopyToClipboard>
+              &nbsp;&nbsp;
+              <a href={`/dashboard/address/${signedInAddress}`}>Dashboard</a>
+              {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+              <CopyToClipboard text={`${window.location.protocol}//${window.location.host}/dashboard/address/${signedInAddress}`}>
                 <span className="text-secondary">
                   <OverlayTrigger
                     trigger="click"
