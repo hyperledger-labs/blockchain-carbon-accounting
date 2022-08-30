@@ -67,7 +67,7 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
       <Card style={{  margin: 'auto', padding: '1rem' }}>
 
         <Card.Body>
-          <Card.Title as="h2">Export Primary Key</Card.Title>
+          <Card.Title as="h2">Export Private Key</Card.Title>
           {(signedInWallet || form.success) ? <>
             {signedInWallet?.private_key? <>
               <p className="mt-4">Once you get this private key, you must always use the private key to access your account. This means you won't be able to login with your email and password but will have to use Metamask instead.</p>

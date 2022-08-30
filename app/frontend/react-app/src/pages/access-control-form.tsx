@@ -109,16 +109,7 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
             }</li>
           </ul>
           { signedInWallet?.private_key ? <>
-            <p>Your account is set up to login with your email and password.  Click here to export your private key.</p>
-
-            <Link href="export-pk">
-              <Button
-                className="w-100 mb-3"
-                variant="primary"
-                size="lg"
-              >Export Primary Key
-              </Button>
-            </Link>
+            <p>Your account is set up to login with your email and password.  <Link href="export-pk">Click here</Link> to export your private key so you can sign in with Metamask.</p>
             </> : <>
               <p>Your account is set up to login with your Metamask wallet and private key.</p>
             </>
