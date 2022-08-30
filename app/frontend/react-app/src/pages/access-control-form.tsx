@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import { ForwardRefRenderFunction, useImperativeHandle, forwardRef } from "react";
 import {Link} from "wouter";
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import { Tooltip } from "react-bootstrap";
+import { FaRegClipboard } from 'react-icons/fa';
 
 import RegisterSelfIndustry from "../components/register-self-industry";
 import {RolesInfo} from "../components/static-data";
@@ -58,16 +62,40 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
 
       {signedInAddress &&
         <>
-          <h4>My Roles</h4>
-          {roles
-           ? (roles.hasAnyRole ? <RolesList roles={roles}/> : <p>Unregistered.</p>)
-           : <div className="text-center mt-3 mb-3">
-               <Spinner animation="border" role="status">
-                 <span className="sr-only">Loading...</span>
-               </Spinner>
-             </div>
-          }
-          { signedInWallet?.private_key &&
+          <h4>My Account</h4>
+          <ul>
+            <li><b>Address:</b>{" "}
+              {signedInAddress}
+              {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+              <CopyToClipboard text={signedInAddress??''}>
+                <span className="text-secondary">
+                  <OverlayTrigger
+                    trigger="click"
+                    placement="bottom"
+                    rootClose={true}
+                    delay={{ show: 250, hide: 400 }}
+                    overlay={<Tooltip id='copied-address-tooltip'>Copied to clipboard!</Tooltip>}
+                  >
+                    <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+                  </OverlayTrigger>
+                </span>
+              </CopyToClipboard>
+            </li>
+            <li><b>Name:</b> {myWalletQuery?.data?.wallet?.name}</li>
+            <li><b>Organization:</b> {myWalletQuery?.data?.wallet?.organization}</li>
+            <li><b>Email:</b> {myWalletQuery?.data?.wallet?.email}</li>
+            <li><b>Roles:</b> {roles
+              ? (roles.hasAnyRole ? <RolesList roles={roles}/> : <p>Unregistered.</p>)
+              : <div className="text-center mt-3 mb-3">
+                <Spinner animation="border" role="status">
+                  <span className="sr-only">Loading...</span>
+                </Spinner>
+              </div>
+            }</li>
+          </ul>
+          { signedInWallet?.private_key ? <>
+            <p>Your account is set up to login with your email and password.  Click here to export your private key.</p>
+
             <Link href="export-pk">
               <Button
                 className="w-100 mb-3"
@@ -76,6 +104,9 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
               >Export Primary Key
               </Button>
             </Link>
+            </> : <>
+              <p>Your account is set up to login with your Metamask wallet and private key.</p>
+            </>
           }
           { provider && myWalletQuery.data && !signedInWallet?.private_key && <>
             <h4>My Wallet</h4>
