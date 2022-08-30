@@ -57,12 +57,10 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
 
   return (
     <>
-      <h2>Manage roles</h2>
-      <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
 
       {signedInAddress &&
         <>
-          <h4>My Account</h4>
+          <h2>My Account</h2>
           <ul>
             <li><b>Address:</b>
               {" "}
@@ -135,6 +133,9 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
             </>}
         </>
       }
+
+      <h2>Manage roles</h2>
+      <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
 
       <h4>Find or Set Up a User</h4>
       <FindOrSetupWallet provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
