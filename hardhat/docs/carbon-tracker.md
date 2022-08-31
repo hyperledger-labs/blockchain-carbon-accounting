@@ -35,7 +35,7 @@ npm run build
 
 
 
-## ERC721Upgradeable contract for carbon tracker NFTs
+## ERC721 contract for carbon tracker NFTs
 
 The Carbon Tracker Contract is used to issue non fungible tokenz (NFT) as emission certificates of a facility that produces industrial commodities or a commerical service such as international travel and transportation of goods.
 

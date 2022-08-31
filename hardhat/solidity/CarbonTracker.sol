@@ -1,25 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./NetEmissionsTokenNetwork.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
 
-contract CarbonTracker is
-    Initializable,
-    ERC721Upgradeable,
-    AccessControlUpgradeable,
-    ERC1155HolderUpgradeable
-{
-    using SafeMathUpgradeable for uint256;
-    using CountersUpgradeable for CountersUpgradeable.Counter;
-    using ECDSAUpgradeable for bytes32;
-    using ECDSAUpgradeable for address;
+contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+    using ECDSA for bytes32;
+    using ECDSA for address;
 
     NetEmissionsTokenNetwork public net;
     address public netAddress;
@@ -27,18 +23,17 @@ contract CarbonTracker is
     // Registered Tracker
     bytes32 public constant REGISTERED_TRACKER =
         keccak256("REGISTERED_TRACKER");
+
     /**
      * @dev tracker details
      * trackerId
      * trackee - address of the account the tracking will apply to
-     * auditor -
-     * numOfProducts - countable integer for the num of products assigned to tracker
+     * auditor - addres of the tracker
      **/
     struct CarbonTrackerDetails {
         uint256 trackerId;
         address trackee;
         address auditor;
-        //uint totalEmissions;
         uint256 totalProductAmounts;
         uint256 fromDate;
         uint256 thruDate;
@@ -101,13 +96,12 @@ contract CarbonTracker is
     mapping(uint256 => CarbonTrackerMappings) internal _trackerMappings;
     mapping(uint256 => ProductDetails) public _productData;
 
-    CountersUpgradeable.Counter public _numOfUniqueTrackers;
-    CountersUpgradeable.Counter public _numOfProducts;
+    Counters.Counter public _numOfUniqueTrackers;
+    Counters.Counter public _numOfProducts;
     mapping(uint256 => uint256) lockedAmount; //amount of token Id locked into the contract.
     // map productBalance from productId => trackerId and address of holder
     mapping(uint256 => mapping(uint256 => mapping(address => uint256)))
         public productBalance;
-
     // map verifier to trackee
     mapping(address => mapping(address => bool)) isVerifierApproved;
 
@@ -136,11 +130,10 @@ contract CarbonTracker is
         uint256 amount
     );
 
-    function initialize(address _net, address _admin) public initializer {
+    constructor(address _net, address _admin) ERC721("", "") {
         net = NetEmissionsTokenNetwork(_net);
         netAddress = _net;
         decimalsEf = 1000000;
-        __ERC721_init("NET Carbon Tracker", "NETT");
         _setupRole(DEFAULT_ADMIN_ROLE, _admin);
         _setupRole(REGISTERED_TRACKER, _admin);
     }
@@ -167,7 +160,7 @@ contract CarbonTracker is
             // i.e. require _trackee to approve verifiers (auditor)
             isVerifierApproved[msg.sender][_trackee] ||
                 (net.isAuditor(msg.sender) || msg.sender == netAddress),
-            "CLM8::_isAuditor: _trackee is not and approved auditor of the trackee"
+            "CLM8::_isAuditor: _trackee is not an approved auditor of the trackee"
         );
     }
 
@@ -226,10 +219,11 @@ contract CarbonTracker is
     /**
      * @dev require msg.sender has admin role
      */
-    modifier selfOrAdmin(address _address) {
+    modifier selfOrAuditor(address _address) {
         require(
-            _address == msg.sender || hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            "CLM8::selfOrAdmin: msg.sender does not own this address or is not an admin"
+            _address == msg.sender ||
+                net.hasRole(net.REGISTERED_EMISSIONS_AUDITOR(), msg.sender),
+            "CLM8::selfOrAuditor: msg.sender does not own this address or is not an auditor"
         );
         _;
     }
@@ -248,15 +242,11 @@ contract CarbonTracker is
         public
         view
         virtual
-        override(
-            ERC721Upgradeable,
-            ERC1155ReceiverUpgradeable,
-            AccessControlUpgradeable
-        )
+        override(ERC721, ERC1155Receiver, AccessControl)
         returns (bool)
     {
         return
-            interfaceId == type(IAccessControlUpgradeable).interfaceId ||
+            interfaceId == type(IAccessControl).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -275,18 +265,18 @@ contract CarbonTracker is
         uint256 fromDate,
         uint256 thruDate,
         string memory description
-    ) public returns (uint256) {
+    ) public {
         CarbonTrackerDetails storage trackerData = _track(trackee);
-        _trackTokens(
-            trackerData,
-            tokenIds,
-            tokenAmounts,
-            fromDate,
-            thruDate,
-            description
-        );
         super._mint(trackee, trackerData.trackerId);
-        return trackerData.trackerId;
+        return
+            _trackTokens(
+                trackerData,
+                tokenIds,
+                tokenAmounts,
+                fromDate,
+                thruDate,
+                description
+            );
     }
 
     /**
@@ -303,14 +293,15 @@ contract CarbonTracker is
         string memory description
     ) public notAudited(trackerId) trackerExists(trackerId) {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        _trackTokens(
-            trackerData,
-            tokenIds,
-            tokenAmounts,
-            fromDate,
-            thruDate,
-            description
-        );
+        return
+            _trackTokens(
+                trackerData,
+                tokenIds,
+                tokenAmounts,
+                fromDate,
+                thruDate,
+                description
+            );
     }
 
     /**
@@ -358,7 +349,7 @@ contract CarbonTracker is
 
         require(
             tokenAmounts.length == tokenIds.length,
-            "CLM8::_track: tokenAmounts and tokenIds are not the same length"
+            "CLM8::_trackTokens: tokenAmounts and tokenIds are not the same length"
         );
         // create trcker Mappings to store tokens (and product) info
         CarbonTrackerMappings storage trackerMappings = _trackerMappings[
@@ -373,7 +364,7 @@ contract CarbonTracker is
             require(
                 avail.sub(lockedAmount[tokenIds[i]]) >= tokenAmounts[i] ||
                     msg.sender == netAddress,
-                "CLM8::_track: tokenAmounts[i] is greater than what is available to the tracker contract"
+                "CLM8::_trackTokens: tokenAmounts[i] is greater than what is available to the tracker contract"
             );
             lockedAmount[tokenIds[i]] = lockedAmount[tokenIds[i]].add(
                 tokenAmounts[i]
@@ -425,12 +416,13 @@ contract CarbonTracker is
         productBalance[productId][sourceTrackerId][msg.sender] = productBalance[
             productId
         ][sourceTrackerId][msg.sender].sub(productAmount);
-        _updateTrackedProducts(
-            trackerId,
-            sourceTrackerId,
-            productId,
-            productAmount
-        );
+        return
+            _updateTrackedProducts(
+                trackerId,
+                sourceTrackerId,
+                productId,
+                productAmount
+            );
     }
 
     /**
@@ -482,8 +474,6 @@ contract CarbonTracker is
             trackerId != sourceTrackerId,
             "CLM8::transferProductToTracker: sourceTrackerId can not equal the trackerId"
         );
-        ProductDetails storage product = _productData[productId];
-
         //for (uint i = 0; i < productIds.length; i++) { }
         require(
             productBalance[productId][sourceTrackerId][msg.sender] >
@@ -494,8 +484,6 @@ contract CarbonTracker is
         productBalance[productId][sourceTrackerId][msg.sender] = productBalance[
             productId
         ][sourceTrackerId][msg.sender].sub(productAmount);
-        product.amount = product.amount.add(productAmount);
-        product.available = product.available.add(productAmount);
         //CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
         _trackerMappings[trackerId].productIds.push(productId);
         _trackerData[trackerId].totalProductAmounts = _trackerData[trackerId]
@@ -743,7 +731,7 @@ contract CarbonTracker is
     /**
      * @dev msg.sender can volunteer themselves as registered tracker or admin
      */
-    function registerTracker(address tracker) external selfOrAdmin(tracker) {
+    function registerTracker(address tracker) external selfOrAuditor(tracker) {
         _setupRole(REGISTERED_TRACKER, tracker);
         emit RegisteredTracker(tracker);
     }

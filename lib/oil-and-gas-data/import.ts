@@ -93,21 +93,26 @@ export const importFlareData = async (opts: any,
     let loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
     for (const row of data) {
       if (!row) { loader.incIgnored('Undefined row'); continue; }
+      let amount = row["BCM "+opts.year] || row["BCM_"+opts.year];
+      if (!amount) { loader.incIgnored('Undefined amount'); continue; }
       //if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // get annual generation and emissions
       const country = row["Country"]?.toString();
-      let det_freq = row["Detection frequency "+opts.year] | row["Detection freq."];
-      let avg_temp = row["Avg. temp., K"] | row["Avg. temp"];
-      let clear_obs = row["Clear Obs."] | row["Clear obs. "] | row["Clear obs "+opts.year] | row["Clear_obs_"+opts.year];
+      let catalog_id = row["Catalog ID"] || row["Catalog id"];
+      let db_id = row["id #"] || row["ID "+opts.year];
+      let det_freq = row["Detection frequency "+opts.year] || row["Detection freq."];
+      let avg_temp = row["Avg. temp., K"]?.toString() || row["Avg. temp"]?.toString();
+      let clear_obs = row["Clear Obs."] || row["Clear obs. "] || row["Clear obs "+opts.year];
       const details = JSON.stringify({
+        "catalogId": catalog_id,
+        "dbId": db_id,
         "detectionFreq": det_freq?.toString(),
         "avgTempK": avg_temp?.toString(),
         "ellipticity": row["Ellipticity"]?.toString(),
         "sector": row["Type"].toString(),
         "clearObs": clear_obs?.toString()
       });
-      let amount = row["BCM "+opts.year] | row["BCM_"+opts.year]
       // generate a unique for the row
       const d: ProductInterface = {
         class: PRODUCT_CLASS_IDENTIFER,
