@@ -9,7 +9,7 @@ const networksAndAddresses = {
       address: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6", // default Hardhat Network deployment address with npx hardhat node
     },
     carbonTracker: {
-      address: "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0", // default Hardhat Network deployment address with npx hardhat node
+      address: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788", // default Hardhat Network deployment address with npx hardhat node
     },
     dao: {
       governor: {

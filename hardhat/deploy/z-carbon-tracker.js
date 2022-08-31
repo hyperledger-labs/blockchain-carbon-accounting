@@ -13,15 +13,27 @@ module.exports = async ({
 
   let carbonTracker = await deploy('CarbonTracker', {
     from: deployer,
-    proxy: {
+    args: [ netEmissionsTokenNetwork.address, deployer, ],
+    /*proxy: {
       owner: deployer,
       proxyContract: "OptimizedTransparentProxy",
       execute: {
         methodName: 'initialize',
-        args: [ netEmissionsTokenNetwork.address, deployer, ]
+        
       }
-    },
+    },*/
   });
 
+
   console.log("CarbonTracker deployed to:", carbonTracker.address);
+
+  await execute(
+    'NetEmissionsTokenNetwork',
+    { from: deployer },
+    'registerIndustry',
+    carbonTracker.address
+  );
+
+  console.log("Register carbon tracker as Industry");
+
 };

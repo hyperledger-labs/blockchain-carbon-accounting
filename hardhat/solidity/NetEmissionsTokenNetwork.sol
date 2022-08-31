@@ -444,7 +444,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenIds[0] = _numOfUniqueTokens.current();
         tokenAmounts[0] = quantity;
         if (trackerId == 0) {
-            trackerId = ct.track(
+            ct.track(
                 issuedTo,
                 tokenIds,
                 tokenAmounts,

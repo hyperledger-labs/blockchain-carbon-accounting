@@ -90,8 +90,6 @@ task("setTestAccountRoles", "Set default account roles for testing")
     const {get} = hre.deployments;
     let carbonTracker = await get("CarbonTracker");
     
-    await contract.connect(admin).registerDealer(carbonTracker.address, 4); // REC dealer
-    console.log("Account " + carbonTracker.address + " set as industry dealer");
     await contract.connect(admin).registerDealer(dealer1, 1); // REC dealer
     console.log("Account " + dealer1 + " is now a REC dealer");
     await contract.connect(admin).registerDealer(dealer2, 3); // emissions auditor
