@@ -124,11 +124,14 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
         </>
       }
 
-      <h2>Manage roles</h2>
-      <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
-
-      <h4>Find or Set Up a User</h4>
-      <FindOrSetupWallet provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+      {(roles.hasDealerRole || roles.isAdmin) &&
+        <>
+          <h2>Manage roles</h2>
+          <p>Register or unregister roles for different addresses on the network. Must be an owner to register dealers, and must be a dealer to register consumers.</p>
+          <h4>Find or Set Up a User</h4>
+          <FindOrSetupWallet provider={provider} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} />
+        </>
+      }
 
       {(!roles.isAdmin && !roles.isIndustry) &&
         <RegisterSelfIndustry provider={provider} signedInAddress={signedInAddress} />
