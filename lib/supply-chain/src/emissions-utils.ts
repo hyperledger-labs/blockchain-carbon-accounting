@@ -575,7 +575,7 @@ export async function process_emissions_factor(
 }
 
 export async function process_other(
-  a: OtherActivity
+  _a: OtherActivity
 ): Promise<ActivityResult> {
 
   const emissions: Emissions = {
