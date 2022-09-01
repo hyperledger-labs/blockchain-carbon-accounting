@@ -10,7 +10,6 @@ import RegisterSelfIndustry from "../components/register-self-industry";
 import {RolesInfo} from "../components/static-data";
 
 import Spinner from "react-bootstrap/Spinner";
-import Button from 'react-bootstrap/Button';
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { trpc } from "../services/trpc";
 import FindOrSetupWallet from "../components/find-or-setup-wallet";
