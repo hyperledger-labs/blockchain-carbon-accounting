@@ -1,7 +1,7 @@
 import { EmissionFactorDbInterface } from "@blockchain-carbon-accounting/data-common/db"
 import { ActivityInterface, getYearFromDate } from "@blockchain-carbon-accounting/data-common/utils"
 import { CO2EmissionFactorInterface, getUomFactor } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissions-calc"
-import { EMISSIONS_FACTOR_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
+import { EMISSIONS_FACTOR_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
 import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
 import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
 import { ErrInvalidFactorForActivity } from "@blockchain-carbon-accounting/emissions_data_lib/src/const"
@@ -67,7 +67,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     activity: Partial<ActivityInterface>,
     doc: EmissionsFactorInterface
   ): boolean => {
-    if (doc.class !== EMISSIONS_FACTOR_CLASS_IDENTIFER) return false
+    if (doc.class !== EMISSIONS_FACTOR_CLASS_IDENTIFIER) return false
     if (activity.scope && doc.scope?.toUpperCase() !== activity.scope.toUpperCase()) return false
     if (activity.level_1 && doc.level_1?.toUpperCase() !== activity.level_1.toUpperCase()) return false
     if (activity.level_2 && doc.level_2?.toUpperCase() !== activity.level_2.toUpperCase()) return false
@@ -136,19 +136,19 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
     thruDate: string
   ): Promise<EmissionsFactorInterface> => {
     const hasStateData = lookup.state_province !== ""
-    const isNercRegion = lookup.divisions?.division_type.toLowerCase() === "nerc_region"
-    const isNonUSCountry = lookup.divisions?.division_type.toLowerCase() === "country" && lookup.divisions?.division_id.toLowerCase() !== "usa"
-    let divisionID: string
-    let divisionType: string
+    const isNercRegion = lookup.division_type?.toLowerCase() === "nerc_region"
+    const isNonUSCountry = lookup.division_type?.toLowerCase() === "country" && lookup.division_id?.toLowerCase() !== "usa"
+    let divisionID;
+    let divisionType;
     let year: number | undefined
     if (hasStateData && lookup.state_province) {
       divisionID = lookup.state_province
       divisionType = "STATE"
-    } else if (isNercRegion && lookup.divisions?.division_id) {
-      divisionID = lookup.divisions?.division_id
-      divisionType = lookup.divisions?.division_type
-    } else if (isNonUSCountry && lookup.divisions?.division_id) {
-      divisionID = lookup.divisions?.division_id
+    } else if (isNercRegion && lookup.division_id && lookup.division_type) {
+      divisionID = lookup.division_id
+      divisionType = lookup.division_type
+    } else if (isNonUSCountry && lookup.division_id) {
+      divisionID = lookup.division_id
       divisionType = "Country"
     } else {
       divisionID = "USA"
@@ -162,7 +162,6 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
       console.error(error)
       year = undefined
     }
-
     console.log("fetching utilityFactors")
     const utilityFactors = await this.getEmissionsFactorsByDivision(
       divisionID,
@@ -464,6 +463,17 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
         `${ErrInvalidFactorForActivity} This emissions factor does not match the given activity`
       )
     }
+  }
+
+  public getCO2EmissionFactorByLookup = async (lookup: UtilityLookupItemInterface,usage: number,usageUOM: string,thruDate: string)=> {
+      const factor = await this.getEmissionsFactorByLookupItem(lookup,thruDate);
+      if (factor===null) {
+        return Error(` This emission factor does not match the given lookup`);
+      }
+      else {
+        const co2Emission= await this.getCO2EmissionFactor(factor,usage,usageUOM);
+        return co2Emission;
+      }
   }
 
   public getEmissionsFactorLastYear = async (factorType: string): Promise<string | undefined> => {

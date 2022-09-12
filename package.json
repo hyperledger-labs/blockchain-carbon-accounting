@@ -16,6 +16,7 @@
     "frontend": "npm run dev --workspace=@blockchain-carbon-accounting/react-app",
     "frontend-https": "npm run dev-https --workspace=@blockchain-carbon-accounting/react-app",
     "api-server": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
+    "api-oracle": "npm run dev --workspace=@blockchain-carbon-accounting/api-oracle",
     "api-server:loadDemoSeeds": "npm run loadDemoSeeds --workspace=@blockchain-carbon-accounting/api-server",
     "hardhat": "npm run dev --workspace=@blockchain-carbon-accounting/hardhat",
     "hardhat-setup": "npm run dev:setup --if-present --workspace=@blockchain-carbon-accounting/hardhat",
@@ -26,6 +27,7 @@
     "packages": [
       "app/frontend/*",
       "app/api-server",
+      "app/api-oracle",
       "app/supply-chain",
       "app/supply-chain/api",
       "data",

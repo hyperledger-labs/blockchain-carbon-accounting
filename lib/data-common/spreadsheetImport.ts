@@ -1,5 +1,5 @@
-import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
-import { OilAndGasAssetInterface, OIL_AND_GAS_ASSET_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";//../oilandgas-data/src/oilAndGasAsset";
+import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
+import { OilAndGasAssetInterface, OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";//../oilandgas-data/src/oilAndGasAsset";
 import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem";
 import { Presets, SingleBar } from "cli-progress";
 import { v4 as uuidv4 } from 'uuid';
@@ -199,7 +199,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         }
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
-          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFIER,
           type: EMISSIONS_FACTOR_TYPE,
           level_1: "eGRID EMISSIONS FACTORS",
           level_2: "USA",
@@ -249,7 +249,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         }
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
-          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFIER,
           uuid: uuidv4(),
           type: EMISSIONS_FACTOR_TYPE,
           level_1: "eGRID EMISSIONS FACTORS",
@@ -299,7 +299,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
         opts.verbose && console.log("-- Prepare to insert from ", row);
         // generate a unique for the row
         const d: EmissionsFactorInterface = {
-          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFIER,
           type: EMISSIONS_FACTOR_TYPE,
           level_1: "eGRID EMISSIONS FACTORS",
           level_2: "USA",
@@ -349,7 +349,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       opts.verbose && console.log("-- Prepare to insert from ", row);
 
       const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFIER,
         uuid: uuidv4(),
         type: EMISSIONS_FACTOR_TYPE,
         level_1: "EEA EMISSIONS FACTORS",
@@ -432,7 +432,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       } else {
         // import it
         const factor: EmissionsFactorInterface = {
-          class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+          class: EMISSIONS_FACTOR_CLASS_IDENTIFIER,
           uuid: d.uuid,
           type: d.type,
           level_1: "EEA EMISSIONS FACTORS",
@@ -478,7 +478,7 @@ export const loadEmissionsFactors = async (opts: ParseWorksheetOpts, progressBar
       // generate a unique for the rows
       const document_id = uuidv4();
       const d: EmissionsFactorInterface = {
-        class: EMISSIONS_FACTOR_CLASS_IDENTIFER,
+        class: EMISSIONS_FACTOR_CLASS_IDENTIFIER,
         type: `${row.Scope.replace(/ /g, "_").toUpperCase()}_EMISSIONS`,
         level_1: row["Level 1"].toUpperCase(),
         level_2: row["Level 2"].toUpperCase(),
@@ -561,7 +561,7 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts, progressBa
       opts.verbose && console.log("-- Prepare to insert from ", row);
       const d: OilAndGasAssetInterface = {
         uuid: uuidv4(),
-        class: OIL_AND_GAS_ASSET_CLASS_IDENTIFER,
+        class: OIL_AND_GAS_ASSET_CLASS_IDENTIFIER,
         type: row["TYPE"],
         country: row["COUNTRY"],
         latitude: row["LATITUDE"],

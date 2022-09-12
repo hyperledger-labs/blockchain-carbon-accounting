@@ -1,4 +1,4 @@
-export const PRODUCT_CLASS_IDENTIFER =
+export const PRODUCT_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.oil-and-gas-product';
 
 export interface ProductInterface {

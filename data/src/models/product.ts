@@ -4,7 +4,6 @@ import {
   PrimaryGeneratedColumn,
   Column
 } from 'typeorm';
-import bigint_transformer from './bigint_transformer';
 
 @Entity()
 export class Product implements ProductInterface{

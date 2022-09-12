@@ -20,7 +20,6 @@
   },
   "dependencies": {
     "@blockchain-carbon-accounting/data-postgres": "*",
-    "@blockchain-carbon-accounting/emissions_data": "*",
     "@googlemaps/google-maps-services-js": "^3.3.14",
     "@metamask/eth-sig-util": "^4.0.1",
     "axios": "^0.27.2",

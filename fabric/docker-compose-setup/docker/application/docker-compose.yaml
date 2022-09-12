@@ -8,26 +8,48 @@ services:
       container_name: locals3
       image: localstack/localstack:0.12.18
       ports:
-        - 4566:4566
-        - 4571:4571
+            - 4566:4566
+            - 4571:4571
       environment:
-        - SERVICES=s3
-        - DEBUG=DEBUG
-        - DATA_DIR=/tmp/localstack/data
-        - DOCKER_HOST=unix:///var/run/docker.sock
+            - SERVICES=s3
+            - DEBUG=DEBUG
+            - DATA_DIR=/tmp/localstack/data
+            - DOCKER_HOST=unix:///var/run/docker.sock
       volumes:
-        - locals3:/tmp/localstack
-        - /var/run/docker.sock:/var/run/docker.sock
+            - locals3:/tmp/localstack
+            - /var/run/docker.sock:/var/run/docker.sock
+    oracle: 
+        container_name: oracle
+        image: ghcr.io/net-zero-project/blockchain-carbon-accounting/oracle-api:latest
+        ports:
+            - 3002:3002
+        env_file:
+            - ../../.oracle.env
+    postgres:
+        container_name: postgres
+        image: postgres:latest
+        ports:
+          - 5400:5432
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: blockchain-carbon-accounting-test
     vault:
         image: vault:latest
         container_name: vault
         ports:
-          - "8200:8200"
+            - "8200:8200"
         environment:
-          - VAULT_LOG_LEVEL=debug
+            VAULT_LOG_LEVEL: debug
+            VAULT_ADDR: "http://127.0.0.1:8200"
+            VAULT_DEV_ROOT_TOKEN_ID: "tokenId"
         cap_add:
-          - IPC_LOCK
-        command: server -dev -dev-root-token-id tokenId
+            - IPC_LOCK
+    ws-identity: 
+        container_name: ws-identity
+        image: ghcr.io/brioux/ws-identity:latest
+        ports:
+            - "8700:8700"
     api:
         container_name: api
         image: zzocker20/utilityemissions-api:0.0.3

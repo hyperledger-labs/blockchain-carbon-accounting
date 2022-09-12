@@ -25,7 +25,7 @@ const apiEndpoints = {
 
 const adminVaultToken = 'tokenId';
 const userId = 'admin';
-const mockUtilityID = 'USA_EIA_11208';
+import { mockUtilityID } from './constants';
 
 describe('E2E-vault', () => {
     tests('vault_token', adminVaultToken);

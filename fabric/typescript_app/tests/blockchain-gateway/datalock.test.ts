@@ -10,6 +10,8 @@ import { setup } from '../../src/utils/logger';
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 const should = chai.should();
 
+import { mockUtilityID2 } from '../constants';
+
 setup('DEBUG', 'DEBUG');
 
 config();
@@ -41,7 +43,7 @@ describe('DataLockGateway', () => {
                 fabricConnector: org.connector,
                 signer: signer,
             }).recordEmissions(adminCaller, {
-                utilityId: 'USA_EIA_11208',
+                utilityId: mockUtilityID2,
                 partyId: uuid4(),
                 fromDate: '2020-05-07T10:10:09Z',
                 thruDate: '2021-05-07T10:10:09Z',
