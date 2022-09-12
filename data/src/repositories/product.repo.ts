@@ -1,6 +1,5 @@
 import { ProductDbInterface } from "@blockchain-carbon-accounting/data-common/db";
 import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product";
-//import { OIL_AND_GAS_PRODUCT_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product;
 import { DataSource } from "typeorm"
 import { Product } from "../models/product"
 

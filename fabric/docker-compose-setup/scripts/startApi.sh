@@ -9,10 +9,20 @@
 
 MODE=${1:-local}
 
+NETWORK_NAME="carbonAccounting"
 case $MODE in
   local)
-        docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3
-        docker run --rm --name ws-identity -d --cap-add=IPC_LOCK -p 8700:8700 ghcr.io/brioux/ws-identity
+
+        echo "=== [scripts/startApi] copy postgres DB .env variables used by oracle docker container"
+        grep -A 0 -e 'DB_' ../../.env > ./.oracle.env
+        echo "=== [scripts/startApi] set DB_HOST=host.docker.internal to access local postgres DB from docker"
+        echo 'DB_HOST=host.docker.internal' >> ./.oracle.env
+
+        docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3 ws-identity postgres
+        docker network connect $NETWORK_NAME postgres
+
+        sh scripts/startOracle.sh $NETWORK_NAME '.oracle.env'
+
         cd ../typescript_app
         ./cp-blockchain-gateway-lib.sh
 
@@ -27,8 +37,6 @@ case $MODE in
   ;;
 
   docker)
-        NETWORK_NAME="carbonAccounting"
-
         docker-compose -f ./docker/application/docker-compose.yaml up -d
 
         docker network connect $NETWORK_NAME api

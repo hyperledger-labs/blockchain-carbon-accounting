@@ -20,7 +20,7 @@ setup('DEBUG', 'DEBUG');
 // env
 config();
 
-const mockUtilityID = 'USA_EIA_11208';
+import { mockUtilityID } from '../constants';
 
 describe('EmissionsDataGateway', () => {
     const bcConfig = new BCGatewayConfig();
@@ -95,7 +95,7 @@ describe('EmissionsDataGateway', () => {
                 (error as ClientError).status.should.be.eq(409);
             }
         });
-
+        /*
         it('should use emissions factors for the correct year', async () => {
             const mockPartyID2 = uuid4();
             const usage = 100;
@@ -305,7 +305,7 @@ describe('EmissionsDataGateway', () => {
                 });
             agent.close();
         });
-
+*/
         const mockTokenId = '0xMockToken';
         it('should update token if for minted records', async () => {
             await EmissionsGateway.updateEmissionsMintedToken(adminCaller, {

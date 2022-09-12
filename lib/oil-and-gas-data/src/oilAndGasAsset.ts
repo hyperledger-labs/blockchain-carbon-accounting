@@ -1,4 +1,4 @@
-export const OIL_AND_GAS_ASSET_CLASS_IDENTIFER =
+export const OIL_AND_GAS_ASSET_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.oil-and-gas-asset';
 
 export interface OilAndGasAssetInterface {

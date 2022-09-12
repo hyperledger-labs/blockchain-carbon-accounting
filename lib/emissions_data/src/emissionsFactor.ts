@@ -1,4 +1,4 @@
-export const EMISSIONS_FACTOR_CLASS_IDENTIFER =
+export const EMISSIONS_FACTOR_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem';
 
 export interface EmissionsFactorInterface {

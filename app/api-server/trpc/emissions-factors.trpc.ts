@@ -1,6 +1,7 @@
 import * as trpc from '@trpc/server'
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
+import { ActivityInterface } from "@blockchain-carbon-accounting/data-common/utils"
 
 export const emissionsFactorsRouter = trpc
 .router<TrpcContext>()
@@ -128,6 +129,38 @@ export const emissionsFactorsRouter = trpc
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.get', error)
+        }
+    },
+})
+.query('getEmissions', {
+    input: z.object({
+        scope: z.string(),
+        level_1: z.string(),
+        level_2: z.string(),
+        level_3: z.string(),
+        level_4: z.string(),
+        text: z.string(),
+        activity_uom: z.string(),
+        activity: z.number(),
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            const activity: ActivityInterface = {
+                scope : input.scope,
+                level_1 : input.level_1,
+                level_2 : input.level_2,
+                level_3 : input.level_3,
+                level_4 : input.level_4,
+                text : input.text,
+                activity : input.activity,
+                activity_uom : input.activity_uom,
+               }
+            const emissionsFactor = await ctx.db.getEmissionsFactorRepo().getCO2EmissionByActivity(activity);
+            return {
+                emissionsFactor,
+            }
+        } catch (error) {
+            handleError('emissionsFactorsRouter.getEmissions', error)
         }
     },
 })

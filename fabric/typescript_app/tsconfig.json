@@ -2,6 +2,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "pretty": true,
     "strict": true,
     "sourceMap": true,

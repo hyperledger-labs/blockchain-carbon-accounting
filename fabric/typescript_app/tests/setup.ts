@@ -1,13 +1,20 @@
 // configuration required before running the tests
-import {
-    FabricContractInvocationType,
-    FabricSigningCredential,
-} from '@hyperledger/cactus-plugin-ledger-connector-fabric';
+import { FabricSigningCredential } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import axios from 'axios';
 // import { execSync } from 'child_process';
 import { config } from 'dotenv';
 import BCGatewayConfig from '../src/blockchain-gateway-lib/config';
 config();
+config({ path: './tests/.oracle.env' });
+
+import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';
+import type { UtilityLookupItemInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import { parseCommonYargsOptions } from '@blockchain-carbon-accounting/data-postgres/src/config';
+
+import { v4 as uuidv4 } from 'uuid';
+
+import { mockUtilityID, mockUtilityID2 } from './constants';
 
 const bcConfig = new BCGatewayConfig();
 
@@ -29,130 +36,6 @@ async function mockEmissionsRecord() {
         caId: org.caID,
         mspId: org.orgMSP,
     });
-
-    const channelName = 'emissions-data';
-    const ccName = 'emissions';
-    // import utility identifier
-    const mockUtilityID = 'USA_EIA_11208';
-
-    console.log('importUtilityIdentifier 1 ...');
-    const p1 = hlfConnector.transact({
-        signingCredential: signer,
-        channelName: channelName,
-        contractName: ccName,
-        invocationType: FabricContractInvocationType.Send,
-        methodName: 'importUtilityIdentifier',
-        params: [
-            mockUtilityID,
-            '2019',
-            '11208',
-            'Los Angeles Department of Water & Power',
-            'USA',
-            '',
-            JSON.stringify({
-                division_type: 'NERC_REGION',
-                division_id: 'WECC',
-            }),
-        ],
-    });
-
-    console.log('importUtilityIdentifier 2 ...');
-    const p2 = hlfConnector.transact({
-        signingCredential: signer,
-        channelName: channelName,
-        contractName: ccName,
-        invocationType: FabricContractInvocationType.Send,
-        methodName: 'importUtilityIdentifier',
-        params: [
-            'RWE_AG',
-            '2019',
-            '1',
-            'RWE AG',
-            'DE',
-            '',
-            JSON.stringify({
-                division_type: 'COUNTRY',
-                division_id: 'Germany',
-            }),
-        ],
-    });
-
-    // import mock utility factor
-    console.log('importUtilityFactor 1 ...');
-    const p3 = hlfConnector.transact({
-        signingCredential: signer,
-        channelName: channelName,
-        contractName: ccName,
-        invocationType: FabricContractInvocationType.Send,
-        methodName: 'importUtilityFactor',
-        params: [
-            'USA_2018_NERC_REGION_WECC',
-            '2018',
-            'USA',
-            'NERC_REGION',
-            'WECC',
-            'Western_Electricity_Coordinating_Council',
-            '743291275',
-            'MWH',
-            '288021204',
-            'tons',
-            'https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip',
-            '443147683',
-            '300143593',
-            '',
-        ],
-    });
-
-    console.log('importUtilityFactor 2 ...');
-    const p4 = hlfConnector.transact({
-        signingCredential: signer,
-        channelName: channelName,
-        contractName: ccName,
-        invocationType: FabricContractInvocationType.Send,
-        methodName: 'importUtilityFactor',
-        params: [
-            'USA_2019_NERC_REGION_WECC',
-            '2019',
-            'USA',
-            'NERC_REGION',
-            'WECC',
-            'Western_Electricity_Coordinating_Council',
-            '738835346',
-            'MWH',
-            '285747759',
-            'tons',
-            'https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx',
-            '447805417',
-            '291029929',
-            '',
-        ],
-    });
-
-    const p5 = hlfConnector.transact({
-        signingCredential: signer,
-        channelName: channelName,
-        contractName: ccName,
-        invocationType: FabricContractInvocationType.Send,
-        methodName: 'importUtilityFactor',
-        params: [
-            'COUNTRY_DE_2019',
-            '2019',
-            'Germany',
-            'Country',
-            'Germany',
-            'Germany',
-            '',
-            '',
-            '338',
-            'g/KWH',
-            'https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-4/eea-2017-res-share-proxies/2016-res_proxies_eea_csv/at_download/file;https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-9',
-            '',
-            '',
-            '41.03',
-        ],
-    });
-
-    await Promise.all([p1, p2, p3, p4, p5]);
 }
 
 async function setupVault() {
@@ -200,10 +83,142 @@ async function setupVault() {
     );
 }
 
+async function addTestEmissionsFactor(efl: EmissionsFactorInterface, db: PostgresDBService) {
+    await db.getEmissionsFactorRepo().putEmissionFactor({ ...efl });
+}
+
+async function addUtilityLookupItem(uli: UtilityLookupItemInterface, db: PostgresDBService) {
+    await db.getUtilityLookupItemRepo().putUtilityLookupItem(uli);
+}
+
+async function setupTestPg() {
+    // import utility identifier
+    console.log(
+        'Import UtilityIdentifiers and EmissionsFactors into postgres DB blockchain-carbon-accounting-test (docker container) ...',
+    );
+    const db = await PostgresDBService.getInstance(parseCommonYargsOptions({ dbport: 5400 }));
+    await addUtilityLookupItem(
+        {
+            uuid: mockUtilityID,
+            class: 'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist',
+            year: '2019',
+            utility_number: '11208',
+            utility_name: 'Los Angeles Department of Water & Power',
+            country: 'USA',
+            state_province: 'CA',
+            divisions: { division_type: 'NERC_REGION', division_id: 'WECC' },
+        },
+        db,
+    );
+
+    await addUtilityLookupItem(
+        {
+            uuid: mockUtilityID2,
+            class: 'org.hyperledger.blockchain-carbon-accounting.utilitylookuplist',
+            year: '2019',
+            utility_number: '1',
+            utility_name: 'RWE AG',
+            country: 'DE',
+            state_province: '',
+            divisions: { division_type: 'Country', division_id: 'Germany' },
+        },
+        db,
+    );
+
+    await addTestEmissionsFactor(
+        {
+            uuid: uuidv4(),
+            class: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
+            type: 'EMISSIONS_ELECTRICITY',
+            scope: 'SCOPE 2',
+            level_1: 'eGRID EMISSIONS FACTORS',
+            level_2: 'USA',
+            level_3: 'STATE: CA',
+            year: '2019',
+            country: 'USA',
+            division_type: 'STATE',
+            division_id: 'CA',
+            division_name: 'California',
+            activity_uom: 'MWH',
+            net_generation: '201747828.474',
+            net_generation_uom: 'MWH',
+            co2_equivalent_emissions: '0.19359146878269065',
+            co2_equivalent_emissions_uom: 'tons',
+        },
+        db,
+    );
+    await addTestEmissionsFactor(
+        {
+            uuid: uuidv4(),
+            class: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
+            type: 'EMISSIONS_ELECTRICITY',
+            scope: 'SCOPE 2',
+            level_1: 'eGRID EMISSIONS FACTORS',
+            level_2: 'USA',
+            level_3: 'STATE: CA',
+            year: '2018',
+            country: 'USA',
+            division_type: 'STATE',
+            division_id: 'CA',
+            division_name: 'California',
+            activity_uom: 'MWH',
+            net_generation: '195212859.582',
+            net_generation_uom: 'MWH',
+            co2_equivalent_emissions: '0.21101443649872265',
+            co2_equivalent_emissions_uom: 'tons',
+        },
+        db,
+    );
+    await addTestEmissionsFactor(
+        {
+            uuid: uuidv4(),
+            class: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
+            type: 'EMISSIONS_ELECTRICITY',
+            scope: 'SCOPE 2',
+            level_1: 'eGRID EMISSIONS FACTORS',
+            level_2: 'USA',
+            level_3: 'STATE: CA',
+            year: '2020',
+            country: 'USA',
+            division_type: 'STATE',
+            division_id: 'CA',
+            division_name: 'California',
+            activity_uom: 'MWH',
+            net_generation: '192954153.405',
+            net_generation_uom: 'MWH',
+            co2_equivalent_emissions: '0.2265591892870195',
+            co2_equivalent_emissions_uom: 'tons',
+        },
+        db,
+    );
+    await addTestEmissionsFactor(
+        {
+            uuid: uuidv4(),
+            class: 'org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem',
+            type: 'EMISSIONS_ELECTRICITY',
+            scope: 'SCOPE 2',
+            level_1: 'eGRID EMISSIONS FACTORS',
+            level_2: 'Germany',
+            level_3: 'Country: DE',
+            year: '2019',
+            country: 'Germany',
+            division_type: 'Country',
+            division_id: 'Germany',
+            division_name: 'Germany',
+            activity_uom: 'MWH',
+            net_generation: '1',
+            net_generation_uom: 'MWH',
+            co2_equivalent_emissions: '338',
+            co2_equivalent_emissions_uom: 'g',
+        },
+        db,
+    );
+}
+
 (async () => {
     try {
         // TODO use promise.all
-        await Promise.all([mockEmissionsRecord(), setupVault()]);
+        await Promise.all([mockEmissionsRecord(), setupVault(), setupTestPg()]);
     } catch (error) {
         console.error(error);
         process.exit(1);
