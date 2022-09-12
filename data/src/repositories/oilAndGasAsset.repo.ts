@@ -1,6 +1,6 @@
 import { OilAndGasAssetDbInterface } from "@blockchain-carbon-accounting/data-common/db";
 import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
-//import { OIL_AND_GAS_ASSET_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
+//import { OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
 import { DataSource } from "typeorm"
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
 

@@ -1,5 +1,5 @@
-import { OilAndGasAssetInterface, OIL_AND_GAS_ASSET_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
-import { ProductInterface, PRODUCT_CLASS_IDENTIFER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product";
+import { OilAndGasAssetInterface, OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
+import { ProductInterface, PRODUCT_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product";
 import { parseWorksheet, getStateNameMapping, LoadInfo } from "@blockchain-carbon-accounting/data-common/spreadsheetImport";
 import { Presets, SingleBar } from "cli-progress";
 import { v4 as uuidv4 } from 'uuid';
@@ -39,7 +39,7 @@ export const importOilAndGasAssets = async (opts: any,
           opts.verbose && console.log("-- Prepare to insert from ", prop);
           const d: OilAndGasAssetInterface = {
             uuid: uuidv4(),
-            class: OIL_AND_GAS_ASSET_CLASS_IDENTIFER,
+            class: OIL_AND_GAS_ASSET_CLASS_IDENTIFIER,
             type: prop["TYPE"],
             country: prop["COUNTRY"],
             latitude: prop["LATITUDE"],
@@ -115,7 +115,7 @@ export const importFlareData = async (opts: any,
       });
       // generate a unique for the row
       const d: ProductInterface = {
-        class: PRODUCT_CLASS_IDENTIFER,
+        class: PRODUCT_CLASS_IDENTIFIER,
         type: "Flaring",
         uuid: uuidv4(),
         name: "methane",
@@ -154,7 +154,7 @@ export const importFlareData = async (opts: any,
         amountHeader = ["U.S.",opts.name,opts.type,"("+opts.unit+")"].join(" ")
       }
       let d: ProductInterface = {
-        class: PRODUCT_CLASS_IDENTIFER,
+        class: PRODUCT_CLASS_IDENTIFIER,
         type: opts.type,
         uuid: uuidv4(),
         name: opts.name,
@@ -213,7 +213,7 @@ export const importFlareData = async (opts: any,
 
       opts.verbose && console.log("-- Prepare to insert from ", row);
       let d: ProductInterface = {
-        class: PRODUCT_CLASS_IDENTIFER,
+        class: PRODUCT_CLASS_IDENTIFIER,
         uuid: uuidv4(),
         source: opts.source || opts.file,
         description: "Flare Monitor oil & gas data",
@@ -292,7 +292,7 @@ export const importFlareData = async (opts: any,
       opts.verbose && console.log("-- Prepare to insert from ", row);
       let d: ProductInterface = {
         uuid: uuidv4(),
-        class: PRODUCT_CLASS_IDENTIFER,
+        class: PRODUCT_CLASS_IDENTIFIER,
         source: opts.source || opts.file,
         description: "CATF U.S. O&G Benchmarking",
         type: opts.type,

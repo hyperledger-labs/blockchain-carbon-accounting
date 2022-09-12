@@ -15,5 +15,7 @@ export interface UtilityLookupItemInterface {
     country?: string;
     state_province?: string;
     divisions?: DivisionsInterface;
+    division_type?: string;
+    division_id?: string;
 }
 

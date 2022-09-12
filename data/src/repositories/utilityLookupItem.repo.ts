@@ -15,7 +15,7 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
     // cleanup any existing record matching the same fields
     const repo = this._db.getRepository(UtilityLookupItem);
 
-   await repo.delete({
+    await repo.delete({
       class: doc.class,
       year: doc.year,
       utility_number: doc.utility_number,

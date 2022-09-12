@@ -1,4 +1,4 @@
-# AWS deployment of Hyperledger Fabric
+ f# AWS deployment of Hyperledger Fabric
 
 This is AWS specific deployment steps in addition to the main guide
 
@@ -508,14 +508,6 @@ Make sure you have node modules installed in the fabric/docker-compose-setup dir
 and in the `multi-cloud-deployment/deploy-aws` directory run
 
     $ source ./setEnv.sh
-
-and
-
-    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
-    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
-    $ node ../../docker-compose-setup/egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
 
 
 After seeding  you can run a script to record and get the emissions:

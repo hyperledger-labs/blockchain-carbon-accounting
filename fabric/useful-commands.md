@@ -1,6 +1,6 @@
 # Useful commands for testing
 
-Copy and paste these commands in the directory `fabric/docker-compose-setup/` to test certain functions and tasks of the chaincode, Express API (source code in `./typescript_app/`), and `egrid-data-loader.js` in `./docker-compose-setup/`.
+Copy and paste these commands in the directory `fabric/docker-compose-setup/` to test certain functions and tasks of the chaincode, and Express API (source code in `./typescript_app/`)
 
 ## Resetting, starting, and starting the Express API
 
@@ -13,22 +13,6 @@ sudo sh start.sh
 
 # Ctrl+C the terminal where you ran start.sh, and restart the Express API with:
 ./scripts/startApi.sh
-```
-
-## egrid-data-loader.js - Importing seed data
-
-```bash
-# import all utility emissions data
-node egrid-data-loader.js load_utility_emissions all
-
-# import utility emissions data individually
-node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
-node egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
-
-# import utility identifiers
-node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
 ```
 
 ## Express API - Registering admin and user, recording US emissions, auditing emissions to ERC1155 token
@@ -61,18 +45,4 @@ docker exec cli bash -c "./network.sh deployCC -ccv 2.0 -ccs 2"
 
 ```bash
 sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-01-06T10:10:09Z","2018-12-06T10:10:09Z","1755","KWH","url","md5"]}' 1 2
-```
-
-## Get all utility identifiers
-
-```bash
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'getAllUtilityIdentifiers'","Args":[]}' 1
-```
-
-## Import dummy German utility identifier and record dummy emission
-
-```bash
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'importUtilityIdentifier'","Args":["999999","2019","999999","Fake_Germany_Power_Company","Germany","","{\"division_type\":\"Country\",\"division_id\":\"Germany\"}"]}' 1 2
-
-sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["999999","Meinklimatgesellschaft","2019-06-01T10:10:09Z","2019-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
 ```

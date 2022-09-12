@@ -96,82 +96,10 @@ sh ./scripts/fabricNetwork.sh reset && sh start.sh
 
 7. Follow the instructions under **Steps to seed the Fabric database** to initialize the Fabric network with emissions data to pull from when recording emissions.
 
-## Seeding the Fabric database
-
-To calculate emissions, we need data on the emissions from electricity usage. We're currently using the [U.S. Environmental Protection Agency eGRID data](https://www.epa.gov/egrid), [U.S. Energy Information Administration's Utility Identifiers](https://www.eia.gov/electricity/data/eia861), and European Environment Agency's [Renewable Energy Share](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3) and [CO2 Emissions Intensity](https://www.eea.europa.eu/data-and-maps/daviz/co2-emission-intensity-6). The Node.js script `egrid-data-loader.js` in `emissions-data/docker-compose-setup/` imports this data into the Fabric network.
-
-From `emissions-data/docker-compose-setup/`,
-
-1. Install the dependencies:
-
-```bash
-$ npm install
-```
-
-2. Download and extract the EPA data:
-
-```bash
-$ wget https://www.epa.gov/sites/production/files/2020-01/egrid2018_all_files.zip
-$ unzip egrid2018_all_files.zip
-```
-
-```bash
-$ wget https://www.epa.gov/sites/production/files/2021-02/egrid2019_data.xlsx
-```
-
-3. Download the utility identifiers from [Form EIA-861](https://www.eia.gov/electricity/data/eia861/) and extract:
-
-```bash
-$ wget https://www.eia.gov/electricity/data/eia861/archive/zip/f8612019.zip
-$ unzip f8612019.zip
-```
-
-4. Download the European Environment Agency data for [CO2 intensity of electricity generation](https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation) and [Share of Renewables](https://www.eea.europa.eu/data-and-maps/data/approximated-estimates-for-the-share-3/eea-2017-res-share-proxies/2016-res_proxies_eea_csv) and extract the zip file.
-
-5. Load utility emissions and identifiers data from the files. NOTE: There is a [known issue](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/76) with loading the European `co2-emissions-intensity` file on Mac OS X, so if you are looking to use this for European data, it will only work on Ubuntu:
-
-```bash
-$ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx NRL18
-$ node egrid-data-loader.js load_utility_emissions eGRID2018_Data_v2.xlsx ST18
-$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx NRL19
-$ node egrid-data-loader.js load_utility_emissions egrid2019_data.xlsx ST19
-$ node egrid-data-loader.js load_utility_identifiers Utility_Data_2019.xlsx
-```
-
-```bash
-$ node egrid-data-loader.js load_utility_emissions 2019-RES_proxies_EEA.csv Sheet1
-$ node egrid-data-loader.js load_utility_emissions co2-emission-intensity-6.csv Sheet1
-```
-
-### Viewing the seed data
-
+### Viewing the state DB
 Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `emissions-data__emissions` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
 
 More complex queries can be run with Mango at [`http://localhost:5984/_utils/#database/emissions-data_emissionscontract/_find`](http://localhost:5984/_utils/#database/emissions-data_emissionscontract/_find). See [tutorial on running Mango queries](https://docs.couchdb.org/en/stable/intro/tour.html?highlight=gte#running-a-mango-query).
-
-For example, to search for utility emissions factors, run the Mango query:
-
-```json
-{
-    "selector": {
-        "class": {
-            "$eq": "org.hyperledger.blockchain-carbon-accounting.emissionsfactoritem"
-        }
-    }
-}
-```
-
-To search for utility identifiers, run the Mango query:
-
-```json
-{
-    "selector": {
-        "class": {
-            "$eq": "org.hyperledger.blockchain-carbon-accounting.utilitylookuplist"
-        }
-    }
-}
-```
 
 ## Recording emissions with chain code
 

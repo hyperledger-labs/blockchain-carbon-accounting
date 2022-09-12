@@ -1,11 +1,11 @@
 FROM node:18-alpine as builder
 
 RUN npm install -g typescript
-
 WORKDIR /usr/local/src
 COPY package.json .
 RUN npm install --only=production
 COPY . .
+
 RUN npm run build
 
 FROM node:18-alpine
