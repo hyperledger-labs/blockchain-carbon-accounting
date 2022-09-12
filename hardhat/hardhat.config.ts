@@ -383,6 +383,8 @@ task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live
     console.log("Done performing Timelock admin switch.");
   });
 
+// issues emissions tokens for methane emissions of all the major US regions
+// then issues trackers for oil and gas products based on their amounts of production, linking production to their methane emissions 
 task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emissions")
   .addParam("contract", "The CLM8 contract")
   //.addParam("trackerContract", "The C-NFT contract")
@@ -404,8 +406,11 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     let flaringEmissions = [3172353757,164659360,7191612033,24798016000,302743508000];
     let oilAmounts = [60597652,32449236,218507495,822827823,4378031482];
     let gasAmounts = [22036430,48818206,149034246,815448153,3451977203];
+    // in this case, both oil and gas are already in the same units (tons of oil equivalent (toe) and thousands of cubic meters (kcm))
+    // but the different amounts and unitAmounts could support oil and gas with their own units
     let oilUnitAmounts = [60597652,32449236,218507495,822827823,4378031482];
     let gasUnitAmounts = [25623756,56765356,173295635,948195526,4013926980,];
+
     let productTransfer = [860000,860000,860000]
     for (let i = 0; i<locations.length; i++) {
       await contract.connect(await hre.ethers.getSigner(dealer2))

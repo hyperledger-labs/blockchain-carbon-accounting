@@ -11,6 +11,29 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./NetEmissionsTokenNetwork.sol";
 
+/**
+
+The CarbonTracker is a contract which transfers the embedded emissions of products in a supply chain.  See https://wiki.hyperledger.org/display/CASIG/2022-09-12+Peer+Programming+Call
+for a review of how this contract works.  Key concepts are:
+ - Product is something which has embedded emissions.  It could be natural gas, plastics, square feet of office, etc.  Product references a series of emissions network tokens,
+   which could be audited emissions, renewable energy certificates, or offsets.
+ - Product could support multiple specific products, for example different types of fuel or both oil and natural gas coming from an oil field.  It has a unitless amount which can be
+   used to normalize all the products to the same unit for comparison, and an array of units and unit amounts which can be used to store the specific units of each product.  For example,
+   the unitless amount could be BOE (barrels of oil equivalent), and the units could be gallons for oil and cubic feet for natural gas.    
+ - Trackee is whoever the tracker is issued for.  For example, it could be a natural gas utility.
+
+Workflow of the token:
+ - create to create a tracker
+ - audit signs it as audited
+ - transferProduct - transfer some products to another party, could be a customer
+ - getTotalEmissions - calculates the total emissions of the tracker based on its emissions network tokens
+ - create to create another tracker, for example by the customer for its product.  For example, it could be plastics or office space.
+ - transferProductToTracker - transfer some of the original product to the new tracker.  For example, transfer cubic feet of natural gas to plastics or office space.
+   This transfers the emissions through the supply chain from one product to another.
+
+**/
+
+
 contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
@@ -28,7 +51,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
      * @dev tracker details
      * trackerId
      * trackee - address of the account the tracking will apply to
-     * auditor - addres of the tracker
+     * auditor - address of the tracker
      **/
     struct CarbonTrackerDetails {
         uint256 trackerId;
@@ -426,7 +449,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev send a product to an address
+     * @dev send a product to a trackee's address
      * used by track() and trackerUpdate()
      **/
     function transferProduct(
@@ -456,7 +479,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev send a product to a trackerId
+     * @dev send a product to a new tracker at trackerId, linking still to the original tracker at sourceTrackerId
      * used by track() and trackerUpdate()
      **/
     function transferProductToTracker(
@@ -716,6 +739,9 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         }
     }
 
+    /**
+     * sign the contract as audited
+    **/
     function audit(uint256 trackerId)
         public
         notAudited(trackerId)
@@ -773,6 +799,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
 
     /**
      * These are public view functions
+     * Divides total emissions by product amount to get the emissions factor of the tracker 
      * Warning: should never be called within functions that update the network to avoid excessive gas fees
      */
     function emissionFactor(uint256 trackerId) public view returns (uint256) {
@@ -839,7 +866,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev returns total emissions
+     * @dev returns total emissions of the tracker from its emissions network tokens
      */
     function getTotalEmissions(uint256 trackerId)
         public
