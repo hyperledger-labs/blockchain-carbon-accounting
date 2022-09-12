@@ -6,6 +6,7 @@ Thanks for trying out {{ site_name }}.
 Welcome!
 ******************
 
+Dear {{ wallet_name }},
 Thanks for trying {{ site_name }}. To activate your account you'll need to verify your email 
 address by using the verification link below:
 
@@ -15,7 +16,7 @@ If you did not sign-up to our website, please ignore this email.
 
 Thanks,
 
-© 2021 {{ site_name }}. All rights reserved.
+© 2021 {{ company_name }}. All rights reserved.
 
 {{ company_name }}
 

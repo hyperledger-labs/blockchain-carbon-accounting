@@ -25,13 +25,13 @@ const assertEnv = (key: string): string => {
   return process.env[key] || '';
 }
 const contract_address = assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
-const tracker_address = assertEnv('LEDGER_CARBON_TRACKER_ADDRESS')
+const tracker_address = process.env['LEDGER_CARBON_TRACKER_ADDRESS']
 const network_name = assertEnv('LEDGER_ETH_NETWORK')
 const network_rpc_url = assertEnv('LEDGER_ETH_JSON_RPC_URL')
 const network_ws_url = process.env['LEDGER_ETH_WS_URL']
 export type OPTS_TYPE = {
   contract_address: string,
-  tracker_address: string,
+  tracker_address?: string,
   network_rpc_url: string,
   network_ws_url?: string,
   network_name: string,
@@ -41,8 +41,6 @@ export type OPTS_TYPE = {
   contract?: Contract
 }
 export const OPTS: OPTS_TYPE = { contract_address, tracker_address, network_name, network_rpc_url, network_ws_url }
-
-
 
 
 // DB connector

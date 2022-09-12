@@ -30,28 +30,13 @@ For more advanced commands, tests and deployment, you can also run from the `har
 - To run a local test network that automatically deploys all of the contracts locally, run `npx hardhat node`
 - To deploy to a given network (e.g. goerli), run `npx hardhat deploy --network goerli`
 
-After deploying to hardhat locally, and you will see the addresses of the deployed contracts as well as 20 accounts available for testing:
+You can start by deploying the contracts locally:
 
 ```
 $ npx hardhat node
-Nothing to compile
-Deploying DAO with account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-Timelock deployed to: 0x5FbDB2315678afecb367f032d93F642f64180aa3
-DAO Token deployed to: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
-Governor deployed to: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
-Initialized Governor address on DAOToken.
-Queued setPendingAdmin() on Timelock.
-Executed setPendingAdmin() on Timelock.
-Called __acceptAdmin() on Governor.
-Delegated voting power of deployer to self.
-Done performing Timelock admin switch.
-Deploying NetEmissionsTokenNetwork with account: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
-NetEmissionsTokenNetwork deployed to: 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
-Timelock address set so that the DAO has permission to issue tokens with issueFromDAO().
-Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
 ```
 
-You can then run this command to set up roles for some of those accounts:
+After deploying to hardhat locally, and you will see the addresses of the deployed contracts as well as 20 accounts available for testing.  You can then run this command to set up roles for some of those accounts:
 
 ```
 $ npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>
@@ -138,27 +123,6 @@ To check the total supply, use
 ```bash
 npx hardhat getTotalSupply --network localhost --contract <DAO Token deployed address>
 ```
-
-
-## Upgrading CLM8 contract implementation
-
-A Hardhat task `upgradeClm8Contract` is provided to upgrade the contract with new features while keeping the same address, as NetEmissionsTokenNetwork utilizes [OpenZeppelin upgrades](https://docs.openzeppelin.com/upgrades-plugins/1.x/api-hardhat-upgrades) to create separate contracts for the implementation and the contract you call (like an API and its implementation.)  When the upgrade script is run, a new implementation contract is deployed that the current address will use. A test implementation of a new version of the contract is located in `contracts/NetEmissionsTokenNetworkV2.sol`. Upgrading is also tested in the unit tests.
-
-To test upgrading contracts locally:
-
-1. Deploy the first set of contracts (including `NetEmissionsTokenNetwork.sol`) with `npx hardhat node`.
-
-2. Create some tokens on the contract by connecting through the React interface.
-
-3. Run the command (after ensuring the `deployments/localhost` directory has your current implementation) to upgrade to `NetEmissionsTokenNetworkV2.sol`:
-
-```bash
-npx hardhat upgradeClm8Contract --network localhost
-```
-
-If successful, the script will return both the old implementation contract address and the new one, and the contract address to be called, which remains the same.  The state of the current variables will remain the same. The old implementation will automatically be made unusable, so there is no need to self-destruct it.
-
-Upgrading contracts on a testnet is similar -- just make sure that the network and Ethereum config is in `hardhat.config.js` and that it isn't commented out. If upgrading on an network via an Infura URL (like Goerli), you'll need an Infura key too. See more information on using the config files at the top of this document.
 
 ## Upgrading Governor.sol and Timelock.sol without upgrading DAOToken.sol
 

@@ -279,7 +279,40 @@ const DisplayWalletDetails: FC<Props> = ({
       </Form> :
       <ul>
         <li><b>Name:</b> {wallet.name}</li>
-        <li><b>Address:</b> {wallet.address}</li>
+        <li><b>Address:</b>
+          {" "}
+          {wallet.address}
+          {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+          <CopyToClipboard text={wallet.address}>
+            <span className="text-secondary">
+              <OverlayTrigger
+                trigger="click"
+                placement="bottom"
+                rootClose={true}
+                delay={{ show: 250, hide: 400 }}
+                overlay={<Tooltip id='copied-address-tooltip'>Copied to clipboard!</Tooltip>}
+              >
+                <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+              </OverlayTrigger>
+            </span>
+          </CopyToClipboard>
+          &nbsp;&nbsp;
+          <a href={`/dashboard/address/${wallet.address}`}>Dashboard</a>
+          {/* @ts-ignore : some weird thing with the CopyToClipboard types ... */}
+          <CopyToClipboard text={`${window.location.protocol}//${window.location.host}/dashboard/address/${wallet.address}`}>
+            <span className="text-secondary">
+              <OverlayTrigger
+                trigger="click"
+                placement="bottom"
+                rootClose={true}
+                delay={{ show: 250, hide: 400 }}
+                overlay={<Tooltip id='copied-address-tooltip'>Copied to clipboard!</Tooltip>}
+              >
+                <sup style={{cursor: "pointer"}}>&nbsp;<FaRegClipboard/></sup>
+              </OverlayTrigger>
+            </span>
+          </CopyToClipboard>
+        </li>
         {wallet.organization && (
           <li><b>Organization:</b> {wallet.organization}</li>
         )}

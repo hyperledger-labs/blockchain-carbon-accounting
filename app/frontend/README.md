@@ -1,24 +1,21 @@
 # Background
 
-The React application is used to manage different participants in the [Emissions Tokens Network](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network+Project) and the
-[DAO](https://wiki.hyperledger.org/display/CASIG/DAO+Project).  It could be used to issue, transfer, or retire CLM8 tokens for addition or reduction of Greenhouse Gas (GHG) emissions;
-create, vote, and execute proposals such as issuing emissions offsets; and manage members of the network and their roles.
+The React application is a dApp used to manage different participants in the [Emissions Tokens Network](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network+Project) and the [DAO](https://wiki.hyperledger.org/display/CASIG/DAO+Project).  It could be used to issue, transfer, or retire CLM8 tokens for addition or reduction of Greenhouse Gas (GHG) emissions; create, vote, and execute proposals such as issuing emissions offsets; and manage members of the network and their roles.
 
 While the CLM8 token is denominated in 1 kg per token, in the React application the displayed unit is in metric tons.  Therefore, quantities of the CLM8 tokens are
 multiplied or divided by 1000.
 
-# Using the React Application
-
-We use a React application for interacting with the NetEmissionsTokenNetwork.sol and DAO contracts. The interface was created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app). The MetaMask browser extension is required for testing.
-
-The application connects to the contract of the address specified in `app/frontend/contracts/src/addresses.js`, which is by default set to the default address of deployment on the Hardhat Network. To instead connect to an Ethereum testnet (like Goerli), read *Starting the React application and connecting to Goerli testnet*, otherwise, read the instructions below.
-
+This application was created using [create-eth-app](https://github.com/PaulRBerg/create-eth-app). The MetaMask browser extension is required to connect your accounts.
 
 ## Api Server
 
-The api server provides all the endpoints for the dApp client.
-It also synchronizes the blockchain network with a PostgreSQL database so that the UI could search and query the tokens and create dashboards.
-See [api-server README](../api-server/README.md) on how to configure and start it. 
+The api server provides all the endpoints for the React client.  It also synchronizes the blockchain network with a PostgreSQL database so that the UI could search and query the tokens and create dashboards.  See [api-server README](../api-server/README.md) on how to configure and start it. 
+
+## Setting Up
+
+The application connects to the contract of the address specified in `app/frontend/contracts/src/addresses.js`, which is by default set to the default address of deployment on the Hardhat Network. To instead connect to an Ethereum testnet (like Goerli), read *Starting the React application and connecting to Goerli testnet*, otherwise, read the instructions below.
+
+ If you have a Google API key for mapping locations (used for calculating flight and shipping emissions), or you have custom endpoints for your API server or local Ethereum network, you can configure them by copying the file `app/frontend/react-app/.env.SAMPLE` to `app/frontend/react-app/.env` and put them there.  Otherwise, the dApp will use a random number for distance for testing purposes, and it'll use the default endpoints in `app/frontend/react-app/src/services/api.config.ts`.  
 
 ## With Hardhat Network local testnet
 

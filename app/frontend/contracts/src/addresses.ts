@@ -6,10 +6,10 @@ const networksAndAddresses = {
   hardhat: {
     network: "Hardhat Network",
     tokenNetwork: {
-      address: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788", // default Hardhat Network deployment address with npx hardhat node
+      address: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6", // default Hardhat Network deployment address with npx hardhat node
     },
     carbonTracker: {
-      address: "0x0dcd1bf9a1b36ce34237eeafef220932846bcd82", // default Hardhat Network deployment address with npx hardhat node
+      address: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788", // default Hardhat Network deployment address with npx hardhat node
     },
     dao: {
       governor: {
@@ -24,7 +24,10 @@ const networksAndAddresses = {
   goerli: {
     network: "Goerli Testnet",
     tokenNetwork: {
-      address: "0x45Cd99F9C3b657D092c5BA81C8c39C99a81DA4C4",   
+      address: "0xE8854ec567b3762046d8f773547f373e6A1A620A",   
+    },
+    carbonTracker: {
+      address: "",
     },
     dao: {
       governor: {
@@ -41,6 +44,9 @@ const networksAndAddresses = {
     tokenNetwork: {
       address: "0xa94ec9484BfC9aB8d3fD80eB2735f132d257a135", // npx hardhat deploy --network ovm_localhost
     },
+    carbonTracker: {
+      address: "",
+    },
     dao: {
       governor: {
         address: "0x251b0aEbbe9D3e5281a699f45517D80Dd938eDa0", // npx hardhat deploy --network ovm_localhost
@@ -55,6 +61,9 @@ const networksAndAddresses = {
     network: "Arbitrum Kovan",
     tokenNetwork: {
       address: "0x0D4F2bbE6d6A035769A97C72BD8bBeBE2338C500", // deployed 2021-03-25 on arbitrum kovan v4
+    },
+    carbonTracker: {
+      address: "",
     },
     dao: {
       governor: {
@@ -71,6 +80,9 @@ const networksAndAddresses = {
     tokenNetwork: {
       address: "0xf7B361Fe2dE41Cd092D2c777D2136CB8E3C2B146", // deployed 2021-04-06
     },
+    carbonTracker: {
+      address: "",
+    },
     dao: {
       governor: {
         address: "0x7137EB87725D61d69e6543E7b498bC4780AF1608", // deployed 2021-04-06
@@ -85,6 +97,9 @@ const networksAndAddresses = {
     network: "Ropsten",
     tokenNetwork: {
       address: "0xDf582cE97A933f6987b19838985874E4434207A2", // deployed 2021-04-06
+    },
+    carbonTracker: {
+      address: "",
     },
     dao: {
       governor: {

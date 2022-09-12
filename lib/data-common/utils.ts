@@ -20,4 +20,3 @@ export const getYearFromDate = (date: string): number => {
   }
   return time.getFullYear();
 };
-

@@ -8,7 +8,7 @@ createdb blockchain-carbon-accounting
 
 In the repository root directory copy `.env.SAMPLE` to `.env` and fill in the configuraiton set up:
 - Your PostgreSQL host, port, username, and password.
-- The Google API key for the [Google DistanceMatrix API](https://developers.google.com/maps/documentation/distance-matrix/overview) and [Google Geocode API](https://developers.google.com/maps/documentation/geocoding/overview).
+- The Google API key for the [Google DistanceMatrix API](https://developers.google.com/maps/documentation/distance-matrix/overview) and [Google Geocode API](https://developers.google.com/maps/documentation/geocoding/overview), if you have them.  Otherwise for testing, we'll generate random distances for you.
 - If you have access to the [UPS Developer Kit](https://www.ups.com/upsdeveloperkit?loc=en_US), your UPS username, password, and access key.
 - Email sending parameters.
 - Smart contract addresses.
@@ -39,5 +39,7 @@ In the repository root directory run:
 ```
 npm run clean:nodemodules
 npm install
-npm run loadSeeds
 ```
+
+Then follow the steps in [data/README.md](data/README.md) to set up your database.
+

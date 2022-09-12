@@ -12,7 +12,8 @@ See the documentation for more information and instructions:
 - [`../app/frontend/README.md`](../app/frontend/README.md) for running the React interface that connects to the contracts either locally with Hardhat Network or to a public chain
 - [`docs/verifying-contracts-with-etherscan.md`](docs/verifying-contracts-with-etherscan.md) for verifying with Etherscan to be able to format and make contract calls from their interface
 - [`docs/testing-with-remix.md`](docs/testing-with-remix.md) for testing with the web-based Remix IDE with the remixd daemon
-- [`docs/deployment.md`](docs/deployment.md) for instructions on deploying the contracts to different networks
+- [`docs/deployment.md`](docs/deployment.md) for deploying the contracts to different networks
+- [`docs/setting-up-multisig.md`](docs/setting-up-multisig.md) for setting up MultiSig signing for contract admin 
 - [`docs/carbon-tracker.md`](docs/carbon-tracker.md) for the CarbonTracker contract from the [Oil & Gas Methane Emissions Reduction Project](https://wiki.hyperledger.org/pages/viewpage.action?pageId=62241904) 
 
 ## Running tests

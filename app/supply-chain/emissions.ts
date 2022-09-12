@@ -25,7 +25,7 @@ function print_usage() {
   console.log('  -walletaddr <address>: is used to encrypt content put on IPFS with wallet private key.');
   console.log('  -walletpk private.key: is used to decrypt content(only when fetching content from IPFS).');
   console.log('  -queue: create EmissionsRequest instead of issuing the token');
-  console.log('  -processrequests: process EmissionsRequests, get and randomly assign emission auditors');
+  console.log('  -processrequests: process EmissionsRequests, get and randomly assign emissions auditors');
   console.log('  -v or --verbose to switch to a more verbose output format.');
   console.log('  -h or --help displays this message.');
   console.log('');

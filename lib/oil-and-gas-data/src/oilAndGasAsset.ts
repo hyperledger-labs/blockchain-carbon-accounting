@@ -18,9 +18,9 @@ export interface OilAndGasAssetInterface {
     api?: string;
     description?: string;
     source?: string;
-    source_date?: string;
+    source_date?: Date;
     validation_method?: string;
-    validation_date?: string;
+    validation_date?: Date;
     product?: string;
     field?: string;
     depth?: string;

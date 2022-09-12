@@ -5,7 +5,7 @@ If you did not sign-up to our website, please ignore this email.
 
 Thanks,
 
-© 2021 {{ site_name }}. All rights reserved.
+© 2021 {{ company_name }}. All rights reserved.
 
 {{ company_name }}
 

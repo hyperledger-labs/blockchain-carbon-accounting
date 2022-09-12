@@ -49,7 +49,9 @@ function useWeb3Modal(config: any = {}) {
 
     const web3Provider = new Web3Provider(newProvider);
     setProvider(web3Provider);
-    setSignedInAddress(newProvider.selectedAddress);
+    // need to call this or the address may not be set in some navigation events
+    const paddress = await web3Provider.getSigner().getAddress();
+    setSignedInAddress(newProvider.selectedAddress || paddress);
     // in that case we don't need a wallet
     localStorage.removeItem("signedInWallet");
   }, [web3Modal]);

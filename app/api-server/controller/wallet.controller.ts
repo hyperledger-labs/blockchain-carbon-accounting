@@ -8,7 +8,7 @@ import handlebars from 'handlebars';
 import path from 'path';
 import useragent from 'useragent';
 import { DomainError } from '../trpc/common';
-import { getMailer, getSiteAndAddress } from "../utils/email";
+import { getMailer, getSiteAndAddress, getWalletInfo } from "../utils/email";
 
 export async function getWallets(req: Request, res: Response) {
     try {
@@ -97,6 +97,8 @@ export async function getNumOfWallets(req: Request, res: Response) {
 
 export async function sendPasswordResetEmail(a_email: string, token: string, os?: string, browser?: string) {
     const email = a_email.trim();
+    const db = await PostgresDBService.getInstance();
+    const w = await db.getWalletRepo().findWalletByEmail(email);
     const transporter = getMailer();
 
     const link = new URL(`${process.env.APP_ROOT_URL}/reset-password`)
@@ -109,6 +111,7 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
         ...getSiteAndAddress(),
+        ...getWalletInfo(w),
         request_from_os: os || 'unknown OS',
         request_from_browser: browser || 'unknown browser',
         action_url: link.href,
@@ -136,12 +139,12 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     });
 }
 
-export async function sendVerificationEmail(a_email: string, token?: string) {
+export async function sendVerificationEmail(a_email: string, token?: string, walletInfo?: Partial<Wallet>) {
     const email = a_email.trim();
+    const db = await PostgresDBService.getInstance();
+    const w = await db.getWalletRepo().findWalletByEmail(email);
     if (!token) {
         // generate one again (this is a resend)
-        const db = await PostgresDBService.getInstance();
-        const w = await db.getWalletRepo().findWalletByEmail(email);
         if (!w) {
             throw new DomainError('No wallet found with that email');
         }
@@ -159,6 +162,7 @@ export async function sendVerificationEmail(a_email: string, token?: string) {
     const templateText = handlebars.compile(emailTemplateSourceText)
     const tpl = {
         ...getSiteAndAddress(),
+        ...getWalletInfo(w || walletInfo),
         action_url: link.href,
     }
     const html = templateHtml(tpl)
@@ -235,7 +239,14 @@ export async function signupWallet(a_email: string, password: string, name?: str
 
     // check we can send the email first
     try {
-        await sendVerificationEmail(email, verification_token);
+        await sendVerificationEmail(email, verification_token, {
+            address: newAccount.address,
+            public_key: newAccount.publicKey,
+            email,
+            email_verified: false,
+            name,
+            organization
+        });
         verification_token_sent_at = new Date();
     } catch (err) {
         console.error('Error while sending the email:', err);

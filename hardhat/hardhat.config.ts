@@ -90,8 +90,6 @@ task("setTestAccountRoles", "Set default account roles for testing")
     const {get} = hre.deployments;
     let carbonTracker = await get("CarbonTracker");
     
-    await contract.connect(admin).registerDealer(carbonTracker.address, 4); // REC dealer
-    console.log("Account " + carbonTracker.address + " set as industry dealer");
     await contract.connect(admin).registerDealer(dealer1, 1); // REC dealer
     console.log("Account " + dealer1 + " is now a REC dealer");
     await contract.connect(admin).registerDealer(dealer2, 3); // emissions auditor
@@ -356,33 +354,6 @@ task("addToSupply", "Add a given amount to the total supply of DAO tokens")
     console.log("Total supply is (dCLM8): " + supply);
   });
 
-// Task to upgrade NetEmissionsTokenNetwork contract
-task("upgradeClm8Contract", "Upgrade a specified CLM8 contract to a newly deployed contract")
-  .setAction(async (_, hre) => {
-    const {deployer} = await hre.getNamedAccounts();
-
-    const {deploy, get} = hre.deployments;
-
-    // output current implementation address
-    const current = await get("NetEmissionsTokenNetwork");
-    console.log("Current NetEmissionsTokenNetwork (to be overwritten):", current.implementation);
-
-    // deploy V2
-    const netEmissionsTokenNetwork = await deploy('NetEmissionsTokenNetwork', {
-      from: deployer,
-      proxy: {
-        owner: deployer,
-        proxyContract: "OptimizedTransparentProxy",
-      },
-      contract: "NetEmissionsTokenNetworkV2",
-      args: [ deployer ],
-    });
-
-    // output new implementation address
-    console.log("New NetEmissionsTokenNetwork implementation deployed to:", netEmissionsTokenNetwork.implementation);
-    console.log(`The same address ${netEmissionsTokenNetwork.address} can be used to interact with the contract.`);
-  });
-
 task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live DAO contract")
   .addParam("timelock", "")
   .addParam("governor", "")
@@ -510,6 +481,52 @@ task("grantAdminRole", "Grants an account the DEFAULT_ADMIN_ROLE for a given con
     );
     console.log(`Executed grantRole() on ${taskArgs.contract}. Done.`);
   });
+
+  task("roles", "Prints the keccak256 hashed roles for the NetEmissionsTokenNetwork contract")
+  .setAction(async (taskArgs, hre) => {
+    console.log(`DEFAULT_ADMIN_ROLE: ${hre.ethers.constants.HashZero}`);
+    console.log(`REGISTERED_DEALER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_DEALER"))}`);
+    console.log(`REGISTERED_REC_DEALER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_REC_DEALER"))}`);
+    console.log(`REGISTERED_OFFSET_DEALER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_OFFSET_DEALER"))}`);
+    console.log(`REGISTERED_EMISSIONS_AUDITOR: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_EMISSIONS_AUDITOR"))}`);
+    console.log(`REGISTERED_CONSUMER: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_CONSUMER"))}`);
+    console.log(`REGISTERED_INDUSTRY: ${hre.ethers.utils.keccak256(hre.ethers.utils.toUtf8Bytes("REGISTERED_INDUSTRY"))}`);
+  });
+
+  task("verify-all", "Verifies all contacts for a given network on Etherscan")
+  .setAction(async (taskArgs, hre) => {
+    const { get } = hre.deployments;
+    const { deployer } = await hre.getNamedAccounts();
+
+    const daoToken = await get("DAOToken");
+    const timelock = await get("Timelock");
+    const governor = await get("Governor");
+    const netEmissionsTokenNetwork = await get("NetEmissionsTokenNetwork");
+
+    await hre.run("etherscan-verify", [
+      daoToken.address,
+      deployer
+    ]);
+    
+    await hre.run("etherscan-verify", [
+      timelock.address,
+      deployer,
+      172800
+    ]);
+
+    await hre.run("etherscan-verify", [
+      governor.address,
+      timelock.address,
+      daoToken.address,
+      deployer
+    ]);
+
+    await hre.run("etherscan-verify", [
+      netEmissionsTokenNetwork.address,
+      deployer
+    ]);
+  });
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */

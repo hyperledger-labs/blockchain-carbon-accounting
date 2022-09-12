@@ -9,46 +9,67 @@ export class OilAndGasAsset implements OilAndGasAssetInterface {
 
   @PrimaryGeneratedColumn("uuid")
   uuid!: string;
+
   @Column()
   class!: string;
+
   @Column()
   type!: string;
+
   @Column()
   country!: string;
+
   @Column()
   latitude!: string;
+
   @Column()
   longitude!: string;
+
   @Column({nullable:true})
   name?: string;
+
   @Column({nullable:true})
   operator?: string;
+
   @Column({nullable:true})
   division_type?: string;
+
   @Column({nullable:true})
   division_name?: string;
+
   @Column({nullable:true})
   sub_division_type?: string;
+
   @Column({nullable:true})
   sub_division_name?: string;
+
   @Column({nullable:true})
   status?: string;
+
   @Column({nullable:true})
   api?: string;
+
   @Column({nullable:true})
   description?: string;
+
   @Column({nullable:true})
   source?: string;
-  @Column({nullable:true})
-  source_date?: string;
+
+  @Column({type: 'timestamp', nullable: true})
+  source_date?: Date;
+
   @Column({nullable:true})
   validation_method?: string;
-  @Column({nullable:true})
-  validation_date?: string;
+
+  @Column({type: 'timestamp', nullable: true})
+  validation_date?: Date;
+
   @Column({nullable:true})
   product?: string;
+
   @Column({nullable:true})
   field?: string;
+  
   @Column({nullable:true})
   depth?: string;
 
