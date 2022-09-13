@@ -33,7 +33,6 @@ Workflow of the token:
 
 **/
 
-
 contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
@@ -741,7 +740,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
 
     /**
      * sign the contract as audited
-    **/
+     **/
     function audit(uint256 trackerId)
         public
         notAudited(trackerId)
@@ -799,7 +798,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
 
     /**
      * These are public view functions
-     * Divides total emissions by product amount to get the emissions factor of the tracker 
+     * Divides total emissions by product amount to get the emissions factor of the tracker
      * Warning: should never be called within functions that update the network to avoid excessive gas fees
      */
     function emissionFactor(uint256 trackerId) public view returns (uint256) {
