@@ -41,13 +41,28 @@ The Carbon Tracker Contract is used to issue non fungible tokenz (NFT) as emissi
 
 The contract is implemented as ERC1155Holder of the [NET contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/contracts/NetEmissionsTokenNetwork.sol). Each Carbon Tracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
     
-- audited emission tokens (tokenTypeId = 4 as transferable emission tokens) 
+- emission tokens (tokenTypeId = 4 as transferable emission tokens) 
 - offset credits (retired or transferable)
 - Renewable energy certificates
 
-Each NFT is assigned product tokens used for tracking emissions in trade of goods or services. Multiple product tokens are issued to a certicate to describe the ditribution across a facility with multiple product types (e.g. a refinery that produces gasoline and deisel).
+Each NFT is assigned product tokens used for tracking embodied emissions in trade of products and services. Multiple product tokens are issued to a certicate to describe the ditribution across a facility with multiple product types (e.g. a refinery that produces gasoline and deisel).
 
-Product tokens also enable the tracking of emission certificates across the trade of goods, by seeding a new certificate. See the [CarbonTracker NFT example](#carbon-tracker-nft-example).
+The follwoing figure illustrates the features of the CarbonTracker contract. 
+
+
+![Carbon Tracker Diagram](carbon-tracker.png)
+
+Auditors setup CarbonTracker tokens as emission certificates for a registered industry account.
+- track() to create, or trackUpdate() to update an existing, tracker by assigning NETs.
+- productsUpdate() to assign unique product amounts to a tracker.
+- audit() to mark a tracker as Audited approve an industry'd emission certificate
+
+Registered industry can use the CarbonTracker allow its products to be transfered to other accounts
+- transferProduct() to another trackee, customer, auditor, ...
+- The entire audited CarbonTracker can  be transffered, e.g., to an emission certificate dealer, ...
+- trackProduct() track a previously issued product to a new tracker ID. Enabables tracking embodiied emission of a products accross product across a supply chain.
+
+ See the [CarbonTracker NFT example](#carbon-tracker-nft-example).
 
 
 ### Attribute description  
