@@ -13,20 +13,38 @@ import "./NetEmissionsTokenNetwork.sol";
 
 /**
 
-The CarbonTracker is a contract which transfers the embedded emissions of products in a supply chain.  See https://wiki.hyperledger.org/display/CASIG/2022-09-12+Peer+Programming+Call
-for a review of how this contract works.  Key concepts are:
- - Product is something which has embedded emissions.  It could be natural gas, plastics, square feet of office, etc.  Product references a series of emissions network tokens,
-   which could be audited emissions, renewable energy certificates, or offsets.
- - Product could support multiple specific products, for example different types of fuel or both oil and natural gas coming from an oil field.  It has a unitless amount which can be
-   used to normalize all the products to the same unit for comparison, and an array of units and unit amounts which can be used to store the specific units of each product.  For example,
-   the unitless amount could be BOE (barrels of oil equivalent), and the units could be gallons for oil and cubic feet for natural gas.    
- - Trackee is whoever the tracker is issued for.  For example, it could be a natural gas utility.
+CarbonTracker is a contract used to transfer embedded emissions of products in a supply chain.  
+See https://wiki.hyperledger.org/display/CASIG/2022-09-12+Peer+Programming+Call
+Key concepts are:
+ - Product is something that has embedded emissions.  
+   Oil and natural gas, plastics, electricity, square feet of office, etc ...  
+ - CarbonTracker tokens reference Products and tokens from the NET network,
+   These represent product specific emission certificates for industry 
+ - Products have various attribtutes
+    - normalized amounts that assign a weighted distribution of the 
+      CarbonTracker emissions to each product. Could be normalize energy 
+      content, e.g., BOE (barrels of oil equivalent), if emissions are 
+      allocated propotional to energy content of products, or unitless.
+    - Arrays of units and unit amounts used to store specific attributes.  
+      For example gallons for oil and cubic feet of natural gas.    
+ - Trackee is the registered entitity that the tracker is issued for. 
+   E.g., a natural gas utility.
 
 Workflow of the token:
- - create to create a tracker
- - audit signs it as audited
- - transferProduct - transfer some products to another party, could be a customer
- - getTotalEmissions - calculates the total emissions of the tracker based on its emissions network tokens
+ - Auditors registered with NET issue CarbtonTracker tokens
+ - track() to create, or trackUpdate() to update an existing, tracker
+    - these functions assign NETs to the tracker
+ - productsUpdate() for auditors to assign unique product amounts to a tracker
+ - audit() to mark a tracker as Audited 
+    - approve an industry emission certificate
+    - allow its products to be transfered to other accounts
+ - transferProduct() to another trackee, customer, auditor, ...
+    - The entire audited CarbonTracker can also be transffered, 
+      e.g., to an emission certificate dealer, investor, ...
+ - trackProduct() track a previously issued product to a new tracker ID.
+    - This funciton enables tracking accross product supply chains 
+ - getTotalEmissions() - calculate the total emissions of the CarbonTracker 
+     -based on its emissions network tokens
  - create to create another tracker, for example by the customer for its product.  For example, it could be plastics or office space.
  - transferProductToTracker - transfer some of the original product to the new tracker.  For example, transfer cubic feet of natural gas to plastics or office space.
    This transfers the emissions through the supply chain from one product to another.
@@ -70,7 +88,6 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
      * amount - mapping tokenId to amount of emissions
      * productIds - array of productIds
      * productIdIndex mapping productId to index in array
-     * product mapping productId to ProductQuantities
      * trackerIds - arrays of tracker ids referenced by this tracker
      * trackerIndex - mapping sourceTrackerId to index in array. 1st index is 1, 0 reserved for unindexed.
      * productsTracked - map trackerId to information about productsTracked
@@ -81,13 +98,14 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         mapping(uint256 => uint256) amount;
         uint256[] productIds;
         mapping(uint256 => uint256) productIdIndex;
-        //mapping(uint => ProductQuantities) product;
         uint256[] trackerIds;
         mapping(uint256 => uint256) trackerIndex;
         mapping(uint256 => ProductsTracked) productsTracked;
     }
     /**
      * @dev ProductDetails
+     * trackerId
+     * auditor of the product
      * amount - amount of product
      * available - amount of product available
      * auditor - address that submited the unit amount
@@ -97,7 +115,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         address auditor;
         uint256 amount;
         uint256 available;
-        // TO-DO the unit Amount and unit should be stored offline to retain product privacy.
+        // TO-DO : should unitAmount and unit should be stored offline to retain product privacy.
         string name;
         string unit;
         uint256 unitAmount;
@@ -120,10 +138,9 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
 
     Counters.Counter public _numOfUniqueTrackers;
     Counters.Counter public _numOfProducts;
-    mapping(uint256 => uint256) lockedAmount; //amount of token Id locked into the contract.
-    // map productBalance from productId => trackerId and address of holder
-    mapping(uint256 => mapping(uint256 => mapping(address => uint256)))
-        public productBalance;
+    mapping(uint256 => uint256) lockedAmount; //amount of tokenId locked into the contract.
+    // map productBalance from productId => address => amount of product owned of holder
+    mapping(uint256 => mapping(address => uint256)) public productBalance;
     // map verifier to trackee
     mapping(address => mapping(address => bool)) isVerifierApproved;
 
@@ -171,25 +188,53 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         _isAuditor(_trackerData[trackerId].trackee);
         _;
     }
-    modifier isAudited(uint256 trackerId) {
-        _isAudited(trackerId);
-        _;
-    }
 
     function _isAuditor(address _trackee) internal view {
         require(
-            // TO-DO enforce isVerifierApproved using && condition in require
-            // i.e. require _trackee to approve verifiers (auditor)
-            isVerifierApproved[msg.sender][_trackee] ||
-                (net.isAuditor(msg.sender) || msg.sender == netAddress),
+            __isAuditor(_trackee),
             "CLM8::_isAuditor: _trackee is not an approved auditor of the trackee"
         );
+    }
+
+    function __isAuditor(address _auditor) internal view returns (bool) {
+        // TO-DO enforce isVerifierApproved using && condition in require
+        // i.e. require _trackee to approve verifiers (auditor)
+        return
+            isVerifierApproved[msg.sender][_auditor] ||
+            (net.isAuditor(msg.sender) || msg.sender == _auditor);
+    }
+
+    modifier isAudited(uint256 trackerId) {
+        _isAudited(trackerId);
+        _;
     }
 
     function _isAudited(uint256 trackerId) internal view {
         require(
             _trackerData[trackerId].auditor != address(0),
             "CLM8::_isAudited: trackerId is not audited"
+        );
+    }
+
+    modifier isOwner(uint256 trackerId) {
+        _isOwner(trackerId, msg.sender);
+        _;
+    }
+
+    function _isOwner(uint256 trackerId, address owner) internal view {
+        require(
+            super.ownerOf(trackerId) == owner,
+            "CLM8::_isOwner: msg.sender does not own this trackerId"
+        );
+    }
+
+    function _isAuditorOrOwner(uint256 trackerId, address _address)
+        internal
+        view
+    {
+        require(
+            __isAuditor(_address) || super.ownerOf(trackerId) == _address,
+            "CLM8::_isOwner: msg.sender is not the auditor of or does not own this trackerId"
         );
     }
 
@@ -225,17 +270,6 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
             "CLM8::onlyAdmin: msg.sender is not an admin"
         );
         _;
-    }
-    modifier isOwner(uint256 trackerId) {
-        _isOwner(trackerId, msg.sender);
-        _;
-    }
-
-    function _isOwner(uint256 trackerId, address owner) internal view {
-        require(
-            super.ownerOf(trackerId) == owner,
-            "CLM8::_isOwner: msg.sender does not own this trackerId"
-        );
     }
 
     /**
@@ -273,8 +307,9 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev create a tracker Token for trackee. Note _track will check that msg.sender is either the trackee, or is an approved auditor of the trackee (see isVerifierApproved[][] mapping)
-     * @param trackee - target adress to be tracked
+     * @dev create a tracker Token for trackee.
+     *      _trackTokens will require _isAuditor, msg.sender is an approved auditor of the trackee (see isVerifierApproved[][] mapping)
+     * @param trackee - address of the registered industry of the trackee
      * @param tokenIds - array of ids of tracked carbon tokens (direct/indirect/offsets)
      * @param tokenAmounts - array of incoming token id amounts (direct/indirect/offsets) matching each carbon token
      * @param fromDate - start date of tracker
@@ -328,10 +363,11 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
 
     /**
      * @dev create tracker
-     * @param trackee where products are to be sent
+     * @param trackee - industry producing products with embobied emisssions
      **/
     function _track(address trackee)
         internal
+        isIndustry(trackee) // limit new tracker to industry addresses?
         returns (CarbonTrackerDetails storage)
     {
         // increment trackerId
@@ -384,8 +420,8 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
                 tokenIds[i]
             );
             require(
-                avail.sub(lockedAmount[tokenIds[i]]) >= tokenAmounts[i] ||
-                    msg.sender == netAddress,
+                msg.sender == netAddress ||
+                    avail.sub(lockedAmount[tokenIds[i]]) >= tokenAmounts[i],
                 "CLM8::_trackTokens: tokenAmounts[i] is greater than what is available to the tracker contract"
             );
             lockedAmount[tokenIds[i]] = lockedAmount[tokenIds[i]].add(
@@ -412,110 +448,12 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev track a product to an existing trackerId
-     * used by track() and trackerUpdate()
-     **/
-    function trackProduct(
-        uint256 trackerId,
-        uint256 sourceTrackerId,
-        uint256 productId,
-        uint256 productAmount
-    ) public notAudited(trackerId) {
-        _trackerExists(trackerId);
-        _isOwner(trackerId, msg.sender);
-        //require(productAmounts.length == productIds.length,
-        //    "CLM8::sendProducts: productAmounts and productIds are not the same length");
-        require(
-            trackerId != sourceTrackerId,
-            "CLM8::sendProducts: sourceTrackerId can not equal the trackerId"
-        );
-        //for (uint i = 0; i < productIds.length; i++) { }
-        require(
-            productBalance[productId][sourceTrackerId][msg.sender] >
-                productAmount,
-            "CLM8::trackProduct: productAmount exceeds products available form the sourceTrackerId"
-        );
-        productBalance[productId][sourceTrackerId][msg.sender] = productBalance[
-            productId
-        ][sourceTrackerId][msg.sender].sub(productAmount);
-        return
-            _updateTrackedProducts(
-                trackerId,
-                sourceTrackerId,
-                productId,
-                productAmount
-            );
-    }
-
-    /**
-     * @dev send a product to a trackee's address
-     * used by track() and trackerUpdate()
-     **/
-    function transferProduct(
-        uint256 productId,
-        uint256 productAmount,
-        uint256 sourceTrackerId,
-        address trackee
-    )
-        public
-        isAudited(sourceTrackerId)
-        isOwner(sourceTrackerId)
-    //isIndustry(trackee)
-    {
-        ProductDetails storage product;
-
-        //for (uint i = 0; i < productIds.length; i++) { }
-        product = _productData[productId];
-        require(
-            product.available > productAmount,
-            "CLM8::transferProduct: productAmount exceeds products available in sourceTrackerId"
-        );
-        // update product availability
-        product.available = product.available.sub(productAmount);
-        productBalance[productId][sourceTrackerId][trackee] = productBalance[
-            productId
-        ][sourceTrackerId][trackee].add(productAmount);
-    }
-
-    /**
-     * @dev send a product to a new tracker at trackerId, linking still to the original tracker at sourceTrackerId
-     * used by track() and trackerUpdate()
-     **/
-    function transferProductToTracker(
-        uint256 trackerId,
-        uint256 sourceTrackerId,
-        uint256 productId,
-        uint256 productAmount
-    ) public notAudited(trackerId) {
-        _trackerExists(trackerId);
-        _isOwner(trackerId, msg.sender);
-
-        //require(productAmounts.length == productIds.length,
-        //    "CLM8::sendProducts: productAmounts and productIds are not the same length");
-        require(
-            trackerId != sourceTrackerId,
-            "CLM8::transferProductToTracker: sourceTrackerId can not equal the trackerId"
-        );
-        //for (uint i = 0; i < productIds.length; i++) { }
-        require(
-            productBalance[productId][sourceTrackerId][msg.sender] >
-                productAmount,
-            "CLM8::transferProductToTracker: productAmount exceeds products available form the sourceTrackerId"
-        );
-        // update product availability
-        productBalance[productId][sourceTrackerId][msg.sender] = productBalance[
-            productId
-        ][sourceTrackerId][msg.sender].sub(productAmount);
-        //CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
-        _trackerMappings[trackerId].productIds.push(productId);
-        _trackerData[trackerId].totalProductAmounts = _trackerData[trackerId]
-            .totalProductAmounts
-            .add(productAmount);
-    }
-
-    /**
-     * @dev update a tracker Token
+     * @dev add to (or update) products tied to a tracker
      * @param trackerId of the token
+     * @param productIds (if set to 0 will create a new product)
+     * @param productAmounts - normalized units of each product for weighted distirbution of the tracker totalEmissions
+     * @param productUnits - physical units of each product
+     * @param productUnitAmounts - amount of product in the physical units
      * see tracker() function for description of other inputs
      **/
     function productsUpdate(
@@ -532,7 +470,6 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         isAuditor(trackerId)
     {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        //CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
         require(
             productAmounts.length == productIds.length,
             "CLM8::productsUpdate: productAmounts and productIds are not the same length"
@@ -553,7 +490,6 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         );
 
         uint256 productId;
-        ProductDetails storage product;
         for (uint256 i = 0; i < productIds.length; i++) {
             if (productIds[i] > 0) {
                 productId = productIds[i];
@@ -576,17 +512,102 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
                 _productData[productId].auditor = msg.sender;
                 _trackerMappings[trackerId].productIds.push(productId);
             }
-            product = _productData[productId];
-            product.name = productNames[i];
-            product.unitAmount = productUnitAmounts[i];
-            product.unit = productUnits[i];
-            product.amount = productAmounts[i];
-            product.available = productAmounts[i];
+            _productData[productId].name = productNames[i];
+            _productData[productId].unitAmount = productUnitAmounts[i];
+            _productData[productId].unit = productUnits[i];
+            _productData[productId].amount = productAmounts[i];
+            _productData[productId].available = productAmounts[i];
             trackerData.totalProductAmounts = trackerData
                 .totalProductAmounts
                 .add(productAmounts[i]);
         }
         emit ProductsUpdated(trackerData.trackerId, productIds, productAmounts);
+    }
+
+    /**
+     * @dev send a product to a trackee's address
+     * Products are first transferred to a trackee
+     * It trackee's task to assign the product to a new tracker.
+     * Will first transfer amount of product available to owner of tracker token (if owner is msg.sender)
+     * The rest is transferred from the msg.sender productBalance
+     **/
+    function transferProduct(
+        uint256 productId,
+        uint256 productAmount,
+        address trackee
+    )
+        public
+    //isIndustry(trackee) // TO-DO: limit to addresses registered as industry with NET
+    {
+        ProductDetails storage product = _productData[productId];
+
+        uint256 available;
+        if (msg.sender == super.ownerOf(product.trackerId)) {
+            _isAudited(product.trackerId);
+            available = product.available;
+        }
+
+        uint256 total = productBalance[productId][msg.sender].add(available);
+        require(
+            total > productAmount,
+            "CLM8::transferProduct: productAmount exceeds product available in sourceTrackerId"
+        );
+
+        // residual amount of product to transfer after first sending amount to owner of tracker token
+        uint256 residualAmount;
+        if (available > 0) {
+            if (productAmount > available) {
+                residualAmount = productAmount - available;
+                product.available = 0;
+            } else {
+                product.available = product.available.sub(productAmount);
+            }
+        } else {
+            residualAmount = productAmount;
+        }
+        if (residualAmount > 0) {
+            productBalance[productId][msg.sender] = productBalance[productId][
+                msg.sender
+            ].sub(residualAmount);
+        }
+        // update product balance of trackee
+        productBalance[productId][trackee] = productBalance[productId][trackee]
+            .add(productAmount);
+    }
+
+    /**
+     * @dev track a product to an new trackerId
+     * in this function the owner of trackerId, or an auditor, assigns products received from other carbon tracker tokens
+     **/
+    function trackProduct(
+        uint256 trackerId,
+        uint256 sourceTrackerId,
+        uint256 productId,
+        uint256 productAmount
+    ) public notAudited(trackerId) {
+        _trackerExists(trackerId);
+        _isAuditorOrOwner(trackerId, msg.sender);
+        //require(productAmounts.length == productIds.length,
+        //    "CLM8::sendProducts: productAmounts and productIds are not the same length");
+        require(
+            trackerId != _productData[productId].trackerId,
+            "CLM8::trackProduct: product's trackerId can not be the same as the trackerId"
+        );
+        //for (uint i = 0; i < productIds.length; i++) { }
+        require(
+            productBalance[productId][msg.sender] > productAmount,
+            "CLM8::trackProduct: productAmount exceeds products available for transfer"
+        );
+        productBalance[productId][msg.sender] = productBalance[productId][
+            msg.sender
+        ].sub(productAmount);
+        return
+            _updateTrackedProducts(
+                trackerId,
+                sourceTrackerId,
+                productId,
+                productAmount
+            );
     }
 
     /**
@@ -702,7 +723,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
                     productsTracked.productIds.length - 1
                 ];
             }
-            // and finally delete carbonToken data
+            // and finally delete productsTracked data
             delete productsTracked.amount[productId];
         }
         if (productsTracked.productIds.length > 0) {
@@ -733,7 +754,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
                     trackerMappings.trackerIds.length - 1
                 ];
             }
-            // and finally delete tracked products data
+            // and finally delete productsTracked data
             delete trackerMappings.productsTracked[sourceTrackerId];
         }
     }
@@ -892,7 +913,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
                 trackerMappings.amount[tokenIds[i]]
             );
         }
-        uint256[] memory productIds; //= trackerMappings.productIds;
+        uint256[] memory productIds;
 
         uint256[] memory trackerIds = trackerMappings.trackerIds;
         ProductsTracked storage productsTracked;
@@ -912,12 +933,19 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         return totalEmissions;
     }
 
-    function getProductBalance(
-        uint256 productId,
-        uint256 trackerId,
-        address owner
-    ) public view returns (uint256) {
-        return productBalance[productId][trackerId][owner];
+    function getProductBalance(uint256 productId, address owner)
+        public
+        view
+        returns (uint256)
+    {
+        // add what is available form product Tracker ID
+        if (owner == super.ownerOf(_productData[productId].trackerId)) {
+            return
+                productBalance[productId][owner].add(
+                    _productData[productId].available
+                );
+        }
+        return productBalance[productId][owner];
     }
 
     /**
