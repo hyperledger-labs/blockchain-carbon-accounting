@@ -4,6 +4,10 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 
+export type Operator = {
+    oil_and_gas_asset_operator:string
+}
+
 @Entity()
 export class OilAndGasAsset implements OilAndGasAssetInterface {
 

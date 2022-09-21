@@ -245,3 +245,13 @@ export const TOKEN_FIELDS: Field[] = [
     type: 'string'
 },
 ]
+
+
+export const ASSET_FIELDS: Field[] = [
+{
+    alias: 'Operator Name',
+    name: 'operator',
+    type: 'string',
+    ops: ['like']
+},
+]

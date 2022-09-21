@@ -34,16 +34,16 @@ export interface WsIdentityClientOpts {
 }
 
 export class WsIdentityClient {
-  private readonly debug;
-  private readonly tv4;
-  private readonly rpDefaults;
-  private readonly rp;
-  private readonly apiVersion;
-  private readonly endpoint;
-  private readonly pathPrefix;
-  private readonly noCustomHTTPVerbs;
+  private readonly debug
+  private readonly tv4
+  private readonly rpDefaults
+  private readonly rp
+  private readonly apiVersion
+  private readonly endpoint
+  private readonly pathPrefix
+  private readonly noCustomHTTPVerbs
   private readonly namespace
-  private functions;
+  private functions
 
   constructor (private readonly config:WsIdentityClientOpts) {
     this.debug = config.debug || originalDebug

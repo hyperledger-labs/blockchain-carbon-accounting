@@ -1,6 +1,6 @@
 import { DataSource, SelectQueryBuilder } from "typeorm"
 import { ProductToken } from "../models/productToken"
-import { buildQueries, QueryBundle, ProductPayload } from "./common"
+import { buildQueries, QueryBundle, ProductTokenPayload } from "./common"
 
 export class ProductTokenRepo {
 
@@ -31,7 +31,7 @@ export class ProductTokenRepo {
     return await this._db.getRepository(ProductToken).findOneBy({productId})
   }
 
-  public insertProductToken = async (payload: ProductPayload): Promise<ProductToken> => {
+  public insertProductToken = async (payload: ProductTokenPayload): Promise<ProductToken> => {
     const ProductTokenRepository = this._db.getRepository(ProductToken)
     const product = new ProductToken()
     return await ProductTokenRepository.save({

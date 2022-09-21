@@ -2,7 +2,7 @@ import { Balance } from "@blockchain-carbon-accounting/data-postgres/src/models/
 import { Sync } from "@blockchain-carbon-accounting/data-postgres/src/models/sync";
 import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
 import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { BalancePayload, TokenPayload, ProductPayload, TrackerPayload } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { BalancePayload, TokenPayload, ProductTokenPayload, TrackerPayload } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
 import { readFileSync } from 'fs';
 import handlebars from 'handlebars';
 import path from 'path';
@@ -257,9 +257,9 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
 }
 
 /** Get the product details from the blockchain */
-async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductPayload> {
+async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductTokenPayload> {
     try {
-        const product: ProductPayload = await getTrackerContract(opts).methods._productData(productId).call();
+        const product: ProductTokenPayload = await getTrackerContract(opts).methods._productData(productId).call();
         //getProductOptionalDetails
         product.productId = productId;
         return product;
@@ -408,7 +408,7 @@ export const fillProductTokens = async (opts: OPTS_TYPE, sendEmail: boolean) => 
             // if the token is not in the database, get the initial details and save it
             const t = await db.getProductTokenRepo().selectProduct(productId);
             if (!t) {
-                const product: ProductPayload = await getProductDetails(productId, opts);
+                const product: ProductTokenPayload = await getProductDetails(productId, opts);
                 await db.getProductTokenRepo().insertProductToken(product);
                 // TO-DO sendProductIssuedEmail ?
                 //if (sendEmail) await sendTokenIssuedEmail(token);

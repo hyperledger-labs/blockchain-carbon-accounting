@@ -71,8 +71,6 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
         setRole("Emissions Auditor");
       } else if (roles.isIndustry) {
         setRole("Industry");
-      } else if (roles.isIndustryDealer) {
-        setRole("Industry Dealer");
       } else if (roles.isConsumer) {
         setRole("Consumer");
       } else {

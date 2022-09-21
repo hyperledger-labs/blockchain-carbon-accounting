@@ -57,7 +57,7 @@ export interface TrackerPayload {
   description: string;
 }
 
-export interface ProductPayload {
+export interface ProductTokenPayload {
   productId: number;
   trackerId: number;
   auditor: string;
@@ -68,6 +68,30 @@ export interface ProductPayload {
   unitAmount: bigint;
   hash: string;
 }
+
+export interface AssetPayload {
+  type: string;
+  country: string;
+  latitude: string;
+  longitude: string;
+  name?: bigint;
+  operator?: string;
+  division_type?: string;
+  division_name?: string;
+  sub_division_name?: string;
+  sub_division_type?: string;
+  status?: string;
+  api?: string;
+  description?: string;
+  source?: string;
+  source_date?: Date;
+  validation_method?: string;
+  validation_date?: Date;
+  product?: string;
+  field?: string;
+  depth?: string;
+}
+
 
 const OP_MAP: Record<string, string> = {
     'eq': '=',
@@ -121,7 +145,7 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
 
     // make case insensitive for issuee issuer cases
     let cond = '';
-    if(query.field == 'issuedTo' || query.field == 'issuedBy' || query.field == 'issuedFrom') {
+    if(query.op == "like" || query.field == 'issuedTo' || query.field == 'issuedBy' || query.field == 'issuedFrom') {
       cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
     } else {
       cond = `${alias}.${query.field} ${query.op} :${query.field}`

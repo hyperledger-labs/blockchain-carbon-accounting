@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+html {
+  padding:0;
+  margin:0;
+}
+body {
+  padding:0;
+  margin: 0;
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #333333;
+  background-color: #F1F1F1;
+}
+.main-container {
+  min-height: 60vh;
+}
+
+.btn:not(.btn-link):not(.input-group-append .btn) {
+  border-radius: 10px !important;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px !important;
+}
+
+.navbar {
+  background-color: #F1F1F1 !important;
+}
+.navbar .btn {
+  line-height: 2em;
+}
+
+.nav-tabs {
+  background-color: #001f3f;
+}
+
+.nav-link {
+  border-radius: 0 !important;
+}
+
+.nav-link:hover {
+  color: white !important;
+}
+
+.nav-tabs .active {
+  background-color: #082d52 !important;
+  border: 0;
+  color: white !important;
+}
+
+.nav-tabs a {
+  color: lightgrey;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.dimmed {
+  position: relative;
+  padding: 20px;
+}
+
+.dimmed:after {
+  content: " ";
+  z-index: 10;
+  display: block;
+  position: absolute;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.label-button {
+    margin-left: 20px;
+}
+
+
+.pre-wrap {
+  white-space: pre-wrap;
+}
+
+
+ select.form-select,
+ select.form-select option {
+   text-transform: capitalize;
+ }
