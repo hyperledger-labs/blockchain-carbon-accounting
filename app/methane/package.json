@@ -4,13 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "concurrently \"npm run client:start\" \"npm run server:start\"",
-    "prebuild": "tslint -p tsconfig.json --fix",
+    "start": "node dist/index.js",
+    "postinstall": "tsc",
     "build": "cd clients/esg && npm run build && cd ../../server && npm run build && cd ..",
     "server": "nodemon --verbose --watch \"server\" --ext \"ts,json\" --exec ts-node server/server.ts",
-    "server:start": "cd server && npm run start && cd ..",
     "client": "cd clients/esg && npm start && cd ../..",
-    "client:start": "cd clients/esg && npm run start && cd ../..",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
