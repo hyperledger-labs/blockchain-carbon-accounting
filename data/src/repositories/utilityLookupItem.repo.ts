@@ -13,7 +13,7 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
 
   public putUtilityLookupItem = async (doc: UtilityLookupItemInterface) => {
     // cleanup any existing record matching the same fields
-    const repo = this._db.getRepository(UtilityLookupItem);
+    const repo = await this._db.getRepository(UtilityLookupItem);
 
     await repo.delete({
       class: doc.class,

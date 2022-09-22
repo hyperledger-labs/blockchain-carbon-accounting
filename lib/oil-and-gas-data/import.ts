@@ -77,7 +77,7 @@ export const importOilAndGasAssets = async (opts: any,
     pipeline.on('end', async () => {
       loader.done();
       console.log(`Loaded ${counter} entries to oil_and_gas_asset table.`);
-      let count = await db.getOilAndGasAssetRepo().countAssets()
+      let count = await db.getOilAndGasAssetRepo().countAssets([])
       console.log(`=== Done, we now have ${count} OilAndGasAssets in the DB`)
       await db.close()
     })

@@ -12,7 +12,7 @@ export class EmissionsRequestRepo {
   }
 
   public insert = async (payload: EmissionsRequestPayload): Promise<EmissionsRequest> => {
-    const repository = this._db.getRepository(EmissionsRequest)
+    const repository = await this._db.getRepository(EmissionsRequest)
     const emissionsRequest = new EmissionsRequest()
     return await repository.save({
       ...emissionsRequest,
@@ -20,8 +20,8 @@ export class EmissionsRequestRepo {
     })
   }
 
-  public getERQueryBuilder(includeSensitiveFields = false) {
-    const q = this._db.getRepository(EmissionsRequest).createQueryBuilder('emissions_request')
+  public async getERQueryBuilder(includeSensitiveFields = false) {
+    const q = await this._db.getRepository(EmissionsRequest).createQueryBuilder('emissions_request')
     if (includeSensitiveFields) {
       return q.addSelect('emissions_request.input_content')
     }
@@ -29,8 +29,7 @@ export class EmissionsRequestRepo {
   }
 
   public selectAll = async (includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
-    return await this.getERQueryBuilder(includeSensitiveFields)
-      .getMany()
+    return (await this.getERQueryBuilder(includeSensitiveFields)).getMany()
   }
 
   public selectPending = async (includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
@@ -43,7 +42,7 @@ export class EmissionsRequestRepo {
 
   public selectByStatus = async (status: string, includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
     try {
-      return await this.getERQueryBuilder(includeSensitiveFields)
+      return (await this.getERQueryBuilder(includeSensitiveFields))
         .where("emissions_request.status = :status", {status})
         .getMany()
     } catch (error) {
@@ -54,7 +53,7 @@ export class EmissionsRequestRepo {
   public selectByEmissionAuditor = async (emissionAuditor: string, includeSensitiveFields = false): Promise<Array<EmissionsRequest>> => {
     const status = 'PENDING';
     try {
-      return await this.getERQueryBuilder(includeSensitiveFields)
+      return (await this.getERQueryBuilder(includeSensitiveFields))
         .where("LOWER(emissions_request.emission_auditor) = LOWER(:emissionAuditor)", {emissionAuditor})
         .andWhere("emissions_request.status = :status", {status})
         .getMany()
@@ -128,7 +127,7 @@ export class EmissionsRequestRepo {
   }
 
   public selectEmissionsRequest = async (uuid: string, includeSensitiveFields = false): Promise<EmissionsRequest | null> => {
-    return await this.getERQueryBuilder(includeSensitiveFields)
+    return (await this.getERQueryBuilder(includeSensitiveFields))
       .where({uuid})
       .getOne()
   }
@@ -141,7 +140,7 @@ export class EmissionsRequestRepo {
       .getMany()
   }
   public addSupportingDocument = async (emissions_request: EmissionsRequest, file: UploadedFile) => {
-    const repo = this._db.getRepository(EmissionsRequestSupportingDocument)
+    const repo = await this._db.getRepository(EmissionsRequestSupportingDocument)
     const supporting_doc = repo
       .create({
       file,

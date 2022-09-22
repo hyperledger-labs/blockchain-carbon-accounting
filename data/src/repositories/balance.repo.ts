@@ -35,7 +35,7 @@ export class BalanceRepo {
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>) => {
     try {
-      let selectBuilder = this._db.getRepository(Balance).createQueryBuilder('balance')
+      let selectBuilder = await this._db.getRepository(Balance).createQueryBuilder('balance')
       selectBuilder = buildQueries('balance', selectBuilder, bundles, [Balance, Token])
       return await selectBuilder
         .limit(limit)
@@ -104,9 +104,9 @@ export class BalanceRepo {
     }
   }
 
-  public count = (bundles: Array<QueryBundle>): Promise<number> => {
+  public count = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
-      let selectBuilder: SelectQueryBuilder<Balance> = this._db.getRepository(Balance).createQueryBuilder("balance")
+      let selectBuilder: SelectQueryBuilder<Balance> = await this._db.getRepository(Balance).createQueryBuilder("balance")
       selectBuilder = buildQueries('balance', selectBuilder, bundles, [Balance, Token])
       return selectBuilder
         .leftJoinAndMapOne('balance.token', Token, 'token', 'token.tokenId = balance.tokenId')

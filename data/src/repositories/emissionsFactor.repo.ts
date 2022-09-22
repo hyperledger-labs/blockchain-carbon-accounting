@@ -80,7 +80,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
 
   public putEmissionFactor = async (doc: EmissionsFactorInterface) => {
     // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
-    const repo = this._db.getRepository(EmissionsFactor)
+    const repo = await this._db.getRepository(EmissionsFactor)
     await repo.delete(this.makeEmissionFactorMatchCondition(doc))
     await repo.save(doc)
   }
@@ -222,7 +222,7 @@ export class EmissionsFactorRepo implements EmissionFactorDbInterface {
   public getElectricityCountries = async (query: Pick<EmissionsFactorInterface, 'scope' | 'from_year' | 'thru_year'>): Promise<string[]> => {
     // we do not want to use WTT, instead will use UNITED STATES and the country from
     // level_1="EEA EMISSIONS FACTORS" -> level 2
-    const qb = this._db.getRepository(EmissionsFactor)
+    const qb = await this._db.getRepository(EmissionsFactor)
       .createQueryBuilder()
       .select('EmissionsFactor.level_2')
       .where(query)
