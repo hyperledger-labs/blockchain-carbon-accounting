@@ -1,10 +1,16 @@
-import { EmissionFactorDbInterface } from "@blockchain-carbon-accounting/data-common/db"
-import { ActivityInterface, getYearFromDate } from "@blockchain-carbon-accounting/data-common/utils"
-import { CO2EmissionFactorInterface, getUomFactor } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissions-calc"
-import { EMISSIONS_FACTOR_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
-import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
-import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
-import { ErrInvalidFactorForActivity } from "@blockchain-carbon-accounting/emissions_data_lib/src/const"
+import { 
+  EmissionFactorDbInterface,
+  ActivityInterface, 
+  getYearFromDate
+} from "@blockchain-carbon-accounting/data-common"
+import { 
+  CO2EmissionFactorInterface, 
+  EMISSIONS_FACTOR_CLASS_IDENTIFIER,
+  EmissionsFactorInterface,
+  ErrInvalidFactorForActivity,
+  getUomFactor, 
+  UtilityLookupItemInterface
+} from "@blockchain-carbon-accounting/emissions_data_lib"
 import { Between, DataSource, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual, SelectQueryBuilder } from "typeorm"
 import { EmissionsFactor } from "../models/emissionsFactor"
 import { UtilityLookupItem } from "../models/utilityLookupItem"

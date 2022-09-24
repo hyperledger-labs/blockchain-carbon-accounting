@@ -1,25 +1,47 @@
-import { OilAndGasAssetInterface, OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
-import { ProductInterface, PRODUCT_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product";
-import { parseWorksheet, getStateNameMapping, LoadInfo } from "@blockchain-carbon-accounting/data-common/spreadsheetImport";
-import { Presets, SingleBar } from "cli-progress";
+import { 
+  OilAndGasAssetInterface, 
+  OIL_AND_GAS_ASSET_CLASS_IDENTIFIER 
+} from "./oilAndGasAsset"
+import { 
+  ProductInterface, 
+  PRODUCT_CLASS_IDENTIFIER 
+} from "./product";
+
+import { 
+  ProductDbInterface 
+} from '@blockchain-carbon-accounting/data-common';
+
+import { 
+  parseWorksheet, 
+  getStateNameMapping, 
+  LoadInfo 
+} from "@blockchain-carbon-accounting/data-common";
+
+import type { 
+  ParseWorksheetOpts,
+} from "@blockchain-carbon-accounting/data-common";
+
+
+import { 
+  PostgresDBService 
+} from '@blockchain-carbon-accounting/data-postgres';
+
+import { SingleBar } from "cli-progress";
 import { v4 as uuidv4 } from 'uuid';
-import { OilAndGasAssetDbInterface, ProductDbInterface } from '@blockchain-carbon-accounting/data-common/db';
-import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
-const {chain}  = require('stream-chain');
-const {parser} = require('stream-json');
-const {streamValues} = require( 'stream-json/streamers/StreamValues');
-const {streamArray} = require( 'stream-json/streamers/StreamArray');
-const {pick} = require('stream-json/filters/Pick');
-const {batch} = require('stream-json/utils/Batch');
-const fs = require('fs');
+import { chain } from 'stream-chain';
+import { parser } from 'stream-json';
+import { streamArray } from 'stream-json/streamers/StreamArray';
+import { pick } from'stream-json/filters/Pick';
+//import { batch } from'stream-json/utils/Batch';
+import fs from'fs';
 
-var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-export const importOilAndGasAssets = async (opts: any, 
+export const importOilAndGasAssets = async (opts: ParseWorksheetOpts, 
   progressBar: SingleBar, db: PostgresDBService) => {
 
   if (opts.format === "US_asset_data") {
-    let loader = new LoadInfo(opts.file, opts.sheet, progressBar, 1506238);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, 1506238);
     const pipeline = chain([
       fs.createReadStream('./'+opts.file),
         //new URL("https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Oil_and_Natural_Gas_Wells/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson")),
@@ -27,12 +49,12 @@ export const importOilAndGasAssets = async (opts: any,
       pick({filter: "features"}),
       streamArray(),
       //batch({batchSize: 5000}),
-      async (data:any)  => {
+      async (data)  => {
         //loader  
         // import data for each valid stream, eg:
         //console.log(data)
         //for (const row of data) {
-          let prop = data.value.properties
+          const prop = data.value.properties
           //if (!prop) { loader.incIgnored('Undefined row'); continue; }
           //if (!prop["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
           //if (prop["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
@@ -77,33 +99,33 @@ export const importOilAndGasAssets = async (opts: any,
     pipeline.on('end', async () => {
       loader.done();
       console.log(`Loaded ${counter} entries to oil_and_gas_asset table.`);
-      let count = await db.getOilAndGasAssetRepo().countAssets([])
+      const count = await db.getOilAndGasAssetRepo().countAssets([])
       console.log(`=== Done, we now have ${count} OilAndGasAssets in the DB`)
       await db.close()
     })
   }
 }
 
-export const importFlareData = async (opts: any, 
+export const importFlareData = async (opts: ParseWorksheetOpts, 
   progressBar: SingleBar, db: ProductDbInterface) => {
 
   if (opts.format === "VIIRS") {
     //if(opts.year === undefined){return Error('no year provided')}
     const data = parseWorksheet(opts);
-    let loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
     for (const row of data) {
       if (!row) { loader.incIgnored('Undefined row'); continue; }
-      let amount = row["BCM "+opts.year] || row["BCM_"+opts.year];
+      const amount = row["BCM "+opts.year] || row["BCM_"+opts.year];
       if (!amount) { loader.incIgnored('Undefined amount'); continue; }
       //if (row["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
       opts.verbose && console.log("-- Prepare to insert from ", row);
       // get annual generation and emissions
       const country = row["Country"]?.toString();
-      let catalog_id = row["Catalog ID"] || row["Catalog id"];
-      let db_id = row["id #"] || row["ID "+opts.year];
-      let det_freq = row["Detection frequency "+opts.year] || row["Detection freq."];
-      let avg_temp = row["Avg. temp., K"]?.toString() || row["Avg. temp"]?.toString();
-      let clear_obs = row["Clear Obs."] || row["Clear obs. "] || row["Clear obs "+opts.year];
+      const catalog_id = row["Catalog ID"] || row["Catalog id"];
+      const db_id = row["id #"] || row["ID "+opts.year];
+      const det_freq = row["Detection frequency "+opts.year] || row["Detection freq."];
+      const avg_temp = row["Avg. temp., K"]?.toString() || row["Avg. temp"]?.toString();
+      const clear_obs = row["Clear Obs."] || row["Clear obs. "] || row["Clear obs "+opts.year];
       const details = JSON.stringify({
         "catalogId": catalog_id,
         "dbId": db_id,
@@ -138,7 +160,7 @@ export const importFlareData = async (opts: any,
     opts.cellDates = true;
     //if(opts.year === undefined){return Error('no year provided')}
     const data = parseWorksheet(opts);
-    let loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length);
     for (const row of data) {
       if (!row) { loader.incIgnored('Undefined row'); continue; }
 
@@ -153,7 +175,11 @@ export const importFlareData = async (opts: any,
       }else{
         amountHeader = ["U.S.",opts.name,opts.type,"("+opts.unit+")"].join(" ")
       }
-      let d: ProductInterface = {
+      if (!opts.name) { loader.incIgnored('Undefined name'); continue; }
+      if (!opts.type) { loader.incIgnored('Undefined type'); continue; }
+      if (!opts.unit) { loader.incIgnored('Undefined unit'); continue; }
+      
+      const d: ProductInterface = {
         class: PRODUCT_CLASS_IDENTIFIER,
         type: opts.type,
         uuid: uuidv4(),
@@ -170,7 +196,7 @@ export const importFlareData = async (opts: any,
       let states:string[]=[];
       if(opts.sheet === "Data 1"){
         if (!row[amountHeader]) { loader.incIgnored('Undefined amount'); } 
-        else{ await db.putProduct(d) };
+        else{ await db.putProduct(d) }
         states = ["Alaska","Arkansas","California","Colorado","Federal Offshore--Gulf of Mexico","Kansas","Louisiana","Montana","New Mexico","North Dakota","Ohio","Oklahoma","Pennsylvania","Texas","Utah","West Virginia","Wyoming"]
       }else if(opts.sheet === "Data 2"){
         states = ["Other States","Alabama","Arizona","Florida","Idaho","Illinois","Indiana","Kentucky","Maryland","Michigan","Mississippi","Missouri","Nebraska","Nevada","New York","Oregon","South Dakota","Tennessee","Virginia"]
@@ -197,7 +223,7 @@ export const importFlareData = async (opts: any,
     let loaderInit=true;
     let loaderLength=data.length;
     
-    let cols:string[] = [
+    const cols:string[] = [
       "jan_2019", "feb_2019", "mar_2019", "apr_2019", "may_2019", "jun_2019", "jul_2019", "aug_2019", "sep_2019", "oct_2019", "nov_2019", "dec_2019",
       "jan_2020", "feb_2020", "mar_2020", "apr_2020", "may_2020", "jun_2020", "jul_2020", "aug_2020", "sep_2020", "oct_2020", "nov_2020", "dec_2020",
       "jan_2021", "feb_2021", "mar_2021", "apr_2021", "may_2021"]; 
@@ -210,16 +236,16 @@ export const importFlareData = async (opts: any,
       }
 
       if (!row) { loader.incIgnored('Undefined row'); continue; }
-
+      
       opts.verbose && console.log("-- Prepare to insert from ", row);
-      let d: ProductInterface = {
+      const d: ProductInterface = {
         class: PRODUCT_CLASS_IDENTIFIER,
         uuid: uuidv4(),
         source: opts.source || opts.file,
         description: "Flare Monitor oil & gas data",
-        type: opts.type,
-        name: opts.name,
-        unit: opts.unit,
+        type: '',
+        name: '',
+        unit: '',
         amount: '0'
       };
       if (row["estimated_flare_volume_mcf"]) {        
@@ -279,25 +305,25 @@ export const importFlareData = async (opts: any,
 
     const data = parseWorksheet(opts);
     
-    let cols:string[] = ["Gas (MBOE)",  "Oil (MBOE)", 
+    const cols:string[] = ["Gas (MBOE)",  "Oil (MBOE)", 
       "CO2", "CH4", "N2O", "GHG", 
       "NGSI Methane Intensity",  "GHG Emissions Intensity", 
       "Process & Equipment Vented", "Process & Equipment Flared",  
       "Fugitive",  "Other Combustion",  "Associated Gas Vented/Flared"]; 
-    let loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length*cols.length);
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length*cols.length);
     for (const row of data) {
       
       if (!row) { loader.incIgnored('Undefined row'); continue; }
-
+      
       opts.verbose && console.log("-- Prepare to insert from ", row);
-      let d: ProductInterface = {
+      const d: ProductInterface = {
         uuid: uuidv4(),
         class: PRODUCT_CLASS_IDENTIFIER,
         source: opts.source || opts.file,
         description: "CATF U.S. O&G Benchmarking",
-        type: opts.type,
-        name: opts.name,
-        unit: opts.unit,
+        type: '',
+        name: '',
+        unit: '',
         amount: '0',
         year: row["Data Year"],
         division_type: "Company",

@@ -1,4 +1,6 @@
-import type { OilAndGasAssetInterface } from '@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset';
+import type { 
+  OilAndGasAssetInterface 
+} from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
   Column, Entity,
   PrimaryGeneratedColumn

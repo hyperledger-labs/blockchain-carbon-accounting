@@ -1,4 +1,4 @@
-import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { config } from 'dotenv';
@@ -120,6 +120,4 @@ if ('true' !== process.env.SKIP_SYNC) {
   // test runner will do the listen call
   console.log('Skipping sync, we are in test environment');
 }
-
-
 export default app

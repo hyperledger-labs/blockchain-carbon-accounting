@@ -1,7 +1,9 @@
 import bodyParser from 'body-parser';
 import express from 'express';
-import { parseCommonYargsOptions} from "@blockchain-carbon-accounting/data-postgres/src/config"
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService"
+import { 
+    parseCommonYargsOptions,
+    PostgresDBService 
+} from "@blockchain-carbon-accounting/data-postgres"
 import { argv } from 'process';
 
 import * as dotenv from 'dotenv'

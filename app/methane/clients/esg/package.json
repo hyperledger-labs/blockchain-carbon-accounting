@@ -30,13 +30,16 @@
     }
   },
   "scripts": {
+    "client": "serve -s build -l 3007;",
     "start": "PORT=3007 react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
   },
   "dependencies": {
-    "@blockchain-carbon-accounting/react-app": "*",
+    "@blockchain-carbon-accounting/contracts": "*",
+    "@blockchain-carbon-accounting/data-postgres": "*",
+    "@blockchain-carbon-accounting/methane-server": "*",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
     "@ethersproject/wallet": "^5.7.0",

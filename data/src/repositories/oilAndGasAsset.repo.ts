@@ -1,7 +1,7 @@
-import { OilAndGasAssetDbInterface } from "@blockchain-carbon-accounting/data-common/db";
-import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
-//import { OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
-import { Between, DataSource, SelectQueryBuilder, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual } from "typeorm"
+import { OilAndGasAssetDbInterface } from "@blockchain-carbon-accounting/data-common";
+import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
+//import { OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
+import { DataSource, SelectQueryBuilder, FindOptionsWhere, ILike } from "typeorm"
 
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
 import type { Operator } from "../models/oilAndGasAsset"

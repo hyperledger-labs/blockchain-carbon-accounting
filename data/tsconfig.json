@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "composite": true,
         "strict": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -13,6 +14,11 @@
         "skipLibCheck": true,
         "sourceMap": true
     },
-    "include": ["src/**/*", "test/**/*"]
+    "include": ["src/**/*", "test/**/*"],
+    "references": [
+        {"path": "../lib/data-common"},
+        {"path": "../lib/emissions_data"},
+        {"path": "../lib/oil-and-gas-data"}
+    ]
 }
 

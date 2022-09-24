@@ -1,4 +1,6 @@
-import type { ProductInterface } from '@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product';
+import type { 
+  ProductInterface 
+} from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
   Entity,
   PrimaryGeneratedColumn,

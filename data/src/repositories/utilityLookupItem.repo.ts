@@ -1,5 +1,5 @@
-import { UtilityLookupItemDbInterface } from "@blockchain-carbon-accounting/data-common/db"
-import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
+import { UtilityLookupItemDbInterface } from "@blockchain-carbon-accounting/data-common"
+import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib"
 import { DataSource } from "typeorm"
 import { UtilityLookupItem } from "../models/utilityLookupItem"
 

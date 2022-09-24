@@ -1,4 +1,4 @@
-import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres';
 import superjson from 'superjson';
 import * as trpc from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';

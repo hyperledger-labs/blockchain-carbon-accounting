@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "description": "Postgres database store for the blockchain-carbon-accounting project",
-  "main": "src/dataLoader.ts",
+  "main": "./src/index",
   "engines": {
     "node": ">=16"
   },
   "scripts": {
+    "build": "tsc -b",
     "init": "ts-node src/dataLoader.ts init",
     "dataLoader": "ts-node src/dataLoader.ts",
     "getData": "ts-node src/getData.ts",
@@ -23,6 +24,7 @@
   "dependencies": {
     "@blockchain-carbon-accounting/data-common": "*",
     "@blockchain-carbon-accounting/emissions_data_lib": "*",
+    "@blockchain-carbon-accounting/oil-and-gas-data-lib": "*",
     "cli-progress": "^3.11.1",
     "dotenv": "^16.0.1",
     "pg": "^8.7.3",

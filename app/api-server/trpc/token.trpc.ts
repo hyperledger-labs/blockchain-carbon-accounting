@@ -1,5 +1,5 @@
 import * as trpc from '@trpc/server'
-import { Token } from '@blockchain-carbon-accounting/data-postgres/src/models/token';
+import { Token } from '@blockchain-carbon-accounting/data-postgres';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 

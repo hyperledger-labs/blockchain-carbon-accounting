@@ -10,7 +10,7 @@ import {
 import ClientError from '../errors/clientError';
 import { IPluginKeychain } from '@hyperledger/cactus-core-api';
 
-export default class Signer {
+export class Signer {
     private readonly className = 'Signer';
     constructor(
         private readonly hlfSupport: string,

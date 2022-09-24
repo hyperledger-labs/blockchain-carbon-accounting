@@ -1,7 +1,11 @@
-import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor"
-import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
-import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset"
-import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product"
+import type { 
+  EmissionsFactorInterface,
+  UtilityLookupItemInterface 
+} from "@blockchain-carbon-accounting/emissions_data_lib"
+import type { 
+  OilAndGasAssetInterface,
+  ProductInterface 
+} from "@blockchain-carbon-accounting/oil-and-gas-data-lib"
 
 
 export interface EmissionFactorDbInterface {

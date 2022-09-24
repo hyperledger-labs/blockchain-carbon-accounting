@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "composite": true,
         "strict": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -13,6 +14,5 @@
         "skipLibCheck": true,
         "sourceMap": true
     },
-    "include": ["src/**/*.ts"]
 }
 

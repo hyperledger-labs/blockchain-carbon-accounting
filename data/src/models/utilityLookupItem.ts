@@ -1,4 +1,6 @@
-import type { UtilityLookupItemInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem';
+import type { 
+  UtilityLookupItemInterface 
+} from '@blockchain-carbon-accounting/emissions_data_lib';
 import {
     Column, Entity,
     PrimaryGeneratedColumn

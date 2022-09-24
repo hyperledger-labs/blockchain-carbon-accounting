@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "dist",
@@ -11,5 +12,10 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "strict": true
-  }
+  },
+  "references": [
+      {"path": "../../../data"},
+      {"path": "../../../lib/oil-and-gas-data"},
+      {"path": "../../api-server"}
+  ]
 }

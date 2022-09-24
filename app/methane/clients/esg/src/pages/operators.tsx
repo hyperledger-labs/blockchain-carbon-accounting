@@ -17,7 +17,7 @@ import { getOperators } from '../services/api.service';
 import QueryBuilder from "../components/query-builder";
 import Paginator from "../components/paginate";
 import { ASSET_FIELDS } from "../components/static-data";
-import type { Operator } from '@blockchain-carbon-accounting/data-postgres/src/models/oilAndGasAsset';
+import type { Operator } from '@blockchain-carbon-accounting/data-postgres';
 import OperatorInfoModal from "../components/operator-info-modal";
 
 

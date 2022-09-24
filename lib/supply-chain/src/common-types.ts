@@ -1,4 +1,6 @@
-import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
+import type { 
+  EmissionsFactorInterface 
+} from "@blockchain-carbon-accounting/emissions_data_lib";
 import { LatLngLiteral } from "@googlemaps/google-maps-services-js";
 import { UpsResponse } from './ups-types';
 

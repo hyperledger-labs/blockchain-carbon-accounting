@@ -11,5 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "strict": true
-  }
+  },
+  "references": [
+    {"path": "../../data"}
+  ]
 }

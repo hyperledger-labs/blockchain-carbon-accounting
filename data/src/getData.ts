@@ -1,6 +1,6 @@
 import yargs = require('yargs')
-import { ActivityInterface } from "@blockchain-carbon-accounting/data-common/utils";
-import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
+import { ActivityInterface } from "@blockchain-carbon-accounting/data-common";
+import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib";
 import { hideBin } from "yargs/helpers";
 import type { DbOpts } from "./config";
 import { addCommonYargsOptions, parseCommonYargsOptions } from "./config";

@@ -1,5 +1,5 @@
 // Process query bundles for GET request
-import { QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
 import { NextFunction, Request, Response } from 'express';
 import { queryProcessor } from './base.middle';
 

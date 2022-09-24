@@ -1,6 +1,10 @@
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
-import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
+import { 
+    PostgresDBService,
+    QueryBundle 
+} from "@blockchain-carbon-accounting/data-postgres";
+import type { 
+    OilAndGasAssetInterface 
+} from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 
 import { Request, Response } from 'express';
 

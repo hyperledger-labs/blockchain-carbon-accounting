@@ -1,7 +1,7 @@
-import { ProductDbInterface } from "@blockchain-carbon-accounting/data-common/db";
-import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product";
+import { ProductDbInterface } from "@blockchain-carbon-accounting/data-common";
+import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 import { Product } from "../models/product"
-import { Between, DataSource, FindOptionsWhere, ILike, LessThanOrEqual, MoreThanOrEqual } from "typeorm"
+import { DataSource, FindOptionsWhere, ILike } from "typeorm"
 
 export class ProductRepo implements ProductDbInterface {
 

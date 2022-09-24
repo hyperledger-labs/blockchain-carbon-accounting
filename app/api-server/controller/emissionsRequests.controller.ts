@@ -1,6 +1,7 @@
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { Activity } from '@blockchain-carbon-accounting/supply-chain-lib/src/common-types';
-import { GroupedResult, process_activity, queue_issue_tokens } from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres";
+import { 
+  Activity, GroupedResult, process_activity, queue_issue_tokens 
+} from '@blockchain-carbon-accounting/supply-chain-lib';
 import { Request, Response } from 'express';
 import moment from 'moment';
 import { ApplicationError } from '../utils/errors';

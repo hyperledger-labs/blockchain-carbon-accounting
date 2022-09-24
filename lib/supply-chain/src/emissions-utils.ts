@@ -1,26 +1,28 @@
-import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import BCGatewayConfig from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/config";
-import {
-    IEthNetEmissionsTokenIssueInput,
-    IEthTxCaller
-} from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/I-gateway";
-import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/netEmissionsTokenNetwork";
-import Signer from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/signer";
-import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
+import { 
+  Wallet,
+  PostgresDBService 
+} from "@blockchain-carbon-accounting/data-postgres";
+import { EthNetEmissionsTokenGateway, 
+  BCGatewayConfig, Signer,
+  IEthNetEmissionsTokenIssueInput,
+  IEthTxCaller
+} from "@blockchain-carbon-accounting/blockchain-gateway-lib";
+import type { 
+  EmissionsFactorInterface 
+} from "@blockchain-carbon-accounting/emissions_data_lib";
 import { BigNumber } from "bignumber.js";
 import { existsSync, readFileSync } from "fs";
 import { extname, resolve } from "path";
 import {
-    Activity,
-    ActivityResult,
-    Distance, ElectricityActivity, Emissions,
-    EmissionsFactorActivity, FlightActivity,
-    is_electricity_activity, is_emissions_factor_activity,
-    is_flight_activity, is_natural_gas_activity,
-    is_other_activity, is_shipment_activity, MetadataType,
-    NaturalGasActivity, OtherActivity, ProcessedActivity,
-    ShipmentActivity, ShippingMode, ValueAndUnit
+  Activity,
+  ActivityResult,
+  Distance, ElectricityActivity, Emissions,
+  EmissionsFactorActivity, FlightActivity,
+  is_electricity_activity, is_emissions_factor_activity,
+  is_flight_activity, is_natural_gas_activity,
+  is_other_activity, is_shipment_activity, MetadataType,
+  NaturalGasActivity, OtherActivity, ProcessedActivity,
+  ShipmentActivity, ShippingMode, ValueAndUnit
 } from "./common-types";
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
@@ -114,7 +116,6 @@ async function getEmissionFactor(f: Partial<EmissionsFactorInterface>) {
   if (factors && factors.length) {
     return factors[0];
   }
-
   return null;
 }
 

@@ -26,7 +26,7 @@ interface IEthConnector {
     contractStoreKeychain: string;
 }
 
-export default class BCGatewayConfig {
+export class BCGatewayConfig {
     private readonly className = 'BCGatewayConfig';
     readonly inMemoryKeychainID = 'inMemoryKeychain';
     readonly certStoreID = 'certStoreKeychain';

@@ -1,9 +1,8 @@
 import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import { SetStateAction } from 'react';
-import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
-import type { Operator } from '@blockchain-carbon-accounting/data-postgres/src/models/oilAndGasAsset';
-//import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/oilAndGasAsset";
+import type { QueryBundle, Operator } from '@blockchain-carbon-accounting/data-postgres';
+//import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
 
@@ -75,7 +74,6 @@ export const getOperators = async (offset: number, limit: number, query: string[
         const bundles = buildBundlesFromQueries(query)
         console.info('getOperators:', offset, limit, bundles)
         const { status, count, operators, error } = await trpcClient.query('asset.listOperators', {offset, limit, bundles})
-        console.log(status)
         if (status === 'success' && operators) {
             return { count, operators, status }
         } else {

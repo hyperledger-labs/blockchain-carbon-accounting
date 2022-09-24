@@ -13,7 +13,7 @@ import {
     IEmissionsDataUpdateEmissionsMintedTokenInput,
     IFabricTxCaller,
 } from '../blockchain-gateway-lib/I-gateway';
-import Signer from '../blockchain-gateway-lib/signer';
+import { Signer } from '../blockchain-gateway-lib/signer';
 
 interface IEmissionsDataGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;

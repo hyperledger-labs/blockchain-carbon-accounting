@@ -1,4 +1,6 @@
-import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';
+import type { 
+  EmissionsFactorInterface 
+} from '@blockchain-carbon-accounting/emissions_data_lib';
 import {
   Column, Entity,
   PrimaryGeneratedColumn

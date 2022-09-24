@@ -1,8 +1,7 @@
-import { Balance } from "@blockchain-carbon-accounting/data-postgres/src/models/balance";
-import { Sync } from "@blockchain-carbon-accounting/data-postgres/src/models/sync";
-import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { BalancePayload, TokenPayload, ProductTokenPayload, TrackerPayload } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { 
+    Balance, Sync, Wallet, PostgresDBService,
+    BalancePayload, TokenPayload, ProductTokenPayload, TrackerPayload 
+} from '@blockchain-carbon-accounting/data-postgres';
 import { readFileSync } from 'fs';
 import handlebars from 'handlebars';
 import path from 'path';

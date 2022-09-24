@@ -1,7 +1,7 @@
 import * as trpc from '@trpc/server'
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
-import { ActivityInterface } from "@blockchain-carbon-accounting/data-common/utils"
+import { ActivityInterface } from "@blockchain-carbon-accounting/data-common"
 
 export const emissionsFactorsRouter = trpc
 .router<TrpcContext>()
