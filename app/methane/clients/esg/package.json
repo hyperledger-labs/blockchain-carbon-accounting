@@ -30,7 +30,7 @@
     }
   },
   "scripts": {
-    "prod": "serve -s build -l 3007;",
+    "prod": "serve -s build",
     "start": "PORT=3007 react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",

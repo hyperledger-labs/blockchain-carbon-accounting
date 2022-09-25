@@ -8,7 +8,7 @@
     "client": "npm run start --workspace=@blockchain-carbon-accounting/methane-esg",
     "client:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-esg",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
-    "prod": "concurrently \"npm run client\" \"npm run server:prod\"",
+    "prod": "concurrently \"npm run client:prod\" \"npm run server:prod\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
