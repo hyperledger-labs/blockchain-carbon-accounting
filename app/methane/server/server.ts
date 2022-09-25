@@ -10,7 +10,7 @@ import {
 } from "@blockchain-carbon-accounting/data-postgres"
 import { 
   queryProcessing 
-} from "@blockchain-carbon-accounting/api-server/middleware/query.middle";
+} from "@blockchain-carbon-accounting/api-server";
 import router from './router/router';
 import { trpcMiddleware } from './trpc/common';
 

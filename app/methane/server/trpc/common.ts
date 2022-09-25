@@ -3,8 +3,15 @@ import superjson from 'superjson';
 import * as trpc from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
-import { ZodError } from 'zod';
+import { z, ZodError } from 'zod';
 import { assetRouter } from './asset.trpc';
+
+export const zQueryBundles = z.array(z.object({
+    field: z.string(),
+    fieldType: z.string(),
+    value: z.string().or(z.number()),
+    op: z.string(),
+}))
 
 // created for each request, here set the DB connector
 const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
@@ -54,7 +61,7 @@ const createRouter = () => {
 }
 
 const appRouter = createRouter()
-  .merge('asset.', assetRouter)
+  .merge('asset.', assetRouter(zQueryBundles))
 
 export type AppRouter = typeof appRouter
 

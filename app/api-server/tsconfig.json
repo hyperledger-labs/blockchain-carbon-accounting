@@ -13,8 +13,10 @@
     "skipLibCheck": true,
     "strict": true
   },
+  "input": ["**/*.ts"],
   "references": [
     {"path": "../../data"},
     {"path": "../../lib/supply-chain"}
-  ]
+  ],
+  "exclude": ["dist/**/*","node_modules/**/*"]
 }

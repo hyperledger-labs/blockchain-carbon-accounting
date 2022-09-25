@@ -2,7 +2,7 @@
   "name": "@blockchain-carbon-accounting/methane-server",
   "version": "1.0.0",
   "description": "",
-  "main": "./server",
+  "main": "./dist/server",
   "dependencies": {
     "@blockchain-carbon-accounting/data-postgres": "*",
     "@blockchain-carbon-accounting/api-server": "*",
@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
+    "prod": "node ./dist/server.js",
+    "start": "nodemon --verbose --watch \"server\" --ext \"ts,json\" --exec ts-node server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

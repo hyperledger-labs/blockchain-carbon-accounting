@@ -1,39 +1,39 @@
 export {
     addCommonYargsOptions,
     parseCommonYargsOptions
-} from './config'
+} from './src/config'
 export {
     PostgresDBService
-} from './postgresDbService'
+} from './src/postgresDbService'
 export {
     BalancePayload, 
     ProductTokenPayload, 
     QueryBundle,
     TokenPayload, 
     TrackerPayload
-} from './repositories/common'
+} from './src/repositories/common'
 export {
     ActivityEmissionsFactorLookup
-} from './models/activityEmissionsFactorLookup'
+} from './src/models/activityEmissionsFactorLookup'
 export {
     Balance
-} from './models/balance'
+} from './src/models/balance'
 export {
     EmissionsRequest
-} from './models/emissionsRequest'
+} from './src/models/emissionsRequest'
 export {
     OilAndGasAsset,
     Operator
-} from './models/oilAndGasAsset'
+} from './src/models/oilAndGasAsset'
 export {
     ProductToken
-} from './models/productToken'
+} from './src/models/productToken'
 export {
     Sync
-} from './models/sync'
+} from './src/models/sync'
 export {
     Token
-} from './models/token'
+} from './src/models/token'
 export {
     Wallet
-} from './models/wallet'
+} from './src/models/wallet'

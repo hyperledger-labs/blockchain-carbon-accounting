@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "description": "Oil And Gas Data Lib",
-  "main": "./src/index",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix"
   },

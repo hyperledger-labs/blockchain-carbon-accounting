@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "server": "nodemon --verbose --watch \"server\" --ext \"ts,json\" --exec ts-node server/server.ts",
-    "server:prod": "npm run start --workspace=@blockchain-carbon-accounting/methane-server",
-    "client": "npm run client --workspace=@blockchain-carbon-accounting/methane-esg",
-    "dev": "concurrently \"npm run client\" \"npm run server:prod\"",
+    "server": "npm run start --workspace=@blockchain-carbon-accounting/methane-server",
+    "server:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-server",
+    "client": "npm run start --workspace=@blockchain-carbon-accounting/methane-esg",
+    "client:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-esg",
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "prod": "concurrently \"npm run client\" \"npm run server:prod\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

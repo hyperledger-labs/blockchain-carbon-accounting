@@ -1,12 +1,12 @@
 export type { 
     OilAndGasAssetInterface, 
     OIL_AND_GAS_ASSET_CLASS_IDENTIFIER
-} from "./oilAndGasAsset"
+} from "./src/oilAndGasAsset"
 export type { 
     ProductInterface,
     PRODUCT_CLASS_IDENTIFIER
-} from './product'
+} from './src/product'
 export { 
     importOilAndGasAssets, 
     importFlareData 
-} from "./import"
+} from "./src/import"

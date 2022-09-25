@@ -4,20 +4,13 @@ import { ethers } from 'ethers';
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
 
-export const zQueryBundles = z.array(z.object({
-    field: z.string(),
-    fieldType: z.string(),
-    value: z.string().or(z.number()),
-    op: z.string(),
-}))
-
 
 const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
     message: "Address must be a valid Ethereum address",
 })
 
 
-export const productTokenRouter = trpc
+export const productTokenRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({

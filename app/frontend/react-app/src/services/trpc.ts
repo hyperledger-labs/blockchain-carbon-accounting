@@ -1,6 +1,6 @@
 import type { 
   AppRouter 
-} from '@blockchain-carbon-accounting/api-server/trpc/common';
+} from '@blockchain-carbon-accounting/api-server';
 import superjson from 'superjson';
 import { createReactQueryHooks } from '@trpc/react';
 import { useState } from 'react';

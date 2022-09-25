@@ -3,14 +3,7 @@ import { OilAndGasAsset } from '@blockchain-carbon-accounting/data-postgres';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 
-export const zQueryBundles = z.array(z.object({
-    field: z.string(),
-    fieldType: z.string(),
-    value: z.string().or(z.number()),
-    op: z.string(),
-}))
-
-export const assetRouter = trpc
+export const assetRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('countOperators', {
     input: z.object({

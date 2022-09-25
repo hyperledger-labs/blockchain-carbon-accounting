@@ -1,6 +1,6 @@
 export { 
     Activity 
-} from './common-types'
+} from './src/common-types'
 export { 
     GroupedResult, GroupedResults, 
     process_activity, process_activities, 
@@ -8,19 +8,19 @@ export {
     queue_issue_tokens,
     issue_tokens,
     process_emissions_requests
-} from './emissions-utils'
+} from './src/emissions-utils'
 export { 
     generateKeyPair, hash_content 
-} from './crypto-utils'
+} from './src/crypto-utils'
 export { 
     get_gclient 
-} from './distance-utils'
+} from './src/distance-utils'
 export {
     downloadFileRSAEncrypted, 
     downloadFileWalletEncrypted,
     uploadFileRSAEncrypted,
     uploadFileWalletEncrypted
-} from './ipfs-utils'
+} from './src/ipfs-utils'
 export { 
     get_ups_client 
-} from './ups-utils';
+} from './src/ups-utils';

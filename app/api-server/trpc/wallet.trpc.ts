@@ -6,17 +6,11 @@ import { z } from 'zod';
 import { checkSignedMessage, getRoles } from '../controller/synchronizer';
 import { changePassword, markPkExported, signinWallet, signupWallet } from '../controller/wallet.controller';
 import { signinLimiter, signupAndResetLimiter } from '../utils/rateLimiter';
-import { DomainError, DomainInputError, handleError, TrpcContext } from './common';
+import { 
+    DomainError, DomainInputError, handleError, TrpcContext
+} from './common';
 
 superjson.registerClass(Wallet);
-
-export const zQueryBundles = z.array(z.object({
-    field: z.string(),
-    fieldType: z.string(),
-    value: z.string().or(z.number()),
-    op: z.string(),
-}))
-
 
 const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
     message: "Address must be a valid Ethereum address",
@@ -24,7 +18,7 @@ const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
 
 const validPassword = z.string().min(8).max(128)
 
-export const walletRouter = trpc
+export const walletRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({

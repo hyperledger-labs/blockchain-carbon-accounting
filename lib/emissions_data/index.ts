@@ -1,17 +1,17 @@
 export{ 
     EmissionsFactorInterface, //type
     EMISSIONS_FACTOR_CLASS_IDENTIFIER 
-} from './emissionsFactor'
+} from './src/emissionsFactor'
 export{ 
     UtilityLookupItemInterface, //type
     UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER
-} from './utilityLookupItem'
+} from './src/utilityLookupItem'
 export{ 
     CO2EmissionFactorInterface, //type
     getUomFactor 
-} from "./emissions-calc"
+} from "./src/emissions-calc"
 export{ 
     ErrInvalidFactorForActivity,
     ErrUnknownUOM
-} from "./const"
+} from "./src/const"
 

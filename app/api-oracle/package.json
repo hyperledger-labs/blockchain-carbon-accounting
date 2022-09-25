@@ -2,7 +2,7 @@
   "name": "@blockchain-carbon-accounting/api-oracle",
   "version": "1.0.0",
   "description": "",
-  "main": "postgresApi.ts",
+  "main": "./dist/index",
   "scripts": {
     "build": "tsc",
     "test": "mocha -exit -require ts-node/register 'test/test.ts' --timeout 30000",

@@ -5,7 +5,7 @@ type FooterProps = {
   signedIn?: string
 }
 
-const AppFooter : FC<FooterProps> = ({signedIn}) => {
+const AppFooter:FC<FooterProps> = ({signedIn}) => {
     return (
       <>
         <div className="py-5 container text-center">
