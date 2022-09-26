@@ -15,11 +15,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true
-  },
-  "references": [
-      {"path": "../../api-server"},
-      {"path": "../../../lib/emissions_data"},
-      {"path": "../frontend/contracts"}
-  ],
-
+  }
 }

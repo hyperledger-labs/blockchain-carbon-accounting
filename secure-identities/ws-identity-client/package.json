@@ -3,7 +3,7 @@
   "author": "Betrand Rioux <bertrand.rioux@gmail.com>",
   "version": "1.0.2",
   "description": "A client for connecting to the web-socket identity server",
-  "main": "./dist/index.js",
+  "main": "./dist/index",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {

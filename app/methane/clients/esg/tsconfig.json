@@ -16,11 +16,6 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "references": [
-      {"path": "../../../../data"},
-      {"path": "../../server"},
-      {"path": "../../../frontend/contracts"}
-  ],
   "include":[
     "src"
   ]

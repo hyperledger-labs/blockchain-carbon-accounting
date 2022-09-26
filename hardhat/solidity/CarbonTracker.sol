@@ -189,6 +189,10 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         _;
     }
 
+    /**
+     * @dev check if msg.sender is authorized aufitor of _trackee.
+     * @param _trackee - account being audited
+     */
     function _isAuditor(address _trackee) internal view {
         require(
             __isAuditor(_trackee),
@@ -196,12 +200,12 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         );
     }
 
-    function __isAuditor(address _auditor) internal view returns (bool) {
+    function __isAuditor(address _trackee) internal view returns (bool) {
         // TO-DO enforce isVerifierApproved using && condition in require
         // i.e. require _trackee to approve verifiers (auditor)
         return
-            isVerifierApproved[msg.sender][_auditor] ||
-            (net.isAuditor(msg.sender) || msg.sender == _auditor);
+            isVerifierApproved[msg.sender][_trackee] ||
+            (net.isAuditor(msg.sender) || msg.sender == netAddress);
     }
 
     modifier isAudited(uint256 trackerId) {
@@ -527,7 +531,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     /**
      * @dev send a product to a trackee's address
      * Products are first transferred to a trackee
-     * It trackee's task to assign the product to a new tracker.
+     * It is trackee's task to assign the product to a new tracker.
      * Will first transfer amount of product available to owner of tracker token (if owner is msg.sender)
      * The rest is transferred from the msg.sender productBalance
      **/

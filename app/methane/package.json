@@ -3,12 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "server": "npm run start --workspace=@blockchain-carbon-accounting/methane-server",
-    "server:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-server",
-    "client": "npm run start --workspace=@blockchain-carbon-accounting/methane-esg",
-    "client:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-esg",
+    "server": "npm run start --workspace=@blockchain-carbon-accounting/methane-server --",
+    "client": "npm run start --workspace=@blockchain-carbon-accounting/methane-esg --",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
-    "prod": "concurrently \"npm run client:prod\" \"npm run server:prod\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,7 +13,6 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "concurrently": "^7.4.0",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "express-request-context": "^1.0.1"
@@ -25,10 +21,11 @@
     "@types/cors": "^2.8.12",
     "@types/express": "^4.17.14",
     "@types/node": "^18.7.18",
+    "concurrently": "^7.4.0",
     "nodemon": "^2.0.20",
     "react-app-rewired": "^2.2.1",
     "ts-node": "^10.9.1",
-    "tslint": "^6.1.3",
+    "eslint": "^6.1.3",
     "typescript": "^4.8.3"
   }
 }

@@ -467,7 +467,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
       console.log("Tracker id "+(i+1).toString()+" verified");
       if(i<3){
         await trackerContract.connect(await hre.ethers.getSigner(industryAddresses[i]))
-          .transferProduct((i+1)*2,productTransfer[i],i+1,industry4);
+          .transferProduct((i+1)*2,productTransfer[i],industry4);
         console.log("Transfer Gas (productId = "+(i+1).toString()+") from "+locations[i+1]+" to Natural Gas Utility: "+industry4);
       }
     }

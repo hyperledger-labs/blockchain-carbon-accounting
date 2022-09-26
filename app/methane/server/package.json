@@ -2,7 +2,7 @@
   "name": "@blockchain-carbon-accounting/methane-server",
   "version": "1.0.0",
   "description": "",
-  "main": "./dist/index.js",
+  "main": "./dist/index",
   "dependencies": {
     "@blockchain-carbon-accounting/data-postgres": "*",
     "@blockchain-carbon-accounting/api-server": "*",

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "Blockchain Gateway Lib",
-  "main": "dist/index.js",
+  "main": "./dist/index",
   "scripts": {
     "build": "tsc",
     "lint": "eslint 'src/**/*.ts'",
