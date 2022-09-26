@@ -1,6 +1,7 @@
 import { Wallet } from '@blockchain-carbon-accounting/data-postgres/src/models/wallet';
 import superjson from 'superjson';
 import * as trpc from '@trpc/server';
+import fetch from 'node-fetch';
 import { ethers } from 'ethers';
 import { z } from 'zod';
 import { checkSignedMessage, getRoles } from '../controller/synchronizer';
@@ -114,6 +115,7 @@ export const walletRouter = trpc
 })
 .mutation('signup', {
     input: z.object({
+        captchaToken: z.string(),
         email: z.string().email(),
         password: validPassword,
         passwordConfirm: validPassword,
@@ -126,6 +128,17 @@ export const walletRouter = trpc
     }),
     async resolve({ input, ctx }) {
         try {
+            if (process.env.RECAPTCHA_SECRET_KEY) {
+                // Verify the Google reCapcha token v3
+                const captchaResponse = await fetch(`https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${input.captchaToken}`);
+                const captchaData = await captchaResponse.json() as {success: boolean};
+                console.log('captchaToken was ', input.captchaToken);
+                console.log('captchaData', captchaData);
+                if (!captchaData.success) {
+                    throw new DomainError('Invalid captcha token', 'BAD_REQUEST');
+                }
+            }
+
             try {
                 await signupAndResetLimiter.consume(ctx.ip || 'unknown')
             } catch {
