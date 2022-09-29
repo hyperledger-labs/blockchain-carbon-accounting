@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { Link } from "wouter"
 import { Form, Card } from "react-bootstrap";
 
@@ -6,7 +6,8 @@ import { handleFormErrors, signUpUser } from "../services/api.service";
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import AsyncButton from "../components/AsyncButton";
-import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+// @ts-ignore
+import ReCAPTCHA from 'react-google-recaptcha';
 
 type SignUpForm = {
   name: string,
@@ -31,37 +32,25 @@ const defaultSignUpForm: SignUpForm = {
   loading: ""
 } as const;
 
-const SignUpInner: FC<{}> = () => {
+const SignUp: FC<{}> = () => {
 
   const [form, setForm] = useState<SignUpForm>(defaultSignUpForm)
   const [formErrors, setFormErrors] = useState<SignUpFormErrors>({})
   const [captchaToken, setCaptchaToken] = useState<string>("")
-  const { executeRecaptcha } = useGoogleReCaptcha();
 
   // Create an event handler so you can call the verification on button click event or form submit
-  const handleReCaptchaVerify = useCallback(async () => {
+  const onRecaptchaChange = useCallback((token: any) => {
     if (!process.env.REACT_APP_RECAPTCHA_SITE_KEY) {
       return;
     }
-    if (!executeRecaptcha) {
-      console.log('Execute recaptcha not yet available');
-      return;
-    }
 
-    const token = await executeRecaptcha('signup');
     console.log('** recaptcha token **', token);
     setCaptchaToken(token);
     // Do whatever you want with the token
-  }, [executeRecaptcha]);
-
-  // You can use useEffect to trigger the verification as soon as the component being loaded
-  useEffect(() => {
-    handleReCaptchaVerify();
-  }, [handleReCaptchaVerify]);
+  }, []);
 
   async function handleSignUp() {
     try {
-      await handleReCaptchaVerify();
       if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
         console.log('** recaptcha token not available **');
         setForm({ ...form, error: "Captcha Token is required", success: "", loading: "" })
@@ -106,9 +95,14 @@ const SignUpInner: FC<{}> = () => {
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="passwordConfirm" label="Confirm Password" />
 
+              {process.env.REACT_APP_RECAPTCHA_SITE_KEY &&
+              <ReCAPTCHA
+                sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY || ""}
+                onChange={onRecaptchaChange}
+              />}
               <AsyncButton
                 type="submit"
-                className="w-100 mb-3"
+                className="w-100 mb-3 mt-2"
                 variant="success"
                 loading={!!form.loading}
               >Sign Up</AsyncButton>
@@ -120,13 +114,6 @@ const SignUpInner: FC<{}> = () => {
       </Card.Body>
     </Card>
   </>)
-}
-
-const SignUp: FC<{}> = () => {
-
-  return (<GoogleReCaptchaProvider reCaptchaKey={process.env.REACT_APP_RECAPTCHA_SITE_KEY??''}>
-    <SignUpInner />
-  </GoogleReCaptchaProvider>)
 }
 
 export default SignUp;
