@@ -1,7 +1,8 @@
 import { ElementRef, FC, useRef, useState, lazy, Suspense  } from 'react';
 import { QueryClient, QueryClientProvider } from "react-query";
 
-import NavigationBar from "./components/navbar";
+import useWeb3Modal from "@blockchain-carbon-accounting/react-app/src/hooks/useWeb3Modal";
+import NavigationBar from "@blockchain-carbon-accounting/react-app/src/components/navigation-bar";
 import { Link, Route, Switch, Redirect, useLocation } from "wouter"
 
 import Container from 'react-bootstrap/Container';
@@ -18,7 +19,18 @@ const TermsOfUse = lazy(() => import("./pages/terms"));
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
 
-  const signedIn = "";
+  const { 
+    provider, 
+    loadWeb3Modal, 
+    logoutOfWeb3Modal, 
+    loadWalletInfo, 
+    logoutOfWalletInfo, 
+    signedInAddress, 
+    signedInWallet, 
+    roles, 
+    limitedMode, 
+    refresh, 
+    loaded } = useWeb3Modal();
 
   const [location] = useLocation();
 
@@ -35,7 +47,16 @@ const App:FC = () => {
   return (<>
 
     <QueryClientProvider client={queryClient}>
-      <NavigationBar signedIn={signedIn}/>
+      <NavigationBar 
+        brand={'Methane Portal '}
+        provider={provider}
+        loadWeb3Modal={loadWeb3Modal}
+        logoutOfWeb3Modal={logoutOfWeb3Modal}
+        logoutOfWalletInfo={logoutOfWalletInfo}
+        signedInAddress={signedInAddress}
+        signedInWallet={signedInWallet}
+        roles={roles}
+        limitedMode={limitedMode}/>
       <>
         {/* Tabs to pages, only displayed when the user is signed in */}
         {/* signed && (*/}
@@ -52,11 +73,11 @@ const App:FC = () => {
           <Tab.Container defaultActiveKey={location.substring(1) || "operators"}>
             <Tab.Content>
               <Suspense fallback={<p>Loading ...</p>}>
-                { true || signedIn ? (
+                { true || signedInAddress ? (
                   <Switch>
                     <Route path="/"><Redirect to="/operators" /></Route>
                     <Route path="/operators">
-                      <Operators ref={operatorsRef} signedIn={signedIn}/>
+                      <Operators ref={operatorsRef} signedInAddress={signedInAddress}/>
                     </Route>
                     <Route path="/terms">
                       <TermsOfUse></TermsOfUse>

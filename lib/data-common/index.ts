@@ -13,6 +13,7 @@ export {
 export {
     EmissionFactorDbInterface,
     OilAndGasAssetDbInterface,
+    OperatorDbInterface,
     ProductDbInterface,
     UtilityLookupItemDbInterface
 } from './db'

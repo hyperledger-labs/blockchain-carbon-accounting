@@ -25,7 +25,7 @@ const db = PostgresDBService.getInstance()
 
 const app: Application = express();
 const PORT: number | string = process.env.METHANE_SERVER_PORT || 8007;
-const CORS: string[] = (process.env.METHANE_SERVER_CORS || 'HTTP://localhost:3007').split(',');
+const CORS: string[] = (process.env.METHANE_SERVER_CORS || 'http://localhost:3007').split(',');
 const corsOptions = {
     origin: CORS
 }

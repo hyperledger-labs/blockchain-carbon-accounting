@@ -40,6 +40,7 @@
     "@blockchain-carbon-accounting/contracts": "*",
     "@blockchain-carbon-accounting/data-postgres": "*",
     "@blockchain-carbon-accounting/methane-server": "*",
+    "@blockchain-carbon-accounting/react-app": "*",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",
     "@ethersproject/wallet": "^5.7.0",
@@ -49,6 +50,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@trpc/client": "^9.24.0",
     "@trpc/react": "^9.24.0",
+    "@walletconnect/web3-provider": "^1.8.0",
     "axios": "^0.27.2",
     "bootstrap": "5.1.3",
     "moment": "^2.29.4",
@@ -69,6 +71,7 @@
     "@types/node": "^16.11.59",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
-    "react-app-rewired": "^2.2.1"
+    "react-app-rewired": "^2.2.1",
+    "customize-cra": "^1.0.0"
   }
 }

@@ -23,11 +23,20 @@ export {
 } from './src/models/emissionsRequest'
 export {
     OilAndGasAsset,
-    Operator
+    OilAndGasAssetOperator
 } from './src/models/oilAndGasAsset'
+export {
+    AssetOwner,
+} from './src/models/assetOwner'
+export {
+    Operator,
+} from './src/models/operator'
 export {
     ProductToken
 } from './src/models/productToken'
+export {
+    Product
+} from './src/models/product'
 export {
     Sync
 } from './src/models/sync'

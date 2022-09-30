@@ -1,6 +1,6 @@
-import { BCGatewayConfig } from '../../src/blockchain-gateway-lib/config';
-import { EthNetEmissionsTokenGateway } from '../../src/blockchain-gateway-lib/netEmissionsTokenNetwork';
-import { Signer } from '../../src/blockchain-gateway-lib/signer';
+import BCGatewayConfig from '../../src/blockchain-gateway-lib/config';
+import EthNetEmissionsTokenGateway from '../../src/blockchain-gateway-lib/netEmissionsTokenNetwork';
+import Signer from '../../src/blockchain-gateway-lib/signer';
 import {
     IEthTxCaller,
     IEthNetEmissionsTokenIssueInput,

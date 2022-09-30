@@ -1,3 +1,4 @@
+npm run dataLoader load_og_assets "./oil_and_gas/files/Oil_and_Natural_Gas_Wells.geojson" -- --format US_asset_data --source "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore"
 npm run dataLoader load_product_data "./oil_and_gas/files/2022-og-benchmarking-report-data.xlsx" "Company_basin" -- --format Benchmark --source "https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx" --skip_rows 7
 
 npm run dataLoader load_product_data "./oil_and_gas/files/VIIRS_Global_flaring_d.7_slope_0.029353_2021_web.xlsx" "flare upstream" -- --format VIIRS --year 2021 --source "https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2021_web.xlsx"
@@ -35,5 +36,3 @@ npm run dataLoader load_product_data "./oil_and_gas/files/flaring_monitor_detail
 npm run dataLoader load_product_data "./oil_and_gas/files/flaring_monitor_company_stats_satellite_modeled.csv" "Sheet1" -- --format "FlareMonitor" --source "https://raw.githubusercontent.com/flaringmonitor/viirs-flare-data/main/processed/flaring_monitor_company_stats_satellite_modeled.csv"
 npm run dataLoader load_product_data "./oil_and_gas/files/flaring_monitor_company_stats_reported.csv" "Sheet1" -- --format "FlareMonitor" --source "https://raw.githubusercontent.com/flaringmonitor/viirs-flare-data/main/processed/flaring_monitor_company_stats_reported.csv"
 npm run dataLoader load_product_data "./oil_and_gas/files/flaring_monitor_basin_stats.csv" "Sheet1" -- --format "FlareMonitor" --source "https://raw.githubusercontent.com/flaringmonitor/viirs-flare-data/main/processed/flaring_monitor_basin_stats.csv"
-
-npm run dataLoader load_og_assets "./oil_and_gas/files/Oil_and_Natural_Gas_Wells.geojson" -- --format US_asset_data --source "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore"

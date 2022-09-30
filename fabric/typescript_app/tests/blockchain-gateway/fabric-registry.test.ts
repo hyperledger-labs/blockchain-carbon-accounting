@@ -1,6 +1,6 @@
 import { config } from 'dotenv';
-import { BCGatewayConfig } from '../../src/blockchain-gateway-lib/config';
-import { Signer } from '../../src/blockchain-gateway-lib/signer';
+import BCGatewayConfig from '../../src/blockchain-gateway-lib/config';
+import Signer from '../../src/blockchain-gateway-lib/signer';
 import FabricRegistryGateway from '../../src/blockchain-gateway/fabricRegistry';
 import { setup } from '../../src/utils/logger';
 import { v4 as uuid4 } from 'uuid';

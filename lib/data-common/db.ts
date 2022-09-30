@@ -32,3 +32,9 @@ export interface ProductDbInterface {
   getAllProducts: (query: Partial<ProductInterface>) => Promise<ProductInterface[]>
 }
 
+export interface OperatorDbInterface {
+  putOperator: (doc: OperatorInterface) => Promise<void>
+  getOperator: (uuid: string) => Promise<OperatorInterface | null>
+  getOperators: (query: Partial<OperatorInterface>) => Promise<OperatorInterface[]>
+}
+

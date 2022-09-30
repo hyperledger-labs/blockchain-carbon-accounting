@@ -2,15 +2,24 @@ import type {
   OilAndGasAssetInterface 
 } from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
+  Index,
   Column, Entity,
-  PrimaryGeneratedColumn
+  OneToMany,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+  Unique
 } from 'typeorm';
+import { AssetOwner } from './assetOwner';
+import { Product } from './product';
 
-export type Operator = {
+//import { Point } from 'geojson';
+
+export type OilAndGasAssetOperator = {
     oil_and_gas_asset_operator:string
 }
 
 @Entity()
+//@Unique(['name','operator','latitude', 'longitude' ])
 export class OilAndGasAsset implements OilAndGasAssetInterface {
 
   @PrimaryGeneratedColumn("uuid")
@@ -19,17 +28,32 @@ export class OilAndGasAsset implements OilAndGasAssetInterface {
   @Column()
   class!: string;
 
+  @OneToMany(() => AssetOwner, (assetOwner: AssetOwner) => assetOwner.asset)
+  public owners?: AssetOwner[];
+
+  @ManyToMany(() => Product)
+  public products?: Product[];
+
   @Column()
   type!: string;
 
   @Column()
   country!: string;
 
-  @Column()
-  latitude!: string;
+  /*Index({ spatial: true })
+  @Column({
+    type: 'geography',
+    spatialFeatureType: 'Point', 
+    srid: 4326,
+    nullable: true,
+  })
+  location:Point*/
 
-  @Column()
-  longitude!: string;
+  @Column({ type: 'double precision'})
+  latitude!: number;
+
+  @Column({ type: 'double precision'})
+  longitude!: number;
 
   @Column({nullable:true})
   name?: string;
@@ -71,13 +95,7 @@ export class OilAndGasAsset implements OilAndGasAssetInterface {
   validation_date?: Date;
 
   @Column({nullable:true})
-  product?: string;
-
-  @Column({nullable:true})
-  field?: string;
-  
-  @Column({nullable:true})
-  depth?: string;
+  metadata?: string;
 
   public static toRaw(v: OilAndGasAsset) {
     return { ...v };

@@ -5,7 +5,7 @@ import {
     IFabricRegisterInput,
     IFabricRegisterOutput,
 } from '../blockchain-gateway-lib/I-gateway';
-import { Signer } from '../blockchain-gateway-lib/signer';
+import Signer from '../blockchain-gateway-lib/signer';
 import { ledgerLogger } from '../utils/logger';
 import ClientError from '../errors/clientError';
 

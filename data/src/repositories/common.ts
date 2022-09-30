@@ -14,6 +14,7 @@ export type QueryBundle = {
   fieldType: string,
   value: number | string,
   op: string,
+  fieldSuffix?: string, // use this if conditioning the same field more than once
 }
 
 export interface StringPayload {
@@ -104,9 +105,16 @@ const OP_MAP: Record<string, string> = {
 export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>, entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
   const len = queries.length
   for (let i = 0; i < len; i++) {
+    // if query_field has already been set
+
+
     const query: QueryBundle = queries[i]
     if (OP_MAP[query.op]) {
       query.op = OP_MAP[query.op]
+    }
+    let query_field_label = query.field
+    if(query.fieldSuffix){
+      query_field_label = [query_field_label,query.fieldSuffix].join('_')
     }
 
     // last payload
@@ -114,11 +122,11 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
     if(query.fieldType == "string") {
 
       // process 'like' exception for payload
-      if(query.op == 'like') payload[query.field] = '%' + query.value as string + '%'
-      else if(query.op == '=') payload[query.field] = query.value as string
+      if(query.op == 'like') payload[query_field_label] = '%' + query.value as string + '%'
+      else if(query.op == '=') payload[query_field_label] = query.value as string
 
     }
-    else if (query.fieldType == 'number') payload[query.field] = query.value as number
+    else if (query.fieldType == 'number') payload[query_field_label] = query.value as number
     else continue
 
     // check which entity alias should be used
@@ -148,7 +156,7 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
     if(query.op == "like" || query.field == 'issuedTo' || query.field == 'issuedBy' || query.field == 'issuedFrom') {
       cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
     } else {
-      cond = `${alias}.${query.field} ${query.op} :${query.field}`
+      cond = `${alias}.${query.field} ${query.op} :${query_field_label}`
     }
     builder = builder.andWhere(cond, payload)
 

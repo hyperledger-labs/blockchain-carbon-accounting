@@ -32,8 +32,10 @@ export const assetRouter = (zQueryBundles:any) => trpc
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const operators = await ctx.db.getOilAndGasAssetRepo().selectOperatorsPaginated(input.offset, input.limit, input.bundles);
-            const count = await ctx.db.getOilAndGasAssetRepo().countOperators(input.bundles);
+            const operators = await ctx.db.getOilAndGasAssetRepo()
+                .selectOperatorsPaginated(input.offset, input.limit, input.bundles);
+            const count = await ctx.db.getOilAndGasAssetRepo()
+                .countOperators(input.bundles);
             return {
                 status: 'success',
                 count,

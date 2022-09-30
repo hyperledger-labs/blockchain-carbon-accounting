@@ -10,7 +10,7 @@ import {
     IEthNetEmissionsTokenIssueInput,
     IEthNetEmissionsTokenIssueOutput,
 } from './I-gateway';
-import { Signer } from './signer';
+import Signer from './signer';
 import Web3 from 'web3';
 import contractABI from '../static/contract-NetEmissionsTokenNetwork.json';
 import { Checks } from '@hyperledger/cactus-common';
@@ -21,7 +21,7 @@ interface IEthNetEmissionsTokenGatewayOptions {
     contractStoreKeychain: string;
 }
 
-export class EthNetEmissionsTokenGateway implements IEthNetEmissionsTokenGateway {
+export default class EthNetEmissionsTokenGateway implements IEthNetEmissionsTokenGateway {
     private readonly contractName = 'NetEmissionsTokenNetwork';
     private readonly className = 'EthNetEmissionsTokenGateway';
     private readonly tokenTypeId = 3;

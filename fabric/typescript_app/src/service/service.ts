@@ -1,10 +1,10 @@
 import { PluginLedgerConnectorFabric } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
-import { BCGatewayConfig } from '../blockchain-gateway-lib/config';
+import BCGatewayConfig from '../blockchain-gateway-lib/config';
 import { DataLockGateway } from '../blockchain-gateway/datalock';
 import EmissionsDataGateway from '../blockchain-gateway/emissionsChannel';
 import FabricRegistryGateway from '../blockchain-gateway/fabricRegistry';
-import { EthNetEmissionsTokenGateway } from '../blockchain-gateway-lib/netEmissionsTokenNetwork';
-import { Signer } from '../blockchain-gateway-lib/signer';
+import EthNetEmissionsTokenGateway from '../blockchain-gateway-lib/netEmissionsTokenNetwork';
+import Signer from '../blockchain-gateway-lib/signer';
 import AWSS3 from '../datasource/awsS3';
 import EmissionsChannelServiceOptions from './emissionsChannel';
 import FabricRegistryService from './fabricRegistry';

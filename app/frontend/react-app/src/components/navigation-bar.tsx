@@ -43,6 +43,8 @@ const WalletButton:FC<WalletButtonProps> = ({ provider, loadWeb3Modal, logoutOfW
 
 
 type NavigationBarProps = {
+  brand?: string
+  link?: string
   provider?: Web3Provider | JsonRpcProvider
   loadWeb3Modal: ()=>void
   logoutOfWeb3Modal:()=>void
@@ -53,7 +55,10 @@ type NavigationBarProps = {
   limitedMode: boolean
 }
 
-const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutOfWeb3Modal, logoutOfWalletInfo, signedInAddress, signedInWallet, roles, limitedMode }) => {
+const NavigationBar:FC<NavigationBarProps> = (
+  { brand, link, 
+    provider, loadWeb3Modal, logoutOfWeb3Modal, logoutOfWalletInfo, 
+    signedInAddress, signedInWallet, roles, limitedMode }) => {
 
   const [role, setRole] = useState("");
   const [cachedRoles, setCachedRoles] = useState<RolesInfo>({});
@@ -89,12 +94,12 @@ const NavigationBar:FC<NavigationBarProps> = ({ provider, loadWeb3Modal, logoutO
 
   return (
     <Navbar bg="white" expand="md" className="p-3">
-      <Navbar.Brand>Net Emissions Token Network</Navbar.Brand>
+      <Navbar.Brand>{brand}</Navbar.Brand>
       <Navbar.Toggle />
       <Navbar.Collapse >
         <Nav className="me-auto">
-          <Nav.Link href="https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/hardhat"><FaGithub/></Nav.Link>
-        </Nav>
+          {link ?<Nav.Link href={link}><FaGithub/></Nav.Link>: null} 
+        </Nav> 
         <Nav>
           {(signedInAddress === "")?
             <>

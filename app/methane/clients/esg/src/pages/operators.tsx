@@ -13,23 +13,23 @@ import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import Button from 'react-bootstrap/Button';
 import { BsFunnel } from 'react-icons/bs';
-import { getOperators } from '../services/api.service';
-import QueryBuilder from "../components/query-builder";
-import Paginator from "../components/paginate";
-import { ASSET_FIELDS } from "../components/static-data";
-import type { Operator } from '@blockchain-carbon-accounting/data-postgres';
+import { getOperators, countAssets } from '../services/api.service';
+import QueryBuilder from "@blockchain-carbon-accounting/react-app/src/components/query-builder";
+import Paginator from "@blockchain-carbon-accounting/react-app/src/components/paginate";
+import { ASSET_FIELDS, Operator } from "../components/static-data";
 import OperatorInfoModal from "../components/operator-info-modal";
 
+import { Link } from "wouter";
 
 type OperatorsProps = {
-  signedIn: string, 
+  signedInAddress: string, 
 }
 
 type OperatorsHandle = {
   refresh: ()=>void
 }
 
-const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ signedIn }, ref) => {
+const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ signedInAddress }, ref) => {
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [selectedOperator, setSelectedOperator] = useState<Operator | undefined>();
@@ -68,7 +68,7 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
     setFetchingOperators(true);
 
     let newOperators: Operator[] = [];
-    let _issuedCount = 0;
+    let _operatorPageCount = 0;
     try {
       // First, fetch number of unique tokens
       const offset = (_page - 1) * _pageSize;
@@ -91,9 +91,8 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
       const operators = await response.json();*/
       let {operators, count} = await getOperators(offset, _pageSize, [..._query]);
       // this count means total pages of issued tokens
-      _issuedCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
+      _operatorPageCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
 
-      // Iterate over each tokenId and find balance of signed in address
       for (let i = 1; i <= operators.length; i++) {
         let operatorDetails = operators[i-1];
         if (!operatorDetails) continue;
@@ -103,7 +102,13 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
           //tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
           //isMyIssuedToken: true
         };*/
-        const operator:Operator = operatorDetails
+        let name = operatorDetails.oil_and_gas_asset_operator
+        let {count} = await countAssets(
+          ['operator','string',name,'eq']);
+        const operator:Operator = {
+          name,
+          assetCount: count
+        }
         newOperators.push(operator);
       }
 
@@ -116,7 +121,7 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
     setSelectedOperators(newOperators);
     setFetchingOperators(false);
     setError("");
-    setCount(_issuedCount);
+    setCount(_operatorPageCount);
     setPage(_page);
     setPageSize(_pageSize);
     setQuery(_query);
@@ -144,13 +149,13 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
     const init = async () => {
       await fetchOperators(1, 20, []);
     }
-    if (true || signedIn) {
+    if (true || signedInAddress) {
       init();
     } else {
       // pending for signedInAddress. display the spinner ...
       setFetchingOperators(true);
     }
-  }, [signedIn, fetchOperators]);
+  }, [signedInAddress, fetchOperators]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -194,17 +199,30 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
             <thead>
               <tr>
                 <th>Name</th>
+                <th># Assets</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {!!selectedOperators &&
                 selectedOperators.map((operator) => (
-                  <tr
-                    key={operator.oil_and_gas_asset_operator}
-                    onClick={() => handleOpenOperatorInfoModal(operator)}
-                    onMouseOver={pointerHover}
-                  >
-                    <td>{operator.oil_and_gas_asset_operator}</td>
+                  <tr key={operator.name}>
+                    <td onClick={() => handleOpenOperatorInfoModal(operator)}
+                      onMouseOver={pointerHover}>
+                      {operator.name}
+                    </td>
+                    <td>{operator.assetCount}</td>
+                    <td>
+                      <Link href={"/operator?name="+operator.name}>
+                        <Button
+                          className="float-end"
+                          variant="outline-dark"
+                        >
+                          View Operator
+                        </Button>
+                      </Link>
+
+                    </td>
                   </tr>
                 ))}
             </tbody>

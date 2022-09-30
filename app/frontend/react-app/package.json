@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "homepage": "./",
+  "main": "./index.ts",
   "browserslist": {
     "production": [
       ">0.2%",

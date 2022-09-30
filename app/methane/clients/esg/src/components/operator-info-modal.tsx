@@ -1,10 +1,9 @@
 import { FC } from "react";
 import Modal from "react-bootstrap/Modal";
-import type { Operator } from '@blockchain-carbon-accounting/data-postgres';
-
+import type { Operator } from "../components/static-data";
 type OperatorInfoModalProps = {
   show:boolean
-  operator:Operator
+  operator: Operator
   onHide:()=>void 
 }
 const OperatorInfoModal:FC<OperatorInfoModalProps> = (props) => {

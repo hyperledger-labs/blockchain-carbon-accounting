@@ -4,6 +4,8 @@ import { initDb } from './models'
 import { BalanceRepo } from "./repositories/balance.repo"
 import { EmissionsFactorRepo } from "./repositories/emissionsFactor.repo"
 import { OilAndGasAssetRepo } from "./repositories/oilAndGasAsset.repo"
+import { OperatorRepo } from "./repositories/operator.repo"
+import { AssetOwnerRepo } from "./repositories/assetOwner.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { TrackerRepo } from "./repositories/tracker.repo"
 import { ProductRepo } from "./repositories/product.repo"
@@ -69,6 +71,14 @@ export class PostgresDBService {
 
   public getOilAndGasAssetRepo() {
     return new OilAndGasAssetRepo(this._db)
+  }
+
+  public getOperatorRepo() {
+    return new OperatorRepo(this._db)
+  }
+
+  public getAssetOwnerRepo() {
+    return new AssetOwnerRepo(this._db)
   }
 
   public getProductRepo() {

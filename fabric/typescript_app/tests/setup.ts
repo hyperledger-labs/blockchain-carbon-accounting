@@ -3,7 +3,7 @@ import { FabricSigningCredential } from '@hyperledger/cactus-plugin-ledger-conne
 import axios from 'axios';
 // import { execSync } from 'child_process';
 import { config } from 'dotenv';
-import { BCGatewayConfig } from '../src/blockchain-gateway-lib/config';
+import BCGatewayConfig from '../src/blockchain-gateway-lib/config';
 config();
 config({ path: './tests/.oracle.env' });
 

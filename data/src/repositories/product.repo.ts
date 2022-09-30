@@ -14,9 +14,8 @@ export class ProductRepo implements ProductDbInterface {
   public putProduct = async (doc: ProductInterface) => {
     // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
     const repo = await this._db.getRepository(Product)
-    if(! await repo.findOneBy(this.makeProductMatchCondition(doc))){
-      await this._db.getRepository(Product).save(doc)
-    }
+    await repo.delete(this.makeProductMatchCondition(doc))
+    await this._db.getRepository(Product).save(doc)
   }
 
   public getProduct = async (uuid: string): Promise<ProductInterface | null> => {
@@ -43,8 +42,8 @@ export class ProductRepo implements ProductDbInterface {
     if (doc.division_name) conditions.division_name = ILike(doc.division_name)
     if (doc.sub_division_type) conditions.sub_division_type = ILike(doc.sub_division_type)
     if (doc.sub_division_name) conditions.sub_division_name = ILike(doc.sub_division_name)
-    if (doc.latitude) conditions.latitude = ILike(doc.latitude)
-    if (doc.longitude) conditions.longitude = ILike(doc.longitude)
+    if (doc.latitude) conditions.latitude = doc.latitude
+    if (doc.longitude) conditions.longitude = doc.longitude
     if (doc.year) conditions.year = ILike(doc.year)
     if (doc.month) conditions.month = ILike(doc.month)
     if (doc.source) conditions.source = ILike(doc.source)

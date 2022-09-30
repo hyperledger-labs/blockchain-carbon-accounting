@@ -2,28 +2,39 @@ import {
   OilAndGasAssetInterface, 
   OIL_AND_GAS_ASSET_CLASS_IDENTIFIER 
 } from "./oilAndGasAsset"
+
 import { 
   ProductInterface, 
   PRODUCT_CLASS_IDENTIFIER 
 } from "./product";
 
 import { 
-  ProductDbInterface 
-} from '@blockchain-carbon-accounting/data-common';
+  OperatorInterface, 
+  OPERATOR_CLASS_IDENTIFIER 
+} from "./operator";
+
+import {
+  matchAssets
+} from "./matchAssets"
 
 import { 
-  parseWorksheet, 
-  getStateNameMapping, 
-  LoadInfo 
-} from "@blockchain-carbon-accounting/data-common";
+  ASSET_OWNER_CLASS_IDENTIFIER,
+  AssetOwnerInterface
+} from "./assetOwner";
 
-import type { 
+import { 
+  ProductDbInterface, 
+  OperatorDbInterface,
+  parseWorksheet,
   ParseWorksheetOpts,
+  getStateNameMapping, 
+  LoadInfo,
 } from "@blockchain-carbon-accounting/data-common";
 
-
 import { 
-  PostgresDBService 
+  PostgresDBService, 
+  Wallet,
+  OilAndGasAsset 
 } from '@blockchain-carbon-accounting/data-postgres';
 
 import { SingleBar } from "cli-progress";
@@ -33,7 +44,7 @@ import { parser } from 'stream-json';
 import { streamArray } from 'stream-json/streamers/StreamArray';
 import { pick } from'stream-json/filters/Pick';
 //import { batch } from'stream-json/utils/Batch';
-import fs from'fs';
+import fs from 'fs';
 
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -42,9 +53,10 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
 
   if (opts.format === "US_asset_data") {
     const loader = new LoadInfo(opts.file, opts.sheet, progressBar, 1506238);
+      
+    const repo = db.getOilAndGasAssetRepo()
     const pipeline = chain([
       fs.createReadStream('./'+opts.file),
-        //new URL("https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Oil_and_Natural_Gas_Wells/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson")),
       parser(),
       pick({filter: "features"}),
       streamArray(),
@@ -59,11 +71,17 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
           //if (!prop["Data Year"]) { loader.incIgnored('Missing "Data Year"'); continue; }
           //if (prop["Data Year"] == "YEAR") { loader.incIgnored('Header row'); continue; }
           opts.verbose && console.log("-- Prepare to insert from ", prop);
+          const details = JSON.stringify({
+            "product": prop["PRODTYPE"],
+            "field": prop["FILED"],
+            "depth": prop["TOTDEPTH"] !== '-999' ? prop["TOTDEPTH"] : null,
+          });
           const d: OilAndGasAssetInterface = {
             uuid: uuidv4(),
             class: OIL_AND_GAS_ASSET_CLASS_IDENTIFIER,
             type: prop["TYPE"],
             country: prop["COUNTRY"],
+            //location: {type: "Point", "coordinates": [0,0]},
             latitude: prop["LATITUDE"],
             longitude: prop["LONGITUDE"],
             name: prop["NAME"],//prop["NAME"] !== "NOT AVAILABLE" ? prop["NAME"] : null,
@@ -79,11 +97,9 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
             source_date: new Date(prop["SOURCEDATE"]),
             validation_method: prop["VAL_METHOD"],
             validation_date: new Date(prop["VAL_DATE"]),
-            product: prop["PRODTYPE"],
-            field: prop["FILED"],
-            depth: prop["TOTDEPTH"] !== '-999' ? prop["TOTDEPTH"] : null,
+            metadata: details
           };
-          await db.getOilAndGasAssetRepo().putAsset(d);
+          await repo.putAsset(d);
           loader.incLoaded();
         //}
         return;   
@@ -93,9 +109,9 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
     
     let counter = 0;
     //pipeline.on('data', (data:any) => console.log(data));
-    pipeline.on('data', () => 
+    pipeline.on('data', (counter) => {
       ++counter
-    );
+    });
     pipeline.on('end', async () => {
       loader.done();
       console.log(`Loaded ${counter} entries to oil_and_gas_asset table.`);
@@ -106,8 +122,8 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
   }
 }
 
-export const importFlareData = async (opts: ParseWorksheetOpts, 
-  progressBar: SingleBar, db: ProductDbInterface) => {
+export const importProductData = async (opts: ParseWorksheetOpts, 
+  progressBar: SingleBar, db: PostgresDBService) => {
 
   if (opts.format === "VIIRS") {
     //if(opts.year === undefined){return Error('no year provided')}
@@ -135,23 +151,29 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
         "sector": row["Type"].toString(),
         "clearObs": clear_obs?.toString()
       });
+      let assets = await matchAssets(
+        row["Latitude"],
+        row["Longitude"],
+        country
+      ); 
       // generate a unique for the row
       const d: ProductInterface = {
+        uuid: uuidv4(),
         class: PRODUCT_CLASS_IDENTIFIER,
         type: "Flaring",
-        uuid: uuidv4(),
+        assets: assets,
         name: "methane",
         amount: amount?.toString(),
         unit: "bcm",
         year: opts.year,
         country: country,
-        latitude: row["Latitude"].toString(),
-        longitude: row["Longitude"].toString(),
+        latitude: row["Latitude"],
+        longitude: row["Longitude"],
         metadata: details,
-        description: "VIIRS satelite flaring data",
+        description: "VIIRS satellite flaring data",
         source: opts.source || opts.file
       };
-      await db.putProduct(d);
+      await db.getProductRepo().putProduct(d);
       loader.incLoaded();
     }
     loader.done();
@@ -178,11 +200,11 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
       if (!opts.name) { loader.incIgnored('Undefined name'); continue; }
       if (!opts.type) { loader.incIgnored('Undefined type'); continue; }
       if (!opts.unit) { loader.incIgnored('Undefined unit'); continue; }
-      
+
       const d: ProductInterface = {
+        uuid: uuidv4(),
         class: PRODUCT_CLASS_IDENTIFIER,
         type: opts.type,
-        uuid: uuidv4(),
         name: opts.name,
         unit: opts.unit,
         amount: row[amountHeader],
@@ -196,7 +218,7 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
       let states:string[]=[];
       if(opts.sheet === "Data 1"){
         if (!row[amountHeader]) { loader.incIgnored('Undefined amount'); } 
-        else{ await db.putProduct(d) }
+        else{ await db.getProductRepo().putProduct(d) }
         states = ["Alaska","Arkansas","California","Colorado","Federal Offshore--Gulf of Mexico","Kansas","Louisiana","Montana","New Mexico","North Dakota","Ohio","Oklahoma","Pennsylvania","Texas","Utah","West Virginia","Wyoming"]
       }else if(opts.sheet === "Data 2"){
         states = ["Other States","Alabama","Arizona","Florida","Idaho","Illinois","Indiana","Kentucky","Maryland","Michigan","Mississippi","Missouri","Nebraska","Nevada","New York","Oregon","South Dakota","Tennessee","Virginia"]
@@ -208,7 +230,7 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
         if (!row[amountHeader]) { loader.incIgnored('Undefined amount'); continue; }
         d["division_name"] = state;
         d["amount"] = row[amountHeader];
-        await db.putProduct(d);
+        await db.getProductRepo().putProduct(d);
       }
       loader.incLoaded();
     }
@@ -238,9 +260,10 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
       if (!row) { loader.incIgnored('Undefined row'); continue; }
       
       opts.verbose && console.log("-- Prepare to insert from ", row);
+
       const d: ProductInterface = {
-        class: PRODUCT_CLASS_IDENTIFIER,
         uuid: uuidv4(),
+        class: PRODUCT_CLASS_IDENTIFIER,
         source: opts.source || opts.file,
         description: "Flare Monitor oil & gas data",
         type: '',
@@ -258,6 +281,12 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
         d["division_name"]=getStateNameMapping(row["state"]);
         d["longitude"]=row["longitude"];
         d["latitude"]=row["latitude"];
+        let assets = await matchAssets(
+          row["latitude"],
+          row["longitude"],
+          'United States'
+        ); 
+        d['assets'] = assets; 
         d["metadata"]=JSON.stringify({
           type: row["type"],
           sum_rh: row["sum_rh"],
@@ -267,7 +296,7 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
           wells: row["wells"],
           equivalent_co2_released_metric_tons: row["equivalent_co2_released_metric_tons"]
         })
-        await db.putProduct(d); 
+        await db.getProductRepo().putProduct(d); 
         loader.incLoaded();
       }else if(row["product_type"]){
         if (row["basin"]){
@@ -291,7 +320,7 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
           d["amount"]=row[col];
           d["year"] = col.substr(col.length - 4);
           d["month"] = col.slice(0,3);
-          await db.putProduct(d);
+          await db.getProductRepo().putProduct(d);
           d["uuid"] = uuidv4();
           loader.incLoaded();
         } 
@@ -303,6 +332,19 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
     return;
   }else if(opts.format === "Benchmark"){
 
+    let wallet = await db.getWalletRepo().findWalletByAddress(
+      "0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7");
+    
+    if(!wallet){
+      wallet = await db.getWalletRepo().insertWallet({
+        name: 'Operator Repository',
+        email: "bertrand@tworavens.consulting",
+        address: '0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7',
+        organization: 'Two Ravens Energy & Climate Consulting Ltd.'
+      })
+    }
+    //console.log(wallet)
+
     const data = parseWorksheet(opts);
     
     const cols:string[] = ["Gas (MBOE)",  "Oil (MBOE)", 
@@ -310,15 +352,48 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
       "NGSI Methane Intensity",  "GHG Emissions Intensity", 
       "Process & Equipment Vented", "Process & Equipment Flared",  
       "Fugitive",  "Other Combustion",  "Associated Gas Vented/Flared"]; 
-    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, data.length*cols.length);
-    for (const row of data) {
-      
+    const skip_rows = 0;
+    const loader = new LoadInfo(opts.file, opts.sheet, progressBar, (data.length-skip_rows)*cols.length);
+    for (const row of data.slice(skip_rows)) {
       if (!row) { loader.incIgnored('Undefined row'); continue; }
-      
+
+      //create operator
+      let operator = await db.getOperatorRepo().findByName(row["Company"]);
+      if(!operator){
+        const o: OperatorInterface = {
+          uuid: uuidv4(),
+          class: OPERATOR_CLASS_IDENTIFIER,
+          name: row["Company"],
+          wallet: wallet
+        }; 
+        await db.getOperatorRepo().putOperator(o);
+        operator = await db.getOperatorRepo().findByName(row["Company"]);
+      }
+      if (!operator) { loader.incIgnored('Unable to set opertor: '+row["Company"]); continue; }
+      let assets:OilAndGasAsset[] = await db.getOilAndGasAssetRepo().selectPaginated(
+        0,0,[{
+          field: 'operator',
+          fieldType: 'string',
+          value: row["Company"],
+          op: 'like'}]
+      );
+      for (const asset of assets) {
+        const ao: AssetOwnerInterface = {
+          uuid: uuidv4(),
+          class: ASSET_OWNER_CLASS_IDENTIFIER,
+          asset: asset,
+          operator: operator,
+          from_date: new Date(),
+          share: 1
+        }
+        await db.getAssetOwnerRepo().putAssetOwner(ao);
+      }
+
       opts.verbose && console.log("-- Prepare to insert from ", row);
       const d: ProductInterface = {
         uuid: uuidv4(),
         class: PRODUCT_CLASS_IDENTIFIER,
+        operator: operator,
         source: opts.source || opts.file,
         description: "CATF U.S. O&G Benchmarking",
         type: '',
@@ -331,8 +406,8 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
         country: "USA",
       };
       if(row["Basin"]){
-        d["sub_division_name"]="basin";
-        d["sub_division_type"]=row["Basin"];
+        d["sub_division_type"]="basin";
+        d["sub_division_name"]=row["Basin"];
       }
       for (const col of cols){
         
@@ -372,7 +447,7 @@ export const importFlareData = async (opts: ParseWorksheetOpts,
             break;
           default:
         }
-        await db.putProduct(d); 
+        await db.getProductRepo().putProduct(d); 
         d["uuid"] = uuidv4();
         d["metadata"] = undefined;
         loader.incLoaded();

@@ -11,7 +11,7 @@ import {
     ITxStageUpdateInput,
     ITxStageUpdateOutput,
 } from '../blockchain-gateway-lib/I-gateway';
-import { Signer } from '../blockchain-gateway-lib/signer';
+import Signer from '../blockchain-gateway-lib/signer';
 
 interface IDataLockGatewayOptions {
     fabricConnector: PluginLedgerConnectorFabric;

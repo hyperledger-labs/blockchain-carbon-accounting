@@ -1,7 +1,7 @@
 import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import { SetStateAction } from 'react';
-import type { QueryBundle, Operator } from '@blockchain-carbon-accounting/data-postgres';
+import type { QueryBundle, OilAndGasAssetOperator, OilAndGasAsset } from '@blockchain-carbon-accounting/data-postgres';
 //import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
@@ -69,11 +69,24 @@ function buildBundlesFromQueries(query: string[]) {
     return bundles
 }
 
-export const getOperators = async (offset: number, limit: number, query: string[]): Promise<{count:number, operators:Operator[], status:string}> => {
+function buildBundlesFromQuery(query: string[]) {
+    let bundles: QueryBundle[] = []
+    bundles.push({
+        field: query[0],
+        fieldType: query[1],
+        value: query[2],
+        op: query[3],
+    })
+    return bundles
+}
+
+export const getOperators = async (offset: number, limit: number, query: string[])
+    : Promise<{count:number, operators:OilAndGasAssetOperator[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getOperators:', offset, limit, bundles)
-        const { status, count, operators, error } = await trpcClient.query('asset.listOperators', {offset, limit, bundles})
+        const { status, count, operators, error } = 
+            await trpcClient.query('asset.listOperators', {offset, limit, bundles})
         if (status === 'success' && operators) {
             return { count, operators, status }
         } else {
@@ -81,6 +94,42 @@ export const getOperators = async (offset: number, limit: number, query: string[
             return {count: 0, operators: [], status};
         }
     } catch(error) {
-        throw new Error(handleError(error, "Cannot get operators"))
+        throw new Error(handleError(error, "calling getOperators"))
+    }
+}
+
+export const countAssets = async (query: string[])
+    : Promise<{count:number, status:string}> => {
+    try {
+        const bundles = buildBundlesFromQuery(query)
+        console.info('countAssets:', bundles)
+        const { status, count, error } = 
+            await trpcClient.query('asset.count', {bundles})
+        if (status === 'success' && count) {
+            return { count, status }
+        } else {
+            if (status !== 'success') console.error('countAssets error:', error)
+            return {count: 0, status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "calling countAssets"))
+    }
+}
+
+export const getAssets = async (offset: number, limit: number, query: string[])
+    : Promise<{count:number, assets:OilAndGasAsset[], status:string}> => {
+    try {
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getAssets:', offset, limit, bundles)
+        const { status, count, assets, error } = 
+            await trpcClient.query('asset.list', {offset, limit, bundles})
+        if (status === 'success' && assets) {
+            return { count, assets, status }
+        } else {
+            if (status !== 'success') console.error('getAssets error:', error)
+            return {count: 0, assets: [], status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "calling getAssets"))
     }
 }

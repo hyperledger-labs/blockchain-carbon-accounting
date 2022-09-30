@@ -1,4 +1,4 @@
-import { Signer } from '../../src/blockchain-gateway-lib/signer';
+import Signer from '../../src/blockchain-gateway-lib/signer';
 import chai from 'chai';
 import { FabricSigningCredentialType } from '@hyperledger/cactus-plugin-ledger-connector-fabric';
 import ClientError from '../../src/errors/clientError';
