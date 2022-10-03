@@ -1,5 +1,5 @@
 {
-  "name": "@blockchain-carbon-accounting/methane-esg",
+  "name": "@blockchain-carbon-accounting/methane-client",
   "version": "1.0.0",
   "private": true,
   "proxy": "http://localhost:8007/",

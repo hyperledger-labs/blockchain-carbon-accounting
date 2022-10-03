@@ -11,12 +11,12 @@ export const matchAssets = async (
   latitude: number, 
   longitude: number, 
   country: string, 
-  resolution: number = 1)
+  resolution = 1)
 : Promise<OilAndGasAsset[] | undefined > => {
   // aesst repo currently only has assets listed in Canada and U.S.
-  if(['United States of America',
+  if(country && ['United States of America',
       'United States','USA','US',
-      'Canada','CAN'].includes(country.replace(/\./g,'')))
+      'Canada','CAN'].includes(country?.replace(/\./g,'')))
   {
     const db = (await PostgresDBService.getInstance()).getOilAndGasAssetRepo();
     // search for assets with width of resolution centered at lat/long
@@ -50,20 +50,8 @@ export const matchAssets = async (
           op: '>',           
         }
       ]);
-      /*let distances:number[]=[];
-      for (var i = 0; i < assets.length; i++) {
-          const asset = assets[i];
-          distances[i]= getDistance(
-              {latitude,longitude},
-              {latitude:asset.latitude, longitude: asset.longitude}
-          )
-      }
-      const min = Math.min(...distances);
-      const index = distances.indexOf(min);
-      const asset: OilAndGasAsset = assets[index];*/
+    
       return assets;
-      //console.log(assets);
-
     }catch (err) {
       console.error(err)
       throw new Error('Error in matchAssets: ' + err)
@@ -71,4 +59,28 @@ export const matchAssets = async (
   }else{
     undefined
   }
+}
+export const matchAsset = async (
+  latitude: number, 
+  longitude: number, 
+  country: string, 
+  resolution = 1)
+: Promise<OilAndGasAsset | undefined > => {
+  // aesst repo currently only has assets listed in Canada and U.S.
+  const assets = await matchAssets(latitude,longitude,country,resolution);
+  if(assets){
+    const distances:number[]=[];
+    for (let i = 0; i < assets.length; i++) {
+        const asset = assets[i];
+        distances[i]= await getDistance(
+            {latitude,longitude},
+            {latitude:asset.latitude, longitude: asset.longitude}
+        )
+    }
+    const min = await Math.min(...distances);
+    const index = distances.indexOf(min);
+    return assets[index];
+  }
+  return
+  
 }

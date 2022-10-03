@@ -5,35 +5,37 @@ import {
   Column, Entity,
   PrimaryGeneratedColumn,
   OneToMany,
-  OneToOne,
   ManyToOne,
-  JoinColumn,
+  Unique
 } from 'typeorm';
-import { AssetOwner } from './assetOwner';
+import { AssetOperator } from './assetOperator';
 import { Wallet } from './wallet';
 import { Product } from './product';
 
 
 @Entity()
+@Unique(['name'])
 export class Operator implements OperatorInterface {
-
   @PrimaryGeneratedColumn("uuid")
   uuid!: string;
 
   @Column()
   class!: string;
 
-  @OneToMany(() => AssetOwner, (assetOwner: AssetOwner) => assetOwner.operator)
-  public assets?: AssetOwner[];
+  @OneToMany(() => AssetOperator, (assetOperator: AssetOperator) => assetOperator.operator)
+  asset_operators?: AssetOperator[];
 
   @OneToMany(() => Product, (product: Product) => product.operator)
-  public products?: Product[];
+  products?: Product[];
 
   @ManyToOne(() => Wallet)
-  wallet!: Wallet
+  wallet!: Wallet;
 
   @Column({unique: true})
   name!: string;
+
+  @Column({default:0, type: 'integer'})
+  asset_count!: number;
 
   @Column({nullable:true})
   status?: string;

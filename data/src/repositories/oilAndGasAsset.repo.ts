@@ -19,7 +19,7 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
     // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
     const repo = await this._db.getRepository(OilAndGasAsset)
     //if(! await repo.findOneBy(this.makeAssetMatchCondition(doc))){
-    await this._db.getRepository(OilAndGasAsset).save(doc)
+    await repo.save(doc)
     //}
   }
 
@@ -27,10 +27,15 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
     return await this._db.getRepository(OilAndGasAsset).findOneBy({uuid})
   }
 
-  public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<OilAndGasAsset>> => {
+  public selectPaginated = async (
+    offset: number, 
+    limit: number, 
+    bundles: Array<QueryBundle>, 
+    union?: boolean
+  ): Promise<Array<OilAndGasAssetInterface>> => {
     let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
     // category by issuer address
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles)
+    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles, undefined, union)
     return selectBuilder
       .limit(limit)
       .offset(offset)

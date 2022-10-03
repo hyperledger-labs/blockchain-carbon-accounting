@@ -90,7 +90,6 @@ export class WalletRepo {
   }
 
   public insertWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
-    console.log('insertWallet ', payload)
     return await this.getRepository().save({
       ...payload,
     })

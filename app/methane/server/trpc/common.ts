@@ -5,6 +5,7 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
 import { z, ZodError } from 'zod';
 import { assetRouter } from './asset.trpc';
+import { operatorRouter } from './operator.trpc';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -62,6 +63,7 @@ const createRouter = () => {
 
 const appRouter = createRouter()
   .merge('asset.', assetRouter(zQueryBundles))
+  .merge('operator.', operatorRouter(zQueryBundles))
 
 export type AppRouter = typeof appRouter
 

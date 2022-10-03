@@ -2,11 +2,14 @@ import {
   Wallet,
   PostgresDBService 
 } from "@blockchain-carbon-accounting/data-postgres";
-import { EthNetEmissionsTokenGateway, 
-  BCGatewayConfig, Signer,
+import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/netEmissionsTokenNetwork";
+import BCGatewayConfig from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/config";
+import Signer from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/signer";
+import { 
   IEthNetEmissionsTokenIssueInput,
-  IEthTxCaller
+  IEthTxCaller 
 } from "@blockchain-carbon-accounting/blockchain-gateway-lib";
+
 import type { 
   EmissionsFactorInterface 
 } from "@blockchain-carbon-accounting/emissions_data_lib";

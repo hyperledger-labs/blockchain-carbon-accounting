@@ -23,13 +23,13 @@ const App:FC = () => {
     provider, 
     loadWeb3Modal, 
     logoutOfWeb3Modal, 
-    loadWalletInfo, 
+    //loadWalletInfo, 
     logoutOfWalletInfo, 
     signedInAddress, 
     signedInWallet, 
     roles, 
     limitedMode, 
-    refresh, 
+    //refresh, 
     loaded } = useWeb3Modal();
 
   const [location] = useLocation();
@@ -57,9 +57,9 @@ const App:FC = () => {
         signedInWallet={signedInWallet}
         roles={roles}
         limitedMode={limitedMode}/>
-      <>
+      { loaded ? <>
         {/* Tabs to pages, only displayed when the user is signed in */}
-        {/* signed && (*/}
+        { signedInAddress && (
           <Nav fill variant="tabs" className="mt-2 mb-4 border-bottom-0">
             {/* On operators page, click this link to refresh the balances */}
             {/* Else on other page, click this link to go to operators */}
@@ -67,8 +67,8 @@ const App:FC = () => {
               ? <Nav.Link onClick={() => operatorsRef.current?.refresh()} eventKey="operators">Operators</Nav.Link>
               : <Link href="/operators"><Nav.Link eventKey="operators">Operators</Nav.Link></Link>
             }
-          </Nav>
-        {/*}*/}
+          </Nav>)
+        }
         <Container className="my-2 main-container">
           <Tab.Container defaultActiveKey={location.substring(1) || "operators"}>
             <Tab.Content>
@@ -93,7 +93,7 @@ const App:FC = () => {
           </Tab.Container>
           <div className="my-5"></div>
         </Container>
-      </>
+      </> : <p>Loading ...</p>}
     </QueryClientProvider>
     <footer>
       <AppFooter></AppFooter>

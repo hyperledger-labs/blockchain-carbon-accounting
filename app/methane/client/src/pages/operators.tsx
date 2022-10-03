@@ -13,10 +13,11 @@ import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import Button from 'react-bootstrap/Button';
 import { BsFunnel } from 'react-icons/bs';
-import { getOperators, countAssets } from '../services/api.service';
+import { getOperators  } from '../services/api.service';
 import QueryBuilder from "@blockchain-carbon-accounting/react-app/src/components/query-builder";
 import Paginator from "@blockchain-carbon-accounting/react-app/src/components/paginate";
-import { ASSET_FIELDS, Operator } from "../components/static-data";
+//import { Operator } from '@blockchain-carbon-accounting/data-postgres';
+import { OPERATOR_FIELDS, Operator } from "../components/static-data";
 import OperatorInfoModal from "../components/operator-info-modal";
 
 import { Link } from "wouter";
@@ -90,25 +91,17 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
       });
       const operators = await response.json();*/
       let {operators, count} = await getOperators(offset, _pageSize, [..._query]);
+      
       // this count means total pages of issued tokens
       _operatorPageCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
 
       for (let i = 1; i <= operators.length; i++) {
-        let operatorDetails = operators[i-1];
-        if (!operatorDetails) continue;
-
-        /*const operator: any = {
-          ...operatorDetails,
+        const operator: any = {
+          ...operators[i-1],
           //tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
           //isMyIssuedToken: true
-        };*/
-        let name = operatorDetails.oil_and_gas_asset_operator
-        let {count} = await countAssets(
-          ['operator','string',name,'eq']);
-        const operator:Operator = {
-          name,
-          assetCount: count
-        }
+        };
+        if (!operator) continue;
         newOperators.push(operator);
       }
 
@@ -191,7 +184,7 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
           <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
           <div hidden={!showQueryBuilder}>
             <QueryBuilder
-              fieldList={ASSET_FIELDS}
+              fieldList={OPERATOR_FIELDS}
               handleQueryChanged={handleQueryChanged}
             />
           </div>
@@ -205,13 +198,13 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
             </thead>
             <tbody>
               {!!selectedOperators &&
-                selectedOperators.map((operator) => (
-                  <tr key={operator.name}>
+                selectedOperators.map((operator,index) => (
+                  <tr key={operator?.name}>
                     <td onClick={() => handleOpenOperatorInfoModal(operator)}
                       onMouseOver={pointerHover}>
                       {operator.name}
                     </td>
-                    <td>{operator.assetCount}</td>
+                    <td>{operator?.asset_count}</td>
                     <td>
                       <Link href={"/operator?name="+operator.name}>
                         <Button

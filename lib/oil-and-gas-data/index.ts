@@ -8,10 +8,10 @@ export type {
     OPERATOR_CLASS_IDENTIFIER
 } from "./src/operator"
 export type { 
-    AssetOwnerInterface, 
+    AssetOperatorInterface, 
     AssetOwnerDetails, 
-    ASSET_OWNER_CLASS_IDENTIFIER
-} from "./src/assetOwner"
+    ASSET_OPERATOR_CLASS_IDENTIFIER
+} from "./src/assetOperator"
 export type { 
     ProductInterface,
     PRODUCT_CLASS_IDENTIFIER

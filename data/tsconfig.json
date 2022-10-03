@@ -19,7 +19,6 @@
         {"path": "../lib/emissions_data"},
         {"path": "../lib/oil-and-gas-data"}
     ],
-    "include": ["index.ts","src/**/*", "test/**/*"],
-    "exclude": ["dist/**/*"]
+    "exclude": ["dist/**/*", "test/**/*"]
 }
 

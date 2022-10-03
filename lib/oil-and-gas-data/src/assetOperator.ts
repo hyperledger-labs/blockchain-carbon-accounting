@@ -1,8 +1,8 @@
-export const ASSET_OWNER_CLASS_IDENTIFIER =
+export const ASSET_OPERATOR_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.operator';
 import { OilAndGasAsset, Operator } from '@blockchain-carbon-accounting/data-postgres';
 
-export interface AssetOwnerInterface extends AssetOwnerDetails {
+export interface AssetOperatorInterface extends AssetOwnerDetails {
     uuid: string;
     class: string;
     asset: OilAndGasAsset;

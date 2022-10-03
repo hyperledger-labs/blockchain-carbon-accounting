@@ -1,7 +1,9 @@
 import { OperatorDbInterface } from "@blockchain-carbon-accounting/data-common";
 import type { OperatorInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
+import { DataSource, FindOptionsWhere, SelectQueryBuilder } from "typeorm"
+
 import { Operator } from "../models/operator"
-import { DataSource, FindOptionsWhere, ILike } from "typeorm"
+import { buildQueries, QueryBundle } from "./common"
 
 export class OperatorRepo implements OperatorDbInterface {
 
@@ -30,8 +32,32 @@ export class OperatorRepo implements OperatorDbInterface {
     return await this._db.getRepository(Operator).find()
   }
 
-  public countOperators = async (): Promise<number> => {
-    return await this._db.getRepository(Operator).count()
+  public count = async (bundles: Array<QueryBundle>): Promise<number> => {
+    let selectBuilder: SelectQueryBuilder<Operator> = 
+      await this._db.getRepository(Operator).createQueryBuilder("operator")
+    // category by issuer address
+    selectBuilder = buildQueries('operator', selectBuilder, bundles)
+    return selectBuilder.getCount()
+  }
+
+  public selectPaginated = async (
+    offset: number, 
+    limit: number, 
+    bundles: Array<QueryBundle>
+  ): Promise<Array<Operator>> => {
+    let selectBuilder: SelectQueryBuilder<Operator> = 
+      await this._db.getRepository(Operator).createQueryBuilder("operator")
+    // category by issuer address
+    selectBuilder = buildQueries('operator', selectBuilder, bundles)
+    return selectBuilder
+      .limit(limit)
+      .offset(offset)
+      .orderBy("asset_count", "DESC")
+      .getMany();
+      /*.innerJoinAndSelect(
+        "operator.asset_operators",
+        "asset_operators"
+      )*/
   }
 
   private makeOperatorMatchCondition = (doc: Partial<OperatorInterface>) => {

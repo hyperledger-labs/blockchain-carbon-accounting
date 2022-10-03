@@ -8,10 +8,6 @@ import {
   PostgresDBService,
   QueryBundle,
 } from "@blockchain-carbon-accounting/data-postgres"
-import { 
-  queryProcessing 
-} from "@blockchain-carbon-accounting/api-server";
-import router from './router/router';
 import { trpcMiddleware } from './trpc/common';
 
 import { config } from 'dotenv';
@@ -38,12 +34,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 // router
-app.use('/', queryProcessing, router);
 app.use('/trpc', trpcMiddleware);
 
-
 // Serve the React static files after build
-app.use(express.static("../clients/esg/build"));
+//app.use(express.static("../client/build"));
 
 
 app.listen(Number(PORT), '0.0.0.0', () => {
@@ -52,7 +46,7 @@ app.listen(Number(PORT), '0.0.0.0', () => {
 
 app.get('/', function (req, res) {
   res.sendFile(
-    path.join(path.resolve("./clients/esg/", 'build', 'index.html'))
+    path.join(path.resolve("./client/", 'build', 'index.html'))
   );
 });
 

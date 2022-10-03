@@ -136,7 +136,6 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_og_assets ...")
       const db = await init(parseCommonYargsOptions(argv))
-      console.log('ssss')
       await importOilAndGasAssets(argv, progressBar, db)
     }
   )

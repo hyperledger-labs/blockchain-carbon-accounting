@@ -99,10 +99,17 @@ const OP_MAP: Record<string, string> = {
     'like': 'like',
     'ls': '<',
     'gt': '>',
+    'vector': 'vector'
 };
 
 // eslint-disable-next-line
-export function buildQueries(table: string, builder: SelectQueryBuilder<any>, queries: Array<QueryBundle>, entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
+export function buildQueries(
+  table: string, 
+  builder: SelectQueryBuilder<any>, 
+  queries: Array<QueryBundle>, 
+  entities?: EntityTarget<any>[],
+  union?: boolean
+) : SelectQueryBuilder<any> {
   const len = queries.length
   for (let i = 0; i < len; i++) {
     // if query_field has already been set
@@ -124,6 +131,7 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
       // process 'like' exception for payload
       if(query.op == 'like') payload[query_field_label] = '%' + query.value as string + '%'
       else if(query.op == '=') payload[query_field_label] = query.value as string
+      else if(query.op == 'vector') payload[query_field_label] = query.value as string
 
     }
     else if (query.fieldType == 'number') payload[query_field_label] = query.value as number
@@ -155,10 +163,16 @@ export function buildQueries(table: string, builder: SelectQueryBuilder<any>, qu
     let cond = '';
     if(query.op == "like" || query.field == 'issuedTo' || query.field == 'issuedBy' || query.field == 'issuedFrom') {
       cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
+    }else if(query.op == "vector"){
+      cond = `to_tsvector(${alias}.${query.field}) @@ to_tsquery(query.value)`
     } else {
       cond = `${alias}.${query.field} ${query.op} :${query_field_label}`
     }
-    builder = builder.andWhere(cond, payload)
+    if(union){
+      builder = builder.orWhere(cond, payload)
+    }else{
+      builder = builder.andWhere(cond, payload)
+    }
 
   }
   return builder

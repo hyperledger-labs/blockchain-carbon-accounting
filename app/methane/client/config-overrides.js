@@ -14,9 +14,9 @@ const overridePath = (webpackConfig) => {
 
     const newIncludePaths = [
       // relative path to my yarn workspace library
-      path.resolve(__dirname, '../../../frontend/react-app/src/components'),
-      path.resolve(__dirname, '../../../frontend/react-app/src/hooks'),
-      path.resolve(__dirname, '../../../frontend/react-app/src/services')
+      path.resolve(__dirname, '../../frontend/react-app/src/components'),
+      path.resolve(__dirname, '../../frontend/react-app/src/hooks'),
+      path.resolve(__dirname, '../../frontend/react-app/src/services')
     ];
     if (tsxRule) {
       if (Array.isArray(tsxRule.include)) {

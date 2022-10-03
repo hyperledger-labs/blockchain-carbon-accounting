@@ -2,21 +2,22 @@ import type {
   OilAndGasAssetInterface 
 } from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
-  Index,
+  //Index,
   Column, Entity,
   OneToMany,
   ManyToMany,
   PrimaryGeneratedColumn,
-  Unique
+  //Unique
 } from 'typeorm';
-import { AssetOwner } from './assetOwner';
+import { AssetOperator } from './assetOperator';
+//import { Operator } from './operator';
 import { Product } from './product';
 
 //import { Point } from 'geojson';
 
 export type OilAndGasAssetOperator = {
     oil_and_gas_asset_operator:string
-}
+};
 
 @Entity()
 //@Unique(['name','operator','latitude', 'longitude' ])
@@ -28,11 +29,11 @@ export class OilAndGasAsset implements OilAndGasAssetInterface {
   @Column()
   class!: string;
 
-  @OneToMany(() => AssetOwner, (assetOwner: AssetOwner) => assetOwner.asset)
-  public owners?: AssetOwner[];
+  @OneToMany(() => AssetOperator, (assetOperator: AssetOperator) => assetOperator.asset)
+  asset_operators?: AssetOperator[];
 
   @ManyToMany(() => Product)
-  public products?: Product[];
+  products?: Product[];
 
   @Column()
   type!: string;

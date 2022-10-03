@@ -24,10 +24,10 @@ export class Product implements ProductInterface{
 
   @ManyToMany(() => OilAndGasAsset)
   @JoinTable()
-  assets?: OilAndGasAsset[]
+  assets?: OilAndGasAsset[];
 
   @ManyToOne(() => Operator, (operator) => operator.products)
-  operator?: Operator
+  operator?: Operator;
 
   @Column()
   type!: string;

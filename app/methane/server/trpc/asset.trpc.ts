@@ -37,9 +37,9 @@ export const assetRouter = (zQueryBundles:any) => trpc
             const count = await ctx.db.getOilAndGasAssetRepo()
                 .countOperators(input.bundles);
             return {
-                status: 'success',
                 count,
-                operators
+                operators,
+                status: 'success'
             }
         } catch (error) {
             console.error(error)

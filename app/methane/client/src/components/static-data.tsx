@@ -1,9 +1,10 @@
 import type { Field } from "@blockchain-carbon-accounting/react-app/src/components/static-data"
+import { AssetOperator, Wallet, Product } from '@blockchain-carbon-accounting/data-postgres';
 
 export type Asset = {
   name?: string
-  latitude: string
-  longitude: string
+  latitude: number
+  longitude: number
   division_type?: string
   division_name?: string
   sub_division_type?: string
@@ -17,9 +18,23 @@ export type Asset = {
 }
 
 export type Operator = {
-  name?: string
-  assetCount?: number
+  name: string
+  wallet: Wallet;
+  status?: string;
+  description?: string;
+  asset_count?: number
+  asset_operators?: AssetOperator[];
+  products?: Product[];
 }
+
+export const OPERATOR_FIELDS: Field[] = [
+{
+    alias: 'Name',
+    name: 'name',
+    type: 'string',
+    ops: ['like']
+},
+]
 
 export const ASSET_FIELDS: Field[] = [
 {

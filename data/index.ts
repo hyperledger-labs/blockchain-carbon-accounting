@@ -26,8 +26,8 @@ export {
     OilAndGasAssetOperator
 } from './src/models/oilAndGasAsset'
 export {
-    AssetOwner,
-} from './src/models/assetOwner'
+    AssetOperator
+} from './src/models/assetOperator'
 export {
     Operator,
 } from './src/models/operator'

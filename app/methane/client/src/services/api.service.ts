@@ -1,8 +1,8 @@
 import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import { SetStateAction } from 'react';
-import type { QueryBundle, OilAndGasAssetOperator, OilAndGasAsset } from '@blockchain-carbon-accounting/data-postgres';
-//import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
+import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
+import type { Operator, Asset } from '../components/static-data';
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
 
@@ -80,14 +80,16 @@ function buildBundlesFromQuery(query: string[]) {
     return bundles
 }
 
-export const getOperators = async (offset: number, limit: number, query: string[])
-    : Promise<{count:number, operators:OilAndGasAssetOperator[], status:string}> => {
+export const getOperators = async (
+    offset: number, limit: number, query: string[]
+): Promise<{count:number, operators:Operator[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getOperators:', offset, limit, bundles)
-        const { status, count, operators, error } = 
-            await trpcClient.query('asset.listOperators', {offset, limit, bundles})
+        const { status, count, operators, error } 
+            = await trpcClient.query('operator.list', {offset, limit, bundles})
         if (status === 'success' && operators) {
+            console.log("Get operators: ", operators)
             return { count, operators, status }
         } else {
             if (status !== 'success') console.error('getOperators error:', error)
@@ -103,8 +105,8 @@ export const countAssets = async (query: string[])
     try {
         const bundles = buildBundlesFromQuery(query)
         console.info('countAssets:', bundles)
-        const { status, count, error } = 
-            await trpcClient.query('asset.count', {bundles})
+        const { status, count, error } 
+            = await trpcClient.query('asset.count', {bundles})
         if (status === 'success' && count) {
             return { count, status }
         } else {
@@ -117,7 +119,7 @@ export const countAssets = async (query: string[])
 }
 
 export const getAssets = async (offset: number, limit: number, query: string[])
-    : Promise<{count:number, assets:OilAndGasAsset[], status:string}> => {
+    : Promise<{count:number, assets:Asset[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getAssets:', offset, limit, bundles)

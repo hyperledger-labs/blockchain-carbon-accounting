@@ -14,8 +14,6 @@
     "strict": true
   },
   "references": [
-      {"path": "../../../data"},
-      {"path": "../../../lib/oil-and-gas-data"},
-      {"path": "../../api-server"}
+      {"path": "../../../data"}
   ]
 }

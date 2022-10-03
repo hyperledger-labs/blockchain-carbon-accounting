@@ -1,13 +1,14 @@
 export const OIL_AND_GAS_ASSET_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.oil-and-gas-asset';
-import { AssetOwner, Product } from '@blockchain-carbon-accounting/data-postgres';
+import { AssetOperator, Product, Operator } from '@blockchain-carbon-accounting/data-postgres';
 //import { Point } from 'geojson';
 
 
 export interface OilAndGasAssetInterface {
     uuid: string;
     class: string;
-    owners?: AssetOwner[];
+    assetOperators?: AssetOperator[];
+    operators?: Operator[];
     products?: Product[]
     type: string;
     country: string;

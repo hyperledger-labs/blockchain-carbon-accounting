@@ -4,7 +4,8 @@ import type {
 } from "@blockchain-carbon-accounting/emissions_data_lib"
 import type { 
   OilAndGasAssetInterface,
-  ProductInterface 
+  ProductInterface,
+  OperatorInterface
 } from "@blockchain-carbon-accounting/oil-and-gas-data-lib"
 
 
