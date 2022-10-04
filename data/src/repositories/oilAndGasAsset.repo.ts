@@ -14,13 +14,14 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
   constructor(dbConnection: DataSource) {
     this._db = dbConnection
   }
-
   public putAsset = async (doc: OilAndGasAssetInterface) => {
-    // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
-    const repo = await this._db.getRepository(OilAndGasAsset)
-    //if(! await repo.findOneBy(this.makeAssetMatchCondition(doc))){
-    await repo.save(doc)
-    //}
+    try{
+      const repo = await this._db.getRepository(OilAndGasAsset)
+      //if(! await repo.findOneBy(this.makeAssetMatchCondition(doc)))
+      await repo.save(doc)
+    }catch(error){
+      throw new Error(`Cannot create new asset:: ${error}`)       
+    }
   }
 
   public getAsset = async (uuid: string): Promise<OilAndGasAssetInterface | null> => {

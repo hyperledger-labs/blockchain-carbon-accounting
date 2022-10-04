@@ -47,7 +47,7 @@ export class TrackerRepo {
       selectBuilder = buildQueries('tracker', selectBuilder, bundles)
       return selectBuilder.getCount()
     } catch (error) {
-      throw new Error("Cannot get trackers count.")       
+      throw new Error(`Cannot get trackers count:: ${error}`)       
     }
   }
 

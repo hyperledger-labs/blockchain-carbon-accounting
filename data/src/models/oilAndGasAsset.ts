@@ -38,9 +38,6 @@ export class OilAndGasAsset implements OilAndGasAssetInterface {
   @Column()
   type!: string;
 
-  @Column()
-  country!: string;
-
   /*Index({ spatial: true })
   @Column({
     type: 'geography',
@@ -55,6 +52,9 @@ export class OilAndGasAsset implements OilAndGasAssetInterface {
 
   @Column({ type: 'double precision'})
   longitude!: number;
+
+  @Column()
+  country?: string;
 
   @Column({nullable:true})
   name?: string;

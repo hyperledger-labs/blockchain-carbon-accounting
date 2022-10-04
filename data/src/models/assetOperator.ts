@@ -33,7 +33,7 @@ export class AssetOperator implements AssetOperatorInterface {
   @JoinTable()
   operator!: Operator;
 
-  @Column({nullable:true})
+  @Column({type: 'double precision', nullable:true})
   share!: number;
 
   @Column({type: 'timestamp', nullable: true})

@@ -14,10 +14,12 @@ export class OperatorRepo implements OperatorDbInterface {
   }
   
   public putOperator = async (doc: OperatorInterface) => {
-    // cleanup any existing record matching the scope/l1/../l4/text/activity_uom and year
     const repo = await this._db.getRepository(Operator)
-    await repo.delete(this.makeOperatorMatchCondition(doc))
-    await this._db.getRepository(Operator).save(doc)
+    try {
+      await this._db.getRepository(Operator).save(doc)
+    }catch(error){
+      throw new Error(`Cannot create new operator:: ${error}`)       
+    }
   }
 
   public getOperator = async (uuid: string): Promise<Operator | null> => {

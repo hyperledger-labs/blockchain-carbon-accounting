@@ -270,7 +270,10 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         unit: '',
         amount: '0'
       };
-      if (row["estimated_flare_volume_mcf"]) {        
+      if (row["estimated_flare_volume_mcf"]) {     
+        d["type"]='Flaring';
+        d["name"]='Methane';  
+        d['unit']='MCF';
         d["amount"]=row["estimated_flare_volume_mcf"]; 
         d["year"]=row["month"].getFullYear().toString();
         d["month"]=months[row["month"].getMonth()];
@@ -289,17 +292,17 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         // check for operate assigned to identified asset
         let operators = asset?.asset_operators?.map(ao =>(ao.operator));
         if(!operators){
-          // check for similar operators already stored in DB
+          // check for  operators already stored in DB
           operators = await getOpertors(db, row['company_name']);
         }
-        if(operators){row['company_name']=operators[0]}
+        if(operators){d['operator']=operators[0]}
         if(operators && asset){
           const ao: AssetOperatorInterface = {
             uuid: uuidv4(),
             class: ASSET_OPERATOR_CLASS_IDENTIFIER,
             asset: asset,
             operator: operators[0],
-            from_date: new Date(),
+            from_date: new Date(),//new Date(row["month"]),
             share: 1
           }
           await db.getAssetOperatorRepo().putAssetOperator(ao);

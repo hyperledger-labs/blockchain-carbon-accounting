@@ -11,10 +11,10 @@ export interface OilAndGasAssetInterface {
     operators?: Operator[];
     products?: Product[]
     type: string;
-    country: string;
     latitude: number;
     longitude: number;
     //location: Point;
+    country?: string;
     name?: string;
     operator?: string;
     division_type?: string;
