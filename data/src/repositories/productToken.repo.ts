@@ -1,6 +1,6 @@
 import { DataSource, SelectQueryBuilder } from "typeorm"
 import { ProductToken } from "../models/productToken"
-import { buildQueries, QueryBundle, ProductPayload } from "./common"
+import { buildQueries, QueryBundle, ProductTokenPayload } from "./common"
 
 export class ProductTokenRepo {
 
@@ -11,12 +11,12 @@ export class ProductTokenRepo {
   }
 
   public selectAll = async (): Promise<Array<ProductToken>> => {
-    const ProductTokenRepository = this._db.getRepository(ProductToken)
+    const ProductTokenRepository = await this._db.getRepository(ProductToken)
     return await ProductTokenRepository.find()
   }
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<ProductToken>> => {
-    let selectBuilder: SelectQueryBuilder<ProductToken> = this._db.getRepository(ProductToken).createQueryBuilder("product")
+    let selectBuilder: SelectQueryBuilder<ProductToken> = await this._db.getRepository(ProductToken).createQueryBuilder("product")
 
     // category by issuer address
     selectBuilder = buildQueries('product', selectBuilder, bundles)
@@ -31,8 +31,8 @@ export class ProductTokenRepo {
     return await this._db.getRepository(ProductToken).findOneBy({productId})
   }
 
-  public insertProductToken = async (payload: ProductPayload): Promise<ProductToken> => {
-    const ProductTokenRepository = this._db.getRepository(ProductToken)
+  public insertProductToken = async (payload: ProductTokenPayload): Promise<ProductToken> => {
+    const ProductTokenRepository = await this._db.getRepository(ProductToken)
     const product = new ProductToken()
     return await ProductTokenRepository.save({
       ...product,
@@ -43,7 +43,7 @@ export class ProductTokenRepo {
 
   public countProducts = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
-      let selectBuilder: SelectQueryBuilder<ProductToken> = this._db.getRepository(ProductToken).createQueryBuilder("productToken")
+      let selectBuilder: SelectQueryBuilder<ProductToken> = await this._db.getRepository(ProductToken).createQueryBuilder("productToken")
       selectBuilder = buildQueries('productToken', selectBuilder, bundles)
       return selectBuilder.getCount()
     } catch (error) {

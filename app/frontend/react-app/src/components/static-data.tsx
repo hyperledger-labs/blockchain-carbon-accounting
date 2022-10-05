@@ -118,7 +118,6 @@ export type RolesInfo = {
   isCeoDealer?: boolean
   isAeDealer?: boolean
   isIndustry?: boolean
-  isIndustryDealer?: boolean
   hasAnyRole?: boolean
   hasIndustryRole?: boolean
   hasDealerRole?: boolean
@@ -154,7 +153,6 @@ export const rolesInfoToArray = (roles: RolesInfo|null): Role[] => {
   if (roles.isCeoDealer) res.push(RoleEnum.OffsetDealer);
   if (roles.isAeDealer) res.push(RoleEnum.EmissionsAuditor);
   if (roles.isIndustry) res.push(RoleEnum.Industry);
-  if (roles.isIndustryDealer) res.push(RoleEnum.IndustryDealer);
   return res;
 }
 

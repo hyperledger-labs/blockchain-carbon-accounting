@@ -1,5 +1,11 @@
-import { importUtilityIdentifiers, loadEmissionsFactors } from "@blockchain-carbon-accounting/data-common/spreadsheetImport"
-import { importOilAndGasAssets, importFlareData } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/import"
+import { 
+  importUtilityIdentifiers, 
+  loadEmissionsFactors 
+} from "@blockchain-carbon-accounting/data-common"
+import { 
+  importOilAndGasAssets, 
+  importProductData 
+} from "@blockchain-carbon-accounting/oil-and-gas-data-lib"
 import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
@@ -187,7 +193,7 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_product_data ...")
       const db = await init(parseCommonYargsOptions(argv))
-      await importFlareData(argv, progressBar, db.getProductRepo())
+      await importProductData(argv, progressBar, db)
       const count = await db.getProductRepo().countAllProducts();
       console.log(`=== Done, we now have ${count} product entries in the DB`)
       await db.close()

@@ -1,9 +1,9 @@
-import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres';
 import superjson from 'superjson';
 import * as trpc from '@trpc/server';
 import * as trpcExpress from '@trpc/server/adapters/express';
 import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/codes';
-import { ZodError } from 'zod';
+import { z, ZodError } from 'zod';
 import { OPTS } from '../server';
 import { balanceRouter } from './balance.trpc';
 import { emissionsFactorsRouter } from './emissions-factors.trpc';
@@ -12,8 +12,15 @@ import { walletRouter } from './wallet.trpc';
 import { tokenRouter } from './token.trpc';
 import { productTokenRouter } from './product-token.trpc';
 
+export const zQueryBundles:any = z.array(z.object({
+    field: z.string(),
+    fieldType: z.string(),
+    value: z.string().or(z.number()),
+    op: z.string(),
+}))
+
 // created for each request, here set the DB connector
-const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
+export const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) => {
   // get the client IP
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   console.log('Client IP:', ip);
@@ -32,7 +39,7 @@ const createContext = async ({ req }: trpcExpress.CreateExpressContextOptions) =
 }
 export type TrpcContext = trpc.inferAsyncReturnType<typeof createContext>;
 
-const createRouter = () => {
+export const createRouter = () => {
   // this adds the zodError and domainError to the response which can then be
   // analyzed for input errors an user facing error messages
   return trpc.router<TrpcContext>()
@@ -61,12 +68,12 @@ const createRouter = () => {
 }
 
 const appRouter = createRouter()
-  .merge('balance.', balanceRouter)
-  .merge('token.', tokenRouter)
-  .merge('wallet.', walletRouter)
-  .merge('producToken.', productTokenRouter)
-  .merge('emissionsFactors.', emissionsFactorsRouter)
-  .merge('emissionsRequests.', emissionsRequestsRouter)
+  .merge('balance.', balanceRouter(zQueryBundles))
+  .merge('token.', tokenRouter(zQueryBundles))
+  .merge('wallet.', walletRouter(zQueryBundles))
+  .merge('producToken.', productTokenRouter(zQueryBundles))
+  .merge('emissionsFactors.', emissionsFactorsRouter(zQueryBundles))
+  .merge('emissionsRequests.', emissionsRequestsRouter(zQueryBundles))
 
 export type AppRouter = typeof appRouter
 

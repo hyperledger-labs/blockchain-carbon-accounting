@@ -1,5 +1,6 @@
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { 
+    PostgresDBService, QueryBundle 
+} from '@blockchain-carbon-accounting/data-postgres';
 import { Request, Response } from 'express';
 
 export async function getTokens(req: Request, res: Response) {

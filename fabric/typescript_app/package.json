@@ -28,6 +28,7 @@
   "license": "ISC",
   "dependencies": {
     "@blockchain-carbon-accounting/data-postgres": "*",
+    "@blockchain-carbon-accounting/ws-identity-client": "^1.0.2",
     "@hyperledger/cactus-common": "1.0.0",
     "@hyperledger/cactus-core": "1.0.0",
     "@hyperledger/cactus-core-api": "1.0.0",
@@ -53,8 +54,7 @@
     "swagger-ui-express": "^4.4.0",
     "ts-md5": "^1.2.11",
     "uuid": "^8.3.2",
-    "web3": "1.7.3",
-    "ws-identity-client": "^1.0.2"
+    "web3": "1.7.3"
   },
   "devDependencies": {
     "@types/chai": "4.3.1",

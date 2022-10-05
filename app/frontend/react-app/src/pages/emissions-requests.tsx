@@ -12,7 +12,7 @@ import { getAuditorEmissionsRequests } from '../services/api.service';
 import { RolesInfo } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider} from "@ethersproject/providers";
 import { useLocation } from "wouter";
-import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres";
 import DisplayDate from "../components/display-date";
 import DisplayTokenAmount from "../components/display-token-amount";
 

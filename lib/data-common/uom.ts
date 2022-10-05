@@ -1,4 +1,4 @@
-import { ErrUnknownUOM } from "@blockchain-carbon-accounting/emissions_data_lib/src/const";
+import { ErrUnknownUOM } from "@blockchain-carbon-accounting/emissions_data_lib";
 
 const UOM_FACTORS: { [key: string]: number } = {
   wh: 1.0,

@@ -1,6 +1,8 @@
-import { issue_emissions_request } from '@blockchain-carbon-accounting/api-server/controller/emissionsRequests.controller';
-import { syncWalletRoles } from '@blockchain-carbon-accounting/api-server/controller/synchronizer';
-import type { OPTS_TYPE } from '@blockchain-carbon-accounting/api-server/server';
+import { 
+  issue_emissions_request,
+  syncWalletRoles,
+  OPTS_TYPE 
+} from '@blockchain-carbon-accounting/api-server';
 import type { ActivityEmissionsFactorLookup } from '@blockchain-carbon-accounting/data-postgres/src/models/activityEmissionsFactorLookup';
 import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';

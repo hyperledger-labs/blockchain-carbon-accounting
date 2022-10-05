@@ -1,4 +1,4 @@
-import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
+import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres';
 import { Request, Response } from 'express';
 import { checkSignedMessage, getRoles } from '../controller/synchronizer';
 

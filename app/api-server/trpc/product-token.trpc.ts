@@ -1,15 +1,8 @@
 import * as trpc from '@trpc/server'
-import { ProductToken } from '@blockchain-carbon-accounting/data-postgres/src/models/productToken';
+import { ProductToken } from '@blockchain-carbon-accounting/data-postgres';
 import { ethers } from 'ethers';
 import { z } from 'zod'
 import { handleError, TrpcContext } from './common';
-
-export const zQueryBundles = z.array(z.object({
-    field: z.string(),
-    fieldType: z.string(),
-    value: z.string().or(z.number()),
-    op: z.string(),
-}))
 
 
 const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
@@ -17,7 +10,7 @@ const validAddress = z.string().refine((val) => ethers.utils.isAddress(val), {
 })
 
 
-export const productTokenRouter = trpc
+export const productTokenRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({
