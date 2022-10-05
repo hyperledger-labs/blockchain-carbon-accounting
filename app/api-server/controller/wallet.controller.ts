@@ -1,6 +1,6 @@
-import { Wallet } from '@blockchain-carbon-accounting/data-postgres/src/models/wallet';
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
-import { QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import { 
+    Wallet ,PostgresDBService, QueryBundle 
+} from '@blockchain-carbon-accounting/data-postgres';
 import { ethers } from 'ethers';
 import { Request, Response } from 'express';
 import { readFileSync } from 'fs';

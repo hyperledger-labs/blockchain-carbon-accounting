@@ -3,7 +3,7 @@ import {
     GroupedResult,
     GroupedResults, group_processed_activities,
     queue_issue_tokens, process_activities
-} from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
+} from '@blockchain-carbon-accounting/supply-chain-lib';
 import { Request, Response } from 'express';
 import { readdirSync, readFileSync, unlinkSync } from 'fs';
 import path from 'path';

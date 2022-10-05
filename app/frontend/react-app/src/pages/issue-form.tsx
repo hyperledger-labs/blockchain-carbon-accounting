@@ -9,7 +9,7 @@ import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { addresses } from "@blockchain-carbon-accounting/contracts";
 import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
-import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres/src/models/emissionsRequest";
+import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres";
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import CreateProposalModal from "../components/create-proposal-modal";
 import SubmissionModal from "../components/submission-modal";

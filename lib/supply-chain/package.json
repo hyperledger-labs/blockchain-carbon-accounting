@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
+  "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint . --ext .ts",
@@ -20,6 +21,8 @@
   },
   "dependencies": {
     "@blockchain-carbon-accounting/data-postgres": "*",
+    "@blockchain-carbon-accounting/emissions_data_lib": "*",
+    "@blockchain-carbon-accounting/blockchain-gateway-lib": "*",
     "@googlemaps/google-maps-services-js": "^3.3.14",
     "@metamask/eth-sig-util": "^4.0.1",
     "axios": "^0.27.2",

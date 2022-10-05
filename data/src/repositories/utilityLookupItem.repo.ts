@@ -1,5 +1,5 @@
-import { UtilityLookupItemDbInterface } from "@blockchain-carbon-accounting/data-common/db"
-import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem"
+import { UtilityLookupItemDbInterface } from "@blockchain-carbon-accounting/data-common"
+import type { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib"
 import { DataSource } from "typeorm"
 import { UtilityLookupItem } from "../models/utilityLookupItem"
 
@@ -13,7 +13,7 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
 
   public putUtilityLookupItem = async (doc: UtilityLookupItemInterface) => {
     // cleanup any existing record matching the same fields
-    const repo = this._db.getRepository(UtilityLookupItem);
+    const repo = await this._db.getRepository(UtilityLookupItem);
 
     await repo.delete({
       class: doc.class,

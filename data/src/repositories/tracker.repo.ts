@@ -11,12 +11,12 @@ export class TrackerRepo {
   }
 
   public selectAll = async (): Promise<Array<Tracker>> => {
-    const trackerRepository = this._db.getRepository(Tracker)
+    const trackerRepository = await this._db.getRepository(Tracker)
     return await trackerRepository.find()
   }
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<Tracker>> => {
-    let selectBuilder: SelectQueryBuilder<Tracker> = this._db.getRepository(Tracker).createQueryBuilder("tracker")
+    let selectBuilder: SelectQueryBuilder<Tracker> = await this._db.getRepository(Tracker).createQueryBuilder("tracker")
 
     // category by issuer address
     selectBuilder = buildQueries('tracker', selectBuilder, bundles)
@@ -32,7 +32,7 @@ export class TrackerRepo {
   }
 
   public insertTracker = async (payload: TrackerPayload): Promise<Tracker> => {
-    const trackerRepository = this._db.getRepository(Tracker)
+    const trackerRepository = await this._db.getRepository(Tracker)
     const tracker = new Tracker()
     return await trackerRepository.save({
       ...tracker,
@@ -43,11 +43,11 @@ export class TrackerRepo {
 
   public countTrackers = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
-      let selectBuilder: SelectQueryBuilder<Tracker> = this._db.getRepository(Tracker).createQueryBuilder("tracker")
+      let selectBuilder: SelectQueryBuilder<Tracker> = await this._db.getRepository(Tracker).createQueryBuilder("tracker")
       selectBuilder = buildQueries('tracker', selectBuilder, bundles)
       return selectBuilder.getCount()
     } catch (error) {
-      throw new Error("Cannot get trackers count.")       
+      throw new Error(`Cannot get trackers count:: ${error}`)       
     }
   }
 

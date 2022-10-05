@@ -10,7 +10,6 @@ RUN npm install
 
 COPY ./*.ts /app/*.ts
 COPY tsconfig.json /app/tsconfig.json
-COPY tslint.json /app/tslint.json
 
 RUN npm run build
 

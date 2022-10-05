@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "start": "nodemon server.ts",
     "dev": "nodemon server.ts",
-    "loadDemoSeeds": "psql blockchain-carbon-accounting -f ./seedHardhatDemoWallets.sql",
     "loadDemoSeeds": "dotenv -e ../../.env -- bash -c 'psql ${DB_NAME} -f ./seedHardhatDemoWallets.sql'",
     "build": "tsc"
   },

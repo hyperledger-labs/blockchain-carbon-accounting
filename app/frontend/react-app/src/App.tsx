@@ -50,6 +50,8 @@ const App:FC = () => {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <NavigationBar
+          brand={'Net Emissions Token Network'}
+          link={"https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/hardhat"}
           provider={provider}
           loadWeb3Modal={loadWeb3Modal}
           logoutOfWeb3Modal={logoutOfWeb3Modal}

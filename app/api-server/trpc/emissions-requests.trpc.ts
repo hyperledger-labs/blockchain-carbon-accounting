@@ -3,14 +3,7 @@ import { z } from 'zod'
 import { count_auditor_emissions_requests, decline_emissions_request, get_auditor_emissions_request, get_auditor_emissions_requests, issue_emissions_request } from '../controller/emissionsRequests.controller';
 import { TrpcContext } from './common';
 
-export const zQueryBundles = z.array(z.object({
-    field: z.string(),
-    fieldType: z.string(),
-    value: z.string().or(z.number()),
-    op: z.string(),
-}))
-
-export const emissionsRequestsRouter = trpc
+export const emissionsRequestsRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({

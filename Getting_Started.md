@@ -1,6 +1,9 @@
 # Getting Started Instructions
 
-These are some general notes for developers to get started.  
+These are some general notes for developers to get started. 
+
+*See sub-heading [Methane](#methane) for running the Methane app*
+*Developers can use the same hardhat network as run below* 
 
 Please also read the [Setup.md](./Setup.md), [README.md](./README.md) and instructions in each component.  After you have set up the database according to [data/README.md](data/README.md), proceed with the steps below.
 
@@ -59,4 +62,36 @@ npm run supply-chain:cli -- -fetch <content> -rsapk app/supply-chain/<auditor-pr
 ```
 
 Note this works even if the file is uploaded to IPFS on a remote server.
+
+## Methane
+
+This app uses methane emission data for oil and gas assets.
+It is designed to analyze industry emissions and issue certificates within the Carbon Tracker sub contract of NET.
+
+Files can be downloaded as follows:
+``
+cd data/oil_and_gas
+sh download.sh
+``
+
+To load the data into postgres:
+```
+npm run loadSeeds:OG
+```
+Note, the data loading can take some time as there are 1 million plus assets, 100k's of emission data points, and relation tables that need to be built.
+
+start up the methane client app and server
+``` 
+npm run methane:dev
+```
+
+This runs the client and server concurrently.
+They can be run separately using the following scripts from app/methane 
+
+``` 
+npm run methane:client
+```
+``` 
+npm run methane:server
+```
 

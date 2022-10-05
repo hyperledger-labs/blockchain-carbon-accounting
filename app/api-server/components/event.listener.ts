@@ -1,4 +1,4 @@
-import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres";
 import EventEmitter from 'node:events';
 import { EventData } from 'web3-eth-contract';
 import { getCreatedToken, getLastSync, handleTransferEvent, runSync, saveLastSync, syncWalletRoles } from "../controller/synchronizer";

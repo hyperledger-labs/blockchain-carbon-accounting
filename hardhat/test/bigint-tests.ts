@@ -1,5 +1,9 @@
-import { runSync } from '@blockchain-carbon-accounting/api-server/controller/synchronizer';
-import type { OPTS_TYPE } from '@blockchain-carbon-accounting/api-server/server';
+import { 
+  runSync 
+} from '@blockchain-carbon-accounting/api-server';
+import type { 
+  OPTS_TYPE 
+} from '@blockchain-carbon-accounting/api-server';
 import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
 import { expect } from 'chai';
 import superjson from 'superjson';

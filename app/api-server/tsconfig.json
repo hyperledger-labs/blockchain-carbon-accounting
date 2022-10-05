@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite":true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "dist",
@@ -11,5 +12,11 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "strict": true
-  }
+  },
+  "input": ["**/*.ts"],
+  "references": [
+    {"path": "../../data"},
+    {"path": "../../lib/supply-chain"}
+  ],
+  "exclude": ["dist/**/*","node_modules/**/*"]
 }

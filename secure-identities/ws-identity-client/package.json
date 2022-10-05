@@ -1,5 +1,5 @@
 {
-  "name": "ws-identity-client",
+  "name": "@blockchain-carbon-accounting/ws-identity-client",
   "author": "Betrand Rioux <bertrand.rioux@gmail.com>",
   "version": "1.0.2",
   "description": "A client for connecting to the web-socket identity server",

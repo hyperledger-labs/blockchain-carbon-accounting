@@ -1,14 +1,13 @@
-import { generateKeyPair, hash_content } from '@blockchain-carbon-accounting/supply-chain-lib/src/crypto-utils';
-import {
+import { generateKeyPair, hash_content,
     GroupedResult,
     GroupedResults,
     group_processed_activities,
     issue_tokens,
     process_activities,
     process_emissions_requests,
-    queue_issue_tokens
-} from '@blockchain-carbon-accounting/supply-chain-lib/src/emissions-utils';
-import { downloadFileRSAEncrypted, downloadFileWalletEncrypted } from '@blockchain-carbon-accounting/supply-chain-lib/src/ipfs-utils';
+    queue_issue_tokens,
+    downloadFileRSAEncrypted, downloadFileWalletEncrypted 
+} from '@blockchain-carbon-accounting/supply-chain-lib';
 import { config } from 'dotenv';
 import findConfig from "find-config";
 import { mkdirSync, readFileSync, writeFileSync } from 'fs';
