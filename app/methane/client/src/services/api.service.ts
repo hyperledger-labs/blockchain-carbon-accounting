@@ -2,7 +2,8 @@ import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import { SetStateAction } from 'react';
 import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
-import type { Operator, Asset } from '../components/static-data';
+import type { Asset, Operator, Product } from '../components/static-data';
+import { Wallet } from "@blockchain-carbon-accounting/react-app/src/components/static-data";
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
 
@@ -64,6 +65,7 @@ function buildBundlesFromQueries(query: string[]) {
             fieldType: elems[1],
             value: elems[2],
             op: elems[3],
+            conjunction: elems[4] === 'true',
         })
     });
     return bundles
@@ -76,6 +78,7 @@ function buildBundlesFromQuery(query: string[]) {
         fieldType: query[1],
         value: query[2],
         op: query[3],
+        conjunction: query[4] === 'true',
     })
     return bundles
 }
@@ -100,6 +103,32 @@ export const getOperators = async (
     }
 }
 
+export const getOperator = async (uuid: string): 
+    Promise<{
+        operator: Operator,
+        wallet: Wallet,
+        products: Product[],
+        status: string
+}> => {
+    try {
+        const { status, operator,wallet,products, error } 
+            = await trpcClient.query('operator.stats', {uuid})
+        if (status === 'success' && operator && wallet && products ) {
+            console.log("Get operator: ", operator)
+            return { operator, wallet, products, status }
+        } else {
+            if (status !== 'success') console.error('getOperator error:', error)
+            return {
+                operator: {}, 
+                wallet: {}, 
+                products: [], status
+            };
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "calling getOperator"))
+    }
+}
+
 export const countAssets = async (query: string[])
     : Promise<{count:number, status:string}> => {
     try {
@@ -118,8 +147,9 @@ export const countAssets = async (query: string[])
     }
 }
 
-export const getAssets = async (offset: number, limit: number, query: string[])
-    : Promise<{count:number, assets:Asset[], status:string}> => {
+export const getAssets = async (
+    offset: number, limit: number, query: string[]
+): Promise<{count:number, assets:Asset[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getAssets:', offset, limit, bundles)

@@ -8,7 +8,7 @@ export interface ProductInterface {
     class: string;
     name: string;
     type: string;
-    amount: string;
+    amount: number;
     unit: string;
     assets?: OilAndGasAsset[];
     operator?: Operator;

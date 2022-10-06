@@ -7,95 +7,99 @@ import {
   useEffect,
   useImperativeHandle,
   useState,
-  ForwardRefRenderFunction
+  ForwardRefRenderFunction,
 } from "react";
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import Button from 'react-bootstrap/Button';
 import { BsFunnel } from 'react-icons/bs';
-import { getOperators  } from '../services/api.service';
+import { getAssets, getOperator } from '../services/api.service';
 import QueryBuilder from "@blockchain-carbon-accounting/react-app/src/components/query-builder";
 import Paginator from "@blockchain-carbon-accounting/react-app/src/components/paginate";
-import { OPERATOR_FIELDS, Operator } from "../components/static-data";
-import OperatorInfoModal from "../components/operator-info-modal";
+import { Wallet } from "@blockchain-carbon-accounting/react-app/src/components/static-data";
+
+import { ASSET_FIELDS, Asset, Operator, Product } from "../components/static-data";
+import AssetInfoModal from "../components/asset-info-modal";
+
 import { Link } from "wouter";
+
+/*import { Wrapper, Status } from "@googlemaps/react-wrapper";
+import Map, { Marker } from "../components/map"
+const render = (status: Status) => {
+  return <h1>{status}</h1>;
+};*/
 
 type OperatorsProps = {
   signedInAddress: string, 
+  operatorUuid: string
 }
 
 type OperatorsHandle = {
   refresh: ()=>void
 }
 
-const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ signedInAddress }, ref) => {
+const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ signedInAddress,operatorUuid }, ref) => {
+  // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
-  const [selectedOperator, setSelectedOperator] = useState<Operator | undefined>();
-  const [selectedOperators, setSelectedOperators] = useState<Operator[]>([]);
-  const [fetchingOperators, setFetchingOperators] = useState(false);
-  //const [modalShow, setModalShow] = useState(false);
+  const [operator, setOperator] = useState<Operator | undefined>()
+  const [products, setProducts] = useState<Product[] | undefined>()
+  const [wallet, setWallet] = useState<Wallet | undefined>()
+
+  const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
+  const [selectedAssets, setSelectedAssets] = useState<Asset[]>([]);
+  const [fetchingAssets, setFetchingAssets] = useState(false);
   const [error, setError] = useState("");
 
   // state vars for pagination
   const [ page, setPage ] = useState(1);
   const [ count, setCount ] = useState(0);
   const [ pageSize, setPageSize ] = useState(20);
-  const [ operatorsQuery, setOperatorsQuery ] = useState<string[]>([]);
+
+  const assetQueryBase = [`operatorUuid,string,${operatorUuid},eq,true`]
+  const [ assetQuery, setAssetQuery ] = useState<string[]>(assetQueryBase);
 
   const [showQueryBuilder, setShowQueryBuilder] = useState(false);
 
   async function handlePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
-    await fetchOperators(value, pageSize, operatorsQuery);
+    await fetchAssets(value, pageSize, assetQuery);
   }
 
   async function handlePageSizeChange(event: ChangeEvent<HTMLInputElement>) {
-    await fetchOperators(1, parseInt(event.target.value), operatorsQuery);
+    await fetchAssets(1, parseInt(event.target.value), assetQuery);
   }
 
   async function handleQueryChanged(_query: string[]) {
-    await fetchOperators(1, pageSize,  _query);
+    console.log(_query)
+    await fetchAssets(1, pageSize, _query.concat(assetQueryBase));
   }
 
-  function handleOpenOperatorInfoModal(operator: Operator) {
-    setSelectedOperator(operator);
+  function handleOpenOperatorInfoModal(asset: Asset) {
+    setSelectedAsset(asset);
     setModalShow(true);
   }
 
 
-  const fetchOperators = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
-    setFetchingOperators(true);
+  const fetchAssets = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
+    setFetchingAssets(true);
 
-    let newOperators: Operator[] = [];
-    let _operatorPageCount = 0;
+    let newAssets: Asset[] = [];
+    let _assetPageCount = 0;
     try {
+      // First, fetch number of unique tokens
       const offset = (_page - 1) * _pageSize;
 
-      /*const response = await fetch("/api/operatorsQuery/operators",{ 
-        method: 'POST',
-        headers: {
-                'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({offset:0,limit:_pageSize,queryBundles:
-        [ *{
-          *  field: 'operator',
-          *  fieldType: 'string',
-          *  value: 'chev',
-          *  op: 'like',
-          *}
-        ]})
-      });
-      const operators = await response.json();*/
-      let {operators, count} = await getOperators(offset, _pageSize, [..._query]);
-      
-      // this count means total pages of assets
-      _operatorPageCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
+      let {assets, count} = await getAssets(offset, _pageSize, [..._query])
 
-      for (let i = 1; i <= operators.length; i++) {
-        const operator: any = {
-          ...operators[i-1],
+      
+      // this count means total pages of issued tokens
+      _assetPageCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
+
+      for (let i = 1; i <= assets.length; i++) {
+        const asset: any = {
+          ...assets[i-1],
         };
-        if (!operator) continue;
-        newOperators.push(operator);
+        if (!asset) continue;
+        newAssets.push(asset);
       }
 
 
@@ -104,13 +108,13 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
       setError("Could not connect to contract on the selected network. Check your wallet provider settings.");
     }
     
-    setSelectedOperators(newOperators);
-    setFetchingOperators(false);
+    setSelectedAssets(newAssets);
+    setFetchingAssets(false);
     setError("");
-    setCount(_operatorPageCount);
+    setCount(_assetPageCount);
     setPage(_page);
     setPageSize(_pageSize);
-    setOperatorsQuery(_query);
+    setAssetQuery(_query);
   },[]);
   // Allows the parent component to refresh balances on clicking the Dashboard button in the navigation
   useImperativeHandle(ref, () => ({
@@ -126,22 +130,26 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
   async function handleRefresh() {
     // clear localStorage
     //let localStorage = window.localStorage;
-    //localStorage.setItem('', '');
-    await fetchOperators(page, pageSize, operatorsQuery);
+    //localStorage.setItem('token_balances', '');
+    await fetchAssets(page, pageSize, assetQueryBase);
   }
 
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      await fetchOperators(1, 20, []);
+      const {operator, products, wallet} = await getOperator(operatorUuid);
+      setOperator(operator)
+      setProducts(products)
+      setWallet(wallet)
+      await fetchAssets(1, 20, assetQuery);
     }
     if (true || signedInAddress) {
       init();
     } else {
       // pending for signedInAddress. display the spinner ...
-      setFetchingOperators(true);
+      setFetchingAssets(true);
     }
-  }, [signedInAddress, fetchOperators]);
+  }, [signedInAddress, setOperator, setProducts, setWallet, fetchAssets, assetQuery, operatorUuid]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -149,19 +157,19 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
 
   return (
     <>
-      {selectedOperator && <OperatorInfoModal
+      {selectedAsset && <AssetInfoModal
         show={modalShow}
-        operator={selectedOperator}
+        asset={selectedAsset}
         onHide={() => {
           setModalShow(false);
-          setSelectedOperator(undefined);
+          setSelectedAsset(undefined);
         }}
       />}
       <p className="text-danger">{error}</p>
 
-      <div className={fetchingOperators ? "dimmed" : ""}>
+      <div className={fetchingAssets ? "dimmed" : ""}>
 
-        {fetchingOperators && (
+        {fetchingAssets && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
               <span className="visually-hidden">Loading...</span>
@@ -171,41 +179,46 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
 
         <div className="mt-4">
           <h2 style={{display: 'inline'}}>
-            Operators&nbsp;
+            Operator: {operator?.name}&nbsp;
+            ({operator?.asset_count?.toLocaleString('en-US')} assets)
+            ({products?.length.toLocaleString('en-US')} products)
+            {wallet?.organization}
           </h2>
           &nbsp;
           <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
           <div hidden={!showQueryBuilder}>
             <QueryBuilder
-              fieldList={OPERATOR_FIELDS}
+              fieldList={ASSET_FIELDS}
               handleQueryChanged={handleQueryChanged}
             />
           </div>
+
           <Table hover size="sm">
             <thead>
               <tr>
                 <th>Name</th>
-                <th># Assets</th>
+                <th>State</th>
+                <th>Status</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {!!selectedOperators &&
-                selectedOperators.map((operator,index) => (
-                  <tr key={operator?.name}>
-                    <td onClick={() => handleOpenOperatorInfoModal(operator)}
+              {!!selectedAssets &&
+                selectedAssets.map((asset,index) => (
+                  <tr key={[asset?.name,index].join('_')}>
+                    <td onClick={() => handleOpenOperatorInfoModal(asset)}
                       onMouseOver={pointerHover}>
-                      {operator.name}
+                      {asset.name}
                     </td>
-                    <td>{operator?.asset_count}</td>
+                    <td>{asset?.division_name}</td>
+                    <td>{asset?.status}</td>
                     <td>
-
-                      <Link href={"/operator/"+operator.uuid}>
+                      <Link href={"/asset?name="+asset.name}>
                         <Button
                           className="float-end"
                           variant="outline-dark"
                         >
-                          View Operator
+                          View Asset
                         </Button>
                       </Link>
 
@@ -214,13 +227,13 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
                 ))}
             </tbody>
           </Table>
-          {selectedOperators.length !== 0 ? <Paginator 
+          {selectedAssets.length !== 0 ? <Paginator 
             count={count}
             page={page}
             pageSize={pageSize}
             pageChangeHandler={handlePageChange}
             pageSizeHandler={handlePageSizeChange}
-            loading={fetchingOperators}
+            loading={fetchingAssets}
           /> : <></>}
         </div>
       </div>
@@ -228,4 +241,5 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
   );
 }
 
-export default forwardRef(Operators);
+
+export default forwardRef(RegisteredOperator);

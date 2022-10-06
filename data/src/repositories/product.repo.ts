@@ -13,11 +13,11 @@ export class ProductRepo implements ProductDbInterface {
   
   public putProduct = async (doc: ProductInterface) => {
     try{
-      const repo = await this._db.getRepository(Product)
-      await repo.delete(this.makeProductMatchCondition(doc))
+      //const repo = await this._db.getRepository(Product)
+      //await repo.delete(this.makeProductMatchCondition(doc))
       await this._db.getRepository(Product).save(doc)
     }catch(error){
-      throw new Error(`Cannot create asset_operator relation:: ${error}`)       
+      throw new Error(`Cannot create product relation:: ${error}`)       
     }
   }
 
@@ -36,10 +36,10 @@ export class ProductRepo implements ProductDbInterface {
   private makeProductMatchCondition = (doc: Partial<ProductInterface>) => {
     // creates an array of case insensitive queries
     const conditions: FindOptionsWhere<Product> = {}
-    //if (doc.name) conditions.name = ILike(doc.name)
-    //if (doc.type) conditions.type = ILike(doc.type)
-    if (doc.amount) conditions.amount = ILike(doc.amount)
-    //if (doc.unit) conditions.unit = ILike(doc.unit)
+    if (doc.name) conditions.name = ILike(doc.name)
+    if (doc.type) conditions.type = ILike(doc.type)
+    if (doc.amount) conditions.amount = doc.amount
+    if (doc.unit) conditions.unit = ILike(doc.unit)
     if (doc.country) conditions.country = ILike(doc.country)
     if (doc.division_type) conditions.division_type = ILike(doc.division_type)
     if (doc.division_name) conditions.division_name = ILike(doc.division_name)

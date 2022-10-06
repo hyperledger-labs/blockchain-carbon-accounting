@@ -14,7 +14,6 @@ export class OperatorRepo implements OperatorDbInterface {
   }
   
   public putOperator = async (doc: OperatorInterface) => {
-    const repo = await this._db.getRepository(Operator)
     try {
       await this._db.getRepository(Operator).save(doc)
     }catch(error){

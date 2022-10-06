@@ -4,6 +4,8 @@ import { OilAndGasAsset, Operator } from '@blockchain-carbon-accounting/data-pos
 
 export interface AssetOperatorInterface extends AssetOwnerDetails {
     uuid: string;
+    assetUuid: string;
+    operatorUuid: string;
     class: string;
     asset: OilAndGasAsset;
     operator: Operator ;

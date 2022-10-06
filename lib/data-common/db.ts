@@ -24,7 +24,6 @@ export interface UtilityLookupItemDbInterface {
 export interface OilAndGasAssetDbInterface {
   putAsset: (doc: OilAndGasAssetInterface) => Promise<void>
   getAsset: (uuid: string) => Promise<OilAndGasAssetInterface | null>
-  getAssets: (query: Partial<OilAndGasAssetInterface>) => Promise<OilAndGasAssetInterface[]>
 }
 
 export interface ProductDbInterface {
