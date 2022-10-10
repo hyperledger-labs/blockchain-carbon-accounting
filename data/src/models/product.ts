@@ -35,8 +35,8 @@ export class Product implements ProductInterface{
   @Column()
   name!: string;
 
-  @Column()
-  amount!: string;
+  @Column({ type: 'double precision'})
+  amount!: number;
 
   @Column()
   unit!: string;

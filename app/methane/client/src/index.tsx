@@ -5,6 +5,11 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from './reportWebVitals';
 
+/*window.addEventListener("DOMContentLoaded", () => {
+  const root = createRoot(document.getElementById("root")!);
+  root.render(<App />);
+});
+*/
 const el = document.getElementById('root')
 if (el) {
   const root = createRoot(el)

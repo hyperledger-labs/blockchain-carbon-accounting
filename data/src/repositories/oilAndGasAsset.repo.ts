@@ -1,10 +1,9 @@
 import { OilAndGasAssetDbInterface } from "@blockchain-carbon-accounting/data-common";
 import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
-//import { OIL_AND_GAS_ASSET_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 import { DataSource, SelectQueryBuilder, FindOptionsWhere, ILike } from "typeorm"
-
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
-import type { OilAndGasAssetOperator } from "../models/oilAndGasAsset"
+import { AssetOperator } from "../models/assetOperator"
+
 import { buildQueries, QueryBundle } from "./common"
 
 export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
@@ -28,55 +27,39 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
     return await this._db.getRepository(OilAndGasAsset).findOneBy({uuid})
   }
 
-  public selectPaginated = async (
-    offset: number, 
-    limit: number, 
-    bundles: Array<QueryBundle>, 
-    union?: boolean
+
+  public select = async (
+    bundles: Array<QueryBundle>,
   ): Promise<Array<OilAndGasAssetInterface>> => {
     let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
     // category by issuer address
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles, undefined, union)
+    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles)
+    return selectBuilder.getMany();
+  }
+
+  public selectPaginated = async (
+    offset: number, 
+    limit: number, 
+    bundles: Array<QueryBundle>,
+  ): Promise<Array<OilAndGasAssetInterface>> => {
+    let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
+    // category by issuer address
+    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles, [OilAndGasAsset, AssetOperator])
     return selectBuilder
       .limit(limit)
       .offset(offset)
-      .orderBy('oil_and_gas_asset.operator', 'ASC')
+      .innerJoin("oil_and_gas_asset.asset_operators", "asset_operator")
+      .orderBy('oil_and_gas_asset.name', 'ASC')
       .getMany();
   }
 
-  public selectOperatorsPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<OilAndGasAssetOperator>> => {
+  public countAssets = async (
+    bundles: Array<QueryBundle>,
+  ): Promise<number> => {
     let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
-    // category by issuer address
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles)
+    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles, [OilAndGasAsset, AssetOperator])
     return selectBuilder
-      .select('oil_and_gas_asset.operator')
-      .distinct(true)
-      .limit(limit)
-      .offset(offset)
-      .orderBy('oil_and_gas_asset.operator', 'ASC')
-      .getRawMany();
-  }
-
-  public getAssets = async (): Promise<OilAndGasAssetInterface[]> => {
-    return await this._db.getRepository(OilAndGasAsset).find();
-  }
-
-  public countAssets = async (bundles: Array<QueryBundle>): Promise<number> => {
-    let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles)
-    return selectBuilder
-      .select('oil_and_gas_asset')
-      .getCount()
-    //return await this._db.getRepository(OilAndGasAsset).count()
-  }
-
-  public countOperators = async (bundles: Array<QueryBundle>): Promise<number> => {
-    let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
-    // category by issuer address
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles)
-    return selectBuilder
-      .select('oil_and_gas_asset.operator')
-      .distinct(true)
+      .innerJoin("oil_and_gas_asset.asset_operators", "asset_operator")
       .getCount()
   }
 

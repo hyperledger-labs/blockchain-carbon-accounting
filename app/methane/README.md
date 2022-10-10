@@ -20,9 +20,13 @@ Seed the postgres databse with data as [described below](oil-and-gas-data)
 ### Register Investor/Lender account
 
 ### Request emission  certificates for operator and/or operator assets
-Audit of product data by auditors reigstered with the NetEmissionToken network and CarbonTrack auditors auditors 
+
+Audit of product data by auditors reigstered with the NetEmissionToken (NET)network and CarbonTrack auditors auditors 
+
+For example of certificates issued within NET run the app as described in [../frontend/README.md](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/README.md)
 
 ### Transfer of emission certificates to investor/lender account
+
 Compliance with sustainable investments instruments
 - sustainability linked loans (SLL)
 - sustainability linked bonds (SLB)
@@ -48,7 +52,7 @@ npm run pg:init
 
 Data is available both at an aggregate scale for major oil and gas production basins and states, and at the asset or facility level. There are millions of data points ...
 
-The data schemas located in *data/src/models/* are as follows
+The data schemas located in [*data/src/models/*](https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/data/src/models) are as follows
 
 ### Oil And Gas Asset: *./oilAndGasAsset.ts*
 
@@ -58,7 +62,7 @@ The data schemas located in *data/src/models/* are as follows
 
 **Relations**
  - asset_operators: [AssetOperator](#asset-operator) schema below
- - prodcts: [Product](#product) schema below
+ - products: [Product](#product) schema below
 
 A range of optional attributes, including country, name, operator, division, product api, source, validation method
 
@@ -82,6 +86,15 @@ The primary sources of the data are
 [Flare Monitor Detailed](https://raw.githubusercontent.com/flaringmonitor/viirs-flare-data/main/processed/flaring_monitor_detailed_observations.csv)
 
 ### Product: *./product.ts*
+
+*This schema is different from ProductToken!*
+
+Holds raw data, both production and emissions, associated to assets and operators.
+
+The data is audited and used to issue 
+ - emission certificates within NET 
+ - product tokens within the Carbon Tracker contract 
+ *emission and product tokens are combined into emission certificates as desicribed in the [Carbon Tracker contractrac README](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/carbon-tracker.md)* 
 
 **Required attributes**
 - type: emissions label, fuel extraction, etc .. 

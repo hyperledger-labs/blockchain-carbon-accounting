@@ -23,31 +23,35 @@ export const matchAssets = async (
     resolution*=0.5; 
     try {
       //console.log('product coord: ', latitude,longitude)
-      const assets: OilAndGasAsset[] = await db.selectPaginated(0,0,[
+      const assets: OilAndGasAsset[] = await db.select([
         {   
           field: 'latitude',
           fieldSuffix: 'upper',
           fieldType: 'number',
           value: (latitude+0.008*resolution),
           op: '<',
+          conjunction: true,
         },{
           field: 'latitude',
           fieldSuffix: 'lower',
           fieldType: 'number',
           value: (latitude-0.008*resolution),
-          op: '>',           
+          op: '>',
+          conjunction: true,           
         },{   
           field: 'longitude',
           fieldSuffix: 'upper',
           fieldType: 'number',
           value: longitude+360*resolution/(40075*Math.cos(latitude*Math.PI/180)),
           op: '<',
+          conjunction: true,
         },{
           field: 'longitude',
           fieldSuffix: 'lower',
           fieldType: 'number',
           value: longitude-360*resolution/(40075*Math.cos(latitude*Math.PI/180)),
-          op: '>',           
+          op: '>',  
+          conjunction: true,         
         }
       ]);
     
