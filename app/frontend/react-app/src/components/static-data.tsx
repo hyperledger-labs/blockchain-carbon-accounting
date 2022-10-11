@@ -55,20 +55,22 @@ export type Tracker = {
   description: string
   totalEmissions: bigint
   myProductsTotalEmissions: bigint
-  products:{ 
-    ids: number[]
-    names: string[]
-    myBalances: bigint[]
-    amounts: number[]
-    available: number[]
-    emissionFactors: number[]
-    conversions: number[]
-    units: string[]
-  }
+  products: ProductToken[]
   tokens:{
     amounts: number[]
     details: any[]
   }
+}
+
+export type ProductToken = {
+    id: number
+    name: string
+    myBalance: number
+    amount: number
+    available: number
+    emissionFactor: number
+    conversion: number
+    unit: string
 }
 
 export type Balance = {

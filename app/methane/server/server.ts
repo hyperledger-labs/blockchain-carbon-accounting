@@ -58,7 +58,7 @@ app.get("/api/hello", (req, res) => {
 app.post("/api/query/operators", async(req, res) => { 
   const queryBundles: Array<QueryBundle> = req.body.queryBundles;
   const db = await PostgresDBService.getInstance(parseCommonYargsOptions({}))
-  const lookup = await db.getOilAndGasAssetRepo().selectOperatorsPaginated(
+  const lookup = await db.getOperatorRepo().selectPaginated(
     req.body.offset,req.body.limit,req.body.queryBundles)
   console.log(lookup)
 

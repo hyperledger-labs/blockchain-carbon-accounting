@@ -12,12 +12,12 @@ import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
 
 import { trpc } from "../services/trpc";
-import { Wallet } from "./static-data";
+import { Wallet, ProductToken, Tracker} from "./static-data";
 
 type TrackerInfoModalProps = {
   provider?: Web3Provider | JsonRpcProvider,
   show:boolean,
-  tracker:any,
+  tracker:Tracker,
   onHide:()=>void,
   isDealer?:boolean,
 }
@@ -143,18 +143,18 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             </tr>
           </thead>
           <tbody>
-            {tracker.products?.names.map((name: any,i: number) => (
-              <tr key={name+i}>
+            {tracker.products?.map((product: ProductToken,i: number) => (
+              <tr key={product.name}>
                 <td>
-                  {name}{": "}
+                  {product.name}{": "}
                   <div key={'intensityLabel'+i}>Emission factor</div>
                 </td>
                 <td>
-                  <div key={name+"Amount"+i}>
-                    {Math.round(tracker.products?.amounts[i]).toLocaleString('en-US') + " " + tracker.products?.units[i]}
-                    {" ("+Math.round(tracker.products?.available[i]).toLocaleString('en-US') +") "}
+                  <div key={product.name+"Amount"+i}>
+                    {Math.round(product.amount).toLocaleString('en-US') + " " + product.unit}
+                    {" ("+Math.round(product.available).toLocaleString('en-US') +") "}
                   </div>
-                  <div key={name+"Intensity"+i}>{Math.round(tracker.products?.emissionFactors[i]).toLocaleString('en-US')}{" kgCO2e/"+tracker.products?.units[i]}</div>
+                  <div key={product.name+"Intensity"+i}>{Math.round(product.emissionFactor).toLocaleString('en-US')}{" kgCO2e/"+product.unit}</div>
                 </td>
               </tr>
             ))

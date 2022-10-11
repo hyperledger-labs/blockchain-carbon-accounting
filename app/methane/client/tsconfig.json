@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext","es6",],
     "module": "esnext",
-    "target": "es6",
+    "target": "esnext",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -12,6 +12,7 @@
     "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true

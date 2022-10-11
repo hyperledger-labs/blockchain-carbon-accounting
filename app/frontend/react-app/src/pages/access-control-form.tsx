@@ -5,8 +5,6 @@ import { CopyToClipboard } from 'react-copy-to-clipboard';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import { Tooltip } from "react-bootstrap";
 import { FaRegClipboard } from 'react-icons/fa';
-
-import RegisterSelfIndustry from "../components/register-self-industry";
 import {RolesInfo} from "../components/static-data";
 
 import Spinner from "react-bootstrap/Spinner";
@@ -133,9 +131,6 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
         </>
       }
 
-      {(!roles.isAdmin && !roles.isIndustry) &&
-        <RegisterSelfIndustry provider={provider} signedInAddress={signedInAddress} />
-    }
 
     </>
   );

@@ -14,6 +14,7 @@ import './App.css';
 const AppFooter = lazy(() => import("./components/footer"));
 // lazy load routes
 const Operators = lazy(() => import("./pages/operators"));
+const Operator = lazy(() => import("./pages/operator"));
 const TermsOfUse = lazy(() => import("./pages/terms"));
 
 const App:FC = () => {
@@ -35,6 +36,7 @@ const App:FC = () => {
   const [location] = useLocation();
 
   const operatorsRef = useRef<ElementRef<typeof Operators>>(null);
+  const operatorRef = useRef<ElementRef<typeof Operator>>(null);
 
   useState(async() => {
     const sayHello = async() => {
@@ -78,6 +80,10 @@ const App:FC = () => {
                     <Route path="/"><Redirect to="/operators" /></Route>
                     <Route path="/operators">
                       <Operators ref={operatorsRef} signedInAddress={signedInAddress}/>
+                    </Route>
+                    <Route path="/operator/:operatorUuid?">{(params)=>
+                      <Operator ref={operatorRef} signedInAddress={signedInAddress} operatorUuid={params.operatorUuid}/>
+                    }
                     </Route>
                     <Route path="/terms">
                       <TermsOfUse></TermsOfUse>

@@ -5,51 +5,6 @@ import { TrpcContext } from './common';
 
 export const assetRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
-.query('countOperators', {
-    input: z.object({
-        bundles: zQueryBundles.default([]),
-    }).default({}),
-    async resolve({ input, ctx }) {
-        try {
-            return {
-                status: 'success',
-                count: await ctx.db.getOilAndGasAssetRepo().countOperators(input.bundles) 
-            }
-        } catch (error) {
-            console.error(error)
-            return {
-                status: 'failed',
-                error
-            }
-        }
-    },
-})
-.query('listOperators', {
-    input: z.object({
-        bundles: zQueryBundles.default([]),
-        offset: z.number().gte(0).default(0),
-        limit: z.number().gt(0).default(10)
-    }).default({}),
-    async resolve({ input, ctx }) {
-        try {
-            const operators = await ctx.db.getOilAndGasAssetRepo()
-                .selectOperatorsPaginated(input.offset, input.limit, input.bundles);
-            const count = await ctx.db.getOilAndGasAssetRepo()
-                .countOperators(input.bundles);
-            return {
-                count,
-                operators,
-                status: 'success'
-            }
-        } catch (error) {
-            console.error(error)
-            return {
-                status: 'failed',
-                error
-            }
-        }
-    },
-})
 .query('count', {
     input: z.object({
         bundles: zQueryBundles.default([]),
@@ -58,7 +13,8 @@ export const assetRouter = (zQueryBundles:any) => trpc
         try {
             return {
                 status: 'success',
-                count: await ctx.db.getOilAndGasAssetRepo().countAssets(input.bundles) 
+                count: await ctx.db.getOilAndGasAssetRepo()
+                    .countAssets(input.bundles) 
             }
         } catch (error) {
             console.error(error)
@@ -73,12 +29,14 @@ export const assetRouter = (zQueryBundles:any) => trpc
     input: z.object({
         bundles: zQueryBundles.default([]),
         offset: z.number().gte(0).default(0),
-        limit: z.number().gt(0).default(10)
+        limit: z.number().gt(0).default(10),
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const assets = await ctx.db.getOilAndGasAssetRepo().selectPaginated(input.offset, input.limit, input.bundles);
-            const count = await ctx.db.getOilAndGasAssetRepo().countAssets(input.bundles);
+            const assets = await ctx.db.getOilAndGasAssetRepo()
+                .selectPaginated(input.offset, input.limit, input.bundles);
+            const count = await ctx.db.getOilAndGasAssetRepo()
+                .countAssets(input.bundles);
             return {
                 status: 'success',
                 count,

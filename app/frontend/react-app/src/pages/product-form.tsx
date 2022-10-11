@@ -87,7 +87,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
         body={result}
         onHide={() => {setSubmissionModalShow(false); setResult("")} }
       />
-      <h2>Add Product to Emission Certificate</h2>
+      <h2>Add product to emission certificate</h2>
 
       <Form.Group className="mb-3" controlId="trackerIdInput">
         <Form.Label>TrackerId</Form.Label>

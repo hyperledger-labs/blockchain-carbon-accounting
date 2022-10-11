@@ -34,7 +34,9 @@
     "start": "PORT=3007 react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
+    "eject": "react-app-rewired eject",
+    "lint": "eslint 'src/**/*.ts'",
+    "lint:fix": "eslint 'src/**/*.ts' --fix"
   },
   "dependencies": {
     "@blockchain-carbon-accounting/contracts": "*",
@@ -53,6 +55,7 @@
     "@walletconnect/web3-provider": "^1.8.0",
     "axios": "^0.27.2",
     "bootstrap": "5.1.3",
+    "fast-equals": "^4.0.3",
     "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-bootstrap": "^2.4.0",
@@ -71,7 +74,7 @@
     "@types/node": "^16.11.59",
     "@types/react": "^18.0.20",
     "@types/react-dom": "^18.0.6",
-    "react-app-rewired": "^2.2.1",
-    "customize-cra": "^1.0.0"
+    "customize-cra": "^1.0.0",
+    "react-app-rewired": "^2.2.1"
   }
 }
