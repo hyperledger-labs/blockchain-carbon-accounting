@@ -7,7 +7,6 @@ import { z, ZodError } from 'zod';
 import { assetRouter } from './asset.trpc';
 import { operatorRouter } from './operator.trpc';
 import { productRouter } from './product.trpc';
-//import { walletRouter } from '@blockchain-carbon-accounting/api-server/wallet.trpc';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
