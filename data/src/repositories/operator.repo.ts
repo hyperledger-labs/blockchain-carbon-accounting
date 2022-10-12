@@ -48,7 +48,6 @@ export class OperatorRepo implements OperatorDbInterface {
   ): Promise<Array<Operator>> => {
     let selectBuilder: SelectQueryBuilder<Operator> = 
       await this._db.getRepository(Operator).createQueryBuilder("operator")
-    // category by issuer address
     selectBuilder = buildQueries('operator', selectBuilder, bundles)
     return selectBuilder
       .limit(limit)

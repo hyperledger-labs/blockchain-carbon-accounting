@@ -12,14 +12,16 @@ import {
 import Spinner from "react-bootstrap/Spinner";
 import Table from "react-bootstrap/Table";
 import Button from 'react-bootstrap/Button';
+import Dropdown from 'react-bootstrap/Dropdown'
+import DropdownButton from 'react-bootstrap/DropdownButton';
 import { BsFunnel } from 'react-icons/bs';
-import { getAssets, getOperator } from '../services/api.service';
+import { getProducts, getOperator, getProductSources } from '../services/api.service';
 import QueryBuilder from "@blockchain-carbon-accounting/react-app/src/components/query-builder";
 import Paginator from "@blockchain-carbon-accounting/react-app/src/components/paginate";
 import { Wallet } from "@blockchain-carbon-accounting/react-app/src/components/static-data";
 
-import { ASSET_FIELDS, Asset, Operator, Product } from "../components/static-data";
-import AssetInfoModal from "../components/asset-info-modal";
+import { PRODUCT_FIELDS, Operator, Product } from "../components/static-data";
+import ProductInfoModal from "../components/product-info-modal";
 
 import { Link } from "wouter";
 
@@ -42,64 +44,82 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [operator, setOperator] = useState<Operator | undefined>()
-  const [products, setProducts] = useState<Product[] | undefined>()
   const [wallet, setWallet] = useState<Wallet | undefined>()
 
-  const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
-  const [selectedAssets, setSelectedAssets] = useState<Asset[]>([]);
-  const [fetchingAssets, setFetchingAssets] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [selectFromAssets, setSelectFromAssets] = useState(false);
+  const [productCount, setProductCount] = useState(0);
+
+  const [fetchingProducts, setFetchingProducts] = useState(false);
   const [error, setError] = useState("");
+
+  const [productSources,setProductSources] = useState<string[]>([]);
+  const [productSource,setProductSource] = useState("");
 
   // state vars for pagination
   const [ page, setPage ] = useState(1);
   const [ count, setCount ] = useState(0);
   const [ pageSize, setPageSize ] = useState(20);
 
-  const assetQueryBase = [`operatorUuid,string,${operatorUuid},eq,true`]
-  const [ assetQuery, setAssetQuery ] = useState<string[]>(assetQueryBase);
+  const [ initialized, setInitialized ] = useState(false);
 
+  const productsQueryBase = [
+    `operatorUuid,string,${operatorUuid},eq,true`,
+  ]
+  const [ productsQuery, setProductsQuery ] = useState<string[]>(productsQueryBase);
   const [showQueryBuilder, setShowQueryBuilder] = useState(false);
 
   async function handlePageChange(_: ChangeEvent<HTMLInputElement>, value: number) {
-    await fetchAssets(value, pageSize, assetQuery);
+    await fetchProducts(value, pageSize, productsQuery, selectFromAssets);
   }
 
   async function handlePageSizeChange(event: ChangeEvent<HTMLInputElement>) {
-    await fetchAssets(1, parseInt(event.target.value), assetQuery);
+    await fetchProducts(1, parseInt(event.target.value), productsQuery, selectFromAssets);
   }
 
   async function handleQueryChanged(_query: string[]) {
     console.log(_query)
-    await fetchAssets(1, pageSize, _query.concat(assetQueryBase));
+    await fetchProducts(1, pageSize, _query.concat(productsQueryBase), selectFromAssets);
   }
 
-  function handleOpenOperatorInfoModal(asset: Asset) {
-    setSelectedAsset(asset);
+  function handleOpenOperatorInfoModal(product: Product) {
+    setSelectedProduct(product);
     setModalShow(true);
   }
 
+  const handleSourceSelect = async (source)=>{
+    setProductSource(source)
+    await fetchProducts(1, pageSize, 
+      productsQueryBase.concat([`source,string,${source},eq,true`]), selectFromAssets);
+  }
 
-  const fetchAssets = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
-    setFetchingAssets(true);
 
-    let newAssets: Asset[] = [];
-    let _assetPageCount = 0;
+  const fetchProducts = useCallback(async (
+    _page: number, 
+    _pageSize: number, 
+    _query: string[],
+    _fromAssets: boolean
+  ) => {
+    setFetchingProducts(true);
+
+    let newProducts: Product[] = [];
+    let _productPageCount = 0;
     try {
       // First, fetch number of unique tokens
       const offset = (_page - 1) * _pageSize;
 
-      let {assets, count} = await getAssets(offset, _pageSize, [..._query])
-
-      
+      const { products, count } = await getProducts(offset,_pageSize,_query,_fromAssets);
+      setProductCount(count)
       // this count means total pages of issued tokens
-      _assetPageCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
+      _productPageCount = count % _pageSize === 0 ? count / _pageSize : Math.floor(count / _pageSize) + 1;
 
-      for (let i = 1; i <= assets.length; i++) {
-        const asset: any = {
-          ...assets[i-1],
+      for (let i = 1; i <= products.length; i++) {
+        const product: any = {
+          ...products[i-1],
         };
-        if (!asset) continue;
-        newAssets.push(asset);
+        if (!product) continue;
+        newProducts.push(product);
       }
 
 
@@ -108,13 +128,13 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
       setError("Could not connect to contract on the selected network. Check your wallet provider settings.");
     }
     
-    setSelectedAssets(newAssets);
-    setFetchingAssets(false);
+    setSelectedProducts(newProducts);
+    setFetchingProducts(false);
     setError("");
-    setCount(_assetPageCount);
+    setCount(_productPageCount);
     setPage(_page);
     setPageSize(_pageSize);
-    setAssetQuery(_query);
+    setProductsQuery(_query);
   },[]);
   // Allows the parent component to refresh balances on clicking the Dashboard button in the navigation
   useImperativeHandle(ref, () => ({
@@ -123,33 +143,52 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
     }
   }));
 
+  const fetchProductSources = useCallback(async (
+    _query: string[],
+    _fromAssets: boolean
+  ) => {
+    const { sources } = await getProductSources(_query, _fromAssets)
+    setProductSources( sources )
+  },[getProductSources,setProductSources,selectFromAssets])
+
   function switchQueryBuilder() {
     setShowQueryBuilder(!showQueryBuilder);
+  }
+
+  async function switchFromAssets() {
+    setProductSource("")
+    setSelectFromAssets(!selectFromAssets)
+    await fetchProductSources(productsQueryBase, !selectFromAssets)
+    await fetchProducts(1, 20, productsQueryBase, !selectFromAssets)
   }
 
   async function handleRefresh() {
     // clear localStorage
     //let localStorage = window.localStorage;
     //localStorage.setItem('token_balances', '');
-    await fetchAssets(page, pageSize, assetQueryBase);
+    await fetchProducts(page, pageSize, productsQueryBase,selectFromAssets);
   }
 
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      const {operator, products, wallet} = await getOperator(operatorUuid);
+      //console.log('init')
+      const {operator, wallet} = await getOperator(operatorUuid);
       setOperator(operator)
-      setProducts(products)
+      console.log(wallet)
       setWallet(wallet)
-      await fetchAssets(1, 20, assetQuery);
+      await fetchProductSources( productsQuery, selectFromAssets)
+      await fetchProducts(1, 20, productsQuery, selectFromAssets);
+      setInitialized(true)
     }
-    if (true || signedInAddress) {
+    if ( signedInAddress && !initialized) {
       init();
-    } else {
-      // pending for signedInAddress. display the spinner ...
-      setFetchingAssets(true);
     }
-  }, [signedInAddress, setOperator, setProducts, setWallet, fetchAssets, assetQuery, operatorUuid]);
+    if(!signedInAddress) {
+      // pending for signedInAddress. display the spinner ...
+      setFetchingProducts(true);
+    }
+  }, [signedInAddress, setOperator, setWallet, fetchProducts, productsQuery,selectFromAssets, operatorUuid]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -157,19 +196,19 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
 
   return (
     <>
-      {selectedAsset && <AssetInfoModal
+      {selectedProduct && <ProductInfoModal
         show={modalShow}
-        asset={selectedAsset}
+        product={selectedProduct}
         onHide={() => {
           setModalShow(false);
-          setSelectedAsset(undefined);
+          setSelectedProduct(undefined);
         }}
       />}
       <p className="text-danger">{error}</p>
 
-      <div className={fetchingAssets ? "dimmed" : ""}>
+      <div className={fetchingProducts ? "dimmed" : ""}>
 
-        {fetchingAssets && (
+        {fetchingProducts && (
           <div className="text-center my-4">
             <Spinner animation="border" role="status">
               <span className="visually-hidden">Loading...</span>
@@ -178,47 +217,102 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
         )}
 
         <div className="mt-4">
-          <h2 style={{display: 'inline'}}>
+          <h2>
             Operator: {operator?.name}&nbsp;
-            ({operator?.asset_count?.toLocaleString('en-US')} assets)
-            ({products?.length.toLocaleString('en-US')} products)
-            {wallet?.organization}
+            
+            <Link href={"/assets/"+operator?.uuid}>
+              {operator?.asset_count?.toLocaleString('en-US')} assets
+            </Link>
           </h2>
+          <span>
+            {wallet?.name}
+          </span>
           &nbsp;
+
+          <h3 style={{display: 'inline'}}>
+            {productCount.toLocaleString('en-US')}&nbsp; 
+            {selectFromAssets ? "products from assets" : "aggregate products"}
+          </h3>
           <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
           <div hidden={!showQueryBuilder}>
             <QueryBuilder
-              fieldList={ASSET_FIELDS}
+              fieldList={PRODUCT_FIELDS}
               handleQueryChanged={handleQueryChanged}
+              conjunction={true}
             />
+
           </div>
+          <div>
+            {productSource.length>0 && 
+              <Link href={productSource}>{
+                `Product source: ${productSource.split('/').pop()}`}
+              </Link> 
+            }
+          </div>
+            
+          <Dropdown>
+            <DropdownButton
+              //alignRight
+              title="Sources"
+              id="dropdown-menu-align-right"
+              onSelect={async (value) => { handleSourceSelect(value)}}>
+              { productSources.map((source,index) => (
+                <Dropdown.Item key={index} eventKey={source}>{source}</Dropdown.Item>
+              ))}
+            </DropdownButton>
+          </Dropdown>
+          <div>
+            <Button
+              className="float-end"
+              variant="outline-dark"
+              onClick={async () => {await switchFromAssets()}}
+            >
+              { selectFromAssets ? "Product aggregates" : "Products by asset"}
+            </Button>
+          </div>
+
+
 
           <Table hover size="sm">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>State</th>
-                <th>Status</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Unit</th>
+                <th>Year</th>
+                <th>Division</th>
+                <th>name</th>
+                { selectFromAssets && <th>Latitude</th> }
+                { selectFromAssets && <th>Longitude</th> }
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {!!selectedAssets &&
-                selectedAssets.map((asset,index) => (
-                  <tr key={[asset?.name,index].join('_')}>
-                    <td onClick={() => handleOpenOperatorInfoModal(asset)}
+              {!!selectedProducts &&
+                selectedProducts.map((product,index) => (
+                  <tr key={[product?.name,index].join('_')}>
+                    <td onClick={() => handleOpenOperatorInfoModal(product)}
                       onMouseOver={pointerHover}>
-                      {asset.name}
+                      {product.name}
                     </td>
-                    <td>{asset?.division_name}</td>
-                    <td>{asset?.status}</td>
+                    <td>{product?.type}</td>
+                    <td>{product?.amount * (product?.unit==="%" ? 100:1)}</td>
+                    <td>{product?.unit}</td>
+                    <td>{product?.year}</td>
+                    <td>{product?.division_type}</td>
+                    <td>{product?.division_name}</td>
+                    { selectFromAssets 
+                      && <th>{product?.latitude}</th>}
+                    { selectFromAssets 
+                      && <th>{product?.longitude}</th>}
                     <td>
-                      <Link href={"/asset?name="+asset.name}>
+                      <Link href={"/product?name="+product.name}>
                         <Button
                           className="float-end"
                           variant="outline-dark"
                         >
-                          View Asset
+                          View Product
                         </Button>
                       </Link>
 
@@ -227,13 +321,13 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
                 ))}
             </tbody>
           </Table>
-          {selectedAssets.length !== 0 ? <Paginator 
+          {selectedProducts.length !== 0 ? <Paginator 
             count={count}
             page={page}
             pageSize={pageSize}
             pageChangeHandler={handlePageChange}
             pageSizeHandler={handlePageSizeChange}
-            loading={fetchingAssets}
+            loading={fetchingProducts}
           /> : <></>}
         </div>
       </div>

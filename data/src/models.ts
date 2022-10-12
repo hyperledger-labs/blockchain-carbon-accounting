@@ -1,7 +1,6 @@
 import "reflect-metadata"
 import { DbOpts } from './config'
 import { DataSource } from "typeorm"
-//import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { EmissionsFactor } from "./models/emissionsFactor"
 import { Operator } from "./models/operator"
 import { OilAndGasAsset } from "./models/oilAndGasAsset"
@@ -48,7 +47,6 @@ export const initDb = async (opts: DbOpts) => {
     ],
     synchronize: true,
     logging: opts.dbVerbose,
-    //namingStrategy: new SnakeNamingStrategy(),
   })
 
   // to initialize initial connection with the database, register all entities

@@ -15,6 +15,9 @@ const AppFooter = lazy(() => import("./components/footer"));
 // lazy load routes
 const Operators = lazy(() => import("./pages/operators"));
 const Operator = lazy(() => import("./pages/operator"));
+const Assets = lazy(() => import("./pages/assets"));
+const SignUp = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/sign-up"));
+const SignIn = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/sign-in"));
 const TermsOfUse = lazy(() => import("./pages/terms"));
 
 const App:FC = () => {
@@ -24,7 +27,7 @@ const App:FC = () => {
     provider, 
     loadWeb3Modal, 
     logoutOfWeb3Modal, 
-    //loadWalletInfo, 
+    loadWalletInfo, 
     logoutOfWalletInfo, 
     signedInAddress, 
     signedInWallet, 
@@ -34,9 +37,7 @@ const App:FC = () => {
     loaded } = useWeb3Modal();
 
   const [location] = useLocation();
-
   const operatorsRef = useRef<ElementRef<typeof Operators>>(null);
-  const operatorRef = useRef<ElementRef<typeof Operator>>(null);
 
   useState(async() => {
     const sayHello = async() => {
@@ -75,14 +76,19 @@ const App:FC = () => {
           <Tab.Container defaultActiveKey={location.substring(1) || "operators"}>
             <Tab.Content>
               <Suspense fallback={<p>Loading ...</p>}>
-                { true || signedInAddress ? (
+                { signedInAddress ? (
                   <Switch>
                     <Route path="/"><Redirect to="/operators" /></Route>
+                    <Route path="/dashboard"><Redirect to="/operators" /></Route>
                     <Route path="/operators">
                       <Operators ref={operatorsRef} signedInAddress={signedInAddress}/>
                     </Route>
                     <Route path="/operator/:operatorUuid?">{(params)=>
-                      <Operator ref={operatorRef} signedInAddress={signedInAddress} operatorUuid={params.operatorUuid}/>
+                      <Operator signedInAddress={signedInAddress} operatorUuid={params.operatorUuid}/>
+                    }
+                    </Route>
+                    <Route path="/assets/:operatorUuid?">{(params)=>
+                      <Assets signedInAddress={signedInAddress} operatorUuid={params.operatorUuid}/>
                     }
                     </Route>
                     <Route path="/terms">
@@ -90,9 +96,22 @@ const App:FC = () => {
                     </Route>
                   </Switch>
                 ) : (
-                    <Switch>
-                    </Switch>
-                  )
+                  <Switch>
+                    <Route path="/"><Redirect to="/operators" /></Route>
+                    <Route path="/operators">
+                      <Operators ref={operatorsRef} signedInAddress={signedInAddress}/>
+                    </Route>
+                    <Route path="/sign-up">
+                      <SignUp></SignUp>
+                    </Route>
+                    <Route path="/sign-in">
+                      <SignIn loadWalletInfo={loadWalletInfo} />
+                    </Route>
+                    <Route path="/terms">
+                      <TermsOfUse></TermsOfUse>
+                    </Route>
+                  </Switch>
+                )
               }
               </Suspense>
             </Tab.Content>

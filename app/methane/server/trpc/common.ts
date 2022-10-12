@@ -6,6 +6,8 @@ import { TRPC_ERROR_CODE_KEY } from '@trpc/server/dist/declarations/src/rpc/code
 import { z, ZodError } from 'zod';
 import { assetRouter } from './asset.trpc';
 import { operatorRouter } from './operator.trpc';
+import { productRouter } from './product.trpc';
+//import { walletRouter } from '@blockchain-carbon-accounting/api-server/wallet.trpc';
 
 export const zQueryBundles = z.array(z.object({
     field: z.string(),
@@ -65,6 +67,7 @@ const createRouter = () => {
 const appRouter = createRouter()
   .merge('asset.', assetRouter(zQueryBundles))
   .merge('operator.', operatorRouter(zQueryBundles))
+  .merge('product.', productRouter(zQueryBundles))
 
 export type AppRouter = typeof appRouter
 

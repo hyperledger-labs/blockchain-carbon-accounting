@@ -5,7 +5,8 @@ import { AssetOperator, Wallet, Product, OilAndGasAsset } from '@blockchain-carb
 export interface OperatorInterface extends OperatorDetails {
     uuid: string;
     class: string;
-    wallet: Wallet;
+    //wallet: Wallet;
+    wallet_address: string;
     assetOperators?: AssetOperator[];
     assets?: OilAndGasAsset[];
     products?: Product[];

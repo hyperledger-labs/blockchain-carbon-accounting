@@ -16,7 +16,8 @@ const overridePath = (webpackConfig) => {
       // relative path to my yarn workspace library
       path.resolve(__dirname, '../../frontend/react-app/src/components'),
       path.resolve(__dirname, '../../frontend/react-app/src/hooks'),
-      path.resolve(__dirname, '../../frontend/react-app/src/services')
+      path.resolve(__dirname, '../../frontend/react-app/src/services'),
+      path.resolve(__dirname, '../../frontend/react-app/src/pages')
     ];
     if (tsxRule) {
       if (Array.isArray(tsxRule.include)) {
@@ -58,6 +59,7 @@ module.exports = {
       components: path.resolve(__dirname, 'src/components'),
       hooks: path.resolve(__dirname, 'src/hooks'),
       services: path.resolve(__dirname, 'src/services'),
+      pages: path.resolve(__dirname, 'src/pages'),
     }),
     overridePath,
   )

@@ -3,6 +3,7 @@ import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-
 import { DataSource, SelectQueryBuilder, FindOptionsWhere, ILike } from "typeorm"
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
 import { AssetOperator } from "../models/assetOperator"
+import { Product } from "../models/product"
 
 import { buildQueries, QueryBundle } from "./common"
 
@@ -42,9 +43,10 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
     limit: number, 
     bundles: Array<QueryBundle>,
   ): Promise<Array<OilAndGasAssetInterface>> => {
-    let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
-    // category by issuer address
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles, [OilAndGasAsset, AssetOperator])
+    let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = 
+      await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
+    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles, 
+        [OilAndGasAsset, AssetOperator])
     return selectBuilder
       .limit(limit)
       .offset(offset)

@@ -130,7 +130,6 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
     await fetchOperators(page, pageSize, operatorsQuery);
   }
 
-  // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
       await fetchOperators(1, 20, []);

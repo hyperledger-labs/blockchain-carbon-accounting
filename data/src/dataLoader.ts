@@ -194,7 +194,7 @@ const progressBar = new SingleBar(
       console.log("=== Starting load_product_data ...")
       const db = await init(parseCommonYargsOptions(argv))
       await importProductData(argv, progressBar, db)
-      const count = await db.getProductRepo().countAllProducts();
+      const count = await db.getProductRepo().count([]);
       console.log(`=== Done, we now have ${count} product entries in the DB`)
       await db.close()
     }

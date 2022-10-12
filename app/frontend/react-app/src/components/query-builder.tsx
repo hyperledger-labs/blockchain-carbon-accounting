@@ -23,8 +23,9 @@ import { OPERATORS, FIELD_OPS, TOKEN_TYPES, Field, FieldOp } from "./static-data
 type QueryBuilderProps = {
   fieldList: Field[]
   handleQueryChanged: (queries: string[])=>Promise<void>
+  conjunction?: boolean
 }
-const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged}) => {
+const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged, conjunction}) => {
 
   // start with empty one
   const [fields, setFields] = useState<Field[]>([{
@@ -101,6 +102,9 @@ const QueryBuilder: FC<QueryBuilderProps> = ({fieldList, handleQueryChanged}) =>
         query = `${item.name},number,${Number(item.value as number * 1000)},${op!.value}`;
       } else {
         query = `${item.name},string,${item.value},${op!.value}`;
+      }
+      if(conjunction){
+        query += `,true`
       }
       queries.push(query);
       return queries;

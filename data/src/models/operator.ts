@@ -28,8 +28,11 @@ export class Operator implements OperatorInterface {
   @OneToMany(() => Product, (product: Product) => product.operator)
   products?: Product[];
 
-  @ManyToOne(() => Wallet)
-  wallet!: Wallet;
+  //@ManyToOne(() => Wallet)
+  //wallet!: Wallet;
+
+  @Column()
+  wallet_address!: string;
 
   @Column({unique: true})
   name!: string;

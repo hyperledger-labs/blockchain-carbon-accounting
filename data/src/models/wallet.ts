@@ -1,4 +1,3 @@
-
 import { pbkdf2Sync, randomBytes } from 'crypto';
 import {
     Entity,
@@ -10,7 +9,9 @@ import {
 
 @Entity()
 export class Wallet {
-
+  // set as primary column when not using foreign wallet table
+  // DB must have postgrea foreign-data wrapper (postgres_fdw) module
+  // with the following server, user mapping and foreign table setup
   @PrimaryColumn()
   address!: string
 
@@ -86,4 +87,6 @@ export class Wallet {
     const hash = pbkdf2Sync(password, this.password_salt, 1000, 64, `sha512`).toString(`hex`)
     return this.password_hash === hash
   }
+
+
 }

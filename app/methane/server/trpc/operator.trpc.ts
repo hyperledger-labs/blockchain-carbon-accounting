@@ -1,5 +1,5 @@
 import * as trpc from '@trpc/server'
-import { Operator, OilAndGasAsset, Wallet, Product } from '@blockchain-carbon-accounting/data-postgres';
+import { Operator, OilAndGasAsset, Wallet } from '@blockchain-carbon-accounting/data-postgres';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 
@@ -50,7 +50,7 @@ export const operatorRouter = (zQueryBundles:any) => trpc
         }
     },
 })
-.query('stats', {
+.query('get', {
     input: z.object({
         uuid: z.string().default('')
     }).default({}),
@@ -61,8 +61,6 @@ export const operatorRouter = (zQueryBundles:any) => trpc
             return {
                 status: 'success',
                 operator: Operator.toRaw(operator!),
-                wallet: {},
-                products: [],
             }
         } catch (error) {
             console.error(error)

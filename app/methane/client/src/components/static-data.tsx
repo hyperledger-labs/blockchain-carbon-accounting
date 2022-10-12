@@ -18,7 +18,7 @@ export type Asset = {
 export type Operator = {
   uuid?: string;
   name?: string;
-  wallet?: Wallet;
+  wallet_address?: string;
   status?: string;
   description?: string;
   asset_count?: number
@@ -33,7 +33,7 @@ export type Product = {
   type: string;
   amount: number;
   unit: string;
-  assets?: Asset;
+  assets?: Asset[];
   operator?: Operator;
   country?: string;
   division_type?: string;
@@ -68,4 +68,31 @@ export const ASSET_FIELDS: Field[] = [
     type: 'string',
     ops: ['like']
 },
+{
+    alias: 'State',
+    name: 'division_name',
+    type: 'string',
+    ops: ['eq']
+},
+]
+
+export const PRODUCT_FIELDS: Field[] = [
+{
+    alias: 'Name',
+    name: 'name',
+    type: 'string',
+    ops: ['like']
+},
+{
+    alias: 'Division',
+    name: 'division_type',
+    type: 'string',
+    ops: ['eq']
+},
+{
+    alias: 'Division Name',
+    name: 'division_name',
+    type: 'string',
+    ops: ['eq']
+}
 ]

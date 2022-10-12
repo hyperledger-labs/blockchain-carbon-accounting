@@ -11,3 +11,6 @@ export type {
 export { 
   AppRouter 
 } from './trpc/common'
+export { 
+  walletRouter 
+} from './trpc/wallet'

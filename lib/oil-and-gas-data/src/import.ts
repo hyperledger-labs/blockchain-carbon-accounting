@@ -400,7 +400,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
       if(!operator){
         operator = await createOperator(opts,db,row["Company"]);
       }
-      if(operator!){
+      /*if(operator!){
         const names = CATF_COMPANY_NAME_SEARCH[row["Company"]];
         const queries=[];
         if(names){
@@ -443,7 +443,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             class: ASSET_OPERATOR_CLASS_IDENTIFIER,
             asset,
             assetUuid: asset.uuid,
-            operatorUuid: operator.uuid,
+            operatorUuid: operator?.uuid,
             operator,
             from_date: new Date(),
             share: 1
@@ -454,7 +454,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             opts.verbose && console.warn(error)
           }
         }
-      }
+      }*/
 
       opts.verbose && console.log("-- Prepare to insert from ", row);
       const d: ProductInterface = {
@@ -467,14 +467,14 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         unit: '',
         amount: 0,
         year: row["Data Year"],
-        division_type: "Company",
-        division_name: row["Company"],
         country: "USA",
       };
+      let metadata:any = {};
+      metadata['company_name']= row["Company"]
       if(operator){d['operator']=operator}
       if(row["Basin"]){
-        d["sub_division_type"]="basin";
-        d["sub_division_name"]=row["Basin"];
+        d["division_type"]="basin";
+        d["division_name"]=row["Basin"];
       }
       for (const col of cols){
         
@@ -485,9 +485,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             d["type"] = "Emissions";
             d["unit"] = "MT";
             d["name"] = col;
-            d["metadata"] = JSON.stringify({
-              "GWP": "IPCC AR6 100-year"
-            });
+            metadata["GWP"] = "IPCC AR6 100-year"
             break;
           case "Gas (MBOE)": case "Oil (MBOE)":
             d["type"] = "Production";
@@ -508,12 +506,11 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             d["type"] = "Emissions";
             d["unit"] = "MT CO2e";
             d["name"] = col;
-            d["metadata"] = JSON.stringify({
-              "GWP": "IPCC AR6 100-year"
-            });
+            metadata["GWP"]= "IPCC AR6 100-year";
             break;
           default:
         }
+        d["metadata"] = JSON.stringify(metadata);
         try{
           await db.getProductRepo().putProduct(d); 
         }catch(error){
@@ -567,7 +564,7 @@ const createOperator = async(
     uuid: uuidv4(),
     class: OPERATOR_CLASS_IDENTIFIER,
     name: name,
-    wallet: await setWallet(db),
+    wallet_address: await setWallet(db),
     //asset_count: 0,
   }; 
   try{
@@ -579,7 +576,7 @@ const createOperator = async(
   return operator
 }
 
-const setWallet = async(db: PostgresDBService):Promise<Wallet> => {
+const setWallet = async(db: PostgresDBService):Promise<string> => {
   let wallet = await db.getWalletRepo().findWalletByAddress(
       "0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7");
     
@@ -591,5 +588,5 @@ const setWallet = async(db: PostgresDBService):Promise<Wallet> => {
       organization: 'Two Ravens Energy & Climate Consulting Ltd.'
     })
   }
-  return wallet;
+  return wallet.address;
 }

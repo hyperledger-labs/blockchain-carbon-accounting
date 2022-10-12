@@ -4,6 +4,8 @@ import { AssetOperator } from "../models/assetOperator"
 import { Operator } from "../models/operator"
 import { DataSource, SelectQueryBuilder} from "typeorm"
 
+
+
 import { buildQueries, QueryBundle } from "./common"
 
 export class AssetOperatorRepo {
@@ -62,6 +64,42 @@ export class AssetOperatorRepo {
   }
 
   public countAssets = async (
+    bundles: Array<QueryBundle>
+  ): Promise<number> => {
+    let selectBuilder: SelectQueryBuilder<AssetOperator> 
+      = await this._db.getRepository(AssetOperator).createQueryBuilder("asset_operator")
+    // category by issuer address
+    selectBuilder = buildQueries('asset_operator', selectBuilder, bundles)
+    return selectBuilder
+      .innerJoinAndSelect(
+        "asset_operator.assets",
+        "assets"
+      )
+      .select('oil_and_gas_asset.operator')
+      .getCount()
+  }
+
+  public selectProductsPaginated = async (
+    offset: number, 
+    limit: number, 
+    bundles: Array<QueryBundle>
+  ): Promise<Array<OilAndGasAsset>> => {
+    let selectBuilder: SelectQueryBuilder<AssetOperator> 
+      = await this._db.getRepository(AssetOperator).createQueryBuilder("asset_operator")
+    // category by issuer address
+    selectBuilder = buildQueries('asset_operator', selectBuilder, bundles)
+    return selectBuilder
+      .innerJoinAndSelect(
+        "asset_operator.assets",
+        "assets"
+      )
+      .limit(limit)
+      .offset(offset)
+      //.orderBy('asset_operators.operator', 'ASC')
+      .getRawMany();
+  }
+
+  public countProducts = async (
     bundles: Array<QueryBundle>
   ): Promise<number> => {
     let selectBuilder: SelectQueryBuilder<AssetOperator> 
