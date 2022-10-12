@@ -435,7 +435,6 @@ export async function signinWallet(a_email: string, password: string) {
     const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
     const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
-    console.log('signin wallet?', wallet)
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
         if (!wallet) console.error('!! The email has no wallet yet', email);
         else if (!wallet.email_verified) console.error('!! The email has not been verified yet', email);
@@ -443,6 +442,7 @@ export async function signinWallet(a_email: string, password: string) {
         // return access denied in all cases in order not to leak any information
         throw new DomainError('Invalid credentials', 'UNAUTHORIZED');
     }
+    console.log('signin wallet:', wallet.address)
     // remove someof the properties the client should not have access to
     delete wallet.password_hash;
     delete wallet.password_salt;

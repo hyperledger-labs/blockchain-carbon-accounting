@@ -70,12 +70,12 @@ export class WalletRepo {
     const repo = this.getRepository()
     // lookup case-insensitive, case is used as a checksums only
     const wallet = await this.findWalletByAddress(payload.address)
-    console.log('mergeWallet found', wallet)
     if (!wallet) {
       return await repo.save({
         ...payload,
       })
     } else {
+      console.log('mergeWallet found', wallet.address)
       // only update defined new values as API could accept optional values
       const toMerge = Object.fromEntries(
         Object.entries(payload).filter(([, v]) => !!v || v === '')
