@@ -88,7 +88,7 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
     setModalShow(true);
   }
 
-  const handleSourceSelect = async (source)=>{
+  const handleSourceSelect = async (source:string)=>{
     setProductSource(source)
     await fetchProducts(1, pageSize, 
       productsQueryBase.concat([`source,string,${source},eq,true`]), selectFromAssets);
@@ -255,7 +255,7 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
               //alignRight
               title="Sources"
               id="dropdown-menu-align-right"
-              onSelect={async (value) => { handleSourceSelect(value)}}>
+              onSelect={async (value) => { handleSourceSelect(value!)}}>
               { productSources.map((source,index) => (
                 <Dropdown.Item key={index} eventKey={source}>{source}</Dropdown.Item>
               ))}
