@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import { EntityTarget, SelectQueryBuilder } from "typeorm"
 import { EmissionsRequest } from "../models/emissionsRequest";
 
@@ -15,7 +16,7 @@ export type QueryBundle = {
   value: number | string,
   op: string,
   fieldSuffix?: string, // use this if conditioning the same field more than once
-  conjunction?:boolean, // use this for AND querries. 
+  conjunction?:boolean, // use this for AND querries.
   // Warning! does not support combination of conjuction and disjunction
 }
 
@@ -106,20 +107,20 @@ const OP_MAP: Record<string, string> = {
 
 // eslint-disable-next-line
 export function buildQueries(
-  table: string, 
-  builder: SelectQueryBuilder<any>, 
-  queries: Array<QueryBundle>, 
+  table: string,
+  builder: SelectQueryBuilder<any>,
+  queries: Array<QueryBundle>,
   entities?: EntityTarget<any>[],
 ) : SelectQueryBuilder<any> {
-  
+
   queries.sort((a, b) => Number(a.conjunction) - Number(b.conjunction) )
-  // sort queries to process disjunction querries first (orWhere) 
-  // and then conjunction querries 
+  // sort queries to process disjunction querries first (orWhere)
+  // and then conjunction querries
   // Temp fix to ensure andWhere overrides orWhere querry
-  // Warning !!! TO-DO 
+  // Warning !!! TO-DO
   // does not suuport combination of mixed multiple disjunction and conjuction groups
   // Reuqires implmenting Brackets ..
-  
+
   const len = queries.length
   for (let i = 0; i < len; i++) {
     // if query_field has already been set
@@ -180,10 +181,38 @@ export function buildQueries(
     }
     if(query.conjunction){
       builder = builder.andWhere(cond, payload)
-    }else{   
+    }else{
       builder = builder.orWhere(cond, payload)
     }
   }
   return builder
 }
 
+export function encryptField(sourceStr: string) {
+  if (!process.env.FIELD_ENCRYPTION_KEY) {
+    throw new Error('Encryption key is not set.');
+  }
+  const iv = crypto.randomBytes(16);
+  const key = crypto.createHash('sha256').update(String(process.env.FIELD_ENCRYPTION_KEY)).digest('base64').substr(0, 32);
+  const chiper = crypto.createCipheriv('aes-256-cbc', key.toString(), iv);
+  let encrypted = chiper.update(sourceStr, 'utf8', 'hex');
+  encrypted += chiper.final('hex');
+
+  return encrypted + '#' + iv.toString('hex');
+}
+
+export function decryptField(encStr: string) {
+  if (!process.env.FIELD_ENCRYPTION_KEY) {
+    throw new Error('Encryption key is not set.');
+  }
+  const encarr = encStr.split('#');
+  if (encarr.length != 2) {
+    throw new Error('Wrong field encrypted string format.');
+  }
+  const key = crypto.createHash('sha256').update(String(process.env.FIELD_ENCRYPTION_KEY)).digest('base64').substr(0, 32);
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key.toString(), Buffer.from(encarr[1], 'hex'));
+  let decrypted = decipher.update(encarr[0], 'hex', 'utf8')
+  decrypted += decipher.final('utf8');
+
+  return decrypted;
+}
