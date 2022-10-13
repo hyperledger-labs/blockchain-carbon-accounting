@@ -38,7 +38,7 @@ export class Operator implements OperatorInterface {
   name!: string;
 
   @Column({default:0, type: 'integer'})
-  asset_count!: number;
+  asset_count?: number;
 
   @Column({nullable:true})
   status?: string;

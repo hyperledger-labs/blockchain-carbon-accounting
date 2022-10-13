@@ -8,6 +8,7 @@ import {
   ManyToOne,
   ManyToMany,
   JoinTable,
+//  JoinColumn,
 } from 'typeorm';
 //import { Geometry } from 'geojson';
 
@@ -26,7 +27,11 @@ export class Product implements ProductInterface{
   @JoinTable()
   assets?: OilAndGasAsset[];
 
+  //@Column()
+  //operatorUuid?: string;
+
   @ManyToOne(() => Operator, (operator) => operator.products)
+  //@JoinColumn({name: 'operatorUuid'})
   operator?: Operator;
 
   @Column()

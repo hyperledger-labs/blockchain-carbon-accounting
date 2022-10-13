@@ -11,7 +11,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@blockchain-carbon-accounting/data-postgres": "*",
     "@types/node": "^17.0.35",
     "@typescript-eslint/eslint-plugin": "^5.26.0",
     "@typescript-eslint/parser": "^5.26.0",

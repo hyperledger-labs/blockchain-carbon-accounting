@@ -85,10 +85,10 @@ export class ProductRepo implements ProductDbInterface {
   public getSources = async (
     bundles: Array<QueryBundle>,
     fromAssets?: boolean
-  ): Promise<Array<string>> => {
+  ): Promise<Array<string|undefined>> => {
     let selectBuilder: SelectQueryBuilder<Product> = 
       await this._db.getRepository(Product).createQueryBuilder("product")
-    let products:ProductInterface[];
+    let products:Product[];
     if(fromAssets){
       selectBuilder = buildQueries('product', selectBuilder, bundles,
         [OilAndGasAsset, AssetOperator])
@@ -107,7 +107,7 @@ export class ProductRepo implements ProductDbInterface {
         .orderBy('product.source', 'ASC')
         .getRawMany()
     }
-    return Product.toRaws(products!).map(p => p.source!);
+    return Product.toRaws(products).map(p => p.source);
   }
 
   private makeProductMatchCondition = (doc: Partial<ProductInterface>) => {

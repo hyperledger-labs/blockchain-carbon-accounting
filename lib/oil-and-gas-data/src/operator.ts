@@ -1,14 +1,16 @@
 export const OPERATOR_CLASS_IDENTIFIER =
     'org.hyperledger.blockchain-carbon-accounting.operator';
-import { AssetOperator, Product, OilAndGasAsset } from '@blockchain-carbon-accounting/data-postgres';
+//import { ProductInterface } from './product';
+//import { OilAndGasAssetInterface } from './oilAndGasAsset';
+//import { AssetOperatorInterface } from './assetOperator';
 
 export interface OperatorInterface extends OperatorDetails {
     uuid: string;
     class: string;
     wallet_address: string;
-    assetOperators?: AssetOperator[];
-    assets?: OilAndGasAsset[];
-    products?: Product[];
+    //assetOperators?: AssetOperatorInterface[];
+    //assets?: OilAndGasAssetInterface[];
+    //products?: ProductInterface[];
 }
 
 export interface OperatorDetails {

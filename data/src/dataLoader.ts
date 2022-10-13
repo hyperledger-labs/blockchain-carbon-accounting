@@ -136,7 +136,25 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_og_assets ...")
       const db = await init(parseCommonYargsOptions(argv))
-      await importOilAndGasAssets(argv, progressBar, db)
+      const result  = await importOilAndGasAssets(
+        argv, progressBar, db.getOilAndGasAssetRepo())
+
+      if(result){
+        const pipeline = result.pipeline
+        const loader = result.loader
+        let counter = 0;
+        pipeline.on('data', () => {
+          ++counter
+        });
+        pipeline.on('end', async () => {
+          loader.done();
+          console.log(`Loaded ${counter} entries to oil_and_gas_asset table.`);
+          const count = await db.getOilAndGasAssetRepo().count([])
+          console.log(`=== Done, we now have ${count} OilAndGasAssets in the DB`)
+          await db.close()
+        })
+      }
+
     }
   )
   .command(
@@ -193,7 +211,13 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_product_data ...")
       const db = await init(parseCommonYargsOptions(argv))
-      await importProductData(argv, progressBar, db)
+      const walletAddress = await setDefaultOperatorWallet(db)
+      await importProductData(argv, progressBar, 
+        db.getProductRepo(),
+        db.getOperatorRepo(),
+        db.getOilAndGasAssetRepo(),
+        db.getAssetOperatorRepo(),
+        walletAddress)
       const count = await db.getProductRepo().count([]);
       console.log(`=== Done, we now have ${count} product entries in the DB`)
       await db.close()
@@ -210,3 +234,17 @@ const progressBar = new SingleBar(
   .showHelpOnFail(true).argv
 })()
 
+async function setDefaultOperatorWallet(db: PostgresDBService):Promise<string> {
+  let wallet = await db.getWalletRepo().findWalletByAddress(
+      "0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7");
+    
+  if(!wallet){
+    wallet = await db.getWalletRepo().insertWallet({
+      name: 'Operator Repository',
+      email: "bertrand@tworavens.consulting",
+      address: '0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7',
+      organization: 'Two Ravens Energy & Climate Consulting Ltd.'
+    })
+  }
+  return wallet.address;
+}

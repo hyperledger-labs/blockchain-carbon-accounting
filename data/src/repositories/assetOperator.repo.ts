@@ -1,3 +1,4 @@
+import { AssetOperatorDbInterface } from "@blockchain-carbon-accounting/data-common";
 import type { AssetOperatorInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
 import { AssetOperator } from "../models/assetOperator"
@@ -8,7 +9,7 @@ import { DataSource, SelectQueryBuilder} from "typeorm"
 
 import { buildQueries, QueryBundle } from "./common"
 
-export class AssetOperatorRepo {
+export class AssetOperatorRepo implements AssetOperatorDbInterface{
 
   private _db: DataSource
 
@@ -28,7 +29,7 @@ export class AssetOperatorRepo {
   
       await repo.save(doc)
       //increment asset_count of operator is newOperator saved
-      doc.operator.asset_count += 1;
+      if(doc.operator.asset_count){doc.operator.asset_count += 1}
       await this._db.getRepository(Operator).save(doc.operator)
     }catch(error){
       throw new Error(`Cannot create asset_operator relation:: ${error}`)       

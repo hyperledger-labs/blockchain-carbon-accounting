@@ -65,7 +65,7 @@ export type ParseWorksheetOpts = {
   raw?: boolean,
   name?: string,
   unit?: string,
-  type?: string
+  type?: string,
 };
 
 export function getStateNameMapping(key: keyof typeof STATE_NAME_MAPPING) {

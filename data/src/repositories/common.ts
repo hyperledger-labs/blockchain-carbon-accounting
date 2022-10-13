@@ -1,5 +1,8 @@
 import { EntityTarget, SelectQueryBuilder } from "typeorm"
 import { EmissionsRequest } from "../models/emissionsRequest";
+import { QueryBundle } from "@blockchain-carbon-accounting/data-common";
+
+export type { QueryBundle }
 
 export interface BalancePayload {
   issuedTo: string
@@ -7,16 +10,6 @@ export interface BalancePayload {
   available: bigint
   retired: bigint
   transferred: bigint
-}
-
-export type QueryBundle = {
-  field: string,
-  fieldType: string,
-  value: number | string,
-  op: string,
-  fieldSuffix?: string, // use this if conditioning the same field more than once
-  conjunction?:boolean, // use this for AND querries. 
-  // Warning! does not support combination of conjuction and disjunction
 }
 
 export interface StringPayload {

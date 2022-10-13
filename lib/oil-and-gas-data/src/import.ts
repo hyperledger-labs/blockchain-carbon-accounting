@@ -29,14 +29,11 @@ import {
   ParseWorksheetOpts,
   getStateNameMapping, 
   LoadInfo,
+  AssetOperatorDbInterface,
+  OilAndGasAssetDbInterface,
+  OperatorDbInterface,
+  ProductDbInterface,
 } from "@blockchain-carbon-accounting/data-common";
-
-import { 
-  Operator, 
-  PostgresDBService, 
-  Wallet,
-  OilAndGasAsset 
-} from '@blockchain-carbon-accounting/data-postgres';
 
 import { SingleBar } from "cli-progress";
 import { v4 as uuidv4 } from 'uuid';
@@ -50,12 +47,11 @@ import fs from 'fs';
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export const importOilAndGasAssets = async (opts: ParseWorksheetOpts, 
-  progressBar: SingleBar, db: PostgresDBService) => {
+  progressBar: SingleBar, db: OilAndGasAssetDbInterface) => {
 
   if (opts.format === "US_asset_data") {
     const loader = new LoadInfo(opts.file, opts.sheet, progressBar, 1506238);
       
-    const repo = db.getOilAndGasAssetRepo()
     const pipeline = chain([
       fs.createReadStream('./'+opts.file),
       parser(),
@@ -99,29 +95,22 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
             validation_date: new Date(prop["VAL_DATE"]),
             metadata: details
           };
-          await repo.putAsset(d);
+          await db.putAsset(d);
           loader.incLoaded();
-        //}
-        return;   
+        //} 
       }
     ]);
-    const counter = 0;
-    //pipeline.on('data', (data:any) => console.log(data));
-    pipeline.on('data', (counter) => {
-      ++counter
-    });
-    pipeline.on('end', async () => {
-      loader.done();
-      console.log(`Loaded ${counter} entries to oil_and_gas_asset table.`);
-      const count = await db.getOilAndGasAssetRepo().countAssets([])
-      console.log(`=== Done, we now have ${count} OilAndGasAssets in the DB`)
-      await db.close()
-    })
+    return {pipeline,loader};
   }
 }
 
 export const importProductData = async (opts: ParseWorksheetOpts, 
-  progressBar: SingleBar, db: PostgresDBService) => {
+  progressBar: SingleBar, 
+  db: ProductDbInterface, 
+  dbOperator: OperatorDbInterface,
+  dbAsset: OilAndGasAssetDbInterface,
+  dbAssetOperator: AssetOperatorDbInterface,
+  walletAddress: string) => {
 
   if (opts.format === "VIIRS") {
     //if(opts.year === undefined){return Error('no year provided')}
@@ -167,13 +156,14 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         source: opts.source || opts.file
       };
       const asset = await matchAsset(
+        dbAsset,
         row["Latitude"],
         row["Longitude"],
         country
       ); 
       if(asset){ d['assets']=[asset] }
       try{
-        await db.getProductRepo().putProduct(d);
+        await db.putProduct(d);
       }catch(error){
         opts.verbose && console.warn(error)
       }
@@ -223,7 +213,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         if (!row[amountHeader]) { loader.incIgnored('Undefined amount'); } 
         else{
           try{
-            await db.getProductRepo().putProduct(d);
+            await db.putProduct(d);
           }catch(error){
             opts.verbose && console.warn(error)
           } 
@@ -240,7 +230,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         d["division_name"] = state;
         d["amount"] = Number(row[amountHeader]);
         try{
-          await db.getProductRepo().putProduct(d);
+          await db.putProduct(d);
         }catch(error){
           opts.verbose && console.warn(error)
         } 
@@ -298,31 +288,33 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         d["longitude"]=row["longitude"];
         d["latitude"]=row["latitude"];
         const asset = await matchAsset(
+          dbAsset,
           row["latitude"],
           row["longitude"],
           'United States'
         ); 
         if(asset){d['assets'] = [asset]}
         // check for operate assigned to identified asset
-        let operators = asset?.asset_operators?.map(ao =>(ao.operator));
-        if(operators?.length==0){
+        let operator: null | OperatorInterface=null;
+        const operatorMapping = asset?.assetOperators?.map(ao =>(ao.operator))[0];
+        if(operatorMapping){operator=operatorMapping}
+        if(!operator){
           // check for  operators already stored in DB
-          operators = await getOpertors(opts, db, row['company_name']);
+          operator = await getOpertor(opts, dbOperator, row['company_name'],walletAddress);
         }
-        if(operators! && operators[0]){d['operator']=operators[0]}
-        if(operators! && operators.length>0 && asset){
+        if(operator){d['operator']=operator}
+        if(operator && asset){
           const ao: AssetOperatorInterface = {
             uuid: uuidv4(),
             class: ASSET_OPERATOR_CLASS_IDENTIFIER,
             assetUuid: asset.uuid,
-            asset,
-            operatorUuid: operators[0].uuid,
-            operator: operators[0],
+            operatorUuid: operator.uuid,
+            operator,
             from_date: new Date(),//new Date(row["month"]),
             share: 1
           }
           try{
-            await db.getAssetOperatorRepo().putAssetOperator(ao);
+            await dbAssetOperator.putAssetOperator(ao);
           }catch(error){
             opts.verbose && console.warn(error)
           }
@@ -337,14 +329,14 @@ export const importProductData = async (opts: ParseWorksheetOpts,
           equivalent_co2_released_metric_tons: row["equivalent_co2_released_metric_tons"]
         })
         try{
-          await db.getProductRepo().putProduct(d); 
+          await db.putProduct(d); 
         }catch(error){
           opts.verbose && console.warn(error)
         }
         loader.incLoaded();
       }else if(row["product_type"]){
-        const operators = await getOpertors(opts, db, row["company_name"]);
-        if(operators! && operators[0]){d["operator"]=operators[0];}
+        const operator = await getOpertor(opts, dbOperator, row["company_name"],walletAddress);
+        if(operator){d["operator"]=operator;}
         if (row["basin"]){
           d["division_type"]="basin";
           d["division_name"]=row["basin"];
@@ -367,7 +359,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
           d["year"] = col.substr(col.length - 4);
           d["month"] = col.slice(0,3);
           try{
-            await db.getProductRepo().putProduct(d);
+            await db.putProduct(d);
           }catch(error){
             opts.verbose && console.warn(error)
           } 
@@ -395,12 +387,12 @@ export const importProductData = async (opts: ParseWorksheetOpts,
       if (!row) { loader.incIgnored('Undefined row'); continue; }
 
       //create operator
-      let operator = await db.getOperatorRepo().findByName(row["Company"]);
-      
+      let operator = await dbOperator.findByName(row["Company"]);
       if(!operator){
-        operator = await createOperator(opts,db,row["Company"]);
+        operator = await createOperator(opts,dbOperator,row["Company"],walletAddress);
       }
-      /*if(operator!){
+      if(operator){
+        // find oil and gas assets that match operator name 
         const names = CATF_COMPANY_NAME_SEARCH[row["Company"]];
         const queries=[];
         if(names){
@@ -432,8 +424,8 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             op: 'like'              
           })         
         } 
-        const assets:OilAndGasAsset[] = 
-          await db.getOilAndGasAssetRepo().select(queries);
+        const assets:OilAndGasAssetInterface[] = 
+          await dbAsset.select(queries);
         if(assets.length==0){
           console.log('No assets found for company : ', row["Company"])
         } 
@@ -441,20 +433,19 @@ export const importProductData = async (opts: ParseWorksheetOpts,
           const ao: AssetOperatorInterface = {
             uuid: uuidv4(),
             class: ASSET_OPERATOR_CLASS_IDENTIFIER,
-            asset,
             assetUuid: asset.uuid,
-            operatorUuid: operator?.uuid,
+            operatorUuid: operator.uuid,
             operator,
             from_date: new Date(),
             share: 1
           }
           try{
-            await db.getAssetOperatorRepo().putAssetOperator(ao);
+            await dbAssetOperator.putAssetOperator(ao);
           }catch(error){
             opts.verbose && console.warn(error)
           }
         }
-      }*/
+      }
 
       opts.verbose && console.log("-- Prepare to insert from ", row);
       const d: ProductInterface = {
@@ -512,7 +503,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         }
         d["metadata"] = JSON.stringify(metadata);
         try{
-          await db.getProductRepo().putProduct(d); 
+          await db.putProduct(d); 
         }catch(error){
           opts.verbose && console.warn(error)
         } 
@@ -526,67 +517,44 @@ export const importProductData = async (opts: ParseWorksheetOpts,
   }
 }
 
-const getOpertors = async(
+const getOpertor = async(
   opts: ParseWorksheetOpts,
-  db: PostgresDBService, 
-  name: string
-) :Promise<Operator[] | undefined> => {
-  let operators;
-  if(name){
-    operators = await db.getOperatorRepo().selectPaginated(
-      0,0,[{
-        field: 'name',
-        fieldType: 'string',
-        value: name.split(" ")[0],
-        op: 'like'}]
-    );
-    if(operators?.length==0){
-      // create a new operator
-      const operator = await createOperator(opts,db,name);
-      if(operator){operators.push(operator)}
-    }
-
-    if(operators?.length>0){
-      return operators
-    }else{return undefined}
-
-  }else{
-    return undefined
+  db: OperatorDbInterface, 
+  name: string,
+  walletAddress: string,
+) :Promise<OperatorInterface | null> => {
+  let operator = await db.selectOne(
+    [{
+      field: 'name',
+      fieldType: 'string',
+      value: name?.split(" ")[0],
+      op: 'like'}]
+  );
+  if(!operator){
+    // create a new operator
+    operator = await createOperator(opts,db,name,walletAddress);
   }
+  return operator
 }
 
 const createOperator = async(
   opts: ParseWorksheetOpts,
-  db: PostgresDBService,
-  name: string
-):Promise<Operator | null> => {
+  db: OperatorDbInterface,
+  name: string,
+  walletAddress: string 
+):Promise<OperatorInterface | null> => {
   const o: OperatorInterface = {
     uuid: uuidv4(),
     class: OPERATOR_CLASS_IDENTIFIER,
     name: name,
-    wallet_address: await setWallet(db),
-    //asset_count: 0,
+    wallet_address: walletAddress,
+    asset_count: 0,
   }; 
   try{
-    await db.getOperatorRepo().putOperator(o);
+    await db.putOperator(o);
   }catch(error){
     opts.verbose && console.warn(error)
   } 
-  const operator = await db.getOperatorRepo().findByName(name);
+  const operator = await db.findByName(name);
   return operator
-}
-
-const setWallet = async(db: PostgresDBService):Promise<string> => {
-  let wallet = await db.getWalletRepo().findWalletByAddress(
-      "0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7");
-    
-  if(!wallet){
-    wallet = await db.getWalletRepo().insertWallet({
-      name: 'Operator Repository',
-      email: "bertrand@tworavens.consulting",
-      address: '0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7',
-      organization: 'Two Ravens Energy & Climate Consulting Ltd.'
-    })
-  }
-  return wallet.address;
 }
