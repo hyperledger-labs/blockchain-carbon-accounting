@@ -469,7 +469,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         year: row["Data Year"],
         country: "USA",
       };
-      let metadata:any = {};
+      const metadata:any = {};
       metadata['company_name']= row["Company"]
       if(operator){d['operator']=operator}
       if(row["Basin"]){

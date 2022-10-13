@@ -5,11 +5,11 @@ import {
   Column, Entity,
   PrimaryGeneratedColumn,
   OneToMany,
-  ManyToOne,
+  //ManyToOne,
   Unique
 } from 'typeorm';
 import { AssetOperator } from './assetOperator';
-import { Wallet } from './wallet';
+//import { Wallet } from './wallet';
 import { Product } from './product';
 
 

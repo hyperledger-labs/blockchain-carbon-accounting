@@ -3,7 +3,6 @@ import type { OilAndGasAssetInterface } from "@blockchain-carbon-accounting/oil-
 import { DataSource, SelectQueryBuilder, FindOptionsWhere, ILike } from "typeorm"
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
 import { AssetOperator } from "../models/assetOperator"
-import { Product } from "../models/product"
 
 import { buildQueries, QueryBundle } from "./common"
 
