@@ -149,7 +149,7 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
   ) => {
     const { sources } = await getProductSources(_query, _fromAssets)
     setProductSources( sources )
-  },[getProductSources,setProductSources,selectFromAssets])
+  },[setProductSources])
 
   function switchQueryBuilder() {
     setShowQueryBuilder(!showQueryBuilder);
@@ -188,7 +188,8 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
       // pending for signedInAddress. display the spinner ...
       setFetchingProducts(true);
     }
-  }, [signedInAddress, setOperator, setWallet, fetchProducts, productsQuery,selectFromAssets, operatorUuid]);
+  }, [  signedInAddress, setOperator, setWallet, fetchProducts, fetchProductSources,
+        productsQuery,selectFromAssets, operatorUuid, initialized]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";

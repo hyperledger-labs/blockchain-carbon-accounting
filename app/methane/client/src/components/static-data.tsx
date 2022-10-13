@@ -1,4 +1,4 @@
-import type { Field, Wallet } from "@blockchain-carbon-accounting/react-app/src/components/static-data"
+import type { Field } from "@blockchain-carbon-accounting/react-app/src/components/static-data"
 export type Asset = {
   name?: string
   latitude: number
