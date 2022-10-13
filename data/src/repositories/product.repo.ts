@@ -37,7 +37,7 @@ export class ProductRepo implements ProductDbInterface {
 
   public count = async (
     bundles: Array<QueryBundle>, 
-    fromAssets: boolean
+    fromAssets?: boolean
   ): Promise<number> => {
     let selectBuilder: SelectQueryBuilder<Product> = 
       await this._db.getRepository(Product).createQueryBuilder("product")
@@ -58,7 +58,7 @@ export class ProductRepo implements ProductDbInterface {
     offset: number, 
     limit: number, 
     bundles: Array<QueryBundle>,
-    fromAssets: boolean
+    fromAssets?: boolean
   ): Promise<Array<ProductInterface>> => {
     let selectBuilder: SelectQueryBuilder<Product> = 
       await this._db.getRepository(Product).createQueryBuilder('product')
@@ -84,7 +84,7 @@ export class ProductRepo implements ProductDbInterface {
 
   public getSources = async (
     bundles: Array<QueryBundle>,
-    fromAssets: boolean
+    fromAssets?: boolean
   ): Promise<Array<string>> => {
     let selectBuilder: SelectQueryBuilder<Product> = 
       await this._db.getRepository(Product).createQueryBuilder("product")
