@@ -5,7 +5,7 @@
   "description": "Oil And Gas Data Lib",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint 'src/**/*.ts' --fix"
   },

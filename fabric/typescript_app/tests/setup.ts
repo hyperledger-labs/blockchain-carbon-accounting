@@ -5,7 +5,6 @@ import axios from 'axios';
 import { config } from 'dotenv';
 import BCGatewayConfig from '../src/blockchain-gateway-lib/config';
 config();
-config({ path: './tests/.oracle.env' });
 
 import type {
     EmissionsFactorInterface,
@@ -98,9 +97,15 @@ async function addUtilityLookupItem(uli: UtilityLookupItemInterface, db: Postgre
 async function setupTestPg() {
     // import utility identifier
     console.log(
-        'Import UtilityIdentifiers and EmissionsFactors into postgres DB blockchain-carbon-accounting-test (docker container) ...',
+        'Import UtilityIdentifiers and EmissionsFactors into postgres DB blockchain-carbon-accounting-test...',
     );
-    const db = await PostgresDBService.getInstance(parseCommonYargsOptions({ dbport: 5400 }));
+    const db = await PostgresDBService.getInstance(
+        parseCommonYargsOptions({
+            dbname: 'blockchain-carbon-accounting-test',
+            dbuser: process.env.POSTGRES_USER || '',
+            dbpassword: process.env.POSTGRES_PASSWORD || '',
+        }),
+    );
     await addUtilityLookupItem(
         {
             uuid: mockUtilityID,

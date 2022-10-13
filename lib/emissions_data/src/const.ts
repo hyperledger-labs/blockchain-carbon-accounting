@@ -29,4 +29,3 @@ export const REGIONS = {
     // Countries
     USA: 'usa',
 };
-

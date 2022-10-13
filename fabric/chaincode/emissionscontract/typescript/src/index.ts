@@ -44,25 +44,30 @@ class EmissionsChaincode {
     async recordEmissions(stub: ChaincodeStub, args: string[]): Promise<ChaincodeResponse> {
         logger.info(`recordEmissions method called with args : ${args}`);
         const fields = [
-            'utilityId',
+            'endpoint',
+            'query',
+            'queryParams',
+            //'utilityId',
             'partyId',
             'fromDate',
             'thruDate',
-            'energyUseAmount',
-            'energyUseUom',
+            //'energyUseAmount',
+            //'energyUseUom',
             'url',
             'md5',
         ];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fieldsMap: Record<string, any> = {
-            utilityId: null,
+            endpoint: null,
+            query: null,
+            queryParams: null,
+            //utilityId: null,
             partyId: null,
             fromDate: null,
             thruDate: null,
-            energyUseAmount: null,
-            energyUseUom: null,
+            //energyUseAmount: null,
+            //energyUseUom: null,
             url: null,
-            md5: null,
         };
         const fieldsLen = Math.min(args.length, fields.length);
         for (let i = 0; i < fieldsLen; i++) {
@@ -71,12 +76,14 @@ class EmissionsChaincode {
         let byte: Uint8Array;
         try {
             byte = await new EmissionsRecordContract(stub).recordEmissions(
-                fieldsMap.utilityId,
+                fieldsMap.endpoint,
+                fieldsMap.query,
+                fieldsMap.queryParams,
                 fieldsMap.partyId,
                 fieldsMap.fromDate,
                 fieldsMap.thruDate,
-                fieldsMap.energyUseAmount,
-                fieldsMap.energyUseUom,
+                //fieldsMap.energyUseAmount,
+                //fieldsMap.energyUseUom,
                 fieldsMap.url,
                 fieldsMap.md5,
             );

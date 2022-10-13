@@ -53,11 +53,6 @@ case $CMD in
         if [ "$(docker ps -q -f name=oracle)" ]; then
             docker rm -f oracle
         fi
-
-        if [ "$(docker ps -q -f name=postgres)" ]; then
-            docker rm -f postgres
-        fi
-
     ;;
 
     *)

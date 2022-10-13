@@ -94,7 +94,17 @@ Otherwise, run:
 sh ./scripts/fabricNetwork.sh reset && sh start.sh
 ```
 
-7. Follow the instructions under **Steps to seed the Fabric database** to initialize the Fabric network with emissions data to pull from when recording emissions.
+7. Start the api-oracle and api-server used by Fabric chaincode to request emissions records. From project root. See app/api-oracle/README.md
+
+```npm run api-oracle```
+```npm run api-server```
+
+*Once a stable release is ready the api-oracle could be deployed as a docker container and installed as part of docker-compose setup (docker-compose-setup/docker/application/)*
+
+8. If you have not already, seed the blockchain-carbon-accounting Postgres databse used to recordEmissions. From root run
+```
+npm run loadSeeds
+```
 
 ### Viewing the state DB
 Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `emissions-data__emissions` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
@@ -107,7 +117,7 @@ From the `emissions-data/docker-compose-setup` directory, you can run a script t
 
 ```shell
 # Record emission to emissions-data
-$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["http://host.docker.internal:8000/trpc","getEmissionsByLookUpItem","USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
 ```
 
 You will get a result that looks like this:

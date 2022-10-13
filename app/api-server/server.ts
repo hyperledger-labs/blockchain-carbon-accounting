@@ -5,6 +5,7 @@ import { config } from 'dotenv';
 import findConfig from "find-config";
 config({ path: findConfig(".env") || '.' });
 import { Contract } from 'ethers';
+
 import express, { Application } from 'express';
 import fileUpload from 'express-fileupload';
 import expressContext from "express-request-context";
@@ -39,6 +40,7 @@ export type OPTS_TYPE = {
   use_web_socket?: boolean,
   // allow bypass of the RPC call when running in Hardhat test
   contract?: Contract
+  trackerContract?: Contract
 }
 export const OPTS: OPTS_TYPE = { contract_address, tracker_address, network_name, network_rpc_url, network_ws_url }
 

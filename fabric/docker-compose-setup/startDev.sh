@@ -25,12 +25,11 @@ sh ./scripts/startAndConnectNetwork.sh
 echo "=== [startDev] Creating the channel..."
 docker exec cli /bin/bash ./network.sh createChannel
 
-echo "=== [startDev] Copy emissions_data_lib @blockchain-carbon-accounting workspace files CC_SRC_PATH"
-CC_SRC_PATH="../chaincode/emissionscontract/typescript"
-CWD=$(pwd)
-cd $CC_SRC_PATH & sh ./emissions-data-lib.sh &cd $CWD
-pwd
 
+CC_SRC_PATH="../chaincode/emissionscontract/typescript"
+pushd $CC_SRC_PATH
+sh ./emissions-data-lib.sh
+popd 
 echo "=== [startDev] Installing utility emissions channel TypeScript chaincode..."
 docker exec cli /bin/bash ./network.sh deployCC -ccn emissions -ccp $CC_SRC_PATH -ccv 1 -ccl typescript 
 

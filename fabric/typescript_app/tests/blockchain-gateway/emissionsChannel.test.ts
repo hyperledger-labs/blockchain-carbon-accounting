@@ -66,12 +66,20 @@ describe('EmissionsDataGateway', () => {
         let emissionsUUID: string;
         it('should record emissions data', async () => {
             const data = await EmissionsGateway.recordEmissions(adminCaller, {
-                utilityId: mockUtilityID,
+                endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                query: 'getEmissionsByUtilityLookUpItem',
+                queryParams: {
+                    uuid: mockUtilityID,
+                    usage: 100,
+                    usageUOM: 'kWh',
+                    thruDate: '2021-05-07T10:10:09Z',
+                },
+                //utilityId: mockUtilityID,
                 partyId: mockPartyID,
                 fromDate: '2020-05-07T10:10:09Z',
                 thruDate: '2021-05-07T10:10:09Z',
-                energyUseAmount: 100,
-                energyUseUom: 'kWh',
+                //energyUseAmount: 100,
+                //energyUseUom: 'kWh',
                 url: '',
                 md5: '',
             });
@@ -81,12 +89,20 @@ describe('EmissionsDataGateway', () => {
         it('record emissions throws', async () => {
             try {
                 await EmissionsGateway.recordEmissions(adminCaller, {
-                    utilityId: mockUtilityID,
+                    endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                    query: 'getEmissionsByUtilityLookUpItem',
+                    queryParams: {
+                        uuid: mockUtilityID,
+                        usage: 100,
+                        usageUOM: 'kWh',
+                        thruDate: '2021-05-07T10:10:09Z',
+                    },
+                    //utilityId: mockUtilityID,
                     partyId: mockPartyID,
                     fromDate: '2020-05-07T10:10:09Z',
                     thruDate: '2021-05-07T10:10:09Z',
-                    energyUseAmount: 100,
-                    energyUseUom: 'kWh',
+                    //energyUseAmount: 100,
+                    //energyUseUom: 'kWh',
                     url: '',
                     md5: '',
                 });
@@ -350,6 +366,38 @@ describe('EmissionsDataGateway', () => {
             }
         });
 
+        it('should fail the MD5 checksum on tampering with the document', async () => {
+            try {
+                const mockPartyID2 = uuid4();
+                const s3 = new AWSS3();
+                const data = await EmissionsGateway.recordEmissions(adminCaller, {
+                    endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                    query: 'getEmissionsByUtilityLookUpItem',
+                    queryParams: {
+                        uuid: mockUtilityID,
+                        usage: 100,
+                        usageUOM: 'kWh',
+                        thruDate: '2021-05-07T10:10:09Z',
+                    },
+                    //utilityId: mockUtilityID,
+                    partyId: mockPartyID2,
+                    fromDate: '2020-05-07T10:10:09Z',
+                    thruDate: '2021-05-07T10:10:09Z',
+                    //energyUseAmount: 100,
+                    //energyUseUom: 'kWh',
+                    url: 'localhost:///tmp/filename',
+                    md5: '',
+                });
+                const documentUrl = data.url;
+                const filename = decodeURIComponent(documentUrl).split('/').slice(-1)[0];
+                await s3.delete(filename);
+                const testFileBuffer = Buffer.from('Testing MD5 checksum');
+                await s3.upload(testFileBuffer, filename);
+                await EmissionsGateway.getEmissionData(adminCaller, data.uuid);
+            } catch (error) {
+                (error as ClientError).status.should.be.eq(409);
+            }
+        });
         it('should get emissions records', async () => {
             const records = await EmissionsGateway.getEmissionsRecords(adminCaller, {
                 utilityId: mockUtilityID,
@@ -365,32 +413,6 @@ describe('EmissionsDataGateway', () => {
                 thruDate: '2021-05-07T10:10:09Z',
             });
         });
-
-        it('should fail the MD5 checksum on tampering with the document', async () => {
-            try {
-                const mockPartyID2 = uuid4();
-                const s3 = new AWSS3();
-                const data = await EmissionsGateway.recordEmissions(adminCaller, {
-                    utilityId: mockUtilityID,
-                    partyId: mockPartyID2,
-                    fromDate: '2020-05-07T10:10:09Z',
-                    thruDate: '2021-05-07T10:10:09Z',
-                    energyUseAmount: 100,
-                    energyUseUom: 'kWh',
-                    url: 'localhost:///tmp/filename',
-                    md5: '',
-                });
-                const documentUrl = data.url;
-                const filename = decodeURIComponent(documentUrl).split('/').slice(-1)[0];
-                await s3.delete(filename);
-                const testFileBuffer = Buffer.from('Testing MD5 checksum');
-                await s3.upload(testFileBuffer, filename);
-                await EmissionsGateway.getEmissionData(adminCaller, data.uuid);
-            } catch (error) {
-                (error as ClientError).status.should.be.eq(409);
-            }
-        });
-
         if (caller === 'vault') {
             it('getEmissionsRecords throws', async () => {
                 try {

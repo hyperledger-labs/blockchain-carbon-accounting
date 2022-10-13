@@ -43,12 +43,20 @@ describe('DataLockGateway', () => {
                 fabricConnector: org.connector,
                 signer: signer,
             }).recordEmissions(adminCaller, {
-                utilityId: mockUtilityID2,
+                endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                query: 'getEmissionsByUtilityLookUpItem',
+                queryParams: {
+                    uuid: mockUtilityID2,
+                    usage: 100,
+                    usageUOM: 'kWh',
+                    thruDate: '2021-05-07T10:10:09Z',
+                },
+                //utilityId: mockUtilityID2,
                 partyId: uuid4(),
                 fromDate: '2020-05-07T10:10:09Z',
                 thruDate: '2021-05-07T10:10:09Z',
-                energyUseAmount: 100,
-                energyUseUom: 'kWh',
+                //energyUseAmount: 100,
+                //energyUseUom: 'kWh',
                 url: '',
                 md5: '',
             });

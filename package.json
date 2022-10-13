@@ -19,6 +19,7 @@
     "api-server": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
     "api-server:loadDemoSeeds": "npm run loadDemoSeeds --workspace=@blockchain-carbon-accounting/api-server",
     "api-oracle": "npm run dev --workspace=@blockchain-carbon-accounting/api-oracle",
+    "api-oracle:prod": "npm run start --workspace=@blockchain-carbon-accounting/api-oracle",
     "methane:dev": "npm run dev --workspace=@blockchain-carbon-accounting/methane --",
     "methane:client:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-client --",
     "methane:server:prod": "npm run prod --workspace=@blockchain-carbon-accounting/methane-server --",
@@ -29,8 +30,8 @@
   },
   "workspaces": {
     "packages": [
-      "data",
       "lib/*",
+      "data",
       "app/api-server",
       "app/api-oracle",
       "app/frontend/*",

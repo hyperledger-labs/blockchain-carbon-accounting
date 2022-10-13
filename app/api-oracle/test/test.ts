@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from '../postgresApi';
+import app from '../server';
 
 describe('POST /uuid', function() {
     it('responds with co2emissions for uuid and usage', function(done) {

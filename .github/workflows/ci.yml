@@ -87,6 +87,21 @@ jobs:
   test-typescript-app: # Build and test the typescript_app project
     runs-on: ubuntu-latest
     needs: lint
+    services:
+      postgres:
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: blockchain-carbon-accounting-test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -104,6 +119,14 @@ jobs:
         run: |
           cd ./hardhat/
           echo "n" | npx hardhat node &
+      - name: Start local api-server # Start local Hardhat network needed for running net emissions token network
+        run: |
+          cd ./app/api-server/
+          echo "n" | npm run dev:tests &
+      - name: Start local api-server # Start local Hardhat network needed for running net emissions token network
+        run: |
+          cd ./app/api-oracle/
+          echo "n" | npm run dev &          
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd ./fabric/docker-compose-setup/
@@ -119,6 +142,9 @@ jobs:
           while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
       - uses: actions/upload-artifact@v3
         if: success() || failure()
         with:

@@ -19,7 +19,7 @@ export class ProductRepo implements ProductDbInterface {
   public putProduct = async (doc: ProductInterface) => {
     try{
       const repo = await this._db.getRepository(Product)
-      await repo.delete(this.makeProductMatchCondition(doc))
+      //await repo.delete(this.makeProductMatchCondition(doc))
       await this._db.getRepository(Product).save(doc)
     }catch(error){
       throw new Error(`Cannot create product relation:: ${error}`)       
@@ -85,7 +85,7 @@ export class ProductRepo implements ProductDbInterface {
   public getSources = async (
     bundles: Array<QueryBundle>,
     fromAssets?: boolean
-  ): Promise<Array<string|undefined>> => {
+  ): Promise<Array<string>> => {
     let selectBuilder: SelectQueryBuilder<Product> = 
       await this._db.getRepository(Product).createQueryBuilder("product")
     let products:Product[];
@@ -107,14 +107,14 @@ export class ProductRepo implements ProductDbInterface {
         .orderBy('product.source', 'ASC')
         .getRawMany()
     }
-    return Product.toRaws(products).map(p => p.source);
+    return Product.toRaws(products).map(p => p.source!);
   }
 
   private makeProductMatchCondition = (doc: Partial<ProductInterface>) => {
     // creates an array of case insensitive queries
     const conditions: FindOptionsWhere<Product> = {}
     if (doc.name) conditions.name = ILike(doc.name)
-    if (doc.type) conditions.type = ILike(doc.type)
+    if (doc.type) conditions.type = doc.type
     if (doc.amount) conditions.amount = doc.amount
     if (doc.unit) conditions.unit = ILike(doc.unit)
     if (doc.country) conditions.country = ILike(doc.country)

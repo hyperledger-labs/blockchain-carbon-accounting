@@ -5,11 +5,13 @@ import { OperatorInterface } from './operator';
 
 //import { Point } from 'geojson';
 
+export type ProductType = 'production' | 'emissions' | 'storage' | 'credential'
+
 export interface ProductInterface {
     uuid: string;
     class: string;
+    type: ProductType;
     name: string;
-    type: string;
     amount: number;
     unit: string;
     assets?: OilAndGasAssetInterface[];

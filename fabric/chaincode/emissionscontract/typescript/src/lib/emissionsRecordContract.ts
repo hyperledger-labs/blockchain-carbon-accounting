@@ -1,7 +1,9 @@
 import { MD5, SHA256 } from 'crypto-js';
 import { ChaincodeStub } from 'fabric-shim';
 import { EmissionRecordState, EmissionsRecord, EmissionsRecordInterface } from './emissions';
+//import { CO2EmissionFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib';
 import { CO2EmissionFactorInterface } from './emissions_data/src/emissions-calc';
+
 import fetch from 'node-fetch';
 // EmissionsRecordContract : core bushiness logic of emissions record chaincode
 export class EmissionsRecordContract {
@@ -12,63 +14,76 @@ export class EmissionsRecordContract {
     /**
      *
      * Store the emissions record
-     * @param utilityId for the utility
+     * @param endpoint of the emission database
+     * @param query name passed to the database
+     * @param queryParams
      * @param partyId for the party (company) which buys power from utility
      * @param fromDate date of the time period
      * @param thruDate date of the time period
-     * @param energyUseAmount usage amount
-     * @param energyUseUom UOM of energy usage amount -- ie kwh
+     */
+    /** TO-DO this method used to use utilityID energyUseAmount energyUseUom to get emission record from internal state DB emissiond data
+     * It now requests emissinos recrod from external db through oracle service
+     * The original params  are now passed as queryParams for use by external db
+     * utilityID = uuid
+     * energyUseAmount =  usage
+     * energyUseAmount = usageUom
+     * The EmissionsRecordInterface will need to be updated to handle
+     * more general emission record responses retruned by the oracle
+     * using the data structure of CO2EmissionFactorInterface
+     * i.e., not just utility recrods !!!
      */
     async recordEmissions(
-        utilityId: string,
+        endpoint: string,
+        query: string,
+        queryParams: string,
+        //utilityId: string,
         partyId: string,
         fromDate: string,
         thruDate: string,
-        energyUseAmount: string,
-        energyUseUom: string,
+        //energyUseAmount: string,
+        //energyUseUom: string,
         url: string,
         md5: string,
     ): Promise<Uint8Array> {
-        const emissionapirequest = {
-            uuid: utilityId,
-            thruDate,
-            usage: energyUseAmount,
-            usageUOM: energyUseUom,
-        };
+        const emissionApiRequest = JSON.stringify({
+            query, //: 'getEmissionsByUtilityLookUpItem'
+            queryParams,
+        });
+        const params = JSON.parse(queryParams);
 
         const options = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(emissionapirequest),
+            body: emissionApiRequest,
         };
 
         async function getCO2EmissionFactor(): Promise<CO2EmissionFactorInterface> {
-            return fetch('http://oracle:3002/postgres/uuid', options)
+            // TO-DO set oracle proxy url as environment variable
+            return fetch(endpoint, options)
                 .then((response) => response.json())
                 .then((response) => {
                     return response as CO2EmissionFactorInterface;
                 });
         }
         const co2Emission = await getCO2EmissionFactor();
-        const factorSource = `eGrid ${co2Emission.year} ${co2Emission.division_type} ${co2Emission.division_id}`;
 
         // create an instance of the emissions record
-        const uuid = MD5(utilityId + partyId + fromDate + thruDate).toString();
+        const uuid = MD5(emissionApiRequest + partyId).toString();
         const partyIdsha256 = SHA256(partyId).toString();
 
         const emissionI: EmissionsRecordInterface = {
             uuid,
-            utilityId,
             partyId: partyIdsha256,
             fromDate,
             thruDate,
-            emissionsAmount: co2Emission.emission.value,
-            renewableEnergyUseAmount: co2Emission.renewable_energy_use_amount,
-            nonrenewableEnergyUseAmount: co2Emission.nonrenewable_energy_use_amount,
-            energyUseUom,
-            factorSource,
+            emissionsAmount: co2Emission?.emission?.value,
+            renewableEnergyUseAmount: co2Emission?.renewable_energy_use_amount,
+            nonrenewableEnergyUseAmount: co2Emission?.nonrenewable_energy_use_amount,
+            utilityId: params?.uuid,
+            energyUseUom: params?.usageUOM,
+            factorSource: emissionApiRequest,
             url,
             md5,
             tokenId: null,
@@ -126,6 +141,7 @@ export class EmissionsRecordContract {
         };
         return Buffer.from(JSON.stringify(output));
     }
+
     async getAllEmissionsData(utilityId: string, partyId: string): Promise<Uint8Array> {
         const partyIdsha256 = SHA256(partyId).toString();
         const records = await this.emissionsState.getAllEmissionRecords(utilityId, partyIdsha256);

@@ -1,5 +1,6 @@
 import type { 
-  ProductInterface 
+  ProductInterface,
+  ProductType
 } from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
   Entity,
@@ -21,6 +22,12 @@ export class Product implements ProductInterface{
   uuid!: string;
 
   @Column()
+  type!: ProductType;
+
+  @Column()
+  name!: string;
+
+  @Column()
   class!: string;
 
   @ManyToMany(() => OilAndGasAsset)
@@ -33,12 +40,6 @@ export class Product implements ProductInterface{
   @ManyToOne(() => Operator, (operator) => operator.products)
   //@JoinColumn({name: 'operatorUuid'})
   operator?: Operator;
-
-  @Column()
-  type!: string;
-
-  @Column()
-  name!: string;
 
   @Column({ type: 'double precision'})
   amount!: number;

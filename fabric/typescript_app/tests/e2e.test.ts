@@ -119,6 +119,8 @@ function tests(headerKey: string, headerValue: string) {
                 userId: userId,
             })
             .send({
+                endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                query: 'getEmissionsByUtilityLookUpItem',
                 utilityId: mockUtilityID,
                 partyId: partyId,
                 fromDate: '2020-05-07T10:10:09Z',

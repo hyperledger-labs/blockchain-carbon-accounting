@@ -18,4 +18,3 @@ export interface UtilityLookupItemInterface {
     division_type?: string;
     division_id?: string;
 }
-

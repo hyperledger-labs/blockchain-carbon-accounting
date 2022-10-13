@@ -11,12 +11,15 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true
   },
   "input": ["**/*.ts"],
   "references": [
     {"path": "../../data"},
-    {"path": "../../lib/supply-chain"}
+    {"path": "../frontend/contracts"},
+    {"path": "../../lib/supply-chain"},
   ],
   "exclude": ["dist/**/*","node_modules/**/*"]
 }

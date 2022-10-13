@@ -14,6 +14,7 @@ export type {
 } from "./src/assetOperator"
 export type { 
     ProductInterface,
+    ProductType,
     PRODUCT_CLASS_IDENTIFIER
 } from './src/product'
 export { 

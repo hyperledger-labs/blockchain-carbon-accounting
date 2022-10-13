@@ -23,17 +23,8 @@ services:
         image: ghcr.io/net-zero-project/blockchain-carbon-accounting/oracle-api:latest
         ports:
             - 3002:3002
-        env_file:
-            - ../../.oracle.env
-    postgres:
-        container_name: postgres
-        image: postgres:latest
-        ports:
-          - 5400:5432
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: blockchain-carbon-accounting-test
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
     vault:
         image: vault:latest
         container_name: vault

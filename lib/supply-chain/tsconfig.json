@@ -14,6 +14,12 @@
         "skipLibCheck": true,
         "sourceMap": true
     },
-    "exclude": ["dist/**/*"]
+    "include": ["src","*.ts","package.json"],
+    "exclude": ["dist/**/*"],
+    "references": [
+        {"path": "../blockchain-gateway"},
+        {"path": "../emissions_data"},
+        {"path": "../../data"}
+    ],
 }
 

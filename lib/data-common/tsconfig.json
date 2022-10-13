@@ -10,8 +10,8 @@
         "module": "commonjs",
         "resolveJsonModule": true,
         "esModuleInterop": true,
-        "skipLibCheck": true,
         "declaration": true,
+        "skipLibCheck": true,
         "sourceMap": true
     },
     "exclude": ["dist/**/*"]

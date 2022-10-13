@@ -175,7 +175,7 @@ export const getProductSources = async (
         const { status, sources, error } = 
             await trpcMethaneClient.query('product.sources', 
                 { bundles, fromAssets }) 
-        if (status === 'success' && sources ) {
+        if (status === 'success' && sources && sources.length>0 ) {
             console.log("Get product sources: ", sources)
             return { sources, status }
         } else {
