@@ -1,0 +1,21 @@
+{
+  "name": "@blockchain-carbon-accounting/methane-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.js",
+  "dependencies": {
+    "@blockchain-carbon-accounting/data-postgres": "*",
+    "@trpc/server": "^9.24.0",
+    "superjson": "^1.9.1",
+    "zod": "^3.17.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prod": "node ./dist/server.js",
+    "start": "nodemon --verbose --watch \"server\" --ext \"ts,json\" --exec ts-node server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Bertrand Rioux: bertrand.rioux@gmail.com",
+  "license": "ISC"
+}

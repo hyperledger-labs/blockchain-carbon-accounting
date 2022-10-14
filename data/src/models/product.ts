@@ -1,10 +1,18 @@
-import type { ProductInterface } from '@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product';
+import type { 
+  ProductInterface 
+} from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
   Entity,
   PrimaryGeneratedColumn,
-  Column
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+//import { Geometry } from 'geojson';
 
+import{ OilAndGasAsset } from './oilAndGasAsset'
+import{ Operator} from './operator'
 @Entity()
 export class Product implements ProductInterface{
     
@@ -14,20 +22,24 @@ export class Product implements ProductInterface{
   @Column()
   class!: string;
 
+  @ManyToMany(() => OilAndGasAsset)
+  @JoinTable()
+  assets?: OilAndGasAsset[];
+
+  @ManyToOne(() => Operator, (operator) => operator.products)
+  operator?: Operator;
+
   @Column()
   type!: string;
 
   @Column()
   name!: string;
 
-  @Column()
-  amount!: string;
+  @Column({ type: 'double precision'})
+  amount!: number;
 
   @Column()
   unit!: string;
-
-  @Column({nullable:true})
-  asset_uuid?: string;
 
   @Column({nullable:true})
   country?: string;
@@ -44,11 +56,14 @@ export class Product implements ProductInterface{
   @Column({nullable:true})
   sub_division_name?: string;
 
-  @Column({nullable:true})
-  latitude?: string;
+  @Column({ type: 'double precision', nullable:true})
+  latitude?: number;
 
-  @Column({nullable:true})
-  longitude?: string;
+  @Column({ type: 'double precision', nullable:true})
+  longitude?: number;
+
+  //@Column({type: 'geometry', nullable:true})
+  //location?: Geometry;
 
   @Column({nullable:true})
   year?: string;

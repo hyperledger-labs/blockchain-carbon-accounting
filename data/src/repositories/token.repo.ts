@@ -12,12 +12,12 @@ export class TokenRepo {
   }
 
   public selectAll = async (): Promise<Array<Token>> => {
-    const tokenRepository = this._db.getRepository(Token)
+    const tokenRepository = await this._db.getRepository(Token)
     return await tokenRepository.find()
   }
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<Token>> => {
-    let selectBuilder: SelectQueryBuilder<Token> = this._db.getRepository(Token).createQueryBuilder("token")
+    let selectBuilder: SelectQueryBuilder<Token> = await this._db.getRepository(Token).createQueryBuilder("token")
 
     // category by issuer address
     selectBuilder = buildQueries('token', selectBuilder, bundles)
@@ -45,7 +45,7 @@ export class TokenRepo {
   }
 
   public insertToken = async (payload: TokenPayload): Promise<Token> => {
-    const tokenRepository = this._db.getRepository(Token)
+    const tokenRepository = await this._db.getRepository(Token)
     const token = new Token()
     return await tokenRepository.save({
       ...token,
@@ -81,7 +81,7 @@ export class TokenRepo {
 
   public countTokens = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
-      let selectBuilder: SelectQueryBuilder<Token> = this._db.getRepository(Token).createQueryBuilder("token")
+      let selectBuilder: SelectQueryBuilder<Token> = await this._db.getRepository(Token).createQueryBuilder("token")
       selectBuilder = buildQueries('token', selectBuilder, bundles)
       return selectBuilder.getCount()
     } catch (error) {

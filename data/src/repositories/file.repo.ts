@@ -10,7 +10,7 @@ export class FileRepo {
   }
 
   public insert = async (payload: Omit<UploadedFile, 'uuid' | 'created_at' | 'updated_at' | 'toJSON'>): Promise<UploadedFile> => {
-    const repository = this._db.getRepository(UploadedFile)
+    const repository = await this._db.getRepository(UploadedFile)
     const file = new UploadedFile()
     return await repository.save({
       ...file,

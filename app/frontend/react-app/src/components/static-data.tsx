@@ -55,20 +55,22 @@ export type Tracker = {
   description: string
   totalEmissions: bigint
   myProductsTotalEmissions: bigint
-  products:{ 
-    ids: number[]
-    names: string[]
-    myBalances: bigint[]
-    amounts: number[]
-    available: number[]
-    emissionFactors: number[]
-    conversions: number[]
-    units: string[]
-  }
+  products: ProductToken[]
   tokens:{
     amounts: number[]
     details: any[]
   }
+}
+
+export type ProductToken = {
+    id: number
+    name: string
+    myBalance: number
+    amount: number
+    available: number
+    emissionFactor: number
+    conversion: number
+    unit: string
 }
 
 export type Balance = {
@@ -118,7 +120,6 @@ export type RolesInfo = {
   isCeoDealer?: boolean
   isAeDealer?: boolean
   isIndustry?: boolean
-  isIndustryDealer?: boolean
   hasAnyRole?: boolean
   hasIndustryRole?: boolean
   hasDealerRole?: boolean
@@ -154,7 +155,6 @@ export const rolesInfoToArray = (roles: RolesInfo|null): Role[] => {
   if (roles.isCeoDealer) res.push(RoleEnum.OffsetDealer);
   if (roles.isAeDealer) res.push(RoleEnum.EmissionsAuditor);
   if (roles.isIndustry) res.push(RoleEnum.Industry);
-  if (roles.isIndustryDealer) res.push(RoleEnum.IndustryDealer);
   return res;
 }
 

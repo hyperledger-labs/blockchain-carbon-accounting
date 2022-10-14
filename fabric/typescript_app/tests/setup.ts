@@ -7,10 +7,14 @@ import BCGatewayConfig from '../src/blockchain-gateway-lib/config';
 config();
 config({ path: './tests/.oracle.env' });
 
-import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor';
-import type { UtilityLookupItemInterface } from '@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem';
-import { PostgresDBService } from '@blockchain-carbon-accounting/data-postgres/src/postgresDbService';
-import { parseCommonYargsOptions } from '@blockchain-carbon-accounting/data-postgres/src/config';
+import type {
+    EmissionsFactorInterface,
+    UtilityLookupItemInterface,
+} from '@blockchain-carbon-accounting/emissions_data_lib';
+import {
+    PostgresDBService,
+    parseCommonYargsOptions,
+} from '@blockchain-carbon-accounting/data-postgres';
 
 import { v4 as uuidv4 } from 'uuid';
 

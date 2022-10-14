@@ -5,7 +5,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
 import { Wallet } from "@ethersproject/wallet"
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo, Tracker } from "../components/static-data";
+import { RolesInfo, Tracker, ProductToken } from "../components/static-data";
 
 
 const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
@@ -108,7 +108,7 @@ export async function getRoles(w3provider: Web3Provider | JsonRpcProvider, addre
     const r = await contract.getRoles(address) as RolesInfo;
     // note: the returned value is not extensible, so copy the values here
     const roles = {...r}
-    if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustryDealer || roles.isIndustry) roles.hasAnyRole = true;
+    if (roles.isAdmin || roles.isRecDealer || roles.isConsumer || roles.isCeoDealer || roles.isAeDealer || roles.isIndustry) roles.hasAnyRole = true;
     if (roles.isAdmin || roles.isRecDealer || roles.isCeoDealer || roles.isAeDealer ) roles.hasDealerRole = true;
     if (roles.isIndustry) roles.hasIndustryRole = true;
     return roles;
@@ -780,47 +780,43 @@ export async function getTrackerDetails(
     let emissionFactor = await contract.emissionFactor(trackerId) / decimals;
 
     let myTokenAmounts = [].map(BigInt);
-    let emissionFactors = [];
     let myProductsTotalEmissions = BigInt(0);
-
-    let myProductBalances =[].map(Number);
-    let productAmounts=[].map(Number),available=[],productNames=[],conversions=[],units=[];
-
-    let result;
+    
+    let products:ProductToken[]=[];
     for (let i = 0; i < productIds.length; i++) {
-      const productDetails = await contract.getProductDetails(productIds[i]);
-      result = productDetails;
+      let productId = productIds[i]
 
-      productAmounts.push(Number(result[1]));
-      available.push(Number(result[2]));
-
-      result = await contract.getProductOptionalDetails(productIds[i]);
+      const productDetails = await contract.getProductDetails(productId);
+      const productOptDetails = await contract.getProductOptionalDetails(productId);      
+      const productData = await contract._productData(productId);
+      const conversion = productData[2].toNumber()/productData[6].toNumber();
+      let product:ProductToken = {
+        id: productId,
+        amount: Number(productDetails[1]),
+        available: Number(productDetails[2]),
+        name: productOptDetails[0].toString(),
+        unit: productOptDetails[2].toString(),
+        conversion: conversion,
+        myBalance: Number(await contract.getProductBalance(productId,address)),
+        emissionFactor: emissionFactor/conversion
+      };
       
-      productNames.push(result[0].toString());
-      //conversions.push(result[1].toNumber()/decimals);
-      units.push(result[2].toString());
-
-      result = await contract._productData(productIds[i]);
-      conversions.push(result[2].toNumber()/result[6].toNumber())
-
-      myProductBalances[i] = Number(await contract.getProductBalance(productIds[i],trackerId,address));
-
       myTokenAmounts = tokenAmounts.map((e:number) => (
-        (e*myProductBalances[i]/totalProductAmounts)));
+        (e*product.myBalance/totalProductAmounts)));
 
-      myProductsTotalEmissions += BigInt(Math.floor(myProductBalances[i]*emissionFactor)) ;
+      myProductsTotalEmissions += BigInt(Math.floor(product.myBalance*emissionFactor)) ;
 
+      product.amount *= product.conversion;
+      product.myBalance *= product.conversion;
+      product.available *= product.conversion;
 
-      productAmounts[i] = (productAmounts[i] * conversions[i]);
-      myProductBalances[i] = (myProductBalances[i] * conversions[i]);
-      available[i] = (available[i] * conversions[i]);
-
-      emissionFactors[i] = (emissionFactor / conversions[i]);
+      products.push(product)
     }
+
     if(myProductsTotalEmissions>0 && owner.toString().toLowerCase()!==address.toLowerCase()){
       totalEmissions = myProductsTotalEmissions;
       tokenAmounts = myTokenAmounts;
-      available = myProductBalances;
+      products.map((p:ProductToken) => (p.available = p.myBalance));
     }
     let tokenDetails = [];
     for (let i = 0; i < tokenIds.length; i++) {
@@ -839,16 +835,7 @@ export async function getTrackerDetails(
       //: Number(remainingEmissions.toFixed(0)),
       myProductsTotalEmissions: myProductsTotalEmissions,
       //totalOffset: totalOffset,
-      products: {
-        ids: productIds,
-        myBalances: myProductBalances.map(BigInt),
-        names: productNames,
-        amounts: productAmounts,
-        available,
-        emissionFactors: emissionFactors,
-        units,
-        conversions
-      },
+      products: products,
       tokens: {
         amounts: tokenAmounts,
         details: tokenDetails

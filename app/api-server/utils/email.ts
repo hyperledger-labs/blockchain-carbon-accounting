@@ -1,4 +1,4 @@
-import { Wallet } from '@blockchain-carbon-accounting/data-postgres/src/models/wallet';
+import { Wallet } from '@blockchain-carbon-accounting/data-postgres';
 import nodemailer from 'nodemailer';
 
 export function getMailer() {

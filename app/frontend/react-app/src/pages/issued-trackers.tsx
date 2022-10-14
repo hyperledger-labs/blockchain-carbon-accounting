@@ -22,7 +22,7 @@ import { RolesInfo, Tracker } from "../components/static-data";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 
 import { trpc } from "../services/trpc";
-import { Wallet } from "../components/static-data";
+import { Wallet, ProductToken } from "../components/static-data";
 
 type IssuedTrackersProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -39,7 +39,7 @@ type IssuedTokensHandle = {
 const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTrackersProps> = ({ provider, signedInAddress, roles, displayAddress }, ref) => {
   // Modal display and token it is set to
   const [modalTrackerShow, setModalTrackerShow] = useState(false);
-  const [selectedTracker, setSelectedTracker] = useState({});
+  const [selectedTracker, setSelectedTracker] = useState<Tracker>();
 
   // Balances of my tokens and tokens I've issued
   const [myTrackers, setMyTrackers] = useState<Tracker[]>([]);
@@ -167,34 +167,32 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
     e.currentTarget.style.cursor = "pointer";
   }
 
-  function displayProduct(tracker: Tracker,productId:number,myProducts?:boolean){
-    let amount = (myProducts ?
-      tracker.products?.myBalances[productId]
-      :tracker.products?.amounts[productId]
+  function displayProduct(trackerId: number,product:ProductToken,myProducts?:boolean){
+    let amount = (myProducts ? product.myBalance : product.amount
     )
     if(amount>0){
-      let name = tracker.products?.names[productId];
-      let units = tracker.products?.units[productId];
+      let name = product.name;
+      let unit = product.unit;
       return(
-      <div key={tracker.trackerId+"ProductInfo"+productId}>
-        <div key={tracker.trackerId+name+productId+"Amount"}>
+      <div key={trackerId+"ProductInfo"+product.id}>
+        <div key={trackerId+name+product.id+"Amount"}>
           {
-            name+": "+Math.round(tracker.products?.available[productId]).toLocaleString('en-US')+" "+units
-            //name+": "+amount+" ("+tracker.products?.available[productId]+") "+units
+            name+": "+Math.round(product.available).toLocaleString('en-US')+" "+unit
+            //name+": "+amount+" ("+product.available+") "+unit
           }
         </div>
-        <div key={tracker.trackerId+name+productId+"intensity"}>
-            <>{tracker.products?.emissionFactors[productId].toFixed(1)}
-              {" kgCO2e/"+units}</>
+        <div key={trackerId+name+product.id+"intensity"}>
+            <>{product.emissionFactor.toFixed(1)}
+              {" kgCO2e/"+unit}</>
         </div>
       </div>)
     }
   }
 
   function rowShading(emissionFactor: number){
-    // TO-DO create an admin configurable reference tracking for product emissino factors
+    // TO-DO create an admin configurable reference tracking for product emission factors
     // that share common units.
-    let referenceEmissionFactor = refTracker?.products?.emissionFactors[1];
+    let referenceEmissionFactor = refTracker?.products[1]?.emissionFactor;
     if(!referenceEmissionFactor){return}
 
     let opacity = 1-emissionFactor/referenceEmissionFactor;
@@ -225,16 +223,16 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
           trackers.map((tracker:Tracker) => (
             <tr key={tracker.trackerId}
               style={{
-                backgroundColor: rowShading(tracker?.products?.emissionFactors[1])
+                backgroundColor: rowShading(tracker?.products[1]?.emissionFactor)
               }}
               onClick={() => handleOpenTrackerInfoModal(tracker)}
               onMouseOver={pointerHover}
             >
               <td>{tracker.trackerId}</td>
               <td>{tracker.totalEmissions.toLocaleString('en-US')+" kgCO2e"}</td>
-              <td>{tracker.products?.ids?.map((productId,i) => (
-                <div key={tracker.trackerId+"ProductInfo"+i}>
-                  {displayProduct(tracker,i,myProducts)}
+              <td>{tracker.products.map((product) => (
+                <div key={tracker.trackerId+product.id}>
+                  {displayProduct(tracker.trackerId,product,myProducts)}
                   {
                     /* TO-DO the following conditional should be set to owner of the C-NFT
                      since it can be transferred from the trackee to a distributor
@@ -244,11 +242,11 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
                   { (signedInAddress.toLowerCase()===tracker.trackee.toLowerCase()
                     && tracker?.auditor.toLowerCase()
                       !=="0x0000000000000000000000000000000000000000"
-                    && tracker.products?.available[i]>0) ?
+                    && product.available>0) ?
                     <Button
                       className="mb-3"
                       variant="outline-dark"
-                      href={"/transferProduct/"+tracker.trackerId+"/"+productId}
+                      href={"/transferProduct/"+tracker.trackerId+"/"+product.id}
                     >Transfer</Button>
                     : null
                   }
@@ -288,16 +286,16 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
 
   return (
     <>
-      <TrackerInfoModal
+      {selectedTracker! && <TrackerInfoModal
         show={modalTrackerShow}
         tracker={selectedTracker}
         isDealer={isDealer}
         onHide={() => {
           setModalTrackerShow(false);
-          setSelectedTracker({});
+          setSelectedTracker(undefined);
         }}
         provider={provider}
-      />
+      />}
 
       <p className="text-danger">{error}</p>
 
@@ -324,7 +322,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
               {renderTrackersTable(myIssuedTrackers,fetchingTrackers,provider)}</>
               : null}
             {trackersWithMyProducts.length>0 ?
-              <><h4>Emission Certificates with My Product Balances </h4>
+              <><h4>Emission certificates with my product balances</h4>
               <h4>User: {userWallet?.name}</h4>
               {renderTrackersTable(trackersWithMyProducts,fetchingTrackers,provider,true)}</>
               : null}

@@ -52,16 +52,16 @@ function reducer(state: State, action: Action): State {
 }
 
 
-type RegisterSelfIndustryProps = {
+type RegisterIndustryProps = {
   provider?: Web3Provider | JsonRpcProvider
   signedInAddress: string
 }
 
-const RegisterSelfIndustry: FC<RegisterSelfIndustryProps> = ({provider, signedInAddress}) => {
+const RegisterIndustry: FC<RegisterIndustryProps> = ({provider, signedInAddress}) => {
 
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  async function registerSelfIndustry() {
+  async function RegisterIndustry() {
     if (!provider) return;
     dispatch({type: 'loading'});
     const result = await registerIndustry(provider, signedInAddress);
@@ -80,7 +80,7 @@ const RegisterSelfIndustry: FC<RegisterSelfIndustryProps> = ({provider, signedIn
       <AsyncButton
         loading={state.loading}
         variant="success"
-        onClick={registerSelfIndustry}
+        onClick={RegisterIndustry}
       >Register</AsyncButton>
     </Form.Group>}
     {state.error && <ErrorAlert error={state.error} onDismiss={()=>{ dispatch({type: 'dismissError'}) }} />}
@@ -88,4 +88,4 @@ const RegisterSelfIndustry: FC<RegisterSelfIndustryProps> = ({provider, signedIn
     </>
 }
 
-export default RegisterSelfIndustry;
+export default RegisterIndustry;

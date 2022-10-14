@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "composite": true,
         "strict": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
@@ -13,6 +14,6 @@
         "declaration": true,
         "sourceMap": true
     },
-    "include": ["*.ts"]
+    "exclude": ["dist/**/*"]
 }
 

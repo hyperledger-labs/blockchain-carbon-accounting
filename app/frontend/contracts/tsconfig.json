@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "strict": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "outDir": "dist",
+        "target": "es2020",
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "declaration": true,
+        "skipLibCheck": true,
+        "sourceMap": true
+    },
+    "include": ["src/**/*.json"],
+    "exclude": ["dist/**/*"]
+}

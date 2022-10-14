@@ -1,4 +1,4 @@
-import { QueryBundle } from "@blockchain-carbon-accounting/data-postgres/src/repositories/common";
+import { QueryBundle } from "@blockchain-carbon-accounting/data-postgres";
 import { FIELD, FIELDS, IFIELDS, IOP_MAP, OP_MAP } from "../models/commonTypes";
 
 function validateQuery(bundle: QueryBundle) : boolean {

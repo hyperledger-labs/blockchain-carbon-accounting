@@ -37,6 +37,8 @@ echo "Oil and gas benchmarking study (CATF)..."
 curl \
 -O https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx
 
+echo "Downloading complete!"
+
 # eogdata requires subscription. Cannot be downloaded ... instead these have been saved to google drive and downlaoded with curl above.
 #-O https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2021_web.xlsx \
 #-O https://eogdata.mines.edu/global_flare_data/VIIRS_Global_flaring_d.7_slope_0.029353_2020_web_v1.xlsx \

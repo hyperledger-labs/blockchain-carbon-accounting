@@ -2,7 +2,7 @@ import { TRPCClientError } from '@trpc/client';
 import axios from 'axios';
 import moment from 'moment';
 import { SetStateAction } from 'react';
-import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres/src/repositories/common';
+import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
 import type { Token, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';

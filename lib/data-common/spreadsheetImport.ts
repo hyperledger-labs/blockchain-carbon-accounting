@@ -1,5 +1,7 @@
-import { EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/emissionsFactor";
-import { UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER } from "@blockchain-carbon-accounting/emissions_data_lib/src/utilityLookupItem";
+import { 
+  EmissionsFactorInterface, EMISSIONS_FACTOR_CLASS_IDENTIFIER, 
+  UtilityLookupItemInterface, UTILITY_LOOKUP_ITEM_CLASS_IDENTIFIER 
+} from "@blockchain-carbon-accounting/emissions_data_lib";
 import { Presets, SingleBar } from "cli-progress";
 import { v4 as uuidv4 } from 'uuid';
 import { readFile } from "xlsx";
@@ -60,7 +62,10 @@ export type ParseWorksheetOpts = {
   source?: string,
   year?: string,
   cellDates?: boolean,
-  raw?: boolean
+  raw?: boolean,
+  name?: string,
+  unit?: string,
+  type?: string
 };
 
 export function getStateNameMapping(key: keyof typeof STATE_NAME_MAPPING) {

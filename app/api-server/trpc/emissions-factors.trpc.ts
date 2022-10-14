@@ -1,9 +1,9 @@
 import * as trpc from '@trpc/server'
 import { z } from 'zod'
-import { handleError, TrpcContext } from './common';
-import { ActivityInterface } from "@blockchain-carbon-accounting/data-common/utils"
+import { handleError, TrpcContext, zQueryBundles } from './common';
+import { ActivityInterface } from "@blockchain-carbon-accounting/data-common"
 
-export const emissionsFactorsRouter = trpc
+export const emissionsFactorsRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('getLevel1s', {
     input: z.object({
