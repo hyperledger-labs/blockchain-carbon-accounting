@@ -1,6 +1,6 @@
 import { DataSource, SelectQueryBuilder } from "typeorm"
 import { Wallet } from "../models/wallet"
-import { buildQueries, QueryBundle } from "./common"
+import { buildQueries, QueryBundle, encryptField, decryptField } from "./common"
 
 
 const ALIAS = 'wallet';
@@ -70,12 +70,12 @@ export class WalletRepo {
     const repo = this.getRepository()
     // lookup case-insensitive, case is used as a checksums only
     const wallet = await this.findWalletByAddress(payload.address)
-    console.log('mergeWallet found', wallet)
     if (!wallet) {
       return await repo.save({
         ...payload,
       })
     } else {
+      console.log('mergeWallet found', wallet.address)
       // only update defined new values as API could accept optional values
       const toMerge = Object.fromEntries(
         Object.entries(payload).filter(([, v]) => !!v || v === '')
@@ -90,9 +90,22 @@ export class WalletRepo {
   }
 
   public insertWallet = async (payload: Partial<Wallet> & Pick<Wallet, 'address'>): Promise<Wallet> => {
+    if ('private_key' in payload && payload.private_key) {
+      payload.private_key = encryptField(payload.private_key);
+    }
     return await this.getRepository().save({
       ...payload,
     })
+  }
+
+  public findWalletByEmailWithKey = async (email: string): Promise<Wallet | null> => {
+    const wallet = await this.findWalletByEmail(email, true);
+
+    if (wallet && wallet.private_key) {
+      wallet.private_key = decryptField(wallet.private_key);
+    }
+
+    return wallet;
   }
 
   public findWalletByEmail = async (email: string, with_private_fields?: boolean): Promise<Wallet | null> => {
@@ -142,7 +155,7 @@ export class WalletRepo {
     this.getRepository().createQueryBuilder()
       .update(Wallet)
       .set({
-        verification_token: '', 
+        verification_token: '',
         email_verified: true,
       })
       .where(`LOWER(email) LIKE LOWER(:email)`, { email: email.trim() })
