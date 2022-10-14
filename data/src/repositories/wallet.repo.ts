@@ -163,10 +163,14 @@ export class WalletRepo {
   }
 
   public markPkExported = async (address: string) => {
+    await this.updatePrivateKey(address, '');
+  }
+
+  public updatePrivateKey = async (address: string, privateKey: string) => {
     this.getRepository().createQueryBuilder()
       .update(Wallet)
       .set({
-        private_key: '',
+        private_key: privateKey,
       })
       .where(`LOWER(address) LIKE LOWER(:address)`, { address })
       .execute();
