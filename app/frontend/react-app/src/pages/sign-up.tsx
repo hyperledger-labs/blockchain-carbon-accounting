@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { Link } from "wouter"
 import { Form, Card } from "react-bootstrap";
 
@@ -6,14 +6,15 @@ import { handleFormErrors, signUpUser } from "../services/api.service";
 import { FormInputRow } from "../components/forms-util";
 import ErrorAlert from "../components/error-alert";
 import AsyncButton from "../components/AsyncButton";
-
+// @ts-ignore
+import ReCAPTCHA from 'react-google-recaptcha';
 
 type SignUpForm = {
   name: string,
   organization: string,
   email: string,
   password: string,
-  passwordConfirm: string
+  passwordConfirm: string,
   error: string,
   success: string,
   loading: string
@@ -35,12 +36,29 @@ const SignUp: FC<{}> = () => {
 
   const [form, setForm] = useState<SignUpForm>(defaultSignUpForm)
   const [formErrors, setFormErrors] = useState<SignUpFormErrors>({})
+  const [captchaToken, setCaptchaToken] = useState<string>("")
+
+  // Create an event handler so you can call the verification on button click event or form submit
+  const onRecaptchaChange = useCallback((token: any) => {
+    if (!process.env.REACT_APP_RECAPTCHA_SITE_KEY) {
+      return;
+    }
+
+    console.log('** recaptcha token **', token);
+    setCaptchaToken(token);
+    // Do whatever you want with the token
+  }, []);
 
   async function handleSignUp() {
     try {
+      if (process.env.REACT_APP_RECAPTCHA_SITE_KEY && !captchaToken) {
+        console.log('** recaptcha token not available **');
+        setForm({ ...form, error: "Captcha Token is required", success: "", loading: "" })
+        return;
+      }
       setFormErrors({})
       setForm({ ...form, error: "", success: "", loading: "true" })
-      const result = await signUpUser(form.email, form.password, form.passwordConfirm, form.name, form.organization);
+      const result = await signUpUser(captchaToken, form.email, form.password, form.passwordConfirm, form.name, form.organization);
       if (result) {
         setForm({
           ...defaultSignUpForm,
@@ -77,9 +95,14 @@ const SignUp: FC<{}> = () => {
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="password" label="Password" />
               <FormInputRow form={form} setForm={setForm} errors={formErrors} minlength={8} type="password" required field="passwordConfirm" label="Confirm Password" />
 
+              {process.env.REACT_APP_RECAPTCHA_SITE_KEY &&
+              <ReCAPTCHA
+                sitekey={process.env.REACT_APP_RECAPTCHA_SITE_KEY || ""}
+                onChange={onRecaptchaChange}
+              />}
               <AsyncButton
                 type="submit"
-                className="w-100 mb-3"
+                className="w-100 mb-3 mt-2"
                 variant="success"
                 loading={!!form.loading}
               >Sign Up</AsyncButton>

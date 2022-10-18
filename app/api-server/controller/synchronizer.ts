@@ -198,7 +198,7 @@ export const syncWalletRoles = async (address: string, opts: OPTS_TYPE, data?: P
         }
 
         const w = await db.getWalletRepo().ensureWalletWithRoles(address, roles, data);
-        console.log('saved wallet',w)
+        console.log('saved wallet address: ', w.address)
     } catch (err) {
         console.error(err)
         throw new Error('Error in getNumOfUniqueTokens: ' + err)
