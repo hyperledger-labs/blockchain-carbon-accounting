@@ -34,6 +34,6 @@
   "dependencies": {
     "crypto-js": "^4.1.1",
     "fabric-shim": "2.2.3",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.7"
   }
 }
