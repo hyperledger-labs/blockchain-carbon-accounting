@@ -102,6 +102,8 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
         const db = await PostgresDBService.getInstance()
 
         const account_events = [
+            {event: 'RoleGranted'},
+            {event: 'RoleRevoked'},
             {event: 'RegisteredConsumer', role: 'Consumer'},
             {event: 'UnregisteredConsumer', role: 'Consumer'},
             {event: 'RegisteredDealer', role: 'Dealer'},
