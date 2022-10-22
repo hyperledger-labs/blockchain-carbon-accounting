@@ -1,6 +1,7 @@
 import { ProductDbInterface } from "@blockchain-carbon-accounting/data-common";
 import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
-import { DataSource, SelectQueryBuilder, FindOptionsWhere, ILike } from "typeorm"
+import { DataSource, SelectQueryBuilder, FindOptionsWhere, ILike, Brackets } from "typeorm"
+import hash from 'object-hash';
 
 import { Product } from "../models/product"
 import { OilAndGasAsset } from "../models/oilAndGasAsset"
@@ -19,8 +20,12 @@ export class ProductRepo implements ProductDbInterface {
   public putProduct = async (doc: ProductInterface) => {
     try{
       const repo = await this._db.getRepository(Product)
+      //const product = await repo.findOneBy(this.makeProductMatchCondition(doc))
       //await repo.delete(this.makeProductMatchCondition(doc))
-      await this._db.getRepository(Product).save(doc)
+      // merge exsiting product with new doc...
+      //await repo.save({...product,...doc,...{uuid: product!.uuid}})
+      await repo.save(doc)
+
     }catch(error){
       throw new Error(`Cannot create product relation:: ${error}`)       
     }
@@ -68,8 +73,13 @@ export class ProductRepo implements ProductDbInterface {
       return selectBuilder
         .limit(limit)
         .offset(offset)
-        .innerJoin("product.assets", "oil_and_gas_asset")
+        .innerJoinAndSelect("product.assets", "oil_and_gas_asset")
         .innerJoin("oil_and_gas_asset.asset_operators", "asset_operator")
+        // limit product lists to emissions and production
+        .andWhere(new Brackets(query => {
+          query.where("product.type = 'emissions'")
+          .orWhere("product.type = 'production'")
+        }))
         .orderBy('product.year', 'DESC')
         .getMany();
     }else{
@@ -77,44 +87,107 @@ export class ProductRepo implements ProductDbInterface {
       return selectBuilder
         .limit(limit)
         .offset(offset)
+        // limit product lists to emissions and production
+        .andWhere(new Brackets(query => {
+          query.where("product.type = 'emissions'")
+          .orWhere("product.type = 'production'")
+        }))
         .orderBy('product.year', 'DESC')
         .getMany();
     }
   }
 
-  public getSources = async (
+  public getTotals = async (
+    offset: number, 
+    limit: number, 
     bundles: Array<QueryBundle>,
     fromAssets?: boolean
+  ): Promise<ProductInterface[]> => {
+    
+    const products:ProductInterface[] = await this.selectPaginated(0,0,bundles,fromAssets);
+
+    /*const names = [...new Set(products.map(p => p.name))];
+    const years = [...new Set(products.map(p => p.year))];
+    const countries = [...new Set(products.map(p => p.country))];
+    const units = [...new Set(products.map(p => p.unit))];*/
+
+    const totals:ProductInterface[]=[];
+    const totalsIndex:{[key: string]: number}={"0":-1};
+    let index;
+    for (const product of products){
+      const totalsObject = {
+          class: product.class.toLowerCase(), 
+          type: product.type, 
+          name: product.name.toLowerCase(), 
+          unit: product.unit?.toLowerCase(),
+          country: product.country?.toLowerCase(), 
+          year: product.year?.toLowerCase(),
+          //month: product.month?.toLowerCase(), 
+          source: product.source?.toLowerCase()
+      }
+      const totalskey = hash(JSON.stringify(totalsObject))
+      //console.log(totalskey, totalskey in totalsIndex)
+      if(!(totalskey in totalsIndex)){
+        totalsIndex[totalskey] = totals.length;
+        totals.push({...totalsObject, ...{
+          uuid: '',
+          amount: 0, 
+          from_date: product.from_date!, 
+          thru_date: product.thru_date!}
+        });
+      }
+      index = totalsIndex[totalskey];
+      totals[index]['amount'] += product.amount
+      if(product.thru_date! > totals[index]['thru_date']!){
+        totals[index]['thru_date']=product.thru_date!
+      }
+      if(product.from_date! < totals[index]['from_date']!){
+        totals[index]['from_date']=product.from_date!
+      }
+    }
+    return totals;
+  }
+
+  public getDistinctAttributes = async (
+    bundles: Array<QueryBundle>,
+    field: string,
+    fromAssets?: boolean
   ): Promise<Array<string>> => {
+
+    type ProductFields = 'year'|'name'|'unit'|'country'|'source';
+    const product_field = field as ProductFields
+
     let selectBuilder: SelectQueryBuilder<Product> = 
       await this._db.getRepository(Product).createQueryBuilder("product")
-    let products:Product[];
+    let products:ProductInterface[];
+
     if(fromAssets){
       selectBuilder = buildQueries('product', selectBuilder, bundles,
-        [OilAndGasAsset, AssetOperator])
+        [OilAndGasAsset, AssetOperator, Product ])
       products = await selectBuilder
-        .select('product.source', 'source')
+        .select(`product.${field}`, `${field}`)
         .innerJoin("product.assets", "oil_and_gas_asset")
         .innerJoin("oil_and_gas_asset.asset_operators", "asset_operator")
         .distinct(true)
-        .orderBy('product.source', 'ASC')
+        .orderBy(`product.${field}`, 'ASC')
         .getRawMany()
     }else{
       selectBuilder = buildQueries('product', selectBuilder, bundles)
       products = await selectBuilder
-        .select('product.source', 'source')
+        .select(`product.${field}`, `${field}`)
         .distinct(true)
-        .orderBy('product.source', 'ASC')
+        .orderBy(`${field}`, 'ASC')
         .getRawMany()
     }
-    return Product.toRaws(products).map(p => p.source!);
+
+    return Product.toRaws(products).map(p => p[`${product_field}`]!);
   }
 
   private makeProductMatchCondition = (doc: Partial<ProductInterface>) => {
     // creates an array of case insensitive queries
     const conditions: FindOptionsWhere<Product> = {}
     if (doc.name) conditions.name = ILike(doc.name)
-    if (doc.type) conditions.type = doc.type
+    //if (doc.type) conditions.type = doc.type
     if (doc.amount) conditions.amount = doc.amount
     if (doc.unit) conditions.unit = ILike(doc.unit)
     if (doc.country) conditions.country = ILike(doc.country)

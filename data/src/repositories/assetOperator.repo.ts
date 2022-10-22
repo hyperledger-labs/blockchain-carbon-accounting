@@ -19,14 +19,7 @@ export class AssetOperatorRepo implements AssetOperatorDbInterface{
   
   public putAssetOperator = async (doc: AssetOperatorInterface) => {
     try{
-      const repo = this._db.getRepository(AssetOperator)
-      
-      // find existing asset operator relations ... test for uniqueness constraint
-      /*const asset_operators = await repo.createQueryBuilder("asset_operator")
-      .where("asset_operator.assetUuid = :asset", { asset: doc.asset.uuid })
-      .andWhere("asset_operator.operatorUuid = :operator", {  operator: doc.operator.uuid })
-      .getMany()*/
-  
+      const repo = this._db.getRepository(AssetOperator)  
       await repo.save(doc)
       //increment asset_count of operator is newOperator saved
       if(doc.operator.asset_count){doc.operator.asset_count += 1}
@@ -115,5 +108,4 @@ export class AssetOperatorRepo implements AssetOperatorDbInterface{
       .select('oil_and_gas_asset.operator')
       .getCount()
   }
-
 }

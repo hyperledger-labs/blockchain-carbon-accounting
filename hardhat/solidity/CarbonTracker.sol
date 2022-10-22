@@ -77,7 +77,9 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         uint256 totalProductAmounts;
         uint256 fromDate;
         uint256 thruDate;
+        address createdBy;
         uint256 dateCreated;
+        uint256 dateUpdated;
         string metadata;
         string description;
     }
@@ -115,10 +117,10 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         address auditor;
         uint256 amount;
         uint256 available;
-        // TO-DO : should unitAmount and unit should be stored offline to retain product privacy.
+        // TO-DO : should unitAmount and unit be stored offline to retain product privacy.
         string name;
         string unit;
-        uint256 unitAmount;
+        string unitAmount;
     }
     /**
      * @dev ProductsTracked
@@ -141,33 +143,28 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     mapping(uint256 => uint256) lockedAmount; //amount of tokenId locked into the contract.
     // map productBalance from productId => address => amount of product owned of holder
     mapping(uint256 => mapping(address => uint256)) public productBalance;
-    // map verifier to trackee
-    mapping(address => mapping(address => bool)) isVerifierApproved;
+    // map approved auditors to trackee
+    mapping(address => mapping(address => bool)) isAuditorApproved;
+    // map trackee to boolean enforcing isAuditorApproved in isAuditor modifier
+    mapping(address => bool) approvedAuditorsOnly;
 
     uint256 public decimalsEf; // decimals for emission factor calculations
 
     event RegisteredTracker(address indexed account);
+
     event TrackerUpdated(
         uint256 indexed trackerId,
         address indexed tracker,
         uint256[] tokenIds,
-        uint256[] tokenAmounts,
-        uint256 fromDate,
-        uint256 thruDate
+        uint256[] tokenAmounts
     );
     event ProductsUpdated(
         uint256 indexed trackerId,
         uint256[] productIds,
         uint256[] productAmounts
     );
-    event TrackeeChanged(uint256 indexed trackerId, address indexed trackee);
     event VerifierApproved(address indexed auditor, address indexed trackee);
     event VerifierRemoved(address indexed auditor, address indexed trackee);
-    event VerifiedOutput(
-        uint256 indexed tokenId,
-        address indexed trackee,
-        uint256 amount
-    );
 
     constructor(address _net, address _admin) ERC721("", "") {
         net = NetEmissionsTokenNetwork(_net);
@@ -201,11 +198,13 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     function __isAuditor(address _trackee) internal view returns (bool) {
-        // TO-DO enforce isVerifierApproved using && condition in require
-        // i.e. require _trackee to approve verifiers (auditor)
         return
-            isVerifierApproved[msg.sender][_trackee] ||
-            (net.isAuditor(msg.sender) || msg.sender == netAddress);
+            (net.isAuditor(msg.sender) || msg.sender == netAddress) &&
+            (// require isAuditorApproved?
+            (approvedAuditorsOnly[_trackee] &&
+                isAuditorApproved[msg.sender][_trackee]) ||
+                // otherwise don't require preapproval of auditors
+                !approvedAuditorsOnly[_trackee]);
     }
 
     modifier isAudited(uint256 trackerId) {
@@ -268,6 +267,13 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         );
         _;
     }
+    modifier trackeeIsIndustry(uint256 trackerId) {
+        require(
+            net.isIndustry(_trackerData[trackerId].trackee),
+            "CLM8::registeredIndustry: the address is not registered"
+        );
+        _;
+    }
     modifier onlyAdmin() {
         require(
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
@@ -311,33 +317,43 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev create a tracker Token for trackee.
-     *      _trackTokens will require _isAuditor, msg.sender is an approved auditor of the trackee (see isVerifierApproved[][] mapping)
+     * @dev initialize a tracker Token for trackee. Any address can initilize a tracker. However, only auditors can initialize a tracker with emission tokens
      * @param trackee - address of the registered industry of the trackee
-     * @param tokenIds - array of ids of tracked carbon tokens (direct/indirect/offsets)
+     * @param issuedTo - address that the tracker is ussed to (if different from the trackee address)
+     * @param tokenIds - array of ids of tracked tokens from NET (direct/indirect/offsets)
      * @param tokenAmounts - array of incoming token id amounts (direct/indirect/offsets) matching each carbon token
      * @param fromDate - start date of tracker
      * @param thruDate - end date of tracker
      */
     function track(
+        address issuedTo,
         address trackee,
         uint256[] memory tokenIds,
         uint256[] memory tokenAmounts,
         uint256 fromDate,
         uint256 thruDate,
-        string memory description
+        string memory description,
+        string memory metadata
     ) public {
         CarbonTrackerDetails storage trackerData = _track(trackee);
-        super._mint(trackee, trackerData.trackerId);
-        return
-            _trackTokens(
-                trackerData,
-                tokenIds,
-                tokenAmounts,
-                fromDate,
-                thruDate,
-                description
-            );
+        super._mint(issuedTo, trackerData.trackerId);
+
+        if (fromDate > 0) {
+            trackerData.fromDate = fromDate;
+        }
+        if (thruDate > 0) {
+            trackerData.thruDate = thruDate;
+        }
+        if (bytes(description).length > 0) {
+            trackerData.description = description;
+        }
+        if (bytes(metadata).length > 0) {
+            trackerData.metadata = metadata;
+        }
+        // add tokens if provided
+        if (tokenIds.length > 0) {
+            return _trackTokens(trackerData, tokenIds, tokenAmounts);
+        }
     }
 
     /**
@@ -351,18 +367,24 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         uint256[] memory tokenAmounts,
         uint256 fromDate,
         uint256 thruDate,
-        string memory description
+        string memory description,
+        string memory metadata
     ) public notAudited(trackerId) trackerExists(trackerId) {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        return
-            _trackTokens(
-                trackerData,
-                tokenIds,
-                tokenAmounts,
-                fromDate,
-                thruDate,
-                description
-            );
+        trackerData.dateUpdated = block.timestamp;
+        if (fromDate > 0) {
+            trackerData.fromDate = fromDate;
+        }
+        if (thruDate > 0) {
+            trackerData.thruDate = thruDate;
+        }
+        if (bytes(description).length > 0) {
+            trackerData.description = description;
+        }
+        if (bytes(metadata).length > 0) {
+            trackerData.metadata = metadata;
+        }
+        return _trackTokens(trackerData, tokenIds, tokenAmounts);
     }
 
     /**
@@ -371,8 +393,10 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
      **/
     function _track(address trackee)
         internal
-        isIndustry(trackee) // limit new tracker to industry addresses?
-        returns (CarbonTrackerDetails storage)
+        returns (
+            //isIndustry(trackee) // limit new tracker to industry addresses
+            CarbonTrackerDetails storage
+        )
     {
         // increment trackerId
         _numOfUniqueTrackers.increment();
@@ -380,6 +404,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         // create token details
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
         trackerData.trackerId = trackerId;
+        trackerData.createdBy = msg.sender;
         trackerData.trackee = trackee;
         trackerData.dateCreated = block.timestamp;
         return trackerData;
@@ -392,23 +417,9 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     function _trackTokens(
         CarbonTrackerDetails storage trackerData,
         uint256[] memory tokenIds,
-        uint256[] memory tokenAmounts,
-        uint256 fromDate,
-        uint256 thruDate,
-        string memory description
-    ) internal {
+        uint256[] memory tokenAmounts
+    ) internal trackeeIsIndustry(trackerData.trackerId) {
         _isAuditor(trackerData.trackee);
-        if (fromDate > 0) {
-            trackerData.fromDate = fromDate;
-        }
-        if (thruDate > 0) {
-            trackerData.thruDate = thruDate;
-        }
-        //if(bytes(metadata).length>0){trackerData.metadata = metadata;}
-        if (bytes(description).length > 0) {
-            trackerData.description = description;
-        }
-
         require(
             tokenAmounts.length == tokenIds.length,
             "CLM8::_trackTokens: tokenAmounts and tokenIds are not the same length"
@@ -445,9 +456,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
             trackerData.trackerId,
             msg.sender,
             tokenIds,
-            tokenAmounts,
-            fromDate,
-            thruDate
+            tokenAmounts
         );
     }
 
@@ -466,7 +475,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         uint256[] memory productAmounts,
         string[] memory productNames,
         string[] memory productUnits,
-        uint256[] memory productUnitAmounts
+        string[] memory productUnitAmounts
     )
         public
         notAudited(trackerId)
@@ -787,16 +796,6 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     }
 
     /**
-     * @dev change trackee of trackerId
-     * @param trackerId - id of token tp be changed
-    function changeTrackee(uint trackerId, address trackee) external 
-        onlyAdmin registeredTracker(trackee) trackerExists(trackerId){
-        CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
-        trackerData.trackee = trackee;
-        emit TrackeeChanged(trackerId,trackee);
-    }  
-     */
-    /**
      * @dev approve verifier for trackee as msg.sender
      * @param verifier to be approved or removed
      * @param approve (true) or remove (false)
@@ -813,7 +812,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
             verifier != msg.sender,
             "CLM8::approveVerifier: auditor cannot be msg.sender"
         );
-        isVerifierApproved[verifier][msg.sender] = approve;
+        isAuditorApproved[verifier][msg.sender] = approve;
         if (approve) {
             emit VerifierApproved(verifier, msg.sender);
         } else {
@@ -821,12 +820,15 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         }
     }
 
+    /** 
+ Below are public view functions
+**/
+
     /**
-     * These are public view functions
      * Divides total emissions by product amount to get the emissions factor of the tracker
      * Warning: should never be called within functions that update the network to avoid excessive gas fees
      */
-    function emissionFactor(uint256 trackerId) public view returns (uint256) {
+    function emissionsFactor(uint256 trackerId) public view returns (uint256) {
         CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
         if (trackerData.totalProductAmounts > 0) {
             return (
@@ -850,7 +852,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         uint256 trackerId,
         uint256 productId,
         string memory unit,
-        uint256 unitAmount,
+        string memory unitAmount,
         bytes memory signature
     ) public view isAudited(trackerId) trackerExists(trackerId) returns (bool) {
         address signer = _productData[productId].auditor;
@@ -875,7 +877,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         uint256 trackerId,
         uint256 productId,
         string memory unit,
-        uint256 unitAmount
+        string memory unitAmount
     ) public view returns (bytes32) {
         return
             keccak256(
@@ -928,7 +930,7 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
             for (uint256 j = 0; j < productIds.length; j++) {
                 productAmount = productsTracked.amount[productIds[j]];
                 totalEmissions = totalEmissions.add(
-                    productAmount.mul(emissionFactor(trackerIds[i])).div(
+                    productAmount.mul(emissionsFactor(trackerIds[i])).div(
                         decimalsEf
                     )
                 );
@@ -991,22 +993,6 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
     {
         ProductDetails memory product = _productData[productId];
         return (product.trackerId, product.amount, product.available);
-    }
-
-    function getProductOptionalDetails(uint256 productId)
-        public
-        view
-        returns (
-            string memory,
-            uint256,
-            string memory
-        )
-    {
-        uint256 productConv;
-        ProductDetails memory product = _productData[productId];
-        productConv = (product.unitAmount.mul(decimalsEf)).div(product.amount);
-
-        return (product.name, productConv, product.unit);
     }
 
     function getTrackerTokenDetails(uint256 trackerId)

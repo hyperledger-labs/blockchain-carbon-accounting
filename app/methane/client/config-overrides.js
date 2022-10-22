@@ -17,7 +17,9 @@ const overridePath = (webpackConfig) => {
       path.resolve(__dirname, '../../frontend/react-app/src/components'),
       path.resolve(__dirname, '../../frontend/react-app/src/hooks'),
       path.resolve(__dirname, '../../frontend/react-app/src/services'),
-      path.resolve(__dirname, '../../frontend/react-app/src/pages')
+      path.resolve(__dirname, '../../frontend/react-app/src/pages'),
+      path.resolve(__dirname, '../../../lib/supply-chain'),
+      path.resolve(__dirname, '../../../lib/oil-and-gas-data')
     ];
     if (tsxRule) {
       if (Array.isArray(tsxRule.include)) {
@@ -60,6 +62,8 @@ module.exports = {
       hooks: path.resolve(__dirname, 'src/hooks'),
       services: path.resolve(__dirname, 'src/services'),
       pages: path.resolve(__dirname, 'src/pages'),
+      'supply-chain': path.resolve(__dirname, 'lib/supply-chain'),
+      'oil-and-gas-data': path.resolve(__dirname, 'lib/oil-and-gas-data'),
     }),
     overridePath,
   )

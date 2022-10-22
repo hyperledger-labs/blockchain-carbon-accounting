@@ -32,7 +32,6 @@ export class AssetOperator implements AssetOperatorInterface {
 
   @ManyToOne(() => OilAndGasAsset, (asset) => asset.asset_operators)
   @JoinColumn({name: 'assetUuid'})
-  //@JoinTable()
   asset!: OilAndGasAsset;
 
   @Column()

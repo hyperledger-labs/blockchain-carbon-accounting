@@ -21,7 +21,9 @@ export type Operator = {
   wallet_address?: string;
   status?: string;
   description?: string;
-  asset_count?: number
+  asset_count?: number;
+  trackersCount?: number;
+  assetsCount?:number;
   //asset_operators?: AssetOperator[];
   //products?: Product[];
 }
@@ -52,6 +54,7 @@ export type Product = {
   source_date?: string;
 }
 
+
 export const OPERATOR_FIELDS: Field[] = [
 {
     alias: 'Name',
@@ -78,21 +81,33 @@ export const ASSET_FIELDS: Field[] = [
 
 export const PRODUCT_FIELDS: Field[] = [
 {
-    alias: 'Name',
-    name: 'name',
+    alias: 'Year',
+    name: 'year',
+    type: 'string',
+    ops: ['eq']
+},
+{
+    alias: 'Division',
+    name: 'division_name',
     type: 'string',
     ops: ['like']
 },
 {
+    alias: 'Month',
+    name: 'month',
+    type: 'string',
+    ops: ['like']
+},
+{
+    alias: 'Name',
+    name: 'name',
+    type: 'string',
+    ops: ['like']
+}
+/*{
     alias: 'Division',
     name: 'division_type',
     type: 'string',
-    ops: ['eq']
-},
-{
-    alias: 'Division Name',
-    name: 'division_name',
-    type: 'string',
-    ops: ['eq']
-}
+    ops: ['like']
+}*/,
 ]

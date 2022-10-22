@@ -13,9 +13,10 @@ import { RolesInfo } from "../components/static-data";
 
 type ProductFormProps = {
   provider?: Web3Provider | JsonRpcProvider,
-  signedInAddress: string,
+  signedInAddress?: string,
+  signedInWallet?: string,
   roles: RolesInfo,
-  limitedMode: boolean,
+  limitedMode?: boolean,
   trackerId: number,
 }
 
@@ -23,10 +24,10 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
 
-  const [productName, setProductName] = useState("");
-  const [productAmount, setProductAmount] = useState("");
-  const [productUnitAmount, setProductUnitAmount] = useState("");
-  const [productUnit, setProductUnit] = useState("");
+  const [productName, setProductName] = useState(localStorage.getItem('productName')||'');
+  const [productAmount, setProductAmount] = useState(localStorage.getItem('productAmount')||'');
+  const [productUnitAmount, setProductUnitAmount] = useState(localStorage.getItem('productUnitAmount')||'');
+  const [productUnit, setProductUnit] = useState(localStorage.getItem('productUnits')||'');
   const [result, setResult] = useState("");
 
   // After initial onFocus for required inputs, display red outline if invalid
@@ -48,11 +49,12 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
   async function submit() {
     if (!provider) return;
     let productAmount_formatted = BigInt(productAmount);
-    let productUnitAmount_formatted = BigInt(productUnitAmount);
+    let productUnitAmount_formatted = Number(productUnitAmount);
 
+    // TO-DO / Warning - if stored in the contract productUnitAmount_formatted should be stored as a string not an interger
     let result = await productUpdate(
       provider,trackerId,productAmount_formatted,
-      productName, productUnit, productUnitAmount_formatted);
+      productName, productUnit, BigInt(Math.floor(productUnitAmount_formatted)));
       let address = await provider.getSigner().getAddress();
       console.log(result)
     try {
@@ -117,8 +119,8 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
           style={(productAmount || !initializedProductAmountInput) ? {} : inputError}
         />
         <Form.Text className="text-muted">
-          Set a unitless amount of products to be distributed to other industries and consumers.
-          This number will determine the weighting of emissions across multiple product types.
+          Set an integer quantity of products to be distributed.
+          This number will determine the weighting of emissions across different product types assigned to the emissions certificate.
         </Form.Text>
       </Form.Group>
       <Form.Group className="mb-3" controlId="productUnitsInput">

@@ -1,6 +1,6 @@
 import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres";
 import { 
-  Activity, GroupedResult, process_activity, queue_issue_tokens 
+  Activity, ActivityType, GroupedResult, process_activity, queue_issue_tokens 
 } from '@blockchain-carbon-accounting/supply-chain-lib';
 import { Request, Response } from 'express';
 import moment from 'moment';
@@ -102,9 +102,12 @@ export async function getEmissionsRequest(req: Request, res: Response) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getActivityType(body: any): 'shipment'|'flight'|'emissions_factor'|'natural_gas'|'electricity' | 'other' {
-  if (['shipment', 'flight', 'emissions_factor', 'natural_gas', 'electricity', 'other'].includes(body.activity_type)) return body.activity_type
-  throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
+function getActivityType(body: any): ActivityType {
+  try{ 
+    return body.activity_type 
+  } catch(error) {
+    throw new ApplicationError(`Unsupported activity type: ${body.activity_type}`, 400)
+  }
 }
 
 
@@ -116,14 +119,16 @@ function parse_date(date: string) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getActivity(body: any): Activity {
   const activity_type = getActivityType(body)
-  const from_date = parse_date(body.fromDate)
-  const thru_date = parse_date(body.thruDate)
-
+  let activity = {
+    id: '1',
+    type: activity_type,
+    from_date: parse_date(body.fromDate),
+    thru_date: parse_date(body.thruDate)
+  }
   if (activity_type === 'shipment') {
     // make a shipment activity
     return {
-      id: '1',
-      type: activity_type,
+      ... activity,
       carrier: body.carrier || (body.ups_tracking ? 'ups' : 'unknown'),
       tracking: body.ups_tracking || body.tracking_number || 'unknown',
       mode: body.shipment_mode,
@@ -135,14 +140,11 @@ function getActivity(body: any): Activity {
       to: {
         address: body.destination_address
       },
-      from_date,
-      thru_date
     }
   } else if (activity_type === 'flight') {
     // make a flight activity
     return {
-      id: '1',
-      type: activity_type,
+      ... activity,
       flight_number: body.flight_number||'unknown',
       carrier: body.flight_carrier||'unknown',
       class: body.flight_service_level,
@@ -152,57 +154,58 @@ function getActivity(body: any): Activity {
       },
       to: {
         address: body.destination_address
-      },
-      from_date,
-      thru_date
+      }
     }
   } else if (activity_type === 'emissions_factor') {
     return {
-      id: '1',
-      type: activity_type,
+      ... activity,
       emissions_factor_uuid: body.emissions_factor_uuid,
       number_of_passengers: Number(body.num_passengers),
       weight: Number(body.weight),
       weight_uom: body.weight_uom,
       distance: Number(body.distance),
       distance_uom: body.distance_uom,
-      activity_amount: Number(body.activity_amount),
-      activity_uom: body.activity_uom,
-      from_date,
-      thru_date
     }
   } else if (activity_type === 'natural_gas') {
     // make a natural gas activity
     return {
-      id: '1',
-      type: activity_type,
+      ... activity,
       activity_amount: Number(body.activity_amount),
-      activity_uom: body.activity_uom,
-      from_date,
-      thru_date
+      activity_uom: body.activity_uom
     }
   } else if (activity_type === 'electricity') {
     // make a natural gas activity
     return {
-      id: '1',
-      type: activity_type,
+      ... activity,
       activity_amount: Number(body.activity_amount),
       activity_uom: body.activity_uom,
       country: body.country,
       state: body.state,
-      utility: body.utility,
-      from_date,
-      thru_date
+      utility: body.utility
+    }
+  } else if (activity_type === 'industry') {
+    // methane emission activities
+    return {
+      ... activity,
+      country: body.country,
+      division_type: body.division_type,
+      division_name: body.division_name,
+      subdivision_type: body.subdivision_type,
+      subdivision_name: body.subdivision_name,
+      coords: {lat: Number(body.latitude), lng: Number(body.longitude)},
+      activity_amount: Number(body.activity_amount),
+      activity_uom: body.activity_uom,
+      emissions_type: body.emissions_type,
+      emissions_name: body.emissions_name,
+      ghg_type: body.ghg_type,
+      gwp: Number(body.gwp)
     }
   } else if (activity_type === 'other') {
     // other activity
     return {
-      id: '1',
-      type: activity_type,
+      ... activity,
       activity_amount: Number(body.activity_amount),
-      activity_uom: body.activity_uom,
-      from_date,
-      thru_date
+      activity_uom: body.activity_uom
     }
   }
   throw new ApplicationError(`Unsupported activity type.` , 400)
@@ -242,12 +245,14 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     const result = await process_activity(activity);
     console.log('Processed activity:', result)
     const total_emissions = result.emissions?.amount;
+    const scope = result.emissions?.factor?.scope || result.emissions?.scope;
     const activity_type = activity.type;
     if (!total_emissions) {
       return res.status(400).json({ status: 'failed', error: 'Could not get the total emissions for the activity!' })
     }
     const group: GroupedResult = {
       total_emissions,
+      scope: Number(scope),
       content: [{
         activity,
         result
@@ -258,6 +263,9 @@ export async function postEmissionsRequest(req: Request, res: Response) {
     }
     if (req.body.thruDate) {
       group.thru_date = parse_date(req.body.thruDate);
+    }
+    if (req.body.trackerId) {
+      group.tracker_id = req.body.trackerId;
     }
 
     const queue_result = await queue_issue_tokens(

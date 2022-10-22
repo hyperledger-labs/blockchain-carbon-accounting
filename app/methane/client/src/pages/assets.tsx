@@ -21,8 +21,6 @@ import { Wallet } from "@blockchain-carbon-accounting/react-app/src/components/s
 import { ASSET_FIELDS, Asset, Operator } from "../components/static-data";
 import AssetInfoModal from "../components/asset-info-modal";
 
-import { Link } from "wouter";
-
 /*import { Wrapper, Status } from "@googlemaps/react-wrapper";
 import Map, { Marker } from "../components/map"
 const render = (status: Status) => {
@@ -31,6 +29,7 @@ const render = (status: Status) => {
 
 type AssetProps = {
   signedInAddress: string, 
+  signedInWallet?: Wallet
   operatorUuid: string
 }
 
@@ -42,7 +41,6 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
   // Modal display and token it is set to
   const [modalShow, setModalShow] = useState(false);
   const [operator, setOperator] = useState<Operator | undefined>()
-  const [wallet, setWallet] = useState<Wallet | undefined>()
 
   const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
   const [selectedAssets, setSelectedAssets] = useState<Asset[]>([]);
@@ -142,9 +140,8 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
   // If address and provider detected then fetch balances
   useEffect(() => {
     const init = async () => {
-      const {operator, wallet} = await getOperator(operatorUuid);
+      const {operator} = await getOperator(operatorUuid);
       setOperator(operator)
-      setWallet(wallet)
       await fetchAssets(1, 20, assetQuery);
     }
     if (signedInAddress) {
@@ -154,7 +151,7 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
       // pending for signedInAddress. display the spinner ...
       setFetchingAssets(true);
     }
-  }, [signedInAddress, setOperator, setWallet, fetchAssets, assetQuery, operatorUuid]);
+  }, [signedInAddress, setOperator, fetchAssets, assetQuery, operatorUuid]);
 
   function pointerHover(e: MouseEvent<HTMLElement>) {
     e.currentTarget.style.cursor = "pointer";
@@ -186,7 +183,6 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
           <h2 style={{display: 'inline'}}>
             Operator: {operator?.name}&nbsp;
             {assetCount} Assets&nbsp;
-            {wallet?.organization}
           </h2>
           &nbsp;
           <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
@@ -209,23 +205,16 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
             <tbody>
               {!!selectedAssets &&
                 selectedAssets.map((asset,index) => (
-                  <tr key={[asset?.name,index].join('_')}>
-                    <td onClick={() => handleOpenOperatorInfoModal(asset)}
-                      onMouseOver={pointerHover}>
-                      {asset.name}
-                    </td>
+                  <tr key={[asset?.name,index].join('_')} onClick={() => handleOpenOperatorInfoModal(asset)} onMouseOver={pointerHover}>
+                    <td> {asset.name}</td>
                     <td>{asset?.division_name}</td>
                     <td>{asset?.status}</td>
                     <td>
-                      <Link href={"/asset?name="+asset.name}>
-                        <Button
-                          className="float-end"
-                          variant="outline-dark"
-                        >
-                          View Asset
+                      <a href={`https://maps.google.com/?q=${asset?.latitude},${asset?.longitude}`} target="_blank" rel="noopener noreferrer" >
+                        <Button className="float-end" variant="outline-dark">
+                          Map
                         </Button>
-                      </Link>
-
+                      </a>
                     </td>
                   </tr>
                 ))}

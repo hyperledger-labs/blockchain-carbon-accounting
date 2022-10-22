@@ -54,7 +54,7 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
         available: z.bigint(),
         name: z.string(),
         unit: z.string(),
-        unitAmount: z.bigint(),
+        unitAmount: z.number(),
         hash: z.string(),
     }),
     async resolve({ input, ctx }) {

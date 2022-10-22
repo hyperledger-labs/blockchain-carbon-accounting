@@ -1,9 +1,12 @@
 import {
     Entity,
     PrimaryColumn,
-    Column
+    Column,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
+import { Tracker } from './tracker'
 
 @Entity()
 export class Token {
@@ -12,6 +15,13 @@ export class Token {
 
     @Column()
     tokenTypeId!: number;
+
+    @Column({nullable: true})
+    trackerId?: number;
+
+    @ManyToOne(() => Tracker, (tracker: Tracker) => tracker.tokens)
+    @JoinColumn({name: 'trackerId'})
+    tracker?: Tracker;
 
     @Column()
     issuedBy!: string;

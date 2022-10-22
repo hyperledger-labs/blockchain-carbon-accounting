@@ -31,6 +31,7 @@ const ExportPk = lazy(() => import("./pages/export-pk"));
 const TermsOfUse = lazy(() => import("./pages/terms-of-use"));
 const AppFooter = lazy(() => import("./components/app-footer"));
 
+
 const App:FC = () => {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useTrpcClient();
@@ -86,7 +87,7 @@ const App:FC = () => {
               <Link href="/retire"><Nav.Link eventKey="retire">Retire tokens</Nav.Link></Link>
 
               {((limitedMode && isOwner) || !limitedMode) &&
-                <Link href="/issuedTrackers"><Nav.Link eventKey="issuedTrackers">Track</Nav.Link></Link>
+                <Link href="/issuedTrackers/0"><Nav.Link eventKey="issuedTrackers">Track</Nav.Link></Link>
             }
 
               {/* Display "Manage Roles" if owner/dealer, "My Roles" otherwise */}
@@ -151,7 +152,7 @@ const App:FC = () => {
                         <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
                       }</Route>
                       <Route path="/track/:trackerId?">{params=>
-                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
+                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet} trackerId={Number(params.trackerId)} />
                       }</Route>
                       <Route path="/addProduct/:trackerId?">{params=>
                         <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>

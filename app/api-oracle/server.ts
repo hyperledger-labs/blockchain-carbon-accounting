@@ -51,7 +51,6 @@ app.get('/', (request, response) => {
 
 app.post('/emissionsRecord', async(req,res) =>{
     try{
-
         // TO-DO create helper to handle different database endpoints & queries
         const query = req.body.query.toString()
     

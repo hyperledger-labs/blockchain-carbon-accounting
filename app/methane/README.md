@@ -73,7 +73,6 @@ The primary source of this data is [US HIFLD geoplatform](https://hifld-geoplatf
 **Required**
 - wallet: Wallet class used for signing up with the NET platform *./wallet.ts*
 - name (unique)
-- asset_count: number of assets
 
 **Relations**
  - products: [Product](#product) schema below. Generally used for aggregate product quantities assigned to operator, and NOT products associated to specific assets of the operator

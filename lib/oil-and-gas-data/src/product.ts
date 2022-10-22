@@ -5,8 +5,8 @@ import { OperatorInterface } from './operator';
 
 //import { Point } from 'geojson';
 
-export type ProductType = 'production' | 'emissions' | 'storage' | 'credential'
-
+export const productTypes = ['emissions','production','storage', 'credential'] as const;
+export type ProductType = typeof productTypes[number]
 export interface ProductInterface {
     uuid: string;
     class: string;

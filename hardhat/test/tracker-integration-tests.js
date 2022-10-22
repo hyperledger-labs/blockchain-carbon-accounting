@@ -103,7 +103,7 @@ describe("Carbon Tracker - Integration tests", function() {
 
     let track = await contractT
       .connect(await ethers.getSigner(dealer1))
-      .track(industry1, 
+      .track(industry1,industry1,
         [tokenIdOne],
         [quantity],
         0,0,""
@@ -130,7 +130,7 @@ describe("Carbon Tracker - Integration tests", function() {
     try {
       await contractT
         .connect(await ethers.getSigner(dealer1))
-        .track(industry1, 
+        .track(industry1,industry1,
           [tokenIdOne,tokenIdTwo],
           [quantity],
           0,0,""
@@ -143,7 +143,7 @@ describe("Carbon Tracker - Integration tests", function() {
     try {
       await contractT
         .connect(await ethers.getSigner(dealer1))
-        .track(industry1, 
+        .track(industry1,industry1 
           [tokenIdOne],
           [quantity+1],
           0,0,""

@@ -1,17 +1,34 @@
 import {
     Entity,
     PrimaryColumn,
-    Column
+    Column,
+    OneToMany,
+    ManyToOne,
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
+import { ProductToken } from './productToken';
+import { Token } from './token';
+import { Operator } from './operator';
 
 @Entity()
 export class Tracker {
     @PrimaryColumn()
     trackerId!: number;
 
+    @OneToMany(() => ProductToken, (product: ProductToken) => product.tracker)
+    products?: ProductToken[];
+
+    @OneToMany(() => Token, (token: Token) => token.tracker)
+    tokens?: Token[];
+
+    @ManyToOne(() => Operator, (operator: Operator) => operator.trackers)
+    operator?: Operator;
+
     @Column()
     trackee!: string;
+
+    @Column({nullable: true})
+    createdBy!: string;
 
     @Column()
     auditor!: string;
@@ -33,6 +50,9 @@ export class Tracker {
 
     @Column({nullable: true})
     dateCreated!: number;
+
+    @Column({nullable: true})
+    dateUpdated?: number;
 
     @Column({type: "hstore", hstoreType:"object", nullable: true})
     // eslint-disable-next-line

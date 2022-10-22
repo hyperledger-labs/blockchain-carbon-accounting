@@ -33,7 +33,6 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
   const [selectedOperator, setSelectedOperator] = useState<Operator | undefined>();
   const [selectedOperators, setSelectedOperators] = useState<Operator[]>([]);
   const [fetchingOperators, setFetchingOperators] = useState(false);
-  //const [modalShow, setModalShow] = useState(false);
   const [error, setError] = useState("");
 
   // state vars for pagination
@@ -58,7 +57,7 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
 
   function handleOpenOperatorInfoModal(operator: Operator) {
     setSelectedOperator(operator);
-    setModalShow(true);
+    //setModalShow(true);
   }
 
 
@@ -185,31 +184,19 @@ const Operators: ForwardRefRenderFunction<OperatorsHandle, OperatorsProps> = ({ 
               <tr>
                 <th>Name</th>
                 <th># Assets</th>
-                <th></th>
+                <th># Certificates </th>
               </tr>
             </thead>
             <tbody>
               {!!selectedOperators &&
                 selectedOperators.map((operator,index) => (
-                  <tr key={operator?.name}>
-                    <td onClick={() => handleOpenOperatorInfoModal(operator)}
-                      onMouseOver={pointerHover}>
-                      {operator.name}
-                    </td>
-                    <td>{operator?.asset_count}</td>
-                    <td>
-
-                      <Link href={"/operator/"+operator.uuid}>
-                        <Button
-                          className="float-end"
-                          variant="outline-dark"
-                        >
-                          View Operator
-                        </Button>
-                      </Link>
-
-                    </td>
+                  <Link key={operator?.name} href={"/operator/"+operator.uuid}>
+                  <tr onClick={() => handleOpenOperatorInfoModal(operator)} onMouseOver={pointerHover}>
+                    <td>{operator.name}</td>
+                    <td>{operator?.assetsCount?.toLocaleString('en-US')}</td>
+                    <td>{operator?.trackersCount?.toLocaleString('en-US')}</td>
                   </tr>
+                  </Link>
                 ))}
             </tbody>
           </Table>

@@ -1,5 +1,12 @@
 export { 
-    Activity 
+    Activity,
+    ActivityType,
+    ShippingMode,
+    emissionsTypes,
+    EmissionsType,
+    ghgTypes,
+    GHGType,
+    Emissions,
 } from './src/common-types'
 export { 
     GroupedResult, GroupedResults, 

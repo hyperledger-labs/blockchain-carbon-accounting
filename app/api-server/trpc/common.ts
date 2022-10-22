@@ -10,6 +10,7 @@ import { emissionsFactorsRouter } from './emissions-factors.trpc';
 import { emissionsRequestsRouter } from './emissions-requests.trpc';
 import { walletRouter } from './wallet.trpc';
 import { tokenRouter } from './token.trpc';
+import { trackerRouter } from './tracker.trpc';
 import { productTokenRouter } from './product-token.trpc';
 
 export const zQueryBundles:any = z.array(z.object({
@@ -71,6 +72,7 @@ const appRouter = createRouter()
   .merge('balance.', balanceRouter(zQueryBundles))
   .merge('token.', tokenRouter(zQueryBundles))
   .merge('wallet.', walletRouter(zQueryBundles))
+  .merge('tracker.', trackerRouter(zQueryBundles))
   .merge('producToken.', productTokenRouter(zQueryBundles))
   .merge('emissionsFactors.', emissionsFactorsRouter(zQueryBundles))
   .merge('emissionsRequests.', emissionsRequestsRouter(zQueryBundles))

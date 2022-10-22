@@ -6,26 +6,35 @@ import "react-datetime/css/react-datetime.css";
 import { Web3Provider,JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import { trpc, trpcClient } from "../services/trpc";
-import type { 
-  EmissionsFactorInterface 
-} from '@blockchain-carbon-accounting/emissions_data_lib';
+import type { EmissionsFactorInterface } from '@blockchain-carbon-accounting/emissions_data_lib';
 import { FormAddressRow, FormInputRow, FormSelectRow, FormWalletRow } from "../components/forms-util";
 import { calculateEmissionsRequest, createEmissionsRequest } from "../services/api.service";
 import ErrorAlert from "../components/error-alert";
 import SuccessAlert from "../components/success-alert";
 import { Link } from "wouter";
 import AsyncButton from "../components/AsyncButton";
+import { 
+  ActivityType as ActivityTypeBase, 
+  ShippingMode,
+  EmissionsType,
+  GHGType,
+} from "@blockchain-carbon-accounting/supply-chain-lib"
 
 type RequestAuditProps = {
   provider?: Web3Provider | JsonRpcProvider,
   signedInAddress: string,
   roles: RolesInfo,
-  limitedMode: boolean
+  limitedMode: boolean,
+  trackerId?: number,
+  onSubmit?:()=>void,
+  from_date?: Date,
+  thru_date?: Date,
+  localSupportingDoc?: File,
 }
 
 
-type ShipmentMode = 'air' | 'ground' | 'sea' | '';
-type ActivityType = 'flight' | 'shipment' | 'emissions_factor' | 'natural_gas' | 'electricity' | 'other' |''
+type ShipmentMode = ShippingMode | '';
+type ActivityType = ActivityTypeBase | ''
 
 export type EmissionsFactorForm = {
   issued_from: string,
@@ -52,9 +61,20 @@ export type EmissionsFactorForm = {
   level_3: string
   level_4: string
   emissions_factor_uuid: string
+  // used to request audit of industry direct emissions
+  division_type: string
+  division_name: string
+  subdivision_type: string
+  subdivision_name: string
+  latitude: string
+  longitude: string
+  emissions_type: EmissionsType
+  emissions_name: string
+  ghg_type: GHGType
+  gwp: string
 }
 
-const defaultEmissionsFactorForm: EmissionsFactorForm = {
+export const defaultEmissionsFactorForm: EmissionsFactorForm = {
   issued_from: '',
   activity_type: '',
   ups_tracking: '',
@@ -79,6 +99,16 @@ const defaultEmissionsFactorForm: EmissionsFactorForm = {
   level_3: '',
   level_4: '',
   emissions_factor_uuid: '',
+  division_type: '',
+  division_name: '',
+  subdivision_type: '',
+  subdivision_name: '',
+  latitude: '',
+  longitude: '',
+  emissions_type: 'combustion',
+  emissions_name: 'string',
+  ghg_type: 'CO2e',
+  gwp: '',
 } as const;
 
 type EmissionsFactorFormErrors = Partial<EmissionsFactorForm>&{supportingDoc?:string, hasErrors?: boolean}
@@ -212,9 +242,10 @@ type SuccessResultType = {
   title?: string
 }
 
-const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
-
+const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress, trackerId, onSubmit, localSupportingDoc, from_date, thru_date }) => {
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(defaultEmissionsFactorForm)
+
+  emForm['issued_from'] = signedInAddress;
   function resetForm() {
     setValidated(false)
     setEmForm(defaultEmissionsFactorForm)
@@ -225,15 +256,15 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
     setThruDate(null)
   }
   const [emissionsFactor, setEmissionsFactor] = useState<EmissionsFactorInterface|null>(null)
-  const [supportingDoc, setSupportingDoc] = useState<File|null>(null)
+
+  const [supportingDoc, setSupportingDoc] = useState<File|null>(localSupportingDoc || null )
   const [validated, setValidated] = useState(false)
   const [formErrors, setFormErrors] = useState<EmissionsFactorFormErrors>({})
   const [topError, setTopError] = useState('')
   const [topSuccess, setTopSuccess] = useState<SuccessResultType|null>(null)
   const [loading, setLoading] = useState(false);
-  const [fromDate, setFromDate] = useState<Date|null>(null);
-  const [thruDate, setThruDate] = useState<Date|null>(null);
-
+  const [fromDate, setFromDate] = useState<Date|null>(from_date || null);
+  const [thruDate, setThruDate] = useState<Date|null>(thru_date || null);
 
   const selectEmissionsFactor = useCallback((factor: EmissionsFactorInterface|null) => {
     setEmissionsFactor(factor)
@@ -496,7 +527,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
         // registered users will create an emissions request, non-registered users will just
         // get the calculated emissions
         const res = signedInAddress ?
-          await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate)
+          await createEmissionsRequest(emForm, supportingDoc!, signedInAddress, fromDate, thruDate, trackerId!)
           : await calculateEmissionsRequest(emForm, fromDate, thruDate)
         console.log('Form results ', res, res.result.distance, res.result.emissions?.amount)
         const distance = res?.result?.distance
@@ -518,6 +549,7 @@ const RequestAudit: FC<RequestAuditProps> = ({ signedInAddress }) => {
         setLoading(false)
       }
       // resetForm()
+      if(onSubmit){onSubmit()}
     } else {
       console.log('Form invalid, check errors:', formErrors)
     }

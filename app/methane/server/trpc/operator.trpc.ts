@@ -28,12 +28,13 @@ export const operatorRouter = (zQueryBundles:any) => trpc
     input: z.object({
         bundles: zQueryBundles.default([]),
         offset: z.number().gte(0).default(0),
-        limit: z.number().gt(0).default(10)
+        limit: z.number().gt(0).default(10),
+        withTrackers: z.boolean().default(false)
     }).default({}),
     async resolve({ input, ctx }) {
         try {
             const operators = await ctx.db.getOperatorRepo()
-                .selectPaginated(input.offset, input.limit, input.bundles);
+                .selectPaginated(input.offset, input.limit, input.bundles, input.withTrackers);
             const count = await ctx.db.getOperatorRepo()
                 .count(input.bundles);
             return {

@@ -91,7 +91,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
           </thead>
           <tbody>
             <tr>
-              <td>Issued To{"\n"}</td>
+              <td>Issued for{"\n"}</td>
               <td className="text-monospace">
                   {trackeeWallet?.name+"\n"}
                   <small>({trackeeWallet?.address?.substring(0,7)+"..."})</small>
@@ -138,23 +138,28 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
         <table className="table">
           <thead>
             <tr>
-              <th>Products</th>
-              <th>Amount (Available)</th>
+              <th>Product</th>
+              <th>Amount</th>
+              <th>Availble</th>
+              <th>My Balance</th>
+              <th>Emissions Factor</th>
             </tr>
           </thead>
           <tbody>
             {tracker.products?.map((product: ProductToken,i: number) => (
               <tr key={product.name}>
                 <td>
-                  {product.name}{": "}
-                  <div key={'intensityLabel'+i}>Emission factor</div>
+                  {product.name}
                 </td>
                 <td>
                   <div key={product.name+"Amount"+i}>
-                    {Math.round(product.amount).toLocaleString('en-US') + " " + product.unit}
-                    {" ("+Math.round(product.available).toLocaleString('en-US') +") "}
+                    {Math.round(product.unitAmount!).toLocaleString('en-US') + " " + product.unit}
                   </div>
-                  <div key={product.name+"Intensity"+i}>{Math.round(product.emissionFactor).toLocaleString('en-US')}{" kgCO2e/"+product.unit}</div>
+                </td>
+                <td>{Math.round(product.unitAvailable!).toLocaleString('en-US')}</td>
+                <td>{product.myBalance}</td>
+                <td>
+                  <div key={product.name+"Intensity"+i}>{Math.round(product.emissionsFactor!).toLocaleString('en-US')}{" kgCO2e/"+product.unit}</div>
                 </td>
               </tr>
             ))
@@ -169,12 +174,12 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             </tr>
           </thead>
           <tbody>
-            {tracker.tokens?.details.map((e: any,i: number) => (
+            {tracker.tokens?.details?.map((e: any,i: number) => (
                 <tr key={e.tokenId+'Details'}>
                   <td>{"Token ID "+e.tokenId}
                     <div>{(e.description)}</div>
                   </td>
-                  <td>{Math.round(tracker.tokens?.amounts[i]).toLocaleString('en-US')+" kgCO2e"}
+                  <td>{Math.round(Number(tracker.tokens?.amounts![i])).toLocaleString('en-US')+" kgCO2e"}
                     <DisplayJSON json={e.metadata}/>
                   </td>
                 </tr>

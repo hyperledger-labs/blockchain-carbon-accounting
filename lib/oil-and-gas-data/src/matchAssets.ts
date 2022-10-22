@@ -87,7 +87,5 @@ export const matchAsset = async (
     const min = await Math.min(...distances);
     const index = distances.indexOf(min);
     return assets[index];
-  }
-  return
-  
+  }  
 }

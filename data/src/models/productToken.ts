@@ -1,9 +1,14 @@
 import {
     Entity,
     PrimaryColumn,
-    Column
+    Column,
+    ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
+import { 
+  Tracker
+} from './tracker';
 
 @Entity()
 export class ProductToken {
@@ -12,6 +17,10 @@ export class ProductToken {
 
     @Column()
     trackerId!: number;
+
+    @ManyToOne(() => Tracker, (tracker: Tracker) => tracker.products)
+    @JoinColumn({name: 'trackerId'})
+    tracker!: Tracker;
 
     @Column()
     auditor!: string;
@@ -25,13 +34,13 @@ export class ProductToken {
     @Column()
     name!: string;
 
-    @Column()
-    unit!: string;
+    @Column({nullable: true})
+    unit?: string;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    unitAmount!: bigint;
+    @Column({nullable: true})
+    unitAmount?: number;
 
-    @Column({nullable:true, select: false})
+    @Column({nullable:true})
     hash?: string;
 
     public static toRaw(v: ProductToken) {

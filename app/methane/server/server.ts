@@ -39,7 +39,6 @@ app.use('/trpc', trpcMiddleware);
 // Serve the React static files after build
 //app.use(express.static("../client/build"));
 
-
 app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`Server is listening on ${PORT}\n`)
 });

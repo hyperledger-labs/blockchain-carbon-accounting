@@ -41,7 +41,8 @@ export interface OilAndGasAssetDbInterface {
 export interface ProductDbInterface {
   putProduct: (doc: ProductInterface) => Promise<void>
   getProduct: (uuid: string) => Promise<ProductInterface | null>
-  getAllProducts: (query: Partial<ProductInterface>) => Promise<ProductInterface[]>
+  getAllProducts: () => Promise<ProductInterface[]>
+  count: (bundles: Array<QueryBundle>) => Promise<number>
 }
 
 export interface OperatorDbInterface {

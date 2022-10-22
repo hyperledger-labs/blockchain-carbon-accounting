@@ -1,4 +1,4 @@
-import { IGetEmissionsByLookUp } from './I-query-params'
+import { IGetEmissionsByLookUp } from './I-query-params';
 export interface IFabricTxCaller {
     // label for certificate stored in cert store
     userId: string;

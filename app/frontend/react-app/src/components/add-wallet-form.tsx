@@ -192,9 +192,6 @@ const AddWalletForm: FC<Props> = ({
           <option value={RoleEnum.EmissionsAuditor}>
             Emissions Auditor
           </option>
-          <option value={RoleEnum.IndustryDealer}>
-            Registered Industry Dealer (CarbonTracker)
-          </option>
         </Form.Select>
       ) : (
           <Form.Select
