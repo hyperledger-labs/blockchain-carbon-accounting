@@ -23,6 +23,7 @@ const EVENTS_BLOCK_INTERVAL = Number(process.env['LEDGER_EVENTS_BLOCK_INTERVAL']
 export const startupSync = async(opts: OPTS_TYPE) => {
     // FIRST_BLOCK is the block number of the contract deployment as set in .env
     const fromBlock = "hardhat" === opts.network_name ? 0 : FIRST_BLOCK;
+    console.log('-> Starting synchronization from block ' + fromBlock);
     let syncFromBlock = fromBlock;
 
     // if we do not have a Sync entry or we are on Hardhat local network
@@ -30,15 +31,17 @@ export const startupSync = async(opts: OPTS_TYPE) => {
     if ("hardhat" !== opts.network_name) {
         // get the last synced block
         const lastSync = await getLastSync(opts);
-        if (lastSync) {
+        if (lastSync && lastSync != FIRST_BLOCK) {
             syncFromBlock = lastSync + 1;
         }
     } else {
         console.log('* Running on Hardhat local network. Clearing data and resyncing.');
     }
+    console.log('-> syncFromBlock ' + syncFromBlock);
 
     // so only clear if we want to start from fresh
     if (syncFromBlock == fromBlock) {
+        console.log('* Clearing data and resyncing.');
         try {
             await clearTokensDBData();
             await clearWalletsRolesDBData();
@@ -341,7 +344,7 @@ export const clearTokensDBData = async () => {
     const db = await PostgresDBService.getInstance()
     await db.getTokenRepo().truncateTokens();
     // truncate balances is also done by truncate tokens
-    console.log('--- Tables has been cleared. ----\n')
+    console.log('--- Token tables have been cleared. ----\n')
 }
 
 /** Clear the wallet roles data. */
