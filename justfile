@@ -75,7 +75,7 @@ npm:
 
 # Process pending audit requests
 process-requests:
-	npm --prefix supply-chain run cli -- -processrequests
+	npm run supply-chain:cli:processrequests
 
 # Run the app update and deploy script
 update-deploy:
