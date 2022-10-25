@@ -85,6 +85,10 @@ update-deploy:
 hardhat:
 	cd hardhat && npx hardhat node
 
+# Setup roles and example token transfers for hardhat demo accounts
+hardhat-setup:
+	npm run hardhat-setup
+
 # Run hardhat tests
 hardhat-test *TESTS:
 	# check if ipfs is running with pgrep then kill it
