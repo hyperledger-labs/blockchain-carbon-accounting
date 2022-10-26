@@ -41,9 +41,9 @@ const ExportPk: FC<ExportPkProps> = ({ signedInWallet, logoutOfWalletInfo }) => 
 
   async function handleExportPk() {
     try {
-      const currentpk = signedInWallet?.private_key;
       setForm({...form, error:'', loading: 'true'})
-      await markPkExported(signedInWallet?.email || '', form.password);
+      const pkRes = await markPkExported(signedInWallet?.email || '', form.password);
+      const currentpk = pkRes?.private_key;
       setForm({
         ...form,
         loading: '',

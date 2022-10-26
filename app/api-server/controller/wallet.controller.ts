@@ -459,7 +459,7 @@ export async function markPkExported(a_email: string, password: string) {
     const db = await PostgresDBService.getInstance();
 
     // require the user to confirm with his password
-    const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
+    const wallet = await db.getWalletRepo().findWalletByEmailWithKey(email);
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
         if (!wallet) console.error('!! The email has no wallet yet', email);
         else if (!wallet.email_verified) console.error('!! The email has not been verified yet', email);
@@ -470,6 +470,7 @@ export async function markPkExported(a_email: string, password: string) {
 
     // mark the wallet as exported
     await db.getWalletRepo().markPkExported(wallet.address);
+    return wallet.private_key;
 }
 
 export async function getWalletWithCredentials(req: Request, res: Response) {
