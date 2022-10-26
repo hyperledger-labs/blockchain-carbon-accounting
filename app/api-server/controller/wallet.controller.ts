@@ -443,9 +443,13 @@ export async function signinWallet(a_email: string, password: string) {
         throw new DomainError('Invalid credentials', 'UNAUTHORIZED');
     }
     console.log('signin wallet:', wallet.address)
-    // remove someof the properties the client should not have access to
+    // remove some of the properties the client should not have access to
     delete wallet.password_hash;
     delete wallet.password_salt;
+    // remove the private_key but note that it was set in the wallet object
+    if (wallet.private_key) {
+        wallet.private_key = 'y';
+    }
     return wallet;
 }
 
