@@ -36,11 +36,16 @@ const has = <K extends string>(
  */
 export function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
-		if (has('code', error) && has('reason', error) && error.code === "UNPREDICTABLE_GAS_LIMIT" && error.reason) {
-			return error.reason as string
-		}
-		return error.message
-	}
+    if (has('code', error) && has('reason', error) && error.code === "UNPREDICTABLE_GAS_LIMIT" && error.reason) {
+      return error.reason as string
+    }
+    return error.message
+  }
+  if (typeof error === 'object') {
+    if (error && has('message', error)) {
+      return error.message as string
+    }
+  }
   return String(error)
 }
 function catchError(error: unknown) {
