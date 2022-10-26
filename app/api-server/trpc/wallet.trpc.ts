@@ -182,8 +182,8 @@ export const walletRouter = (zQueryBundles:any) => trpc
     }),
     async resolve({ input }) {
         try {
-            await markPkExported(input.email, input.password);
-            return { success: true }
+            const private_key = await markPkExported(input.email, input.password);
+            return { success: true, private_key }
         } catch (error) {
             handleError('markPkExported', error)
         }
