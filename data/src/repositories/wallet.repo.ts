@@ -119,7 +119,6 @@ export class WalletRepo {
       q.addSelect(`${ALIAS}.password_reset_token_sent_at`)
       q.addSelect(`${ALIAS}.verification_token`)
       q.addSelect(`${ALIAS}.verification_token_sent_at`)
-      q.addSelect(`${ALIAS}.private_key`)
       q.addSelect(`${ALIAS}.password_hash`)
       q.addSelect(`${ALIAS}.password_salt`)
       q.addSelect(`${ALIAS}.private_key`)
