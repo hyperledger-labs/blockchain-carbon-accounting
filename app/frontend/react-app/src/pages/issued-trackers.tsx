@@ -8,7 +8,6 @@ import Button from 'react-bootstrap/Button';
 import Table from "react-bootstrap/Table";
 
 import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import { FcCheckmark } from 'react-icons/fc';
 
 import Dropdown from 'react-bootstrap/Dropdown'

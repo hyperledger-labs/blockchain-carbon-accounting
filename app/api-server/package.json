@@ -31,6 +31,7 @@
     "handlebars-helpers": "^0.10.0",
     "moment": "^2.29.4",
     "morgan": "^1.10.0",
+    "node-fetch": "^2.6.7",
     "nodemailer": "^6.7.5",
     "pg": "^8.7.3",
     "rate-limiter-flexible": "^2.3.7",

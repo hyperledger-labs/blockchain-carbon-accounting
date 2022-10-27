@@ -75,7 +75,7 @@ npm:
 
 # Process pending audit requests
 process-requests:
-	npm --prefix supply-chain run cli -- -processrequests
+	npm run supply-chain:cli:processrequests
 
 # Run the app update and deploy script
 update-deploy:
@@ -84,6 +84,10 @@ update-deploy:
 # Start the hardhat backend
 hardhat:
 	cd hardhat && npx hardhat node
+
+# Setup roles and example token transfers for hardhat demo accounts
+hardhat-setup:
+	npm run hardhat-setup
 
 # Run hardhat tests
 hardhat-test *TESTS:

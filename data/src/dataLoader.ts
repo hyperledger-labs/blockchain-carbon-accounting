@@ -223,7 +223,7 @@ const progressBar = new SingleBar(
       const wallet = await db.getWalletRepo().insertWallet({
         email: "bertrand@tworavens.consulting",
         organization: 'Two Ravens Energy & Climate Consulting Ltd.',
-        address: "0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7",
+        address: "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
         //private_key: newAccount.privateKey,
         //public_key: newAccount.publicKey,
         password_hash,

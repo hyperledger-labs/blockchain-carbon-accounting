@@ -218,6 +218,7 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
     let _queries:string[] = [];
     Object.keys(_query).map(k=>{
       _queries=_queries.concat(_query[k])
+      return _queries;
     })
     return _queries;
   }
@@ -243,7 +244,6 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
         await getProducts(offset,_pageSize,_queries,_fromAssets);
 
       if(_fetchProductTotals){
-        console.log('ds')
         const months = products.map(p => p?.month?.length!>0)
         setShowMonthTotals(months.includes(true))
       }
@@ -393,6 +393,7 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
               {operator?.asset_count?.toLocaleString('en-US')} assets
             </Link>
           </h2>
+          <p>Public address: {operator?.wallet_address}</p>
 
           <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={operator?.wallet_address!} _showTrackers={'unissued'} handleTrackerSelect={handleTrackerSelect} operatorUuid={operatorUuid}/>
           {(roles.isAeDealer && showIssueForm) ? 

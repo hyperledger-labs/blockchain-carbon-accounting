@@ -56,6 +56,7 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
           POSTGRES_DB: blockchain-carbon-accounting-test
         # Set health checks to wait until postgres has started
         options: >-
@@ -123,7 +124,7 @@ jobs:
         run: |
           cd ./app/api-server/
           echo "n" | npm run dev:tests &
-      - name: Start local api-server # Start local Hardhat network needed for running net emissions token network
+      - name: Start local api-oracle # Start local Hardhat network needed for running net emissions token network
         run: |
           cd ./app/api-oracle/
           echo "n" | npm run dev &          
@@ -135,7 +136,8 @@ jobs:
           127.0.0.1       peer1.auditor1.carbonAccounting.com
           127.0.0.1       peer1.auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
-          ./startDev.sh &
+          ./startDev.sh
+          ./scripts/startApi.sh local &
       - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
           cd ./fabric/typescript_app/

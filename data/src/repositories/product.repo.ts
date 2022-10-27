@@ -163,7 +163,7 @@ export class ProductRepo implements ProductDbInterface {
 
     if(fromAssets){
       selectBuilder = buildQueries('product', selectBuilder, bundles,
-        [OilAndGasAsset, AssetOperator, Product ])
+        [Product, OilAndGasAsset, AssetOperator])
       products = await selectBuilder
         .select(`product.${field}`, `${field}`)
         .innerJoin("product.assets", "oil_and_gas_asset")

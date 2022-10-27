@@ -81,8 +81,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
       break
   }
 
-
-  const metadata = JSON.parse(product?.metadata!)
+  const metadata = product.metadata ? JSON.parse(product?.metadata) : {}
   if(metadata.gwp){seededEmForm['gwp'] = metadata['gwp']};
   const industryEmFormSeededKeys = [ 'issued_from','issued_to', 'activity_type', 'activity_amount', 'country', 'division_type', 'division_name', 'sub_division_type', 'sub_division_name', 'latitude', 'longitude'];
   const [emForm, setEmForm] = useState<EmissionsFactorForm>(seededEmForm)
@@ -95,13 +94,12 @@ const RequestProductAudit:FC<RequestAuditProps> = (
   const [topError, setTopError] = useState('')
   const [topSuccess, setTopSuccess] = useState<SuccessResultType|null>(null)
   const [loading, setLoading] = useState(false);
-  //const [selectedGWP, setSelectedGWP] = useState(seededEmForm['gwp'])
+  const [selectedGWP, setSelectedGWP] = useState(seededEmForm['gwp'])
 
 //  const [fromDate, setFromDate] = useState<Date|null>(null);
 //  const [thruDate, setThruDate] = useState<Date|null>(null);
 
-  const  setEmFormGWP = useCallback( async (value) =>{
-    //setSelectedGWP('')
+  const  setEmFormGWP = useCallback( (value) =>{
     switch(value.toLowerCase()){
       case 'co2': 
         emForm['gwp'] = '1'
@@ -122,9 +120,9 @@ const RequestProductAudit:FC<RequestAuditProps> = (
         emForm['gwp'] = '1'
     }
     emForm['ghg_type']=value;
-    await setEmForm(emForm)
-    //setSelectedGWP(emForm['gwp'])
-  },[emForm])
+    setEmForm(emForm)
+    setSelectedGWP(emForm['gwp'])
+  },[emForm,setEmForm,setSelectedGWP])
 
   useEffect(()=>{
   }, [])
@@ -212,7 +210,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
         <FormSelectRow form={emForm} setForm={setEmForm} errors={formErrors} field="ghg_type" label="GHG Type" disabled={!!topSuccess}
           values={ghgTypes.map(e => {return {value: e, label: e}})} onChange={(value)=>{setEmFormGWP(value)}}
         />
-        <FormInputRow form={emForm} setForm={setEmForm} field="gwp" type="number" min={0} step="any" label={`Global warming potential in CO2e`} required errors={formErrors} disabled={!!topSuccess}/>
+        {selectedGWP && <FormInputRow form={emForm} setForm={setEmForm} field="gwp" type="number" min={0} step="any" label={`Global warming potential in CO2e`} required errors={formErrors} disabled={!!topSuccess}/>}
 
         {topError && <ErrorAlert error={topError} onDismiss={()=>{}} />}
 

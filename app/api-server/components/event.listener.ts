@@ -262,6 +262,12 @@ export const subscribeToEvents = (opts: OPTS_TYPE) => {
       makeEventHandler(opts, contract.events.UnregisteredIndustry, 'UnregisteredIndustry', async (event: EventData) => {
         rolesChanged(event.returnValues.account, opts)
       })
+      makeEventHandler(opts, contract.events.UnregisteredIndustry, 'RoleGranted', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
+      makeEventHandler(opts, contract.events.UnregisteredIndustry, 'RoleRevoked', async (event: EventData) => {
+        rolesChanged(event.returnValues.account, opts)
+      })
     } catch (err) {
       console.error('!!! error in subscribeToEvents, scheduling task_runner should try to subscsribe again after the next sync', err)
     }

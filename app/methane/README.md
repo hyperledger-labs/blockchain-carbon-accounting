@@ -6,20 +6,17 @@ This includes a federal data of U.S. and Canadian oil & gas assets and their ope
 
 ## Run the application
 
-```npm run client```
 ```npm run server```
+```npm run client```
 
-Seed the postgres databse with data as [described below](oil-and-gas-data)
+Seed the postgres database as [described below](oil-and-gas-data)
 
 ## Platform Features
 
- *Work in progress*
+### Request emission certificates for operator and/or operator assets
 
-### Register Operator
+Use the createEmissionsRequest function of the /app/frontend/react-app/src/api-service to request NET audits for oil & gas operator products.
 
-### Register Investor/Lender account
-
-### Request emission  certificates for operator and/or operator assets
 
 Audit of product data by auditors reigstered with the NetEmissionToken (NET)network and CarbonTrack auditors auditors 
 
@@ -86,9 +83,9 @@ The primary sources of the data are
 
 ### Product: *./product.ts*
 
-*This schema is different from ProductToken!*
+*This schema is different from ProductToken*
 
-Holds raw data, both production and emissions, associated to assets and operators.
+Holds raw data, both production and emissions, connected to assets and operators.
 
 The data is audited and used to issue 
  - emission certificates within NET 
@@ -96,7 +93,7 @@ The data is audited and used to issue
  *emission and product tokens are combined into emission certificates as desicribed in the [Carbon Tracker contractrac README](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/carbon-tracker.md)* 
 
 **Required attributes**
-- type: emissions label, fuel extraction, etc .. 
+- type: ProductType (emissions, production quantities, fuel extraction ...)
 - name: of the product
 - amount
 - unit

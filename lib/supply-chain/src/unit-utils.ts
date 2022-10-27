@@ -5,7 +5,7 @@ type KG = typeof kg[number];
 const grams = ['g','grams','gram'] as const;
 type Gram = typeof grams[number];
 
-const ton = ['t','ton','tonne','mt', 'metric ton'] as const;
+const ton = ['metric tons','metric ton','t','ton','tons','tonne','tonnes','mt'] as const;
 type Ton = typeof ton[number];
 
 const tonMillion = ['million tons','million tonnes'] as const;
@@ -76,14 +76,20 @@ export function get_convert_kg_for_uom(uom: string): number {
 const cubicMeters = ['cubic meter', 'm3', 'cubic meters','cm'] as const;
 type CubicMeter = typeof cubicMeters[number];
 
-const millionCubicMeters = ['million cubic meters','million m3'] as const;
+const millionCubicMeters = ['million cubic meters','million m3','mcm'] as const;
 type MillionCubicMeter = typeof millionCubicMeters[number];
 
-const thousandCubicMeters = ['thousand cubic meters','kcm','thousand m3'] as const;
+const billionCubicMeters = ['billion cubic meters','billion m3','bcm'] as const;
+type BillionCubicMeter = typeof billionCubicMeters[number];
+
+const thousandCubicMeters = ['thousand cubic meters','thousand m3','kcm',] as const;
 type ThousandCubicMeter = typeof thousandCubicMeters[number];
 
 const cubicFeet = ['cubic feet', 'cf'] as const;
 type CubicFeet = typeof cubicFeet[number];
+
+const billionCubicFeet = ['billion cubic feet','bcf'] as const;
+type BillionCubicFeet = typeof billionCubicFeet[number];
 
 const millionCubicFeet = ['million cubic feet','mmcf'] as const;
 type MillionCubicFeet = typeof millionCubicFeet[number];
@@ -93,29 +99,35 @@ type ThousandCubicFeet = typeof thousandCubicFeet[number];
 
 
 export type VolumeUnit = {
-    cubicMeters: CubicMeter[],
+    billionCubicMeters: BillionCubicMeter[],
     millionCubicMeters: MillionCubicMeter[],
     thousandCubicMeters: ThousandCubicMeter[],
-    cubicFeet: CubicFeet[],
+    cubicMeters: CubicMeter[],
+    billionCubicFeet: BillionCubicFeet[],
     millionCubicFeet: MillionCubicFeet[],
     thousandCubicFeet: ThousandCubicFeet[],
+    cubicFeet: CubicFeet[],
 }
 
 export const volumeUnits: VolumeUnit = {
     cubicMeters: cubicMeters.map(String) as CubicMeter[],
-    millionCubicMeters: millionCubicMeters.map(String) as MillionCubicMeter[],
     thousandCubicMeters: thousandCubicMeters.map(String) as ThousandCubicMeter[],
+    millionCubicMeters: millionCubicMeters.map(String) as MillionCubicMeter[],
+    billionCubicMeters: billionCubicMeters.map(String) as BillionCubicMeter[],
     cubicFeet: cubicFeet.map(String) as CubicFeet[], 
-    millionCubicFeet: millionCubicFeet.map(String) as MillionCubicFeet[], 
     thousandCubicFeet: thousandCubicFeet.map(String) as ThousandCubicFeet[], 
+    millionCubicFeet: millionCubicFeet.map(String) as MillionCubicFeet[], 
+    billionCubicFeet: billionCubicFeet.map(String) as BillionCubicFeet[], 
 }
 
 export const volume_to_cubic_meters = (volume?:number,u?:string) => { 
     if (!volume) throw new Error(`Invalid weight ${volume}`);
     if (!u) throw new Error(`Mus specify a`);
     if (volumeUnits.cubicFeet.includes(u as CubicFeet)){return volume*0.0283168}
+    if (volumeUnits.billionCubicFeet.includes(u as BillionCubicFeet)){return volume*0.0283168*10.0**9}
     if (volumeUnits.millionCubicFeet.includes(u as MillionCubicFeet)){return volume*0.0283168*10.0**6}
     if (volumeUnits.thousandCubicFeet.includes(u as ThousandCubicFeet)){return volume*0.0283168*10.0**3} 
+    if (volumeUnits.billionCubicMeters.includes(u as BillionCubicMeter)){return volume*10.0**9}
     if (volumeUnits.millionCubicMeters.includes(u as MillionCubicMeter)){return volume*10.0**6}
     if (volumeUnits.thousandCubicMeters.includes(u as ThousandCubicMeter)){return volume*10.0**3}
     if (volumeUnits.cubicMeters.includes(u as CubicMeter)){return volume}

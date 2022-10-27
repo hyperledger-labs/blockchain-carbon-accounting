@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
+import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -53,7 +53,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [address, setAddress] = useState(localStorage.getItem('issueTo')! || "");
   const [issuedFrom, setIssuedFrom] = useState(localStorage.getItem('issueFrom')! || "");
 
-  //const andTrack = useMemo(()=> (typeof trackerId !== 'undefined'), [trackerId]);
   const [tokenTypeId, setTokenTypeId] = useState(Number(localStorage.getItem('tokenTypeId')||1));
   const [quantity, setQuantity] = useState(localStorage.getItem('quantity')||"");
   const [fromDate, setFromDate] = useState<Date|null>(localStorage.getItem('fromDate')! ? new Date(localStorage.getItem('fromDate')!): null);
@@ -270,7 +269,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       }
     }
     fetchTrackerDetails();
-  }, [provider, requestedTrackerId, signedInAddress]);
+  }, [provider, requestedTrackerId, signedInAddress, trackerId]);
 
 
   // update calldata on input change

@@ -434,8 +434,7 @@ export async function signinWallet(a_email: string, password: string) {
 
     const email = a_email.trim();
     const db = await PostgresDBService.getInstance();
-    const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
-    console.log('signin wallet?', wallet)
+    const wallet = await db.getWalletRepo().findWalletByEmailWithKey(email);
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
         if (!wallet) console.error('!! The email has no wallet yet', email);
         else if (!wallet.email_verified) console.error('!! The email has not been verified yet', email);
@@ -443,9 +442,14 @@ export async function signinWallet(a_email: string, password: string) {
         // return access denied in all cases in order not to leak any information
         throw new DomainError('Invalid credentials', 'UNAUTHORIZED');
     }
-    // remove someof the properties the client should not have access to
+    console.log('signin wallet:', wallet.address)
+    // remove some of the properties the client should not have access to
     delete wallet.password_hash;
     delete wallet.password_salt;
+    // remove the private_key but note that it was set in the wallet object
+    if (wallet.private_key) {
+        wallet.private_key = 'y';
+    }
     return wallet;
 }
 
@@ -455,7 +459,7 @@ export async function markPkExported(a_email: string, password: string) {
     const db = await PostgresDBService.getInstance();
 
     // require the user to confirm with his password
-    const wallet = await db.getWalletRepo().findWalletByEmail(email, true);
+    const wallet = await db.getWalletRepo().findWalletByEmailWithKey(email);
     if (!wallet || !wallet.email_verified || !wallet.checkPassword(password)) {
         if (!wallet) console.error('!! The email has no wallet yet', email);
         else if (!wallet.email_verified) console.error('!! The email has not been verified yet', email);
@@ -466,6 +470,7 @@ export async function markPkExported(a_email: string, password: string) {
 
     // mark the wallet as exported
     await db.getWalletRepo().markPkExported(wallet.address);
+    return wallet.private_key;
 }
 
 export async function getWalletWithCredentials(req: Request, res: Response) {

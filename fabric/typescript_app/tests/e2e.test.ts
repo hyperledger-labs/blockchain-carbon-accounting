@@ -50,7 +50,6 @@ describe('E2E-ws', async () => {
             .send({})
             .end(async (_, response) => {
                 try {
-                    console.log(response);
                     const url = response.body.url;
                     const sessionId = response.body.sessionId;
                     const webSocketKey = await wsWalletAdmin.open(sessionId, url);

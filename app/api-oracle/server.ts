@@ -29,7 +29,7 @@ import { createTRPCClient } from '@trpc/client';
 const trpc_url = process.env.API_SERVER_TRPC || "http://localhost:8000/trpc"
 
 const trpcClient = createTRPCClient<AppRouter>({
-    url: 'http://localhost:8000/trpc',
+    url: trpc_url,
     transformer: superjson
 });
 
