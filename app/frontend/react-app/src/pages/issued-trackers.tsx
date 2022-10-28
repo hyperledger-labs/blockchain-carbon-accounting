@@ -23,6 +23,7 @@ import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 
 import { trpc } from "../services/trpc";
 import { Wallet, ProductToken } from "../components/static-data";
+import { Link } from "wouter";
 
 type IssuedTrackersProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -303,12 +304,13 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTokensHandle, IssuedTracker
       <div>
         {/* Only display issued tokens if owner or dealer */}
         {
+        <Link href="/track/0">
           <Button
             className="mb-3"
-            variant="outline-dark"
-            href="/track/0">
+            variant="outline-dark">
             Issue
           </Button>
+        </Link>
         }
         {
           <div className="mt-4">

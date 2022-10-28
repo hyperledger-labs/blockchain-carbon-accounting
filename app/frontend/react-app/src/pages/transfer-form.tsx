@@ -8,16 +8,19 @@ import SubmissionModal from "../components/submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Wallet } from "../components/static-data";
 import { InputGroup } from "react-bootstrap";
 import WalletLookupInput from "../components/wallet-lookup-input";
+import MustUseMetamask from "../components/must-use-metamask";
 
 type TransferFormProps = {
   provider?: Web3Provider | JsonRpcProvider
+  signedInWallet?: Wallet,
+  signedInAddress: string,
   roles: RolesInfo
 }
 
-const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
+const TransferForm:FC<TransferFormProps> = ({ provider, signedInWallet, roles }) => {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -69,6 +72,11 @@ const TransferForm:FC<TransferFormProps> = ({ provider, roles }) => {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+  // users that are not using metamask cannot issue tokens
+  if (signedInWallet?.private_key === 'y') {
+    return <MustUseMetamask actionName="transfer tokens" />;
+  }
 
   return (
     <>

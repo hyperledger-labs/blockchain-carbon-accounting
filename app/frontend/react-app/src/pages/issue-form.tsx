@@ -21,6 +21,7 @@ import { useMutation } from "react-query";
 import { useLocation } from "wouter";
 import AsyncButton from "../components/AsyncButton";
 import { parseDate } from "../components/display-date";
+import MustUseMetamask from "../components/must-use-metamask";
 
 type KeyValuePair = {
   key: string
@@ -38,6 +39,7 @@ type IssueFormProps = {
 }
 
 const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId, requestId}) => {
+
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -386,6 +388,12 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+
+  // users that are not using metamask cannot issue tokens
+  if (signedInWallet?.private_key === 'y') {
+    return <MustUseMetamask actionName="issue tokens" />;
+  }
 
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
