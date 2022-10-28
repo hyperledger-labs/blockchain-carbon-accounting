@@ -1,7 +1,6 @@
-import { 
-  Wallet,
-  PostgresDBService 
-} from "@blockchain-carbon-accounting/data-postgres";
+import { Wallet } from "@blockchain-carbon-accounting/data-postgres/src/models/wallet";
+import { PostgresDBService } from "@blockchain-carbon-accounting/data-postgres/src/postgresDbService";
+
 import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/netEmissionsTokenNetwork";
 import BCGatewayConfig from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/config";
 import Signer from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/signer";
@@ -983,7 +982,7 @@ export async function process_emissions_requests() {
     console.log('There are no auditors with public key.');
     return;
   }
-  console.log('Found auditors', auditors.map(w=>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
+  console.log('Found auditors', auditors.map((w: Wallet) =>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
   // process from created to pending
   for (const e in emissions_requests) {
     const er = emissions_requests[e];

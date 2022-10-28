@@ -66,7 +66,7 @@ describe('EmissionsDataGateway', () => {
         let emissionsUUID: string;
         it('should record emissions data', async () => {
             const data = await EmissionsGateway.recordEmissions(adminCaller, {
-                endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                endpoint: 'http://oracle:3002/emissionsRecord',
                 query: 'getEmissionsByUtilityLookUpItem',
                 queryParams: {
                     uuid: mockUtilityID,
@@ -89,7 +89,7 @@ describe('EmissionsDataGateway', () => {
         it('record emissions throws', async () => {
             try {
                 await EmissionsGateway.recordEmissions(adminCaller, {
-                    endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                    endpoint: 'http://oracle:3002/emissionsRecord',
                     query: 'getEmissionsByUtilityLookUpItem',
                     queryParams: {
                         uuid: mockUtilityID,
@@ -371,7 +371,7 @@ describe('EmissionsDataGateway', () => {
                 const mockPartyID2 = uuid4();
                 const s3 = new AWSS3();
                 const data = await EmissionsGateway.recordEmissions(adminCaller, {
-                    endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                    endpoint: 'http://oracle:3002/emissionsRecord',
                     query: 'getEmissionsByUtilityLookUpItem',
                     queryParams: {
                         uuid: mockUtilityID,

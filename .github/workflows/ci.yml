@@ -123,11 +123,7 @@ jobs:
       - name: Start local api-server # Start local Hardhat network needed for running net emissions token network
         run: |
           cd ./app/api-server/
-          echo "n" | npm run dev:tests &
-      - name: Start local api-oracle # Start local Hardhat network needed for running net emissions token network
-        run: |
-          cd ./app/api-oracle/
-          echo "n" | npm run dev &          
+          echo "n" | npm run dev:tests &        
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd ./fabric/docker-compose-setup/
@@ -136,8 +132,7 @@ jobs:
           127.0.0.1       peer1.auditor1.carbonAccounting.com
           127.0.0.1       peer1.auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
-          ./startDev.sh
-          ./scripts/startApi.sh local &
+          ./startDev.sh &
       - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
           cd ./fabric/typescript_app/

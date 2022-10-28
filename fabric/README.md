@@ -91,15 +91,16 @@ In order to run API in local mode, Paste following inside `/etc/hosts` file
 Otherwise, run:
 
 ```bash
-sh ./scripts/fabricNetwork.sh reset && sh start.sh
+sh ./scripts/fabricNetwork.sh reset && sh startDev.sh
 ```
 
-7. Start the api-oracle and api-server used by Fabric chaincode to request emissions records. From project root. See app/api-oracle/README.md
+`startDev.sh` will start an oracle docker image used to request a response of type `CO2EmissionFactorInterface` from external db. 
 
-```npm run api-oracle```
+*Updating and testing the oracle requires rebuilding the image or running the oralce locally. The latter requires modifying the oracles endpoint used in typescript_app/tests from the network container address, http://oracle:3002, to localhost.*
+
+7. Start the api-server used by Fabric chaincode to request emissions records. From project root. See app/api-oracle/README.md
+
 ```npm run api-server```
-
-*Once a stable release is ready the api-oracle could be deployed as a docker container and installed as part of docker-compose setup (docker-compose-setup/docker/application/)*
 
 8. If you have not already, seed the blockchain-carbon-accounting Postgres databse used to recordEmissions. From root run
 ```

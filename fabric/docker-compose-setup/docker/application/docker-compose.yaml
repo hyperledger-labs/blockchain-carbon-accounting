@@ -25,6 +25,8 @@ services:
             - 3002:3002
         extra_hosts:
             - "host.docker.internal:host-gateway"
+        environment:
+            API_SERVER_TRPC: "http://host.docker.internal:8000/trpc"
     vault:
         image: vault:latest
         container_name: vault

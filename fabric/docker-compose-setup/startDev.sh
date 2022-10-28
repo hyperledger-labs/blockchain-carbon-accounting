@@ -25,16 +25,15 @@ sh ./scripts/startAndConnectNetwork.sh
 echo "=== [startDev] Creating the channel..."
 docker exec cli /bin/bash ./network.sh createChannel
 
-
 CC_SRC_PATH="../chaincode/emissionscontract/typescript"
 #pushd $CC_SRC_PATH
 #sh ./emissions-data-lib.sh
 #popd 
 echo "=== [startDev] Installing utility emissions channel TypeScript chaincode..."
-docker exec cli --add-host=host.docker.internal:host-gateway /bin/bash ./network.sh deployCC -ccn emissions -ccp $CC_SRC_PATH -ccv 1 -ccl typescript 
+docker exec cli /bin/bash ./network.sh deployCC -ccn emissions -ccp $CC_SRC_PATH -ccv 1 -ccl typescript 
 
 echo "=== [startDev] Installing datalock chaincode..."
 docker exec cli /bin/bash ./network.sh deployCC -ccn datalock -ccp ../chaincode/datalock -ccv 1 -ccl go
 
-#echo "=== [startDev] Starting the api..."
-#./scripts/startApi.sh $1
+echo "=== [startDev] Starting the api..."
+./scripts/startApi.sh $1
