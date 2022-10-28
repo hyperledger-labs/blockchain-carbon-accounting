@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Postgres database store for the blockchain-carbon-accounting project",
+  "main": "./dist/index.js",
   "engines": {
     "node": ">=16"
   },

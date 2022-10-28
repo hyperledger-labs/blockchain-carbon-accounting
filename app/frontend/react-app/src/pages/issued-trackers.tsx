@@ -40,6 +40,10 @@ type IssuedTrackersHandle = {
 
 
 const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrackersProps> = ({ provider, signedInAddress, roles, displayAddress, handleTrackerSelect, operatorUuid, _showTrackers='issued'}, ref) => {
+  
+  const isDealer = roles.hasDealerRole;
+  //const isIndustry = roles.hasIndustryRole;
+
   // Modal display and token it is set to
   const [modalTrackerShow, setModalTrackerShow] = useState(false);
   const [selectedTracker, setSelectedTracker] = useState<Tracker|null>();
@@ -57,12 +61,16 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
   // show and select show trakers
   let trackerSelectors:TrackerSelectors[] = [
     {key: 'issued', value: "issued"},
-    {key: 'my_products',  value: 'for my products'}, 
     {key: 'unissued', value: "requested"},
     {key: 'requested', value: "I requested"},
-    {key: 'audited', value: "I issued"}
+    
   ]
-  if(displayAddress===signedInAddress){trackerSelectors.push({key: 'my', value: 'issued to me'})} 
+  if(roles.isAeDealer){trackerSelectors.push({key: 'audited', value: "I issued"})} 
+  if(displayAddress===signedInAddress){
+    trackerSelectors.concat([
+      {key: 'my', value: 'issued to me'},
+      {key: 'my_products',  value: 'for my products'}])
+  } 
 
   localStorage.setItem('issueTo', displayAddress!)
   localStorage.setItem('issueFrom', signedInAddress!)
@@ -75,9 +83,6 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
   const [fetchingTrackers, setFetchingTrackers] = useState(false);
 
   const [error, setError] = useState("");
-
-  const isDealer = roles.hasDealerRole;
-  //const isIndustry = roles.hasIndustryRole;
 
   // state vars for pagination
   const [ page, setPage ] = useState(1);

@@ -43,7 +43,7 @@ describe('DataLockGateway', () => {
                 fabricConnector: org.connector,
                 signer: signer,
             }).recordEmissions(adminCaller, {
-                endpoint: 'http://host.docker.internal:3002/emissionsRecord',
+                endpoint: 'http://oracle:3002/emissionsRecord',
                 query: 'getEmissionsByUtilityLookUpItem',
                 queryParams: {
                     uuid: mockUtilityID2,

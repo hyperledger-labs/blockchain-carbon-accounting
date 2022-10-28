@@ -13,6 +13,7 @@ COPY app/api-oracle/dist app/api-oracle/dist
 COPY data/package.json data/package.json
 COPY data/tsconfig.json data/tsconfig.json
 COPY data/src data/src
+COPY data/index.ts data/index.ts
 COPY data/dist data/dist
 COPY lib/ lib/
 
