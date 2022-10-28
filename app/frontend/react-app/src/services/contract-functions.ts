@@ -245,9 +245,9 @@ export async function issue(
     }
   } else {
     console.log("Json Provider - Issue");
-    const signer  = new Wallet(privateKey, w3provider);
-    let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, signer)
     try{
+      const signer = new Wallet(privateKey, w3provider);
+      let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, signer)
       await contract.issue(
         issuedFrom || 0,
         issuedTo,
