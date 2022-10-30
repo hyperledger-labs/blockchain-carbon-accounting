@@ -15,11 +15,11 @@
     "declaration": true,
     "declarationMap": true
   },
+  "exclude": ["dist/**/*","node_modules/**/*"],
   "input": ["**/*.ts"],
   "references": [
     {"path": "../../data"},
     {"path": "../frontend/contracts"},
     {"path": "../../lib/supply-chain"},
-  ],
-  "exclude": ["dist/**/*","node_modules/**/*"]
+  ]
 }

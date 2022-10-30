@@ -67,7 +67,6 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
         name: productName,
         unit: productUnit,
         unitAmount: productUnitAmount_formatted,
-        hash: result[1].hash.toString(),
       })
     } catch (error) {
       console.error('trpc error;', error)

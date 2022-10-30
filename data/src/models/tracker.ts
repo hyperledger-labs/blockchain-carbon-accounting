@@ -4,6 +4,7 @@ import {
     Column,
     OneToMany,
     ManyToOne,
+    JoinColumn
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
 import { ProductToken } from './productToken';
@@ -22,7 +23,11 @@ export class Tracker {
     tokens?: Token[];
 
     @ManyToOne(() => Operator, (operator: Operator) => operator.trackers)
-    operator?: Operator;
+    @JoinColumn({name: 'operatorUuid'})
+    operator!: Operator;
+
+    @Column({nullable: true})
+    operatorUuid!: string;
 
     @Column()
     trackee!: string;

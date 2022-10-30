@@ -153,13 +153,13 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                 </td>
                 <td>
                   <div key={product.name+"Amount"+i}>
-                    {Math.round(product.unitAmount!).toLocaleString('en-US') + " " + product.unit}
+                    {Math.round(product?.unitAmount!).toLocaleString('en-US') + " " + product.unit}
                   </div>
                 </td>
                 <td>{Math.round(product.unitAvailable!).toLocaleString('en-US')}</td>
-                <td>{product.myBalance}</td>
+                <td>{Math.round(product?.myBalance!).toLocaleString('en-US')}</td>
                 <td>
-                  <div key={product.name+"Intensity"+i}>{Math.round(product.emissionsFactor!).toLocaleString('en-US')}{" kgCO2e/"+product.unit}</div>
+                  <div key={product?.name+"Intensity"+i}>{product?.emissionsFactor?.toLocaleString('en-US')}{" kgCO2e/"+product?.unit}</div>
                 </td>
               </tr>
             ))
@@ -177,9 +177,10 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             {tracker.tokens?.details?.map((e: any,i: number) => (
                 <tr key={e.tokenId+'Details'}>
                   <td>{"Token ID "+e.tokenId}
-                    <div>{(e.description)}</div>
+                    <div>{e.description}</div>
+                    {e.manifest && <a href={JSON.parse(e.manifest).source} target="_blank" rel="noopener noreferrer">Source</a>} 
                   </td>
-                  <td>{Math.round(Number(tracker.tokens?.amounts![i])).toLocaleString('en-US')+" kgCO2e"}
+                  <td>{tracker?.tokens?.amounts! && (Number(tracker?.tokens?.amounts[i]!)/1000).toLocaleString('en-US')+" tons CO2e"}
                     <DisplayJSON json={e.metadata}/>
                   </td>
                 </tr>

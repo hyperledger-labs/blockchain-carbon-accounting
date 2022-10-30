@@ -37,7 +37,7 @@ export class ProductToken {
     @Column({nullable: true})
     unit?: string;
 
-    @Column({nullable: true})
+    @Column({nullable: true, type: 'double precision'})
     unitAmount?: number;
 
     @Column({nullable:true})

@@ -9,7 +9,8 @@
     "dev:tests": "dotenv -e ./.env.test nodemon server.ts",
     "dev": "nodemon server.ts",
     "loadDemoSeeds": "dotenv -e ../../.env -- bash -c 'psql ${DB_NAME} -f ./seedHardhatDemoWallets.sql'",
-    "build": "tsc -b"
+    "build": "tsc -b && npm run copy-email",
+    "copy-email": "cp -r ./email ./dist"
   },
   "keywords": [],
   "author": "",

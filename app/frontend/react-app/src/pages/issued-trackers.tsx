@@ -9,7 +9,8 @@ import Table from "react-bootstrap/Table";
 
 import Row from 'react-bootstrap/Row';
 import { FcCheckmark } from 'react-icons/fc';
-
+import { GiOilDrum } from 'react-icons/gi';
+import { IoIosFlame } from 'react-icons/io'
 import Dropdown from 'react-bootstrap/Dropdown'
 import DropdownButton from 'react-bootstrap/DropdownButton';
 
@@ -17,6 +18,7 @@ import { getNumOfUniqueTrackers, getTrackerDetails, verifyTracker } from "../ser
 import TrackerInfoModal from "../components/tracker-info-modal";
 //import Paginator from "../components/paginate";
 import { RolesInfo, Tracker } from "../components/static-data";
+import { getTrackers } from '../services/api.service';
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 
 import { trpc } from "../services/trpc";
@@ -146,7 +148,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
   const fetchTrackers = useCallback(async (_page: number, _pageSize: number, _query: string[]) => {
 
     let newMyTrackers:Tracker[] =[];
-    let newRefTracker;
+    let newRefTracker:Tracker | undefined;
     let newIssuedTrackers:Tracker[] = [];
     let newTrackersICreated:Tracker[] = [];
     let newUnIssuedTrackers:Tracker[] = [];
@@ -158,7 +160,10 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
       /* TO-DO implment below to getTrackers from api-server 
         instead of querying the blockchin direclty
         Requires setting up synchronized to read blockchain events TrackerUpdated, ProductsUpdated
-      const query = `${issuedType},string,${signedInAddress},eq`;
+      
+      
+      const query = `${issuedType},string,${operatorUuid},eq`;
+
       const offset = (_page - 1) * _pageSize;
 
       // this count means total number of issued tokens
@@ -170,14 +175,12 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
         // Fetch tracker details
         let trackerDetails = trackers[i-1]//:Tracker | string
         if (!trackerDetails) continue;
-
-        const tracker: Tracker = {
-          ...trackerDetails,
-          tokenType: TOKEN_TYPES[tokenDetails.tokenTypeId - 1],
-          isMyIssuedToken: true
-        };
-
+  
+        const tracker: Tracker = {...trackerDetails};
+        newUnIssuedTrackers.push(tracker)
+      }
       */
+      
       if(!provider) return;
       const numOfUniqueTrackers = (await getNumOfUniqueTrackers(provider)).toNumber();
       // Iterate over each trackerId and find balance of signed in address
@@ -186,17 +189,17 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
         const tracker:Tracker | string
           = await getTrackerDetails(provider, i, signedInAddress);
         //console.log('--- trackerDetails', tracker, displayAddress);
-        
+        if ((tracker as Tracker)?.trackerId===3){
+          newRefTracker = tracker as Tracker;
+          //console.log("ref tracker", newRefTracker)
+        }        
 
         if(typeof tracker === "object"){
-          const metadata = JSON.parse(tracker.metadata as any) 
+          const metadata = tracker?.metadata as any;
           if([null,undefined,'0','0x0000000000000000000000000000000000000000'].includes(displayAddress)
             || (tracker.trackee.toLowerCase()===displayAddress.toLowerCase()
-            && metadata?.operator_uuid === operatorUuid)
+            && (metadata?.operator_uuid === operatorUuid || !metadata?.operator_uuid))
           ){
-            if (tracker.trackerId===4){
-              newRefTracker = tracker;
-            }
             if (tracker?.trackee?.toLowerCase() === signedInAddress.toLowerCase()) {
               newMyTrackers.push({...tracker});
             }else if (tracker?.createdBy?.toLowerCase() === signedInAddress.toLowerCase()) {
@@ -213,9 +216,10 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
           }
         }
       }
+      
     } catch (error) {
       console.log(error);
-      setError("Could not connect to carbon tracker contract on the selected network. Check your wallet provider settings.");
+      setError("Could not get emission certificates from the databse.");
     }
     // exclude trackersWithMyProducts that overlap with myTrackers
     newTrackersWithMyProducts = newTrackersWithMyProducts.filter(o1 => !newMyTrackers.some(o2 => o1.trackerId === o2.trackerId))
@@ -252,25 +256,23 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
   }
 
   function displayProduct(tracker: Tracker, product: ProductToken){
-    let amount = (showTrackers==='my' ? product.myBalance : product.unitAmount
+    const amount = (showTrackers==='my' ? product.myBalance : product.unitAmount
     )
     if(amount!>0){
-      let name = product.name;
-      let unit = product.unit;
+      const name = product.name.toLowerCase();
+      const unit = product.unit;
       return(
       <Row key={tracker.trackerId+"ProductInfo"+product.productId}>
         <Row key={tracker.trackerId+name+product.productId+"Amount"}>
-          {
-            name+": "+Math.round(product.unitAmount!).toLocaleString('en-US')+" "+unit
-          }
+            <span>{name === 'oil'&& <GiOilDrum/>}{name === 'gas'&& <IoIosFlame/>}{`${Math.round(product.unitAmount!).toLocaleString('en-US')} ${unit}`}</span>
           <span>{product.myBalance!>0 && product.myBalance !== product.unitAmount && (
             "My balance = "+Math.round(product.myBalance!).toLocaleString('en-US')+" "+unit
           )}</span>
         </Row>
-        <Row key={tracker.trackerId+name+product.productId+"intensity"}>
+        {/*<Row key={tracker.trackerId+name+product.productId+"intensity"}>
             <>{product.emissionsFactor!.toFixed(1)}
               {" kgCO2e/"+unit}</>
-        </Row>
+        </Row>*/}
 
         <Row sm={12} xs={12}>
           {
@@ -309,7 +311,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
       <thead>
         <tr>
           <th>ID</th>
-          <th>{(showTrackers==='my_products' ? "My Emissions":"Total Emissions")+' kg CO2e'}</th>
+          <th>{(showTrackers==='my_products' ? "My Emissions":"Emissions")+', tons CO2e'}</th>
           <th>Products</th>
           <th>Description</th>
           <th></th>
@@ -318,12 +320,14 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
       <tbody>
         {(trackers !== [] && !fetching) &&
           trackers.map((tracker:Tracker) => (
-            <tr key={tracker.trackerId+showTrackers} style={{ backgroundColor: rowShading(tracker?.products![1]?.emissionsFactor!)}} onClick={() => handleOpenTrackerInfoModal(tracker)} onMouseOver={pointerHover}>
+            <tr key={tracker.trackerId+showTrackers} style={{ borderTopWidth: '5px', borderColor: rowShading(tracker?.products![1]?.emissionsFactor!)}} onClick={() => handleOpenTrackerInfoModal(tracker)} onMouseOver={pointerHover}>
               
               <td>{tracker.trackerId===selectedTracker?.trackerId! && <FcCheckmark/>}{tracker.trackerId}</td>
-              <td>{showTrackers === 'my_products' ? tracker?.myProductsTotalEmissions!.toLocaleString('en-US') : tracker.totalEmissions.toLocaleString('en-US')}
-                {(isDealer && tracker.auditor === "0x0000000000000000000000000000000000000000") && '\n' &&
+              <td>{showTrackers === 'my_products' ? (Number(tracker?.myProductsTotalEmissions!)/1000.0).toLocaleString('en-US') : (Number(tracker?.totalEmissions!)/1000.0).toLocaleString('en-US')}
+                {(isDealer && tracker.auditor === "0x0000000000000000000000000000000000000000") && '\n' && <>
+                  <p><b style={{backgroundColor: `${rowShading(tracker?.products![1]?.emissionsFactor!)}`}}>{tracker?.products![0]?.emissionsFactor?.toFixed(1)}{" kgCO2e/"+tracker?.products![0]?.unit!}</b></p>
                   <p><Button className="mb-3" variant="outline-dark" href={"/track/"+tracker.trackerId}> Add emissions</Button></p>
+                  </>
                 }
               </td>
               <td>{tracker.products!.map((product) => (

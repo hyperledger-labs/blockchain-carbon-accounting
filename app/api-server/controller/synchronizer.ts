@@ -62,8 +62,9 @@ export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE, sendEmail 
     let lastBlock = 0;
 
     try {
-        await fillProductTokens(opts, sendEmail);
         await fillTrackers(opts, sendEmail);
+        await fillProductTokens(opts, sendEmail);
+
         lastBlock = await fillTokens(opts, sendEmail);
         console.log('-- blockchain last block: ', lastBlock);
     } catch (err) {
@@ -287,8 +288,8 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
 /** Get the product details from the blockchain */
 async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductTokenPayload> {
     try {
-        const product: ProductTokenPayload = await getTrackerContract(opts).methods._productData(productId).call();
-        product.productId = productId;
+        const result = await getTrackerContract(opts).methods._productData(productId).call();
+        const product:ProductTokenPayload = {...result,...{productId: productId, unitAmount: Number(result.unitAmount)}}
         return product;
     } catch (err) {
         console.error(err);
@@ -300,11 +301,14 @@ async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<Pr
 async function getTrackerDetails(trackerId: number, opts: OPTS_TYPE): Promise<TrackerPayload> {
     try {
         const result: any = await getTrackerContract(opts).methods.getTrackerDetails(trackerId).call();
-        const tracker: TrackerPayload = Object.assign({}, result[0]);
-        const metadata = JSON.parse(result[0].metadata)
-        tracker.metadata = metadata
-        if(metadata.operator_uuid!){
-            tracker.operatorUuid = metadata.operator_uuid
+        let tracker: TrackerPayload = {...result[0],};
+        let metadata = result[0].metadata
+        if(metadata.length>0){
+            metadata = JSON.parse(metadata) as any
+            tracker = {...tracker, ...{metadata}}
+        }
+        if(metadata.operator_uuid){
+            tracker = {...tracker, ...{operatorUuid: metadata.operator_uuid}}
         }
         tracker.totalEmissions = result[1];
         return tracker;
@@ -467,8 +471,7 @@ export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
         console.error(err);
         numOfIssuedTrackers = 0;
     }
-    console.log(numOfIssuedTrackers)
-    console.log('num of trackers');
+    //console.log('num of trackers', numOfIssuedTrackers);
     // get the token details from the network
     if (numOfIssuedTrackers > numOfSavedTrackers) {
         // note: this should only get NEW trackers as tokenId auto-increments, but double check anyway
@@ -477,10 +480,7 @@ export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
             const t = await db.getTrackerRepo().selectTracker(trackerId);
             if (!t) {
                 const tracker: TrackerPayload = await getTrackerDetails(trackerId, opts);
-                // TO-DO get metaObj from result[0]
-                console.log('save tracker to postgres');
-                console.log(trackerId);
-                console.log(tracker);
+                //console.log('save tracker to postgres', trackerId);
                 await db.getTrackerRepo().insertTracker(tracker);
                 // TO-DO sendTrackerIssuedEmail ?
                 //if (sendEmail) await sendTrackerIssuedEmail(tracker);

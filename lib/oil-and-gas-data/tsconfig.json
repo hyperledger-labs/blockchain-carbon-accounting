@@ -14,7 +14,7 @@
         "skipLibCheck": true,
         "sourceMap": true
     },
-    "exclude": ["dist/**/*"],
+    "exclude": ["dist/**/*","dist/**/*.ts"],
     "include": ["src","index.ts","package.json"],
 }
 

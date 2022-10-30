@@ -54,7 +54,7 @@ export interface TrackerPayload {
   dateCreated: number;
   dateUpdated: number;
   // eslint-disable-next-line
-  metadata: object;
+  metadata: Object;
   description: string;
   operatorUuid: string;
 }
@@ -68,7 +68,6 @@ export interface ProductTokenPayload {
   name: string;
   unit: string;
   unitAmount: number;
-  hash: string;
 }
 
 

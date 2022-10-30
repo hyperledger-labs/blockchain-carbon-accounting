@@ -117,7 +117,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
         emForm['gwp'] = '28'
         break
       default :
-        emForm['gwp'] = '1'
+        emForm['gwp'] = '1.000'
     }
     emForm['ghg_type']=value;
     setEmForm(emForm)
@@ -216,7 +216,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
 
         {topSuccess ? <>
           <SuccessAlert title={topSuccess.title || "Request Submitted Successfully"} onDismiss={()=>{}}>
-            <div>Calculated emissions: {topSuccess.emissions?.amount.value?.toFixed(3)} {topSuccess.emissions?.amount?.unit}{topSuccess.emissions?.amount?.unit?.endsWith('CO2e')?'':'CO2e'}</div>
+            <div>Calculated emissions: {topSuccess.emissions?.amount.value?.toLocaleString('en-US')} {topSuccess.emissions?.amount?.unit}{topSuccess.emissions?.amount?.unit?.endsWith('CO2e')?'':'CO2e'}</div>
           </SuccessAlert>
           </> :
             <AsyncButton

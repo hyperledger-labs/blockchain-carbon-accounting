@@ -5,21 +5,18 @@
 Here we summarize the deployment process deploying the CarbonTracker contract and DAPP interface. This covers installation and configuration of software in different subdirectoreis of blockchain-carbon-accouting repository. You'll need to make sure you are running version of node >= 16.x.x
 
 First run `npm install` of dependency libraries in the following subdirectories
-- [data](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data). This is where the postgres server and tables are configured for convenient storage for on and off-chain data. Follow the [readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data/README.md) for instructions on setting up and seeding the postgres database.
-- [fabric/typescript_app](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/fabric/typescript_app).
-- [hardhat](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat). Follow the [using-the-contracts readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/using-the-contracts.md).
-- [app/frontend](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/frontend).
-- [app/api-server](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/api-server)
-- [supply-chain](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/supply-chain)
  
-- Next run the hardhat node in hardhat subdirectory where the contracts (NET/CarbonTracker) are deployed locally
+- [data](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data)This is where the postgres server and tables are configured for convenient storage for on and off-chain data. Follow the [readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data/README.md) for instructions on setting up and seeding the postgres database.
+
+- Next run the hardhat node in hardhat subdirectory where the contracts (NET &CarbonTracker) are deployed
 ```
 npx hardhat node
 ```
 [using-the-react-applicaiton readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/using-the-contracts.md) provides instructions on seeding the network, e.g.:
 ```npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>``` 
 to assign roles to network addresses.
-```npx hardhat issueOilAndGasTrackers --network localhost --contract <NetEmissionsTokeNetwork address>``` 
+
+```npx hardhat issueOilAndGasTrackers --network localhost --contract <NetEmissionsTokeNetwork address> --contract <CarbonTracker address>``` 
 to issue example tracker tokens for oil and gas producers.
 
 - Run the api-server for synchronizing postgres database with contract state in app/api-server
@@ -32,7 +29,21 @@ cd app/frontend/react-app
 npm run build
 ```
 
+## Setup demo tokens for U.S. Oil & Gas production data
 
+Follow [these instructions](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/methane/README.md#oil-and-gas-data) on seeding the postgres database tables with data for oil and gas operators and their products.
+
+With this data the following task can be used to seed the desired network with data lodaded from the [The Sustainability Institute](https://www.sustainability.com/thinking/benchmarking-methane-ghg-emissions-oil-natural-gas-us/)
+
+```
+hardhat oilAndGasBenchmarkBasins --network localhost --contract <NetEmissionsTokeNetwork address> --tracker <CarbonTracker address>
+```
+
+The database includes other public data data sources for flaring of methane gas by oil and gas producers that can be compared against the tokens issued above for accuracy using the Methane App. Following the instructions in [app/methane/](https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/app/methane#methane-emissions-reduction-app)
+
+```npm run server```
+
+```npm run client```
 
 
 ## ERC721 contract for carbon tracker NFTs

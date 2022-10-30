@@ -7,7 +7,11 @@
   "scripts": {
     "dev": "hardhat node",
     "dev:setup": "hardhat setTestAccountRoles --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 && hardhat giveDaoTokens --network localhost --contract 0x5FbDB2315678afecb367f032d93F642f64180aa3 && hardhat issueTestTokens --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --count 5",
-    "dev:setup:og": "hardhat setTestAccountRoles --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 && hardhat issueOilAndGasTrackers --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+    "dev:setup:og": "hardhat setTestAccountRoles --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 && hardhat issueOilAndGasTrackers --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --tracker 0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    "dev:setup:og-benchmark-basins": "hardhat oilAndGasBenchmarkBasins --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --tracker 0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    "dev:setup:og-benchmark-totals": "hardhat oilAndGasBenchmarkOperators --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --tracker 0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    "dev:setup:og-benchmark-national": "hardhat oilAndGasBenchmarkNational --network localhost --contract 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6 --tracker 0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    
     "prettier": "prettier --write 'solidity/**/*.sol'",
     "lint": "prettier --list-different 'solidity/**/*.sol'",
     "test": "hardhat test"

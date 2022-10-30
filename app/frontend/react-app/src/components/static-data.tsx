@@ -82,6 +82,7 @@ export type ProductToken = {
   unit?: string
   unitAmount?: number
   unitAvailable?: number
+  metadata?: Object
 
 }
 

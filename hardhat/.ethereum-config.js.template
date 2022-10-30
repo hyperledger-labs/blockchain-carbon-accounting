@@ -2,11 +2,12 @@
 // It is only necessary to edit if deploying the contract to Goerli, Kovan, or xDai
 
 // Replace with the private key of your deployer address
-exports.CONTRACT_OWNER_PRIVATE_KEY = "";
+exports.CONTRACT_OWNER_PRIVATE_KEY = "d79d19ddfa996c8058ed3e2f4e4a5551c6773e0afbecf7ce320fec1016e3c449
+";
 
 // Used to make a JSON RPC connection for deploying to custom networks
 // Get a free key at https://infura.io/
-exports.INFURA_PROJECT_ID = "";
+exports.INFURA_PROJECT_ID = "wss://goerli.infura.io/ws/v3/630f3d4ce6e54c008ca8d328f10ecd5a";
 
 // Only required when running Etherscan contract verification
 // See https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html

@@ -855,7 +855,7 @@ export async function getTrackerDetails(
       fromDate: Number(trackerDetails.fromDate),
       thruDate: Number(trackerDetails.thruDate),
       createdBy: trackerDetails.createdBy,
-      metadata: trackerDetails.metadata,
+      metadata: trackerDetails.metadata ? JSON.parse(trackerDetails.metadata) : {},
       description: trackerDetails.description,
       totalEmissions,
       //: Number(remainingEmissions.toFixed(0)),

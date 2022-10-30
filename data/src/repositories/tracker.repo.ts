@@ -34,6 +34,7 @@ export class TrackerRepo {
   public insertTracker = async (payload: TrackerPayload): Promise<Tracker> => {
     const trackerRepository = await this._db.getRepository(Tracker)
     const tracker = new Tracker()
+
     return await trackerRepository.save({
       ...tracker,
       ...payload
