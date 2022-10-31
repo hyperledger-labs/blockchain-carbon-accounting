@@ -66,6 +66,7 @@ export function buildBundlesFromQueries(query: string[]) {
             fieldType: elems[1],
             value: elems[2],
             op: elems[3],
+            conjunction: elems[4] === 'true'
         })
     });
     return bundles
@@ -95,11 +96,26 @@ export const getTrackers = async (offset: number, limit: number, query: string[]
         if (status === 'success' && trackers) {
             return { count, trackers, status }
         } else {
-            if (status !== 'success') console.error('getTokens error:', error)
+            if (status !== 'success') console.error('getTrackers error:', error)
             return {count: 0, trackers: [], status};
         }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get trackers"))
+    }
+}
+
+export const getTracker = async (trackerId:number): Promise<{tracker:Tracker|undefined, status:string}> => {
+    try {
+        console.info('getTracker:', trackerId)
+        const { status, tracker, error } = await trpcClient.query('tracker.get', {trackerId})
+        if (status === 'success' && tracker) {
+            return { tracker, status }
+        } else {
+            if (status !== 'success') console.error('getTracker error:', error)
+            return {tracker: tracker, status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot get tracker"))
     }
 }
 

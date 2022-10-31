@@ -16,6 +16,7 @@ const SignUp = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pa
 const SignIn = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/sign-in"));
 const IssueForm= lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/issue-form"));
 const IssuedTrackers= lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/issued-trackers"));
+const ProductTransferForm = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/product-transfer-form"));
 
 const AccessControlForm = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/access-control-form"));
 
@@ -108,6 +109,9 @@ const App:FC = () => {
                       }</Route>
                       <Route path="/issuedTrackers/:address?">{params=>
                         <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={params?.address} _showTrackers={'issued'}/>
+                      }</Route>
+                      <Route path="/transferProduct/:trackerId/:productId?">{params=>
+                        <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} trackerId={Number(params.trackerId)} productId={Number(params.productId)}/>
                       }</Route>
                       <Route path="/access-control">
                         <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />

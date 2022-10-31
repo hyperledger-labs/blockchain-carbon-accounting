@@ -48,6 +48,26 @@ export const trackerRouter = (zQueryBundles:any) => trpc
         }
     },
 })
+.query('get', {
+    input: z.object({
+        trackerId: z.number().gte(0).default(0)
+    }).default({}),
+    async resolve({ input, ctx }) {
+        try {
+            const tracker = await ctx.db.getTrackerRepo().selectTracker(input.trackerId);
+            return {
+                status: 'success',
+                tracker: Tracker.toRaw(tracker!)
+            }
+        } catch (error) {
+            console.error(error)
+            return {
+                status: 'failed',
+                error
+            }
+        }
+    },
+})
 
 // export type definition of API
 export type TokenRouter = typeof trackerRouter

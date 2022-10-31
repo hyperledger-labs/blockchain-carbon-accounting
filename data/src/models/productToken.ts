@@ -15,7 +15,7 @@ export class ProductToken {
     @PrimaryColumn()
     productId!: number;
 
-    @Column()
+    @Column({nullable: true})
     trackerId!: number;
 
     @ManyToOne(() => Tracker, (tracker: Tracker) => tracker.products)
@@ -33,6 +33,9 @@ export class ProductToken {
 
     @Column()
     name!: string;
+
+    @Column({nullable: true, type: 'double precision'})
+    emissionsFactor!: number;
 
     @Column({nullable: true})
     unit?: string;

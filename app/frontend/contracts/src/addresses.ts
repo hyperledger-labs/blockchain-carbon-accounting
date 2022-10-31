@@ -24,17 +24,20 @@ const networksAndAddresses = {
   goerli: {
     network: "Goerli Testnet",
     tokenNetwork: {
-      address: "0xE8854ec567b3762046d8f773547f373e6A1A620A",   
+      address: "0xE8854ec567b3762046d8f773547f373e6A1A620A", 
+      /*October 30, 2022*/ 
+      //address: "0x8288C43fA04F1619BBA0b70582aEaF9c6395d259",
     },
+    /*October 30, 2022*/ 
     carbonTracker: {
-      address: "",
+      address: "0xC38Cb07C235eCc448CE3e3F1e7AD19d46d502fEa",
     },
     dao: {
       governor: {
-        address: "0x9F4590684d1DD950dF65Dc71D39f782bc3af317A", 
+        address: "0x9F4590684d1DD950dF65Dc71D39f782bc3af317A",
       },
       daoToken: {
-        address: "0x67E5b82809f28aA321818b90bF5c603D954f87C8", 
+        address: "0x67E5b82809f28aA321818b90bF5c603D954f87C8",
       }
     }
   },

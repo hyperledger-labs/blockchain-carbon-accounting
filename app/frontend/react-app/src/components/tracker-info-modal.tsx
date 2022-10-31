@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import Button from 'react-bootstrap/Button';
-import Col from "react-bootstrap/Col";
 import Modal from "react-bootstrap/Modal";
-import Row from "react-bootstrap/Row";
 import { FaLink } from 'react-icons/fa';
 import Form from 'react-bootstrap/Form';
 import { FC, ChangeEvent, useCallback, useState } from "react";
@@ -10,9 +8,11 @@ import { trackUpdate } from "../services/contract-functions";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import DisplayDate from "./display-date";
 import DisplayJSON from "./display-json";
+import { GiOilDrum } from 'react-icons/gi';
+import { IoIosFlame } from 'react-icons/io'
 
 import { trpc } from "../services/trpc";
-import { Wallet, ProductToken, Tracker} from "./static-data";
+import { Wallet, ProductToken, Tracker, Token} from "./static-data";
 
 type TrackerInfoModalProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -58,30 +58,13 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
   return (
     <Modal {...{show,tracker,onHide}} centered size="lg">
       <Modal.Header closeButton>
-         <Modal.Title>Emission Certificate Details</Modal.Title>
+         <Modal.Title>{`Emission certificate details: ID ${tracker.trackerId}`}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <Row className="mt-2 mb-4 me-3">
-          {/* tracker ID, icon, and type */}
-          <Col className="col-3">
-            <Row className="text-center">
-              <Col>
-                <h3 className="mb-1 mt-2">ID: {tracker.trackerId}</h3>
-              </Col>
-              <Col>
-                <h3 className="display-10">
-                  <FaLink />
-                </h3>
-              </Col>
-            </Row>
-          </Col>
-          <Col className="col-9">
-            <h5>
-                Reported emissions: {Math.round(Number(tracker.totalEmissions)).toLocaleString('en-US')} kgCO2e
-            </h5>
-
-          </Col>
-        </Row>
+         <h3 className="display-10">
+           <FaLink />
+             Reported emissions: {Math.round(Number(tracker.totalEmissions)/1e3).toLocaleString('en-US')} tons CO2e
+         </h3>
         <table className="table">
           <thead>
             <tr>
@@ -140,7 +123,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             <tr>
               <th>Product</th>
               <th>Amount</th>
-              <th>Availble</th>
+              <th>Available</th>
               <th>My Balance</th>
               <th>Emissions Factor</th>
             </tr>
@@ -149,14 +132,14 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             {tracker.products?.map((product: ProductToken,i: number) => (
               <tr key={product.name}>
                 <td>
-                  {product.name}
+                  {product.name === 'oil'&& <GiOilDrum/>}{product.name === 'gas'&& <IoIosFlame/>}{product.name}
                 </td>
                 <td>
                   <div key={product.name+"Amount"+i}>
                     {Math.round(product?.unitAmount!).toLocaleString('en-US') + " " + product.unit}
                   </div>
                 </td>
-                <td>{Math.round(product.unitAvailable!).toLocaleString('en-US')}</td>
+                <td>{Math.round(Number(product.available!)).toLocaleString('en-US')}</td>
                 <td>{Math.round(product?.myBalance!).toLocaleString('en-US')}</td>
                 <td>
                   <div key={product?.name+"Intensity"+i}>{product?.emissionsFactor?.toLocaleString('en-US')}{" kgCO2e/"+product?.unit}</div>
@@ -174,14 +157,14 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             </tr>
           </thead>
           <tbody>
-            {tracker.tokens?.details?.map((e: any,i: number) => (
+            {tracker.tokens?.map((e: Token,i: number) => (
                 <tr key={e.tokenId+'Details'}>
                   <td>{"Token ID "+e.tokenId}
-                    <div>{e.description}</div>
-                    {e.manifest && <a href={JSON.parse(e.manifest).source} target="_blank" rel="noopener noreferrer">Source</a>} 
+                    <p>{e.description}</p>
+                    {e.manifest && <a href={(e.manifest as any)?.source!} target="_blank" rel="noopener noreferrer">Source</a>} 
                   </td>
-                  <td>{tracker?.tokens?.amounts! && (Number(tracker?.tokens?.amounts[i]!)/1000).toLocaleString('en-US')+" tons CO2e"}
-                    <DisplayJSON json={e.metadata}/>
+                  <td><>{e.totalIssued && (Number(e.totalIssued!)/1000).toLocaleString('en-US')+" tons CO2e"}
+                    <DisplayJSON json={e.metadata}/></>
                   </td>
                 </tr>
               ))

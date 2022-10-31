@@ -16,7 +16,7 @@ export type QueryBundle = {
   op: string,
   fieldSuffix?: string, // use this if conditioning the same field more than once
   conjunction?:boolean, // use this for AND querries. 
-  // Warning! does not support combination of conjuction and disjunction
+  // does not support combination of conjuction and disjunction
 }
 
 

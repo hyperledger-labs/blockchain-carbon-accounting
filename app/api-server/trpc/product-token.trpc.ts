@@ -48,13 +48,14 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
 .mutation('insert', {
     input: z.object({
         productId: z.number(),
-        trackerId: z.number(),
+        trackerId: z.number().default(0),
         auditor: validAddress,
         amount: z.bigint(),
         available: z.bigint(),
         name: z.string(),
         unit: z.string(),
-        unitAmount: z.number(),
+        unitAmount: z.number().default(0),
+        emissionsFactor: z.number()
     }),
     async resolve({ input, ctx }) {
         try {

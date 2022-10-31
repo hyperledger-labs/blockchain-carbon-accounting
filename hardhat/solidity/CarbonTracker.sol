@@ -134,8 +134,8 @@ contract CarbonTracker is ERC721, AccessControl, ERC1155Holder {
         mapping(uint256 => uint256) amount;
     }
 
-    mapping(uint256 => CarbonTrackerDetails) internal _trackerData;
-    mapping(uint256 => CarbonTrackerMappings) internal _trackerMappings;
+    mapping(uint256 => CarbonTrackerDetails) internal _trackerData; //this could be public
+    mapping(uint256 => CarbonTrackerMappings) internal _trackerMappings; //this could be public
     mapping(uint256 => ProductDetails) public _productData;
 
     Counters.Counter public _numOfUniqueTrackers;

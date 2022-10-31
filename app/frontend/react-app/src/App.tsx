@@ -149,7 +149,7 @@ const App:FC = () => {
                         <RetireForm provider={provider} roles={roles} />
                       </Route>
                       <Route path="/issuedTrackers/:address?">{params=>
-                        <IssuedTrackers provider={provider} roles={roles} signedInAddress={params.address||signedInAddress} displayAddress={params.address}/>
+                        <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={params.address}/>
                       }</Route>
                       <Route path="/track/:trackerId?">{params=>
                         <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet} trackerId={Number(params.trackerId)} />

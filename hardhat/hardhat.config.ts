@@ -32,7 +32,7 @@ const encodeParameters = function (abi: AbiCoder, types: string[], values: any[]
 };
 
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
-//const ethereumConfig = require("./.ethereum-config");
+// const ethereumConfig = require("./.ethereum-config");
 
 // Task to set limited mode on NetEmissionsTokenNetwork
 task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
@@ -479,11 +479,9 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     }
   });
 
-async function addEmissionsAndProducts(
-  hre:any,contract:Contract,trackerContract:Contract,deployer:string,description:string,products:Product[]){
-  const trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
-  console.log("new certificate with id "+trackerId.toString()+" "+description);
-  
+async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract:Contract, deployer:string, description:string, products:Product[], trackerId:number){
+  //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+  console.log(`Add emissions and production to tracker ID ${trackerId}: ${description}`)
   let metadata = {}; let productType = '';
   for (const product of products){
     switch(product.name.toLowerCase()){
@@ -506,29 +504,59 @@ async function addEmissionsAndProducts(
         continue;
     }
     if(productType==='emissions'){ 
-      await contract.connect(await hre.ethers.getSigner(deployer)).issueAndTrack(
-        deployer,
-        deployer,
-        trackerContract.address,
-        trackerId,
-        4,
-        Math.round(product.amount*1000),
-        (product?.from_date?.getTime()!/1000).toFixed(0),
-        parseInt((product?.thru_date?.getTime()!/1000).toFixed(0)),
-        JSON.stringify(metadata),
-        JSON.stringify({'source': 'https://www.sustainability.com/thinking/benchmarking-methane-ghg-emissions-oil-natural-gas-us/'}),
-        product.name
-      );
+      try{
+        await contract.connect(await hre.ethers.getSigner(deployer)).issueAndTrack(
+          deployer,
+          deployer,
+          trackerContract.address,
+          trackerId,
+          4,
+          Math.round(product.amount*1000),
+          (product?.from_date?.getTime()!/1000).toFixed(0),
+          parseInt((product?.thru_date?.getTime()!/1000).toFixed(0)),
+          JSON.stringify(metadata),
+          JSON.stringify({'source': 'https://www.sustainability.com/thinking/benchmarking-methane-ghg-emissions-oil-natural-gas-us/'}),
+          product.name
+        );
+      }catch(error){
+        console.error(`Error adding emissions to certificate:: ${error}`)
+      }
     }else if(productType==='production'){
-      await trackerContract.connect(await hre.ethers.getSigner(deployer)).productsUpdate(
-        trackerId,
-        [0],
-        [Math.round(product.amount*1000)],
-        [product.name],
-        ['BOE'],
-        [(product.amount*1000).toString()]
-      );
+      try{
+        await trackerContract.connect(await hre.ethers.getSigner(deployer)).productsUpdate(
+          trackerId,
+          [0],
+          [Math.round(product.amount*1000)],
+          [product.name],
+          ['BOE'],
+          [(product.amount*1000).toString()]
+        );
+      }catch(error){
+        console.error(`Error adding production to certificate:: ${error}`)
+      }
     }
+  }
+}
+
+async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContract:Contract,deployer:string, address: string,year: number, description:string,metadata:string,products:Product[],trackerId:number){
+  const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
+  const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
+  if(true){
+    // toggle between create tracker and issue tokens to tracker
+    // this is used to wait for trackaction with new trackers to be confirmed 
+    // before adding product and emission tokens on a live network
+    await trackerContract.connect(await hre.ethers.getSigner(deployer)).track(
+      deployer,
+      address,
+      [],
+      [],
+      parseInt(fromDate),
+      parseInt(thruDate),
+      description,
+      metadata
+    )
+  }else{
+    await addEmissionsAndProducts(hre,contract,trackerContract,deployer,description,products,trackerId)
   }
 }
 
@@ -546,16 +574,24 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
     const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
     
     const db = await PostgresDBService.getInstance()
+    // get latest trackerId
+    //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+    let trackerId = 3 // previous completed tracker
     const operators = ['Chevron','EnerVest Operating','Hilcorp Energy','ARD Operating','Apache','Noble Energy','EQT','Pioneer Natural Resources','Berry','Atlas Energy Group','Chesapeake Energy','CNX Resources','Devon Energy','Encana Oil & Gas','EXCO Resources','Breitburn Energy','ExxonMobil','ConocoPhillips','WPX Energy','EOG Resources','Scout Energy','Consol Energy','Occidental','BP','Total']
     for (const operatorName of operators){
       const operator = await db.getOperatorRepo().findByName(operatorName);
+      if(!operator?.wallet_address){
+        console.warn(`Operator ${operatorName} does not have a registered address `)
+        continue
+      }
       const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(operator?.wallet_address);
       if(!roles.isIndustry){
+        console.warn(`Registed operator ${operatorName} as industry`)
         await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(operator?.wallet_address);
+
       }
       for (const year of [2018,2019,2020]){
-        const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
-        const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
+        //const year = 2018
         const queryBundle:QueryBundle[] = [
           {
             field: 'operatorUuid',
@@ -581,19 +617,14 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
         const result = await db.getProductRepo().getTotals(0, 0, queryBundle, false);
         const products:Product[] = Product.toRaws(result)
 
-        if(products.length===0){continue}
+        if(products.length===0){
+          continue
+        }else{
+          trackerId +=1;
+        }
         const description = [operatorName,`upstream emissions`,year.toString()].join(', ');
-        await trackerContract.connect(await hre.ethers.getSigner(deployer)).track(
-          deployer,
-          operator?.wallet_address,
-          [],
-          [],
-          parseInt(fromDate),
-          parseInt(thruDate),
-          description,
-          JSON.stringify({"operator_uuid":`${operator?.uuid}`})
-        )
-        await addEmissionsAndProducts(hre,contract,trackerContract,deployer,description,products)
+        const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`});
+        await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,description,metadata,products,trackerId)
       }    
     }
     await db.close()
@@ -603,6 +634,7 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
 task("oilAndGasBenchmarkNational","Use admin account to issue demo carbon tracker tokens for a given contract using aggregate national data")
   .addParam("contract","")
   .addParam("tracker","")
+  //.addParam("createTokens",false)
   .setAction(async (taskArgs, hre) => {
     
 
@@ -615,14 +647,15 @@ task("oilAndGasBenchmarkNational","Use admin account to issue demo carbon tracke
     
     const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(deployer);
     if(!roles.isIndustry){
+      console.warn(`Registed deployer address as industry`)
       await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(deployer);
     }
 
     const db = await PostgresDBService.getInstance()
-    
+
+    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+
     for (const year of [2018,2019,2020]){
-      const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
-      const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
       const queryBundle:QueryBundle[] = [
         {
           field: 'source',
@@ -641,19 +674,14 @@ task("oilAndGasBenchmarkNational","Use admin account to issue demo carbon tracke
       ]
       const result = await db.getProductRepo().getTotals(0, 0, queryBundle, false);
       const products:Product[] = Product.toRaws(result)
-      if(products.length===0){continue}
+      if(products.length===0){
+        continue
+      }else{
+        trackerId +=1;
+      }
       const description = [`U.S. upstream emissions`,year.toString()].join(', ');
-      await trackerContract.connect(await hre.ethers.getSigner(deployer)).track(
-        deployer,
-        deployer,
-        [],
-        [],
-        parseInt(fromDate),
-        parseInt(thruDate),
-        description,
-        ''
-      )
-      await addEmissionsAndProducts(hre,contract,trackerContract,deployer,description,products)
+      const metadata = '';
+      await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,deployer,year,description,metadata,products,trackerId)
     }    
     await db.close()
   }
@@ -673,16 +701,23 @@ task("oilAndGasBenchmarkBasins","Use admin account to issue demo carbon tracker 
     const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
     
     const db = await PostgresDBService.getInstance()
+
+    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+
     const operator = await db.getOperatorRepo().findByName('Chevron');
+
+    if(!operator?.wallet_address){
+      console.warn(`Operator ${operator?.name} does not have a registered address `)
+      return
+    }
     const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(operator?.wallet_address);
     if(!roles.isIndustry){
+      console.warn(`Registed operator ${operator.name} as industry`)
       await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(operator?.wallet_address);
     }
     //for (operator in operators){
 
       for (const year of [2018,2019,2020]){
-        const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
-        const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
         for (const basin of basins){
           const queryBundle:QueryBundle[] = [
             {
@@ -715,19 +750,14 @@ task("oilAndGasBenchmarkBasins","Use admin account to issue demo carbon tracker 
           ]
           const result = await db.getProductRepo().selectPaginated(0, 0, queryBundle, false);
           const products:Product[] = Product.toRaws(result)
-          if(products.length===0){continue}
+          if(products.length===0){
+            continue
+          }else{
+            trackerId +=1;
+          }
           const description = [`Oil & gas upstream emissions`,basin,year.toString()].join(', ');
-          await trackerContract.connect(await hre.ethers.getSigner(deployer)).track(
-            deployer,
-            operator?.wallet_address,
-            [],
-            [],
-            parseInt(fromDate),
-            parseInt(thruDate),
-            description,
-            JSON.stringify({"operator_uuid":`${operator?.uuid}`})
-          )
-          await addEmissionsAndProducts(hre,contract,trackerContract,deployer,description,products)
+          const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`});
+          await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,description,metadata,products,trackerId)
         }
       }    
     //}

@@ -18,6 +18,7 @@ export const zQueryBundles:any = z.array(z.object({
     fieldType: z.string(),
     value: z.string().or(z.number()),
     op: z.string(),
+    conjunction: z.boolean(),
 }))
 
 // created for each request, here set the DB connector

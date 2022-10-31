@@ -114,7 +114,6 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
 
   const handleTrackerSelect = useCallback((_tracker:Tracker|null) => {
     setTracker(_tracker);
-    console.log(_tracker)
   },[setTracker]);
 
   const trackerCreate = result => {
@@ -351,7 +350,6 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
 
   return (<>
     <p className="text-danger">{error}</p>
-    <Form></Form>
     <div className={fetchingProducts ? "dimmed" : ""}>
       {fetchingProducts && (
         <div className="text-center my-4">
@@ -482,18 +480,18 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
             </Row>
             <Table hover size="sm">
               <thead><tr>
-                <th>Name</th>{/*md={3} sm={4} xs={6}*/}
-                <th>Amount</th>{/*md={3} sm={4} xs={6}*/}
-                <th>Country</th>{/*md={2} sm={4} xs={6}*/}
-                <th>Year</th>{/*md={2} sm={6} xs={6}*/}
+                <th>Name</th>
+                <th>Amount</th>
+                <th>Country</th>
+                <th>Year</th>
                 {(showProductTotals) ? 
-                  (showMonthTotals && <th>Month</th>)/*md={2} sm={6} xs={6}*/
+                  (showMonthTotals && <th>Month</th>)
                   :<>
                   <th>Month</th>
                   {selectFromAssets ? 
                     <th>Asset</th> : 
                     <th>Division</th>
-                  }{/* Col md={3} sm={3} xs={6}*/}
+                  }
                 </>}
               </tr></thead>
               <tbody>
@@ -501,15 +499,15 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
                     <tr key={[product?.name,index].join('_')} 
                       onClick={() => {selectProducts ? handleSelectProduct(product) : handleOpenProductInfoModal(product)}}
                       onMouseOver={ pointerHover}>
-                      <td>{product.name}{/*Col md={4} sm={3} xs={6}*/}</td>
-                      <td>{(product.amount * (product?.unit==="%" ? 100:1)).toLocaleString('en-US',{maximumFractionDigits:6})} {product?.unit}{/*Col md={4}   sm={3} xs={6}*/}</td>
-                      <td>{product.country}</td>{/*md={2} sm={4} xs={6}  */}
-                      <td>{product.year}{/*Col md={1} sm={3} xs={6}*/}</td>
+                      <td>{product.name}</td>
+                      <td>{(product.amount * (product?.unit==="%" ? 100:1)).toLocaleString('en-US',{maximumFractionDigits:6})} {product?.unit}</td>
+                      <td>{product.country}</td>
+                      <td>{product.year}</td>
                       {(showProductTotals) ? 
-                        (showMonthTotals && <td>{product.month}</td>)/*md={2} sm={6} xs={6}*/
+                        (showMonthTotals && <td>{product.month}</td>)
                         :<><td>{product.month}</td>
                         { selectFromAssets ?
-                          <td><a href={`https://maps.google.com/?q=${product?.latitude},${product?.longitude}`} target="_blank" rel=" noopener noreferrer" >{product?.assets! && product?.assets?.length>0 && product?.assets[0]!.name!}</a>{/*  Col md={3} sm={3} xs={6}*/}</td>:
+                          <td><a href={`https://maps.google.com/?q=${product?.latitude},${product?.longitude}`} target="_blank" rel=" noopener noreferrer" >{product?.assets! && product?.assets?.length>0 && product?.assets[0]!.name!}</a></td>:
                           <td>{product?.division_type}: {product?.division_name}</td  >
                         }</>
                       }

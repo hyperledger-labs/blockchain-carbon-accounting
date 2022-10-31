@@ -157,7 +157,7 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
           onBlur={() => setInitializedProductAmountInput(true)}
           style={(productAmount || !initializedProductAmountInput) ? {} : inputError}
         />
-        <div>Available: {product?.available+" "+product?.unit}</div>
+        <div>Available: {product?.available.toLocaleString('en-US')+" "+product?.unit}</div>
 
       </Form.Group>
       <Row className="mt-4">
