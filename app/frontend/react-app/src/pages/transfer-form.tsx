@@ -74,7 +74,8 @@ const TransferForm:FC<TransferFormProps> = ({ provider, signedInWallet, roles })
   };
 
   // users that are not using metamask cannot issue tokens
-  if (signedInWallet?.private_key === 'y') {
+  console.log("signedInWallet", signedInWallet);
+  if (signedInWallet?.has_private_key_on_server) {
     return <MustUseMetamask actionName="transfer tokens" />;
   }
 

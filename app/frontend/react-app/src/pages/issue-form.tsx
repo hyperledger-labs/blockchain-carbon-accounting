@@ -366,7 +366,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     if(andTrack && typeof trackerId !== 'undefined'){
       result = await issueAndTrack(provider, issuedFrom, address, Number(trackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     }else{
-      result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
+      result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
       if (requestId) {
         if (result.toLowerCase().includes("success")) {
           let resultStatus = await issueEmissionsRequest(requestId);
@@ -391,7 +391,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
 
   // users that are not using metamask cannot issue tokens
-  if (signedInWallet?.private_key === 'y') {
+  if (signedInWallet?.has_private_key_on_server) {
     return <MustUseMetamask actionName="issue tokens" />;
   }
 

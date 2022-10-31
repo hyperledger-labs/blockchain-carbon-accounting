@@ -68,7 +68,7 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
       const rslt = await signInUser(form.email, form.password);
       if (rslt) {
         const wallet = rslt.wallet;
-        if (wallet.address && wallet.private_key) {
+        if (wallet.address && wallet.has_private_key_on_server) {
           setForm({
             ...form,
             loading: '',
@@ -84,7 +84,7 @@ const SignIn: FC<SignInProps> = ({ loadWalletInfo }) => {
             setLocation('/dashboard')
           }
           return;
-        } else if (!wallet.private_key) {
+        } else if (!wallet.has_private_key_on_server) {
           setForm({
             ...form,
             loading: '',

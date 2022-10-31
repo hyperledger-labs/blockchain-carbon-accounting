@@ -1,5 +1,5 @@
-import { 
-    Wallet ,PostgresDBService, QueryBundle 
+import {
+    Wallet, PostgresDBService, QueryBundle
 } from '@blockchain-carbon-accounting/data-postgres';
 import { ethers } from 'ethers';
 import { Request, Response } from 'express';
@@ -29,7 +29,7 @@ export async function getWallets(req: Request, res: Response) {
             });
         } else if (req.body.queryBundles) {
             const queryBundles: Array<QueryBundle> = req.body.queryBundles;
-            if(offset != undefined && limit != undefined && limit != 0) {
+            if (offset != undefined && limit != undefined && limit != 0) {
                 const wallets = await db.getWalletRepo().selectPaginated(offset, limit, queryBundles);
                 const count = await db.getWalletRepo().countWallets(queryBundles);
                 return res.status(200).json({
@@ -129,7 +129,7 @@ export async function sendPasswordResetEmail(a_email: string, token: string, os?
     return new Promise((resolve, reject) => {
         transporter.sendMail(message, (err, info) => {
             if (err) {
-                console.error('Error while sending the email:' ,err)
+                console.error('Error while sending the email:', err)
                 reject(err)
             } else {
                 console.log('Send email result:', info)
@@ -155,7 +155,7 @@ export async function sendVerificationEmail(a_email: string, token?: string, wal
     }
     const transporter = getMailer();
     const link = new URL(`${process.env.VERIFY_ROOT_URL}/verify-email/${token}/${email}`)
-    console.log('sendVerificationEmail: for email [',email,'] verification_token: ', token , link.href);
+    console.log('sendVerificationEmail: for email [', email, '] verification_token: ', token, link.href);
     const emailTemplateSourceHtml = readFileSync(path.join(__dirname, "../email/templates/verify-email.html"), "utf8")
     const emailTemplateSourceText = readFileSync(path.join(__dirname, "../email/templates/verify-email.txt"), "utf8")
     const templateHtml = handlebars.compile(emailTemplateSourceHtml)
@@ -180,7 +180,7 @@ export async function sendVerificationEmail(a_email: string, token?: string, wal
     return new Promise((resolve, reject) => {
         transporter.sendMail(message, (err, info) => {
             if (err) {
-                console.error('Error while sending the email:' ,err)
+                console.error('Error while sending the email:', err)
                 reject(err)
             } else {
                 console.log('Send email result:', info)
@@ -303,7 +303,7 @@ export async function changePassword(a_email: string, password: string, password
     // else the current password must match the wallet password_hash
     // also password and passwordConfirm must match
     // password token must also be sent less than 24 hours ago
-    if (!w || password.length < 8 || (password !== passwordConfirm) || (token && (w.password_reset_token !== token || !w.password_reset_token_sent_at || w.password_reset_token_sent_at.getTime() + (24 * 60 * 60 * 1000) < new Date().getTime() )) || (currentPassword && !w.checkPassword(currentPassword))) {
+    if (!w || password.length < 8 || (password !== passwordConfirm) || (token && (w.password_reset_token !== token || !w.password_reset_token_sent_at || w.password_reset_token_sent_at.getTime() + (24 * 60 * 60 * 1000) < new Date().getTime())) || (currentPassword && !w.checkPassword(currentPassword))) {
         console.error(!w ? 'No wallet found with that email: ' + email : 'Wrong token: ' + w.password_reset_token + ' vs ' + token);
         throw new DomainError('Invalid password change request');
     }
@@ -444,13 +444,7 @@ export async function signinWallet(a_email: string, password: string) {
     }
     console.log('signin wallet:', wallet.address)
     // remove some of the properties the client should not have access to
-    delete wallet.password_hash;
-    delete wallet.password_salt;
-    // remove the private_key but note that it was set in the wallet object
-    if (wallet.private_key) {
-        wallet.private_key = 'y';
-    }
-    return wallet;
+    return Wallet.toRawForClient(wallet);
 }
 
 export async function markPkExported(a_email: string, password: string) {
