@@ -27,7 +27,7 @@ import TrackerInfoModal from "../components/tracker-info-modal";
 import Paginator from "../components/paginate";
 import { RolesInfo, Tracker, ProductToken } from "../components/static-data";
 
-type SelectTrackers = 'my' | 'my_products' | 'issued' | 'unissued' | 'requested' | 'audited'
+type SelectTrackers = 'my' | 'my_requested' | 'my_products' | 'issued' | 'unissued' | 'requested' | 'audited'
 
 type IssuedTrackersProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -67,6 +67,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
   if(signedInAddress){
     trackerSelectors.push(
       {key: 'my', value: 'issued to me'},
+      {key: 'my_requested', value: 'requested for me'},
       //{key: 'my_products',  value: 'for my products'}
     )
   } 
@@ -166,7 +167,12 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
           newQuery = _query.concat([`auditor,string,${signedInAddress},like,true`])
           break
         case 'my':
-          newQuery = _query.concat([`trackee,string,${signedInAddress},like,true`])
+          newQuery = _query.concat([`trackee,string,${signedInAddress},like,true`,
+            `auditor,string,0x0000000000000000000000000000000000000000,neq,true`])
+          break
+        case 'my_requested':
+          newQuery = _query.concat([`trackee,string,${signedInAddress},like,true`,
+            `auditor,string,0x0000000000000000000000000000000000000000,eq,true`])
           break
         case 'my_products':
           newQuery = _query.concat([`trackee,string,${signedInAddress},like,true`])

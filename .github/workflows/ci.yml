@@ -90,10 +90,11 @@ jobs:
     needs: lint
     services:
       postgres:
-        image: postgres
+        image: postgres:11.2-alpine
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
           POSTGRES_DB: blockchain-carbon-accounting-test
         # Set health checks to wait until postgres has started
         options: >-
@@ -120,10 +121,6 @@ jobs:
         run: |
           cd ./hardhat/
           echo "n" | npx hardhat node &
-      - name: Start local api-server # Start local Hardhat network needed for running net emissions token network
-        run: |
-          cd ./app/api-server/
-          echo "n" | npm run dev:tests &        
       - name: Build emissions-data project # Add required hostnames to /etc/hosts and runs start script
         run: |
           cd ./fabric/docker-compose-setup/
@@ -142,6 +139,9 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+      - name: Collect Docker Logs
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2.2.0
       - uses: actions/upload-artifact@v3
         if: success() || failure()
         with:

@@ -8,7 +8,7 @@
     "node": ">=16"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "init": "ts-node src/dataLoader.ts init",
     "dataLoader": "ts-node src/dataLoader.ts",
     "getData": "ts-node src/getData.ts",

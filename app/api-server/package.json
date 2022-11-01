@@ -6,11 +6,12 @@
   "main": "./dist/index.js",
   "scripts": {
     "start": "node dist/server.js",
-    "dev:tests": "dotenv -e ./.env.test nodemon server.ts",
     "dev": "nodemon server.ts",
     "loadDemoSeeds": "dotenv -e ../../.env -- bash -c 'psql ${DB_NAME} -f ./seedHardhatDemoWallets.sql'",
     "build": "tsc -b && npm run copy-email",
-    "copy-email": "cp -r ./email ./dist"
+    "copy-email": "cp -r ./email ./dist",
+    "docker:build": " cd ../../ && npm run build --workspace=@blockchain-carbon-accounting/data-postgres && docker build -t ghcr.io/net-zero-project/blockchain-carbon-accounting/api-server -f app/api-server/Dockerfile .",
+    "docker:push": "docker push ghcr.io/net-zero-project/blockchain-carbon-accounting/api-server:latest"
   },
   "keywords": [],
   "author": "",

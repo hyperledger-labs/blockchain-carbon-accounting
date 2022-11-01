@@ -17,6 +17,7 @@
     "frontend": "npm run dev --workspace=@blockchain-carbon-accounting/react-app",
     "frontend-https": "npm run dev-https --workspace=@blockchain-carbon-accounting/react-app",
     "api-server": "npm run dev --workspace=@blockchain-carbon-accounting/api-server",
+    "api-server:prod": "npm run start --workspace=@blockchain-carbon-accounting/api-server",
     "api-server:loadDemoSeeds": "npm run loadDemoSeeds --workspace=@blockchain-carbon-accounting/api-server",
     "api-oracle": "npm run dev --workspace=@blockchain-carbon-accounting/api-oracle",
     "api-oracle:prod": "npm run start --workspace=@blockchain-carbon-accounting/api-oracle",
@@ -55,6 +56,7 @@
     "@typescript-eslint/eslint-plugin": "^5.26.0",
     "@typescript-eslint/parser": "^5.26.0",
     "eslint": "^8.16.0",
+    "@types/keyv": "^3.1.1",
     "nodemon": "^2.0.16",
     "ts-node": "^10.8.0",
     "typescript": "^4.7.2"
@@ -71,6 +73,7 @@
     }
   },
   "dependencies": {
-    "find-config": "^1.0.0"
+    "find-config": "^1.0.0",
+    "keyv": "^4.5.0"
   }
 }

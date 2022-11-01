@@ -23,10 +23,17 @@ services:
         image: ghcr.io/net-zero-project/blockchain-carbon-accounting/oracle-api:latest
         ports:
             - 3002:3002
+        environment:
+            API_SERVER_TRPC: "http://api-server:8000/trpc"
+    api-server: 
+        container_name: api-server
+        image: ghcr.io/net-zero-project/blockchain-carbon-accounting/api-server:latest
+        ports:
+            - 8000:8000
         extra_hosts:
             - "host.docker.internal:host-gateway"
-        environment:
-            API_SERVER_TRPC: "http://host.docker.internal:8000/trpc"
+        env_file:
+            - ../../.env.api-server
     vault:
         image: vault:latest
         container_name: vault
