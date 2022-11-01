@@ -35,5 +35,5 @@ docker exec cli /bin/bash ./network.sh deployCC -ccn emissions -ccp $CC_SRC_PATH
 echo "=== [startDev] Installing datalock chaincode..."
 docker exec cli /bin/bash ./network.sh deployCC -ccn datalock -ccp ../chaincode/datalock -ccv 1 -ccl go
 
-echo "=== [startDev] Starting the api..."
-./scripts/startApi.sh $1
+#echo "=== [startDev] Starting the api..."
+#./scripts/startApi.sh $1

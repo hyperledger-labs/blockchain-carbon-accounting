@@ -62,7 +62,7 @@ app.post('/emissionsRecord', async(req,res) =>{
         if(responseInitialized){
             query_response = await returnCachedResponse(key);
         }else{
-            cache.set(query_uuid, true, 300);
+            cache.set(query_uuid, true, 30000);
             if(query==='getEmissionsByUtilityLookUpItem'){
 
                 const queryParams:IGetEmissionsByLookUp = 
@@ -73,7 +73,7 @@ app.post('/emissionsRecord', async(req,res) =>{
                     queryParams
                 )
                 console.log(query_response)
-                cache.set(key, query_response, 300);
+                cache.set(key, query_response, 30000);
             }else{
                 throw new Error(`/emissionsRecord: query string '${query}' not recognized`)
             }

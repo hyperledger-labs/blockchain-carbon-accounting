@@ -120,7 +120,7 @@ jobs:
         run: |
           cd ./hardhat/
           echo "n" | npx hardhat node &
-      - name: Start local api-server # Start local Hardhat network needed for running net emissions token network
+      - name: Start local api-server # Start the api-server used by Fabric oracle service
         run: |
           cd ./app/api-server/
           echo "n" | npm run dev:tests &        
@@ -132,7 +132,8 @@ jobs:
           127.0.0.1       peer1.auditor1.carbonAccounting.com
           127.0.0.1       peer1.auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
-          ./startDev.sh &
+          ./startDev.sh
+          ./scripts/startApi.sh local &
       - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
           cd ./fabric/typescript_app/
