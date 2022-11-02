@@ -1,4 +1,4 @@
-# emissions-data
+# favric emissions-data
 
 This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain. To see how it works, check out [this video](https://youtu.be/zIYfjF4U2G8).
 
@@ -53,33 +53,32 @@ If you are using a Mac, you will also need to get the Mac binaries. In a separat
 $ mv ~/hyperledger/fabric-samples/bin/ ./bin_mac/
 ```
 
-Then modify the file `emissions-data/docker-compose-setup/scripts/invokeChaincode.sh` and change `./bin/peer` to `./bin_mac/peer`
+Then modify the file `fabric/docker-compose-setup/scripts/invokeChaincode.sh` and change `./bin/peer` to `./bin_mac/peer`
 
 5.  Install the dependencies for the
     server. This is a temporary fix as reported in [issue #71](https://github.com/hyperledger-labs/blockchain-carbon-accounting/issues/71)
 
-6.  From `utilities-emissions-channel/docker-compose-setup`, run the start script (includes the reset script which resets the Fabric state):
 
-### Start network, create channel, and deployCC
+6. If you have not already, seed the blockchain-carbon-accounting Postgres databse used to recordEmissions. From root
+```
+npm run loadSeeds
+```
 
-NOTE: We're currently working on fixing `start.sh`, so use `startDev.sh` for now.
+7.  From `utilities-emissions-channel/docker-compose-setup`, run the [`start.sh`](#start.sh) or [`startDev.sh`](#startDev.sh) script to Start network, create channel, and deployCC.
 
-If you are doing it for the first time, run the start.sh either in local or docker mode. Run in local mode if you want to use hardhat ethereum node for testing locally or run in docker mode when you want to use the ethereum network via Infura. Please note that this script is to run the chaincode as an external service, in case of a production deployment:
+**Warning**: We're currently working on fixing `start.sh`, so use `startDev.sh` for now.
+
+TO-DO: update the chaincode container images to reflect changes to the `fabric/chaincode/emissionscontract` seting up connection to the oracle proxy.
 
 ```bash
-sh start.sh {local|docker}
+sh startDev.sh {local|docker} {[<db_host>]}
 - local : will start API server without docker container, it will read  envs from `typescript_app/.env`
 - docker : will start API server within a docker container , compose file at `docker/application/docker-compose.yaml`
 ```
 
-If you would like to install the chaincode on the peers in your local network (ideal for chaincode development where you can test out your chaincode by installing it locally), run the startDev.sh script.
-
-```bash
-sh startDev.sh {local|docker}
-```
+Set optional db_host to override the `host.docker.internal` value set in `fabric/docker-compose/.env.api-server`. Set to `postgres` when running tests on github CI to direct the api-server (see below) to postgres container.
 
 In order to run API in local mode, Paste following inside `/etc/hosts` file
-
 ```text
 127.0.0.1       auditor1.carbonAccounting.com
 127.0.0.1       auditor2.carbonAccounting.com
@@ -87,25 +86,44 @@ In order to run API in local mode, Paste following inside `/etc/hosts` file
 127.0.0.1       peer1.auditor2.carbonAccounting.com
 127.0.0.1       peer1.auditor1.carbonAccounting.com
 ```
+These scripts will start all the fabric network services as docker containers configure in `docker-compose-setup/docker/application/docker-compose.yaml` and described [below](#containers)
 
-Otherwise, run:
+### startDev.sh: 
 
+Used for Chaincode development
+
+If you would like to install the chaincode on the peers in your local network (ideal for chaincode development where you can test out your chaincode by installing it locally), run the startDev.sh script.
+
+### start.sh:
+
+Used for production deployments.
+
+The start.sh script is designed to run the chaincode as an external service, in case of a production deployment. 
+
+If you are doing it for the first time, run the start.sh either in local or docker mode. Run in local mode if you want to use hardhat ethereum node for testing locally or run in docker mode when you want to use the ethereum network via Infura.
+
+### Restart the network 
+
+Too clean out the fabric docker containers and services if you change the network config and chaincode files
 ```bash
-sh ./scripts/fabricNetwork.sh reset && sh startDev.sh
+sh ./scripts/fabricNetwork.sh reset
 ```
 
-`startDev.sh` will start an oracle docker image used to request a response of type `CO2EmissionFactorInterface` from external db. 
 
-*Updating and testing the oracle requires rebuilding the image or running the oralce locally. The latter requires modifying the oracles endpoint used in typescript_app/tests from the network container address, http://oracle:3002, to localhost.*
+### Containers
+- oracle 
+implementing the /app/api-orcacle proxy service used to request an emissionsRecord response of type `CO2EmissionFactorInterface` from external postgres db. Calls sent to the fabric emissionsRecordContract chaincode point to one of the oracle enpoint paths. e.g.: `http://oracle:3002/emissionsRecord`
 
-7. Start the api-server used by Fabric chaincode to request emissions records. From project root. See app/api-oracle/README.md
+- api-server implmenting /app/api-server service called from the oracle. Connection to the postgres database is configured in `fabric/docker-compose/.env.api-server`
 
-```npm run api-server```
+- vault for cloud based key and certificate storage used to interact with fabric and EVM networks
 
-8. If you have not already, seed the blockchain-carbon-accounting Postgres databse used to recordEmissions. From root run
-```
-npm run loadSeeds
-```
+- ws-identify for conecting to client side key storage 
+
+- postgres used for testing purposes.
+
+*Updating the source code of the oracle and api-server will requires rebuidiong the docker images. See the project directories for instructions*
+
 
 ### Viewing the state DB
 Check the CouchDB interface at [`http://localhost:5984/_utils/`](http://localhost:5984/_utils/) and look in the `emissions-data__emissions` for the data stored in your ledger. The default CouchDB username and password are `admin` and `adminpw`.
@@ -114,7 +132,7 @@ More complex queries can be run with Mango at [`http://localhost:5984/_utils/#da
 
 ## Recording emissions with chain code
 
-From the `emissions-data/docker-compose-setup` directory, you can run a script to record and get the emissions:
+From the `fabric/docker-compose-setup` directory, you can run a script to record and get the emissions:
 
 ```shell
 # Record emission to emissions-data
@@ -149,7 +167,7 @@ You should also be able to see your emissions records in Couchdb with a Mango qu
 
 ## Starting the Express server (REST API)
 
-This is normally done for you in the `start.sh` script, but you can also start it manually. From the `emissions-data/` directory:
+This is normally done for you in the `start.sh` script, but you can also start it manually. From the `fabric/` directory:
 
 ```bash
 $ cd typescript_app

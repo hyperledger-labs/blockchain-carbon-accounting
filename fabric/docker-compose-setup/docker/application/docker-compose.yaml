@@ -30,10 +30,10 @@ services:
         image: ghcr.io/net-zero-project/blockchain-carbon-accounting/api-server:latest
         ports:
             - 8000:8000
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
         env_file:
             - ../../.env.api-server
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
     vault:
         image: vault:latest
         container_name: vault
@@ -50,6 +50,16 @@ services:
         image: ghcr.io/brioux/ws-identity:latest
         ports:
             - "8700:8700"
+    postgres:
+        container_name: postgres
+        image: postgres:14.5-alpine
+        # Provide the password for postgres
+        environment:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: blockchain-carbon-accounting-test
+        ports:
+          - 5432:5432
     api:
         container_name: api
         image: zzocker20/utilityemissions-api:0.0.3

@@ -76,16 +76,17 @@ npm Test
 
 This will run a test for the api's endpoints
 
-## Create Docker image
+## Create Docker images
 
 From the app/api-oracle directory Run
 ```
 npm run docker:build
 ```
 
-This will build the image to be published to:
-ghcr.io/net-zero-project/blockchain-carbon-accounting/oracle-api
+To publish this to a contianer repository.
 ```
 npm run docker:push
 ```
+*Make sure to set accessibilty on the respository. Currently set to ghcr.io/net-zero-project/blockchain-carbon-accounting/oracle-api*
+
 *All packages should eventually be published to official repository the hyperledger-labs project*

@@ -19,11 +19,6 @@ Ledger Integration uses Cactus project to interact with various ledger using in 
 ### Running Tests
 
 1. Start Hardhat ethereum node : `cd hardhat && npx hardhat node`
-2. Start  api-server connected to test PG DB: 
-    `cd app/api-server && npm run dev:tests`
-    If it does not exist ...
-    `createdb blockchain-carbon-accounting-test`
-2. Copy blockchain-gateway-lib files : `./cp-blockchain-gateway-lib.sh` 
-    *the following should take care of the above ...*
-3. Insert some mock data into test server, configure vault server for the testing : `npm run test:setup`
-4. Run Test Coverage : `npm run coverage`
+2. Insert some mock data into test server, configure vault server for the testing : `npm run test:setup`
+Above will copy blockchain-gateway-lib files : `./cp-blockchain-gateway-lib.sh` to typecript-app 
+3. Run Test Coverage : `npm run coverage`

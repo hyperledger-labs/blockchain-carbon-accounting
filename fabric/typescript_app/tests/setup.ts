@@ -104,6 +104,7 @@ async function setupTestPg() {
             dbname: 'blockchain-carbon-accounting-test',
             dbuser: process.env.POSTGRES_USER || '',
             dbpassword: process.env.POSTGRES_PASSWORD || '',
+            dbport: process.env.POSTGRES_PORT,
         }),
     );
     await addUtilityLookupItem(

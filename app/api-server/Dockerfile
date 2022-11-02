@@ -1,8 +1,7 @@
-FROM node:18-alpine AS base
+FROM node:18-bullseye-slim as build
+ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /project
-
-FROM base AS dependencies
+WORKDIR /app
 
 # We only copy the dependencies we need
 COPY app/api-server app/api-server

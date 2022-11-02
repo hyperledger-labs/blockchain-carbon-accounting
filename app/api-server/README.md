@@ -15,6 +15,20 @@ In another terminal run:
 npm run api-server:loadDemoSeeds
 ```
 
+## build docker container
+
+Used by the fabric network. See `fabric/README.md`
+
+```
+npm run docker:build
+```
+To publish this to a contianer repository.
+```
+npm run docker:push
+```
+*Make sure to set accessibilty on the respository. Currently set to ghcr.io/net-zero-project/blockchain-carbon-accounting/api-server. TO-DO migrate this to hyperledger-labs.*
+
+
 # Usage
 
 * Issue some tokens by `npm run supply-chain:cli` or from the frontend Issue Tokens screen.
