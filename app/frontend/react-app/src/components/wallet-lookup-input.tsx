@@ -65,7 +65,7 @@ const WalletLookupInput:ForwardRefRenderFunction<WalletLookupInputHandle, Wallet
 
   const lookupQuery = trpc.useQuery(['wallet.lookup', {query: searchText}], {
     enabled: !!searchText && searchText.length > 0,
-    onSettled: (data, error) => {
+    onSettled: (data, _error) => {
       //console.log('lookup query settled with', data, error)
       //console.log('searchText', searchText)
       if (data?.wallets) {
