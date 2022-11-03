@@ -105,13 +105,13 @@ const AccessControlForm: ForwardRefRenderFunction<AccessControlHandle, AccessCon
               </div>
             }</li>
           </ul>
-          { signedInWallet?.private_key ? <>
+          { signedInWallet?.has_private_key_on_server ? <>
             <p>Your account is set up to login with your email and password.  <Link href="export-pk">Click here</Link> to export your private key so you can sign in with Metamask.</p>
             </> : <>
               <p>Your account is set up to login with your Metamask wallet and private key.</p>
             </>
           }
-          { provider && myWalletQuery.data && !signedInWallet?.private_key && <>
+          { provider && myWalletQuery.data && !signedInWallet?.has_private_key_on_server && <>
             <h4>My Wallet</h4>
             <UpdateMyWalletForm
               provider={provider}

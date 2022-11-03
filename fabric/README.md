@@ -136,7 +136,7 @@ From the `fabric/docker-compose-setup` directory, you can run a script to record
 
 ```shell
 # Record emission to emissions-data
-$ sudo bash ./scripts/invokeChaincode.sh '{"function":"'recordEmissions'","Args":["http://host.docker.internal:8000/trpc","getEmissionsByLookUpItem","USA_EIA_11208","MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","150","KWH","url","md5"]}' 1 2
+$ sudo bash ./scripts/invokeChaincode.sh '{"function":"recordEmissions","Args":["http://oracle:3002/emissionsRecord",'{"uuid":"0702624c-bfc3-4215-97d7-a6543c4ad218","usage":"100","usageUOM":"kWh","thruDate":"2021-05-07T10:10:09Z"}',"MyCompany","2018-06-01T10:10:09Z","2018-06-30T10:10:09Z","url","md5"]}' 1 2
 ```
 
 You will get a result that looks like this:

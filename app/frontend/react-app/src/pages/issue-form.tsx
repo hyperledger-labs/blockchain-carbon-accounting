@@ -21,6 +21,7 @@ import { useMutation } from "react-query";
 import { useLocation } from "wouter";
 import AsyncButton from "../components/AsyncButton";
 import { parseDate } from "../components/display-date";
+import MustUseMetamask from "../components/must-use-metamask";
 
 type KeyValuePair = {
   key: string
@@ -39,6 +40,7 @@ export type IssueFormProps = {
 }
 
 const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId, requestId, onSubmit}) => {
+
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
@@ -371,9 +373,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _manifest = castManifest(manifest);
     let result;
     if(requestedTrackerId){
-      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
+      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     }else{
-      result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.private_key || '');
+      result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
       if (requestId) {
         if (result.toLowerCase().includes("success")) {
           let resultStatus = await issueEmissionsRequest(requestId);
@@ -395,6 +397,12 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+
+  // users that are not using metamask cannot issue tokens
+  if (signedInWallet?.has_private_key_on_server) {
+    return <MustUseMetamask actionName="issue tokens" />;
+  }
 
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>

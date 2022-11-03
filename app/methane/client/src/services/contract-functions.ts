@@ -3,7 +3,7 @@ import { abis, addresses } from "@blockchain-carbon-accounting/contracts";
 //import { AbiCoder } from "@ethersproject/abi";
 //import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
-import { Wallet } from "@ethersproject/wallet"
+//import { Wallet } from "@ethersproject/wallet"
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 //import { RolesInfo, Tracker, ProductToken } from "../components/static-data";
 import { convertToZeroIfBlank, toUnixTime, catchError, SUCCESS_MSG } from "@blockchain-carbon-accounting/react-app/src/services/contract-functions"
@@ -16,7 +16,7 @@ export async function createTracker(
   fromDate: number|Date,
   thruDate: number|Date,
   description: string,
-  privateKey: string,
+//  privateKey: string,
   operator?: Operator
 ) {
   let contract
@@ -27,12 +27,13 @@ export async function createTracker(
     let signer = w3provider.getSigner();
     contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
     contract = contract.connect(signer);
-  } else {
+  } 
+  /*else {
     console.log("Json Provider - Track");
     console.log(privateKey)
     const signer  = new Wallet(privateKey, w3provider);
     contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, signer)
-  }
+  }*/
   console.log(JSON.stringify({operator_uuid: operator?.uuid}))
   try{
     await contract.track(

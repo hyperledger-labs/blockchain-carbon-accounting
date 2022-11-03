@@ -101,7 +101,7 @@ export const walletRouter = (zQueryBundles:any) => trpc
                 throw new DomainError('Too many signin attempts from this IP address', 'BAD_REQUEST');
             }
             const wallet = await signinWallet(input.email, input.password);
-            return { wallet: Wallet.toRaw(wallet) }
+            return { wallet }
         } catch (error) {
             handleError('signin', error)
         }
