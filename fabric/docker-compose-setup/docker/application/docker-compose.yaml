@@ -5,17 +5,17 @@ volumes:
 
 services:
     locals3:
-      container_name: locals3
-      image: localstack/localstack:0.12.18
-      ports:
+        container_name: locals3
+        image: localstack/localstack:0.12.18
+        ports:
             - 4566:4566
             - 4571:4571
-      environment:
+        environment:
             - SERVICES=s3
             - DEBUG=DEBUG
             - DATA_DIR=/tmp/localstack/data
             - DOCKER_HOST=unix:///var/run/docker.sock
-      volumes:
+        volumes:
             - locals3:/tmp/localstack
             - /var/run/docker.sock:/var/run/docker.sock
     oracle: 
@@ -32,8 +32,6 @@ services:
             - 8000:8000
         env_file:
             - ../../.env.api-server
-        extra_hosts:
-            - "host.docker.internal:host-gateway"
     vault:
         image: vault:latest
         container_name: vault

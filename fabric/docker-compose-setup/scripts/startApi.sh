@@ -8,13 +8,12 @@
 # 2. docker mode, for running the api in a docker container
 
 MODE=${1:-local}
-DB_HOST=${2}
 
 NETWORK_NAME="carbonAccounting"
 case $MODE in
   local)
 
-        DB_HOST=$DB_HOST docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3 ws-identity oracle api-server $DB_HOST
+        docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3 ws-identity oracle api-server
         docker network connect $NETWORK_NAME oracle
 
         cd ../typescript_app
@@ -31,7 +30,7 @@ case $MODE in
   ;;
 
   docker)
-        DB_HOST=$DB_HOST docker-compose -f ./docker/application/docker-compose.yaml up -d
+        docker-compose -f ./docker/application/docker-compose.yaml up -d
 
         docker network connect $NETWORK_NAME api
   ;;
