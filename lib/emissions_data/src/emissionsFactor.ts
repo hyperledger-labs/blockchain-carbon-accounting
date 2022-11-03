@@ -29,4 +29,3 @@ export interface EmissionsFactorInterface {
     renewables?: string;
     percent_of_renewables?: string;
 }
-

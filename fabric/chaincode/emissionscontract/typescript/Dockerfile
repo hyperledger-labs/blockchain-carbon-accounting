@@ -2,6 +2,7 @@ FROM node:18-alpine as builder
 
 RUN npm install -g typescript
 WORKDIR /usr/local/src
+#COPY ../../../../lib/emissions_data lib/emissions_data
 COPY package.json .
 RUN npm install --only=production
 COPY . .

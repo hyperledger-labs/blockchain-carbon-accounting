@@ -56,6 +56,7 @@ jobs:
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
           POSTGRES_DB: blockchain-carbon-accounting-test
         # Set health checks to wait until postgres has started
         options: >-
@@ -87,6 +88,22 @@ jobs:
   test-typescript-app: # Build and test the typescript_app project
     runs-on: ubuntu-latest
     needs: lint
+    services:
+      postgres:
+        image: postgres:latest
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: blockchain-carbon-accounting-test
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -112,13 +129,19 @@ jobs:
           127.0.0.1       peer1.auditor1.carbonAccounting.com
           127.0.0.1       peer1.auditor2.carbonAccounting.com
           127.0.0.1       peer1.auditor1.carbonAccounting.com" | sudo tee -a /etc/hosts
-          ./startDev.sh &
+          DB_HOST=postgres ./startDev.sh &
       - name: Run tests # Wait for the blockchain network to start up and then run the tests
         run: |
           cd ./fabric/typescript_app/
           while ! timeout 1 bash -c "echo > /dev/tcp/localhost/8080" > /dev/null 2>&1; do sleep 10; done
           npm run test:setup
           npm run test:ci
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+      - name: Collect Docker Logs
+        if: failure()
+        uses: jwalton/gh-docker-logs@v2.2.0
       - uses: actions/upload-artifact@v3
         if: success() || failure()
         with:

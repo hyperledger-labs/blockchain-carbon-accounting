@@ -45,6 +45,7 @@ export const startupSync = async(opts: OPTS_TYPE) => {
         try {
             await clearTokensDBData();
             await clearWalletsRolesDBData();
+            await clearTrackersDBData();
         } catch (err) {
             console.error('An error occurred while truncating the table', err)
             throw err
@@ -62,8 +63,9 @@ export const runSync = async (syncFromBlock: number, opts: OPTS_TYPE, sendEmail 
     let lastBlock = 0;
 
     try {
-        await fillProductTokens(opts, sendEmail);
         await fillTrackers(opts, sendEmail);
+        await fillProductTokens(opts, sendEmail);
+
         lastBlock = await fillTokens(opts, sendEmail);
         console.log('-- blockchain last block: ', lastBlock);
     } catch (err) {
@@ -160,6 +162,30 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
     }
 }
 
+/** Read the event log of the CarbonTracker and process events.
+ * - For TrackerUpdated: check token id and amount changes on trackerId
+ * - For ProductsUpdated: check transfers and update the balances in the DB
+ */
+export const syncCarbonTrackerEvents = async (fromBlock: number, currentBlock: number, opts: OPTS_TYPE) => {
+    try {
+        const db = await PostgresDBService.getInstance()
+
+        const account_events = [
+            {event: 'RegisteredTracker'},
+            {event: 'TrackerUpdated'},
+            {event: 'ProductsUpdated'},
+        ];
+        const accountAddresses: Record<string, boolean> = {};
+        const syncedAccountAddresses: Record<string, boolean> = {};
+        let toBlock = fromBlock;
+        while (toBlock <= currentBlock) {
+        }
+    } catch (err) {
+        console.error(err)
+        throw new Error('Error in syncEvents: ' + err)
+    }
+}
+
 export const getRoles = async (address: string, opts: OPTS_TYPE) => {
   return await getContract(opts).methods.getRoles(address).call();
 }
@@ -238,7 +264,7 @@ const getNumOfProductTokens = async (opts: OPTS_TYPE): Promise<number> => {
     }
 }
 
-/** Get number of unique tokens on the blockchain. */
+/** Get number of unique trackers on the blockchain. */
 const getNumOfTrackers = async (opts: OPTS_TYPE): Promise<number> => {
     try {
         const result = await getTrackerContract(opts).methods._numOfUniqueTrackers().call();
@@ -261,15 +287,31 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
 }
 
 /** Get the product details from the blockchain */
-async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductTokenPayload> {
+async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductTokenPayload|undefined> {
     try {
-        const product: ProductTokenPayload = await getTrackerContract(opts).methods._productData(productId).call();
-        //getProductOptionalDetails
-        product.productId = productId;
+        const result = await getTrackerContract(opts).methods._productData(productId).call();
+        let emissionsFactor = null;
+
+        if(Number(result.trackerId)!==0){
+            let decimals = Number(await getTrackerContract(opts).methods.decimalsEf().call());
+            emissionsFactor = Number(await getTrackerContract(opts).methods.emissionsFactor(result.trackerId).call())
+            emissionsFactor = emissionsFactor/decimals*Number(result.amount)/Number(result.unitAmount)
+        }
+        const product:ProductTokenPayload = {
+            ...result, ...{
+                productId: productId, 
+                unitAmount: Number(result.unitAmount),
+                emissionsFactor
+            }
+        }
+        if(Number(product.trackerId)===0){
+            console.warn('Skipping product with no assigned trackerId!')
+            return
+        }
         return product;
-    } catch (err) {
-        console.error(err);
-        throw new Error('Error in getProductDetails: ' + err);
+    } catch (error) {
+        console.error(error);
+        throw new Error(`Error in getProductDetails: ${error}`);
     }
 }
 
@@ -277,13 +319,42 @@ async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<Pr
 async function getTrackerDetails(trackerId: number, opts: OPTS_TYPE): Promise<TrackerPayload> {
     try {
         const result: any = await getTrackerContract(opts).methods.getTrackerDetails(trackerId).call();
-        const tracker: TrackerPayload = Object.assign({}, result[0]);
-        console.log(result);
+        //console.log(result)
+        const tracker : TrackerPayload = {...result[0]};
+        
         tracker.totalEmissions = result[1];
+        
+        let metadata = result[0].metadata
+        if(metadata.length>0){
+            metadata = JSON.parse(metadata) as any
+            tracker.metadata = metadata
+        }
+        if(metadata.operator_uuid){
+            tracker.operatorUuid = metadata.operator_uuid
+        }
+
+        tracker.products=[]
+        for(const productId of result[2]){
+            const product = await getProductDetails(productId,opts)
+            if(product) tracker.products.push(product)
+        }
+
+        const tokenDetails = await getTrackerContract(opts).methods.getTrackerTokenDetails(trackerId).call();
+            
+        tracker.tokens=[];
+        //console.log(tokenDetails)
+        for(const tokenId of tokenDetails[0]){
+            const token = await getTokenDetails(tokenId,opts);
+            //console.log(token)
+            token.trackerId = trackerId
+            tracker.tokens.push(token);
+        } 
+
+        console.log(`Adding trackerId ${trackerId} to postgres with tokenIds ${tracker.tokens.map(t=>t.tokenId)} and productIds ${tracker.products.map(t=>t.productId)}`)
         return tracker;
     } catch (err) {
         console.error(err);
-        throw new Error('Error in getTrackerDetails: ' + err);
+        throw new Error(`Error in getTrackerDetails: ${err}`);
     }
 }
 
@@ -347,12 +418,22 @@ export const clearTokensDBData = async () => {
     console.log('--- Token tables have been cleared. ----\n')
 }
 
+/** Clear the token and balance tables. */
+export const clearTrackersDBData = async () => {
+    const db = await PostgresDBService.getInstance()
+    await db.getTrackerRepo().truncateTrackers();
+    // truncate balances is also done by truncate tokens
+    console.log('--- Tracker & Product tables have been cleared. ----\n')
+}
+
 /** Clear the wallet roles data. */
 export const clearWalletsRolesDBData = async () => {
     const db = await PostgresDBService.getInstance()
     await db.getWalletRepo().clearWalletsRoles()
     console.log('--- Wallets roles have been cleared. ----\n')
 }
+
+
 
 /** Sync the tokens from the blockchain and returns the blockchain current block number.
 This does not depend on a starting block as we rely on the fact that token ids are sequential.
@@ -388,9 +469,6 @@ export const fillTokens = async (opts: OPTS_TYPE, sendEmail: boolean): Promise<n
     return await getCurrentBlock(opts);
 }
 
-/** Sync the tokens from the blockchain and returns the blockchain current block number.
-This does not depend on a starting block as we rely on the fact that token ids are sequential.
-*/
 export const fillProductTokens = async (opts: OPTS_TYPE, sendEmail: boolean) => {
     const db = await PostgresDBService.getInstance()
 
@@ -412,18 +490,20 @@ export const fillProductTokens = async (opts: OPTS_TYPE, sendEmail: boolean) => 
             // if the token is not in the database, get the initial details and save it
             const t = await db.getProductTokenRepo().selectProduct(productId);
             if (!t) {
-                const product: ProductTokenPayload = await getProductDetails(productId, opts);
+                const product = await getProductDetails(productId, opts);
+                if(!product) continue;
+
                 await db.getProductTokenRepo().insertProductToken(product);
                 // TO-DO sendProductIssuedEmail ?
                 //if (sendEmail) await sendTokenIssuedEmail(token);
             }
         }
     }
-    console.log(`${numOfIssuedProducts - numOfSavedProducts} new tokens of ${numOfIssuedProducts} are stored into database.`);
+    console.log(`${numOfIssuedProducts - numOfSavedProducts} new product tokens of ${numOfIssuedProducts} are stored into database.`);
     return await getCurrentBlock(opts);
 }
 
-/** Sync the tokens from the blockchain and returns the blockchain current block number.
+/** Sync the trackers from the blockchain and returns the blockchain current block number.
 This does not depend on a starting block as we rely on the fact that token ids are sequential.
 */
 export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
@@ -431,7 +511,7 @@ export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
 
     // get number tokens from database
     const numOfSavedTrackers = await db.getTrackerRepo().countTrackers([]);
-    console.log(numOfSavedTrackers)
+    //console.log(numOfSavedTrackers)
     // get number tokens from network
     let numOfIssuedTrackers = 0;
     try {
@@ -440,27 +520,22 @@ export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
         console.error(err);
         numOfIssuedTrackers = 0;
     }
-    console.log(numOfIssuedTrackers)
-    console.log('num of trackers');
+    //console.log('num of trackers', numOfIssuedTrackers);
     // get the token details from the network
     if (numOfIssuedTrackers > numOfSavedTrackers) {
-        // note: this should only get NEW tokens as tokenId auto-increments, but double check anyway
+        // note: this should only get NEW trackers as tokenId auto-increments, but double check anyway
         for (let trackerId = numOfSavedTrackers + 1; trackerId <= numOfIssuedTrackers; trackerId++) {
             // if the token is not in the database, get the initial details and save it
             const t = await db.getTrackerRepo().selectTracker(trackerId);
             if (!t) {
                 const tracker: TrackerPayload = await getTrackerDetails(trackerId, opts);
-                // TO-DO get metaObj from result[0]
-                console.log('save tracker to postgres');
-                console.log(trackerId);
-                console.log(tracker);
                 await db.getTrackerRepo().insertTracker(tracker);
                 // TO-DO sendTrackerIssuedEmail ?
                 //if (sendEmail) await sendTrackerIssuedEmail(tracker);
             }
         }
     }
-    console.log(`${numOfIssuedTrackers - numOfSavedTrackers} new tokens of ${numOfIssuedTrackers} are stored into database.`);
+    console.log(`${numOfIssuedTrackers - numOfSavedTrackers} new trackers of ${numOfIssuedTrackers} are stored into database.`);
     return await getCurrentBlock(opts);
 }
 

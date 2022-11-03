@@ -26,7 +26,7 @@ type EmissionsRequestsHandle = {
   refresh: ()=>void
 }
 
-const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress }) => {
+const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, EmissionsRequestsProps> = ({ provider, signedInAddress },ref) => {
   const [ pendingEmissions, setPendingEmissions ] = useState<EmissionsRequest[]>([]);
   const [error, setError] = useState("");
   const [, setLocation] = useLocation();
@@ -35,12 +35,14 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
     try {
       let newEmissionsRequests = await getAuditorEmissionsRequests(auditorAddress);
       setPendingEmissions(newEmissionsRequests);
+      console.log(newEmissionsRequests)
       setError("");
     } catch (error) {
       console.log(error);
       setError("Could not get emissions requests.");
     }
   }, []);
+
 
   useEffect(() => {
     const init = async () => {

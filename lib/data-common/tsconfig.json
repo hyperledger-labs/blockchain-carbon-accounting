@@ -10,10 +10,11 @@
         "module": "commonjs",
         "resolveJsonModule": true,
         "esModuleInterop": true,
-        "skipLibCheck": true,
         "declaration": true,
+        "skipLibCheck": true,
         "sourceMap": true
     },
+    "include": ["*.ts","package.json"],
     "exclude": ["dist/**/*"]
 }
 

@@ -12,13 +12,16 @@ export type {
     AssetOwnerDetails, 
     ASSET_OPERATOR_CLASS_IDENTIFIER
 } from "./src/assetOperator"
-export type { 
+export { 
     ProductInterface,
+    productTypes,
+    ProductType,
     PRODUCT_CLASS_IDENTIFIER
 } from './src/product'
 export { 
     importOilAndGasAssets, 
-    importProductData 
+    importProductData,
+    updateProductDates,
 } from "./src/import"
 export {
     matchAssets

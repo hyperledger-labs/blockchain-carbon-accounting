@@ -407,13 +407,12 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         string memory manifest,
         string memory description
     ) public onlyDealer {
-        CarbonTracker ct = CarbonTracker(trackerAddress);
         require(
-            ct.netAddress() == address(this),
+            CarbonTracker(trackerAddress).netAddress() == address(this),
             "CLM8::issueAndTrack: trackerAddress does not belong to address(this)"
         );
         require(
-            ct._numOfUniqueTrackers() >= trackerId,
+            CarbonTracker(trackerAddress)._numOfUniqueTrackers() >= trackerId,
             "CLM8::issueAndTrack: trackerId does not exist"
         );
         require(
@@ -444,22 +443,25 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         tokenIds[0] = _numOfUniqueTokens.current();
         tokenAmounts[0] = quantity;
         if (trackerId == 0) {
-            ct.track(
+            CarbonTracker(trackerAddress).track(
+                issuedTo,
                 issuedTo,
                 tokenIds,
                 tokenAmounts,
                 fromDate,
                 thruDate,
-                trackerDescription
+                trackerDescription,
+                ""
             );
         } else {
-            ct.trackUpdate(
+            CarbonTracker(trackerAddress).trackUpdate(
                 trackerId,
                 tokenIds,
                 tokenAmounts,
                 fromDate,
                 thruDate,
-                trackerDescription
+                trackerDescription,
+                ""
             );
         }
     }

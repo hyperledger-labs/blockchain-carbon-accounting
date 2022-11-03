@@ -5,12 +5,11 @@ import {
   Column, Entity,
   PrimaryGeneratedColumn,
   OneToMany,
-  ManyToOne,
   Unique
 } from 'typeorm';
 import { AssetOperator } from './assetOperator';
-import { Wallet } from './wallet';
 import { Product } from './product';
+import { Tracker } from './tracker';
 
 
 @Entity()
@@ -28,17 +27,20 @@ export class Operator implements OperatorInterface {
   @OneToMany(() => Product, (product: Product) => product.operator)
   products?: Product[];
 
-  @ManyToOne(() => Wallet)
-  wallet!: Wallet;
+  @Column()
+  wallet_address!: string;
+
+  @OneToMany(() => Tracker, (tracker: Tracker) => tracker.operator)
+  trackers?: Tracker[];
 
   @Column({unique: true})
   name!: string;
 
-  @Column({default:0, type: 'integer'})
-  asset_count!: number;
-
   @Column({nullable:true})
   status?: string;
+
+  @Column({default:0, type: 'integer'})
+  asset_count?: number;
 
   @Column({nullable:true})
   description?: string;

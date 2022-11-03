@@ -103,10 +103,10 @@ describe("Carbon Tracker - Integration tests", function() {
 
     let track = await contractT
       .connect(await ethers.getSigner(dealer1))
-      .track(industry1, 
+      .track(industry1,industry1,
         [tokenIdOne],
         [quantity],
-        0,0,""
+        0,0,"",""
       )
     expect(track)
     transactionReceipt = await track.wait(0);
@@ -122,7 +122,7 @@ describe("Carbon Tracker - Integration tests", function() {
         cttOne,
         [tokenIdTwo],
         [quantity],
-        0,0,""
+        0,0,"",""
       );
     // Check to be certain mint did not return errors
     expect(trackeUpdate);
@@ -130,10 +130,10 @@ describe("Carbon Tracker - Integration tests", function() {
     try {
       await contractT
         .connect(await ethers.getSigner(dealer1))
-        .track(industry1, 
+        .track(industry1,industry1,
           [tokenIdOne,tokenIdTwo],
           [quantity],
-          0,0,""
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(
@@ -143,10 +143,10 @@ describe("Carbon Tracker - Integration tests", function() {
     try {
       await contractT
         .connect(await ethers.getSigner(dealer1))
-        .track(industry1, 
+        .track(industry1,industry1, 
           [tokenIdOne],
           [quantity+1],
-          0,0,""
+          0,0,"",""
         )
     } catch (err) {
       expect(err.toString()).to.equal(

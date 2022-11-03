@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-import { FC, ChangeEvent, useCallback, useEffect, useState, useMemo } from "react";
+import { FC, ChangeEvent, useCallback, useEffect, useState } from "react";
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -28,21 +28,23 @@ type KeyValuePair = {
   value: string
 }
 
-type IssueFormProps = {
+export type IssueFormProps = {
   provider?: Web3Provider | JsonRpcProvider,
   signedInAddress: string,
   roles: RolesInfo,
   limitedMode: boolean,
   signedInWallet?: Wallet,
   trackerId?: number,
-  requestId?: string
+  requestId?: string,
+  onSubmit?:()=>void
 }
 
-const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId, requestId}) => {
+const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limitedMode, signedInWallet, trackerId, requestId, onSubmit}) => {
 
   const [selectedPendingEmissions, setSelectedPendingEmissions] = useState<EmissionsRequest>();
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
   const [createModalShow, setCreateModalShow] = useState(false);
+
   const [, setLocation] = useLocation();
   const [error, setError] = useState("");
 
@@ -50,26 +52,25 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [adminAddress, setAdminAddress] = useState("");
 
   // Form inputs
-  const [address, setAddress] = useState("");
-  const [issuedFrom, setIssuedFrom] = useState('');
+  const [address, setAddress] = useState(localStorage.getItem('issueTo')! || "");
+  const [issuedFrom, setIssuedFrom] = useState(localStorage.getItem('issueFrom')! || "");
 
-  const andTrack = useMemo(()=> (typeof trackerId !== 'undefined'), [trackerId]);
-  const [tokenTypeId, setTokenTypeId] = useState(1);
-  const [quantity, setQuantity] = useState("");
-  const [fromDate, setFromDate] = useState<Date|null>(null);
-  const [thruDate, setThruDate] = useState<Date|null>(null);
-  const [description, setDescription] = useState("");
+  const [tokenTypeId, setTokenTypeId] = useState(Number(localStorage.getItem('tokenTypeId')||1));
+  const [quantity, setQuantity] = useState(localStorage.getItem('quantity')||"");
+  const [fromDate, setFromDate] = useState<Date|null>(localStorage.getItem('fromDate')! ? new Date(localStorage.getItem('fromDate')!): null);
+  const [thruDate, setThruDate] = useState<Date|null>(localStorage.getItem('thruDate')! ? new Date(localStorage.getItem('thruDate')!) : null);
+  const [description, setDescription] = useState(localStorage.getItem('description')||'');
   const [trackerDescription, /*setTrackerDescription*/] = useState("");
   const [result, setResult] = useState("");
 
   const [scope, setScope] = useState<number|null>(null);
-  const [type, setType] = useState("");
+  const [type, setType] = useState(localStorage.getItem('type')||'');
 
   const [metajson, setMetajson] = useState("");
-  const [metadata, setMetadata] = useState<KeyValuePair[]>([]);
+  const [metadata, setMetadata] = useState<KeyValuePair[]>(localStorage.getItem('scope')! ? [{key:'scope', value:localStorage.getItem('scope')} as KeyValuePair] : []);
 
   const [manifestjson, setManifestjson] = useState("");
-  const [manifest, setManifest] = useState<KeyValuePair[]>([]);
+  const [manifest, setManifest] = useState<KeyValuePair[]>(localStorage.getItem('manifest') ? [{key:'source',value:localStorage.getItem('manifest')} as KeyValuePair]:[]);
 
   // Calldata
   const [calldata, setCalldata] = useState("");
@@ -78,6 +79,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [initializedAddressInput, setInitializedAddressInput] = useState(false);
   const [initializedQuantityInput, setInitializedQuantityInput] = useState(false);
   const [initializedTrackerIdInput, setInitializedTrackerIdInput] = useState(false);
+
+  const [requestedTrackerId, setRequestedTrackerId] = useState(trackerId);
 
   const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
   const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
@@ -138,6 +141,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   function handleSubmit() {
     submit();
     setSubmissionModalShow(true);
+    if(onSubmit!){onSubmit()}
   }
 
   function disableIssueButton(calldata: string, quantity: number|string, address: string, requestId?: string) {
@@ -203,6 +207,11 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         setMetajson("");
         if (newEmissionsRequest.token_metadata) {
           const tokenMetadata = JSON.parse(newEmissionsRequest.token_metadata);
+          //catch requestedTrackerId stored in metadata and update issue form to add emissions to existing carbon tracker
+          console.log(tokenMetadata)
+          if(tokenMetadata.TrackerId){
+            setRequestedTrackerId(tokenMetadata.TrackerId)
+          }
           for (const key in tokenMetadata) {
                 md.push({key: key, value: tokenMetadata[key]});
           }
@@ -253,16 +262,16 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
   useEffect(() => {
     async function fetchTrackerDetails() {
-      if(!provider || !andTrack){
+      if(!provider || !requestedTrackerId){
         return;
       }
       const result = await getTrackerDetails(provider, Number(trackerId), signedInAddress);
-      if (Number(trackerId)>0 && typeof result === 'object'  ) {
+      if (Number(requestedTrackerId)>0 && typeof result === 'object'  ) {
         setAddress(result.trackee)
       }
     }
     fetchTrackerDetails();
-  }, [provider, trackerId, andTrack, signedInAddress]);
+  }, [provider, requestedTrackerId, signedInAddress, trackerId]);
 
 
   // update calldata on input change
@@ -363,8 +372,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
     let result;
-    if(andTrack && typeof trackerId !== 'undefined'){
-      result = await issueAndTrack(provider, issuedFrom, address, Number(trackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
+    if(requestedTrackerId){
+      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     }else{
       result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
       if (requestId) {
@@ -398,11 +407,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
 
-  if (andTrack && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
+  if (requestedTrackerId && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
 
   return (roles.hasAnyRole && provider!==null) ? (
     <>
-
       <CreateProposalModal
         show={createModalShow}
         title="Create a proposal"
@@ -426,73 +434,69 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         <>
           <h2>Pending Emissions Request</h2>
           <p className="text-danger">{error}</p>
-        </>
-      :
-      <>
-        <h2>
+        </>:
+        <>
+          <h2>
           Issue tokens
-        </h2>
-        <p>
-          {(andTrack) ? "for emissions certificate contract: "+ addresses.carbonTracker.address : null }
-        </p>
-
-        {(andTrack) ?
-          <Form.Group className="mb-3" controlId="trackerIdInput">
-            <Form.Label>TrackerId</Form.Label>
-            <Form.Control
-              type="input"
-              placeholder="set to 0 to issue a new tracker"
-              value={trackerId}
-              //onChange={onTrackerIdChange}
-              disabled
-              onBlur={() => setInitializedTrackerIdInput(true)}
-              style={(trackerId || !initializedTrackerIdInput) ? {} : inputError}
-            />
-            <Form.Text className="text-muted">
-              Setting ID to 0 will issue a new tracker.
-            </Form.Text>
-            {/*<Form.Label>Tracker Description</Form.Label>
-              <Form.Control
-                as="textarea"
-                placeholder=""
-                value={trackerDescription}
-                onChange={onTrackerDescriptionChange} />*/}
-          </Form.Group>
-        : null}
-        <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered {(andTrack) ? "industry" : "consumers"}.</p>
-      </>
+          </h2>
+          <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered {(requestedTrackerId) ? "industry" : "consumers"}.</p>
+        </>
       }
-      <Form.Group className="mb-3">
-          <Form.Label>
-            Issue From Address
-          </Form.Label>
-          { true ?
-            <InputGroup>
-              <WalletLookupInput
-                onChange={(v: string) => { setIssuedFrom(v) }}
-                onWalletChange={(w)=>{
-                  setIssuedFrom(w ? w.address! : '');
-                }}
-                onBlur={() => setInitializedAddressInput(true)}
-                style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
-                value={issuedFrom ? issuedFrom : ''}
-                />
-            </InputGroup>
-            :<Form.Control
-              type="input"
-              value={signedInAddress}
-              disabled
-            />
-          }
+      {requestedTrackerId && <>
+        <b>{"for emissions certificate contract: "+ addresses.carbonTracker.address}</b>
+        <Form.Group className="mb-3" controlId="trackerIdInput">
+          <Form.Label>TrackerId</Form.Label>
+          <Form.Control
+            type="input"
+            placeholder="set to 0 to issue a new tracker"
+            value={requestedTrackerId}
+            //onChange={onTrackerIdChange}
+            disabled
+            onBlur={() => setInitializedTrackerIdInput(true)}
+            style={(requestedTrackerId || !initializedTrackerIdInput) ? {} :inputError  }
+          />
+          <Form.Text className="text-muted">
+            Setting ID to 0 will issue a new tracker.
+          </Form.Text>
+          {/*<Form.Label>Tracker Description</Form.Label>
+            <Form.Control
+              as="textarea"
+              placeholder=""
+              value={trackerDescription}
+              onChange={onTrackerDescriptionChange} />*/}
         </Form.Group>
+      </>}
+      <Form.Group className="mb-3">
+        <Form.Label>
+          Issue From Address
+        </Form.Label>
+        { true ?
+          <InputGroup>
+            <WalletLookupInput
+              onChange={(v: string) => { setIssuedFrom(v) }}
+              onWalletChange={(w)=>{
+                setIssuedFrom(w ? w.address! : '');
+              }}
+              onBlur={() => setInitializedAddressInput(true)}
+              style={(issuedFrom || !initializedAddressInput) ? {} : inputError}
+              value={issuedFrom ? issuedFrom : ''}
+              />
+          </InputGroup>
+          :<Form.Control
+            type="input"
+            value={signedInAddress}
+            disabled
+          />
+        }
+      </Form.Group>
 
-      { ((!limitedMode) || (tokenTypeId === 3))
+      { ((!limitedMode) || (tokenTypeId === 3) || (tokenTypeId === 4))
         ?
         <Form.Group className="mb-3">
           <Form.Label>
-            {(andTrack) ? "Issue Tracker To Address" : "Issue To Address" }
+            {(requestedTrackerId) ? "Issue Certificate To Address" : "Issue To Address" }
           </Form.Label>
-          {(!andTrack || trackerId === 0) ?
+          {(!requestedTrackerId || requestedTrackerId === 0) ?
             <InputGroup>
               <WalletLookupInput
                 onChange={(v: string) => { setAddress(v) }}
@@ -544,7 +548,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
            <option value={0}>{}</option>
            {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
            {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
-           {(roles.isAdmin || roles.isAeDealer) && !andTrack ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
+           {(roles.isAdmin || roles.isAeDealer) && !requestedTrackerId ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
            {(roles.isAdmin || roles.isAeDealer) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
          </Form.Select>
        }
@@ -660,7 +664,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <Button className="label-button" variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
         </Form.Group>
         <Form.Group>
-          {manifest.map((field, key) =>
+          {manifest! && manifest.map((field, key) =>
             <Row key={key} className="mt-2">
               <Col md={3}>
                 <Form.Control

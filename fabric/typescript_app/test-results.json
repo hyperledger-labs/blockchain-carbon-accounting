@@ -1,0 +1,1188 @@
+{
+  "stats": {
+    "suites": 14,
+    "tests": 65,
+    "passes": 65,
+    "pending": 0,
+    "failures": 0,
+    "start": "2022-10-28T00:11:53.144Z",
+    "end": "2022-10-28T00:12:03.705Z",
+    "duration": 10561
+  },
+  "tests": [
+    {
+      "title": "startTx",
+      "fullTitle": "DataLockGateway vault startTx",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 290,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update tx stage with lock",
+      "fullTitle": "DataLockGateway vault should update tx stage with lock",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 254,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update tx stage with storage",
+      "fullTitle": "DataLockGateway vault should update tx stage with storage",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 220,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update tx stage with un-lock",
+      "fullTitle": "DataLockGateway vault should update tx stage with un-lock",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 238,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "endTx",
+      "fullTitle": "DataLockGateway vault endTx",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 203,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getTxDetails",
+      "fullTitle": "DataLockGateway vault getTxDetails",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 136,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should setup fabric tx caller",
+      "fullTitle": "EmissionsDataGateway vault should setup fabric tx caller",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 97,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record emissions data",
+      "fullTitle": "EmissionsDataGateway vault should record emissions data",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 275,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "record emissions throws",
+      "fullTitle": "EmissionsDataGateway vault record emissions throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 169,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update token if for minted records",
+      "fullTitle": "EmissionsDataGateway vault should update token if for minted records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 213,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "updateEmissionsMintedToken throws",
+      "fullTitle": "EmissionsDataGateway vault updateEmissionsMintedToken throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 180,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions record",
+      "fullTitle": "EmissionsDataGateway vault should get emissions record",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 266,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should store the hashed partyId",
+      "fullTitle": "EmissionsDataGateway vault should store the hashed partyId",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 139,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getEmissionData throws",
+      "fullTitle": "EmissionsDataGateway vault getEmissionData throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 138,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should fail the MD5 checksum on tampering with the document",
+      "fullTitle": "EmissionsDataGateway vault should fail the MD5 checksum on tampering with the document",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 581,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records",
+      "fullTitle": "EmissionsDataGateway vault should get emissions records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 253,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records by date range",
+      "fullTitle": "EmissionsDataGateway vault should get emissions records by date range",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 137,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getEmissionsRecords throws",
+      "fullTitle": "EmissionsDataGateway vault getEmissionsRecords throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "getAllEmissionsDataByDateRange throws",
+      "fullTitle": "EmissionsDataGateway vault getAllEmissionsDataByDateRange throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 1,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should setup fabric tx caller",
+      "fullTitle": "EmissionsDataGateway web-socket should setup fabric tx caller",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 496,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record emissions data",
+      "fullTitle": "EmissionsDataGateway web-socket should record emissions data",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 260,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "record emissions throws",
+      "fullTitle": "EmissionsDataGateway web-socket record emissions throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 172,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update token if for minted records",
+      "fullTitle": "EmissionsDataGateway web-socket should update token if for minted records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 217,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "updateEmissionsMintedToken throws",
+      "fullTitle": "EmissionsDataGateway web-socket updateEmissionsMintedToken throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 150,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions record",
+      "fullTitle": "EmissionsDataGateway web-socket should get emissions record",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 138,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should store the hashed partyId",
+      "fullTitle": "EmissionsDataGateway web-socket should store the hashed partyId",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 132,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getEmissionData throws",
+      "fullTitle": "EmissionsDataGateway web-socket getEmissionData throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 134,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should fail the MD5 checksum on tampering with the document",
+      "fullTitle": "EmissionsDataGateway web-socket should fail the MD5 checksum on tampering with the document",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 404,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records",
+      "fullTitle": "EmissionsDataGateway web-socket should get emissions records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 138,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records by date range",
+      "fullTitle": "EmissionsDataGateway web-socket should get emissions records by date range",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 134,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should enroll admin",
+      "fullTitle": "fabric-registry vault should enroll admin",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 99,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong secret passed",
+      "fullTitle": "fabric-registry vault enroll throws if wrong secret passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 87,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong token is passed",
+      "fullTitle": "fabric-registry vault enroll throws if wrong token is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 3,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "fabric-registry vault should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 83,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "register throw if wrong token is passed",
+      "fullTitle": "fabric-registry vault register throw if wrong token is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 5,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should enroll admin",
+      "fullTitle": "fabric-registry web-socket should enroll admin",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 542,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong secret passed",
+      "fullTitle": "fabric-registry web-socket enroll throws if wrong secret passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 340,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong signature is passed",
+      "fullTitle": "fabric-registry web-socket enroll throws if wrong signature is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong session id is passed",
+      "fullTitle": "fabric-registry web-socket enroll throws if wrong session id is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "fabric-registry web-socket should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 325,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "register throw if wrong token is passed",
+      "fullTitle": "fabric-registry web-socket register throw if wrong token is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 5,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should register consumer",
+      "fullTitle": "EthNetEmissionsTokenGateway plain should register consumer",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 81,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should issue emission token",
+      "fullTitle": "EthNetEmissionsTokenGateway plain should issue emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 430,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "throws",
+      "fullTitle": "EthNetEmissionsTokenGateway plain throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should issue emission token",
+      "fullTitle": "EthNetEmissionsTokenGateway kv should issue emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 429,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "throws",
+      "fullTitle": "EthNetEmissionsTokenGateway kv throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 7,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should create signer",
+      "fullTitle": "Signer should create signer",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throw for non supporting hlf identity",
+      "fullTitle": "Signer throw for non supporting hlf identity",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throw for non supporting eth identity",
+      "fullTitle": "Signer throw for non supporting eth identity",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 1,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if web-socket or vault API keys are not provided",
+      "fullTitle": "Signer throws if web-socket or vault API keys are not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should return fabric signer type = vault",
+      "fullTitle": "Signer should return fabric signer type = vault",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should return fabric signer type = web-socket",
+      "fullTitle": "Signer should return fabric signer type = web-socket",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if ws session id is not provided",
+      "fullTitle": "Signer throws if ws session id is not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if ws session id signature is not provided",
+      "fullTitle": "Signer throws if ws session id signature is not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should return eth signer for type=plain",
+      "fullTitle": "Signer should return eth signer for type=plain",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if eth address || private is not provided",
+      "fullTitle": "Signer throws if eth address || private is not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should enroll a client",
+      "fullTitle": "E2E-vault should enroll a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 207,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "E2E-vault should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 103,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record an emission",
+      "fullTitle": "E2E-vault should record an emission",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 8,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should record audited emission token",
+      "fullTitle": "E2E-vault should record audited emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should enroll a client",
+      "fullTitle": "E2E-ws should enroll a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 359,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "E2E-ws should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 348,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record an emission",
+      "fullTitle": "E2E-ws should record an emission",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 3,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should record audited emission token",
+      "fullTitle": "E2E-ws should record audited emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 2,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should create a web-socket session ID",
+      "fullTitle": "E2E-ws should create a web-socket session ID",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 94,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [],
+  "passes": [
+    {
+      "title": "startTx",
+      "fullTitle": "DataLockGateway vault startTx",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 290,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update tx stage with lock",
+      "fullTitle": "DataLockGateway vault should update tx stage with lock",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 254,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update tx stage with storage",
+      "fullTitle": "DataLockGateway vault should update tx stage with storage",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 220,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update tx stage with un-lock",
+      "fullTitle": "DataLockGateway vault should update tx stage with un-lock",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 238,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "endTx",
+      "fullTitle": "DataLockGateway vault endTx",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 203,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getTxDetails",
+      "fullTitle": "DataLockGateway vault getTxDetails",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/datalock.test.ts",
+      "duration": 136,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should setup fabric tx caller",
+      "fullTitle": "EmissionsDataGateway vault should setup fabric tx caller",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 97,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record emissions data",
+      "fullTitle": "EmissionsDataGateway vault should record emissions data",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 275,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "record emissions throws",
+      "fullTitle": "EmissionsDataGateway vault record emissions throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 169,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update token if for minted records",
+      "fullTitle": "EmissionsDataGateway vault should update token if for minted records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 213,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "updateEmissionsMintedToken throws",
+      "fullTitle": "EmissionsDataGateway vault updateEmissionsMintedToken throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 180,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions record",
+      "fullTitle": "EmissionsDataGateway vault should get emissions record",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 266,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should store the hashed partyId",
+      "fullTitle": "EmissionsDataGateway vault should store the hashed partyId",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 139,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getEmissionData throws",
+      "fullTitle": "EmissionsDataGateway vault getEmissionData throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 138,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should fail the MD5 checksum on tampering with the document",
+      "fullTitle": "EmissionsDataGateway vault should fail the MD5 checksum on tampering with the document",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 581,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records",
+      "fullTitle": "EmissionsDataGateway vault should get emissions records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 253,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records by date range",
+      "fullTitle": "EmissionsDataGateway vault should get emissions records by date range",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 137,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getEmissionsRecords throws",
+      "fullTitle": "EmissionsDataGateway vault getEmissionsRecords throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "getAllEmissionsDataByDateRange throws",
+      "fullTitle": "EmissionsDataGateway vault getAllEmissionsDataByDateRange throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 1,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should setup fabric tx caller",
+      "fullTitle": "EmissionsDataGateway web-socket should setup fabric tx caller",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 496,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record emissions data",
+      "fullTitle": "EmissionsDataGateway web-socket should record emissions data",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 260,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "record emissions throws",
+      "fullTitle": "EmissionsDataGateway web-socket record emissions throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 172,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should update token if for minted records",
+      "fullTitle": "EmissionsDataGateway web-socket should update token if for minted records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 217,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "updateEmissionsMintedToken throws",
+      "fullTitle": "EmissionsDataGateway web-socket updateEmissionsMintedToken throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 150,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions record",
+      "fullTitle": "EmissionsDataGateway web-socket should get emissions record",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 138,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should store the hashed partyId",
+      "fullTitle": "EmissionsDataGateway web-socket should store the hashed partyId",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 132,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "getEmissionData throws",
+      "fullTitle": "EmissionsDataGateway web-socket getEmissionData throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 134,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should fail the MD5 checksum on tampering with the document",
+      "fullTitle": "EmissionsDataGateway web-socket should fail the MD5 checksum on tampering with the document",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 404,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records",
+      "fullTitle": "EmissionsDataGateway web-socket should get emissions records",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 138,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should get emissions records by date range",
+      "fullTitle": "EmissionsDataGateway web-socket should get emissions records by date range",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/emissionsChannel.test.ts",
+      "duration": 134,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should enroll admin",
+      "fullTitle": "fabric-registry vault should enroll admin",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 99,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong secret passed",
+      "fullTitle": "fabric-registry vault enroll throws if wrong secret passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 87,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong token is passed",
+      "fullTitle": "fabric-registry vault enroll throws if wrong token is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 3,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "fabric-registry vault should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 83,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "register throw if wrong token is passed",
+      "fullTitle": "fabric-registry vault register throw if wrong token is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 5,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should enroll admin",
+      "fullTitle": "fabric-registry web-socket should enroll admin",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 542,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong secret passed",
+      "fullTitle": "fabric-registry web-socket enroll throws if wrong secret passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 340,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong signature is passed",
+      "fullTitle": "fabric-registry web-socket enroll throws if wrong signature is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "enroll throws if wrong session id is passed",
+      "fullTitle": "fabric-registry web-socket enroll throws if wrong session id is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "fabric-registry web-socket should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 325,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "register throw if wrong token is passed",
+      "fullTitle": "fabric-registry web-socket register throw if wrong token is passed",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/fabric-registry.test.ts",
+      "duration": 5,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should register consumer",
+      "fullTitle": "EthNetEmissionsTokenGateway plain should register consumer",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 81,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should issue emission token",
+      "fullTitle": "EthNetEmissionsTokenGateway plain should issue emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 430,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "throws",
+      "fullTitle": "EthNetEmissionsTokenGateway plain throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should issue emission token",
+      "fullTitle": "EthNetEmissionsTokenGateway kv should issue emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 429,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "throws",
+      "fullTitle": "EthNetEmissionsTokenGateway kv throws",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/netEmissionsTokenNetwork.test.ts",
+      "duration": 7,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should create signer",
+      "fullTitle": "Signer should create signer",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throw for non supporting hlf identity",
+      "fullTitle": "Signer throw for non supporting hlf identity",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throw for non supporting eth identity",
+      "fullTitle": "Signer throw for non supporting eth identity",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 1,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if web-socket or vault API keys are not provided",
+      "fullTitle": "Signer throws if web-socket or vault API keys are not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should return fabric signer type = vault",
+      "fullTitle": "Signer should return fabric signer type = vault",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should return fabric signer type = web-socket",
+      "fullTitle": "Signer should return fabric signer type = web-socket",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if ws session id is not provided",
+      "fullTitle": "Signer throws if ws session id is not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if ws session id signature is not provided",
+      "fullTitle": "Signer throws if ws session id signature is not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should return eth signer for type=plain",
+      "fullTitle": "Signer should return eth signer for type=plain",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "throws if eth address || private is not provided",
+      "fullTitle": "Signer throws if eth address || private is not provided",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/blockchain-gateway/signer.test.ts",
+      "duration": 0,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should enroll a client",
+      "fullTitle": "E2E-vault should enroll a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 207,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "E2E-vault should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 103,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record an emission",
+      "fullTitle": "E2E-vault should record an emission",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 8,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should record audited emission token",
+      "fullTitle": "E2E-vault should record audited emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 4,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should enroll a client",
+      "fullTitle": "E2E-ws should enroll a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 359,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should register a client",
+      "fullTitle": "E2E-ws should register a client",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 348,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "should record an emission",
+      "fullTitle": "E2E-ws should record an emission",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 3,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should record audited emission token",
+      "fullTitle": "E2E-ws should record audited emission token",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 2,
+      "currentRetry": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "should create a web-socket session ID",
+      "fullTitle": "E2E-ws should create a web-socket session ID",
+      "file": "/Users/bertrandrioux/github.com/net-zero-project/blockchain-carbon-accounting/fabric/typescript_app/tests/e2e.test.ts",
+      "duration": 94,
+      "currentRetry": 0,
+      "speed": "slow",
+      "err": {}
+    }
+  ]
+}

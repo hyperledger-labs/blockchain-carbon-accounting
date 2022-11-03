@@ -1,4 +1,4 @@
-import type { Field, Wallet } from "@blockchain-carbon-accounting/react-app/src/components/static-data"
+import type { Field } from "@blockchain-carbon-accounting/react-app/src/components/static-data"
 export type Asset = {
   name?: string
   latitude: number
@@ -18,10 +18,12 @@ export type Asset = {
 export type Operator = {
   uuid?: string;
   name?: string;
-  wallet?: Wallet;
+  wallet_address?: string;
   status?: string;
   description?: string;
-  asset_count?: number
+  asset_count?: number;
+  trackersCount?: number;
+  assetsCount?:number;
   //asset_operators?: AssetOperator[];
   //products?: Product[];
 }
@@ -33,7 +35,7 @@ export type Product = {
   type: string;
   amount: number;
   unit: string;
-  assets?: Asset;
+  assets?: Asset[];
   operator?: Operator;
   country?: string;
   division_type?: string;
@@ -52,6 +54,7 @@ export type Product = {
   source_date?: string;
 }
 
+
 export const OPERATOR_FIELDS: Field[] = [
 {
     alias: 'Name',
@@ -68,4 +71,43 @@ export const ASSET_FIELDS: Field[] = [
     type: 'string',
     ops: ['like']
 },
+{
+    alias: 'State',
+    name: 'division_name',
+    type: 'string',
+    ops: ['eq']
+},
+]
+
+export const PRODUCT_FIELDS: Field[] = [
+{
+    alias: 'Year',
+    name: 'year',
+    type: 'string',
+    ops: ['eq']
+},
+{
+    alias: 'Division',
+    name: 'division_name',
+    type: 'string',
+    ops: ['like']
+},
+{
+    alias: 'Month',
+    name: 'month',
+    type: 'string',
+    ops: ['like']
+},
+{
+    alias: 'Name',
+    name: 'name',
+    type: 'string',
+    ops: ['like']
+}
+/*{
+    alias: 'Division',
+    name: 'division_type',
+    type: 'string',
+    ops: ['like']
+}*/,
 ]

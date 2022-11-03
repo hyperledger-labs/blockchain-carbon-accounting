@@ -3,7 +3,7 @@ import axios from 'axios';
 import moment from 'moment';
 import { SetStateAction } from 'react';
 import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
-import type { Token, Wallet } from '../components/static-data';
+import type { Token, Tracker, Wallet } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
@@ -57,7 +57,7 @@ export function handleFormErrors<F extends {}, E extends {}>(err: unknown, setFo
 }
 
 
-function buildBundlesFromQueries(query: string[]) {
+export function buildBundlesFromQueries(query: string[]) {
     let bundles: QueryBundle[] = []
     query.forEach(elem => {
         const elems = elem.split(',')
@@ -66,6 +66,7 @@ function buildBundlesFromQueries(query: string[]) {
             fieldType: elems[1],
             value: elems[2],
             op: elems[3],
+            conjunction: elems[4] === 'true'
         })
     });
     return bundles
@@ -84,6 +85,37 @@ export const getTokens = async (offset: number, limit: number, query: string[]):
         }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get tokens"))
+    }
+}
+
+export const getTrackers = async (offset: number, limit: number, query: string[]): Promise<{count:number, trackers:Tracker[], status:string}> => {
+    try {
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getTrackers:', offset, limit, bundles)
+        const { status, count, trackers, error } = await trpcClient.query('tracker.list', {offset, limit, bundles})
+        if (status === 'success' && trackers) {
+            return { count, trackers, status }
+        } else {
+            if (status !== 'success') console.error('getTrackers error:', error)
+            return {count: 0, trackers: [], status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot get trackers"))
+    }
+}
+
+export const getTracker = async (trackerId:number): Promise<{tracker:Tracker|undefined, status:string}> => {
+    try {
+        console.info('getTracker:', trackerId)
+        const { status, tracker, error } = await trpcClient.query('tracker.get', {trackerId})
+        if (status === 'success' && tracker) {
+            return { tracker, status }
+        } else {
+            if (status !== 'success') console.error('getTracker error:', error)
+            return {tracker: tracker, status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot get tracker"))
     }
 }
 
@@ -217,12 +249,12 @@ export const issueEmissionsRequest = async (uuid: string) => {
     }
 }
 
-export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string, fromDate: Date|null, thruDate: Date|null) => {
+export const createEmissionsRequest = async (form: EmissionsFactorForm, supportingDocument: File, signedInAddress: string, fromDate: Date|null, thruDate: Date|null, trackerId?: number|null) => {
     try {
         const url = BASE_URL + '/emissionsrequest/';
         const formData = new FormData();
         for (const k in form) {
-            formData.append(k, form[k as keyof EmissionsFactorForm]);
+            formData.append(k, form[k as keyof EmissionsFactorForm].toString());
         }
         formData.append("supportingDocument", supportingDocument);
         formData.append("signedInAddress", signedInAddress);
@@ -231,6 +263,9 @@ export const createEmissionsRequest = async (form: EmissionsFactorForm, supporti
         }
         if (thruDate) {
             formData.append("thruDate", (moment(thruDate.setHours(23,59,59,999))).format('YYYY-MM-DD HH:mm:ss.SSS'));
+        }
+        if (trackerId) {
+            formData.append("trackerId", trackerId.toString());
         }
         const resp = await fetch(url, {
             method: 'POST',

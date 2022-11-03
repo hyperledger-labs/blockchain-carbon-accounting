@@ -1,35 +1,64 @@
 # Methane Emissions Reduction App
 
-This application is designed to connect an extensive set of oil and gas industry data to the Net Emission Token Network.
+This application connects an extensive set of oil and gas industry data to the Net Emission Token Network and Carbon Tracker contracts. The latter is used to issue emission performance certificates for oil & gas producers, by tokenizing  emission and production data.
 
-This includes a federal data of U.S. and Canadian oil & gas assets and their operators as well as public data on oil and natural gas production and assocaited emissions. 
+The app includes a list of U.S. and Canadian oil & gas assets linked to registered operators, as well as public data on oil and natural gas production and associated emissions. 
 
 ## Run the application
 
-```npm run client```
 ```npm run server```
+*Backend to handle requests from the oil & gas database tables (`Operator`, `OilAndGasAsset`, `Product`)*
 
-Seed the postgres databse with data as [described below](oil-and-gas-data)
 
-## Platform Features
+```npm run client```
+Front end to interact with oil 7 gas data and issue perfomance certifcates described below.
 
- *Work in progress*
+Using the application requres seeding the postgres database [described below](oil-and-gas-data)
 
-### Register Operator
+## Auditing of operator product data
 
-### Register Investor/Lender account
+### Single product audit request for emission certificates 
 
-### Request emission  certificates for operator and/or operator assets
+Use `createEmissionsRequest` of the /app/frontend/react-app/src/api-service to request NET audits for oil & gas operator products, as described in [../frontend/README.md](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/README.md)
 
-Audit of product data by auditors reigstered with the NetEmissionToken (NET)network and CarbonTrack auditors auditors 
+Called from the methane client frontend `RequestProductAudit` component. Sets up a new form submission for the industry `activity_type`. Triggers the api-server to call the supply-chain-lib `process_industry`. Requests can specific:
+    GHG type: CO2, CH4, N2O
+    GWP: global warming potential of the gas
+    Source: methane flaring, venting, leakage. 
 
-For example of certificates issued within NET run the app as described in [../frontend/README.md](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/README.md)
+`process-industry` can also be used by an auditor to calculate emissions from oil-and-gas data points for flaring, venting, or leakage. Rather than submitting a request, the auditor receives corresponding emission attributes ( kgCOe, scope, manifest, etc ...) used to seed IssueForm and ad NET tokens to an emission performance certificates (carbon tracker token). 
 
-### Transfer of emission certificates to investor/lender account
+The form is seeded by setting `localStorage` items.
 
-Compliance with sustainable investments instruments
-- sustainability linked loans (SLL)
-- sustainability linked bonds (SLB)
+### Multi-product audit 
+
+Request the audit of an oil & gas operators emissions using a combination of data points. E.g., upper bounds on satellite emission measurements from individual assets belonging to the operator.
+
+Multiple data points are submitted to an audit request using the `other` `activity_type` of `RequestAudit` component form of the react-app. 
+
+In this case the complete attributes of the selected product data points are compiled into a single file submitted to a request. The Auditor is then tasked to review the file stored encrypted within IPFS and assess the correct amount of emission tokens to issue.
+
+### Oil & gas production data
+
+Single and multi-product audit requests described above apply to data points of the emissions `ProductType`. There is no audit request functionality for oil and gas production `ProductType` data points stored in the oil & gas [`Product` model](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data/src/models/product.ts). Production can only be directly converted to product-tokens issued to perfromance certificates by auditors. 
+
+Is done using the `ProductForm` component and calling the `productUpdate` contract-function provided by the react-app. The final step in issuing a perfromance certificate is calling the `verifyTracker` contract-function.
+
+## Transfer of emission certificates to investor/lender account
+
+Once emission perfromance certificates are issued, they can be transferred to to investors and or lenders of the oil & gas operators. These certificates are exchanged to reflect compliance with sustainability criteria linked to the financing of oil & gas operators, such as Sustaainability Linked Loand or Bonds. 
+
+Investor/lender accounts can participate in these networks to receive tokens by aquiring their own wallet address:
+1. using their own wallet connected to NET/Carbon Tracker networks
+2. by registering a consumer wallet through the `SignUp` form of the react-app.
+
+### Tracking of embodied emissions
+
+*FUTURE DEVELOPMENT*
+
+Tracking of embodied emissions linked to  audited production quantities.
+
+Product tokens can be transfered as inputs to new perfromance certificates representing the convesion of oil & gas products into intermediate and end consumer products like refined fuels and petrochemicals.
 
 
 ## Oil and gas data
@@ -73,7 +102,6 @@ The primary source of this data is [US HIFLD geoplatform](https://hifld-geoplatf
 **Required**
 - wallet: Wallet class used for signing up with the NET platform *./wallet.ts*
 - name (unique)
-- asset_count: number of assets
 
 **Relations**
  - products: [Product](#product) schema below. Generally used for aggregate product quantities assigned to operator, and NOT products associated to specific assets of the operator
@@ -87,9 +115,9 @@ The primary sources of the data are
 
 ### Product: *./product.ts*
 
-*This schema is different from ProductToken!*
+*This schema is different from ProductToken*
 
-Holds raw data, both production and emissions, associated to assets and operators.
+Holds raw data, both production and emissions, connected to assets and operators.
 
 The data is audited and used to issue 
  - emission certificates within NET 
@@ -97,10 +125,10 @@ The data is audited and used to issue
  *emission and product tokens are combined into emission certificates as desicribed in the [Carbon Tracker contractrac README](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/carbon-tracker.md)* 
 
 **Required attributes**
-- type: emissions label, fuel extraction, etc .. 
+- type: ProductType (emissions, production quantities, fuel extraction ...)
 - name: of the product
-- amount
-- unit
+- amount:
+- unit:
 
 **Relations**
 - assets: for linking product to specific asset 
@@ -119,8 +147,8 @@ custom join table linking [Asset](#oil-and-gas-asset) to [Operator](#operator)
 @Unique(['asset', 'operator', 'thru_date' ])
 
 The database schema allows more than one operator to be assigned to an asset.
-This is to express join operation of the asset quantifed by the share attribute.
-The *../assetOperator.repo.ts* `putAssetOperator` method specifies rules for creating this relation. Rules to be implemented
+This is to express joint operation of the asset measured by the `share` attribute.
+The *../assetOperator.repo.ts* `putAssetOperator` method specifies rules for creating this relation.
 
 - Only one operator assigned during an active relation (thur_date == null)
 - Total share for single asset in overlapping from/thru periods == 1

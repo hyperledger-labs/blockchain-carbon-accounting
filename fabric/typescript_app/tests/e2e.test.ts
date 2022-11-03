@@ -50,7 +50,6 @@ describe('E2E-ws', async () => {
             .send({})
             .end(async (_, response) => {
                 try {
-                    console.log(response);
                     const url = response.body.url;
                     const sessionId = response.body.sessionId;
                     const webSocketKey = await wsWalletAdmin.open(sessionId, url);
@@ -119,6 +118,8 @@ function tests(headerKey: string, headerValue: string) {
                 userId: userId,
             })
             .send({
+                endpoint: 'http://oracle:3002/emissionsRecord',
+                query: 'getEmissionsByUtilityLookUpItem',
                 utilityId: mockUtilityID,
                 partyId: partyId,
                 fromDate: '2020-05-07T10:10:09Z',

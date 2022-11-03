@@ -13,6 +13,8 @@ import {
     ITxDetails,
     IWebSocketKey,
 } from '../blockchain-gateway-lib/I-gateway';
+import { IGetEmissionsByLookUp } from '../blockchain-gateway-lib/I-query-params';
+
 import AWSS3 from '../datasource/awsS3';
 import ClientError from '../errors/clientError';
 import { checkDateConflict, toTimestamp } from '../utils/dateUtils';
@@ -53,13 +55,25 @@ export default class EmissionsChannelService {
         const fnTag = `${this.className}.recordEmission()`;
         this.__validateUserID(input);
         this.__validateRecordEmissionsInput(input);
+
         const userId = input.query.userId;
+
+        const endpoint: string = input.query.endpoint;
+        const query: string = input.query.endpoint;
+
         const utilityId: string = input.body.utilityId;
         const partyId: string = input.body.partyId;
         const fromDate: string = input.body.fromDate;
         const thruDate: string = input.body.thruDate;
         const energyUseAmount: number = parseInt(input.body.energyUseAmount);
         const energyUseUom: string = input.body.energyUseUom;
+
+        const queryParams: IGetEmissionsByLookUp = {
+            uuid: utilityId,
+            usage: energyUseAmount,
+            usageUOM: energyUseUom,
+            thruDate: thruDate,
+        };
 
         const fabricCaller: IFabricTxCaller = {
             userId: userId,
@@ -113,12 +127,15 @@ export default class EmissionsChannelService {
             }
 
             return await this.opts.EmissionsGateway.recordEmissions(fabricCaller, {
-                utilityId: utilityId,
+                endpoint,
+                query,
+                queryParams,
+                //utilityId: utilityId,
                 partyId: partyId,
                 fromDate: fromDate,
                 thruDate: thruDate,
-                energyUseAmount: energyUseAmount,
-                energyUseUom: energyUseUom,
+                //energyUseAmount: energyUseAmount,
+                //energyUseUom: energyUseUom,
                 url: url,
                 md5: md5,
             });

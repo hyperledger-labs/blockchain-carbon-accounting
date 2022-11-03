@@ -1,7 +1,4 @@
-import {
-    ErrInvalidDateFormat,
-    ErrUnknownUOM,
-} from './const';
+import { ErrInvalidDateFormat, ErrUnknownUOM } from './const';
 
 export const UOM_FACTORS: { [key: string]: number } = {
     wh: 1.0,
@@ -50,4 +47,3 @@ export interface CO2EmissionFactorInterface {
     nonrenewable_energy_use_amount?: number;
     year: number;
 }
-

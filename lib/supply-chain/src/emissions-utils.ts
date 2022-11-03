@@ -1,18 +1,14 @@
-import { 
-  Wallet,
-  PostgresDBService 
-} from "@blockchain-carbon-accounting/data-postgres";
-import EthNetEmissionsTokenGateway from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/netEmissionsTokenNetwork";
-import BCGatewayConfig from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/config";
-import Signer from "@blockchain-carbon-accounting/blockchain-gateway-lib/src/blockchain-gateway/signer";
+import { Wallet, PostgresDBService } from "@blockchain-carbon-accounting/data-postgres";
+
+import { EthNetEmissionsTokenGateway } from "@blockchain-carbon-accounting/blockchain-gateway-lib";
+import { BCGatewayConfig } from "@blockchain-carbon-accounting/blockchain-gateway-lib";
+import { Signer } from "@blockchain-carbon-accounting/blockchain-gateway-lib";
 import { 
   IEthNetEmissionsTokenIssueInput,
   IEthTxCaller 
 } from "@blockchain-carbon-accounting/blockchain-gateway-lib";
 
-import type { 
-  EmissionsFactorInterface 
-} from "@blockchain-carbon-accounting/emissions_data_lib";
+import type { EmissionsFactorInterface } from "@blockchain-carbon-accounting/emissions_data_lib";
 import { BigNumber } from "bignumber.js";
 import { existsSync, readFileSync } from "fs";
 import { extname, resolve } from "path";
@@ -22,15 +18,17 @@ import {
   Distance, ElectricityActivity, Emissions,
   EmissionsFactorActivity, FlightActivity,
   is_electricity_activity, is_emissions_factor_activity,
-  is_flight_activity, is_natural_gas_activity,
+  is_flight_activity, is_natural_gas_activity, is_industrial_activity,
   is_other_activity, is_shipment_activity, MetadataType,
-  NaturalGasActivity, OtherActivity, ProcessedActivity,
+  NaturalGasActivity, IndustryActivity, OtherActivity, ProcessedActivity,
   ShipmentActivity, ShippingMode, ValueAndUnit
 } from "./common-types";
+import { weight_in_kg, get_convert_kg_for_uom } from './unit-utils'
 import { hash_content } from "./crypto-utils";
 import { calc_direct_distance, calc_distance } from "./distance-utils";
 import { uploadFileRSAEncrypted, uploadFileWalletEncrypted } from "./ipfs-utils";
 import { get_ups_client, get_ups_shipment } from "./ups-utils";
+import { process_industry } from "./industry-utils"
 
 async function getDBInstance() {
   return await PostgresDBService.getInstance();
@@ -49,39 +47,6 @@ export function weight_in_uom(weight: number, uom: string, to_uom: string) {
   return w1 / w2;
 }
 
-export function weight_in_kg(weight?: number, uom?: string) {
-  if (!weight) throw new Error(`Invalid weight ${weight}`);
-  if (!uom) return weight;
-  // check supported UOMs
-  const u = uom.toLowerCase();
-  if (u === "kg") return weight;
-  if (u === "lb" || u === "lbs" || u === "pound") return weight * 0.453592;
-  if (u === "t" || u === "tonne" || u === "tons") return weight * 1000.0;
-  if (u === "g") return weight / 1000.0;
-  // not recognized
-  throw new Error(`Weight UOM ${uom} not supported`);
-}
-
-// use this to convert kg into the emission factor uom, most should be 'tonne.kg'
-// but also support different weight uoms
-function get_convert_kg_for_uom(uom: string): number {
-  if (uom.includes('.')) {
-    return get_convert_kg_for_uom(uom.split('.')[0]);
-  }
-
-  const u = uom.toLowerCase();
-  if (u === "kg") return 1;
-  if (u === "lb" || u === "lbs" || u === "pound") return 2.20462;
-  if (u === "t" || u === "tonne") return 0.001;
-  if (u === "g") return 1000.0;
-  // not recognized
-  throw new Error(`Weight UOM ${uom} not supported`);
-}
-
-export function distance_object_in_km(distance: Distance): number {
-  return distance_in_km(distance.value, distance.unit);
-}
-
 export function distance_in_km(distance: number, unit?: string): number {
   if (!unit || unit === "km") return distance;
   if (unit === "mi" || unit === "miles") return distance* 1.60934;
@@ -93,6 +58,10 @@ export function distance_in_uom(distance: number, uom: string, to_uom: string) {
   const d1 = distance_in_km(distance, uom)
   const d2 = distance_in_km(1, to_uom)
   return d1 / d2;
+}
+
+export function distance_object_in_km(distance: Distance): number {
+  return distance_in_km(distance.value, distance.unit);
 }
 
 export async function get_freight_emission_factor(mode: string) {
@@ -113,7 +82,7 @@ export async function get_flight_emission_factor(seat_class: string) {
   return f;
 }
 
-async function getEmissionFactor(f: Partial<EmissionsFactorInterface>) {
+export async function getEmissionFactor(f: Partial<EmissionsFactorInterface>) {
   const db = await getDBInstance();
   const factors = await db.getEmissionsFactorRepo().getEmissionsFactors(f);
   if (factors && factors.length) {
@@ -610,6 +579,8 @@ export async function process_activity(activity: Activity) {
     return await process_natural_gas(activity);
   } else if (is_electricity_activity(activity)) {
     return await process_electricity(activity);
+  } else if (is_industrial_activity(activity)) {
+    return await process_industry(activity);
   } else if (is_other_activity(activity)) {
     return await process_other(activity);
   } else {
@@ -743,9 +714,11 @@ export async function group_processed_activities(activities: ProcessedActivity[]
 
 export type GroupedResult = {
   total_emissions: ValueAndUnit;
+  scope: number;
   content: ProcessedActivity[];
   from_date?: Date,
   thru_date?: Date,
+  tracker_id?: string,
   token?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
@@ -753,14 +726,15 @@ export type GroupedResults = {
   [key:string]: GroupedResult | GroupedResults | ProcessedActivity[];
 };
 
-export function make_emissions_metadata(total_emissions: number, activity_type: string, mode?: string) {
+export function make_emissions_metadata(total_emissions: number, activity_type: string, mode?: string, scope?: number, tracker_id?: string) {
   const total_emissions_rounded = Math.round(total_emissions * 1000) / 1000;
 
   const metadata: MetadataType = {
     "Total emissions": total_emissions_rounded,
     "UOM": "kgCO2e",
-    "Scope": 3,
-    "Type": activity_type
+    "Scope": scope || 3, // if no scope provided assume scope 3?
+    "Type": activity_type,
+    "TrackerId": tracker_id,
   }
   if (mode) {
     metadata['Mode'] = mode;
@@ -779,7 +753,7 @@ export async function issue_tokens(
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
-  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode, doc.scope, doc.tracker_id);
 
   const h = hash_content(content);
   // save into IPFS
@@ -857,7 +831,7 @@ export async function queue_issue_tokens(
 ) {
   const content = JSON.stringify(doc);
   const total_emissions = doc.total_emissions.value;
-  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode, doc.scope, doc.tracker_id);
 
   const request = await create_emissions_request(
     activity_type,
@@ -885,7 +859,7 @@ export async function issue_tokens_with_issuee(
   // save into IPFS
   const ipfs_res = await uploadFileRSAEncrypted(content, publicKeys);
   // issue tokens
-  const metadata = make_emissions_metadata(total_emissions, activity_type, mode);
+  const metadata = make_emissions_metadata(total_emissions, activity_type, mode, doc.scope, doc.tracker_id);
 
   const token_res = await issue_emissions_tokens_with_issuee(
     activity_type,
@@ -1007,7 +981,7 @@ export async function process_emissions_requests() {
     console.log('There are no auditors with public key.');
     return;
   }
-  console.log('Found auditors', auditors.map(w=>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
+  console.log('Found auditors', auditors.map((w: Wallet) =>`${w.address}: ${w.name || 'anonymous'} with key named ${w.public_key_name}`));
   // process from created to pending
   for (const e in emissions_requests) {
     const er = emissions_requests[e];

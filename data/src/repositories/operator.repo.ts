@@ -21,11 +21,11 @@ export class OperatorRepo implements OperatorDbInterface {
     }
   }
 
-  public getOperator = async (uuid: string): Promise<Operator | null> => {
+  public getOperator = async (uuid: string): Promise<OperatorInterface | null> => {
     return await this._db.getRepository(Operator).findOneBy({uuid})
   }
 
-  public findByName = async (name: string): Promise<Operator | null> => {
+  public findByName = async (name: string): Promise<OperatorInterface | null> => {
     return await this._db.getRepository(Operator).findOneBy({name})
   }
 
@@ -44,21 +44,31 @@ export class OperatorRepo implements OperatorDbInterface {
   public selectPaginated = async (
     offset: number, 
     limit: number, 
-    bundles: Array<QueryBundle>
-  ): Promise<Array<Operator>> => {
+    bundles: Array<QueryBundle>,
+    withTrackers?: boolean
+  ): Promise<Array<OperatorInterface>> => {
     let selectBuilder: SelectQueryBuilder<Operator> = 
       await this._db.getRepository(Operator).createQueryBuilder("operator")
-    // category by issuer address
     selectBuilder = buildQueries('operator', selectBuilder, bundles)
+    if(withTrackers!){
+      selectBuilder =selectBuilder.leftJoinAndSelect("operator.trackers", "trackers")
+    }
     return selectBuilder
       .limit(limit)
       .offset(offset)
-      .orderBy("asset_count", "DESC")
+      .loadRelationCountAndMap("operator.trackersCount", "operator.trackers")
+      .loadRelationCountAndMap("operator.assetsCount", "operator.asset_operators")
+      .orderBy("operator.asset_count", "DESC")
       .getMany();
-      /*.innerJoinAndSelect(
-        "operator.asset_operators",
-        "asset_operators"
-      )*/
+  }
+
+  public selectOne = async (
+    bundles: Array<QueryBundle>
+  ): Promise<OperatorInterface | null> => {
+    let selectBuilder: SelectQueryBuilder<Operator> = 
+      await this._db.getRepository(Operator).createQueryBuilder("operator")
+    selectBuilder = buildQueries('operator', selectBuilder, bundles)
+    return selectBuilder.getOne();
   }
 
   private makeOperatorMatchCondition = (doc: Partial<OperatorInterface>) => {

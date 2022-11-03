@@ -12,8 +12,10 @@ export {
 } from './spreadsheetImport'
 export {
     EmissionFactorDbInterface,
+    AssetOperatorDbInterface,
     OilAndGasAssetDbInterface,
     OperatorDbInterface,
     ProductDbInterface,
-    UtilityLookupItemDbInterface
+    UtilityLookupItemDbInterface,
+    QueryBundle
 } from './db'

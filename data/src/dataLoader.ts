@@ -4,7 +4,8 @@ import {
 } from "@blockchain-carbon-accounting/data-common"
 import { 
   importOilAndGasAssets, 
-  importProductData 
+  importProductData,
+  updateProductDates 
 } from "@blockchain-carbon-accounting/oil-and-gas-data-lib"
 import { Presets, SingleBar } from "cli-progress"
 import yargs from "yargs"
@@ -12,6 +13,8 @@ import { hideBin } from "yargs/helpers"
 import type { DbOpts } from "./config"
 import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
 import { PostgresDBService } from "./postgresDbService"
+import { ethers } from 'ethers';
+import { Wallet } from './models/wallet'
 import { config } from 'dotenv';
 import findConfig from "find-config";
 config({ path: findConfig(".env") || '.' });
@@ -136,7 +139,25 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_og_assets ...")
       const db = await init(parseCommonYargsOptions(argv))
-      await importOilAndGasAssets(argv, progressBar, db)
+      const result  = await importOilAndGasAssets(
+        argv, progressBar, db.getOilAndGasAssetRepo())
+
+      if(result){
+        const pipeline = result.pipeline
+        const loader = result.loader
+        let counter = 0;
+        pipeline.on('data', () => {
+          ++counter
+        });
+        pipeline.on('end', async () => {
+          loader.done();
+          console.log(`Loaded ${counter} entries to oil_and_gas_asset table.`);
+          const count = await db.getOilAndGasAssetRepo().count([])
+          console.log(`=== Done, we now have ${count} OilAndGasAssets in the DB`)
+          await db.close()
+        })
+      }
+
     }
   )
   .command(
@@ -193,9 +214,44 @@ const progressBar = new SingleBar(
     async (argv: any) => {
       console.log("=== Starting load_product_data ...")
       const db = await init(parseCommonYargsOptions(argv))
-      await importProductData(argv, progressBar, db)
-      const count = await db.getProductRepo().countAllProducts();
+      const password:string = process.env.OPERATOR_REPOSITORY_PASSWORD || 'password';
+      const { password_hash, password_salt } = Wallet.generateHash(password);
+      const verification_token = Wallet.generateVerificationToken();
+      // generate the ETH wallet
+      const newAccount = ethers.Wallet.createRandom();
+      const name: string | undefined = 'Operator Repository';
+      const wallet = await db.getWalletRepo().insertWallet({
+        email: "bertrand@tworavens.consulting",
+        organization: 'Two Ravens Energy & Climate Consulting Ltd.',
+        address: "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+        //private_key: newAccount.privateKey,
+        //public_key: newAccount.publicKey,
+        password_hash,
+        password_salt,
+        verification_token,
+        verification_token_sent_at: new Date(),
+        email_verified: true,
+        name,
+      })
+      await importProductData(argv, progressBar, 
+        db.getProductRepo(),
+        db.getOperatorRepo(),
+        db.getOilAndGasAssetRepo(),
+        db.getAssetOperatorRepo(),
+        wallet.address)
+      const count = await db.getProductRepo().count([]);
       console.log(`=== Done, we now have ${count} product entries in the DB`)
+      await db.close()
+    }
+  )
+  .command(    
+    "set_product_dates",
+    "set product from_date and thru_date using year and month columns",
+    async (argv: any) => {
+      console.log("=== Starting set_product_dates ...")
+      const db = await init(parseCommonYargsOptions(argv))
+      await updateProductDates(argv,progressBar,db.getProductRepo())
+      console.log(`=== Done, product dates updated `)
       await db.close()
     }
   )
@@ -209,4 +265,3 @@ const progressBar = new SingleBar(
   .strict()
   .showHelpOnFail(true).argv
 })()
-

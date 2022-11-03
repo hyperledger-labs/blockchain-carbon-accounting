@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# start vault server
+# start vault, ws-idenity, api-server, and oracle server,
 # vault development mode, to use a producation ready vault server
 # https://learn.hashicorp.com/tutorials/vault/getting-started-deploy?in=vault/getting-started
 # start the api in two different mode
@@ -13,15 +13,8 @@ NETWORK_NAME="carbonAccounting"
 case $MODE in
   local)
 
-        echo "=== [scripts/startApi] copy postgres DB .env variables used by oracle docker container"
-        grep -A 0 -e 'DB_' ../../.env > ./.oracle.env
-        echo "=== [scripts/startApi] set DB_HOST=host.docker.internal to access local postgres DB from docker"
-        echo 'DB_HOST=host.docker.internal' >> ./.oracle.env
-
-        docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3 ws-identity postgres
-        docker network connect $NETWORK_NAME postgres
-
-        sh scripts/startOracle.sh $NETWORK_NAME '.oracle.env'
+        docker-compose -f ./docker/application/docker-compose.yaml up -d vault locals3 ws-identity oracle api-server
+        docker network connect $NETWORK_NAME oracle
 
         cd ../typescript_app
         ./cp-blockchain-gateway-lib.sh
@@ -42,6 +35,6 @@ case $MODE in
         docker network connect $NETWORK_NAME api
   ;;
   *)
-        echo "Usage: $0 {local|docker}"
+        echo "Usage: $0 {local|docker} {[<db_host>]}"
   ;;
 esac

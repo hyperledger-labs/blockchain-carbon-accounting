@@ -23,14 +23,14 @@ export const getWeb3 = (opts: OPTS_TYPE) => {
   return web3;
 }
 
-export const getContract = (opts: OPTS_TYPE) => {
+export const getContract = (opts: OPTS_TYPE):any => {
   if (opts.contract) return opts.contract;
   const web3 = getWeb3(opts);
   return new web3.eth.Contract(NetEmissionsTokenNetwork.abi as AbiItem[], opts.contract_address);
 }
 
-export const getTrackerContract = (opts: OPTS_TYPE) => {
-  //if (opts.trackerContract) return opts.trackerContract;
+export const getTrackerContract = (opts: OPTS_TYPE):any  => {
+  if (opts.trackerContract) return opts.trackerContract;
   const web3 = getWeb3(opts);
   return new web3.eth.Contract(CarbonTracker.abi as AbiItem[], opts.tracker_address);
 }

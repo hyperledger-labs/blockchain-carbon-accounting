@@ -5,17 +5,17 @@ volumes:
 
 services:
     locals3:
-      container_name: locals3
-      image: localstack/localstack:0.12.18
-      ports:
+        container_name: locals3
+        image: localstack/localstack:0.12.18
+        ports:
             - 4566:4566
             - 4571:4571
-      environment:
+        environment:
             - SERVICES=s3
             - DEBUG=DEBUG
             - DATA_DIR=/tmp/localstack/data
             - DOCKER_HOST=unix:///var/run/docker.sock
-      volumes:
+        volumes:
             - locals3:/tmp/localstack
             - /var/run/docker.sock:/var/run/docker.sock
     oracle: 
@@ -23,17 +23,17 @@ services:
         image: ghcr.io/net-zero-project/blockchain-carbon-accounting/oracle-api:latest
         ports:
             - 3002:3002
-        env_file:
-            - ../../.oracle.env
-    postgres:
-        container_name: postgres
-        image: postgres:latest
-        ports:
-          - 5400:5432
         environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
-            POSTGRES_DB: blockchain-carbon-accounting-test
+            API_SERVER_TRPC: "http://api-server:8000/trpc"
+    api-server: 
+        container_name: api-server
+        image: ghcr.io/net-zero-project/blockchain-carbon-accounting/api-server:latest
+        ports:
+            - 8000:8000
+        env_file:
+            - ../../.env.api-server
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
     vault:
         image: vault:latest
         container_name: vault

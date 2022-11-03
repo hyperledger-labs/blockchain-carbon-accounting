@@ -14,18 +14,22 @@ export interface CreatedToken {
     totalRetired: bigint;
 }
 
-export interface CreatedTrackerToken {
+export interface CreatedTracker {
     trackerId: number;
     trackee: string;
     auditor: string;
+    createdBy: string;
     totalProductAmounts: bigint;
     totalEmissions: bigint;
     totalOffsets: bigint;
     fromDate: number;
     thruDate: number;
     dateCreated: number;
+    dateUpdated: number;
     metadata: string;
     description: string;
+    operatorUuid: string;
+    tokens: CreatedToken[];
 }
 
 export type FIELD = {

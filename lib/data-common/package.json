@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "Common data module for use in blockchain-carbon-accounting project",
+  "main": "./dist/index.js",
   "engines": {
     "node": ">=16"
   },

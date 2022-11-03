@@ -1,13 +1,27 @@
 import { TRPCClientError } from '@trpc/client';
-import axios from 'axios';
+
 import { SetStateAction } from 'react';
 import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
 import type { Asset, Operator, Product } from '../components/static-data';
-import { Wallet } from "@blockchain-carbon-accounting/react-app/src/components/static-data";
-import { BASE_URL } from './api.config';
-import { trpcClient } from './trpc'
+import { trpcMethaneClient } from './trpc'
+//import { trpcClient } from "@blockchain-carbon-accounting/react-app/src/services/trpc";
+//import { buildBundlesFromQueries } from "@blockchain-carbon-accounting/react-app/src/services/api.service";
 
-axios.defaults.baseURL = BASE_URL;
+
+export function buildBundlesFromQueries(query: string[]) {
+    let bundles: QueryBundle[] = []
+    query.forEach(elem => {
+        const elems = elem.split(',')
+        bundles.push({
+            field: elems[0],
+            fieldType: elems[1],
+            value: elems[2],
+            op: elems[3],
+            conjunction: elems[4] === 'true',
+        })
+    });
+    return bundles
+}
 
 function handleError(error: unknown, prefix: string) {
     const response = (error as any).response ?? error
@@ -55,22 +69,6 @@ export function handleFormErrors<F extends {}, E extends {}>(err: unknown, setFo
   }
 }
 
-
-function buildBundlesFromQueries(query: string[]) {
-    let bundles: QueryBundle[] = []
-    query.forEach(elem => {
-        const elems = elem.split(',')
-        bundles.push({
-            field: elems[0],
-            fieldType: elems[1],
-            value: elems[2],
-            op: elems[3],
-            conjunction: elems[4] === 'true',
-        })
-    });
-    return bundles
-}
-
 function buildBundlesFromQuery(query: string[]) {
     let bundles: QueryBundle[] = []
     bundles.push({
@@ -84,13 +82,13 @@ function buildBundlesFromQuery(query: string[]) {
 }
 
 export const getOperators = async (
-    offset: number, limit: number, query: string[]
+    offset: number, limit: number, query: string[], withTrackers?: boolean
 ): Promise<{count:number, operators:Operator[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getOperators:', offset, limit, bundles)
         const { status, count, operators, error } 
-            = await trpcClient.query('operator.list', {offset, limit, bundles})
+            = await trpcMethaneClient.query('operator.list', {offset, limit, bundles, withTrackers})
         if (status === 'success' && operators) {
             console.log("Get operators: ", operators)
             return { count, operators, status }
@@ -103,25 +101,18 @@ export const getOperators = async (
     }
 }
 
-export const getOperator = async (uuid: string): 
-    Promise<{
-        operator: Operator,
-        wallet: Wallet,
-        products: Product[],
-        status: string
-}> => {
+export const getOperator = async (uuid: string): Promise<{operator: Operator, status: string}> => {
     try {
-        const { status, operator,wallet,products, error } 
-            = await trpcClient.query('operator.stats', {uuid})
-        if (status === 'success' && operator && wallet && products ) {
+        const { status, operator, error } 
+            = await trpcMethaneClient.query('operator.get', {uuid})
+        if (status === 'success' && operator ) {
             console.log("Get operator: ", operator)
-            return { operator, wallet, products, status }
+            return { operator, status }
         } else {
             if (status !== 'success') console.error('getOperator error:', error)
             return {
                 operator: {}, 
-                wallet: {}, 
-                products: [], status
+                status
             };
         }
     } catch(error) {
@@ -129,21 +120,92 @@ export const getOperator = async (uuid: string):
     }
 }
 
-export const countAssets = async (query: string[])
-    : Promise<{count:number, status:string}> => {
+export const getProducts = async (
+    offset: number, 
+    limit: number, 
+    query: string[],
+    fromAssets: boolean,
+): Promise<{products: Product[], count: number, status: string}> => {
     try {
-        const bundles = buildBundlesFromQuery(query)
-        console.info('countAssets:', bundles)
-        const { status, count, error } 
-            = await trpcClient.query('asset.count', {bundles})
-        if (status === 'success' && count) {
-            return { count, status }
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getProducts:', offset, limit, bundles, fromAssets)
+    
+        const { status, products, count, error } = 
+            await trpcMethaneClient.query('product.list', {
+                offset, limit, bundles, fromAssets})
+
+        if (status === 'success' && products ) {
+            console.log("Get products: ", products)
+            return { products, count, status }
         } else {
-            if (status !== 'success') console.error('countAssets error:', error)
-            return {count: 0, status};
+            if (status !== 'success') console.error('getProducts error:', error)
+            return {
+                products: [], 
+                count: 0,
+                status
+            };
         }
     } catch(error) {
-        throw new Error(handleError(error, "calling countAssets"))
+        throw new Error(handleError(error, "calling getProducts"))
+    }
+}
+
+export const getProductTotals = async (
+    offset: number, 
+    limit: number, 
+    query: string[],
+    fromAssets: boolean,
+): Promise<{products: Product[], count: number, status: string}> => {
+    try {
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getProductTotals:', bundles, fromAssets)
+    
+        const { status, products, count, error } = 
+            await trpcMethaneClient.query('product.totals', 
+                { offset, limit, bundles, fromAssets})
+
+        if (status === 'success' && products ) {
+            console.log("Get product totals: ", products)
+            return { products, count, status }
+        } else {
+            if (status !== 'success') console.error('getProducts error:', error)
+            return {
+                products: [], 
+                count: 0,
+                status
+            };
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "calling getProductTotals"))
+    }
+}
+
+
+export const getProductAttributes = async (
+    query: string[],
+    field: string,
+    fromAssets: boolean,
+): Promise<{attributes: string[], status: string}> => {
+    try {
+        console.log(query)
+        const bundles = buildBundlesFromQueries(query)
+        console.info('getProductAttributes:', bundles, field, fromAssets)
+    
+        const { status, attributes, error } = 
+            await trpcMethaneClient.query('product.distinctAttributes', 
+                { bundles, field, fromAssets }) 
+        if (status === 'success' && attributes ) {
+            console.log("Get product attributes: ", attributes)
+            return { attributes, status }
+        } else {
+            if (status !== 'success') console.error('getProductAttributes error:', error)
+            return {
+                attributes: [], 
+                status
+            };
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "calling getProductAttributes"))
     }
 }
 
@@ -154,7 +216,7 @@ export const getAssets = async (
         const bundles = buildBundlesFromQueries(query)
         console.info('getAssets:', offset, limit, bundles)
         const { status, count, assets, error } = 
-            await trpcClient.query('asset.list', {offset, limit, bundles})
+            await trpcMethaneClient.query('asset.list', {offset, limit, bundles})
         if (status === 'success' && assets) {
             return { count, assets, status }
         } else {
@@ -163,5 +225,23 @@ export const getAssets = async (
         }
     } catch(error) {
         throw new Error(handleError(error, "calling getAssets"))
+    }
+}
+
+export const countAssets = async (query: string[])
+    : Promise<{count:number, status:string}> => {
+    try {
+        const bundles = buildBundlesFromQuery(query)
+        console.info('countAssets:', bundles)
+        const { status, count, error } 
+            = await trpcMethaneClient.query('asset.count', {bundles})
+        if (status === 'success' && count) {
+            return { count, status }
+        } else {
+            if (status !== 'success') console.error('countAssets error:', error)
+            return {count: 0, status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "calling countAssets"))
     }
 }

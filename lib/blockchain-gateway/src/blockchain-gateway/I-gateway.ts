@@ -1,3 +1,4 @@
+import { IGetEmissionsByLookUp } from './I-query-params';
 export interface IFabricTxCaller {
     // label for certificate stored in cert store
     userId: string;
@@ -41,12 +42,15 @@ export interface IEmissionsDataGateway {
 }
 
 export interface IEmissionsDataRecordEmissionsInput {
-    utilityId: string;
+    endpoint: string;
+    query: string;
+    queryParams: IGetEmissionsByLookUp | object;
+    //utilityId: string;
     partyId: string;
     fromDate: string;
     thruDate: string;
-    energyUseAmount: number;
-    energyUseUom: string;
+    //energyUseAmount: number;
+    //energyUseUom: string;
     url: string;
     md5: string;
 }

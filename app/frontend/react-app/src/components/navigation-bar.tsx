@@ -103,7 +103,7 @@ const NavigationBar:FC<NavigationBarProps> = (
         <Nav>
           {(signedInAddress === "")?
             <>
-            <Link href="sign-in">
+            <Link href="/sign-in">
               <Button
                 variant="primary"
                 className="ms-1 mr-3">Sign In

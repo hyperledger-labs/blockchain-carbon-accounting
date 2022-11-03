@@ -1,5 +1,5 @@
 import * as trpc from '@trpc/server'
-import { Operator, OilAndGasAsset, Wallet, Product } from '@blockchain-carbon-accounting/data-postgres';
+import { Operator, OilAndGasAsset, Wallet } from '@blockchain-carbon-accounting/data-postgres';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 
@@ -28,12 +28,13 @@ export const operatorRouter = (zQueryBundles:any) => trpc
     input: z.object({
         bundles: zQueryBundles.default([]),
         offset: z.number().gte(0).default(0),
-        limit: z.number().gt(0).default(10)
+        limit: z.number().gt(0).default(10),
+        withTrackers: z.boolean().default(false)
     }).default({}),
     async resolve({ input, ctx }) {
         try {
             const operators = await ctx.db.getOperatorRepo()
-                .selectPaginated(input.offset, input.limit, input.bundles);
+                .selectPaginated(input.offset, input.limit, input.bundles, input.withTrackers);
             const count = await ctx.db.getOperatorRepo()
                 .count(input.bundles);
             return {
@@ -50,7 +51,7 @@ export const operatorRouter = (zQueryBundles:any) => trpc
         }
     },
 })
-.query('stats', {
+.query('get', {
     input: z.object({
         uuid: z.string().default('')
     }).default({}),
@@ -61,8 +62,6 @@ export const operatorRouter = (zQueryBundles:any) => trpc
             return {
                 status: 'success',
                 operator: Operator.toRaw(operator!),
-                wallet: {},
-                products: [],
             }
         } catch (error) {
             console.error(error)

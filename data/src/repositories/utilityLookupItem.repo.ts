@@ -45,7 +45,11 @@ export class UtilityLookupItemRepo implements UtilityLookupItemDbInterface {
   }
 
   public getUtilityLookupItem = async (uuid: string): Promise<UtilityLookupItemInterface | null> => {
-    return await this._db.getRepository(UtilityLookupItem).findOneBy({uuid})
+    const result = await this._db.getRepository(UtilityLookupItem).findOneBy({uuid})
+    if(!result){
+      throw new Error("getUtilityLookupItem: No utility lookup item found")
+    }
+    return result
   }
 
   public getAllUtilityLookupItems = async (): Promise<UtilityLookupItemInterface[]> => {

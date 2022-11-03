@@ -121,11 +121,6 @@ const FindOrSetupWallet: FC<Props> = ({
           value: RoleEnum.EmissionsAuditor,
           label: "Emissions Auditor",
         });
-      if (!roleArr.includes(RoleEnum.IndustryDealer))
-        rolesThatCanBeAssigned.push({
-          value: RoleEnum.IndustryDealer,
-          label: "Registered Industry Dealer (CarbonTracker)",
-        });
     }
     if (!rolesThatCanBeAssigned.find((r) => r.value === role)) {
       if (rolesThatCanBeAssigned.length > 0) {
@@ -261,9 +256,6 @@ const FindOrSetupWallet: FC<Props> = ({
         case RoleEnum.Industry:
           result = await unregisterIndustry(provider, address);
           break;
-        case RoleEnum.IndustryDealer:
-          result = await unregisterDealer(provider, address, 4);
-          break;
         default:
           const err = `Invalid role was given: ${role}`;
           console.error(err);
@@ -301,9 +293,6 @@ const FindOrSetupWallet: FC<Props> = ({
           break;
         case RoleEnum.Industry:
           result = await registerIndustry(provider, address);
-          break;
-        case RoleEnum.IndustryDealer:
-          result = await registerDealer(provider, address, 4);
           break;
         default:
           const err = `Invalid role was given: ${role}`;

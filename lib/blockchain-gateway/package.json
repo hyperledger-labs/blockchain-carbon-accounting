@@ -18,6 +18,7 @@
     "@hyperledger/cactus-plugin-keychain-vault": "1.0.0",
     "@hyperledger/cactus-plugin-ledger-connector-fabric": "1.0.0",
     "@hyperledger/cactus-plugin-ledger-connector-xdai": "1.0.0",
+    "run-time-error": "^1.4.0",
     "uuid": "^8.3.2",
     "web3": "1.7.3"
   },

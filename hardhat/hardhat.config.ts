@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
+
 import { task, types } from "hardhat/config";
 import { AbiCoder } from "ethers/lib/utils";
+import { PostgresDBService, QueryBundle, Product } from '@blockchain-carbon-accounting/data-postgres';
+
+import { Contract } from 'ethers';
 
 import "@nomiclabs/hardhat-waffle";
 import "solidity-coverage";
@@ -10,6 +14,9 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "@openzeppelin/hardhat-upgrades";
 import "@ethersproject/bignumber";
+
+import * as dotenv from 'dotenv'
+dotenv.config({path:'../.env'})
 
 // Make sure to run `npx hardhat clean` before recompiling and testing
 if (process.env.OVM) {
@@ -25,7 +32,7 @@ const encodeParameters = function (abi: AbiCoder, types: string[], values: any[]
 };
 
 // Uncomment and populate .ethereum-config.js if deploying contract to Goerli, Kovan, xDai, or verifying with Etherscan
-//const ethereumConfig = require("./.ethereum-config");
+// const ethereumConfig = require("./.ethereum-config");
 
 // Task to set limited mode on NetEmissionsTokenNetwork
 task("setLimitedMode", "Set limited mode on a NetEmissionsTokenNetwork contract")
@@ -387,8 +394,7 @@ task("completeTimelockAdminSwitch", "Complete a Timelock admin switch for a live
 // then issues trackers for oil and gas products based on their amounts of production, linking production to their methane emissions 
 task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emissions")
   .addParam("contract", "The CLM8 contract")
-  //.addParam("trackerContract", "The C-NFT contract")
-  //.addParam("count", "Number of token to issue in each loop")
+  .addParam("tracker", "The C-NFT contract")
   .setAction(async (taskArgs, hre) => {
     const { dealer2, industry1, industry2, industry3, industry4, industry5, industry6 } = await hre.getNamedAccounts();
 
@@ -396,8 +402,8 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
     const {get} = hre.deployments;
-    let carbonTracker = await get("CarbonTracker");
-    const trackerContract = await CarbonTracker.attach(carbonTracker.address);
+    let carbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
+    const trackerContract = await CarbonTracker.attach(taskArgs.trackerContract);
 
     let locations = ['Bakken','Niobrara','Permian','U.S. Average','World Average'];
     let industryAddresses = [industry1,industry2,industry3,industry5,industry6];
@@ -417,7 +423,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
       .issueAndTrack(
         dealer2,
         industryAddresses[i],
-        carbonTracker.address,
+        trackerContract.address,
         0,
         4,
         ventingEmissions[i],
@@ -432,7 +438,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
       .issueAndTrack(
         dealer2,
         industryAddresses[i],
-        carbonTracker.address,
+        trackerContract.address,
         i+1,
         4,
         flaringEmissions[i],
@@ -472,6 +478,293 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
       }
     }
   });
+
+async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract:Contract, deployer:string, description:string, products:Product[], trackerId:number){
+  //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+  console.log(`Add emissions and production to tracker ID ${trackerId}: ${description}`)
+  let metadata = {}; let productType = '';
+  for (const product of products){
+    switch(product.name.toLowerCase()){
+      case "process & equipment vented":
+        productType = 'emissions'
+        metadata = {"type": "CH4", "scope": "1", "GWP": "28"}
+        break;
+      case "process & equipment flared":
+        productType = 'emissions'
+        metadata= {"type": "CO2", "scope": "1"}
+        break;
+      case "fugitive":
+        productType = 'emissions'
+        metadata= {"type": "CH4", "scope": "1", "GWP": "28"}
+        break;
+      case "gas": case "oil":
+        productType = 'production'
+        break;
+      default:
+        continue;
+    }
+    if(productType==='emissions'){ 
+      try{
+        await contract.connect(await hre.ethers.getSigner(deployer)).issueAndTrack(
+          deployer,
+          deployer,
+          trackerContract.address,
+          trackerId,
+          4,
+          Math.round(product.amount*1000),
+          (product?.from_date?.getTime()!/1000).toFixed(0),
+          parseInt((product?.thru_date?.getTime()!/1000).toFixed(0)),
+          JSON.stringify(metadata),
+          JSON.stringify({'source': 'https://www.sustainability.com/thinking/benchmarking-methane-ghg-emissions-oil-natural-gas-us/'}),
+          product.name
+        );
+      }catch(error){
+        console.error(`Error adding emissions to certificate:: ${error}`)
+      }
+    }else if(productType==='production'){
+      try{
+        await trackerContract.connect(await hre.ethers.getSigner(deployer)).productsUpdate(
+          trackerId,
+          [0],
+          [Math.round(product.amount*1000)],
+          [product.name],
+          ['BOE'],
+          [(product.amount*1000).toString()]
+        );
+      }catch(error){
+        console.error(`Error adding production to certificate:: ${error}`)
+      }
+    }
+  }
+}
+
+async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContract:Contract,deployer:string, address: string,year: number, description:string,metadata:string,products:Product[],trackerId:number){
+  const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
+  const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
+  if(true){
+    // toggle between create tracker and issue tokens to tracker
+    // this is used to wait for trackaction with new trackers to be confirmed 
+    // before adding product and emission tokens on a live network
+    await trackerContract.connect(await hre.ethers.getSigner(deployer)).track(
+      deployer,
+      address,
+      [],
+      [],
+      parseInt(fromDate),
+      parseInt(thruDate),
+      description,
+      metadata
+    )
+  }else{
+    await addEmissionsAndProducts(hre,contract,trackerContract,deployer,description,products,trackerId)
+  }
+}
+
+task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon tracker tokens for a given contract using national operator data")
+  .addParam("contract","")
+  .addParam("tracker","")
+  .setAction(async (taskArgs, hre) => {
+    
+
+    const { deployer } = await hre.getNamedAccounts();
+    //const netEmissionsTokenNetwork = await deployments.get('NetEmissionsTokenNetwork');
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
+    
+    const db = await PostgresDBService.getInstance()
+    // get latest trackerId
+    //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+    let trackerId = 3 // previous completed tracker
+    const operators = ['Chevron','EnerVest Operating','Hilcorp Energy','ARD Operating','Apache','Noble Energy','EQT','Pioneer Natural Resources','Berry','Atlas Energy Group','Chesapeake Energy','CNX Resources','Devon Energy','Encana Oil & Gas','EXCO Resources','Breitburn Energy','ExxonMobil','ConocoPhillips','WPX Energy','EOG Resources','Scout Energy','Consol Energy','Occidental','BP','Total']
+    for (const operatorName of operators){
+      const operator = await db.getOperatorRepo().findByName(operatorName);
+      if(!operator?.wallet_address){
+        console.warn(`Operator ${operatorName} does not have a registered address `)
+        continue
+      }
+      const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(operator?.wallet_address);
+      if(!roles.isIndustry){
+        console.warn(`Registed operator ${operatorName} as industry`)
+        await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(operator?.wallet_address);
+
+      }
+      for (const year of [2018,2019,2020]){
+        //const year = 2018
+        const queryBundle:QueryBundle[] = [
+          {
+            field: 'operatorUuid',
+            fieldType: 'string',
+            value: operator?.uuid! as string,
+            op: 'eq',
+            conjunction: true},
+          {
+            field: 'source',
+            fieldType: 'string',
+            value: 'https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx',
+            op: 'eq',
+            conjunction: true
+          },
+          {
+            field: 'year',
+            fieldType: 'string',
+            value: year,
+            op: 'eq',
+            conjunction: true
+          },
+        ]
+        const result = await db.getProductRepo().getTotals(0, 0, queryBundle, false);
+        const products:Product[] = Product.toRaws(result)
+
+        if(products.length===0){
+          continue
+        }else{
+          trackerId +=1;
+        }
+        const description = [operatorName,`upstream emissions`,year.toString()].join(', ');
+        const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`});
+        await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,description,metadata,products,trackerId)
+      }    
+    }
+    await db.close()
+  }
+)
+
+task("oilAndGasBenchmarkNational","Use admin account to issue demo carbon tracker tokens for a given contract using aggregate national data")
+  .addParam("contract","")
+  .addParam("tracker","")
+  //.addParam("createTokens",false)
+  .setAction(async (taskArgs, hre) => {
+    
+
+    const { deployer } = await hre.getNamedAccounts();
+    //const netEmissionsTokenNetwork = await deployments.get('NetEmissionsTokenNetwork');
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
+    
+    const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(deployer);
+    if(!roles.isIndustry){
+      console.warn(`Registed deployer address as industry`)
+      await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(deployer);
+    }
+
+    const db = await PostgresDBService.getInstance()
+
+    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+
+    for (const year of [2018,2019,2020]){
+      const queryBundle:QueryBundle[] = [
+        {
+          field: 'source',
+          fieldType: 'string',
+          value: 'https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx',
+          op: 'eq',
+          conjunction: true
+        },
+        {
+          field: 'year',
+          fieldType: 'string',
+          value: year,
+          op: 'eq',
+          conjunction: true
+        },
+      ]
+      const result = await db.getProductRepo().getTotals(0, 0, queryBundle, false);
+      const products:Product[] = Product.toRaws(result)
+      if(products.length===0){
+        continue
+      }else{
+        trackerId +=1;
+      }
+      const description = [`U.S. upstream emissions`,year.toString()].join(', ');
+      const metadata = '';
+      await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,deployer,year,description,metadata,products,trackerId)
+    }    
+    await db.close()
+  }
+)
+
+task("oilAndGasBenchmarkBasins","Use admin account to issue demo carbon tracker tokens for a given contract using basin level oil & gas data")
+  .addParam("contract","")
+  .addParam("tracker","")
+  .setAction(async (taskArgs, hre) => {
+    const basins = ["Piceance", "Appalachian", "San Joaquin", "Green River", "Gulf Coast", "Fort Worth", "Santa Maria", "Paradox", "East Texas", "Central Western", "Anadarko", "Powder River", "Bend Arch", "Ouachita", "San Juan", "South Oklahoma", "Sacramento", "Las Vegas-Raton", "AK Cook Inlet", "Strawn", "Wind River", "Arctic Coastal", "Permian", "Chautauqua", "Arkla", "Williston", "Denver", "Michigan", "Sedgwick", "Arkoma", "Los Angeles", "Mid-Gulf Coast", "Palo Duro", "Las Animas", "Florida Platform", "Coastal", "North Park", "Uinta", ]
+    
+    const { deployer } = await hre.getNamedAccounts();
+    //const netEmissionsTokenNetwork = await deployments.get('NetEmissionsTokenNetwork');
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
+    
+    const db = await PostgresDBService.getInstance()
+
+    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+
+    const operator = await db.getOperatorRepo().findByName('Chevron');
+
+    if(!operator?.wallet_address){
+      console.warn(`Operator ${operator?.name} does not have a registered address `)
+      return
+    }
+    const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(operator?.wallet_address);
+    if(!roles.isIndustry){
+      console.warn(`Registed operator ${operator.name} as industry`)
+      await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(operator?.wallet_address);
+    }
+    //for (operator in operators){
+
+      for (const year of [2018,2019,2020]){
+        for (const basin of basins){
+          const queryBundle:QueryBundle[] = [
+            {
+              field: 'operatorUuid',
+              fieldType: 'string',
+              value: operator?.uuid! as string,
+              op: 'eq',
+              conjunction: true},
+            {
+              field: 'source',
+              fieldType: 'string',
+              value: 'https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx',
+              op: 'eq',
+              conjunction: true
+            },
+            {
+              field: 'division_name',
+              fieldType: 'string',
+              value: basin,
+              op: 'eq',
+              conjunction: true
+            },
+            {
+              field: 'year',
+              fieldType: 'string',
+              value: year,
+              op: 'eq',
+              conjunction: true
+            },
+          ]
+          const result = await db.getProductRepo().selectPaginated(0, 0, queryBundle, false);
+          const products:Product[] = Product.toRaws(result)
+          if(products.length===0){
+            continue
+          }else{
+            trackerId +=1;
+          }
+          const description = [`Oil & gas upstream emissions`,basin,year.toString()].join(', ');
+          const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`});
+          await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,description,metadata,products,trackerId)
+        }
+      }    
+    //}
+    await db.close()
+  }
+)
+
 
 task("grantAdminRole", "Grants an account the DEFAULT_ADMIN_ROLE for a given contract")
   .addParam("contract", "")

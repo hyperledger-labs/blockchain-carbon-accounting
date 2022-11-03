@@ -1,6 +1,9 @@
 import * as crypto from "crypto";
 import { EntityTarget, SelectQueryBuilder } from "typeorm"
 import { EmissionsRequest } from "../models/emissionsRequest";
+import { QueryBundle } from "@blockchain-carbon-accounting/data-common";
+
+export type { QueryBundle }
 
 export interface BalancePayload {
   issuedTo: string
@@ -10,15 +13,7 @@ export interface BalancePayload {
   transferred: bigint
 }
 
-export type QueryBundle = {
-  field: string,
-  fieldType: string,
-  value: number | string,
-  op: string,
-  fieldSuffix?: string, // use this if conditioning the same field more than once
-  conjunction?:boolean, // use this for AND querries.
-  // Warning! does not support combination of conjuction and disjunction
-}
+import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
 
 export interface StringPayload {
   [key: string] : string | number
@@ -26,6 +21,7 @@ export interface StringPayload {
 
 export interface TokenPayload {
   tokenId: number;
+  trackerId?: number;
   tokenTypeId: number;
   issuedBy: string;
   issuedFrom: string;
@@ -46,58 +42,41 @@ export interface TokenPayload {
 
 export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at' | 'toJSON'>
 
-export interface TrackerPayload {
-  trackerId: number;
-  trackee: string;
-  auditor: string;
-  totalProductAmounts: bigint;
-  totalEmissions: bigint;
-  totalOffset: bigint;
-  fromDate: number;
-  thruDate: number;
-  dateCreated: number;
-  // eslint-disable-next-line
-  metadata: Object;
-  description: string;
-}
-
 export interface ProductTokenPayload {
   productId: number;
-  trackerId: number;
+  trackerId: number|undefined;
   auditor: string;
   amount: bigint;
   available: bigint;
   name: string;
   unit: string;
-  unitAmount: bigint;
-  hash: string;
+  unitAmount: number;
+  emissionsFactor: number;
 }
 
-export interface AssetPayload {
-  type: string;
-  country: string;
-  latitude: string;
-  longitude: string;
-  name?: bigint;
-  operator?: string;
-  division_type?: string;
-  division_name?: string;
-  sub_division_name?: string;
-  sub_division_type?: string;
-  status?: string;
-  api?: string;
-  description?: string;
-  source?: string;
-  source_date?: Date;
-  validation_method?: string;
-  validation_date?: Date;
-  product?: string;
-  field?: string;
-  depth?: string;
+export interface TrackerPayload {
+  trackerId: number;
+  trackee: string;
+  createdBy: string;
+  auditor: string;
+  totalProductAmounts: bigint;
+  totalEmissions: bigint;
+  totalOffsets: bigint;
+  fromDate: number;
+  thruDate: number;
+  dateCreated: number;
+  dateUpdated: number;
+  // eslint-disable-next-line
+  metadata: Object;
+  description: string;
+  operatorUuid: string;
+  tokens: TokenPayload[];
+  products: ProductTokenPayload[];
 }
 
 
 const OP_MAP: Record<string, string> = {
+    'neq': '!=',
     'eq': '=',
     'like': 'like',
     'ls': '<',
@@ -142,6 +121,7 @@ export function buildQueries(
       // process 'like' exception for payload
       if(query.op == 'like') payload[query_field_label] = '%' + query.value as string + '%'
       else if(query.op == '=') payload[query_field_label] = query.value as string
+      else if(query.op == '!=') payload[query_field_label] = query.value as string
       else if(query.op == 'vector') payload[query_field_label] = query.value as string
 
     }

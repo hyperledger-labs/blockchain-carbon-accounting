@@ -441,6 +441,8 @@
             "RecordEmissionsReq": {
                 "type": "object",
                 "required": [
+                    "endpoint",
+                    "query",
                     "utilityId",
                     "partyId",
                     "fromDate",
@@ -449,6 +451,14 @@
                     "energyUseUom"
                 ],
                 "properties": {
+                    "endpoint": {
+                        "type": "string",
+                        "example": "'http://host.docker.internal:3002/emissionsRecord'"
+                    },
+                    "query": {
+                        "type": "string",
+                        "example": "getEmissionsByUtilityLookUpItem"
+                    },
                     "utilityId": {
                         "type": "string",
                         "example": "USA_EIA_252522444142552441242521"

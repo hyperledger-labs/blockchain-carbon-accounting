@@ -13,6 +13,7 @@
     "strict": true
   },
   "references": [
-    {"path": "../../data"}
+    {"path": "../api-server"},
+    {"path": "../../lib/emissions_data"},
   ]
 }

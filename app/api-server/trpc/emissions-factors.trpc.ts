@@ -2,7 +2,7 @@ import * as trpc from '@trpc/server'
 import { z } from 'zod'
 import { handleError, TrpcContext, zQueryBundles } from './common';
 import { ActivityInterface } from "@blockchain-carbon-accounting/data-common"
-
+//import { UtilityLookupItemInterface } from "@blockchain-carbon-accounting/emissions_data_lib"
 export const emissionsFactorsRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('getLevel1s', {
@@ -194,6 +194,27 @@ export const emissionsFactorsRouter = (zQueryBundles:any) => trpc
             }
         } catch (error) {
             handleError('emissionsFactorsRouter.lookup', error)
+        }
+    },
+})
+.query('getEmissionsByUtilityLookUpItem', {
+    input: z.object({
+        uuid: z.string(),
+        usage: z.number(),
+        usageUOM: z.string(),
+        thruDate: z.string(),
+    }),
+    async resolve({ input, ctx }) {
+        try {
+            const lookup = await ctx.db.getUtilityLookupItemRepo()
+                .getUtilityLookupItem(input.uuid)
+            if(lookup){
+                return await ctx.db.getEmissionsFactorRepo()
+                    .getCO2EmissionFactorByLookup(
+                        lookup,input.usage,input.usageUOM,input.thruDate);
+            }
+        } catch (error) {
+            handleError('emissionsFactorsRouter.getEmissions', error)
         }
     },
 })
