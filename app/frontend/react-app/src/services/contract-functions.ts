@@ -3,7 +3,6 @@ import { abis, addresses } from "@blockchain-carbon-accounting/contracts";
 import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
-import { Wallet } from "@ethersproject/wallet"
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo, Tracker, ProductToken } from "../components/static-data";
 
@@ -219,7 +218,7 @@ export async function issue(
   metadata: string,
   manifest: string,
   description: string,
-  privateKey: string,
+  hasPrivateKeyFromServer: boolean | undefined,
 ) {
   let issue_result;
   if (w3provider instanceof Web3Provider) {
@@ -243,27 +242,10 @@ export async function issue(
     } catch (error) {
       issue_result = catchError(error);
     }
+  } else if (hasPrivateKeyFromServer) {
+    issue_result = 'You must export your private key to Metamask or another Web3 provider to issue tokens.';
   } else {
-    console.log("Json Provider - Issue");
-    const signer  = new Wallet(privateKey, w3provider);
-    let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, signer)
-    try{
-      await contract.issue(
-        issuedFrom || 0,
-        issuedTo,
-        tokenTypeId,
-        quantity,
-        convertToZeroIfBlank(toUnixTime(fromDate)),
-        convertToZeroIfBlank(toUnixTime(thruDate)),
-        metadata,
-        manifest,
-        description
-      );
-      issue_result = SUCCESS_MSG;
-    } catch(error){
-      issue_result = catchError(error);
-    }
-
+    issue_result = 'You must use Metamask or another Web3 provider to issue tokens.';
   }
 
   return issue_result;

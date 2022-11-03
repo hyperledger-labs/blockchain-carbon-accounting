@@ -143,16 +143,16 @@ const App:FC = () => {
                         <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet} requestId={params.requestId} />
                       }</Route>
                       <Route path="/transfer">
-                        <TransferForm provider={provider} roles={roles} />
+                        <TransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} signedInWallet={signedInWallet} />
                       </Route>
                       <Route path="/retire">
-                        <RetireForm provider={provider} roles={roles} />
+                        <RetireForm provider={provider} roles={roles} signedInAddress={signedInAddress} signedInWallet={signedInWallet} />
                       </Route>
                       <Route path="/issuedTrackers/:address?">{params=>
                         <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={params.address}/>
                       }</Route>
                       <Route path="/track/:trackerId?">{params=>
-                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} signedInWallet={signedInWallet} trackerId={Number(params.trackerId)} />
+                        <IssueForm provider={provider} roles={roles} signedInAddress={signedInAddress} signedInWallet={signedInWallet} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>
                       }</Route>
                       <Route path="/addProduct/:trackerId?">{params=>
                         <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} limitedMode={limitedMode} trackerId={Number(params.trackerId)}/>

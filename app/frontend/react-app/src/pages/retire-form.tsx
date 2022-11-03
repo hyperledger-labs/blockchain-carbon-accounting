@@ -8,14 +8,17 @@ import SubmissionModal from "../components/submission-modal";
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo } from "../components/static-data";
+import { RolesInfo, Wallet } from "../components/static-data";
+import MustUseMetamask from "../components/must-use-metamask";
 
 type RetireFormProps = {
   provider?: Web3Provider | JsonRpcProvider
+  signedInAddress: string,
+  signedInWallet?: Wallet,
   roles: RolesInfo
 }
 
-const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
+const RetireForm:FC<RetireFormProps> = ({ provider, roles, signedInWallet }) => {
 
   const [modalShow, setModalShow] = useState(false);
 
@@ -61,6 +64,11 @@ const RetireForm:FC<RetireFormProps> = ({ provider, roles }) => {
     boxShadow: '0 0 0 0.2rem rgba(220,53,69,.5)',
     borderColor: '#dc3545'
   };
+
+  // users that are not using metamask cannot issue tokens
+  if (signedInWallet?.has_private_key_on_server) {
+    return <MustUseMetamask actionName="transfer tokens" />;
+  }
 
   return (
     <>

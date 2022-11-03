@@ -60,7 +60,21 @@ export class Wallet {
   updated_at!: Date;
 
   public static toRaw(v: Wallet) {
-    return { ...v };
+    return { ...v, has_private_key_on_server: !!v.private_key }
+  }
+  public static toRawForClient(v: Wallet) {
+    // filter out fields that should not be sent to the client
+    const {
+        password_hash: _password_hash,
+        password_salt: _password_salt,
+        password_reset_token: _password_reset_token,
+        password_reset_token_sent_at: _password_reset_token_sent_at,
+        verification_token: _verification_token,
+        verification_token_sent_at: _verification_token_sent_at,
+        private_key: _private_key,
+        ...w
+    } = { ...v, has_private_key_on_server: !!v.private_key }
+    return w
   }
   public static toRaws(v: Wallet[]) {
     return v.map(v => Wallet.toRaw(v));

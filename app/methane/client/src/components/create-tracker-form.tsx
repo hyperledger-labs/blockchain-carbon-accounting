@@ -56,7 +56,7 @@ const CreateTrackerForm: FC<CreateTrackerProps> = (
       setResult("Invalid thru date");
       return;
     }
-    let result = await createTracker(provider,signedInAddress!,trackee,fromDate,thruDate,description,signedInWallet?.private_key || '',operator)
+    let result = await createTracker(provider,signedInAddress!,trackee,fromDate,thruDate,description,operator)
     setResult(result.toString());
     if(onSubmitHandle!){onSubmitHandle(result)}
   } 

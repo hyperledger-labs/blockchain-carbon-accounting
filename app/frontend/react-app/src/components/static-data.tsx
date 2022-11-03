@@ -19,7 +19,7 @@ export type Wallet = {
   organization?: string
   roles?: string
   public_key?: string
-  private_key?: string
+  has_private_key_on_server?: boolean
   public_key_name?: string
   metamask_encrypted_public_key?: string
 }
