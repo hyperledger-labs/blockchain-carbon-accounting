@@ -5,6 +5,28 @@ These are some general notes for developers to get started.
 *See sub-heading [Methane](#methane) for running the Methane app*
 *Developers can use the same hardhat network as run below* 
 
+'''IMPORTANT''': Make sure you are using node version 16.  For example:
+```
+$ node -v
+v16.14.2
+```
+
+If you get another version, switch to version 16:
+```
+$ nvm use 16
+```
+
+Make sure all packages are installed.  Periodically new packages are added, so you may need to install new ones with
+```
+npm install
+```
+
+If you have problems installing, try
+```
+npm run clean:nodemodules
+npm install
+```
+
 Please also read the [Setup.md](./Setup.md), [README.md](./README.md) and instructions in each component.  After you have set up the database according to [data/README.md](data/README.md), proceed with the steps below.
 
 Run IPFS.
@@ -63,6 +85,7 @@ npm run supply-chain:cli -- -fetch <content> -rsapk app/supply-chain/<auditor-pr
 
 Note this works even if the file is uploaded to IPFS on a remote server.
 
+<<<<<<< HEAD
 ## Methane
 
 This app uses methane emission data for oil and gas assets.
@@ -94,4 +117,11 @@ npm run methane:client
 ``` 
 npm run methane:server
 ```
+=======
+## Troubleshooting
+
+Are you using node version 16?
+
+Did you install all the packages?
+>>>>>>> 3a1f4f00 (make sure you use node v 16 and install packages correctly)
 
