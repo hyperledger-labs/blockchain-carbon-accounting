@@ -5,7 +5,7 @@ These are some general notes for developers to get started.
 *See sub-heading [Methane](#methane) for running the Methane app*
 *Developers can use the same hardhat network as run below* 
 
-'''IMPORTANT''': Make sure you are using node version 16.  For example:
+__IMPORTANT__: Make sure you are using node version 16.  For example:
 ```
 $ node -v
 v16.14.2
@@ -85,7 +85,6 @@ npm run supply-chain:cli -- -fetch <content> -rsapk app/supply-chain/<auditor-pr
 
 Note this works even if the file is uploaded to IPFS on a remote server.
 
-<<<<<<< HEAD
 ## Methane
 
 This app uses methane emission data for oil and gas assets.
@@ -117,11 +116,10 @@ npm run methane:client
 ``` 
 npm run methane:server
 ```
-=======
+
 ## Troubleshooting
 
 Are you using node version 16?
 
 Did you install all the packages?
->>>>>>> 3a1f4f00 (make sure you use node v 16 and install packages correctly)
 
