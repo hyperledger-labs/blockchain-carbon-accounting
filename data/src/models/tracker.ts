@@ -16,6 +16,9 @@ export class Tracker {
     @PrimaryColumn()
     trackerId!: number;
 
+    @Column({unique: true})
+    tokenId!: number;
+
     @OneToMany(() => ProductToken, (product: ProductToken) => product.tracker)
     products?: ProductToken[];
 
@@ -32,11 +35,11 @@ export class Tracker {
     @Column()
     trackee!: string;
 
-    @Column({nullable: true})
-    createdBy!: string;
+    @Column()
+    issuedBy!: string;
 
     @Column()
-    auditor!: string;
+    issuedFrom!: string;
 
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
     totalProductAmounts!: bigint;
@@ -47,24 +50,26 @@ export class Tracker {
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
     totalOffsets!: bigint;
 
-    @Column({nullable: true})
-    fromDate!: number;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    totalREC!: bigint;
 
     @Column({nullable: true})
-    thruDate!: number;
+    retired!: boolean;
+
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    metadata!: Object; // eslint-disable-line
+
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    manifest!: Object; // eslint-disable-line
 
     @Column({nullable: true})
     dateCreated!: number;
 
     @Column({nullable: true})
-    dateUpdated?: number;
-
-    @Column({type: "hstore", hstoreType:"object", nullable: true})
-    // eslint-disable-next-line
-    metadata!: Object;
+    dateIssued?: number;
 
     @Column({nullable: true})
-    description!: string;
+    dateUpdated?: number;
 
     public static toRaw(v: Tracker) {
         return { ...v };

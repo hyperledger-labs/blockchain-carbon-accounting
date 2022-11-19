@@ -67,7 +67,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [type, setType] = useState(localStorage.getItem('type')||'');
 
   const [metajson, setMetajson] = useState("");
-  const [metadata, setMetadata] = useState<KeyValuePair[]>(localStorage.getItem('scope')! ? [{key:'scope', value:localStorage.getItem('scope')} as KeyValuePair] : []);
+  let _metadata:KeyValuePair[]=[];
+
+  if(localStorage.getItem('scope')) _metadata.push({key:'scope', value:localStorage.getItem('scope')} as KeyValuePair)
+  if(localStorage.getItem('type')) _metadata.push({key:'type', value:localStorage.getItem('type')} as KeyValuePair)
+  if(localStorage.getItem('gwp')) _metadata.push({key:'gwp', value:localStorage.getItem('gwp')} as KeyValuePair)
+
+  const [metadata, setMetadata] = useState<KeyValuePair[]>(_metadata);
 
   const [manifestjson, setManifestjson] = useState("");
   const [manifest, setManifest] = useState<KeyValuePair[]>(localStorage.getItem('manifest') ? [{key:'source',value:localStorage.getItem('manifest')} as KeyValuePair]:[]);
@@ -265,13 +271,13 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       if(!provider || !requestedTrackerId){
         return;
       }
-      const result = await getTrackerDetails(provider, Number(trackerId), signedInAddress);
+      const result = await getTrackerDetails(provider, Number(requestedTrackerId), signedInAddress);
       if (Number(requestedTrackerId)>0 && typeof result === 'object'  ) {
         setAddress(result.trackee)
       }
     }
     fetchTrackerDetails();
-  }, [provider, requestedTrackerId, signedInAddress, trackerId]);
+  }, [provider, requestedTrackerId, signedInAddress]);
 
 
   // update calldata on input change
@@ -373,6 +379,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _manifest = castManifest(manifest);
     let result;
     if(requestedTrackerId){
+      const _trackerId = requestedTrackerId
       result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
     }else{
       result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);

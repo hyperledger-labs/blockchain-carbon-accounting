@@ -16,14 +16,14 @@ export class ProductTokenRepo {
   }
 
   public selectPaginated = async (offset: number, limit: number, bundles: Array<QueryBundle>): Promise<Array<ProductToken>> => {
-    let selectBuilder: SelectQueryBuilder<ProductToken> = await this._db.getRepository(ProductToken).createQueryBuilder("product")
+    let selectBuilder: SelectQueryBuilder<ProductToken> = await this._db.getRepository(ProductToken).createQueryBuilder("product_token")
 
     // category by issuer address
-    selectBuilder = buildQueries('product', selectBuilder, bundles)
+    selectBuilder = buildQueries('product_token', selectBuilder, bundles)
     return selectBuilder
       .limit(limit)
       .offset(offset)
-      .orderBy('product.productId', 'ASC')
+      .orderBy('product_token.productId', 'ASC')
       .getMany()
   }
 
@@ -40,11 +40,50 @@ export class ProductTokenRepo {
     })
   }
 
+  public updateIssued = async (tokenId: number, amount: bigint) => {
+    try {
+      await this._db.getRepository(ProductToken)
+      .createQueryBuilder('product_token')
+      .update(ProductToken)
+      .set({issued: () => `product_token.issued + ${amount}`})
+      .where("tokenId = :tokenId", {tokenId})
+      .execute()    
+    } catch (error) {
+      throw new Error("Cannot update issued.")
+    }
+  }
+
+  public updateAvailable = async (tokenId: number, amount: bigint) => {
+    try {
+      await this._db.getRepository(ProductToken)
+      .createQueryBuilder('product_token')
+      .update(ProductToken)
+      .set({available: () => `product_token.available - ${amount}`})
+      .where("tokenId = :tokenId", {tokenId})
+      .execute()    
+    } catch (error) {
+      throw new Error("Cannot update available.")
+    }
+  }
+
+  public updateRetired = async (tokenId: number, amount: bigint) => {
+    try {
+      await this._db.getRepository(ProductToken)
+      .createQueryBuilder('product_token')
+      .update(ProductToken)
+      .set({retired: () => `product_token.retired + ${amount}`})
+      .where("tokenId = :tokenId", {tokenId})
+      .execute()    
+    } catch (error) {
+      throw new Error("Cannot update retired.")
+    }
+  }
+
 
   public countProducts = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
-      let selectBuilder: SelectQueryBuilder<ProductToken> = await this._db.getRepository(ProductToken).createQueryBuilder("productToken")
-      selectBuilder = buildQueries('productToken', selectBuilder, bundles)
+      let selectBuilder: SelectQueryBuilder<ProductToken> = await this._db.getRepository(ProductToken).createQueryBuilder("product_token")
+      selectBuilder = buildQueries('product_token', selectBuilder, bundles)
       return selectBuilder.getCount()
     } catch (error) {
       throw new Error("Cannot get products count.")       

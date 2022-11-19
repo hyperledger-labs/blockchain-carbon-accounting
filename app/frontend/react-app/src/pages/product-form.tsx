@@ -53,9 +53,7 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
     // TO-DO / Warning - if stored in the contract productUnitAmount_formatted should be stored as a string not an interger
     let result = await productUpdate(
       provider,trackerId,productAmount_formatted,
-      productName, productUnit, BigInt(Math.floor(productUnitAmount_formatted)));
-    //console.log(result)
-
+      productName, productUnit, productUnitAmount_formatted.toString());
 
     setResult(result[0].toString());
   }

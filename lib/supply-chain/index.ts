@@ -6,6 +6,7 @@ export {
     EmissionsType,
     ghgTypes,
     GHGType,
+    ActivityResult,
     Emissions,
 } from './src/common-types'
 export { 

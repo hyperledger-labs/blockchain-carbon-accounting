@@ -403,7 +403,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
     const {get} = hre.deployments;
     let carbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
-    const trackerContract = await CarbonTracker.attach(taskArgs.trackerContract);
+    const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
 
     let locations = ['Bakken','Niobrara','Permian','U.S. Average','World Average'];
     let industryAddresses = [industry1,industry2,industry3,industry5,industry6];
@@ -419,18 +419,26 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
 
     let productTransfer = [860000,860000,860000]
     for (let i = 0; i<locations.length; i++) {
+      await trackerContract.connect(await hre.ethers.getSigner(dealer2))
+      .track(
+        industryAddresses[i],
+        [],
+        [],
+        JSON.stringify({'description':locations[i]+" oil and gas emissions"}),
+        ''
+      );
       await contract.connect(await hre.ethers.getSigner(dealer2))
       .issueAndTrack(
         dealer2,
         industryAddresses[i],
         trackerContract.address,
-        0,
-        4,
+        i+1,
+        3,
         ventingEmissions[i],
         "1577836800",
         "1609415999",
         JSON.stringify({"type": "CH4", "scope": "1", "location":  locations[i], "GWP": "30"}),
-        "https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760",
+        JSON.stringify({'source': "https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760"}),
         "Methane venting and leakage"
       );
       console.log("Methane venting and leakage tokens issued for "+locations[i]);
@@ -440,48 +448,40 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
         industryAddresses[i],
         trackerContract.address,
         i+1,
-        4,
+        3,
         flaringEmissions[i],
         "1577836800",
         "1609415999",
         JSON.stringify({"type": "CO2", "scope": "1", "location":  locations[i]}),
-        "https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760",
+        JSON.stringify({'source': "https://docs.google.com/spreadsheets/d/1PQ2qz-P9qing_3F3BmvH6g2LA1G9BdYe/edit#gid=689160760"}),
         "Methane flaring"
       );
       console.log("Gas flaring tokens issued for "+locations[i]);
+
       await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-      .trackUpdate(
-        i+1,
-        [],
-        [],
-        0,
-        0,
-        locations[i]+" oil and gas emissions"
-      );
-      await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-      .productsUpdate(
+      .issueProducts(
         i+1,
         [0,0],
         [oilAmounts[i],gasAmounts[i]],
-        ['Oil','Natural Gas'],
-        ['toe', 'kcm'],
-        [oilUnitAmounts[i],gasUnitAmounts[i]]
+        [
+          JSON.stringify({'name':'Oil','unit':'toe','unitAmount':oilUnitAmounts[i]}),
+          JSON.stringify({'name':'Natural Gas','unit':'kcm','unitAmount':gasUnitAmounts[i]}),
+        ],['','']
       );
       console.log("Oil and gas products added to tracker id "+(i+1).toString()+" for "+locations[i]);
 
-      await trackerContract.connect(await hre.ethers.getSigner(dealer2)).audit(i+1);
+      await trackerContract.connect(await hre.ethers.getSigner(dealer2)).issue(i+1);
       console.log("Tracker id "+(i+1).toString()+" verified");
       if(i<3){
         await trackerContract.connect(await hre.ethers.getSigner(industryAddresses[i]))
-          .transferProduct((i+1)*2,productTransfer[i],industry4);
-        console.log("Transfer Gas (productId = "+(i+1).toString()+") from "+locations[i+1]+" to Natural Gas Utility: "+industry4);
+          .transferProducts([(i+1)*3],[productTransfer[i]],industry4,[]);
+        console.log("Transfer Gas Tokens (productId = "+((i+1)*2).toString()+") from "+locations[i+1]+" to Natural Gas Utility: "+industry4);
       }
     }
   });
 
-async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract:Contract, deployer:string, description:string, products:Product[], trackerId:number){
+async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract:Contract, deployer:string, products:Product[], trackerId:number){
   //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
-  console.log(`Add emissions and production to tracker ID ${trackerId}: ${description}`)
   let metadata = {}; let productType = '';
   for (const product of products){
     switch(product.name.toLowerCase()){
@@ -510,9 +510,9 @@ async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract
           deployer,
           trackerContract.address,
           trackerId,
-          4,
+          3,
           Math.round(product.amount*1000),
-          (product?.from_date?.getTime()!/1000).toFixed(0),
+          parseInt((product?.from_date?.getTime()!/1000).toFixed(0)),
           parseInt((product?.thru_date?.getTime()!/1000).toFixed(0)),
           JSON.stringify(metadata),
           JSON.stringify({'source': 'https://www.sustainability.com/thinking/benchmarking-methane-ghg-emissions-oil-natural-gas-us/'}),
@@ -523,13 +523,12 @@ async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract
       }
     }else if(productType==='production'){
       try{
-        await trackerContract.connect(await hre.ethers.getSigner(deployer)).productsUpdate(
+        await trackerContract.connect(await hre.ethers.getSigner(deployer)).issueProducts(
           trackerId,
           [0],
           [Math.round(product.amount*1000)],
-          [product.name],
-          ['BOE'],
-          [(product.amount*1000).toString()]
+          [JSON.stringify({'name': product.name,'unit':'BOE'})],
+          ['']
         );
       }catch(error){
         console.error(`Error adding production to certificate:: ${error}`)
@@ -538,7 +537,7 @@ async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract
   }
 }
 
-async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContract:Contract,deployer:string, address: string,year: number, description:string,metadata:string,products:Product[],trackerId:number){
+async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContract:Contract,deployer:string, address: string,year: number, metadata:string, manifest:string, products:Product[],trackerId:number){
   const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
   const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
   if(true){
@@ -546,17 +545,15 @@ async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContra
     // this is used to wait for trackaction with new trackers to be confirmed 
     // before adding product and emission tokens on a live network
     await trackerContract.connect(await hre.ethers.getSigner(deployer)).track(
-      deployer,
       address,
       [],
       [],
-      parseInt(fromDate),
-      parseInt(thruDate),
-      description,
-      metadata
+      metadata,
+      manifest
     )
   }else{
-    await addEmissionsAndProducts(hre,contract,trackerContract,deployer,description,products,trackerId)
+    console.log(`Add emissions and production to tracker ID ${trackerId}: ${JSON.parse(metadata).description}`)
+    await addEmissionsAndProducts(hre,contract,trackerContract,deployer,products,trackerId)
   }
 }
 
@@ -575,8 +572,8 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
     
     const db = await PostgresDBService.getInstance()
     // get latest trackerId
-    //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
-    let trackerId = 3 // previous completed tracker
+    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer))._numOfUniqueTrackers();
+    //let trackerId = 3 // previous completed tracker
     const operators = ['Chevron','EnerVest Operating','Hilcorp Energy','ARD Operating','Apache','Noble Energy','EQT','Pioneer Natural Resources','Berry','Atlas Energy Group','Chesapeake Energy','CNX Resources','Devon Energy','Encana Oil & Gas','EXCO Resources','Breitburn Energy','ExxonMobil','ConocoPhillips','WPX Energy','EOG Resources','Scout Energy','Consol Energy','Occidental','BP','Total']
     for (const operatorName of operators){
       const operator = await db.getOperatorRepo().findByName(operatorName);
@@ -623,8 +620,9 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
           trackerId +=1;
         }
         const description = [operatorName,`upstream emissions`,year.toString()].join(', ');
-        const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`});
-        await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,description,metadata,products,trackerId)
+        const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`, "description":`${description}`});
+        const manifest = JSON.stringify({"source":'https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx'});
+        await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,metadata,manifest,products,trackerId)
       }    
     }
     await db.close()
@@ -680,8 +678,9 @@ task("oilAndGasBenchmarkNational","Use admin account to issue demo carbon tracke
         trackerId +=1;
       }
       const description = [`U.S. upstream emissions`,year.toString()].join(', ');
-      const metadata = '';
-      await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,deployer,year,description,metadata,products,trackerId)
+      const metadata = JSON.stringify({"description":description});
+      const manifest = JSON.stringify({"source":'https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx'});
+      await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,deployer,year,metadata,manifest,products,trackerId)
     }    
     await db.close()
   }
@@ -756,8 +755,9 @@ task("oilAndGasBenchmarkBasins","Use admin account to issue demo carbon tracker 
             trackerId +=1;
           }
           const description = [`Oil & gas upstream emissions`,basin,year.toString()].join(', ');
-          const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`});
-          await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,description,metadata,products,trackerId)
+          const metadata = JSON.stringify({"operator_uuid":`${operator?.uuid}`,"description":`${description}`});
+          const manifest = JSON.stringify({"source":'https://www.sustainability.com/globalassets/sustainability.com/thinking/pdfs/2022/2022-og-benchmarking-report-data.xlsx'});
+          await createTrackerAndAddTokens(hre,contract,trackerContract,deployer,operator?.wallet_address!,year,metadata,manifest,products,trackerId)
         }
       }    
     //}

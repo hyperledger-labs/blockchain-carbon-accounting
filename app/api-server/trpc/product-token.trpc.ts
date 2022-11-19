@@ -45,13 +45,17 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
         }
     },
 })
-.mutation('insert', {
+/*.mutation('insert', {
     input: z.object({
+        tokenId: z.number(),
         productId: z.number(),
         trackerId: z.number().default(0),
-        auditor: validAddress,
-        amount: z.bigint(),
+        issuedBy: validAddress,
+        issuedFrom: validAddress,
+        issuedTo: validAddress,
+        issued: z.bigint(),
         available: z.bigint(),
+        retired: z.bigint(),
         name: z.string(),
         unit: z.string(),
         unitAmount: z.number().default(0),
@@ -72,6 +76,6 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
             handleError('register', error)
         }
     },
-})
+})*/
 export type ProductTokenRouter = typeof productTokenRouter 
 

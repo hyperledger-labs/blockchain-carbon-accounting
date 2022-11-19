@@ -1,7 +1,10 @@
 import { DataSource, SelectQueryBuilder } from "typeorm"
 import { Tracker } from "../models/tracker"
+import { TrackerBalance } from "../models/trackerBalance"
 import { ProductToken } from "../models/productToken"
+import { ProductTokenBalance } from "../models/productTokenBalance"
 import { Token } from "../models/token"
+import { Balance } from "../models/balance"
 import { buildQueries, QueryBundle, TrackerPayload } from "./common"
 
 export class TrackerRepo {
@@ -71,7 +74,7 @@ export class TrackerRepo {
       ...payload
     })
     if(payload.tokens){
-      const token = new Tracker()
+      const token = new Token()
 
       for(const tokenPayload of payload.tokens){
         const result = await this._db.getRepository(Token).save({
@@ -92,6 +95,20 @@ export class TrackerRepo {
     return tracker;
   }
 
+  public setRetired = async (tokenId: number) => {
+    try {
+      await this._db.getRepository(Tracker)
+      .createQueryBuilder('tracker')
+      .update(Tracker)
+      .set({retired: () => `${true}`})
+      .where("tokenId = :tokenId", {tokenId})
+      .execute()    
+    } catch (error) {
+      throw new Error("Cannot set retired.")
+    }
+  }
+
+
 
   public countTrackers = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
@@ -104,6 +121,27 @@ export class TrackerRepo {
   }
 
   public truncateTrackers = async () => {
+
+    await this._db.getRepository(Balance)
+    .createQueryBuilder()
+    .delete()
+    .execute()
+    
+    await this._db.getRepository(Token)
+    .createQueryBuilder()
+    .delete()
+    .execute()
+
+    await this._db.getRepository(TrackerBalance)
+    .createQueryBuilder()
+    .delete()
+    .execute()
+
+    await this._db.getRepository(ProductTokenBalance)
+    .createQueryBuilder()
+    .delete()
+    .execute()
+
     await this._db.getRepository(ProductToken)
     .createQueryBuilder()
     .delete()

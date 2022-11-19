@@ -94,7 +94,7 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
       = Math.round(Number(productAmount)/Number(product?.conversion));
 
     let result = await transferProduct(
-      provider,trackerId,productId,productAmount_formatted,address);
+      provider,productId,productAmount_formatted,address);
     setResult(result.toString());
   }
 

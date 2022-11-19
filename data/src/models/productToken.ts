@@ -15,6 +15,9 @@ export class ProductToken {
     @PrimaryColumn()
     productId!: number;
 
+    @Column({unique: true})
+    tokenId!: number;
+
     @Column({nullable: true})
     trackerId!: number;
 
@@ -23,19 +26,37 @@ export class ProductToken {
     tracker!: Tracker;
 
     @Column()
-    auditor!: string;
+    issuedBy!: string;
+
+    @Column()
+    issuedFrom!: string;
+
+    //@Column()
+    //issuedTo!: string; // Products are issued to CarbonTracker contract 
 
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    amount!: bigint;
+    issued!: bigint;
 
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
     available!: bigint;
 
-    @Column()
-    name!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    retired!: bigint;
 
-    @Column({nullable: true, type: 'double precision'})
-    emissionsFactor!: number;
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    metadata!: Object; // eslint-disable-line
+
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    manifest!: Object; // eslint-disable-line
+
+    @Column({nullable: true})
+    dateCreated!: number;
+
+    @Column({nullable: true})
+    dateUpdated?: number;
+
+    //@Column({nullable: true, type: 'double precision'})
+    //emissionsFactor!: number;
 
     @Column({nullable: true})
     unit?: string;

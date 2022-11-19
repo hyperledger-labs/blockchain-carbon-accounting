@@ -8,14 +8,14 @@ import ProductForm from "@blockchain-carbon-accounting/react-app/src/pages/produ
 import CreateTrackerForm from "./create-tracker-form"
 import { RolesInfo, Wallet, Tracker } from "@blockchain-carbon-accounting/react-app/src/components/static-data";
 
-import type { Emissions }from "@blockchain-carbon-accounting/supply-chain-lib";
+import type { ActivityResult }from "@blockchain-carbon-accounting/supply-chain-lib";
 
 import type { Product, Operator } from "./static-data";
 import RequestProductAudit from "./request-product-audit"
 
 type ProductInfoHandles = {
   trackerCreate:(result:string) => void
-  calculateEmissions:(emissions:Emissions) => void
+  calculateEmissions:(activityResult:ActivityResult) => void
 }
 type ProductInfo = {
   props:{

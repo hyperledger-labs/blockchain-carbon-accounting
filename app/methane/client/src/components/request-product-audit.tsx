@@ -21,7 +21,8 @@ import {
   ActivityType, 
   emissionsTypes,
   ghgTypes,
-  Emissions
+  Emissions,
+  ActivityResult
 } from "@blockchain-carbon-accounting/supply-chain-lib/src/common-types"
 
 
@@ -33,7 +34,7 @@ type RequestAuditProps = {
   product:Product
   roles: RolesInfo
   onHide:()=>void 
-  onSubmitHandle:(emissions:Emissions)=>void
+  onSubmitHandle:(activityResult:ActivityResult)=>void
 }
 
 type SuccessResultType = {
@@ -162,7 +163,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
           setTopSuccess({ emissions, title: 'Emissions calculated' })
         }
         if(roles.isAeDealer){
-          onSubmitHandle(emissions)
+          onSubmitHandle(res?.result)
         }
       } catch (err) {
         console.warn('Form error ', err)

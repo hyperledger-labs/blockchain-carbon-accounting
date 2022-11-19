@@ -1,6 +1,6 @@
 import { 
     Balance, Sync, Wallet, PostgresDBService,
-    BalancePayload, TokenPayload, ProductTokenPayload, TrackerPayload 
+    BalancePayload, TokenPayload, ProductTokenPayload, Tracker, TrackerPayload, TrackerBalance, TrackerBalancePayload, ProductTokenBalance, ProductTokenBalancePayload, 
 } from '@blockchain-carbon-accounting/data-postgres';
 import { readFileSync } from 'fs';
 import handlebars from 'handlebars';
@@ -11,6 +11,9 @@ import { OPTS_TYPE } from "../server";
 import { getMailer, getSiteAndAddress, getWalletInfo } from "../utils/email";
 import { BURN, getContract, getTrackerContract, getCurrentBlock, getWeb3 } from "../utils/web3";
 import { insertNewBalance } from "./balance.controller";
+import { insertNewTrackerBalance } from "./trackerBalance.controller";
+import { insertNewProductTokenBalance } from "./productTokenBalance.controller";
+
 import helpers from 'handlebars-helpers';
 
 helpers({ handlebars })
@@ -116,6 +119,15 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
             {event: 'RegisteredIndustry', role: 'Industry'},
             {event: 'UnregisteredIndustry', role: 'Industry'},
         ];
+
+        const tracker_events = [
+            //{event: 'TrackerEvent'},
+            //{event: 'TrackerIssued'},
+            //{event: 'ProductsIssued'},
+            {event: 'TransferProducts'},
+            {event: 'VerifierApproval'},
+            {event: 'ApproveProductTransfer'}
+        ];
         const accountAddresses: Record<string, boolean> = {};
         const syncedAccountAddresses: Record<string, boolean> = {};
         let toBlock = fromBlock;
@@ -127,6 +139,7 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
             }
             console.log(`Syncing events from block ${fromBlock} to ${toBlock} ...`);
             const events = await getContract(opts).getPastEvents("allEvents", {fromBlock, toBlock});
+            
             for (const event of events) {
                 const eventName = event.event;
                 console.log("? event: ", event);
@@ -139,6 +152,18 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
                 } else if ('TransferSingle' === eventName) {
                     // handle the transfers for calculating balances here as well
                     await handleTransferEvent(event, db);
+                }
+            }
+
+            const trackerEvents = await getTrackerContract(opts).getPastEvents("allEvents", {fromBlock, toBlock});
+            for (const event of trackerEvents) {
+                const eventName = event.event;
+                console.log("? event: ", event);
+                if ('TransferProducts' === eventName) {
+                    handleTransferProductEvent(event,db)
+                } else if (['TransferSingle','TransferBatch'].includes(eventName)) {
+                    // handle the transfers for calculating balances here as well
+                    await handleTransferTrackerEvent(event, db, opts);
                 }
             }
 
@@ -155,30 +180,6 @@ export const syncEvents = async (fromBlock: number, currentBlock: number, opts: 
 
             if (toBlock == currentBlock) break;
             fromBlock += EVENTS_BLOCK_INTERVAL;
-        }
-    } catch (err) {
-        console.error(err)
-        throw new Error('Error in syncEvents: ' + err)
-    }
-}
-
-/** Read the event log of the CarbonTracker and process events.
- * - For TrackerUpdated: check token id and amount changes on trackerId
- * - For ProductsUpdated: check transfers and update the balances in the DB
- */
-export const syncCarbonTrackerEvents = async (fromBlock: number, currentBlock: number, opts: OPTS_TYPE) => {
-    try {
-        const db = await PostgresDBService.getInstance()
-
-        const account_events = [
-            {event: 'RegisteredTracker'},
-            {event: 'TrackerUpdated'},
-            {event: 'ProductsUpdated'},
-        ];
-        const accountAddresses: Record<string, boolean> = {};
-        const syncedAccountAddresses: Record<string, boolean> = {};
-        let toBlock = fromBlock;
-        while (toBlock <= currentBlock) {
         }
     } catch (err) {
         console.error(err)
@@ -256,7 +257,7 @@ const getNumOfUniqueTokens = async (opts: OPTS_TYPE): Promise<number> => {
 /** Get number of unique tokens on the blockchain. */
 const getNumOfProductTokens = async (opts: OPTS_TYPE): Promise<number> => {
     try {
-        const result = await getTrackerContract(opts).methods._numOfProducts().call();
+        const result = await getTrackerContract(opts).methods.getNumOfUniqueProducts().call();
         return result;
     } catch (err) {
         console.error(err)
@@ -267,11 +268,11 @@ const getNumOfProductTokens = async (opts: OPTS_TYPE): Promise<number> => {
 /** Get number of unique trackers on the blockchain. */
 const getNumOfTrackers = async (opts: OPTS_TYPE): Promise<number> => {
     try {
-        const result = await getTrackerContract(opts).methods._numOfUniqueTrackers().call();
+        const result = await getTrackerContract(opts).methods.getNumOfUniqueTrackers().call();
         return result;
     } catch (err) {
         console.error(err)
-        throw new Error('Error in _numOfUniqueTrackers: ' + err)
+        throw new Error('Error in getNumOfUniqueTrackers: ' + err)
     }
 }
 
@@ -289,25 +290,41 @@ async function getTokenDetails(tokenId: number, opts: OPTS_TYPE): Promise<TokenP
 /** Get the product details from the blockchain */
 async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<ProductTokenPayload|undefined> {
     try {
-        const result = await getTrackerContract(opts).methods._productData(productId).call();
-        let emissionsFactor = null;
+        const productData = await getTrackerContract(opts).methods._productData(productId).call();
+        productData.trackerId = Number(productData.trackerId);
+        productData.tokenId = Number(productData.tokenId);
+        //productData.amount = Number(productData.amount);
+        //productData.available = Number(productData.available);
 
-        if(Number(result.trackerId)!==0){
-            let decimals = Number(await getTrackerContract(opts).methods.decimalsEf().call());
-            emissionsFactor = Number(await getTrackerContract(opts).methods.emissionsFactor(result.trackerId).call())
-            emissionsFactor = emissionsFactor/decimals*Number(result.amount)/Number(result.unitAmount)
-        }
-        const product:ProductTokenPayload = {
-            ...result, ...{
-                productId: productId, 
-                unitAmount: Number(result.unitAmount),
-                emissionsFactor
-            }
-        }
-        if(Number(product.trackerId)===0){
+        if(Number(productData.trackerId)===0){
             console.warn('Skipping product with no assigned trackerId!')
             return
+        }else{
         }
+
+        const tokenDetails: any = await getTrackerContract(opts).methods._tokenDetails(productData.tokenId).call();
+        tokenDetails.totalRetired = Number(tokenDetails.totalRetired)
+
+        if(tokenDetails.metadata.length>0){
+            tokenDetails.metadata = JSON.parse(tokenDetails.metadata) as any
+        }
+        if(tokenDetails.manifest.length>0){
+            tokenDetails.manifest = JSON.parse(tokenDetails.manifest) as any
+        }
+
+        const product:ProductTokenPayload = {
+            ...tokenDetails, ...productData, ...{
+                productId: productId, 
+                amount: 0n,
+                available: 0n,
+                //issuedTo: opts.tracker_address,
+                unitAmount: Number(tokenDetails.metadata.unitAmount!) || productData.amount,
+                unit: tokenDetails.metadata.unit!,
+                //dateCreated: ,//check for first of getPastEvents for ProductsIssued indexed by TrakerId with productId
+                //dateUpdated: //check for last of getPastEvents for ProductsIssued indexed by TrakerId with productId                
+            }
+        }
+
         return product;
     } catch (error) {
         console.error(error);
@@ -316,41 +333,60 @@ async function getProductDetails(productId: number, opts: OPTS_TYPE): Promise<Pr
 }
 
 /** Get the product details from the blockchain */
-async function getTrackerDetails(trackerId: number, opts: OPTS_TYPE): Promise<TrackerPayload> {
+async function getTrackerDetails(trackerId: number, opts: OPTS_TYPE): Promise<TrackerPayload | undefined> {
     try {
-        const result: any = await getTrackerContract(opts).methods.getTrackerDetails(trackerId).call();
-        //console.log(result)
-        const tracker : TrackerPayload = {...result[0]};
-        
-        tracker.totalEmissions = result[1];
-        
-        let metadata = result[0].metadata
-        if(metadata.length>0){
-            metadata = JSON.parse(metadata) as any
-            tracker.metadata = metadata
+        const trackerDetails: any = await getTrackerContract(opts).methods.getTrackerDetails(trackerId).call();
+        const _tracker = trackerDetails[0];
+        const netTotals = trackerDetails[3]
+
+        const decimals = Number(await getTrackerContract(opts).methods.decimalsCt().call());
+
+        const tokenDetails: any = await getTrackerContract(opts).methods._tokenDetails(trackerDetails[0].tokenId).call();
+        tokenDetails.totalRetired = Number(tokenDetails.totalRetired)
+        tokenDetails.tokenId = Number(tokenDetails.tokenId);
+        if(tokenDetails.metadata.length>0){
+            tokenDetails.metadata = JSON.parse(tokenDetails.metadata) as any
         }
-        if(metadata.operator_uuid){
-            tracker.operatorUuid = metadata.operator_uuid
+        if(tokenDetails.manifest.length>0){
+            tokenDetails.manifest = JSON.parse(tokenDetails.manifest) as any
         }
 
-        tracker.products=[]
-        for(const productId of result[2]){
+        const tracker: TrackerPayload = {
+            ...tokenDetails,
+            ..._tracker,
+            ...{
+                trackerId,
+                totalProductAmounts: Number(_tracker.totalProductAmounts),
+                totalEmissions: Number(netTotals.emissions)/decimals,
+                totalOffsets: Number(netTotals.offsets)/decimals,
+                totalREC: Number(netTotals.rec)/decimals,
+                retired: Number(tokenDetails.totalRetired) === 1,
+                operatorUuid: tokenDetails.metadata.operator_uuid!,
+                dateCreated:null, //first of getPastEvents for TrackerEvent indexed by TrakerId
+                dateUpdated:null, //last of getPastEvents for TrackerEvent indexed by TrakerId
+                dateIssued:null //getPastEvents for TransferSingle or TransferBatch event with from === BURN address and id === tokenId
+            }
+        };
+
+        // no longer store productIds with trackerDetails
+        /*tracker.products=[]
+        for(const productId of trackerDetails[2]){
             const product = await getProductDetails(productId,opts)
             if(product) tracker.products.push(product)
-        }
+        }*/
 
-        const tokenDetails = await getTrackerContract(opts).methods.getTrackerTokenDetails(trackerId).call();
-            
+        //const tokenDetails = await getTrackerContract(opts).methods.getTrackerTokenDetails(trackerId).call();
+         
         tracker.tokens=[];
         //console.log(tokenDetails)
-        for(const tokenId of tokenDetails[0]){
+        for(const tokenId of trackerDetails[1]){
             const token = await getTokenDetails(tokenId,opts);
             //console.log(token)
             token.trackerId = trackerId
             tracker.tokens.push(token);
         } 
 
-        console.log(`Adding trackerId ${trackerId} to postgres with tokenIds ${tracker.tokens.map(t=>t.tokenId)} and productIds ${tracker.products.map(t=>t.productId)}`)
+        console.log(`Adding trackerId ${trackerId} to postgres with tokenIds ${tracker.tokens.map(t=>t.tokenId)}`)// and productIds ${tracker.products.map(t=>t.productId)}`)
         return tracker;
     } catch (err) {
         console.error(err);
@@ -492,6 +528,7 @@ export const fillProductTokens = async (opts: OPTS_TYPE, sendEmail: boolean) => 
             if (!t) {
                 const product = await getProductDetails(productId, opts);
                 if(!product) continue;
+                //console.log('new prod', product)
 
                 await db.getProductTokenRepo().insertProductToken(product);
                 // TO-DO sendProductIssuedEmail ?
@@ -528,8 +565,8 @@ export const fillTrackers = async (opts: OPTS_TYPE, sendEmail: boolean) => {
             // if the token is not in the database, get the initial details and save it
             const t = await db.getTrackerRepo().selectTracker(trackerId);
             if (!t) {
-                const tracker: TrackerPayload = await getTrackerDetails(trackerId, opts);
-                await db.getTrackerRepo().insertTracker(tracker);
+                const tracker = await getTrackerDetails(trackerId, opts);
+                if(tracker) await db.getTrackerRepo().insertTracker(tracker);
                 // TO-DO sendTrackerIssuedEmail ?
                 //if (sendEmail) await sendTrackerIssuedEmail(tracker);
             }
@@ -608,6 +645,130 @@ export const handleTransferEvent = async (event: EventData, db: PostgresDBServic
         await db.getBalanceRepo().addAvailableBalance(to, tokenId, amount);
     }
     console.log(`--- ${amount} of Token ${tokenId} transferred from ${from} to ${to}`);
+}
+
+// eslint-disable-next-line
+export const handleTransferTrackerEvent = async (event: EventData, db: PostgresDBService, opts: OPTS_TYPE) => {
+    const transfer = event.returnValues;
+
+    const from: string = transfer.from;
+    const to: string = transfer.to;
+
+    let tokenIds: number[]=[];
+    // check for ids from TransferBatch or id for TransferSingle event
+    if(transfer.ids){tokenIds=transfer.ids.map(Number)}
+    else if(transfer.id){tokenIds=[Number(transfer.id)]};
+
+
+    let amounts: bigint[]=[];
+    // check for values from TransferBatch or value for TransferSingle event
+    if(transfer.values){amounts=transfer.values.map(BigInt)}
+    else if(transfer.value){amounts=[BigInt(transfer.value)]};
+
+    for (let i =0; i< tokenIds.length; i++){
+        const tokenDetails: any = await getTrackerContract(opts).methods._tokenDetails(tokenIds[i]).call();
+        if(Number(tokenDetails.tokenTypeId)==1){
+            const trackerId = Number(tokenDetails.sourceId);
+
+            // issue case
+            if (from == BURN) {
+                // resolve conflicts
+                const balance: TrackerBalance | null = await db.getTrackerBalanceRepo().selectBalance(to, trackerId);
+                if (balance != undefined) {
+                    console.error(`Error in handleTransferTrackerEvent: balance already exists for ${to} and trackerId ${trackerId} and token was just issued.`);
+                    return;
+                }
+                const balancePayload: TrackerBalancePayload = {
+                    trackerId,
+                    issuedTo: to,
+                    status: 'available'
+                }    
+                await insertNewTrackerBalance(balancePayload);
+                console.log(`--- ${amounts[i]} of Tracker ${trackerId} Issued to ${to}`);
+                return;
+            }    
+            // retire case
+            if (to == BURN) {
+                // update issuee balance
+                await db.getTrackerBalanceRepo().updateStatus(from, trackerId, 'retired');
+                await db.getTrackerRepo().setRetired(trackerId); 
+                console.log(`--- ${amounts[i]} of Tracker ${trackerId} Retired from ${from}`);
+                return;
+            }
+            // general transfer!
+            // 1) deduct 'from' balance
+            await db.getTrackerBalanceRepo().updateStatus(from, trackerId, 'transferred');
+        
+            // 2) add available 'to' balance
+            const balance: TrackerBalance | null = await db.getTrackerBalanceRepo().selectBalance(to, trackerId);
+            if (balance == undefined) {
+                const balancePayload: TrackerBalancePayload = {
+                    trackerId,
+                    issuedTo: to,
+                    status: 'available'
+                }    
+                await insertNewTrackerBalance(balancePayload);    
+            } else {
+                await db.getTrackerBalanceRepo().updateStatus(from, trackerId, 'transferred');
+            }
+        }else if(Number(tokenDetails.tokenTypeId)==2){
+            const productId = Number(tokenDetails.sourceId);
+            //issue case
+            if (from == BURN) {
+                await db.getProductTokenRepo().updateIssued(productId, amounts[i]);
+                const balancePayload: ProductTokenBalancePayload = {
+                    productId,
+                    issuedTo: to,
+                    available: amounts[i],
+                    retired: 0n,
+                    transferred: 0n
+                }
+                await insertNewProductTokenBalance(balancePayload);                
+                console.log(`--- ${amounts[i]} of ProductToken ${productId} Issued to ${to}`);
+                return;
+            }  
+            // retire case
+            if (to == BURN) {
+
+                if(from !== opts.tracker_address){
+                    // update issued token retired balance
+                    // only update retired excluding corrections submitted by the CarbonTracker contract address
+                    await db.getProductTokenRepo().updateRetired(productId, amounts[i]);
+                }   
+                // update issued token retired balance
+                await db.getProductTokenBalanceRepo().retireBalance(from, productId, amounts[i]);
+                console.log(`--- ${amounts[i]} of ProductToken ${productId} Retired from ${from}`);
+                return;
+            }
+            // general transfer!
+            // 1) deduct 'from' balance
+            await db.getProductTokenBalanceRepo().transferBalance(from, productId, amounts[i]);
+        
+            // 2) add available 'to' balance
+            const balance: ProductTokenBalance | null = await db.getProductTokenBalanceRepo().selectBalance(to, productId);
+            if (balance == undefined) {
+                const balancePayload: ProductTokenBalancePayload = {
+                    productId,
+                    issuedTo: to,
+                    available: amounts[i],
+                    retired: 0n,
+                    transferred: 0n
+                }
+                await insertNewProductTokenBalance(balancePayload);
+            } else {
+                await db.getProductTokenBalanceRepo().addAvailableBalance(to, productId, amounts[i]);
+            }
+        }
+        console.log(`--- ${amounts[i]} of Token ${tokenIds[i]} transferred from ${from} to ${to}`);
+    }
+}
+
+export const handleTransferProductEvent = async (event: EventData, db: PostgresDBService) => {
+    const productIds = event.returnValues.productIds.map(Number);
+    const productAmounts = event.returnValues.productAmounts.map(BigInt);
+    for(let i=0; i<productIds.length; i++){
+        await db.getProductTokenRepo().updateAvailable(productIds[i], productAmounts[i]);
+    }
 }
 
 /** Updates the token balances since the last Sync. **Only for use in the synchronizeTokens middleware**. */

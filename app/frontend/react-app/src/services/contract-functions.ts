@@ -308,7 +308,7 @@ export async function productUpdate(
   productAmount: bigint,
   productName: string,
   productUnit: string,
-  productUnitAmount: bigint,
+  productUnitAmount: string,
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
@@ -321,7 +321,7 @@ export async function productUpdate(
       [productAmount].map(Number),
       convertStringToArray(productName),
       convertStringToArray(productUnit),
-      [productUnitAmount].map(Number)
+      convertStringToArray(productUnitAmount)
     );
     issue_result = SUCCESS_MSG;
   } catch (error) {
@@ -349,7 +349,6 @@ export async function verifyTracker(
 
 export async function transferProduct(
   w3provider: Web3Provider | JsonRpcProvider,
-  sourceTrackerId: number,
   productId: number,
   productAmount: number,
   trackee: string,
@@ -359,7 +358,7 @@ export async function transferProduct(
   let signed = contract.connect(signer);
   let transfer_result;
   try {
-    await signed.transferProduct(productId,productAmount,sourceTrackerId,trackee);
+    await signed.transferProduct(productId,productAmount,trackee);
     transfer_result = SUCCESS_MSG;
   } catch (error) {
     transfer_result = catchError(error);
@@ -785,7 +784,7 @@ export async function getTrackerDetails(
 
     const [tokenIds,tokenAmounts] = await contract.getTrackerTokenDetails(trackerId);
 
-    let decimals = (await contract.decimalsEf()).toNumber();
+    let decimals = (await contract.decimalsCt()).toNumber();
     let emissionsFactor = await contract.emissionsFactor(trackerId) / decimals;
 
     let myTokenAmounts:number[] = [];
@@ -857,16 +856,7 @@ export async function getTrackerDetails(
   }
   return details;
 }
-export async function getTrackerIds(w3provider: Web3Provider | JsonRpcProvider, trackerId: number) {
-  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let trackerIds;
-  try {
-    trackerIds = await contract.getTrackerIds(trackerId);
-  } catch (error) {
-    trackerIds = getErrorMessage(error)
-  }
-  return trackerIds;
-}
+
 export async function getEmissionFactor(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, tokenTypeId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let ef;
@@ -933,7 +923,8 @@ export async function trackUpdate(
   w3provider: Web3Provider | JsonRpcProvider, trackerId: number,
   tokenIds: string,tokenAmounts: string,
   fromDate: number|Date,thruDate: number|Date,
-  description: string){
+  description: string,
+  metadata: string ){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
@@ -945,7 +936,8 @@ export async function trackUpdate(
       convertToTons(tokenAmounts),
       convertToZeroIfBlank(toUnixTime(fromDate)),
       convertToZeroIfBlank(toUnixTime(thruDate)),
-      description
+      description,
+      metadata
     );
     track_result = SUCCESS_MSG;
   } catch (error) {

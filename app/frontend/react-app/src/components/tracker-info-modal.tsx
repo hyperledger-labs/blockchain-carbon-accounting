@@ -35,7 +35,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
 
   async function submit() {
     if (!provider) return;
-    await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription);
+    await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription,"");
   }
 
   trpc.useQuery(['wallet.lookup', {query: tracker.trackee}], {
@@ -54,6 +54,23 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
       }
     }
   })
+
+  function tryParseJSONObject(jsonString:string){
+      try {
+          var o = JSON.parse(jsonString);
+  
+          // Handle non-exception-throwing cases:
+          // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+          // but... JSON.parse(null) returns null, and typeof null === "object", 
+          // so we must check for that, too. Thankfully, null is falsey, so this suffices:
+          if (o && typeof o === "object") {
+              return o;
+          }
+      }
+      catch (e) { }
+  
+      return false;
+  };
 
   return (
     <Modal {...{show,tracker,onHide}} centered size="lg">
@@ -132,14 +149,14 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             {tracker.products?.map((product: ProductToken,i: number) => (
               <tr key={product.name}>
                 <td>
-                  {product.name === 'oil'&& <GiOilDrum/>}{product.name === 'gas'&& <IoIosFlame/>}{product.name}
+                  {product.name.toLowerCase().includes('oil') && <GiOilDrum/>}{product.name.toLowerCase().includes('gas') && <IoIosFlame/>}{product.name}
                 </td>
                 <td>
                   <div key={product.name+"Amount"+i}>
                     {Math.round(product?.unitAmount!).toLocaleString('en-US') + " " + product.unit}
                   </div>
                 </td>
-                <td>{Math.round(Number(product.available!)).toLocaleString('en-US')}</td>
+                <td>{Math.round(Number(product.available!)*product?.unitAmount!/Number(product?.amount!)).toLocaleString('en-US')}</td>
                 <td>{Math.round(product?.myBalance!).toLocaleString('en-US')}</td>
                 <td>
                   <div key={product?.name+"Intensity"+i}>{product?.emissionsFactor?.toLocaleString('en-US')}{" kgCO2e/"+product?.unit}</div>
@@ -161,7 +178,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                 <tr key={e.tokenId+'Details'}>
                   <td>{"Token ID "+e.tokenId}
                     <p>{e.description}</p>
-                    {e.manifest && <a href={(e.manifest as any)?.source!} target="_blank" rel="noopener noreferrer">Source</a>} 
+                    {e.manifest && <a href={tryParseJSONObject(e.manifest as string) || (e.manifest as any)?.source!} target="_blank" rel="noopener noreferrer">Source</a>} 
                   </td>
                   <td><>{e.totalIssued && (Number(e.totalIssued!)/1000).toLocaleString('en-US')+" tons CO2e"}
                     <DisplayJSON json={e.metadata}/></>

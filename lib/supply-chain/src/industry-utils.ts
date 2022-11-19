@@ -46,15 +46,14 @@ export async function process_industry(
         }
         emissions.amount.value = methane_in_kg_co2e(_a.gwp,amount,uom,)
         break
-      case 'combustion':
-        throw new Error(`Conversion of industry emissons from combustion to kg CO2e calculation  not yet supported`)
-        break
+      //case 'combustion':
+      //  break
       default:
+         throw new Error(`Conversion of industry emissons from ${emissions_type} to kg CO2e calculation not supported`)
     }
   }
-  const results: {
-    emissions: Emissions,
-  } = { emissions };
+  const details = { type: emissions_type, gwp: _a.gwp }
+  const results = { emissions,  details};
 
   return results;
 }

@@ -284,7 +284,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
       return(
       <Row key={tracker.trackerId+"ProductInfo"+product.productId}>
         <span key={tracker.trackerId+name+product.productId+"Amount"}>
-          <span>{name === 'oil'&& <GiOilDrum/>}{name === 'gas'&& <IoIosFlame/>}{`${Math.round(product.unitAmount!).toLocaleString('en-US')} ${unit}`}</span>
+          <span>{name.toLowerCase().includes('oil') && <GiOilDrum/>}{name.toLowerCase().includes('gas') && <IoIosFlame/>}{`${Math.round(product.unitAmount!).toLocaleString('en-US')} ${unit}`}</span>
           <span>{product.myBalance!>0 && product.myBalance !== product.unitAmount && (
             "My balance = "+Math.round(product.myBalance!).toLocaleString('en-US')+" "+unit
           )}</span>&nbsp;
@@ -338,7 +338,6 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
           <th>{(showTrackers==='my_products' ? "My Emissions":"Emissions")+', tons CO2e'}</th>
           <th>Products</th>
           <th>Description</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -364,8 +363,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
                   && <Button disabled={true} variant="outline-dark" href={"/transferTracker/"+tracker.trackerId} >Transfer Certificate</Button>
                 }
                 &nbsp;<span key={"trackerId"+tracker.trackerId+"Description"}>{tracker.description}</span>
-              </td>
-              <td>{provider && roles.isAeDealer && <Button className="mb-3" variant="outline-dark" onClick={async() => await verifyTracker(provider, tracker.trackerId)}>Verify</Button>}</td>
+                {provider && roles.isAeDealer && tracker.auditor.toLowerCase()==="0x0000000000000000000000000000000000000000" && <Button className="float-end mb-3" variant="outline-dark" onClick={async() => await verifyTracker(provider, tracker.trackerId)}>Verify</Button>}</td>
             </tr>)
         )}
       </tbody>
@@ -398,14 +396,6 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
           { trackerSelectors.map((labelObj,index) => (<Dropdown.Item key={labelObj.key} eventKey={index}>{labelObj.value}</Dropdown.Item>))}
         </DropdownButton>
       </Dropdown>
-
-      <Link href="/track/0">
-        <Button
-          className="mb-3"
-          variant="outline-dark">
-          Issue
-        </Button>
-      </Link>
 
       {isDealer && <Button style={{display: 'inline'}} className="mb-3" variant="outline-dark" href={`/track/${selectedTracker?.trackerId || 0}`}> Request certificate </Button>}
       <div className="mt-4">
