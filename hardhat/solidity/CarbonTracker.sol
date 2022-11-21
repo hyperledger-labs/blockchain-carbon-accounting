@@ -155,12 +155,11 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256 indexed trackerId,
         uint256 date
     );*/
-    /*event ProductsIssued(
+    event ProductsIssued(
         uint256 indexed trackerId,
         uint256[] productIds,
-        uint256[] productAmounts,
-        uint256 date
-    );*/
+        uint256[] productAmounts
+    );
     event TransferProducts(
         address indexed sender,
         uint256[] productIds,
@@ -524,7 +523,7 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
 
             trackerData.totalProductAmounts = trackerData.totalProductAmounts.add(productAmounts[i]);
         }
-        //emit ProductsIssued(trackerId, productIds, productAmounts, block.timestamp);
+        emit ProductsIssued(trackerId, productIds, productAmounts);
     }
 
     /**

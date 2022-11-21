@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Amountpache-2.0
 import Button from 'react-bootstrap/Button';
 import Modal from "react-bootstrap/Modal";
 import { FaLink } from 'react-icons/fa';
@@ -46,7 +46,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
       }
     }
   })
-  trpc.useQuery(['wallet.lookup', {query: tracker.auditor}], {
+  trpc.useQuery(['wallet.lookup', {query: tracker.issuedBy}], {
     onSettled: (output) => {
       console.log('lookup query settled with', output?.wallets)
       if (output?.wallets) {
@@ -97,7 +97,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                   <small>({trackeeWallet?.address?.substring(0,7)+"..."})</small>
               </td>
             </tr>
-            {(tracker.auditor!=="0x0000000000000000000000000000000000000000" ?
+            {(tracker.issuedBy !=="0x0000000000000000000000000000000000000000" ?
               <tr>
                 <td>Auditor</td>
                 <td className="text-monospace">
@@ -107,6 +107,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             : null)}
             <tr>
               <td>From date</td>
+              {/*TO-DO infer fromDate/thruDate from Net Emission tokens*/}
               <td><DisplayDate date={tracker.fromDate}/></td>
             </tr>
             <tr>
@@ -116,10 +117,10 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             <tr>
               <td>Description</td>
 
-              {(isDealer && tracker.auditor==="0x0000000000000000000000000000000000000000") ?
+              {(isDealer && tracker.issuedBy==="0x0000000000000000000000000000000000000000") ?
                 <td style={{ overflowWrap: "anywhere" }}>
                   <Form.Group className="mb-3" controlId="trackerDescriptionInput">
-                    <Form.Control as="textarea" placeholder={tracker.description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
+                    <Form.Control as="textarea" placeholder={(tracker.metadata as any).description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
                   </Form.Group>
                   <Button
                     variant="primary"
@@ -130,7 +131,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                     Submit
                   </Button>
                 </td>
-                : <td style={{ overflowWrap: "anywhere" }}>{tracker.description}</td>
+                : <td style={{ overflowWrap: "anywhere" }}>{(tracker.metadata as any).description}</td>
             }
             </tr>
           </tbody>
@@ -147,16 +148,16 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
           </thead>
           <tbody>
             {tracker.products?.map((product: ProductToken,i: number) => (
-              <tr key={product.name}>
+              <tr key={`productID-${product.productId}`}>
                 <td>
-                  {product.name.toLowerCase().includes('oil') && <GiOilDrum/>}{product.name.toLowerCase().includes('gas') && <IoIosFlame/>}{product.name}
+                  {product?.name?.toLowerCase().includes('oil') && <GiOilDrum/>}{product?.name?.toLowerCase().includes('gas') && <IoIosFlame/>}{product?.name}
                 </td>
                 <td>
-                  <div key={product.name+"Amount"+i}>
+                  <div key={product?.name+"Amount"+i}>
                     {Math.round(product?.unitAmount!).toLocaleString('en-US') + " " + product.unit}
                   </div>
                 </td>
-                <td>{Math.round(Number(product.available!)*product?.unitAmount!/Number(product?.amount!)).toLocaleString('en-US')}</td>
+                <td>{Math.round(Number(product.available)*product?.unitAmount!/Number(product?.issued)).toLocaleString('en-US')}</td>
                 <td>{Math.round(product?.myBalance!).toLocaleString('en-US')}</td>
                 <td>
                   <div key={product?.name+"Intensity"+i}>{product?.emissionsFactor?.toLocaleString('en-US')}{" kgCO2e/"+product?.unit}</div>

@@ -768,6 +768,7 @@ export async function getNumOfUniqueTrackers(w3provider: Web3Provider | JsonRpcP
   }
   return uniqueTrackers;
 }
+/* deprecated - all token dta is now stored in postgres server using api/server controller/synchronizer
 export async function getTrackerDetails(
   w3provider: Web3Provider | JsonRpcProvider,
   trackerId: number,
@@ -800,6 +801,7 @@ export async function getTrackerDetails(
       let product:ProductToken = {
         productId,
         trackerId,
+        tokenId,
         auditor: productData[1],
         amount: productData[2],
         available: productData[3],
@@ -855,7 +857,7 @@ export async function getTrackerDetails(
     details = getErrorMessage(error)
   }
   return details;
-}
+}*/
 
 export async function getEmissionFactor(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, tokenTypeId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);

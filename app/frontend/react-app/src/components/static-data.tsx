@@ -49,17 +49,22 @@ export type Token = {
 // TO-DO use extends for object like type from /data-postgres/common
 export type Tracker = {
   trackerId: number
+  tokenId: number
   trackee: string
-  createdBy?: string
-  auditor: string
+  issuedFrom: string
+  issuedBy: string
   fromDate?: number
   thruDate?: number
   metadata: Object
-  description: string
+  manifest: Object
   dateCreated: number
   dateUpdated?: number
+  dateIssued?: number
   totalEmissions: bigint
+  totalOffsets: bigint
+  totalREC: bigint
   totalProductAmounts: bigint
+  emissionsFactor?: number
   myProductsTotalEmissions?: number
   products?: ProductToken[]
   tokens?: Token[] & {
@@ -68,20 +73,26 @@ export type Tracker = {
 }
 
 export type ProductToken = {
+  tokenId: number
   productId: number
   trackerId: number
-  auditor: string
-  name: string
-  amount: bigint
+  issuedFrom: string
+  issuedBy: string
+  issued: bigint
   available: bigint
+  retired: bigint
+  dateCreated: number
+  dateUpdated?: number
+  dateIssued?: number
   myBalance?: number
   emissionsFactor?: number
-  conversion?: number
   unit?: string
   unitAmount?: number
   unitAvailable?: number
-  metadata?: Object
-
+  name?: string
+  //tracker: Tracker
+  metadata: Object
+  manifest: Object
 }
 
 export type Balance = {

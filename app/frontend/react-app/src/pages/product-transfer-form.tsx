@@ -4,35 +4,29 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { transferProduct, getTrackerDetails } from "../services/contract-functions";
+import { transferProduct } from "../services/contract-functions";
+import { getTracker, getProduct } from '../services/api.service';
+
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo } from "../components/static-data";
 import WalletLookupInput from "../components/wallet-lookup-input";
 import { InputGroup } from "react-bootstrap";
-import { Tracker } from "../components/static-data";
+import { Tracker, ProductToken } from "../components/static-data";
 
 type ProductTransferFormProps = {
   provider?: Web3Provider | JsonRpcProvider,
   roles: RolesInfo,
-  trackerId: number,
   productId: number,
   signedInAddress: string
 }
-type ProductInfo = {
-  available: number,
-  name: string,
-  conversion: number,
-  unit: string
-}
-
-const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAddress, trackerId, productId }) => {
+const ProductTransferForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAddress, productId }) => {
 
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
 
   // Form inputs
   const [address, setAddress] = useState("");
-  const [product, setProduct] = useState<ProductInfo>();
+  const [product, setProduct] = useState<ProductToken>();
   const [tracker, setTracker] = useState<Tracker>();
 
   //const [trackerId, setTrackerId] = useState("");
@@ -55,25 +49,18 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
 
   useEffect(() => {
     const init = async () => {
-      if (provider && signedInAddress && trackerId) {
+      if (provider && signedInAddress && productId) {
         setFetchingProduct(true);
-        let tracker = await getTrackerDetails(provider, trackerId, signedInAddress);
-        if (typeof tracker === "object") {
-          const index = tracker.products!.findIndex(p => p.productId === productId);
-          let product = tracker.products![index];
-          let productInfo:ProductInfo = {
-            available: product.unitAvailable!,
-            name: product.name,
-            conversion: product.conversion!,
-            unit: product.unit!
-          }
-          setProduct(productInfo)
-          setTracker(tracker)
+        const {product, status} = await getProduct(productId);
+        if (product) {
+          let {tracker, status} = await getTracker(product.trackerId);
+          setProduct(product)
+          if(tracker) setTracker(tracker)
         }
       }
     }
     init();
-  }, [provider, trackerId, signedInAddress, productId, fetchingProduct]);
+  }, [provider, signedInAddress, productId, fetchingProduct]);
 
   // populate form with URL params if found
   useEffect(() => {
@@ -91,7 +78,7 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
   async function submit() {
     if (!provider) return;
     let productAmount_formatted
-      = Math.round(Number(productAmount)/Number(product?.conversion));
+      = Math.round(Number(productAmount)*Number(product?.issued)/Number(product?.unitAmount));
 
     let result = await transferProduct(
       provider,productId,productAmount_formatted,address);
@@ -113,13 +100,13 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
       />
       <h2>Transfer product</h2>
       <p>{"Send your available products ("+["ID = "+productId,product?.name].join(', ')
-          +") sourced from tracker ("+["ID = "+ trackerId,tracker?.description].join(', ') +") to any address."
+          +") sourced from tracker ("+["ID = "+ product?.trackerId,(tracker?.metadata as any)?.description!].join(', ') +") to any address."
       }</p>
       <Form.Group className="mb-3" controlId="trackerIdInput">
         <Form.Label>Tracker ID</Form.Label>
         <Form.Control
           type="input"
-          value={trackerId}
+          value={product?.trackerId}
           disabled={true}
         />
       </Form.Group>
@@ -187,4 +174,4 @@ const ProductForm: FC<ProductTransferFormProps> = ({ provider, roles, signedInAd
   );
 }
 
-export default ProductForm;
+export default ProductTransferForm;

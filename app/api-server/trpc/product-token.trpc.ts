@@ -45,6 +45,27 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
         }
     },
 })
+.query('get', {
+    input: z.object({
+        productId: z.number().gte(0).default(0)
+    }).default({}),
+    async resolve({ input, ctx }) {
+        try {
+            const product = await ctx.db.getProductTokenRepo().selectProduct(input.productId);
+            return {
+                status: 'success',
+                product: ProductToken.toRaw(product!)
+            }
+        } catch (error) {
+            console.error(error)
+            return {
+                status: 'failed',
+                error
+            }
+        }
+    },
+})
+
 /*.mutation('insert', {
     input: z.object({
         tokenId: z.number(),

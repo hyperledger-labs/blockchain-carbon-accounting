@@ -74,7 +74,7 @@ const appRouter = createRouter()
   .merge('token.', tokenRouter(zQueryBundles))
   .merge('wallet.', walletRouter(zQueryBundles))
   .merge('tracker.', trackerRouter(zQueryBundles))
-  .merge('producToken.', productTokenRouter(zQueryBundles))
+  .merge('productToken.', productTokenRouter(zQueryBundles))
   .merge('emissionsFactors.', emissionsFactorsRouter(zQueryBundles))
   .merge('emissionsRequests.', emissionsRequestsRouter(zQueryBundles))
 

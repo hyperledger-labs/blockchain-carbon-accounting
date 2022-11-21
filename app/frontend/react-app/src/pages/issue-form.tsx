@@ -8,7 +8,9 @@ import { BsTrash, BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { addresses } from "@blockchain-carbon-accounting/contracts";
-import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
+import { encodeParameters, getAdmin, issue, issueAndTrack } from "../services/contract-functions";
+import { getTracker } from '../services/api.service';
+
 import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres";
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import CreateProposalModal from "../components/create-proposal-modal";
@@ -271,9 +273,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
       if(!provider || !requestedTrackerId){
         return;
       }
-      const result = await getTrackerDetails(provider, Number(requestedTrackerId), signedInAddress);
+      const result = await getTracker(Number(requestedTrackerId));
       if (Number(requestedTrackerId)>0 && typeof result === 'object'  ) {
-        setAddress(result.trackee)
+        setAddress(result.tracker?.trackee!)
       }
     }
     fetchTrackerDetails();

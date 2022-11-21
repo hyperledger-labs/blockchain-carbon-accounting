@@ -53,7 +53,10 @@ export class ProductToken {
     dateCreated!: number;
 
     @Column({nullable: true})
-    dateUpdated?: number;
+    dateUpdated!: number;
+
+    @Column({nullable: true})
+    dateIssued!: number;
 
     //@Column({nullable: true, type: 'double precision'})
     //emissionsFactor!: number;

@@ -3,7 +3,7 @@ import axios from 'axios';
 import moment from 'moment';
 import { SetStateAction } from 'react';
 import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
-import type { Token, Tracker, Wallet } from '../components/static-data';
+import type { Token, Tracker, Wallet, ProductToken } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
@@ -88,12 +88,36 @@ export const getTokens = async (offset: number, limit: number, query: string[]):
     }
 }
 
+export const setProductDetails = (tracker: Tracker, product:ProductToken) => {
+    let metadata = product.metadata as any;
+    // check for name, unit and unitAmount attributes from metadata
+    product.name = metadata.name;
+    product.unit = metadata.unit;
+    product.unitAmount = Number(metadata.unitAmount);
+    if(product.unitAmount){
+        product.emissionsFactor = tracker.emissionsFactor!*Number(product.issued)/product.unitAmount; 
+    }
+    //return product;
+}
+
+export const setTrackerDetails = (tracker: Tracker) => {
+    tracker.emissionsFactor = Number(tracker.totalEmissions-tracker.totalOffsets)/Number(tracker.totalProductAmounts);
+    for(let i=0;i<tracker?.products?.length!;i++){
+        setProductDetails(tracker, tracker?.products![i]);
+    }
+    //return tracker
+}
+
+
 export const getTrackers = async (offset: number, limit: number, query: string[]): Promise<{count:number, trackers:Tracker[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
         console.info('getTrackers:', offset, limit, bundles)
         const { status, count, trackers, error } = await trpcClient.query('tracker.list', {offset, limit, bundles})
-        if (status === 'success' && trackers) {
+        if (status === 'success' && trackers && count) {
+            for(let i=0;i<trackers?.length;i++){
+                setTrackerDetails(trackers![i])
+            }
             return { count, trackers, status }
         } else {
             if (status !== 'success') console.error('getTrackers error:', error)
@@ -109,10 +133,28 @@ export const getTracker = async (trackerId:number): Promise<{tracker:Tracker|und
         console.info('getTracker:', trackerId)
         const { status, tracker, error } = await trpcClient.query('tracker.get', {trackerId})
         if (status === 'success' && tracker) {
+            setTrackerDetails(tracker!)
             return { tracker, status }
         } else {
             if (status !== 'success') console.error('getTracker error:', error)
             return {tracker: tracker, status};
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot get tracker"))
+    }
+}
+
+export const getProduct = async (productId:number): Promise<{product:ProductToken|undefined, status:string}> => {
+    try {
+        console.info('getProduct:', productId)
+        const { status, product, error } = await trpcClient.query('productToken.get', {productId})
+        if (status === 'success' && product) {
+            const {tracker, status} = await getTracker(product.trackerId)
+            setProductDetails(tracker!,product)
+            return { product, status }
+        } else {
+            if (status !== 'success') console.error('getTracker error:', error)
+            return {product, status};
         }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get tracker"))

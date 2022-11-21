@@ -716,13 +716,14 @@ export const handleTransferTrackerEvent = async (event: EventData, db: PostgresD
             //issue case
             if (from == BURN) {
                 await db.getProductTokenRepo().updateIssued(productId, amounts[i]);
+
                 const balancePayload: ProductTokenBalancePayload = {
                     productId,
                     issuedTo: to,
                     available: amounts[i],
                     retired: 0n,
                     transferred: 0n
-                }
+                }  
                 await insertNewProductTokenBalance(balancePayload);                
                 console.log(`--- ${amounts[i]} of ProductToken ${productId} Issued to ${to}`);
                 return;

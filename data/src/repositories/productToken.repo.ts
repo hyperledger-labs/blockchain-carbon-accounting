@@ -28,7 +28,9 @@ export class ProductTokenRepo {
   }
 
   public selectProduct = async (productId: number): Promise<ProductToken | null> => {
-    return await this._db.getRepository(ProductToken).findOneBy({productId})
+    return await this._db.getRepository(ProductToken)
+      //.innerJoinAndSelect("product_token.tracker", "tracker")
+      .findOneBy({productId})
   }
 
   public insertProductToken = async (payload: ProductTokenPayload): Promise<ProductToken> => {
@@ -46,6 +48,7 @@ export class ProductTokenRepo {
       .createQueryBuilder('product_token')
       .update(ProductToken)
       .set({issued: () => `product_token.issued + ${amount}`})
+      .set({available: () => `product_token.available + ${amount}`})
       .where("tokenId = :tokenId", {tokenId})
       .execute()    
     } catch (error) {

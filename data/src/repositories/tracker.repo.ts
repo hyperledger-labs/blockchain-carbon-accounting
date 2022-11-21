@@ -33,7 +33,7 @@ export class TrackerRepo {
       tracker.products = await this._db.getRepository(ProductToken)
         .createQueryBuilder("product_token")
         .where(`product_token.trackerId = ${tracker.trackerId}`)
-        .andWhere(`product_token.amount > 0`)
+        .andWhere(`product_token.issued > 0`)
         .getMany()
       tracker.tokens = await this._db.getRepository(Token)
         .createQueryBuilder("token")

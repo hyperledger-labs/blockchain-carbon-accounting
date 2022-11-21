@@ -66,10 +66,10 @@ export class Tracker {
     dateCreated!: number;
 
     @Column({nullable: true})
-    dateIssued?: number;
+    dateIssued!: number;
 
     @Column({nullable: true})
-    dateUpdated?: number;
+    dateUpdated!: number;
 
     public static toRaw(v: Tracker) {
         return { ...v };
