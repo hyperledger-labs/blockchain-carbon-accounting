@@ -77,7 +77,7 @@ const ProductInfoModal:FC<ProductInfo> = ({props,provider,signedInWallet,signedI
             onHide={() => {setCreateTrackerFormShow(false)}}
             onSubmitHandle={handles.calculateEmissions}/>
           : (productType === 'production' && roles.isAeDealer) ?            
-            (tracker && <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} signedInWallet={signedInWallet?.address} limitedMode={limitedMode!} trackerId={tracker?.trackerId} />)
+            (tracker && <ProductForm provider={provider} roles={roles} signedInAddress={signedInAddress} signedInWallet={signedInWallet} limitedMode={limitedMode!} trackerId={tracker?.trackerId} />)
             :'Only support processing of production data by registered auditors'
         }</div>
 

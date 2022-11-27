@@ -23,11 +23,12 @@ export class TrackerBalanceRepo {
 
   public selectBalance = async (issuedTo: string, trackerId: number): Promise<TrackerBalance | null> => {
     try {
-      return await this._db.getRepository(TrackerBalance)
-        .createQueryBuilder('tracker_Balance')
+      const balance =  await this._db.getRepository(TrackerBalance)
+        .createQueryBuilder('tracker_balance')
         .where("tracker_balance.trackerId = :trackerId", {trackerId})
         .andWhere('LOWER(tracker_balance.issuedTo) = LOWER(:issuedTo)', {issuedTo})
         .getOne()
+        return balance;
     } catch (error) {
       return null;
       //throw new Error(`Error selecting one: ${error}`)

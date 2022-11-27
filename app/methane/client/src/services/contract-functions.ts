@@ -15,9 +15,10 @@ export async function createTracker(
   trackee: string,
   fromDate: number|Date,
   thruDate: number|Date,
-  description: string,
+  metadata: string,
+  manifest: string
 //  privateKey: string,
-  operator?: Operator
+//  operator?: Operator
 ) {
   let contract
   let track_result;
@@ -34,18 +35,16 @@ export async function createTracker(
     const signer  = new Wallet(privateKey, w3provider);
     contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, signer)
   }*/
-  console.log(JSON.stringify({operator_uuid: operator?.uuid}))
   try{
     await contract.track(
       issuedTo,
       trackee,
       [],
       [],
-      convertToZeroIfBlank(toUnixTime(fromDate)),
-      convertToZeroIfBlank(toUnixTime(thruDate)),
-      description,
+      metadata,
+      manifest
       // pass operator_uuid as metadata for used by external DB to reference tracker to operator
-      JSON.stringify({operator_uuid: operator?.uuid})
+      //JSON.stringify({operator_uuid: operator?.uuid})
     );
     track_result = SUCCESS_MSG;
   } catch(error){

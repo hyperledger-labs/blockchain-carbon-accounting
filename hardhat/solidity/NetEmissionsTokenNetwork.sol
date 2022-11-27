@@ -335,7 +335,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         address issuedTo,
         address trackerAddress,
         uint256 trackerId,
-        //string memory trackerDescription,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -347,10 +346,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         require(
             CarbonTracker(trackerAddress).netAddress() == address(this),
             "CLM8::issueAndTrack: trackerAddress is not a child of this NET contract"
-        );
-        require(
-            hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender),
-            "CLM8::issueAndTrack: msg.sender is not an approved auditor"
         );
         uint256[] memory tokenIds = new uint256[](1);
         uint256[] memory tokenAmounts = new uint256[](1);

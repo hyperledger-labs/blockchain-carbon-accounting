@@ -23,14 +23,17 @@ export class ProductTokenBalanceRepo {
 
   public selectBalance = async (issuedTo: string, productId: number): Promise<ProductTokenBalance | null> => {
     try {
-      return await this._db.getRepository(ProductTokenBalance)
+      const balance = await this._db.getRepository(ProductTokenBalance)
         .createQueryBuilder('product_token_balance')
         .where("product_token_balance.productId = :productId", {productId})
         .andWhere('LOWER(product_token_balance.issuedTo) = LOWER(:issuedTo)', {issuedTo})
         .getOne()
+      //const result = await this._db.getRepository(ProductToken).findOneBy({productId})
+      //if (result) balance?.product = result;
+      return balance;
     } catch (error) {
       return null;
-      //throw new Error(`Error selecting one: ${error}`)
+      throw new Error(`Error selecting one: ${error}`)
     }
   }
 
@@ -105,6 +108,20 @@ export class ProductTokenBalanceRepo {
     }
   }
 
+  public updateAvailable = async (issuedTo: string, productId: number, amount: bigint) => {
+    try {
+      await this._db.getRepository(ProductTokenBalance)
+      .createQueryBuilder('product_token_balance')
+      .update(ProductToken)
+      .set({available: () => `product_token_balance.available + ${amount}`})
+      .where("productId = :productId", {productId})
+      .andWhere('LOWER(issuedTo) = LOWER(:issuedTo)', {issuedTo})
+      .execute()    
+    } catch (error) {
+      throw new Error(`Cannot update available: ${error}`)
+    }
+  }
+
   public count = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {
       let selectBuilder: SelectQueryBuilder<ProductTokenBalance> = await this._db.getRepository(ProductTokenBalance).createQueryBuilder("product_token_balance")
@@ -113,7 +130,7 @@ export class ProductTokenBalanceRepo {
         .leftJoinAndMapOne('product_token_balance.product', ProductToken, 'product', 'product.productId = product_token_balance.productId')
         .getCount()
     } catch (error) {
-      throw new Error("Cannot get balances count.")       
+      throw new Error(`Cannot get balances count: ${error}`)       
     }
   }
 }

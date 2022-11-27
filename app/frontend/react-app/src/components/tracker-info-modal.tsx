@@ -12,17 +12,27 @@ import { GiOilDrum } from 'react-icons/gi';
 import { IoIosFlame } from 'react-icons/io'
 
 import { trpc } from "../services/trpc";
-import { Wallet, ProductToken, Tracker, Token} from "./static-data";
+import { Wallet, ProductToken, Tracker, Token, RolesInfo, TrackedProduct, TrackedToken} from "./static-data";
+
+  export function getTotalEmissions(tracker:Tracker){
+    return (tracker.totalEmissions-tracker.totalOffsets-tracker.totalREC)
+  }
+
+  export function getEmissionsFactor(product:ProductToken){
+    return getTotalEmissions(product.tracker)/Number(product.tracker.totalProductAmounts)*Number(product.issued)/Number(product.unitAmount)
+  }
+
 
 type TrackerInfoModalProps = {
   provider?: Web3Provider | JsonRpcProvider,
   show:boolean,
   tracker:Tracker,
   onHide:()=>void,
-  isDealer?:boolean,
+  roles:RolesInfo,
+  signedInAddress: string
 }
 
-const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHide,isDealer}) => {
+const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHide,roles,signedInAddress}) => {
 
   const [trackerDescription, setTrackerDescription] = useState("");
   const onTrackerDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerDescription(event.target.value); }, []);
@@ -78,10 +88,15 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
          <Modal.Title>{`Emission certificate details: ID ${tracker.trackerId}`}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-         <h3 className="display-10">
-           <FaLink />
-             Reported emissions: {Math.round(Number(tracker.totalEmissions)/1e3).toLocaleString('en-US')} tons CO2e
-         </h3>
+        <h3 className="display-10">
+          <FaLink /> Reported NET
+        </h3>
+         <ul style={{listStyle:'none'}}>
+           <li>{tracker.totalEmissions>0 && `Emissions: ${(Number(tracker.totalEmissions)/1e3).toLocaleString('en-US')} tons CO2e`}</li>
+           <li>{tracker.totalOffsets>0 && `Offsets: ${(Number(tracker.totalOffsets)/1e3).toLocaleString('en-US')} tons CO2e`}</li>
+           <li>{tracker.totalREC>0 && `REC: ${(Number(tracker.totalREC)/1e3).toLocaleString('en-US')} tons CO2e`}</li>
+           
+         </ul>
         <table className="table">
           <thead>
             <tr>
@@ -117,7 +132,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             <tr>
               <td>Description</td>
 
-              {(isDealer && tracker.issuedBy==="0x0000000000000000000000000000000000000000") ?
+              {(roles.isAeDealer || tracker.trackee===signedInAddress) && !tracker.dateIssued ?
                 <td style={{ overflowWrap: "anywhere" }}>
                   <Form.Group className="mb-3" controlId="trackerDescriptionInput">
                     <Form.Control as="textarea" placeholder={(tracker.metadata as any).description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
@@ -158,7 +173,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
                   </div>
                 </td>
                 <td>{Math.round(Number(product.available)*product?.unitAmount!/Number(product?.issued)).toLocaleString('en-US')}</td>
-                <td>{Math.round(product?.myBalance!).toLocaleString('en-US')}</td>
+                <td>{(Math.round(Number(product?.balances![0]?.available)) || 0).toLocaleString('en-US')}</td>
                 <td>
                   <div key={product?.name+"Intensity"+i}>{product?.emissionsFactor?.toLocaleString('en-US')}{" kgCO2e/"+product?.unit}</div>
                 </td>
@@ -175,18 +190,31 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             </tr>
           </thead>
           <tbody>
-            {tracker.tokens?.map((e: Token,i: number) => (
-                <tr key={e.tokenId+'Details'}>
-                  <td>{"Token ID "+e.tokenId}
-                    <p>{e.description}</p>
-                    {e.manifest && <a href={tryParseJSONObject(e.manifest as string) || (e.manifest as any)?.source!} target="_blank" rel="noopener noreferrer">Source</a>} 
-                  </td>
-                  <td><>{e.totalIssued && (Number(e.totalIssued!)/1000).toLocaleString('en-US')+" tons CO2e"}
-                    <DisplayJSON json={e.metadata}/></>
-                  </td>
-                </tr>
-              ))
-            }
+            {tracker.tokens?.map((e: TrackedToken,i: number) => (
+              <tr key={e.tokenId+'NetDetails'}>
+                <td>{"Token ID "+e.tokenId}
+                  <p>{e.token.description}</p>
+                  {(e.token.manifest as any)?.source && <a href={(e.token.manifest as any)?.source!} target="_blank" rel="noopener noreferrer">Source</a>} 
+                </td>
+                <td><>{(Number(e.amount!)/1000).toLocaleString('en-US')+" tons CO2e"}
+                  <DisplayJSON json={e.token.metadata}/></>
+                </td>
+              </tr>
+            ))}
+            {tracker.trackedProducts?.map((e: TrackedProduct,i: number) => (
+              <tr key={e.productId+'ProductDetails'}>
+                <td>{"Prodyct ID "+e.productId}
+                  <p>{e.product.name}</p>
+                  {(e.product.manifest as any)?.source && <a href={(e.product.manifest as any)?.source!} target="_blank" rel="noopener noreferrer">Source</a>} 
+                </td>
+                <td><ul style={{listStyle: 'none'}}>
+                  <li>{[(Number(e.amount!)/Number(e.product.tracker.totalProductAmounts!)*getTotalEmissions(e.product.tracker)/1000).toLocaleString('en-US'),'tons CO2e'].join(' ')}</li>
+                  <li>{[(Number(e.amount!)).toLocaleString('en-US'),e.product.unit].join(' ')}</li>
+                  <li>{[getEmissionsFactor(e.product).toLocaleString('en-US'),`kg CO2e/${e.product.unit}`].join(' ')}</li>
+                  {/*<DisplayJSON json={e.product.metadata}/>*/}
+                </ul></td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </Modal.Body>

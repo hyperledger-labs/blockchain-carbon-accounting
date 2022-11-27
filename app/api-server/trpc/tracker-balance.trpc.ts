@@ -1,21 +1,19 @@
 import * as trpc from '@trpc/server'
-import { Tracker } from '@blockchain-carbon-accounting/data-postgres';
+import { TrackerBalance } from '@blockchain-carbon-accounting/data-postgres';
 import { z } from 'zod'
 import { TrpcContext } from './common';
 
-export const trackerRouter = (zQueryBundles:any) => trpc
+export const trackerBalanceRouter = (zQueryBundles:any) => trpc
 .router<TrpcContext>()
 .query('count', {
     input: z.object({
         bundles: zQueryBundles.default([]),
-        issuedTo: z.string().default('0x0000000000000000000000000000000000000000'),
-        tokenTypeId: z.number().default(0)
     }).default({}),
     async resolve({ input, ctx }) {
         try {
             return {
                 status: 'success',
-                count: await ctx.db.getTrackerRepo().countTrackers(input.bundles,input.issuedTo, input.tokenTypeId) 
+                count: await ctx.db.getTrackerBalanceRepo().count(input.bundles) 
             }
         } catch (error) {
             console.error(error)
@@ -30,18 +28,16 @@ export const trackerRouter = (zQueryBundles:any) => trpc
     input: z.object({
         bundles: zQueryBundles.default([]),
         offset: z.number().gte(0).default(0),
-        limit: z.number().gte(0).default(10),
-        issuedTo: z.string().default('0x0000000000000000000000000000000000000000'),
-        tokenTypeId: z.number().default(0)
+        limit: z.number().gt(0).default(10)
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const trackers = await ctx.db.getTrackerRepo().selectPaginated(input.offset, input.limit, input.bundles, input.issuedTo, input.tokenTypeId);
-            const count = await ctx.db.getTrackerRepo().countTrackers(input.bundles, input.issuedTo, input.tokenTypeId);
+            const balances = await ctx.db.getTrackerBalanceRepo().selectPaginated(input.offset, input.limit, input.bundles);
+            const count = await ctx.db.getTrackerBalanceRepo().count(input.bundles);
             return {
                 status: 'success',
                 count,
-                trackers: Tracker.toRaws(trackers)
+                balances: TrackerBalance.toRaws(balances)
             }
         } catch (error) {
             console.error(error)
@@ -54,14 +50,15 @@ export const trackerRouter = (zQueryBundles:any) => trpc
 })
 .query('get', {
     input: z.object({
-        trackerId: z.number().gt(0).default(0)
+        trackerId: z.number().gte(0).default(0),
+        issuedTo: z.string().default('0x0000000000000000000000000000000000000000')
     }).default({}),
     async resolve({ input, ctx }) {
         try {
-            const tracker = await ctx.db.getTrackerRepo().select(input.trackerId);
+            const balance = await ctx.db.getTrackerBalanceRepo().selectBalance(input.issuedTo,input.trackerId);
             return {
                 status: 'success',
-                tracker: Tracker.toRaw(tracker!)
+                balance: TrackerBalance.toRaw(balance!)
             }
         } catch (error) {
             console.error(error)
@@ -74,6 +71,5 @@ export const trackerRouter = (zQueryBundles:any) => trpc
 })
 
 // export type definition of API
-export type TokenRouter = typeof trackerRouter
-
+export type TrackerBalanceRouter = typeof trackerBalanceRouter 
 

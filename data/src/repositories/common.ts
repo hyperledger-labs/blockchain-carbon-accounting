@@ -45,16 +45,17 @@ export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_a
 export interface ProductTokenPayload {
   tokenId: number;
   productId: number;
-  trackerId: number|undefined;
+  trackerId: number;
   issuedBy: string;
   issuedFrom: string;
-  issuedTo: string;
   issued: bigint;
   available: bigint;
   retired: bigint;
+  dateCreated: number;
+  dateUpdated: number;
   metadata: Object;
   manifest: Object;
-  tracker: TrackerPayload;
+  name?: string;
   unit: string;
   unitAmount: number;
 }
@@ -67,9 +68,9 @@ export interface TrackerPayload {
   issuedFrom: string;
   auditor: string;
   totalProductAmounts: bigint;
-  totalEmissions: bigint;
-  totalOffsets: bigint;
-  totalREC: bigint;
+  totalEmissions: number;
+  totalOffsets: number;
+  totalREC: number;
   retired: boolean;
   dateCreated: number;
   dateIssued: number;
@@ -80,6 +81,7 @@ export interface TrackerPayload {
   operatorUuid: string;
   tokens: TokenPayload[];
   products: ProductTokenPayload[];
+  trackedProducts: ProductTokenPayload[];
 }
 export const trackerStatus = ['available','transferred','retired'] as const;
 export type TrackerStatus = typeof trackerStatus[number];
@@ -90,7 +92,6 @@ export interface TrackerBalancePayload {
   status: TrackerStatus
 }
 
-
 export interface ProductTokenBalancePayload {
   issuedTo: string
   productId: number
@@ -99,7 +100,17 @@ export interface ProductTokenBalancePayload {
   transferred: bigint
 }
 
+export interface TrackedProductPayload {
+  productId: number
+  trackerId: number
+  amount: bigint
+}
 
+export interface TrackedTokenPayload {
+  tokenId: number
+  trackerId: number
+  amount: bigint
+}
 
 const OP_MAP: Record<string, string> = {
     'neq': '!=',

@@ -3,10 +3,11 @@ import axios from 'axios';
 import moment from 'moment';
 import { SetStateAction } from 'react';
 import type { QueryBundle } from '@blockchain-carbon-accounting/data-postgres';
-import type { Token, Tracker, Wallet, ProductToken } from '../components/static-data';
+import type { Token, Tracker, Wallet, ProductToken, ProductTokenBalance } from '../components/static-data';
 import type { EmissionsFactorForm } from '../pages/request-audit';
 import { BASE_URL } from './api.config';
 import { trpcClient } from './trpc'
+import { getTotalEmissions } from '../components/tracker-info-modal'
 
 axios.defaults.baseURL = BASE_URL;
 
@@ -93,14 +94,26 @@ export const setProductDetails = (tracker: Tracker, product:ProductToken) => {
     // check for name, unit and unitAmount attributes from metadata
     product.name = metadata.name;
     product.unit = metadata.unit;
-    product.unitAmount = Number(metadata.unitAmount);
-    if(product.unitAmount){
-        product.emissionsFactor = tracker.emissionsFactor!*Number(product.issued)/product.unitAmount; 
+    product.unitAmount = Number(product.issued)
+    product.unitAvailable = Number(product.available);
+    product.emissionsFactor = tracker.emissionsFactor;
+    product.unitConversion = 1;
+    if(metadata.unitAmount){
+        product.unitAmount = Number(metadata.unitAmount);
+        product.unitConversion = Number(product.unitAmount)/Number(product.issued);
+        product.unitAvailable = product.unitAvailable*product.unitConversion;
+        product.emissionsFactor = tracker.emissionsFactor!/product.unitConversion; 
+    }
+
+    for(let i=0;i<product?.balances?.length!;i++){
+        product.balances![i].unitAvailable=Number(product?.balances![i].available)*product.unitConversion
+        tracker.myProductsTotalEmissions = tracker.myProductsTotalEmissions! + getTotalEmissions(tracker)*Number(product.balances![i]?.available!)/Number(tracker?.totalProductAmounts!);
     }
     //return product;
 }
 
 export const setTrackerDetails = (tracker: Tracker) => {
+    tracker.myProductsTotalEmissions = 0;
     tracker.emissionsFactor = Number(tracker.totalEmissions-tracker.totalOffsets)/Number(tracker.totalProductAmounts);
     for(let i=0;i<tracker?.products?.length!;i++){
         setProductDetails(tracker, tracker?.products![i]);
@@ -109,11 +122,11 @@ export const setTrackerDetails = (tracker: Tracker) => {
 }
 
 
-export const getTrackers = async (offset: number, limit: number, query: string[]): Promise<{count:number, trackers:Tracker[], status:string}> => {
+export const getTrackers = async (offset: number, limit: number, query: string[], issuedTo: string, tokenTypeId: number): Promise<{count:number, trackers:Tracker[], status:string}> => {
     try {
         const bundles = buildBundlesFromQueries(query)
-        console.info('getTrackers:', offset, limit, bundles)
-        const { status, count, trackers, error } = await trpcClient.query('tracker.list', {offset, limit, bundles})
+        console.info('getTrackers:', offset, limit, bundles, issuedTo, tokenTypeId)
+        const { status, count, trackers, error } = await trpcClient.query('tracker.list', {offset, limit, bundles, issuedTo, tokenTypeId})
         if (status === 'success' && trackers && count) {
             for(let i=0;i<trackers?.length;i++){
                 setTrackerDetails(trackers![i])
@@ -133,14 +146,15 @@ export const getTracker = async (trackerId:number): Promise<{tracker:Tracker|und
         console.info('getTracker:', trackerId)
         const { status, tracker, error } = await trpcClient.query('tracker.get', {trackerId})
         if (status === 'success' && tracker) {
-            setTrackerDetails(tracker!)
+            setTrackerDetails(tracker)
             return { tracker, status }
         } else {
             if (status !== 'success') console.error('getTracker error:', error)
             return {tracker: tracker, status};
         }
     } catch(error) {
-        throw new Error(handleError(error, "Cannot get tracker"))
+        return {tracker: undefined, status: error as string}
+        //throw new Error(handleError(error, "Cannot get tracker"))
     }
 }
 
@@ -174,6 +188,46 @@ export const getBalances = async (offset: number, limit: number, query: string[]
         }
     } catch(error) {
         throw new Error(handleError(error, "Cannot get balances"))
+    }
+}
+
+export const getTrackerBalance = async (trackerId: number, issuedTo: string) => {
+    try {
+        console.info('getTrackerBalance:', trackerId, issuedTo)
+        const { status, balance, error } = await trpcClient.query('trackerBalance.get', {trackerId, issuedTo})
+        if (status === 'success' && balance) {
+            return { balance, status }
+        } else {
+            if (status !== 'success') console.error('getTrackerBalance error:', error)
+            return { status };
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot getTrackerBalance"))
+    }
+}
+
+export const getProductBalance = async (productId: number, issuedTo: string) => {
+    try {
+        console.info('getProductBalance:', productId, issuedTo)
+        const { status, balance, error } = await trpcClient.query('productTokenBalance.get', {productId, issuedTo})
+        if (status === 'success' && balance) {
+            const trackerBalance:ProductTokenBalance = balance
+            trackerBalance.unitConversion = 1;
+            const {status, product} = await getProduct(productId);
+            if(status==='success'){
+                trackerBalance.product = product as ProductToken;
+                if(product?.unitAmount) trackerBalance.unitConversion = Number(product.unitAmount)/Number(product.issued);
+            }else {
+                if (status !== 'success') console.error('getProduct for ProductBalance error:', error)
+                return { status };  
+            }
+            return { balance: trackerBalance, status }
+        } else {
+            if (status !== 'success') console.error('getProductBalance error:', error)
+            return { status };
+        }
+    } catch(error) {
+        throw new Error(handleError(error, "Cannot getProductBalance"))
     }
 }
 

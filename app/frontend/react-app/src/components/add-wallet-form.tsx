@@ -185,6 +185,7 @@ const AddWalletForm: FC<Props> = ({
           <option value={RoleEnum.None}>Choose a Role:</option>
           <option value="">-----</option>
           <option value={RoleEnum.Consumer}>Consumer</option>
+          <option value={RoleEnum.Industry}>Industry</option>
           <option value={RoleEnum.RecDealer}>
             Renewable Energy Certificate (REC) Dealer
           </option>
@@ -201,7 +202,7 @@ const AddWalletForm: FC<Props> = ({
           >
             <option value={RoleEnum.None}>None</option>
             <option value={RoleEnum.Consumer}>Consumer</option>
-            <option value={RoleEnum.Industry}>Industry Member</option>
+            <option value={RoleEnum.Industry}>Industry</option>
           </Form.Select>
         )}
       <Form.Control.Feedback type="invalid">

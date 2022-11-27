@@ -103,7 +103,7 @@ const FindOrSetupWallet: FC<Props> = ({
     if (!roleArr.includes(RoleEnum.Industry))
       rolesThatCanBeAssigned.push({
         value: RoleEnum.Industry,
-        label: "Industry Member",
+        label: "Industry",
       });
     if (roles.isAdmin) {
       if (!roleArr.includes(RoleEnum.RecDealer))

@@ -41,47 +41,58 @@ export class ProductTokenRepo {
       ...payload
     })
   }
-
-  public updateIssued = async (tokenId: number, amount: bigint) => {
-    try {
-      await this._db.getRepository(ProductToken)
-      .createQueryBuilder('product_token')
-      .update(ProductToken)
-      .set({issued: () => `product_token.issued + ${amount}`})
-      .set({available: () => `product_token.available + ${amount}`})
-      .where("tokenId = :tokenId", {tokenId})
-      .execute()    
-    } catch (error) {
-      throw new Error("Cannot update issued.")
-    }
-  }
-
-  public updateAvailable = async (tokenId: number, amount: bigint) => {
+  
+  public updateAvailable = async (productId: number, amount: bigint) => {
     try {
       await this._db.getRepository(ProductToken)
       .createQueryBuilder('product_token')
       .update(ProductToken)
       .set({available: () => `product_token.available - ${amount}`})
-      .where("tokenId = :tokenId", {tokenId})
+      .where("productId = :productId", {productId})
       .execute()    
     } catch (error) {
       throw new Error("Cannot update available.")
     }
   }
 
-  public updateRetired = async (tokenId: number, amount: bigint) => {
+  public updateRetired = async (productId: number, amount: bigint) => {
     try {
       await this._db.getRepository(ProductToken)
       .createQueryBuilder('product_token')
       .update(ProductToken)
       .set({retired: () => `product_token.retired + ${amount}`})
-      .where("tokenId = :tokenId", {tokenId})
+      .where("productId = :productId", {productId})
       .execute()    
     } catch (error) {
       throw new Error("Cannot update retired.")
     }
   }
 
+  public setDateCreated = async (productId: number, dateCreated: number) => {
+    try {
+      await this._db.getRepository(ProductToken)
+      .createQueryBuilder('product_token')
+      .update(ProductToken)
+      .set({dateCreated})
+      .where("productId = :productId", {productId})
+      .execute()    
+    } catch (error) {
+      throw new Error(`Cannot set dateCreated:: ${error}`)
+    }
+  }
+
+  public setDateUpdated = async (productId: number, dateUpdated: number) => {
+    try {
+      await this._db.getRepository(ProductToken)
+      .createQueryBuilder('product_token')
+      .update(ProductToken)
+      .set({dateUpdated})
+      .where("productId = :productId", {productId})
+      .execute()    
+    } catch (error) {
+      throw new Error(`Cannot set dateUpdated:: ${error}`)
+    }
+  }
 
   public countProducts = async (bundles: Array<QueryBundle>): Promise<number> => {
     try {

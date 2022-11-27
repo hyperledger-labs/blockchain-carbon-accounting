@@ -9,6 +9,8 @@ import { AssetOperatorRepo } from "./repositories/assetOperator.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { TrackerRepo } from "./repositories/tracker.repo"
 import { TrackerBalanceRepo } from "./repositories/trackerBalance.repo"
+import { TrackedProductRepo } from "./repositories/trackedProduct.repo"
+import { TrackedTokenRepo } from "./repositories/trackedToken.repo"
 import { ProductRepo } from "./repositories/product.repo"
 import { ProductTokenRepo } from "./repositories/productToken.repo"
 import { ProductTokenBalanceRepo } from "./repositories/productTokenBalance.repo"
@@ -93,6 +95,14 @@ export class PostgresDBService {
 
   public getTrackerRepo() {
     return new TrackerRepo(this._db)
+  }
+
+  public getTrackedProductRepo() {
+    return new TrackedProductRepo(this._db)
+  }
+
+  public getTrackedTokenRepo() {
+    return new TrackedTokenRepo(this._db)
   }
 
   public getProductTokenRepo() {

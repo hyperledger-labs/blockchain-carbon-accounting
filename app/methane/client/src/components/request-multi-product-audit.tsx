@@ -143,7 +143,7 @@ const RequestMultiProductAudit:FC<RequestAuditProps> = (
 
   return (
     <>
-      <h3 style={{display: 'inline'}}>{`Emissions certificate request: \n ${tracker?.description}`}</h3>
+      <h3 style={{display: 'inline'}}>{`Emissions certificate request: \n ${(tracker?.metadata as any).description}`}</h3>
       <Table hover size="sm">
         <thead>
           <tr>

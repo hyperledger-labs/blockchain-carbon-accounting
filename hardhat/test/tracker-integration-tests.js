@@ -167,11 +167,14 @@ describe("Carbon Tracker - Integration tests", async function() {
 
     let issueProductsReceipt = await issueProducts.wait(0);
     let issueProductsEvents = issueProductsReceipt.events;
-
+    console.log(issueProductsEvents)
     issueProductsEvents.map(async (e)  => {
-      tokenIds.push(e.args[3].toNumber());
-      const tokenDetails = await contractT._tokenDetails(e.args[3].toNumber());
-      productIds.push(tokenDetails.sourceId.toNumber());
+      if(e.event==='TransferSingle') {
+        tokenIds.push(e.args[3].toNumber());
+      }else if(e.event==='ProductsIssued'){
+        //const tokenDetails = await contractT._tokenDetails(e.args[3].toNumber());
+        productIds = e.args[1].map(Number);
+      }
     });
     expect(productIds[0]).to.equal(1);
     expect(productIds[1]).to.equal(2);
@@ -185,8 +188,8 @@ describe("Carbon Tracker - Integration tests", async function() {
     let issueProductsReceipt = await issueProducts.wait(0);
     let issueProductsEvents = issueProductsReceipt.events;
 
-    let productsMinted = issueProductsEvents.map(e => e.args[4].toNumber());
-    expect(productsMinted[0]).to.equal(3-1);
+    let productsMinted = issueProductsEvents[2].args[2].map(Number);
+    expect(productsMinted[0]).to.equal(3);
   })
 
   it("Dealer should fail issueProducts for productId that does not exist or it did not create", async function() {
@@ -301,20 +304,20 @@ describe("Carbon Tracker - Integration tests", async function() {
     }
   })
   it("Industry should transfer products", async function() {
-    let transferProducts = await contractT.connect(await ethers.getSigner(industry1)).transferProducts(tokenIds,[1,1],industry2,[]);
+    let transferProducts = await contractT.connect(await ethers.getSigner(industry1)).transferProducts(industry2,productIds,[1,1],[]);
     expect(transferProducts)
   })
 
   it("Industry should fail to transferProducts for issued tracker it does not own or by exceeding available balance", async function() {
     try {
-      await contractT.connect(await ethers.getSigner(industry2)).transferProducts(tokenIds,[1,1],consumer1,[]);
+      await contractT.connect(await ethers.getSigner(industry2)).transferProducts(consumer1,productIds,[1,1],[]);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("CLM8::_isOwner: msg.sender does not own this trackerId")
       );
     }
     try {
-      await contractT.connect(await ethers.getSigner(industry1)).transferProducts(tokenIds,[1,1],consumer1,[]);
+      await contractT.connect(await ethers.getSigner(industry1)).transferProducts(consumer1,productIds,[1,1],[]);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("CLM8::_beforeTokenTransfer: product amount exceeds what is available to the contract")
@@ -337,7 +340,7 @@ describe("Carbon Tracker - Integration tests", async function() {
     let signer = await ethers.getSigner(industry2);
     let transferSignature = await signer.signMessage(transferHash);
     // send the transfer with signature
-    let transferProducts = await contractT.connect(await ethers.getSigner(industry1)).transferProducts(tokenIds,tokenAmounts,industry2,transferSignature);
+    let transferProducts = await contractT.connect(await ethers.getSigner(industry1)).transferProducts(industry2,productIds,tokenAmounts,transferSignature);
     expect(transferProducts)
   });
   it("Industry should fail to transferProducts to industry2 without verified signature or by exceeding available", async function() {
@@ -346,7 +349,7 @@ describe("Carbon Tracker - Integration tests", async function() {
     try {
       //get trackerHash for industry2 to sign
       // send the transfer with signature
-      const transferProducts = await contractT.connect(await ethers.getSigner(  industry1)).transferProducts(tokenIds,[0,1],industry2, transferSignature);
+      const transferProducts = await contractT.connect(await ethers.getSigner(industry1)).transferProducts(industry2,productIds,[0,1], transferSignature);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("CLM8::_beforeTokenTransfer: receiver has not approved the transaction")
@@ -360,7 +363,7 @@ describe("Carbon Tracker - Integration tests", async function() {
     transferSignature = signer.signMessage(transferHash);
     // send the transfer with signature
     try {
-      const transferProducts = await contractT.connect(await ethers.getSigner(  industry1)).transferProducts(tokenIds,[1,1],industry2, []);
+      const transferProducts = await contractT.connect(await ethers.getSigner(industry1)).transferProducts(industry2,productIds,[1,1], []);
     } catch (err) {
       expect(err.toString()).to.equal(
         revertError("CLM8::_beforeTokenTransfer: product amount exceeds what is available to the contract")
@@ -369,7 +372,8 @@ describe("Carbon Tracker - Integration tests", async function() {
   });
   it("Should getTrackerDetails", async function(){
     const trackerDetails = await contractT.connect(await ethers.getSigner(industry1)).getTrackerDetails(cttOne);
-    //console.log(trackerDetails);
+    //console.log(trackerDetails[5].emissions.toNumber());
+    expect(trackerDetails[5].emissions.toNumber()).to.equal(20000000)
   })
 });
 

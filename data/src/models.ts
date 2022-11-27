@@ -10,6 +10,8 @@ import { Wallet } from "./models/wallet"
 import { Token } from "./models/token"
 import { Tracker } from "./models/tracker"
 import { TrackerBalance } from "./models/trackerBalance"
+import { TrackedProduct } from "./models/trackedProduct"
+import { TrackedToken } from "./models/trackedToken"
 import { Product } from "./models/product"
 import { ProductToken } from "./models/productToken"
 import { ProductTokenBalance } from "./models/productTokenBalance"
@@ -39,6 +41,8 @@ export const initDb = async (opts: DbOpts) => {
       Wallet,
       Balance,
       Token,
+      TrackedProduct,
+      TrackedToken,
       Tracker,
       TrackerBalance,
       Product,

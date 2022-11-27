@@ -4,12 +4,17 @@ import {
     Column,
     OneToMany,
     ManyToOne,
-    JoinColumn
+    ManyToMany,
+    JoinColumn,
+    JoinTable
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
 import { ProductToken } from './productToken';
 import { Token } from './token';
 import { Operator } from './operator';
+import { TrackerBalance } from './trackerBalance'
+import { TrackedProduct } from './trackedProduct';
+import { TrackedToken } from './trackedToken';
 
 @Entity()
 export class Tracker {
@@ -22,8 +27,15 @@ export class Tracker {
     @OneToMany(() => ProductToken, (product: ProductToken) => product.tracker)
     products?: ProductToken[];
 
-    @OneToMany(() => Token, (token: Token) => token.tracker)
-    tokens?: Token[];
+    //products used as input to tracker 
+    @OneToMany(() => TrackedProduct, (tracked_product: TrackedProduct) => tracked_product.tracker)
+    trackedProducts?: TrackedProduct[];
+
+    @OneToMany(() => TrackedToken, (tracked_token: TrackedToken) => tracked_token.token)
+    tokens?: TrackedToken[];
+
+    @OneToMany(() => TrackerBalance, (balance: TrackerBalance) => balance.tracker)
+    balances?: TrackerBalance[];
 
     @ManyToOne(() => Operator, (operator: Operator) => operator.trackers)
     @JoinColumn({name: 'operatorUuid'})
@@ -44,14 +56,14 @@ export class Tracker {
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
     totalProductAmounts!: bigint;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    totalEmissions!: bigint;
+    @Column({ type: 'double precision', nullable: true})
+    totalEmissions!: number;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    totalOffsets!: bigint;
+    @Column({ type: 'double precision', nullable: true})
+    totalOffsets!: number;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    totalREC!: bigint;
+    @Column({ type: 'double precision', nullable: true})
+    totalREC!: number;
 
     @Column({nullable: true})
     retired!: boolean;

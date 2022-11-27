@@ -3,13 +3,15 @@ import {
     PrimaryColumn,
     Column,
     ManyToOne,
-    JoinColumn
+    //ManyToMany,
+    OneToMany,
+    JoinColumn,
+    //JoinTable
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
-import { 
-  Tracker
-} from './tracker';
-
+import { ProductTokenBalance } from './productTokenBalance'
+import { Tracker } from './tracker';
+import { TrackedProduct } from './trackedProduct';
 @Entity()
 export class ProductToken {
     @PrimaryColumn()
@@ -25,6 +27,13 @@ export class ProductToken {
     @JoinColumn({name: 'trackerId'})
     tracker!: Tracker;
 
+    //trackers where product is used as input
+    @OneToMany(() => TrackedProduct, (tracked_product: TrackedProduct) => tracked_product.product)
+    trackers?: TrackedProduct[];
+
+    @OneToMany(() => ProductTokenBalance, (balance: ProductTokenBalance) => balance.product)
+    balances?: ProductTokenBalance[];
+
     @Column()
     issuedBy!: string;
 
@@ -34,10 +43,10 @@ export class ProductToken {
     //@Column()
     //issuedTo!: string; // Products are issued to CarbonTracker contract 
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     issued!: bigint;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     available!: bigint;
 
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
@@ -55,17 +64,17 @@ export class ProductToken {
     @Column({nullable: true})
     dateUpdated!: number;
 
-    @Column({nullable: true})
-    dateIssued!: number;
-
     //@Column({nullable: true, type: 'double precision'})
     //emissionsFactor!: number;
 
     @Column({nullable: true})
-    unit?: string;
+    name!: string;
+
+    @Column({nullable: true})
+    unit!: string;
 
     @Column({nullable: true, type: 'double precision'})
-    unitAmount?: number;
+    unitAmount!: number;
 
     @Column({nullable:true})
     hash?: string;

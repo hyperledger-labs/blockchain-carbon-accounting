@@ -31,6 +31,7 @@ export class ProductTokenBalance {
     @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     transferred!: bigint;
 
+
     public static toRaw(v: ProductTokenBalance) {
         return { ...v, product: ProductToken.toRaw(v?.product)};
     }
