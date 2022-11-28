@@ -1,4 +1,4 @@
-import { DataSource, SelectQueryBuilder } from "typeorm"
+import { DataSource } from "typeorm"
 import { TrackedProduct } from "../models/trackedProduct"
 import { TrackedProductPayload } from "./common"
 

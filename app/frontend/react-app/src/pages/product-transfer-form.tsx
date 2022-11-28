@@ -87,8 +87,7 @@ const ProductTransferForm: FC<ProductTransferFormProps> = ({ provider, roles, si
     try {
       const offset = (_page - 1) * _pageSize;
 
-      // this count means total number of issued tokens
-      const {trackers, count} = await getTrackers(offset, _pageSize, query, signedInAddress, 0);
+      const {trackers } = await getTrackers(offset, _pageSize, query, signedInAddress, 0);
       newSelectedTrackers=trackers;
 
       console.log('Trackers:', trackers)

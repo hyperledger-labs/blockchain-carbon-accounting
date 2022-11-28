@@ -4,13 +4,10 @@ import {
     Column,
     OneToMany,
     ManyToOne,
-    ManyToMany,
     JoinColumn,
-    JoinTable
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
 import { ProductToken } from './productToken';
-import { Token } from './token';
 import { Operator } from './operator';
 import { TrackerBalance } from './trackerBalance'
 import { TrackedProduct } from './trackedProduct';

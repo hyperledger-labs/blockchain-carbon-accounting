@@ -6,8 +6,6 @@ import {
     JoinColumn
 } from 'typeorm';
 import { Tracker } from './tracker';
-import { ProductToken } from './productToken';
-import { bigint_transformer } from './bigint_transformer'
 import { trackerStatus, TrackerStatus } from '../repositories/common'
  
 @Entity()

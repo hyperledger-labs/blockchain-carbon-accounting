@@ -13,8 +13,6 @@ export interface BalancePayload {
   transferred: bigint
 }
 
-import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
-
 export interface StringPayload {
   [key: string] : string | number
 }
@@ -53,8 +51,8 @@ export interface ProductTokenPayload {
   retired: bigint;
   dateCreated: number;
   dateUpdated: number;
-  metadata: Object;
-  manifest: Object;
+  metadata: Record<string, unknown>;
+  manifest: Record<string, unknown>;
   name?: string;
   unit: string;
   unitAmount: number;
@@ -75,9 +73,8 @@ export interface TrackerPayload {
   dateCreated: number;
   dateIssued: number;
   dateUpdated: number;
-  // eslint-disable-next-line
-  metadata: Object;
-  manifest: Object;
+  metadata: Record<string, unknown>;
+  manifest: Record<string, unknown>;
   operatorUuid: string;
   tokens: TokenPayload[];
   products: ProductTokenPayload[];
@@ -122,12 +119,7 @@ const OP_MAP: Record<string, string> = {
 };
 
 // eslint-disable-next-line
-export function buildQueries(
-  table: string,
-  builder: SelectQueryBuilder<any>,
-  queries: Array<QueryBundle>,
-  entities?: EntityTarget<any>[],
-) : SelectQueryBuilder<any> {
+export function buildQueries(table: string,builder: SelectQueryBuilder<any>,queries: Array<QueryBundle>,entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
 
   queries.sort((a, b) => Number(a.conjunction) - Number(b.conjunction) )
   // sort queries to process disjunction querries first (orWhere)

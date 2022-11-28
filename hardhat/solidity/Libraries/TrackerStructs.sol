@@ -25,8 +25,8 @@ library Tracker {
      * @dev ProductDetails
      * tokenId corresponding ERC1155 token ID
      * trackerId that this product belongs to
-     * amount of the product. used as a weighted amount (weight = amount/_trackerData.totalProductAmounts) to distribute a trackers total emissions across multiple products 
-     * available amount of product remaining for transfer   
+     * amount of the product. used as a weighted amount (weight = amount/_trackerData.totalProductAmounts) to distribute a trackers total emissions across multiple products
+     * available amount of product remaining for transfer
      **/
     struct ProductDetails {
         uint256 tokenId;

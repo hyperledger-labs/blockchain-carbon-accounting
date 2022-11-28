@@ -9,9 +9,10 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 //import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "./NetEmissionsTokenNetwork.sol";
-import { TxVerifier } from "./Libraries/TxVerifier.sol";
-import { ArrayModifier } from "./Libraries/ArrayModifier.sol";
-import { Tracker } from "./Libraries/TrackerStructs.sol";
+import {TxVerifier} from "./Libraries/TxVerifier.sol";
+import {ArrayModifier} from "./Libraries/ArrayModifier.sol";
+import {Tracker} from "./Libraries/TrackerStructs.sol";
+
 /**
 
 CarbonTracker is a contract used to transfer embedded emissions of products in a supply chain.  
@@ -65,12 +66,10 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
 
     using ArrayModifier for uint256;
     using ArrayModifier for uint256[];
-    using ArrayModifier for mapping(uint256 => uint256)
-    ;
-    
+    using ArrayModifier for mapping(uint256 => uint256);
+
     address public netAddress;
     NetEmissionsTokenNetwork public net;
-    
 
     /**
      * @dev Structure of all tokens issued in this contract
@@ -99,8 +98,8 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     mapping(uint256 => TokenDetails) public _tokenDetails;
     //mapping(uint256 => mapping(address => uint256)) public _retiredBalances;
 
-    mapping(uint256 => Tracker.CarbonTrackerDetails) private _trackerData; 
-    //mapping(uint256 => uint256) private _totalProductAmounts; 
+    mapping(uint256 => Tracker.CarbonTrackerDetails) private _trackerData;
+    //mapping(uint256 => uint256) private _totalProductAmounts;
     mapping(uint256 => Tracker.CarbonTrackerMappings) private _trackerMappings;
     mapping(uint256 => Tracker.ProductDetails) public _productData;
 
@@ -109,12 +108,12 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     Counters.Counter private _numOfUniqueTrackers;
     Counters.Counter private _numOfUniqueProducts;
 
-    mapping(uint256 => uint256) private _lockedNET; 
-    //amount of tokenId locked into the contract. In most cases this is the amount of token issued to the contract address. 
-    //However tokens can be issued to contract before they are assiged to a tracker token using NET parent issue/transfer functions to send tokens to the Carbon Tracker contract addresss. 
+    mapping(uint256 => uint256) private _lockedNET;
+    //amount of tokenId locked into the contract. In most cases this is the amount of token issued to the contract address.
+    //However tokens can be issued to contract before they are assiged to a tracker token using NET parent issue/transfer functions to send tokens to the Carbon Tracker contract addresss.
     // NET need to be assigned to tracker by calling track() for new , and trackUpdate() for exisitng carbon tracker.
     // WARNING if the above is not done tokens issued to the contract can be linked to any unissued trackerId of the CarbonTracker contract by an auditor.
-    // The safest way to assing NET to tracker is using a NET function that call the CarbonTrackerContract, i.e,., issueAndTrack(). 
+    // The safest way to assing NET to tracker is using a NET function that call the CarbonTrackerContract, i.e,., issueAndTrack().
 
     mapping(address => mapping(address => bool)) internal isAuditorApproved;
     // map trackee to boolean enforcing isAuditorApproved in isAuditor modifier
@@ -151,9 +150,18 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256 productAmount
     );
 
-    event VerifierApproval(address indexed auditor, address indexed trackee, bool approve, uint256 date);
+    event VerifierApproval(
+        address indexed auditor,
+        address indexed trackee,
+        bool approve,
+        uint256 date
+    );
 
-    event ApproveProductTransfer(address indexed receiver, bool approve, uint256 date);
+    event ApproveProductTransfer(
+        address indexed receiver,
+        bool approve,
+        uint256 date
+    );
 
     constructor(address _net, address _admin) ERC1155("") {
         net = NetEmissionsTokenNetwork(_net);
@@ -163,24 +171,29 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     }
 
     modifier isAuditor(uint256 trackerId) {
-        require(__isAuditor(_trackerData[trackerId].trackee),
-            "CLM8::isAuditor: msg.sender is not an approved auditor for this trackerId");
-        require(_trackerData[trackerId].trackee != msg.sender, "CLM8::isAuditor: msg.sender is the same as the trackee of trackerId");
+        require(
+            __isAuditor(_trackerData[trackerId].trackee),
+            "CLM8::isAuditor: msg.sender is not an approved auditor for this trackerId"
+        );
+        require(
+            _trackerData[trackerId].trackee != msg.sender,
+            "CLM8::isAuditor: msg.sender is the same as the trackee of trackerId"
+        );
         _;
     }
 
     function __isAuditor(address _trackee) internal view returns (bool) {
-        return (
-            net.isAuditor(msg.sender) || msg.sender == netAddress) &&
+        return
+            (net.isAuditor(msg.sender) || msg.sender == netAddress) &&
             (// require isAuditorApproved?
-                (approvedAuditorsOnly[_trackee] && isAuditorApproved[msg.sender][_trackee]) ||
-                !approvedAuditorsOnly[_trackee] // otherwise permit any auditor
-            );
+            (approvedAuditorsOnly[_trackee] &&
+                isAuditorApproved[msg.sender][_trackee]) ||
+                !approvedAuditorsOnly[_trackee]); // otherwise permit any auditor
     }
 
     function _tokenExists(uint256 tokenId) internal view {
         require(
-            _tokenDetails[tokenId].tokenId!=0,
+            _tokenDetails[tokenId].tokenId != 0,
             "CLM8::_tokenExists: tokenId does not exist"
         );
     }
@@ -188,7 +201,8 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     modifier notIssued(uint256 trackerId) {
         _tokenExists(_trackerData[trackerId].tokenId);
         require(
-            _tokenDetails[_trackerData[trackerId].tokenId].issuedBy == address(0),
+            _tokenDetails[_trackerData[trackerId].tokenId].issuedBy ==
+                address(0),
             "CLM8::notIssued: trackerId has already been issued"
         );
         _;
@@ -196,7 +210,8 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
 
     function _isIssued(uint256 trackerId) internal view {
         require(
-            _tokenDetails[_trackerData[trackerId].tokenId].issuedBy != address(0),
+            _tokenDetails[_trackerData[trackerId].tokenId].issuedBy !=
+                address(0),
             "CLM8::_isIssued: trackerId is not issued"
         );
     }
@@ -210,15 +225,18 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
 
     modifier isAuditorOrTrackee(uint256 trackerId) {
         require(
-            __isAuditor(_trackerData[trackerId].trackee) || _trackerData[trackerId].trackee == msg.sender,
+            __isAuditor(_trackerData[trackerId].trackee) ||
+                _trackerData[trackerId].trackee == msg.sender,
             "CLM8::_isAuditorOrTrackee: msg.sender is not the auditor or is not the assigned trackee of trackerId"
         );
         _;
     }
 
     modifier isIndustry(address industry) {
-        require(net.isIndustry(industry),
-            "CLM8::isIndustry: address must be a registered industry");
+        require(
+            net.isIndustry(industry),
+            "CLM8::isIndustry: address must be a registered industry"
+        );
         _;
     }
 
@@ -230,7 +248,7 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         _;
     }
 
-    modifier consumerOrIndustry(address _address){
+    modifier consumerOrIndustry(address _address) {
         if (_address != address(0)) {
             // if not burning require sender to be consumerOrDealer
             require(
@@ -264,16 +282,26 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data
-    ) internal virtual consumerOrIndustry(to) override {
+    ) internal virtual override consumerOrIndustry(to) {
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
         bool productTransferVerified; // only verified product transfer once
         for (uint256 i = 0; i < ids.length; i++) {
-            if(_tokenDetails[ids[i]].tokenTypeId==2){ 
+            if (_tokenDetails[ids[i]].tokenTypeId == 2) {
                 if (approveProductTransfer[to] && !productTransferVerified) {
-                    bytes32 messageHash = getTransferHash(from, to, ids, amounts);
-                    productTransferVerified = messageHash.verifySignature(data, to);
-                    require(productTransferVerified,
-                        "CLM8::_beforeTokenTransfer: receiver has not approved the transaction");
+                    bytes32 messageHash = getTransferHash(
+                        from,
+                        to,
+                        ids,
+                        amounts
+                    );
+                    productTransferVerified = messageHash.verifySignature(
+                        data,
+                        to
+                    );
+                    require(
+                        productTransferVerified,
+                        "CLM8::_beforeTokenTransfer: receiver has not approved the transaction"
+                    );
                     //increment the nonce once transaction has been confirmed
                     tokenTransferNonce[from][to]++;
                 }
@@ -297,22 +325,23 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256[] memory netAmounts,
         string memory metadata,
         string memory manifest
+    )
+        public
         //,string memory description
-    ) public 
         isIndustry(trackee) // limit new tracker to industry addresses
     {
         _numOfUniqueTrackers.increment();
         // create tracker details
-        uint trackerId = _numOfUniqueTrackers.current();
+        uint256 trackerId = _numOfUniqueTrackers.current();
         _trackerData[trackerId].trackerId = trackerId;
         _trackerData[trackerId].trackee = trackee;
 
-        // issue token for tracker (NFT) but do not mint 
+        // issue token for tracker (NFT) but do not mint
         _issue(
             address(0), //do not set issued address until token is minted
             msg.sender,
             trackee,
-            1, //tokenTypeId 
+            1, //tokenTypeId
             0, //tokenAmount set to 0. Only mint this in final issue() function
             trackerId,
             metadata,
@@ -324,14 +353,9 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         // add tokens if provided
         if (netIds.length > 0) {
             return _trackTokens(trackerId, netIds, netAmounts);
-        }else{
+        } else {
             //emit event event to single tracker was created
-            emit TrackTokens(
-                trackerId,
-                msg.sender,
-                netIds,
-                netAmounts
-            );
+            emit TrackTokens(trackerId, msg.sender, netIds, netAmounts);
         }
     }
 
@@ -341,14 +365,16 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
      * see tracker() function for description of other inputs
      **/
     function trackUpdate(
-        uint256 trackerId ,
+        uint256 trackerId,
         uint256[] memory netIds,
         uint256[] memory netAmounts,
         string memory metadata,
         string memory manifest
+    )
+        public
         //,string memory description
-    ) public notIssued(trackerId) {
-
+        notIssued(trackerId)
+    {
         if (bytes(metadata).length > 0) {
             _tokenDetails[_trackerData[trackerId].tokenId].metadata = metadata;
         }
@@ -369,50 +395,58 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256 trackerId,
         uint256[] memory tokenIds,
         uint256[] memory tokenAmounts
-    ) internal isAuditor(_trackerData[trackerId].trackerId){
+    ) internal isAuditor(_trackerData[trackerId].trackerId) {
         require(
             tokenAmounts.length == tokenIds.length,
             "CLM8::_trackTokens: tokenAmounts and tokenIds are not the same length"
         );
         // create trcker Mappings to store tokens (and product) info
-        Tracker.CarbonTrackerMappings storage trackerMappings = _trackerMappings[
-            _trackerData[trackerId].trackerId
-        ];
+        Tracker.CarbonTrackerMappings
+            storage trackerMappings = _trackerMappings[
+                _trackerData[trackerId].trackerId
+            ];
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
             // get available and retired token balances issued to the trackerAddress.
-            (uint256 available, uint256 retired ) = net.getAvailableAndRetired(
-                address(this),tokenIds[i]
+            (uint256 available, uint256 retired) = net.getAvailableAndRetired(
+                address(this),
+                tokenIds[i]
             );
 
             uint8 tokenTypeId = net.getTokenTypeId(tokenIds[i]);
             uint256 balance;
 
-            if(tokenTypeId == 3){
+            if (tokenTypeId == 3) {
                 // if AEC use retired amount
                 balance = retired;
-            }else{
+            } else {
                 // otherwise balance is what is available to the contract
                 balance = available;
             }
 
             // subtract previous token amount locked to contract
-            _lockedNET[tokenIds[i]] = _lockedNET[tokenIds[i]].sub(trackerMappings.amount[tokenIds[i]]);
-            
-            require( msg.sender == netAddress || balance.sub(_lockedNET[tokenIds[i]]) >= tokenAmounts[i],
+            _lockedNET[tokenIds[i]] = _lockedNET[tokenIds[i]].sub(
+                trackerMappings.amount[tokenIds[i]]
+            );
+
+            require(
+                msg.sender == netAddress ||
+                    balance.sub(_lockedNET[tokenIds[i]]) >= tokenAmounts[i],
                 "CLM8::_trackTokens: one of the tokenAmounts is greater than the balance of the tracker contract"
             );
 
-            _lockedNET[tokenIds[i]] = _lockedNET[tokenIds[i]].add(tokenAmounts[i]);
+            _lockedNET[tokenIds[i]] = _lockedNET[tokenIds[i]].add(
+                tokenAmounts[i]
+            );
 
-            tokenIds[i].updateIndexAndAmount(tokenAmounts[i],trackerMappings.tokenIds,trackerMappings.idIndex,trackerMappings.amount);
+            tokenIds[i].updateIndexAndAmount(
+                tokenAmounts[i],
+                trackerMappings.tokenIds,
+                trackerMappings.idIndex,
+                trackerMappings.amount
+            );
         }
-        emit TrackTokens(
-            trackerId,
-            msg.sender,
-            tokenIds,
-            tokenAmounts
-        );
+        emit TrackTokens(trackerId, msg.sender, tokenIds, tokenAmounts);
     }
 
     /**
@@ -421,7 +455,7 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
      * @param productAmounts - amount of products. Used for weighted distribution of emissino for multiproduct tracker
      * @param metadata - descriptive attributes like units and unitAmount if different from _productData[productId].issued
      * @param manifests - info about the origin of the issued product
-     * param descriptions - description of product - e.g. name 
+     * param descriptions - description of product - e.g. name
      **/
     function issueProducts(
         uint256 trackerId,
@@ -429,14 +463,16 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256[] memory productAmounts,
         string[] memory metadata,
         string[] memory manifests
-        //,string[] memory descriptions
     )
         public
+        //,string[] memory descriptions
         notIssued(trackerId)
         isAuditor(trackerId)
     {
         //uint256[] memory productIds;
-        Tracker.CarbonTrackerDetails storage trackerData = _trackerData[trackerId];
+        Tracker.CarbonTrackerDetails storage trackerData = _trackerData[
+            trackerId
+        ];
         require(
             productAmounts.length == productIds.length,
             "CLM8::issueProducts: productIds and productAmounts arrays are not the same length"
@@ -444,26 +480,26 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         require(
             productAmounts.length == metadata.length,
             "CLM8::issueProducts: productIds and metadata arrays are not the same length"
-        );  
+        );
         require(
             productAmounts.length == manifests.length,
             "CLM8::issueProducts: productIds and manifest arrays are not the same length"
-        ); 
+        );
         /*require(
             productAmounts.length == descriptions.length,
             "CLM8::issueProducts: productIds and descriptions arrays are not the same length"
-        );*/ 
+        );*/
         for (uint256 i = 0; i < productAmounts.length; i++) {
-            if(productIds[i]==0){
+            if (productIds[i] == 0) {
                 // create a new productId
                 _numOfUniqueProducts.increment();
-                productIds[i]=_numOfUniqueProducts.current();
+                productIds[i] = _numOfUniqueProducts.current();
                 // issue token for products
                 _issue(
                     msg.sender,
                     msg.sender,
                     address(this), // issue product Token to tracker Address
-                    2, //tokenTypeId 
+                    2, //tokenTypeId
                     productAmounts[i], //tokenAmount for Carbon Tracker (NFT) = 1
                     productIds[i],
                     metadata[i],
@@ -471,29 +507,49 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
                     //,descriptions[i]
                 );
 
-                _productData[productIds[i]].tokenId = _numOfUniqueTokens.current();
+                _productData[productIds[i]].tokenId = _numOfUniqueTokens
+                    .current();
                 _productData[productIds[i]].productId = productIds[i];
                 _productData[productIds[i]].trackerId = trackerId;
-            }else{
+            } else {
                 _tokenExists(_productData[productIds[i]].tokenId);
-                require(_tokenDetails[_productData[productIds[i]].tokenId].issuedBy== msg.sender,
+                require(
+                    _tokenDetails[_productData[productIds[i]].tokenId]
+                        .issuedBy == msg.sender,
                     "CLM8::issueProducts: msg.sender attempt to modify productId it did not issue"
                 );
-                if(productAmounts[i]>_productData[productIds[i]].issued){
+                if (productAmounts[i] > _productData[productIds[i]].issued) {
                     //mint more products
-                    super._mint(address(this), _productData[productIds[i]].tokenId, productAmounts[i].sub(_productData[productIds[i]].issued), "");
-                }else{
+                    super._mint(
+                        address(this),
+                        _productData[productIds[i]].tokenId,
+                        productAmounts[i].sub(
+                            _productData[productIds[i]].issued
+                        ),
+                        ""
+                    );
+                } else {
                     //burn excess products
-                    super._burn(address(this), _productData[productIds[i]].tokenId, _productData[productIds[i]].issued.sub(productAmounts[i]));
+                    super._burn(
+                        address(this),
+                        _productData[productIds[i]].tokenId,
+                        _productData[productIds[i]].issued.sub(
+                            productAmounts[i]
+                        )
+                    );
                 }
                 //subtract previously stored productAmount from total.
-                trackerData.totalProductAmounts = trackerData.totalProductAmounts.sub(_productData[productIds[i]].issued);
+                trackerData.totalProductAmounts = trackerData
+                    .totalProductAmounts
+                    .sub(_productData[productIds[i]].issued);
 
                 if (bytes(metadata[i]).length > 0) {
-                    _tokenDetails[_productData[productIds[i]].tokenId].metadata = metadata[i];
+                    _tokenDetails[_productData[productIds[i]].tokenId]
+                        .metadata = metadata[i];
                 }
                 if (bytes(manifests[i]).length > 0) {
-                    _tokenDetails[_productData[productIds[i]].tokenId].manifest = manifests[i];
+                    _tokenDetails[_productData[productIds[i]].tokenId]
+                        .manifest = manifests[i];
                 }
                 /*if (bytes(descriptions[i]).length > 0) {
                     _tokenDetails[_productData[productIds[i]].tokenId].description = descriptions[i];
@@ -503,7 +559,9 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
             _productData[productIds[i]].issued = productAmounts[i];
             _productData[productIds[i]].available = productAmounts[i];
 
-            trackerData.totalProductAmounts = trackerData.totalProductAmounts.add(productAmounts[i]);
+            trackerData.totalProductAmounts = trackerData
+                .totalProductAmounts
+                .add(productAmounts[i]);
         }
         emit ProductsIssued(trackerId, productIds, productAmounts);
     }
@@ -519,15 +577,13 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256 _quantity,
         uint256 _sourceId,
         string memory metadata,
-        string memory manifest
-        //,string memory description
+        string memory manifest //,string memory description
     ) internal {
-
         // increment trackerId
         _numOfUniqueTokens.increment();
         uint256 tokenId = _numOfUniqueTokens.current();
         // create token details
- 
+
         _tokenDetails[tokenId].tokenId = tokenId;
         _tokenDetails[tokenId].sourceId = _sourceId;
         _tokenDetails[tokenId].tokenTypeId = _tokenTypeId;
@@ -537,12 +593,13 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         _tokenDetails[tokenId].manifest = manifest;
         //_tokenDetails[tokenId].description = description;
 
-        if(_tokenTypeId!=1){
-            super._mint(_issuedTo, tokenId, _quantity, "");  
-        }  
+        if (_tokenTypeId != 1) {
+            super._mint(_issuedTo, tokenId, _quantity, "");
+        }
     }
+
     /**
-     * @dev transfer product 
+     * @dev transfer product
      * @param productIds to transfer
      * @param amounts of productIds to transfer
      * @param to receiver's address
@@ -551,88 +608,137 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         address to,
         uint256[] memory productIds,
         uint256[] memory amounts,
-        bytes memory data) public
-    {
+        bytes memory data
+    ) public {
         uint256[] memory tokenIds = new uint256[](productIds.length);
         for (uint256 i = 0; i < productIds.length; i++) {
             uint256 available = _productData[productIds[i]].available;
-            require(available >= amounts[i], 
-                "CLM8::_beforeTokenTransfer: product amount exceeds what is available to the contract");
+            require(
+                available >= amounts[i],
+                "CLM8::_beforeTokenTransfer: product amount exceeds what is available to the contract"
+            );
             _isIssued(_productData[productIds[i]].trackerId);
             _isOwner(_productData[productIds[i]].trackerId);
             //update avaiable amount of productId;
             _productData[productIds[i]].available = available.sub(amounts[i]);
-            tokenIds[i]=_productData[productIds[i]].tokenId;
+            tokenIds[i] = _productData[productIds[i]].tokenId;
         }
-        if(to!=address(this)){
-            super._safeBatchTransferFrom(address(this),to,tokenIds,amounts,data);
+        if (to != address(this)) {
+            super._safeBatchTransferFrom(
+                address(this),
+                to,
+                tokenIds,
+                amounts,
+                data
+            );
         }
-        emit TransferProducts(msg.sender,productIds,amounts);
+        emit TransferProducts(msg.sender, productIds, amounts);
     }
 
     /**
      * @dev track a product to an new trackerId
      * @param from address of the productId nbeing tracker
      * in this function the owner of as trackerId, or an auditor, assigns products received from other carbon tracker tokens
-     * if from address is different from msg.sender 
+     * if from address is different from msg.sender
      **/
     function trackProduct(
         address from,
         uint256 trackerId,
         uint256 productId,
         uint256 productAmount
-    ) public 
-        notIssued(trackerId) 
-        isAuditorOrTrackee(trackerId) 
-    {
-        require(trackerId != _productData[productId].trackerId,
+    ) public notIssued(trackerId) isAuditorOrTrackee(trackerId) {
+        require(
+            trackerId != _productData[productId].trackerId,
             "CLM8::trackProduct: product's trackerId can not be the same as the trackerId"
         );
 
-        uint256 previousProductAmount = _trackerMappings[trackerId].productAmount[productId];
+        uint256 previousProductAmount = _trackerMappings[trackerId]
+            .productAmount[productId];
         uint256 transferAmount;
-        if(productAmount>previousProductAmount){
+        if (productAmount > previousProductAmount) {
             transferAmount = productAmount.sub(previousProductAmount);
             // transfer more product to contract
-            bool operatorApproved = super.isApprovedForAll(from,msg.sender);
-            if(__isAuditor(from) && operatorApproved==false){  
+            bool operatorApproved = super.isApprovedForAll(from, msg.sender);
+            if (__isAuditor(from) && operatorApproved == false) {
                 // approve auditor to transfer tokens for from address
-                super._setApprovalForAll(from,msg.sender,true);
+                super._setApprovalForAll(from, msg.sender, true);
             }
             // if from address is owner of the trackerId of the productId
-            if(super.balanceOf(from, _trackerData[_productData[productId].trackerId].tokenId) == 1){
-                uint256 availBalance = super.balanceOf(from,_productData[productId].tokenId);
-                // compare availBalance to residual transferAmount 
-                if(availBalance >= transferAmount){
-                    super.safeTransferFrom(from,address(this),_productData[productId].tokenId,transferAmount,'');
-                }else{
-                    super.safeTransferFrom(from,address(this),_productData[productId].tokenId,availBalance,'');
+            if (
+                super.balanceOf(
+                    from,
+                    _trackerData[_productData[productId].trackerId].tokenId
+                ) == 1
+            ) {
+                uint256 availBalance = super.balanceOf(
+                    from,
+                    _productData[productId].tokenId
+                );
+                // compare availBalance to residual transferAmount
+                if (availBalance >= transferAmount) {
+                    super.safeTransferFrom(
+                        from,
+                        address(this),
+                        _productData[productId].tokenId,
+                        transferAmount,
+                        ""
+                    );
+                } else {
+                    super.safeTransferFrom(
+                        from,
+                        address(this),
+                        _productData[productId].tokenId,
+                        availBalance,
+                        ""
+                    );
                     transferAmount = transferAmount.sub(availBalance);
                     // if less try transfering from tracker owned by the msg.sender
                     // this will fail if msg.sender != from
                     uint256[] memory productIds = new uint256[](1);
                     uint256[] memory productAmounts = new uint256[](1);
-                    productIds[0]=productId;
-                    productAmounts[0]=productAmount;
-                    transferProducts(address(this),productIds,productAmounts,"0x00");
-                }                
-            }else{
-                super.safeTransferFrom(from,address(this),_productData[productId].tokenId,transferAmount,'');
+                    productIds[0] = productId;
+                    productAmounts[0] = productAmount;
+                    transferProducts(
+                        address(this),
+                        productIds,
+                        productAmounts,
+                        "0x00"
+                    );
+                }
+            } else {
+                super.safeTransferFrom(
+                    from,
+                    address(this),
+                    _productData[productId].tokenId,
+                    transferAmount,
+                    ""
+                );
             }
-    
-            if(__isAuditor(from) && operatorApproved==false){ 
+
+            if (__isAuditor(from) && operatorApproved == false) {
                 // remove approval to transfer tokens for from address
-                super._setApprovalForAll(from,msg.sender,false);
+                super._setApprovalForAll(from, msg.sender, false);
             }
-        }else{
+        } else {
             transferAmount = previousProductAmount.sub(productAmount);
             //refund excess amount previously locked to contract
             super.safeTransferFrom(
-                address(this),from,_productData[productId].tokenId,transferAmount,'');
+                address(this),
+                from,
+                _productData[productId].tokenId,
+                transferAmount,
+                ""
+            );
         }
-        Tracker.CarbonTrackerMappings storage trackerMappings = _trackerMappings[trackerId];
-        productId.updateIndexAndAmount(productAmount,trackerMappings.productIds,trackerMappings.productIdIndex,trackerMappings.productAmount);
-        emit TrackProduct(trackerId,msg.sender,productId,productAmount);
+        Tracker.CarbonTrackerMappings
+            storage trackerMappings = _trackerMappings[trackerId];
+        productId.updateIndexAndAmount(
+            productAmount,
+            trackerMappings.productIds,
+            trackerMappings.productIdIndex,
+            trackerMappings.productAmount
+        );
+        emit TrackProduct(trackerId, msg.sender, productId, productAmount);
     }
 
     /**
@@ -644,9 +750,11 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         isAuditor(trackerId)
     {
         super._mint(
-            _trackerData[trackerId].trackee, 
-            _trackerData[trackerId].tokenId, 
-            1, "");
+            _trackerData[trackerId].trackee,
+            _trackerData[trackerId].tokenId,
+            1,
+            ""
+        );
         _tokenDetails[_trackerData[trackerId].tokenId].issuedBy = msg.sender;
     }
 
@@ -655,8 +763,11 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
      * @param approve (true) or remove (false)
      */
     function setApprovedAuditorsOnly(bool approve)
-        external isIndustry(msg.sender)
-    { approvedAuditorsOnly[msg.sender]=approve;}
+        external
+        isIndustry(msg.sender)
+    {
+        approvedAuditorsOnly[msg.sender] = approve;
+    }
 
     /**
      * @dev approve verifier for trackee as msg.sender
@@ -676,15 +787,18 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
             "CLM8::approveVerifier: auditor cannot be msg.sender"
         );
         isAuditorApproved[verifier][msg.sender] = approve;
-        emit VerifierApproval(verifier, msg.sender, approve,block.timestamp);
+        emit VerifierApproval(verifier, msg.sender, approve, block.timestamp);
     }
+
     /*
     @dev function requires receiver address to pre-approve product transfers
     @param approve bool to tollge tx verificion on or off
     */
     function setApproveProductTransfer(bool approve)
-        external consumerOrIndustry(msg.sender){
-        approveProductTransfer[msg.sender]=approve;
+        external
+        consumerOrIndustry(msg.sender)
+    {
+        approveProductTransfer[msg.sender] = approve;
         emit ApproveProductTransfer(msg.sender, approve, block.timestamp);
     }
 
@@ -697,11 +811,17 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         uint256[] memory _ids,
         uint256[] memory _amounts
     ) public view returns (bytes32) {
-        return _from._getTransferHash(_to,_ids,_amounts,tokenTransferNonce[_from][_to]);
+        return
+            _from._getTransferHash(
+                _to,
+                _ids,
+                _amounts,
+                tokenTransferNonce[_from][_to]
+            );
     }
 
     /** Below are public view functions **/
-    
+
     struct NetTotals {
         uint256 rec;
         uint256 offsets;
@@ -716,22 +836,40 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         view
         returns (
             Tracker.CarbonTrackerDetails memory,
-            uint256[] memory,uint256[] memory,
-            uint256[] memory,uint256[] memory,
+            uint256[] memory,
+            uint256[] memory,
+            uint256[] memory,
+            uint256[] memory,
             NetTotals memory
         )
     {
-        uint256[] memory tokenAmounts = new uint256[](_trackerMappings[trackerId].tokenIds.length);
-        for (uint256 i = 0; i <_trackerMappings[trackerId].tokenIds.length; i++) {
-            tokenAmounts[i] = _trackerMappings[trackerId].amount[_trackerMappings[trackerId].tokenIds[i]];
+        uint256[] memory tokenAmounts = new uint256[](
+            _trackerMappings[trackerId].tokenIds.length
+        );
+        for (
+            uint256 i = 0;
+            i < _trackerMappings[trackerId].tokenIds.length;
+            i++
+        ) {
+            tokenAmounts[i] = _trackerMappings[trackerId].amount[
+                _trackerMappings[trackerId].tokenIds[i]
+            ];
         }
-        uint256[] memory productAmounts = new uint256[](_trackerMappings[trackerId].productIds.length);
-        for (uint256 i = 0; i <_trackerMappings[trackerId].productIds.length; i++) {
-            productAmounts[i] = _trackerMappings[trackerId].productAmount[_trackerMappings[trackerId].productIds[i]];
+        uint256[] memory productAmounts = new uint256[](
+            _trackerMappings[trackerId].productIds.length
+        );
+        for (
+            uint256 i = 0;
+            i < _trackerMappings[trackerId].productIds.length;
+            i++
+        ) {
+            productAmounts[i] = _trackerMappings[trackerId].productAmount[
+                _trackerMappings[trackerId].productIds[i]
+            ];
         }
         NetTotals memory totals = _getTotalEmissions(trackerId);
         return (
-            _trackerData[trackerId], 
+            _trackerData[trackerId],
             _trackerMappings[trackerId].tokenIds,
             tokenAmounts,
             _trackerMappings[trackerId].productIds,
@@ -741,14 +879,18 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     }
 
     function _getTotalEmissions(uint256 trackerId)
-        internal view returns (NetTotals memory)
+        internal
+        view
+        returns (NetTotals memory)
     {
         uint256[] memory tokenIds = _trackerMappings[trackerId].tokenIds;
         NetTotals memory totals;
         uint256 netAmount;
         uint8 tokenTypeId;
-        for (uint i = 0; i < tokenIds.length; i++) {
-            netAmount = decimalsCt.mul(_trackerMappings[trackerId].amount[tokenIds[i]]);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            netAmount = decimalsCt.mul(
+                _trackerMappings[trackerId].amount[tokenIds[i]]
+            );
             tokenTypeId = net.getTokenTypeId(tokenIds[i]);
             if (tokenTypeId == 3) {
                 totals.emissions = totals.emissions.add(netAmount);
@@ -761,22 +903,36 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         return _getTotalsTracked(totals, trackerId);
     }
 
-    function _getTotalsTracked(
-        NetTotals memory totals,
-        uint256 trackerId
-    ) 
-        private view returns (NetTotals memory) 
+    function _getTotalsTracked(NetTotals memory totals, uint256 trackerId)
+        private
+        view
+        returns (NetTotals memory)
     {
         uint256[] memory productIds = _trackerMappings[trackerId].productIds;
-        for (uint i = 0; i < productIds.length; i++) {
+        for (uint256 i = 0; i < productIds.length; i++) {
             uint256 sourceTrackerId = _productData[productIds[i]].trackerId;
-            if(_trackerData[sourceTrackerId].totalProductAmounts>0){
+            if (_trackerData[sourceTrackerId].totalProductAmounts > 0) {
                 NetTotals memory totalsTracked = _getTotalEmissions(
                     sourceTrackerId
                 );
-                totals.emissions = totals.emissions.add(_trackerMappings[trackerId].productAmount[productIds[i]].mul(totalsTracked.emissions).div(_trackerData[sourceTrackerId].totalProductAmounts));
-                totals.offsets = totals.offsets.add(_trackerMappings[trackerId].productAmount[productIds[i]].mul(totalsTracked.offsets).div(_trackerData[sourceTrackerId].totalProductAmounts));
-                totals.rec = totals.rec.add(_trackerMappings[trackerId].productAmount[productIds[i]].mul(totalsTracked.rec).div(_trackerData[sourceTrackerId].totalProductAmounts));
+                totals.emissions = totals.emissions.add(
+                    _trackerMappings[trackerId]
+                        .productAmount[productIds[i]]
+                        .mul(totalsTracked.emissions)
+                        .div(_trackerData[sourceTrackerId].totalProductAmounts)
+                );
+                totals.offsets = totals.offsets.add(
+                    _trackerMappings[trackerId]
+                        .productAmount[productIds[i]]
+                        .mul(totalsTracked.offsets)
+                        .div(_trackerData[sourceTrackerId].totalProductAmounts)
+                );
+                totals.rec = totals.rec.add(
+                    _trackerMappings[trackerId]
+                        .productAmount[productIds[i]]
+                        .mul(totalsTracked.rec)
+                        .div(_trackerData[sourceTrackerId].totalProductAmounts)
+                );
             }
         }
         return totals;
@@ -788,12 +944,14 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     function getNumOfUniqueTrackers() public view returns (uint256) {
         return _numOfUniqueTrackers.current();
     }
+
     /**
      * @dev returns number of unique trackers
      */
     function getNumOfUniqueProducts() public view returns (uint256) {
         return _numOfUniqueProducts.current();
     }
+
     /**
      * @dev returns number of unique trackers
      */

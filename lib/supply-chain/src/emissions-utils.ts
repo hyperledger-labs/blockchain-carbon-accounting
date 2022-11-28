@@ -20,7 +20,7 @@ import {
   is_electricity_activity, is_emissions_factor_activity,
   is_flight_activity, is_natural_gas_activity, is_industrial_activity,
   is_other_activity, is_shipment_activity, MetadataType,
-  NaturalGasActivity, IndustryActivity, OtherActivity, ProcessedActivity,
+  NaturalGasActivity, OtherActivity, ProcessedActivity,
   ShipmentActivity, ShippingMode, ValueAndUnit
 } from "./common-types";
 import { weight_in_kg, get_convert_kg_for_uom } from './unit-utils'

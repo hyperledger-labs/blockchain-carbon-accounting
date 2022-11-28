@@ -910,9 +910,7 @@ function convertStringToNumArray(params: string){
   if(params.length === 0)return [];
   return params.replace(/\s/g,'').split(',').map(Number);
 }
-function convertStringToArray(params: string){
-  return params.split(',').map(String);
-}
+
 function convertToTons(params: string){
   return convertStringToNumArray(params).map(function(item){ return item*1000 })
 }

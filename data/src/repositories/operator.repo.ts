@@ -50,7 +50,7 @@ export class OperatorRepo implements OperatorDbInterface {
     let selectBuilder: SelectQueryBuilder<Operator> = 
       await this._db.getRepository(Operator).createQueryBuilder("operator")
     selectBuilder = buildQueries('operator', selectBuilder, bundles)
-    if(withTrackers!){
+    if(withTrackers){
       selectBuilder =selectBuilder.leftJoinAndSelect("operator.trackers", "trackers")
     }
     return selectBuilder

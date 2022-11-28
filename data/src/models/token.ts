@@ -2,9 +2,7 @@ import {
     Entity,
     PrimaryColumn,
     Column,
-    ManyToOne,
     OneToMany,
-    JoinColumn
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
 import { TrackedToken } from './trackedToken'

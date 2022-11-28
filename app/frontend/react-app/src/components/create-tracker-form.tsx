@@ -41,11 +41,11 @@ const CreateTrackerForm: FC<CreateTrackerProps> = (
   //const [fromDate, setFromDate] = useState<Date|null>(formSeeds?.from_date!);
   //const [thruDate, setThruDate] = useState<Date|null>(formSeeds?.thru_date!);
   const _metadata =  formSeeds?.metadata ? JSON.parse(formSeeds?.metadata!) : {};
-  const [metajson, setMetajson] = useState("");
+  //const [metajson, setMetajson] = useState("");
   const [metadata, setMetadata] = useState<KeyValuePair[]>(_metadata! ? Object.keys(_metadata).map((key)=>({key: key,value: _metadata[key]})) :[] );
 
   const _manifest =  formSeeds?.manifest ? JSON.parse(formSeeds?.manifest!) : {};
-  const [manifestjson, setManifestjson] = useState("");
+  //const [manifestjson, setManifestjson] = useState("");
   const [manifest, setManifest] = useState<KeyValuePair[]>(_metadata! ? Object.keys(_manifest).map((key)=>({key: key,value: _manifest[key]})) :[] );
 
   const [selectedTrackee,setSelectedTrackee] = useState<string>(trackee||'');
@@ -72,14 +72,14 @@ const CreateTrackerForm: FC<CreateTrackerProps> = (
     let array = [...metadata];
     array.splice(idx, 1);
     setMetadata(array);
-    setMetajson(castMetadata(metadata));
+    //setMetajson(castMetadata(metadata));
     console.log(metadata)
   }
 
   const addField = () => {
     metadata.push({key: "", value: ""});
     setMetadata([...metadata]);
-    setMetajson(castMetadata(metadata));
+    //setMetajson(castMetadata(metadata));
   }
 
   const castManifest = (pairlist: KeyValuePair[]) => {
@@ -94,14 +94,14 @@ const CreateTrackerForm: FC<CreateTrackerProps> = (
   const addFieldManifest = () => {
     manifest.push({key: "", value: ""});
     setManifest([...manifest]);
-    setManifestjson(castManifest(manifest));
+    //setManifestjson(castManifest(manifest));
   }
 
   const removeFieldManifest = (idx: number) => {
     let array = [...manifest];
     array.splice(idx, 1);
     setManifest(array);
-    setManifestjson(castManifest(manifest));
+    //setManifestjson(castManifest(manifest));
   }
 
 

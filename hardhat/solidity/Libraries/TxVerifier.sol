@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 library TxVerifier {
     using ECDSA for bytes32;
     using ECDSA for address;
+
     /**
      * @dev Returns `true` if transfer has been approved by to address
      * reconstruct transferHash and check that it matches the signature
@@ -29,16 +30,7 @@ library TxVerifier {
         uint256[] memory _amounts,
         uint32 _nonce
     ) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    _from,
-                    _to,
-                    _ids,
-                    _amounts,
-                    _nonce+1
-                )
-            );
+        return keccak256(abi.encode(_from, _to, _ids, _amounts, _nonce + 1));
     }
 
     /**
@@ -75,12 +67,6 @@ library TxVerifier {
         string memory metadata
     ) internal pure returns (bytes32) {
         return
-            keccak256(
-                abi.encodePacked(
-                    contractAddress,
-                    productId,
-                    metadata
-                )
-            );
+            keccak256(abi.encodePacked(contractAddress, productId, metadata));
     }
 }

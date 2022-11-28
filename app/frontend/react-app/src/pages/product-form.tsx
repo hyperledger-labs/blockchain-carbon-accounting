@@ -36,11 +36,11 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
   const [submissionModalShow, setSubmissionModalShow] = useState(false);
 
   const _metadata =  seeds?.metadata ? JSON.parse(seeds?.metadata!) : {};
-  const [metajson, setMetajson] = useState("");
+  //const [metajson, setMetajson] = useState("");
   const [metadata, setMetadata] = useState<KeyValuePair[]>(_metadata! ? Object.keys(_metadata).map((key)=>({key: key,value: _metadata[key]})) :[] );
 
   const _manifest =  seeds?.manifest ? JSON.parse(seeds?.manifest!) : {};
-  const [manifestjson, setManifestjson] = useState("");
+  //const [manifestjson, setManifestjson] = useState("");
   const [manifest, setManifest] = useState<KeyValuePair[]>(_manifest! ? Object.keys(_manifest).map((key)=>({key: key,value: _manifest[key]})) :[] );
 
   const [productName, setProductName] = useState<string>(_metadata?.productName);
@@ -80,14 +80,14 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
     let array = [...metadata];
     array.splice(idx, 1);
     setMetadata(array);
-    setMetajson(castMetadata(metadata));
+    //setMetajson(castMetadata(metadata));
     console.log(metadata)
   }
 
   const addField = () => {
     metadata.push({key: "", value: ""});
     setMetadata([...metadata]);
-    setMetajson(castMetadata(metadata));
+    //setMetajson(castMetadata(metadata));
   }
 
   const castManifest = (pairlist: KeyValuePair[]) => {
@@ -102,14 +102,14 @@ const ProductForm: FC<ProductFormProps> = ({ provider, roles, limitedMode, track
   const addFieldManifest = () => {
     manifest.push({key: "", value: ""});
     setManifest([...manifest]);
-    setManifestjson(castManifest(manifest));
+    //setManifestjson(castManifest(manifest));
   }
 
   const removeFieldManifest = (idx: number) => {
     let array = [...manifest];
     array.splice(idx, 1);
     setManifest(array);
-    setManifestjson(castManifest(manifest));
+    //setManifestjson(castManifest(manifest));
   }
 
 

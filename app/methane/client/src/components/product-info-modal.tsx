@@ -5,7 +5,7 @@ import { BsPlus } from 'react-icons/bs';
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 
 import ProductForm from "@blockchain-carbon-accounting/react-app/src/pages/product-form";
-import CreateTrackerForm from "./create-tracker-form"
+import CreateTrackerForm from "@blockchain-carbon-accounting/react-app/src/components/create-tracker-form"
 import { RolesInfo, Wallet, Tracker } from "@blockchain-carbon-accounting/react-app/src/components/static-data";
 
 import type { ActivityResult }from "@blockchain-carbon-accounting/supply-chain-lib";

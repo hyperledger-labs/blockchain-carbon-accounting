@@ -44,7 +44,7 @@ const TrackerTransferForm: FC<TrackerTransferFormProps> = ({ provider, roles, si
     const init = async () => {
       if (provider && signedInAddress && trackerId) {
         setFetchingTracker(true);
-        const {tracker, status} = await getTracker(trackerId);
+        const {tracker} = await getTracker(trackerId);
         if(tracker) setTracker(tracker)
       }
     }

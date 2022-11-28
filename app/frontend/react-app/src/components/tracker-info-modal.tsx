@@ -12,7 +12,7 @@ import { GiOilDrum } from 'react-icons/gi';
 import { IoIosFlame } from 'react-icons/io'
 
 import { trpc } from "../services/trpc";
-import { Wallet, ProductToken, Tracker, Token, RolesInfo, TrackedProduct, TrackedToken} from "./static-data";
+import { Wallet, ProductToken, Tracker, RolesInfo, TrackedProduct, TrackedToken} from "./static-data";
 
   export function getTotalEmissions(tracker:Tracker){
     return (tracker.totalEmissions-tracker.totalOffsets-tracker.totalREC)
@@ -64,23 +64,6 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
       }
     }
   })
-
-  function tryParseJSONObject(jsonString:string){
-      try {
-          var o = JSON.parse(jsonString);
-  
-          // Handle non-exception-throwing cases:
-          // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
-          // but... JSON.parse(null) returns null, and typeof null === "object", 
-          // so we must check for that, too. Thankfully, null is falsey, so this suffices:
-          if (o && typeof o === "object") {
-              return o;
-          }
-      }
-      catch (e) { }
-  
-      return false;
-  };
 
   return (
     <Modal {...{show,tracker,onHide}} centered size="lg">
