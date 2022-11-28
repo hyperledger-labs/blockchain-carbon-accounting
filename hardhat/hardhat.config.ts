@@ -1093,6 +1093,11 @@ module.exports = {
     //   url: `https://ropsten.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
     //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
     // },
+    // besu:{
+    //   url: `http://localhost:8545`,
+    //   chainId: 2018,
+    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
+    // }
 
   },
   // Uncomment if running contract verification
