@@ -132,17 +132,19 @@ export class ProductRepo implements ProductDbInterface {
         totals.push({...totalsObject, ...{
           uuid: '',
           amount: 0, 
-          from_date: product.from_date!, 
-          thru_date: product.thru_date!}
+          // eslint-disable-next-line
+          from_date: product.from_date!, thru_date: product.thru_date!}
         });
       }
       index = totalsIndex[totalskey];
       totals[index]['amount'] += product.amount
-      if(product.thru_date! > totals[index]['thru_date']!){
-        totals[index]['thru_date']=product.thru_date!
+      // eslint-disable-next-line
+      if(product.thru_date && product.thru_date > totals[index]['thru_date']!){
+        totals[index]['thru_date']=product.thru_date
       }
-      if(product.from_date! < totals[index]['from_date']!){
-        totals[index]['from_date']=product.from_date!
+      // eslint-disable-next-line
+      if(product.from_date && product.from_date < totals[index]['from_date']!){
+        totals[index]['from_date']=product.from_date
       }
     }
     return totals;
@@ -179,7 +181,7 @@ export class ProductRepo implements ProductDbInterface {
         .orderBy(`${field}`, 'ASC')
         .getRawMany()
     }
-
+    // eslint-disable-next-line
     return Product.toRaws(products).map(p => p[`${product_field}`]!);
   }
 

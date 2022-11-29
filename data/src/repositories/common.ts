@@ -13,8 +13,6 @@ export interface BalancePayload {
   transferred: bigint
 }
 
-import type { ProductInterface } from "@blockchain-carbon-accounting/oil-and-gas-data-lib";
-
 export interface StringPayload {
   [key: string] : string | number
 }
@@ -43,37 +41,73 @@ export interface TokenPayload {
 export type EmissionsRequestPayload = Omit<EmissionsRequest, 'uuid' | 'created_at' | 'updated_at' | 'toJSON'>
 
 export interface ProductTokenPayload {
+  tokenId: number;
   productId: number;
-  trackerId: number|undefined;
-  auditor: string;
-  amount: bigint;
+  trackerId: number;
+  issuedBy: string;
+  issuedFrom: string;
+  issued: bigint;
   available: bigint;
-  name: string;
+  retired: bigint;
+  dateCreated: number;
+  dateUpdated: number;
+  metadata: Record<string, unknown>;
+  manifest: Record<string, unknown>;
+  name?: string;
   unit: string;
   unitAmount: number;
-  emissionsFactor: number;
 }
 
 export interface TrackerPayload {
+  tokenId: number;
   trackerId: number;
   trackee: string;
-  createdBy: string;
+  issuedBy: string;
+  issuedFrom: string;
   auditor: string;
   totalProductAmounts: bigint;
-  totalEmissions: bigint;
-  totalOffsets: bigint;
-  fromDate: number;
-  thruDate: number;
+  totalEmissions: number;
+  totalOffsets: number;
+  totalREC: number;
+  retired: boolean;
   dateCreated: number;
+  dateIssued: number;
   dateUpdated: number;
-  // eslint-disable-next-line
-  metadata: Object;
-  description: string;
+  metadata: Record<string, unknown>;
+  manifest: Record<string, unknown>;
   operatorUuid: string;
   tokens: TokenPayload[];
   products: ProductTokenPayload[];
+  trackedProducts: ProductTokenPayload[];
+}
+export const trackerStatus = ['available','transferred','retired'] as const;
+export type TrackerStatus = typeof trackerStatus[number];
+
+export interface TrackerBalancePayload {
+  issuedTo: string
+  trackerId: number
+  status: TrackerStatus
 }
 
+export interface ProductTokenBalancePayload {
+  issuedTo: string
+  productId: number
+  available: bigint
+  retired: bigint
+  transferred: bigint
+}
+
+export interface TrackedProductPayload {
+  productId: number
+  trackerId: number
+  amount: bigint
+}
+
+export interface TrackedTokenPayload {
+  tokenId: number
+  trackerId: number
+  amount: bigint
+}
 
 const OP_MAP: Record<string, string> = {
     'neq': '!=',
@@ -85,12 +119,7 @@ const OP_MAP: Record<string, string> = {
 };
 
 // eslint-disable-next-line
-export function buildQueries(
-  table: string,
-  builder: SelectQueryBuilder<any>,
-  queries: Array<QueryBundle>,
-  entities?: EntityTarget<any>[],
-) : SelectQueryBuilder<any> {
+export function buildQueries(table: string,builder: SelectQueryBuilder<any>,queries: Array<QueryBundle>,entities?: EntityTarget<any>[]) : SelectQueryBuilder<any> {
 
   queries.sort((a, b) => Number(a.conjunction) - Number(b.conjunction) )
   // sort queries to process disjunction querries first (orWhere)

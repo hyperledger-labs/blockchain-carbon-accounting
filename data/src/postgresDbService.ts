@@ -8,8 +8,12 @@ import { OperatorRepo } from "./repositories/operator.repo"
 import { AssetOperatorRepo } from "./repositories/assetOperator.repo"
 import { TokenRepo } from "./repositories/token.repo"
 import { TrackerRepo } from "./repositories/tracker.repo"
+import { TrackerBalanceRepo } from "./repositories/trackerBalance.repo"
+import { TrackedProductRepo } from "./repositories/trackedProduct.repo"
+import { TrackedTokenRepo } from "./repositories/trackedToken.repo"
 import { ProductRepo } from "./repositories/product.repo"
 import { ProductTokenRepo } from "./repositories/productToken.repo"
+import { ProductTokenBalanceRepo } from "./repositories/productTokenBalance.repo"
 import { UtilityLookupItemRepo } from "./repositories/utilityLookupItem.repo"
 import { WalletRepo } from "./repositories/wallet.repo"
 import { EmissionsRequestRepo } from "./repositories/emissionsRequest.repo"
@@ -93,12 +97,28 @@ export class PostgresDBService {
     return new TrackerRepo(this._db)
   }
 
+  public getTrackedProductRepo() {
+    return new TrackedProductRepo(this._db)
+  }
+
+  public getTrackedTokenRepo() {
+    return new TrackedTokenRepo(this._db)
+  }
+
   public getProductTokenRepo() {
     return new ProductTokenRepo(this._db)
   }
 
   public getBalanceRepo() {
     return new BalanceRepo(this._db)
+  }
+
+  public getTrackerBalanceRepo() {
+    return new TrackerBalanceRepo(this._db)
+  }
+
+  public getProductTokenBalanceRepo() {
+    return new ProductTokenBalanceRepo(this._db)
   }
 
   public getWalletRepo() {

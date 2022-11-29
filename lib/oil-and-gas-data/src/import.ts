@@ -334,6 +334,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             assetUuid: asset.uuid,
             operatorUuid: operator.uuid,
             operator,
+            // eslint-disable-next-line
             from_date: d['from_date']!,//new Date(row["month"]),
             share: 1
           }
@@ -444,7 +445,8 @@ export const importProductData = async (opts: ParseWorksheetOpts,
       };
       d['from_date'] = setFromDate(opts,loader,d);
       d['thru_date'] = setThruDate(opts,loader,d);
-      const metadata:any={
+
+      const metadata:Record<string, unknown>={
         company_name: row["Company"]
       };
       //create operator
@@ -543,6 +545,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             assetUuid: asset.uuid,
             operatorUuid: operator.uuid,
             operator,
+            // eslint-disable-next-line
             from_date: d['from_date']!,
             share: 1
           }

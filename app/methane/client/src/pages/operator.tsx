@@ -18,8 +18,7 @@ import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import { getProducts, getOperator, getProductAttributes, getProductTotals } from '../services/api.service';
 
 import { productTypes } from "@blockchain-carbon-accounting/oil-and-gas-data-lib/src/product"
-import type { Emissions }from "@blockchain-carbon-accounting/supply-chain-lib";
-
+import type { ActivityResult }from "@blockchain-carbon-accounting/supply-chain-lib";
 
 import QueryBuilder from "@blockchain-carbon-accounting/react-app/src/components/query-builder";
 
@@ -122,15 +121,19 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
     setModalShow(false);
   };
 
-  const calculateEmissions = (emissions: Emissions) => {
+  const calculateEmissions = (activityResult: ActivityResult) => {
     //setModalShow(false);
-    localStorage.setItem('quantity', emissions.amount.value.toString())
+    localStorage.setItem('quantity', activityResult?.emissions?.amount?.value?.toString()!)
     localStorage.setItem('fromDate', selectedProduct?.from_date?.toString()!)
     localStorage.setItem('thruDate', selectedProduct?.thru_date?.toString()!)
     localStorage.setItem('description', selectedProduct?.name!)
-    localStorage.setItem('scope', emissions.scope?.toString()!)
-    localStorage.setItem('manifest', JSON.stringify(selectedProduct))
-    localStorage.setItem('tokenTypeId', '4')
+
+    localStorage.setItem('scope',  activityResult?.emissions?.scope?.toString()!)
+    localStorage.setItem('type',  activityResult?.details?.scope?.toString()!)
+    localStorage.setItem('gwp',  activityResult?.details?.gwp?.toString()!)
+
+    localStorage.setItem('manifest', JSON.stringify(selectedProduct?.source!))
+    localStorage.setItem('tokenTypeId', '3')
     setShowIssueForm(true)
   };
 
@@ -393,13 +396,13 @@ const RegisteredOperator: ForwardRefRenderFunction<OperatorsHandle, OperatorsPro
           </h2>
           <p>Public address: {operator?.wallet_address}</p>
 
-          <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={operator?.wallet_address!} _showTrackers={'unissued'} handleTrackerSelect={handleTrackerSelect} operatorUuid={operatorUuid}/>
+          <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={operator?.wallet_address!} _showTrackers={'unissued'} handleTrackerSelect={handleTrackerSelect} operator={operator}/>
           {(roles.isAeDealer && showIssueForm) ? 
             <IssueForm provider={provider} roles={roles} signedInAddress={  signedInAddress} signedInWallet={signedInWallet} limitedMode={limitedMode} trackerId={tracker?.trackerId} onSubmit={issueFormSubmit} />
             : <Row className='mt-4'><Form.Check  
               type={'checkbox'} 
               id={'selectMultipleDataPoints'} 
-              label={"Select multiple data points for emissions audit request:  "+(tracker ? `Certificate ${tracker!.description} (ID # ${tracker!.trackerId})` : 'New certificate')} 
+              label={"Select multiple data points for emissions audit request:  "+(tracker ? `Certificate ${(tracker?.metadata as any).description} (ID # ${tracker!.trackerId})` : 'New certificate')} 
               onClick={() => {handleSelectProducts()}}/></Row>
           }
           {selectProducts &&<Row> 

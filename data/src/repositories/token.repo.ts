@@ -1,6 +1,8 @@
 import { DataSource, SelectQueryBuilder } from "typeorm"
 import { Balance } from "../models/balance"
 import { Token } from "../models/token"
+import { TrackedToken } from "../models/trackedToken"
+
 import { buildQueries, QueryBundle, TokenPayload } from "./common"
 
 export class TokenRepo {
@@ -92,6 +94,10 @@ export class TokenRepo {
   /** Delete all Tokens, first delete all Balances as well. */
   public truncateTokens = async () => {
     await this._db.getRepository(Balance)
+    .createQueryBuilder()
+    .delete()
+    .execute()
+    await this._db.getRepository(TrackedToken)
     .createQueryBuilder()
     .delete()
     .execute()

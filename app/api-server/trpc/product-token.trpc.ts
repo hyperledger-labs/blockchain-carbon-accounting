@@ -45,13 +45,38 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
         }
     },
 })
-.mutation('insert', {
+.query('get', {
     input: z.object({
+        productId: z.number().gte(0).default(0)
+    }).default({}),
+    async resolve({ input, ctx }) {
+        try {
+            const product = await ctx.db.getProductTokenRepo().selectProduct(input.productId);
+            return {
+                status: 'success',
+                product: ProductToken.toRaw(product!)
+            }
+        } catch (error) {
+            console.error(error)
+            return {
+                status: 'failed',
+                error
+            }
+        }
+    },
+})
+
+/*.mutation('insert', {
+    input: z.object({
+        tokenId: z.number(),
         productId: z.number(),
         trackerId: z.number().default(0),
-        auditor: validAddress,
-        amount: z.bigint(),
+        issuedBy: validAddress,
+        issuedFrom: validAddress,
+        issuedTo: validAddress,
+        issued: z.bigint(),
         available: z.bigint(),
+        retired: z.bigint(),
         name: z.string(),
         unit: z.string(),
         unitAmount: z.number().default(0),
@@ -72,6 +97,6 @@ export const productTokenRouter = (zQueryBundles:any) => trpc
             handleError('register', error)
         }
     },
-})
+})*/
 export type ProductTokenRouter = typeof productTokenRouter 
 

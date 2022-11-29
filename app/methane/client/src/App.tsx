@@ -16,6 +16,7 @@ const SignUp = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pa
 const SignIn = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/sign-in"));
 const IssueForm= lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/issue-form"));
 const IssuedTrackers= lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/issued-trackers"));
+const ProductForm = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/product-form"));
 const ProductTransferForm = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/product-transfer-form"));
 
 const AccessControlForm = lazy(() => import("@blockchain-carbon-accounting/react-app/src/pages/access-control-form"));
@@ -110,8 +111,11 @@ const App:FC = () => {
                       <Route path="/issuedTrackers/:address?">{params=>
                         <IssuedTrackers provider={provider} roles={roles} signedInAddress={signedInAddress} displayAddress={params?.address} _showTrackers={'issued'}/>
                       }</Route>
-                      <Route path="/transferProduct/:trackerId/:productId?">{params=>
-                        <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} trackerId={Number(params.trackerId)} productId={Number(params.productId)}/>
+                      <Route path="/addProduct/:trackerId?">{params=>
+                        <ProductForm provider={provider} roles={roles} limitedMode={limitedMode} trackerId={Number(params.trackerId)} signedInWallet={signedInWallet} signedInAddress={signedInAddress}/>
+                      }</Route>
+                      <Route path="/transferProduct/:productId?">{params=>
+                        <ProductTransferForm provider={provider} roles={roles} signedInAddress={signedInAddress} signedInWallet={signedInWallet} productId={Number(params.productId)}/>
                       }</Route>
                       <Route path="/access-control">
                         <AccessControlForm ref={accessControlRef} provider={provider} providerRefresh={refresh} signedInAddress={signedInAddress} roles={roles} limitedMode={limitedMode} signedInWallet={signedInWallet} />
