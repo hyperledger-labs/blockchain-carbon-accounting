@@ -6,14 +6,11 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./CarbonTracker.sol";
 
 contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     using SafeMath for uint256;
     using Counters for Counters.Counter;
-    using ECDSA for bytes32;
-    using ECDSA for address;
 
     bool public limitedMode; // disables some features like arbitrary token transfers and issuing without proposals
     address private timelock; // DAO contract that executes proposals to issue tokens after a successful vote
@@ -41,7 +38,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      *   1 => Renewable Energy Certificate
      *   2 => Carbon Emissions Offset
      *   3 => Audited Emissions
-     *   4 => Carbon Tracker tokens (traceable emission tokens)
      * issuedBy - Address of transaction runner
      * issuedFrom - Address of dealer issuing this token
      * issuee - Address of original issued recipient this token
@@ -71,9 +67,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     // Token metadata and retired balances
     mapping(uint256 => CarbonTokenDetails) private _tokenDetails;
     mapping(uint256 => mapping(address => uint256)) private _retiredBalances;
-
-    // Nonce for tokeTypeId 4 transfer from => to account
-    mapping(address => mapping(address => uint32)) private carbonTransferNonce;
 
     // Events
     event TokenCreated(
@@ -113,7 +106,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         _setupRole(REGISTERED_REC_DEALER, _admin);
         _setupRole(REGISTERED_OFFSET_DEALER, _admin);
         _setupRole(REGISTERED_EMISSIONS_AUDITOR, _admin);
-        //_setupRole(REGISTERED_INDUSTRY, _admin);
+        _setupRole(REGISTERED_INDUSTRY, _admin);
 
         // initialize
         timelock = address(0);
@@ -186,41 +179,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     }
 
     /**
-     * @dev Returns `true` if transfer has been approved by to address
-     * reconstruct transferHash and check that it matches the signature
-     */
-    function verifySignature(
-        bytes32 msgHash,
-        bytes memory signature,
-        address signer
-    ) public pure returns (bool) {
-        bytes32 ethSignedMessageHash = msgHash.toEthSignedMessageHash();
-        return ethSignedMessageHash.recover(signature) == signer;
-    }
-
-    /**
-     * @dev Returns keccak256 hash of transaction request
-     * including next available nonce for transfer from -> to addresses
-     */
-    function getTransferHash(
-        address _from,
-        address _to,
-        uint256[] memory _ids,
-        uint256[] memory _amounts
-    ) public view returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    _from,
-                    _to,
-                    _ids,
-                    _amounts,
-                    carbonTransferNonce[_from][_to] + 1
-                )
-            );
-    }
-
-    /**
      * @dev returns true if the tokenId exists
      */
     function tokenExists(uint256 tokenId) private view returns (bool) {
@@ -232,7 +190,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
      * @dev returns true if the tokenTypeId is valid
      */
     function tokenTypeIdIsValid(uint8 tokenTypeId) private pure returns (bool) {
-        if ((tokenTypeId > 0) && (tokenTypeId <= 4)) {
+        if ((tokenTypeId > 0) && (tokenTypeId <= 3)) {
             return true;
         }
         return false; // no matching tokenId
@@ -259,7 +217,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
 
     /**
      * @dev hook to prevent transfers from non-admin account if limitedMode is on
-     * @param data signature of getTransferHash() for transfer of carbon token type (id=4)
      */
     function _beforeTokenTransfer(
         address operator,
@@ -276,7 +233,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             (from != to),
             "CLM8::_beforeTokenTransfer: sender and receiver cannot be the same"
         );
-        bool approveCarbon; // bool if we need to approve the transfer of carbon tokens
         for (uint256 i = 0; i < ids.length; i++) {
             CarbonTokenDetails storage token = _tokenDetails[ids[i]];
             // disable most transfers if limitedMode is on
@@ -302,25 +258,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
                     );
                 }
             }
-            // for tokenType 4, any authorized operator can
-            // issue (from == address(0)) or
-            // burn/retire (to == address(0))
-            // otherwise require receiver (to address) to have approved (signed) the transferHash
-            /*if(token.tokenTypeId == 4 && to != address(0) && from != address(0)) {
-                approveCarbon = false;//true;
-                // TO-DO: drop internal approval of carbon transfers?
-                // voluntary carbon tracker token can be sent to anyone to use in the C-NFT
-                // they can be sent without approval inviting the receiver to track them to their NFT
-            }*/
-        }
-        if (approveCarbon) {
-            bytes32 messageHash = getTransferHash(from, to, ids, amounts);
-            require(
-                verifySignature(messageHash, data, to),
-                "CLM8::_beforeTokenTransfer: receiver's approval signature is not valid"
-            );
-            //increment the nonce once transaction has been confirmed
-            carbonTransferNonce[from][to]++;
         }
     }
 
@@ -398,7 +335,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
         address issuedTo,
         address trackerAddress,
         uint256 trackerId,
-        //string memory trackerDescription,
         uint8 tokenTypeId,
         uint256 quantity,
         uint256 fromDate,
@@ -409,20 +345,7 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
     ) public onlyDealer {
         require(
             CarbonTracker(trackerAddress).netAddress() == address(this),
-            "CLM8::issueAndTrack: trackerAddress does not belong to address(this)"
-        );
-        require(
-            CarbonTracker(trackerAddress)._numOfUniqueTrackers() >= trackerId,
-            "CLM8::issueAndTrack: trackerId does not exist"
-        );
-        require(
-            (
-                (
-                    hasRole(REGISTERED_EMISSIONS_AUDITOR, msg.sender)
-                    //&& isVerifierApproved[msg.sender][trackerData.trackee]
-                )
-            ),
-            "CLM8::issueAndTrack: msg.sender is not an approved auditor"
+            "CLM8::issueAndTrack: trackerAddress is not a child of this NET contract"
         );
         uint256[] memory tokenIds = new uint256[](1);
         uint256[] memory tokenAmounts = new uint256[](1);
@@ -439,29 +362,25 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             manifest,
             description
         );
-        string memory trackerDescription = "";
         tokenIds[0] = _numOfUniqueTokens.current();
         tokenAmounts[0] = quantity;
         if (trackerId == 0) {
             CarbonTracker(trackerAddress).track(
                 issuedTo,
-                issuedTo,
                 tokenIds,
                 tokenAmounts,
-                fromDate,
-                thruDate,
-                trackerDescription,
+                "",
                 ""
+                //,""
             );
         } else {
             CarbonTracker(trackerAddress).trackUpdate(
                 trackerId,
                 tokenIds,
                 tokenAmounts,
-                fromDate,
-                thruDate,
-                trackerDescription,
+                "",
                 ""
+                //,""
             );
         }
     }
@@ -616,8 +535,6 @@ contract NetEmissionsTokenNetwork is ERC1155, AccessControl {
             return "Carbon Emissions Offset";
         } else if (token.tokenTypeId == 3) {
             return "Audited Emissions";
-        } else if (token.tokenTypeId == 4) {
-            return "Carbon Tracker";
         } else {
             return "Token does not exist";
         }

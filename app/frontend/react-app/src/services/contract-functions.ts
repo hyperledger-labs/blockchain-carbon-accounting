@@ -4,7 +4,7 @@ import { AbiCoder } from "@ethersproject/abi";
 import { BigNumber } from "@ethersproject/bignumber";
 import { Contract } from "@ethersproject/contracts";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
-import { RolesInfo, Tracker, ProductToken } from "../components/static-data";
+import { RolesInfo } from "../components/static-data";
 
 
 export const SUCCESS_MSG = "Success! Transaction has been submitted to the network. Please wait for confirmation on the blockchain.";
@@ -199,7 +199,7 @@ export async function getAdmin(w3provider: Web3Provider | JsonRpcProvider) {
   let contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
   let admin;
   try {
-    admin = await contract.admin();
+    admin = await contract.getRoles();
   } catch (error) {
     admin = getErrorMessage(error)
     console.error('getAdmin', error);
@@ -264,6 +264,7 @@ export async function issueAndTrack(
   metadata: string,
   manifest: string,
   description: string,
+  hasPrivateKeyFromServer: boolean | undefined,
   //privateKey: string,
 ) {
   
@@ -273,73 +274,79 @@ export async function issueAndTrack(
     let signer = w3provider.getSigner();
     contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, w3provider);
     contract = contract.connect(signer);
-  } 
-  /*else {
-    console.log("Json Provider - Track");
-    const signer  = new Wallet(privateKey, w3provider);
-    contract = new Contract(addresses.tokenNetwork.address, abis.netEmissionsTokenNetwork.abi, signer)
-  }*/
-  try{
-    await contract?.issueAndTrack(
-      issuedFrom || 0,
-      issuedTo,
-      addresses.carbonTracker.address,
-      trackerId,
-      //trackerDescription,
-      tokenTypeId,
-      quantity,
-      convertToZeroIfBlank(toUnixTime(fromDate)),
-      convertToZeroIfBlank(toUnixTime(thruDate)),
-      metadata,
-      manifest,
-      description
-    );
-    //let tokenId = await signed.getNumOfUniqueTokens();
-    issue_result = SUCCESS_MSG;
-  } catch(error){
-    issue_result = catchError(error);
+     
+    /*else {
+      console.log("Json Provider - Track");
+      const signer  = new Wallet(privateKey, w3provider);
+      contract = new Contract(addresses.tokenNetwork.address,   abis.netEmissionsTokenNetwork.abi, signer)
+    }*/
+    try{
+      await contract?.issueAndTrack(
+        issuedFrom || 0,
+        issuedTo,
+        addresses.carbonTracker.address,
+        trackerId,
+        tokenTypeId,
+        quantity,
+        convertToZeroIfBlank(toUnixTime(fromDate)),
+        convertToZeroIfBlank(toUnixTime(thruDate)),
+        metadata,
+        manifest,
+        description
+      );
+      //let tokenId = await signed.getNumOfUniqueTokens();
+      issue_result = SUCCESS_MSG;
+    } catch(error){
+      issue_result = catchError(error);
+    }
+  }else if (hasPrivateKeyFromServer) {
+    issue_result = 'You must export your private key to Metamask or another Web3 provider to track NET tokens.';
+  } else {
+    issue_result = 'You must use Metamask or another Web3 provider to track NET.';
   }
   return issue_result;
 }
 
-export async function productUpdate(
+export async function issueProduct(
   w3provider: Web3Provider | JsonRpcProvider,
   trackerId: number,
   productAmount: bigint,
-  productName: string,
-  productUnit: string,
-  productUnitAmount: bigint,
+  metadata: string,
+  manifest: string,
+  hasPrivateKeyFromServer: boolean | undefined,
 ) {
-  let signer = w3provider.getSigner();
-  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let signed = contract.connect(signer);
   let issue_result,response;
-  try {
-    response = await signed.productsUpdate(
-      trackerId,
-      [0].map(Number),
-      [productAmount].map(Number),
-      convertStringToArray(productName),
-      convertStringToArray(productUnit),
-      [productUnitAmount].map(Number)
-    );
-    issue_result = SUCCESS_MSG;
-  } catch (error) {
-    issue_result = catchError(error);
+  if (w3provider instanceof Web3Provider) {
+    let signer = w3provider.getSigner();
+    let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+    let signed = contract.connect(signer);
+    try {
+      response = await signed.issueProducts(
+        trackerId,
+        [0].map(Number),
+        [productAmount].map(Number),
+        [metadata],
+        [manifest]
+      );
+      issue_result = SUCCESS_MSG;
+    } catch (error) {
+      issue_result = catchError(error);
+    }
+  }else if (hasPrivateKeyFromServer) {
+    issue_result = 'You must export your private key to Metamask or another Web3 provider to issue products.';
+  } else {
+    issue_result = 'You must use Metamask or another Web3 provider to issue products.';
   }
   return [issue_result,response];
 }
 
-export async function verifyTracker(
-  w3provider: Web3Provider | JsonRpcProvider,
-  trackerId: number
-) {
+export async function issueTracker(w3provider: Web3Provider | JsonRpcProvider, trackerId: number) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
   let audit_result;
   try {
-    await signed.audit(trackerId);
+    await signed.issue(trackerId);
     audit_result = SUCCESS_MSG;
   } catch (error) {
     audit_result = catchError(error);
@@ -347,19 +354,48 @@ export async function verifyTracker(
   return audit_result;
 }
 
-export async function transferProduct(
+export async function transferProducts( w3provider: Web3Provider | JsonRpcProvider, to: string, productIds: number[], productAmounts: number[], signedTxHash: [] ) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let transfer_result;
+  try {
+    console.log(productIds)
+    await signed.transferProducts(to,productIds,productAmounts,signedTxHash);
+    transfer_result = SUCCESS_MSG;
+  } catch (error) {
+    transfer_result = catchError(error);
+  }
+  return transfer_result;
+}
+
+export async function trackProduct( w3provider: Web3Provider | JsonRpcProvider, from: string, trackerId: number, productId: number, productAmount: number) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let track_result;
+  try {
+    await signed.trackProduct(from,Number(trackerId),Number(productId),Number(productAmount));
+    track_result = SUCCESS_MSG;
+  } catch (error) {
+    track_result = catchError(error);
+  }
+  return track_result;
+}
+
+export async function transferTrackerTokens(
   w3provider: Web3Provider | JsonRpcProvider,
-  sourceTrackerId: number,
-  productId: number,
-  productAmount: number,
-  trackee: string,
+  to: string,
+  tokenIds: number[],
+  tokenAmounts: number[],
+  data: []
 ) {
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
   let transfer_result;
   try {
-    await signed.transferProduct(productId,productAmount,sourceTrackerId,trackee);
+    await signed.safeBatchTransferFrom(signer,to,tokenIds.map(Number),tokenAmounts.map(Number),data);
     transfer_result = SUCCESS_MSG;
   } catch (error) {
     transfer_result = catchError(error);
@@ -368,6 +404,19 @@ export async function transferProduct(
 }
 
 
+export async function balanceOfTrackerToken( w3provider: Web3Provider | JsonRpcProvider, address: string, tokenId: number) {
+  let signer = w3provider.getSigner();
+  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
+  let signed = contract.connect(signer);
+  let result;
+  try {
+    console.log(address)
+    result = await signed.balanceOf(address,tokenId);
+  } catch (error) {
+    result = catchError(error);
+  }
+  return result;
+}
 
 export async function retire(w3provider: Web3Provider | JsonRpcProvider, tokenId: number, amount: number) {
   let signer = w3provider.getSigner();
@@ -769,104 +818,7 @@ export async function getNumOfUniqueTrackers(w3provider: Web3Provider | JsonRpcP
   }
   return uniqueTrackers;
 }
-export async function getTrackerDetails(
-  w3provider: Web3Provider | JsonRpcProvider,
-  trackerId: number,
-  address: string): Promise<Tracker|string> {
-  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let details;
-  try {
-    let [trackerDetails, totalEmissions, productIds] = (await contract.getTrackerDetails(trackerId));
-    totalEmissions = BigInt(totalEmissions);
-    productIds = productIds.map(Number)
-    const totalProductAmounts = Number(trackerDetails.totalProductAmounts);
 
-    //const owner = await contract.ownerOf(trackerId);
-
-    const [tokenIds,tokenAmounts] = await contract.getTrackerTokenDetails(trackerId);
-
-    let decimals = (await contract.decimalsEf()).toNumber();
-    let emissionsFactor = await contract.emissionsFactor(trackerId) / decimals;
-
-    let myTokenAmounts:number[] = [];
-    let myProductsTotalEmissions = 0;
-    
-    let products:ProductToken[]=[];
-    for (let i = 0; i < productIds.length; i++) {
-      let productId = productIds[i]
-
-      const productData = await contract._productData(productId);
-      if(!(productData[2]>0)){continue;}
-      const conversion = Number(productData[2])/Number(productData[6]);
-      let product:ProductToken = {
-        productId,
-        trackerId,
-        auditor: productData[1],
-        amount: productData[2],
-        available: productData[3],
-        name: productData[4],
-        unit: productData[5].toString(),
-        unitAmount: productData[6].toString(),
-        conversion: conversion,
-        myBalance: Number(await contract.getProductBalance(productId,address)),
-        emissionsFactor: emissionsFactor/conversion
-      };
-      
-      myTokenAmounts = tokenAmounts.map((e:number) => (
-        (e*product.myBalance!/totalProductAmounts)));
-
-      myProductsTotalEmissions += product.myBalance!*emissionsFactor ;
-
-      product.unitAmount = Number(product.amount)*conversion;
-      product.myBalance = product.myBalance!*conversion!;
-      product.unitAvailable =  Number(product.available)*conversion;
-
-      products.push(product)
-    }
-
-    let tokenDetails = [];
-    for (let i = 0; i < tokenIds.length; i++) {
-      tokenDetails[i]= await getTokenDetails(w3provider,tokenIds[i]);
-    }
-
-    let tracker: Tracker = {
-      trackerId,
-      auditor: trackerDetails.auditor,
-      trackee: trackerDetails.trackee,
-      dateCreated: Number(trackerDetails.dateCreated),
-      dateUpdated: Number(trackerDetails.dateUpdated),
-      totalProductAmounts: trackerDetails.totalProductAmounts,
-      fromDate: Number(trackerDetails.fromDate),
-      thruDate: Number(trackerDetails.thruDate),
-      createdBy: trackerDetails.createdBy,
-      metadata: trackerDetails.metadata ? JSON.parse(trackerDetails.metadata) : {},
-      description: trackerDetails.description,
-      totalEmissions,
-      //: Number(remainingEmissions.toFixed(0)),
-      myProductsTotalEmissions: myProductsTotalEmissions,
-      //totalOffset: totalOffset,
-      products: products,
-      tokens: {
-        ...tokenDetails,
-        myAmounts: myTokenAmounts,
-      },
-    };
-    details = tracker
-  } catch (error) {
-    details = getErrorMessage(error)
-  }
-  return details;
-}
-export async function getTrackerIds(w3provider: Web3Provider | JsonRpcProvider, trackerId: number) {
-  let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
-  let trackerIds;
-  try {
-    trackerIds = await contract.getTrackerIds(trackerId);
-  } catch (error) {
-    trackerIds = getErrorMessage(error)
-  }
-  return trackerIds;
-}
 export async function getEmissionFactor(w3provider: Web3Provider | JsonRpcProvider, trackerId: number, tokenTypeId: number){
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let ef;
@@ -906,9 +858,8 @@ export async function track(
   trackee: string,
   tokenIds: string,
   tokenAmounts: string,
-  fromDate: number|Date, //number|
-  thruDate: number|Date, //number|
-  description: string){
+  metadata: string,
+  manifest: string){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
@@ -918,9 +869,8 @@ export async function track(
       trackee,
       convertStringToNumArray(tokenIds),
       convertToTons(tokenAmounts),
-      convertToZeroIfBlank(toUnixTime(fromDate)),
-      convertToZeroIfBlank(toUnixTime(thruDate)),
-      description
+      metadata,
+      manifest
     );
     track_result = SUCCESS_MSG;
   } catch (error) {
@@ -933,7 +883,8 @@ export async function trackUpdate(
   w3provider: Web3Provider | JsonRpcProvider, trackerId: number,
   tokenIds: string,tokenAmounts: string,
   fromDate: number|Date,thruDate: number|Date,
-  description: string){
+  description: string,
+  metadata: string ){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
@@ -945,7 +896,8 @@ export async function trackUpdate(
       convertToTons(tokenAmounts),
       convertToZeroIfBlank(toUnixTime(fromDate)),
       convertToZeroIfBlank(toUnixTime(thruDate)),
-      description
+      description,
+      metadata
     );
     track_result = SUCCESS_MSG;
   } catch (error) {
@@ -955,11 +907,10 @@ export async function trackUpdate(
 }
 
 function convertStringToNumArray(params: string){
+  if(params.length === 0)return [];
   return params.replace(/\s/g,'').split(',').map(Number);
 }
-function convertStringToArray(params: string){
-  return params.split(',').map(String);
-}
+
 function convertToTons(params: string){
   return convertStringToNumArray(params).map(function(item){ return item*1000 })
 }

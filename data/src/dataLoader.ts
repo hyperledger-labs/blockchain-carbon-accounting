@@ -13,7 +13,7 @@ import { hideBin } from "yargs/helpers"
 import type { DbOpts } from "./config"
 import { addCommonYargsOptions, parseCommonYargsOptions } from "./config"
 import { PostgresDBService } from "./postgresDbService"
-import { ethers } from 'ethers';
+//import { ethers } from 'ethers';
 import { Wallet } from './models/wallet'
 import { config } from 'dotenv';
 import findConfig from "find-config";
@@ -218,7 +218,7 @@ const progressBar = new SingleBar(
       const { password_hash, password_salt } = Wallet.generateHash(password);
       const verification_token = Wallet.generateVerificationToken();
       // generate the ETH wallet
-      const newAccount = ethers.Wallet.createRandom();
+      //const newAccount = ethers.Wallet.createRandom();
       const name: string | undefined = 'Operator Repository';
       const wallet = await db.getWalletRepo().insertWallet({
         email: "bertrand@tworavens.consulting",
@@ -247,6 +247,7 @@ const progressBar = new SingleBar(
   .command(    
     "set_product_dates",
     "set product from_date and thru_date using year and month columns",
+    // eslint-disable-next-line
     async (argv: any) => {
       console.log("=== Starting set_product_dates ...")
       const db = await init(parseCommonYargsOptions(argv))

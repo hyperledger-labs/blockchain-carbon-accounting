@@ -3,17 +3,22 @@ import {
     PrimaryColumn,
     Column,
     ManyToOne,
-    JoinColumn
+    //ManyToMany,
+    OneToMany,
+    JoinColumn,
+    //JoinTable
 } from 'typeorm';
 import bigint_transformer from './bigint_transformer';
-import { 
-  Tracker
-} from './tracker';
-
+import { ProductTokenBalance } from './productTokenBalance'
+import { Tracker } from './tracker';
+import { TrackedProduct } from './trackedProduct';
 @Entity()
 export class ProductToken {
     @PrimaryColumn()
     productId!: number;
+
+    @Column({unique: true})
+    tokenId!: number;
 
     @Column({nullable: true})
     trackerId!: number;
@@ -22,26 +27,54 @@ export class ProductToken {
     @JoinColumn({name: 'trackerId'})
     tracker!: Tracker;
 
+    //trackers where product is used as input
+    @OneToMany(() => TrackedProduct, (tracked_product: TrackedProduct) => tracked_product.product)
+    trackers?: TrackedProduct[];
+
+    @OneToMany(() => ProductTokenBalance, (balance: ProductTokenBalance) => balance.product)
+    balances?: ProductTokenBalance[];
+
     @Column()
-    auditor!: string;
+    issuedBy!: string;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
-    amount!: bigint;
+    @Column()
+    issuedFrom!: string;
 
-    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    //@Column()
+    //issuedTo!: string; // Products are issued to CarbonTracker contract 
+
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
+    issued!: bigint;
+
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer})
     available!: bigint;
 
-    @Column()
-    name!: string;
+    @Column({type: 'numeric', precision: 78, scale: 0, transformer: bigint_transformer, nullable: true})
+    retired!: bigint;
 
-    @Column({nullable: true, type: 'double precision'})
-    emissionsFactor!: number;
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    metadata!: Object; // eslint-disable-line
+
+    @Column({type: "hstore", hstoreType:"object", nullable: true})
+    manifest!: Object; // eslint-disable-line
 
     @Column({nullable: true})
-    unit?: string;
+    dateCreated!: number;
+
+    @Column({nullable: true})
+    dateUpdated!: number;
+
+    //@Column({nullable: true, type: 'double precision'})
+    //emissionsFactor!: number;
+
+    @Column({nullable: true})
+    name!: string;
+
+    @Column({nullable: true})
+    unit!: string;
 
     @Column({nullable: true, type: 'double precision'})
-    unitAmount?: number;
+    unitAmount!: number;
 
     @Column({nullable:true})
     hash?: string;

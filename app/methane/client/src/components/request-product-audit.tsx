@@ -3,10 +3,7 @@ import { FC, useEffect, useState, useCallback } from "react";
 import { Form } from "react-bootstrap";
 import Table from "react-bootstrap/Table";
 
-import { 
-  EmissionsFactorForm, 
-  defaultEmissionsFactorForm 
-} from "@blockchain-carbon-accounting/react-app/src/pages/request-audit"
+import { EmissionsFactorForm, defaultEmissionsFactorForm } from "@blockchain-carbon-accounting/react-app/src/pages/request-audit"
 import { FormSelectRow, FormInputRow } from "@blockchain-carbon-accounting/react-app/src/components/forms-util";
 import ErrorAlert from "@blockchain-carbon-accounting/react-app/src/components/error-alert";
 import SuccessAlert from "@blockchain-carbon-accounting/react-app/src/components/success-alert";
@@ -21,7 +18,8 @@ import {
   ActivityType, 
   emissionsTypes,
   ghgTypes,
-  Emissions
+  Emissions,
+  ActivityResult
 } from "@blockchain-carbon-accounting/supply-chain-lib/src/common-types"
 
 
@@ -33,7 +31,7 @@ type RequestAuditProps = {
   product:Product
   roles: RolesInfo
   onHide:()=>void 
-  onSubmitHandle:(emissions:Emissions)=>void
+  onSubmitHandle:(activityResult:ActivityResult)=>void
 }
 
 type SuccessResultType = {
@@ -162,7 +160,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
           setTopSuccess({ emissions, title: 'Emissions calculated' })
         }
         if(roles.isAeDealer){
-          onSubmitHandle(emissions)
+          onSubmitHandle(res?.result)
         }
       } catch (err) {
         console.warn('Form error ', err)
@@ -177,7 +175,7 @@ const RequestProductAudit:FC<RequestAuditProps> = (
 
   return (
     <>
-      <h3 style={{display: 'inline'}}>{`Emissions certificate request: \n ${tracker?.description}`}</h3>
+      <h3 style={{display: 'inline'}}>{`Emissions certificate request: \n ${(tracker?.metadata as any)?.description}`}</h3>
       <Table hover size="sm">
         <thead>
           <tr>

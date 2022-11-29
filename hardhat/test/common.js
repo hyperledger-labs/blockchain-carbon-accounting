@@ -6,7 +6,7 @@ const { ethers } = require("./ethers-provider");
 exports.upgrades = upgrades;
 exports.ethers = ethers;
 
-exports.allTokenTypeId = [1, 2, 3, 4];
+exports.allTokenTypeId = [1, 2, 3];
 exports.quantity = 10;
 exports.transferAmount = 5;
 exports.retireAmount = 3;

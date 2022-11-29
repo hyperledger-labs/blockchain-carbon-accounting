@@ -1,3 +1,5 @@
+import { TrackerStatus } from '@blockchain-carbon-accounting/data-postgres'
+
 export type FieldOp = '=' | '>' | '>=' | '<' | '<=' | '!=' | 'contains'
 export type FieldOpValue = 'eq' | 'gt' | 'gte' | 'ls' | 'lte' | 'neq' | 'like'
 export type FieldType = 'string' | 'number' | 'balance' | 'enum'
@@ -49,39 +51,63 @@ export type Token = {
 // TO-DO use extends for object like type from /data-postgres/common
 export type Tracker = {
   trackerId: number
+  tokenId: number
   trackee: string
-  createdBy?: string
-  auditor: string
+  issuedFrom: string
+  issuedBy: string
   fromDate?: number
   thruDate?: number
   metadata: Object
-  description: string
+  manifest: Object
   dateCreated: number
   dateUpdated?: number
-  totalEmissions: bigint
+  dateIssued?: number
   totalProductAmounts: bigint
+  totalEmissions: number
+  totalOffsets: number
+  totalREC: number
+  emissionsFactor?: number
   myProductsTotalEmissions?: number
   products?: ProductToken[]
-  tokens?: Token[] & {
-    myAmounts?: number[]
-  }
+  trackedProducts?: TrackedProduct[]
+  tokens?: TrackedToken[]
+}
+
+export type TrackedProduct = {
+  product: ProductToken
+  productId:number
+  trackerId: number
+  amount: bigint
+}
+
+export type TrackedToken = {
+  token: Token
+  tokenId: number
+  trackerId: number
+  amount: bigint
 }
 
 export type ProductToken = {
+  tokenId: number
   productId: number
   trackerId: number
-  auditor: string
-  name: string
-  amount: bigint
+  issuedFrom: string
+  issuedBy: string
+  issued: bigint
   available: bigint
-  myBalance?: number
+  retired: bigint
+  dateCreated: number
+  dateUpdated?: number
+  balances?: ProductTokenBalance[]
   emissionsFactor?: number
-  conversion?: number
   unit?: string
-  unitAmount?: number
+  unitAmount: number
   unitAvailable?: number
-  metadata?: Object
-
+  unitConversion?: number
+  name?: string
+  tracker: Tracker
+  metadata: Object
+  manifest: Object
 }
 
 export type Balance = {
@@ -95,6 +121,40 @@ export type Balance = {
   availableBalance?: bigint
   retiredBalance?: bigint
   transferredBalance?: bigint
+}
+
+export type ProductTokenBalance = {
+  issuedTo: string
+  productId: number
+  available: bigint // bigint
+  retired: bigint // bigint
+  transferred: bigint // bigint
+  product: ProductToken
+  unitConversion?: number
+  unitAvailable?:number
+  availableBalance?: bigint
+  retiredBalance?: bigint
+  transferredBalance?: bigint
+}
+
+export type TrackerBalance = {
+  issuedTo: string
+  trackerId: number
+  status: TrackerStatus
+  tracker: Tracker
+}
+
+export type Operator = {
+  uuid?: string;
+  name?: string;
+  wallet_address?: string;
+  status?: string;
+  description?: string;
+  asset_count?: number;
+  trackersCount?: number;
+  assetsCount?:number;
+  //asset_operators?: AssetOperator[];
+  //products?: Product[];
 }
 
 export type Proposal = {
@@ -188,7 +248,7 @@ export const TOKEN_TYPES = [
     "Renewable Energy Certificate",
     "Carbon Emissions Offset",
     "Audited Emissions",
-    "Carbon Tracker"
+    //"Carbon Tracker"
   ];
 
 export const BALANCE_FIELDS: Field[] = [

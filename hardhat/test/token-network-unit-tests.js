@@ -139,7 +139,7 @@ describe("Net Emissions Token Network - Unit tests", function() {
     // @TODO: Remove owner role from dealers
     await contract
       .getRoles(deployer)
-      .then((response) => expect(response).to.deep.equal([true, false, true, true, true, false]));
+      .then((response) => expect(response).to.deep.equal([true, false, true, true, true, true]));
     await contract
       .getRoles(dealer1)
       .then((response) => expect(response).to.deep.equal([false, false, true, false, false, false]));

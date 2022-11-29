@@ -4,14 +4,17 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
-import { BsTrash, BsPlus } from 'react-icons/bs';
+import { BsPlus } from 'react-icons/bs';
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 import { addresses } from "@blockchain-carbon-accounting/contracts";
-import { encodeParameters, getAdmin, issue, issueAndTrack,getTrackerDetails } from "../services/contract-functions";
+import { encodeParameters, getAdmin, issue, issueAndTrack } from "../services/contract-functions";
+import { getTracker } from '../services/api.service';
+
 import type { EmissionsRequest } from "@blockchain-carbon-accounting/data-postgres";
 import { getAuditorEmissionsRequest, declineEmissionsRequest, issueEmissionsRequest } from '../services/api.service';
 import CreateProposalModal from "../components/create-proposal-modal";
+import FormGroupJSON, {KeyValuePair} from "../components/form-group-json"
 import SubmissionModal from "../components/submission-modal";
 import { Web3Provider, JsonRpcProvider } from "@ethersproject/providers";
 import { RolesInfo, TOKEN_TYPES, Wallet } from "../components/static-data";
@@ -22,11 +25,6 @@ import { useLocation } from "wouter";
 import AsyncButton from "../components/AsyncButton";
 import { parseDate } from "../components/display-date";
 import MustUseMetamask from "../components/must-use-metamask";
-
-type KeyValuePair = {
-  key: string
-  value: string
-}
 
 export type IssueFormProps = {
   provider?: Web3Provider | JsonRpcProvider,
@@ -66,8 +64,15 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [scope, setScope] = useState<number|null>(null);
   const [type, setType] = useState(localStorage.getItem('type')||'');
 
+
+  let _metadata:KeyValuePair[]=[];
+
+  if(localStorage.getItem('scope')) _metadata.push({key:'scope', value:localStorage.getItem('scope')} as KeyValuePair)
+  if(localStorage.getItem('type')) _metadata.push({key:'type', value:localStorage.getItem('type')} as KeyValuePair)
+  if(localStorage.getItem('gwp')) _metadata.push({key:'gwp', value:localStorage.getItem('gwp')} as KeyValuePair)
+  
   const [metajson, setMetajson] = useState("");
-  const [metadata, setMetadata] = useState<KeyValuePair[]>(localStorage.getItem('scope')! ? [{key:'scope', value:localStorage.getItem('scope')} as KeyValuePair] : []);
+  const [metadata, setMetadata] = useState<KeyValuePair[]>(_metadata);
 
   const [manifestjson, setManifestjson] = useState("");
   const [manifest, setManifest] = useState<KeyValuePair[]>(localStorage.getItem('manifest') ? [{key:'source',value:localStorage.getItem('manifest')} as KeyValuePair]:[]);
@@ -83,7 +88,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [requestedTrackerId, setRequestedTrackerId] = useState(trackerId);
 
   const onTokenTypeIdChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setTokenTypeId(parseInt(event.target.value)); }, []);
-  const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value); }, []);
+  const onQuantityChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setQuantity(event.target.value.replace(/,/g, '')); }, []);
   const onDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setDescription(event.target.value); }, []);
   const onScopeChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => { setScope(parseInt(event.target.value)); }, []);
   const onTypeChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setType(event.target.value); }, []);
@@ -262,16 +267,17 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
 
   useEffect(() => {
     async function fetchTrackerDetails() {
-      if(!provider || !requestedTrackerId){
+      if(!provider){
         return;
       }
-      const result = await getTrackerDetails(provider, Number(trackerId), signedInAddress);
+      const result = await getTracker(Number(requestedTrackerId));
+      console.log(result)
       if (Number(requestedTrackerId)>0 && typeof result === 'object'  ) {
-        setAddress(result.trackee)
+        setAddress(result.tracker?.trackee!)
       }
     }
     fetchTrackerDetails();
-  }, [provider, requestedTrackerId, signedInAddress, trackerId]);
+  }, [provider, requestedTrackerId, signedInAddress]);
 
 
   // update calldata on input change
@@ -311,6 +317,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         );
       } catch (error) {
         encodedCalldata = "";
+        //console.log(error)
       }
       setCalldata(encodedCalldata);
     }
@@ -372,22 +379,22 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
     let result;
-    if(requestedTrackerId){
-      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description);
+    if(requestedTrackerId!){
+      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
     }else{
       result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
-      if (requestId) {
-        if (result.toLowerCase().includes("success")) {
-          let resultStatus = await issueEmissionsRequest(requestId);
-          if (resultStatus && resultStatus.status === 'success') {
-            setError("");
-            setLocation('/issuedtokens');
-          } else {
-            setError("Cannot update emissions request status.");
-          }
+    }
+    if (requestId) {
+      if (result.toLowerCase().includes("success")) {
+        let resultStatus = await issueEmissionsRequest(requestId);
+        if (resultStatus && resultStatus.status === 'success') {
+          setError("");
+          setLocation('/issuedtokens');
         } else {
-          setError("Cannot issue emissions request. " + result.toString());
+          setError("Cannot update emissions request status.");
         }
+      } else {
+        setError("Cannot issue emissions request. " + result.toString());
       }
     }
     setResult(result.toString());
@@ -407,7 +414,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
 
-  if (requestedTrackerId && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
+  if (requestedTrackerId! && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
 
   return (roles.hasAnyRole && provider!==null) ? (
     <>
@@ -439,10 +446,10 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <h2>
           Issue tokens
           </h2>
-          <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions, Carbon Tracker) to registered {(requestedTrackerId) ? "industry" : "consumers"}.</p>
+          <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions) to registered {requestedTrackerId! ? "industry" : "consumers"}.</p>
         </>
       }
-      {requestedTrackerId && <>
+      {requestedTrackerId! && <>
         <b>{"for emissions certificate contract: "+ addresses.carbonTracker.address}</b>
         <Form.Group className="mb-3" controlId="trackerIdInput">
           <Form.Label>TrackerId</Form.Label>
@@ -494,9 +501,9 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         ?
         <Form.Group className="mb-3">
           <Form.Label>
-            {(requestedTrackerId) ? "Issue Certificate To Address" : "Issue To Address" }
+            {(requestedTrackerId!) ? "Issue certificate to address" : "Issue to address" }
           </Form.Label>
-          {(!requestedTrackerId || requestedTrackerId === 0) ?
+          {(requestedTrackerId!) ?
             <InputGroup>
               <WalletLookupInput
                 onChange={(v: string) => { setAddress(v) }}
@@ -548,8 +555,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
            <option value={0}>{}</option>
            {(roles.isAdmin || roles.isRecDealer) ? <option value={1}>{TOKEN_TYPES[0]}</option> : null}
            {(roles.isAdmin || roles.isCeoDealer) ? <option value={2}>{TOKEN_TYPES[1]}</option> : null}
-           {(roles.isAdmin || roles.isAeDealer) && !requestedTrackerId ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
-           {(roles.isAdmin || roles.isAeDealer) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null}
+           {(roles.isAdmin || roles.isAeDealer) ? <option value={3}>{TOKEN_TYPES[2]}</option> : null}
+           {/*(roles.isAdmin || roles.isAeDealer) ? <option value={4}>{TOKEN_TYPES[3]}</option> : null*/}
          </Form.Select>
        }
       </Form.Group>
@@ -618,86 +625,14 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             </Row>
           </Col>
         </Row>
-        <Form.Group>
-          {metadata.map((field, key) =>
-            <Row key={key}>
-              <Col md={3}>
-                <Form.Control
-                  type="input"
-                  placeholder="Key"
-                  value={field.key}
-                  onChange={e => { metadata[key].key = e.target.value; setMetadata([...metadata]); }}
-                />
-              </Col>
-              <Col md={7}>
-                <Row className="mb-3">
-                  <Form.Label column md={2}>
-                  </Form.Label>
-                  <Col md={10}>
-                    <Form.Control
-                      type="input"
-                      value={field.value}
-                      placeholder="Value"
-                      onChange={e => { metadata[key].value = e.target.value; setMetadata([...metadata]); }}
-                      />
-                  </Col>
-                </Row>
-              </Col>
-              <Col md={2}>
-                <Row className="mb-3 g-0 gx-2">
-                  <Col className="col-md-auto col-6">
-                    <Button className="w-100" variant="outline-dark" onClick={addField}><BsPlus /></Button>
-                  </Col>
-                  <Col className="col-md-auto col-6">
-                    <Button className="w-100" variant="outline-dark" onClick={() => removeField(key)}><BsTrash /></Button>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          )}
-          <br />
-        </Form.Group>
+        {FormGroupJSON({keyValuePair: metadata, handles: {setKeyValuePair:setMetadata, addField: addField, removeField: removeField}})}
       </Form.Group>
       <Form.Group>
         <Form.Group>
           <Form.Label>Manifest</Form.Label>
           <Button className="label-button" variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
         </Form.Group>
-        <Form.Group>
-          {manifest! && manifest.map((field, key) =>
-            <Row key={key} className="mt-2">
-              <Col md={3}>
-                <Form.Control
-                  className="mb-3"
-                  type="input"
-                  value={field.key}
-                  placeholder="Key"
-                  onChange={e => { manifest[key].key = e.target.value; setManifest([...manifest]); }}
-                />
-              </Col>
-              <Col md={7}>
-                <Form.Control
-                  className="mb-3"
-                  type="input"
-                  value={field.value}
-                  placeholder="Value"
-                  onChange={e => { manifest[key].value = e.target.value; setManifest([...manifest]); }}
-                />
-              </Col>
-              <Col md={2}>
-                <Row className="mb-3 g-0 gx-2">
-                  <Col className="col-md-auto col-6">
-                    <Button className="w-100" variant="outline-dark" onClick={addFieldManifest}><BsPlus /></Button>
-                  </Col>
-                  <Col className="col-md-auto col-6">
-                    <Button className="w-100" variant="outline-dark" onClick={() => removeFieldManifest(key)}><BsTrash /></Button>
-                  </Col>
-                </Row>
-              </Col>
-            </Row>
-          )}
-          <br />
-        </Form.Group>
+        {FormGroupJSON({keyValuePair: manifest!, handles: {setKeyValuePair:setManifest, addField: addFieldManifest, removeField: removeFieldManifest}})}
       </Form.Group>
 
       <Row className="mt-4">
@@ -752,8 +687,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                   size="lg"
                   className="w-100"
                   onClick={handleSubmit}
-                  disabled={disableIssueButton(calldata, quantity, address, requestId)}
-                >
+                  disabled={disableIssueButton(calldata, quantity, address, requestId)}>
                   Issue
                 </Button>
               :
