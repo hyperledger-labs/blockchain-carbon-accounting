@@ -29,6 +29,12 @@ npm install
 
 Please also read the [Setup.md](./Setup.md), [README.md](./README.md) and instructions in each component.  After you have set up the database according to [data/README.md](data/README.md), proceed with the steps below.
 
+Install IPFS.  Change the listening port to something other than 8080 to avoid conflicts with other services by editing `~/.ipfs/config`:
+
+```
+    "Gateway": "/ip4/127.0.0.1/tcp/8088",
+``` 
+
 Run IPFS.
 ```
 ipfs daemon --enable-pubsub-experiment
