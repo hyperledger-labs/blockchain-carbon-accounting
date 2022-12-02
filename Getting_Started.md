@@ -5,7 +5,35 @@ These are some general notes for developers to get started.
 *See sub-heading [Methane](#methane) for running the Methane app*
 *Developers can use the same hardhat network as run below* 
 
+__IMPORTANT__: Make sure you are using node version 16.  For example:
+```
+$ node -v
+v16.14.2
+```
+
+If you get another version, switch to version 16:
+```
+$ nvm use 16
+```
+
+Make sure all packages are installed.  Periodically new packages are added, so you may need to install new ones with
+```
+npm install
+```
+
+If you have problems installing, try
+```
+npm run clean:nodemodules
+npm install
+```
+
 Please also read the [Setup.md](./Setup.md), [README.md](./README.md) and instructions in each component.  After you have set up the database according to [data/README.md](data/README.md), proceed with the steps below.
+
+Install IPFS.  Change the listening port to something other than 8080 to avoid conflicts with other services by editing `~/.ipfs/config`:
+
+```
+    "Gateway": "/ip4/127.0.0.1/tcp/8088",
+``` 
 
 Run IPFS.
 ```
@@ -94,4 +122,10 @@ npm run methane:client
 ``` 
 npm run methane:server
 ```
+
+## Troubleshooting
+
+Are you using node version 16?
+
+Did you install all the packages?
 

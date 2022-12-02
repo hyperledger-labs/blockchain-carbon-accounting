@@ -17,7 +17,7 @@ The code is divided into the following components:
 - [fabric](fabric/README.md): [Emissions Data Channel](https://wiki.hyperledger.org/display/CASIG/Emissions+Data+Channel)
 - [hardhat](hardhat/README.md): [Net Emissions Token Network](https://wiki.hyperledger.org/display/CASIG/Emissions+Tokens+Network) and [Climate DAO](https://wiki.hyperledger.org/display/CASIG/DAO)
 - [app](app/README.md): Applications built on these components, including React user interface and supply chain emissions calculations.
-- [open-offsets-directory](open-offsets-directory/README.md): [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Voluntary+Carbon+Offsets+Directory+Research)
+- [open-offsets-directory](open-offsets-directory/README.md): [Voluntary Carbon Offsets Directory](https://wiki.hyperledger.org/display/CASIG/Completed+Research%3A+Voluntary+Carbon+Offsets+Directory+Research)
 - [secure-identities](secure-identities/README.md): Support for signing transactions using Vault or web-socket
 - [supply-chain](app/supply-chain/README.md): [Supply Chain Decarbonization](https://wiki.hyperledger.org/display/CASIG/Supply+Chain+Decarbonization)
 - [data](data/README.md): Data for setting up the applications
