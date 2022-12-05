@@ -384,7 +384,7 @@ const IssuedTrackers: ForwardRefRenderFunction<IssuedTrackersHandle, IssuedTrack
         </DropdownButton>
       </Dropdown>
 
-      {isDealer && false ? <Button style={{display: 'inline'}} className="mb-3" variant="outline-dark" href={`/track/${selectedTracker?.trackerId || 0}`}> Create certificate </Button> : 
+      {isDealer ? <Button style={{display: 'inline'}} className="mb-3" variant="outline-dark" href={`/track/${selectedTracker?.trackerId || 0}`}> Create certificate </Button> : 
         <Button style={{display: 'inline'}} variant="outline-dark" onClick={() =>setShowCreateTracker(!showCreateTracker)} >New certificate</Button>
       }
       {showCreateTracker && <CreateTrackerForm provider={provider} signedInAddress={signedInAddress} signedInWallet={signedInWallet!} trackee={operator?.wallet_address || displayAddress } onSubmitHandle={trackerCreate} operator={operator}/>}

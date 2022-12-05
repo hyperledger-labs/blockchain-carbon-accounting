@@ -25,12 +25,12 @@ const networksAndAddresses = {
     network: "Goerli Testnet",
     tokenNetwork: {
       //address: "0xE8854ec567b3762046d8f773547f373e6A1A620A", 
-      /*October 30, 2022*/ 
-      address: "0x8288C43fA04F1619BBA0b70582aEaF9c6395d259",
+      /*November 29, 2022*/ 
+      address: "0x118938E52100df8FfE8793f8ec231f56d85e8E72",
     },
-    /*October 30, 2022*/ 
+    /*November 29, 2022*/ 
     carbonTracker: {
-      address: "0xC38Cb07C235eCc448CE3e3F1e7AD19d46d502fEa",
+      address: "0x039EF5c92CC8249D2cb3785B68bc4F79dC8a7625",
     },
     dao: {
       governor: {
