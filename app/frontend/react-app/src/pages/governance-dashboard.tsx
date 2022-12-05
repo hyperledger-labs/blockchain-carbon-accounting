@@ -539,8 +539,7 @@ const GovernanceDashboard: FC<GovernanceDashboardProps> = ({ provider, roles, si
       { (proposalsLength === 0 && !fetchingProposals) && <p>No proposals found.</p>}
 
       <div className="d-flex flex-wrap justify-content-around row">
-        {(proposals !== []) &&
-         proposals.map((proposal, key) => (
+        {proposals.map((proposal, key) => (
             <Card key={key} className="m-2 col-12 pt-2">
               <Card.Body className="px-0 pe-2 px-md-3 pe-md-4">
                 {/* proposal header */}

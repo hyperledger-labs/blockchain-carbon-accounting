@@ -76,8 +76,7 @@ const EmissionsRequests: ForwardRefRenderFunction<EmissionsRequestsHandle, Emiss
         </tr>
       </thead>
       <tbody>
-        {(pendingEmissions !== []) &&
-          pendingEmissions.map((emissions) => (
+        {pendingEmissions.map((emissions) => (
             <tr
               key={emissions.uuid}
               onClick={() => handleOpenPendingEmissions(emissions)}
