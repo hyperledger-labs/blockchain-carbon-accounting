@@ -120,9 +120,9 @@ task("setTestAccountRoles", "Set default account roles for testing")
     await contract.connect(admin).registerIndustry(industry4);
     console.log("Account " + industry4 + " is now an industry")
     await contract.connect(admin).registerIndustry(registry);
-    console.log("Account " + registry + " is now an industry")
+    console.log("Account " + registry + " is now an energy utility (industry) ")
     await contract.connect(admin).registerIndustry(building);
-    console.log("Account " + building + " is now an industry")
+    console.log("Account " + building + " is now a building owner (industry")
 
     await contract.connect(admin).registerConsumer(investor1);
     console.log("Account " + investor1 + " is now an consumer (investor)")

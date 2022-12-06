@@ -10,8 +10,7 @@ import { BsPlus } from 'react-icons/bs';
 import { JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 
 import { track } from "../services/contract-functions"
-import { Operator } from "./static-data";
-import { Wallet } from "../components/static-data";
+import { Operator, Wallet } from "./static-data";
 import SubmissionModal from "../components/submission-modal";
 import FormGroupJSON, { KeyValuePair } from "../components/form-group-json";
 import WalletLookupInput from "../components/wallet-lookup-input";

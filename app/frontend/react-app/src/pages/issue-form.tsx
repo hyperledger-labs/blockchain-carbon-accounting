@@ -58,7 +58,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [fromDate, setFromDate] = useState<Date|null>(localStorage.getItem('fromDate')! ? new Date(localStorage.getItem('fromDate')!): null);
   const [thruDate, setThruDate] = useState<Date|null>(localStorage.getItem('thruDate')! ? new Date(localStorage.getItem('thruDate')!) : null);
   const [description, setDescription] = useState(localStorage.getItem('description')||'');
-  const [trackerDescription, /*setTrackerDescription*/] = useState("");
   const [result, setResult] = useState("");
 
   const [scope, setScope] = useState<number|null>(null);
@@ -380,7 +379,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _manifest = castManifest(manifest);
     let result;
     if(Number(requestedTrackerId) >=0){
-      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
+      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
     }else{
       result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
     }
@@ -470,12 +469,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <Form.Text className="text-muted">
             Setting ID to 0 will issue a new tracker.
           </Form.Text>
-          {/*<Form.Label>Tracker Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              placeholder=""
-              value={trackerDescription}
-              onChange={onTrackerDescriptionChange} />*/}
         </Form.Group>
       </>}
       <Form.Group className="mb-3">

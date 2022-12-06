@@ -33,8 +33,8 @@ type TrackerInfoModalProps = {
 }
 
 const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHide,roles,signedInAddress}) => {
-
-  const [trackerDescription, setTrackerDescription] = useState("");
+  const [trackerDescription, setTrackerDescription ] = useState((tracker.metadata as any)?.description! || "");
+  const [trackerManifest, /*setTrackerManifest*/ ] = useState(JSON.stringify(tracker.manifest) || "");
   const onTrackerDescriptionChange = useCallback((event: ChangeEvent<HTMLInputElement>) => { setTrackerDescription(event.target.value); }, []);
   const [trackeeWallet, setTrackeeWallet] = useState<(Wallet)>();
   const [auditorWallet, setAuditorWallet] = useState<(Wallet)>();
@@ -45,7 +45,9 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
 
   async function submit() {
     if (!provider) return;
-    await trackUpdate(provider, tracker.trackerId, "","",0,0, trackerDescription,"");
+    let trackerMetadata = tracker.metadata as any;
+    trackerMetadata.description = trackerDescription
+    await trackUpdate(provider, tracker.trackerId, "","", JSON.stringify(trackerMetadata),trackerManifest);
   }
 
   trpc.useQuery(['wallet.lookup', {query: tracker.trackee}], {
@@ -118,7 +120,7 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
               {(roles.isAeDealer || tracker.trackee===signedInAddress) && !tracker.dateIssued ?
                 <td style={{ overflowWrap: "anywhere" }}>
                   <Form.Group className="mb-3" controlId="trackerDescriptionInput">
-                    <Form.Control as="textarea" placeholder={(tracker.metadata as any).description} value={trackerDescription} onChange={onTrackerDescriptionChange} />
+                    <Form.Control as="textarea" placeholder={trackerDescription} value={trackerDescription} onChange={onTrackerDescriptionChange} />
                   </Form.Group>
                   <Button
                     variant="primary"
