@@ -50,7 +50,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [adminAddress, setAdminAddress] = useState("");
 
   // Form inputs
-  const [address, setAddress] = useState(localStorage.getItem('issueTo')! || "");
+  const [address, setAddress] = useState("");
   const [issuedFrom, setIssuedFrom] = useState(localStorage.getItem('issueFrom')! || "");
 
   const [tokenTypeId, setTokenTypeId] = useState(Number(localStorage.getItem('tokenTypeId')||1));
@@ -58,7 +58,6 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   const [fromDate, setFromDate] = useState<Date|null>(localStorage.getItem('fromDate')! ? new Date(localStorage.getItem('fromDate')!): null);
   const [thruDate, setThruDate] = useState<Date|null>(localStorage.getItem('thruDate')! ? new Date(localStorage.getItem('thruDate')!) : null);
   const [description, setDescription] = useState(localStorage.getItem('description')||'');
-  const [trackerDescription, /*setTrackerDescription*/] = useState("");
   const [result, setResult] = useState("");
 
   const [scope, setScope] = useState<number|null>(null);
@@ -213,7 +212,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         if (newEmissionsRequest.token_metadata) {
           const tokenMetadata = JSON.parse(newEmissionsRequest.token_metadata);
           //catch requestedTrackerId stored in metadata and update issue form to add emissions to existing carbon tracker
-          console.log(tokenMetadata)
+          //console.log(tokenMetadata)
           if(tokenMetadata.TrackerId){
             setRequestedTrackerId(tokenMetadata.TrackerId)
           }
@@ -379,8 +378,8 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
     const _metadata = castMetadata(metadata);
     const _manifest = castManifest(manifest);
     let result;
-    if(requestedTrackerId!){
-      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), trackerDescription, tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
+    if(Number(requestedTrackerId) >=0){
+      result = await issueAndTrack(provider, issuedFrom, address, Number(requestedTrackerId), tokenTypeId, quantity_formatted, fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
     }else{
       result = await issue(provider, issuedFrom, address, tokenTypeId, BigInt(quantity_formatted), fromDate, thruDate, _metadata, _manifest, description, signedInWallet?.has_private_key_on_server);
     }
@@ -414,7 +413,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
   // consumer do not have access to this page
   if (!roles.isAdmin && !roles.hasDealerRole) return <p>You do not have the required role to Issue tokens.</p>
 
-  if (requestedTrackerId! && !addresses.carbonTracker) return <p>Carbon Tracker does not exist.</p>
+  if (Number(requestedTrackerId) >=0 && !addresses.carbonTracker) return <p>Carbon tracker does not exist.</p>
 
   return (roles.hasAnyRole && provider!==null) ? (
     <>
@@ -446,11 +445,16 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
           <h2>
           Issue tokens
           </h2>
-          <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions) to registered {requestedTrackerId! ? "industry" : "consumers"}.</p>
+          <p>Issue tokens (Renewable Energy Certificate, Carbon Emissions Offset, Audited Emissions) to registered 
+            {Number(requestedTrackerId) >=0 ? 
+              ` industry for emissions certificate contract: ${addresses.carbonTracker.address}` 
+              : " consumers."
+            }
+          </p>
         </>
       }
-      {requestedTrackerId! && <>
-        <b>{"for emissions certificate contract: "+ addresses.carbonTracker.address}</b>
+      {Number(requestedTrackerId) >=0 && <>
+        <b></b>
         <Form.Group className="mb-3" controlId="trackerIdInput">
           <Form.Label>TrackerId</Form.Label>
           <Form.Control
@@ -460,17 +464,11 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
             //onChange={onTrackerIdChange}
             disabled
             onBlur={() => setInitializedTrackerIdInput(true)}
-            style={(requestedTrackerId || !initializedTrackerIdInput) ? {} :inputError  }
+            style={(requestedTrackerId! || !initializedTrackerIdInput) ? {} :inputError  }
           />
           <Form.Text className="text-muted">
             Setting ID to 0 will issue a new tracker.
           </Form.Text>
-          {/*<Form.Label>Tracker Description</Form.Label>
-            <Form.Control
-              as="textarea"
-              placeholder=""
-              value={trackerDescription}
-              onChange={onTrackerDescriptionChange} />*/}
         </Form.Group>
       </>}
       <Form.Group className="mb-3">
@@ -501,9 +499,14 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
         ?
         <Form.Group className="mb-3">
           <Form.Label>
-            {(requestedTrackerId!) ? "Issue certificate to address" : "Issue to address" }
+            {(Number(requestedTrackerId)>=0) ? "Issue certificate to address" : "Issue to address" }
           </Form.Label>
-          {(requestedTrackerId!) ?
+          {(Number(requestedTrackerId)>0) ?
+            <Form.Control
+              type="input"
+              value={address}
+              disabled
+            />:
             <InputGroup>
               <WalletLookupInput
                 onChange={(v: string) => { setAddress(v) }}
@@ -515,12 +518,7 @@ const IssueForm: FC<IssueFormProps> = ({ provider, roles, signedInAddress, limit
                 value={address ? address : ''}
                 />
             </InputGroup>
-          :
-            <Form.Control
-              type="input"
-              value={address}
-              disabled
-            />
+
           }
 
           <Form.Text className="text-muted">

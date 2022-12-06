@@ -256,7 +256,6 @@ export async function issueAndTrack(
   issuedFrom: string,
   issuedTo: string,
   trackerId: number,
-  _trackerDescription: string,
   tokenTypeId: number,
   quantity: number,
   fromDate: number|Date,
@@ -882,9 +881,8 @@ export async function track(
 export async function trackUpdate(
   w3provider: Web3Provider | JsonRpcProvider, trackerId: number,
   tokenIds: string,tokenAmounts: string,
-  fromDate: number|Date,thruDate: number|Date,
-  description: string,
-  metadata: string ){
+  metadata: string,
+  manifest: string){
   let signer = w3provider.getSigner();
   let contract = new Contract(addresses.carbonTracker.address, abis.carbonTracker.abi, w3provider);
   let signed = contract.connect(signer);
@@ -894,10 +892,8 @@ export async function trackUpdate(
       trackerId,
       convertStringToNumArray(tokenIds),
       convertToTons(tokenAmounts),
-      convertToZeroIfBlank(toUnixTime(fromDate)),
-      convertToZeroIfBlank(toUnixTime(thruDate)),
-      description,
-      metadata
+      metadata,
+      manifest
     );
     track_result = SUCCESS_MSG;
   } catch (error) {

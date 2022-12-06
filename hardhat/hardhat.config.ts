@@ -88,7 +88,7 @@ task("getProposalThreshold", "Return the proposal threshold (amount of dCLM8 req
 task("setTestAccountRoles", "Set default account roles for testing")
   .addParam("contract", "The CLM8 contract")
   .setAction(async (taskArgs, hre) => {
-    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, industry3, industry4, industry5, industry6, investor1, dealer4, dealer5, dealer6, dealer7, ups, airfrance} = await hre.getNamedAccounts();
+    const {dealer1, dealer2, dealer3, consumer1, consumer2, industry1, industry2, industry3, industry4, registry, building, investor1, dealer4, dealer5, dealer6, dealer7, ups, airfrance} = await hre.getNamedAccounts();
 
     const [admin] = await hre.ethers.getSigners();
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
@@ -119,10 +119,10 @@ task("setTestAccountRoles", "Set default account roles for testing")
     console.log("Account " + industry3 + " is now an industry")
     await contract.connect(admin).registerIndustry(industry4);
     console.log("Account " + industry4 + " is now an industry")
-    await contract.connect(admin).registerIndustry(industry5);
-    console.log("Account " + industry5 + " is now an industry")
-    await contract.connect(admin).registerIndustry(industry6);
-    console.log("Account " + industry6 + " is now an industry")
+    await contract.connect(admin).registerIndustry(registry);
+    console.log("Account " + registry + " is now an energy utility (industry) ")
+    await contract.connect(admin).registerIndustry(building);
+    console.log("Account " + building + " is now a building owner (industry")
 
     await contract.connect(admin).registerConsumer(investor1);
     console.log("Account " + investor1 + " is now an consumer (investor)")
@@ -396,7 +396,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
   .addParam("contract", "The CLM8 contract")
   .addParam("tracker", "The C-NFT contract")
   .setAction(async (taskArgs, hre) => {
-    const { dealer2, industry1, industry2, industry3, industry4, industry5, industry6 } = await hre.getNamedAccounts();
+    const { dealer2, industry1, industry2, industry3, industry4, registry, building } = await hre.getNamedAccounts();
 
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
@@ -406,7 +406,7 @@ task("issueOilAndGasTrackers", "Create C-NFT for tracking oil and gas sector emi
     const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
 
     let locations = ['Bakken','Niobrara','Permian','U.S. Average','World Average'];
-    let industryAddresses = [industry1,industry2,industry3,industry5,industry6];
+    let industryAddresses = [industry1,industry2,industry3,registry,building];
     // methane emission O&G in Kg
     let ventingEmissions = [42359667456,4878701472,33035904000,405270000000,2160000000000];
     let flaringEmissions = [3172353757,164659360,7191612033,24798016000,302743508000];
@@ -487,7 +487,7 @@ task("issueSempraTrackers", "Create gas and electricity certificates for Sempra 
   .addParam("contract", "The CLM8 contract")
   .addParam("tracker", "The C-NFT contract")
   .setAction(async (taskArgs, hre) => {
-    const { dealer2, industry1, industry2, industry3, industry4, industry5, industry6 } = await hre.getNamedAccounts();
+    const { deployer, registry, building } = await hre.getNamedAccounts();
 
     const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
     const CarbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
@@ -496,124 +496,151 @@ task("issueSempraTrackers", "Create gas and electricity certificates for Sempra 
     let carbonTracker = await hre.ethers.getContractFactory("CarbonTracker");
     const trackerContract = await CarbonTracker.attach(taskArgs.tracker);
 
-    let industry = industry1;
+    const db = await PostgresDBService.getInstance()
+    const operator = await db.getOperatorRepo().findByName('Sempra Energy');
+    if(!operator?.wallet_address){
+      console.warn(`Operator Sempra Energy does not have a registered address `)
+      return
+    }
+    let industry = operator?.wallet_address;
+    console.log(industry)
 
-    console.log("Issue emissions for Sempra natural gas production");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-    .track(
-      industry,
-      [],
-      [],
-      JSON.stringify({'description':`Sempra natural gas production 2021`,
+    let roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(industry);
+    if(!roles.isIndustry){
+      console.warn(`Registed operator Sempra Energy as industry`)
+      await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(industry);
+    }
+
+    if(true){
+      console.log("Issue emissions for Sempra natural gas production");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer))
+      .track(
+        industry,
+        [],
+        [],
+        JSON.stringify({'description':`Sempra natural gas production 2021`,
+          'operator_uuid': '3f55dd63-f619-4c4d-880f-0634b4d92ca3'}),
+        ''
+      );
+    //}else{
+      await contract.connect(await hre.ethers.getSigner(deployer))
+      .issueAndTrack(
+        deployer,industry,trackerContract.address,73,3,"2000000000",
+        "1609484400","1640934000",
+        JSON.stringify({"type": "CH4", "scope": "1", "GWP":'28'}),
+        JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
+        "Methane venting and leakage"
+      );
+      await contract.connect(await hre.ethers.getSigner(deployer))
+      .issueAndTrack(
+        deployer,industry,trackerContract.address,73,3,"376000000",
+        "1609484400","1640934000",
+        JSON.stringify({"type": "CO2e", "scope": "2"}),
+        JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
+        "Electricity purchased from operations"
+      );
+      await contract.connect(await hre.ethers.getSigner(deployer))
+      .issueAndTrack(
+        deployer,industry,trackerContract.address,73,3,"50000000",
+        "1609484400","1640934000",
+        JSON.stringify({"type": "CO2e", "scope": "1"}),
+        JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
+        "Vehicle fleet"
+      );
+      await contract.connect(await hre.ethers.getSigner(deployer))
+      .issueAndTrack(
+        deployer,industry,trackerContract.address,73,3,"65300000000",
+        "1609484400","1640934000",
+        JSON.stringify({"type": "CO2e", "scope": "3"}),
+        JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
+        "Downstream gas sales"
+      );
+      console.log("Issue product for Sempra natural gas production");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer))
+      .issueProducts(
+        73,
+        [0],
+        ['10048530000'],
+        [JSON.stringify({'name':'natural gas','unit':'therms'})],
+        [JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/Sempra_2021_Statistical-Report.pdf"})]
+      );
+    }
+    if(true){
+      console.log("Issue emissions for Sempra electricty production");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer))
+      .track(
+        industry,
+        [],
+        [],
+        JSON.stringify({'description':`Sempra electricity production 2021`,
         'operator_uuid': '3f55dd63-f619-4c4d-880f-0634b4d92ca3'}),
-      ''
-    );
-    await contract.connect(await hre.ethers.getSigner(dealer2))
-    .issueAndTrack(
-      dealer2,industry,trackerContract.address,1,3,"2000000000",
-      "1609484400","1640934000",
-      JSON.stringify({"type": "CH4", "scope": "1", "GWP":'28'}),
-      JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
-      "Methane venting and leakage"
-    );
-    await contract.connect(await hre.ethers.getSigner(dealer2))
-    .issueAndTrack(
-      dealer2,industry,trackerContract.address,1,3,"376000000",
-      "1609484400","1640934000",
-      JSON.stringify({"type": "CO2e", "scope": "2"}),
-      JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
-      "Electricity purchased from operations"
-    );
-    await contract.connect(await hre.ethers.getSigner(dealer2))
-    .issueAndTrack(
-      dealer2,industry,trackerContract.address,1,3,"50000000",
-      "1609484400","1640934000",
-      JSON.stringify({"type": "CO2e", "scope": "1"}),
-      JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
-      "Vehicle fleet"
-    );
-    await contract.connect(await hre.ethers.getSigner(dealer2))
-    .issueAndTrack(
-      dealer2,industry,trackerContract.address,1,3,"65300000000",
-      "1609484400","1640934000",
-      JSON.stringify({"type": "CO2e", "scope": "3"}),
-      JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
-      "Downstream gas sales"
-    );
-    console.log("Issue product for Sempra natural gas production");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-    .issueProducts(
-      1,
-      [0],
-      ['10048530000'],
-      [JSON.stringify({'name':'natural gas','unit':'therms'})],
-      [JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/Sempra_2021_Statistical-Report.pdf"})]
-    );
+        ''
+      );
+    //}else{
+      await contract.connect(await hre.ethers.getSigner(deployer))
+      .issueAndTrack(
+        deployer,industry,trackerContract.address,74,3,"4800000000",
+        "1609484400","1640934000",
+        JSON.stringify({"type": "CO2e", "scope": "1"}),
+        JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
+        "Stationary combustion"
+      );
+      await contract.connect(await hre.ethers.getSigner(deployer))
+      .issueAndTrack(
+        deployer,industry,trackerContract.address,74,3,"900000000",
+        "1609484400","1640934000",
+        JSON.stringify({"type": "CO2e", "scope": "2"}),
+        JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
+        "Other producers electricity"
+      );
+      console.log("Issue product for Sempra electricity production");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer))
+      .issueProducts(
+        74,
+        [0],
+        ['17214000000'],
+        [JSON.stringify({'name':'electricity','unit':'kwh'})],
+        [JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/Sempra_2021_Statistical-Report.pdf"})]
+      )
+      ;
+    }
+    if(true){
+      console.log("Tracker id 73 issued");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer)).issue(73);
+      console.log("Tracker id 74 issued");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer)).issue(74);
+    } 
+    roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(building);
+    if(!roles.isIndustry){
+      console.warn(`Register building owner account ${building} as industry`)
+      await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(building);
+    } 
+    if(true){  
+      await trackerContract.connect(await hre.ethers.getSigner(industry))
+        .transferProducts(building,[72],[350],[]);
+      await trackerContract.connect(await hre.ethers.getSigner(industry))
+        .transferProducts(building,[73],[14500],[]);
+      console.log("Products transferred to building owner");
 
-    console.log("Issue emissions for Sempra electricty production");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-    .track(
-      industry,
-      [],
-      [],
-      JSON.stringify({'description':`Sempra electricity production 2021`,
-      'operator_uuid': '3f55dd63-f619-4c4d-880f-0634b4d92ca3'}),
-      ''
-    );
-    await contract.connect(await hre.ethers.getSigner(dealer2))
-    .issueAndTrack(
-      dealer2,industry,trackerContract.address,2,3,"4800000000",
-      "1609484400","1640934000",
-      JSON.stringify({"type": "CO2e", "scope": "1"}),
-      JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
-      "Stationary combustion"
-    );
-    await contract.connect(await hre.ethers.getSigner(dealer2))
-    .issueAndTrack(
-      dealer2,industry,trackerContract.address,2,3,"900000000",
-      "1609484400","1640934000",
-      JSON.stringify({"type": "CO2e", "scope": "2"}),
-      JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/sempra_sustainability-report_2021_5.18.22.pdf"}),
-      "Other producers electricity"
-    );
-    console.log("Issue product for Sempra electricity production");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-    .issueProducts(
-      2,
-      [0],
-      ['17214000000'],
-      [JSON.stringify({'name':'electricity','unit':'kwh'})],
-      [JSON.stringify({'source': "https://www.sempra.com/sites/default/files/content/files/node-report/2022/Sempra_2021_Statistical-Report.pdf"})]
-    );
-
-    console.log("Tracker id 1 issued");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2)).issue(1);
-    console.log("Tracker id 2 issued");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2)).issue(2);
-  
-    await trackerContract.connect(await hre.ethers.getSigner(industry1))
-      .transferProducts(industry2,[1],[350],[]);
-    await trackerContract.connect(await hre.ethers.getSigner(industry1))
-      .transferProducts(industry2,[2],[14500],[]);
-    console.log("Products transferred to building owner");
-
-
-    console.log("Create tracker for building emissions");
-    await trackerContract.connect(await hre.ethers.getSigner(dealer2))
-    .track(
-      industry2,
-      [],
-      [],
-      JSON.stringify({'description':`Building emissions 2021`}),
-      ''
-    );
-    await trackerContract.connect(await hre.ethers.getSigner(industry2))
-      .trackProduct(industry2,3,1,350);
-    await trackerContract.connect(await hre.ethers.getSigner(industry2))
-      .trackProduct(industry2,3,2,14500);
-    console.log("Products tracked to building emissions tracker");
-    const trackerDetails: any = await trackerContract.connect(await hre.ethers.getSigner(industry2)).getTrackerDetails(3);
-    console.log(trackerDetails);
+      console.log("Create tracker for building emissions");
+      await trackerContract.connect(await hre.ethers.getSigner(deployer))
+      .track(
+        building,
+        [],
+        [],
+        JSON.stringify({'description':`Building emissions 2021`}),
+        ''
+      );
+    }
+    if(true){  
+      await trackerContract.connect(await hre.ethers.getSigner(building))
+        .trackProduct(building,75,72,350);
+      await trackerContract.connect(await hre.ethers.getSigner(building))
+        .trackProduct(building,75,73,14500);
+      console.log("Products tracked to building emissions tracker");
+      const trackerDetails: any = await trackerContract.connect(await hre.ethers.getSigner(building)).getTrackerDetails(3);
+      console.log(trackerDetails);
+    }
   });
 
 async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract:Contract, deployer:string, products:Product[], trackerId:number){
@@ -676,7 +703,7 @@ async function addEmissionsAndProducts(hre:any,contract:Contract,trackerContract
 async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContract:Contract,deployer:string, address: string,year: number, metadata:string, manifest:string, products:Product[],trackerId:number){
   const fromDate = (Date.UTC(year,0)/1000).toFixed(0)
   const thruDate = (Date.UTC(year+1,0)/1000).toFixed(0)
-  if(true){
+  if(false){
     // toggle between create tracker and issue tokens to tracker
     // this is used to wait for trackaction with new trackers to be confirmed 
     // before adding product and emission tokens on a live network
@@ -687,10 +714,10 @@ async function createTrackerAndAddTokens(hre:any,contract:Contract,trackerContra
       metadata,
       manifest
     )
-  }//else{
+  }else{
     console.log(`Add emissions and production to tracker ID ${trackerId}: ${JSON.parse(metadata).description}`)
     await addEmissionsAndProducts(hre,contract,trackerContract,deployer,products,trackerId)
-  //}
+  }
 }
 
 task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon tracker tokens for a given contract using national operator data")
@@ -708,8 +735,8 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
     
     const db = await PostgresDBService.getInstance()
     // get latest trackerId
-    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer)).getNumOfUniqueTrackers();
-    //let trackerId = 3 // previous completed tracker
+    //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer)).getNumOfUniqueTrackers();
+    let trackerId = 7 // previous completed tracker
     const operators = ['Chevron','EnerVest Operating','Hilcorp Energy','ARD Operating','Apache','Noble Energy','EQT','Pioneer Natural Resources','Berry','Atlas Energy Group','Chesapeake Energy','CNX Resources','Devon Energy','Encana Oil & Gas','EXCO Resources','Breitburn Energy','ExxonMobil','ConocoPhillips','WPX Energy','EOG Resources','Scout Energy','Consol Energy','Occidental','BP','Total']
     for (const operatorName of operators){
       const operator = await db.getOperatorRepo().findByName(operatorName);
@@ -779,13 +806,13 @@ task("oilAndGasBenchmarkNational","Use admin account to issue demo carbon tracke
     const operator_registry = '0x48cd6511ECf3d109E3A0b947BA42D92a31db939f'
     const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(operator_registry);
     if(!roles.isIndustry){
-      console.warn(`Registered deployer address as industry`)
+      console.warn(`Registered operator registry address as industry`)
       await contract.connect(await hre.ethers.getSigner(deployer)).registerIndustry(operator_registry);
     }
 
     const db = await PostgresDBService.getInstance()
 
-    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer)).getNumOfUniqueTrackers();
+    let trackerId = 0;//await trackerContract.connect(await hre.ethers.getSigner(deployer)).getNumOfUniqueTrackers();
 
     for (const year of [2018,2019,2020]){
       const queryBundle:QueryBundle[] = [
@@ -983,8 +1010,8 @@ module.exports = {
     industry2: { default: 16 },
     industry3: { default: 17 },
     industry4: { default: 14 },
-    industry5: { default: 13 },
-    industry6: { default: 12 },
+    registry: { default: 13 },
+    building: { default: 12 },
     investor1: { default: 11 },
 
     unregistered: { default: 8 }
@@ -1067,10 +1094,11 @@ module.exports = {
 
     // Uncomment the following lines if deploying contract to Goerli or running Etherscan verification
     // Deploy with npx hardhat run --network goerli scripts/___.js
-    // goerli: {
-    //   url: `https://goerli.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
-    //   accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`]
-    // },
+    //  goerli: {
+    //    url: `https://goerli.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
+    //    accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`,
+    //      `0x${ethereumConfig.OPERATOR_REGISTRY_PRIVATE_KEY}`,`0x${ethereumConfig.BUILDING_OWNER_PRIVATE_KEY}`]
+    //  },
 
     // Uncomment the following lines if deploying contract to xDai
     // Deploy with npx hardhat run --network xdai scripts/___.js
