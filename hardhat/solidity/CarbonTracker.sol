@@ -116,8 +116,9 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
     // The safest way to assing NET to tracker is using a NET function that call the CarbonTrackerContract, i.e,., issueAndTrack().
 
     mapping(address => mapping(address => bool)) internal isAuditorApproved;
-    // map trackee to boolean enforcing isAuditorApproved in isAuditor modifier
+    // map address of auditor and trackee to boolean enforcing isAuditorApproved in isAuditor modifier
     mapping(address => bool) internal approvedAuditorsOnly;
+    // map address of trackee to boolean used to restrict audit funcitons to isAuditorApproved
 
     mapping(address => mapping(address => uint32)) private tokenTransferNonce;
 
@@ -339,7 +340,7 @@ contract CarbonTracker is ERC1155, AccessControl, ERC1155Holder {
         // issue token for tracker (NFT) but do not mint
         _issue(
             address(0), //do not set issued address until token is minted
-            msg.sender,
+            tx.origin,
             trackee,
             1, //tokenTypeId
             0, //tokenAmount set to 0. Only mint this in final issue() function
