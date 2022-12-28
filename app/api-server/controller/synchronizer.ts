@@ -277,7 +277,7 @@ export const syncWalletRoles = async (address: string, opts: OPTS_TYPE, data?: P
         console.log('saved wallet address: ', w.address)
     } catch (err) {
         console.error(err)
-        throw new Error('Error in getNumOfUniqueTokens: ' + err)
+        throw new Error('Error in syncWalletRoles: ' + err)
     }
 }
 
