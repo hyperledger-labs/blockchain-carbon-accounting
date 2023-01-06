@@ -950,6 +950,7 @@ task("grantConsumerRole", "Give users who register by email a consumer role")
             await contract.connect(await hre.ethers.getSigner(deployer)).registerConsumer(wallet.address);
           } else {
             console.warn('Already registered as consumer on network.')
+            await db.getWalletRepo().ensureWalletHasRoles(wallet.address, ['Consumer'])
           }
         } catch (err) {
           console.error('An error occurred: ', err);
