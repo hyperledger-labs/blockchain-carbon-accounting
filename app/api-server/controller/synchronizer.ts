@@ -305,7 +305,7 @@ const getNumOfProductTokens = async (opts: OPTS_TYPE): Promise<number> => {
         return result;
     } catch (err) {
         console.error(err)
-        throw new Error('Error in _numOfProducts: ' + err)
+        throw new Error('Error in getNumOfProductTokens: ' + err)
     }
 }
 
