@@ -1,4 +1,4 @@
-# favric emissions-data
+# fabric emissions-data channel
 
 This project implements the [Utility Emissions Channel](https://wiki.hyperledger.org/display/CASIG/Utility+Emissions+Channel) Hyperledger Fabric network in a docker-compose setup and provides a REST API to interact with the blockchain. To see how it works, check out [this video](https://youtu.be/zIYfjF4U2G8).
 
