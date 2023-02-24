@@ -58,5 +58,7 @@ export interface OperatorDbInterface {
 
 export interface AssetOperatorDbInterface {
   putAssetOperator: (doc: AssetOperatorInterface) => Promise<void>
+  select: (bundles: Array<QueryBundle>) => Promise<Array<AssetOperatorInterface>>
+
 }
 

@@ -107,12 +107,11 @@ const TrackerInfoModal:FC<TrackerInfoModalProps> = ({provider,show,tracker,onHid
             : null)}
             <tr>
               <td>From date</td>
-              {/*TO-DO infer fromDate/thruDate from Net Emission tokens*/}
-              <td><DisplayDate date={tracker.fromDate}/></td>
+              <td><DisplayDate date={Math.min.apply(Math,tracker?.tokens?.map(e=>{return e?.token?.thruDate!}) as number[])}/></td>
             </tr>
             <tr>
               <td>Thru date</td>
-              <td><DisplayDate date={tracker.thruDate}/></td>
+              <td><DisplayDate date={Math.min.apply(Math,tracker?.tokens?.map(e=>{return e?.token?.thruDate!}) as number[])}/></td>
             </tr>
             <tr>
               <td>Description</td>

@@ -9,7 +9,24 @@ Or you can download the data
 sh download.sh
 ```
 
-Once you have the data, load them into postgres db (blockchain-carbon-accounting) by running the following from `/data`:
+### Oil & gas asset and operator data.
+
+The oil & gas asset data includes >1.5 million assets.
+To avoid reloading the data into postres `download.sh` returns 3 binary files that can be used to restore the following postrgres tables (after initializing the DB with `npm run pg:init`)
+
+1. oil_and_gas_asset
+2. operator
+3. asset_operator
+
+Otherwise the tables can be loaded using the following commands from `\data`.
+
+``` npm run dataLoader load_og_assets "./oil_and_gas/files/Oil_and_Natural_Gas_Wells.geojson" -- --format US_asset_data --source "https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore"```
+
+```npm run dataLoader set_asset_operators```
+
+### Oil & gas product & emissions data
+
+Load the product data into postgres db by running the following from `/data` directorty:
 ```
 sh loadOGdata.sh
 ```

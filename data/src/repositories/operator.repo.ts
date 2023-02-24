@@ -26,7 +26,11 @@ export class OperatorRepo implements OperatorDbInterface {
   }
 
   public findByName = async (name: string): Promise<OperatorInterface | null> => {
-    return await this._db.getRepository(Operator).findOneBy({name})
+    return await this._db.getRepository(Operator).createQueryBuilder('operator')
+      .where('operator.name=:name', { name })
+      //.leftJoin('operator.asset_operators', 'asset_operators')
+      .loadRelationCountAndMap("operator.assetsCount", "operator.asset_operators")
+      .getOne()
   }
 
   public getOperators = async (): Promise<OperatorInterface[]> => {

@@ -20,9 +20,11 @@ export {
 } from './src/product'
 export { 
     importOilAndGasAssets, 
+    setAssetOperators,
     importProductData,
-    updateProductDates,
+    updateProductDates
 } from "./src/import"
 export {
-    matchAssets
+    matchAssets,
+    matchOperator
 } from "./src/matchAssets"
