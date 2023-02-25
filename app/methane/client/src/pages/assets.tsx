@@ -182,7 +182,7 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
         <div className="mt-4">
           <h2 style={{display: 'inline'}}>
             Operator: {operator?.name}&nbsp;
-            {operator?.assetsCount} Assets &nbsp;
+            {operator?.assetsCount} ({assetCount}) Assets &nbsp;
           </h2>
           &nbsp;
           <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>

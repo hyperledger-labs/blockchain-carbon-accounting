@@ -31,6 +31,11 @@ Load the product data into postgres db by running the following from `/data` dir
 sh loadOGdata.sh
 ```
 
+Or from project root run 
+```
+npm run loadSeeds:OG
+```
+
 ## Sources
 
 ### [US Oil & Gas Asset Data](https://hifld-geoplatform.opendata.arcgis.com/datasets/geoplatform::oil-and-natural-gas-wells/explore)
