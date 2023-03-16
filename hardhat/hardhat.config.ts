@@ -927,6 +927,40 @@ task("oilAndGasBenchmarkBasins","Use admin account to issue demo carbon tracker 
   }
 )
 
+task("grantConsumerRole", "Give users who register by email a consumer role")
+  .addParam("contract","")
+  .setAction(async (taskArgs, hre) => {
+    const db = await PostgresDBService.getInstance();
+
+    const wallets = await db.getWalletRepo().selectAll();
+
+    const { deployer } = await hre.getNamedAccounts();
+    const NetEmissionsTokenNetwork = await hre.ethers.getContractFactory("NetEmissionsTokenNetwork");
+    const contract = await NetEmissionsTokenNetwork.attach(taskArgs.contract);
+    for (const w in wallets) {
+      const wallet = wallets[w];
+      if (wallet && wallet.email && wallet.email.length > 0 && !wallet.roles) {
+        console.log(`Wallet ${wallet.address}, email: ${wallet.email}`);
+
+        try {
+          // check roles
+          const roles = await contract.connect(await hre.ethers.getSigner(deployer)).getRoles(wallet.address);
+          if(!roles.isConsumer){
+            console.log(`Registed user ${wallet.address}, email: ${wallet.email} as consumer`);
+            await contract.connect(await hre.ethers.getSigner(deployer)).registerConsumer(wallet.address);
+          } else {
+            console.warn('Already registered as consumer on network.')
+            await db.getWalletRepo().ensureWalletHasRoles(wallet.address, ['Consumer'])
+          }
+        } catch (err) {
+          console.error('An error occurred: ', err);
+        }
+      }
+    }
+
+    await db.close()
+  }
+)
 
 task("grantAdminRole", "Grants an account the DEFAULT_ADMIN_ROLE for a given contract")
   .addParam("contract", "")
