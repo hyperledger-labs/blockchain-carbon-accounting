@@ -7,6 +7,6 @@ See [the documentation on Maintainers](https://hyperledger-fabric.readthedocs.io
 
 | Name              | GitHub      | Affiliation
 |-------------------|-------------|----------------------------
-| Bertrand Rioux    | [brioux][brioux]    | [Two Ravens Consulting](https://tworavens.consulting/)
-| Si Chen           | [opentaps][opentaps]  | [Open Source Strategies](https://www.opensourcestrategies.com/)
-| Kamlesh Nagware   | [knagware9][knagware9] | [SnapperTech](https://snapperfuturetech.com/)
+| Bertrand Rioux    | [brioux](https://github.com/brioux)    | [Two Ravens Consulting](https://tworavens.consulting/)
+| Si Chen           | [opentaps](https://github.com/opentaps) | [Open Source Strategies](https://www.opensourcestrategies.com/)
+| Kamlesh Nagware   | [knagware9](https://github.com/knagware9) | [SnapperTech](https://snapperfuturetech.com/)
