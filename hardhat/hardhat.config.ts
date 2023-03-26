@@ -15,6 +15,9 @@ import "hardhat-deploy-ethers";
 import "@openzeppelin/hardhat-upgrades";
 import "@ethersproject/bignumber";
 
+//import "@nomicfoundation/hardhat-toolbox";
+//import "@nomicfoundation/hardhat-chai-matchers";
+//import "@nomiclabs/hardhat-ethers";
 import * as dotenv from 'dotenv'
 dotenv.config({path:'../.env'})
 
@@ -735,8 +738,8 @@ task("oilAndGasBenchmarkOperators","Use admin account to issue demo carbon track
     
     const db = await PostgresDBService.getInstance()
     // get latest trackerId
-    //let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer)).getNumOfUniqueTrackers();
-    let trackerId = 7 // previous completed tracker
+    let trackerId = await trackerContract.connect(await hre.ethers.getSigner(deployer)).getNumOfUniqueTrackers();
+    // let trackerId = 7 // previous completed tracker
     const operators = ['Chevron','EnerVest Operating','Hilcorp Energy','ARD Operating','Apache','Noble Energy','EQT','Pioneer Natural Resources','Berry','Atlas Energy Group','Chesapeake Energy','CNX Resources','Devon Energy','Encana Oil & Gas','EXCO Resources','Breitburn Energy','ExxonMobil','ConocoPhillips','WPX Energy','EOG Resources','Scout Energy','Consol Energy','Occidental','BP','Total']
     for (const operatorName of operators){
       const operator = await db.getOperatorRepo().findByName(operatorName);
@@ -1037,6 +1040,15 @@ module.exports = {
             runs: 200
           }
         }
+      },
+      {
+        version: "0.8.0",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
       }
     ]
   },
@@ -1047,10 +1059,23 @@ module.exports = {
     hardhat: {
       chainId: 1337
     },
-
     ovm_localhost: {
       url: `http://localhost:9545`
     },
+    // Uncomment the following lines if deploying contract to Hedera testnet
+    // Deploy with npx hardhat deploy --network hedera-testnet scripts/___.js
+    // "hedera-testnet": {
+    //   //HashIO testnet endpoint from the TESTNET_ENDPOINT variable in the project .env the file
+    //   url: ethereumConfig.HEDERA_TESTNET_ENDPOINT,
+    //   chainId: 296,
+    //   //the Hedera testnet account ECDSA private
+    //   //the public address for the account is derived from the private key
+    //   accounts: [
+    //     `${ethereumConfig.HEDERA_TESTNET_OPERATOR_PRIVATE_KEY}`
+    //   ],
+    //   gasPrice: 225000000000000,
+    // },
+    // Deploy with npx hardhat --network hedera-testnet deploy --reset
 
     // Uncomment the following lines if deploying contract to Avalanche testnet
     // "avalanche-testnet": {
@@ -1094,11 +1119,11 @@ module.exports = {
 
     // Uncomment the following lines if deploying contract to Goerli or running Etherscan verification
     // Deploy with npx hardhat run --network goerli scripts/___.js
-    //  goerli: {
-    //    url: `https://goerli.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
-    //    accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`,
-    //      `0x${ethereumConfig.OPERATOR_REGISTRY_PRIVATE_KEY}`,`0x${ethereumConfig.BUILDING_OWNER_PRIVATE_KEY}`]
-    //  },
+    //goerli: {
+    //  url: `https://goerli.infura.io/v3/${ethereumConfig.INFURA_PROJECT_ID}`,
+    //  accounts: [`0x${ethereumConfig.CONTRACT_OWNER_PRIVATE_KEY}`,
+    //    `0x${ethereumConfig.OPERATOR_REGISTRY_PRIVATE_KEY}`,`0x${ethereumConfig.BUILDING_OWNER_PRIVATE_KEY}`]
+    //},
 
     // Uncomment the following lines if deploying contract to xDai
     // Deploy with npx hardhat run --network xdai scripts/___.js

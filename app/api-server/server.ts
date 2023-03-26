@@ -26,7 +26,7 @@ const assertEnv = (key: string): string => {
   return process.env[key] || '';
 }
 const contract_address = assertEnv('LEDGER_EMISSION_TOKEN_CONTRACT_ADDRESS')
-const tracker_address = process.env['LEDGER_CARBON_TRACKER_ADDRESS']
+const tracker_address = assertEnv('LEDGER_CARBON_TRACKER_ADDRESS')
 const network_name = assertEnv('LEDGER_ETH_NETWORK')
 const network_rpc_url = assertEnv('LEDGER_ETH_JSON_RPC_URL')
 const network_ws_url = process.env['LEDGER_ETH_WS_URL']

@@ -21,6 +21,24 @@ const networksAndAddresses = {
     }
   },
 
+  hedera_testnet: {
+    network: "Hedera Testnet",
+    tokenNetwork: {
+      address: "0x00000000000000000000000000000000003be83f", 
+    },
+    carbonTracker: {
+      address: "0x00000000000000000000000000000000003c0064",
+    },
+    dao: {
+      governor: {
+        address: "",
+      },
+      daoToken: {
+        address: "",
+      }
+    }
+  },
+
   goerli: {
     network: "Goerli Testnet",
     tokenNetwork: {
@@ -34,10 +52,10 @@ const networksAndAddresses = {
     },
     dao: {
       governor: {
-        address: "0x9F4590684d1DD950dF65Dc71D39f782bc3af317A",
+        address: "0x6875735ee7864673B211eC2ec2a534179F863DAD",
       },
       daoToken: {
-        address: "0x67E5b82809f28aA321818b90bF5c603D954f87C8",
+        address: "0x08AA8Ae1E7A087b591a5a1234fBE20e592c5c417",
       }
     }
   },
@@ -152,6 +170,6 @@ const networksAndAddresses = {
 }
 
 // change this to the network you want
-const addresses = networksAndAddresses.hardhat;
+const addresses = networksAndAddresses.hedera_testnet;
 
 export default addresses;
