@@ -182,7 +182,7 @@ export function buildQueries(table: string,builder: SelectQueryBuilder<any>,quer
     // make case insensitive for issuee issuer cases
     let cond = '';
     if(query.op == "like" || query.field == 'issuedTo' || query.field == 'issuedBy' || query.field == 'issuedFrom') {
-      cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query.field})`
+      cond = `LOWER(${alias}.${query.field}) ${query.op} LOWER(:${query_field_label})`
     }else if(query.op == "vector"){
       cond = `to_tsvector(${alias}.${query.field}) @@ to_tsquery(query.value)`
     } else {

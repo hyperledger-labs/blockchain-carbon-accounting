@@ -18,4 +18,8 @@ exports.ETHERSCAN_API_KEY = "";
 exports.BSC_PRIVATE_KEY = "";
 
 // Only required for Avalanche deployments
-exports.AVALANCHE_PRIVATE_KEY = ""
+exports.AVALANCHE_PRIVATE_KEY = "";
+
+// Only required for Hedera Testnet deployments
+exports.HEDERA_TESTNET_ENDPOINT = "";
+exports.HEDERA_TESTNET_OPERATOR_PRIVATE_KEY = "";

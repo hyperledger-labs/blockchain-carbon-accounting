@@ -18,6 +18,7 @@ The contracts are deployed in this order:
 2. Timelock.sol
 3. Governor.sol
 4. NetEmissionsTokenNetwork.sol
+5. CarbonTracker.sol
 
 During deployment, some contract functions are called to complete the initialization, like setting the admin of the Timelock and defining cross-contract references.
 

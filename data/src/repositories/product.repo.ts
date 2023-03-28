@@ -80,7 +80,7 @@ export class ProductRepo implements ProductDbInterface {
           query.where("product.type = 'emissions'")
           .orWhere("product.type = 'production'")
         }))
-        .orderBy('product.year', 'DESC')
+        .orderBy('product.amount', 'DESC')
         .getMany();
     }else{
       selectBuilder = buildQueries('product', selectBuilder, bundles)

@@ -1,6 +1,7 @@
 import {
     Entity,
     PrimaryColumn,
+    PrimaryGeneratedColumn,
     Column,
     ManyToOne,
     //ManyToMany,
@@ -14,6 +15,10 @@ import { Tracker } from './tracker';
 import { TrackedProduct } from './trackedProduct';
 @Entity()
 export class ProductToken {
+
+    //@PrimaryGeneratedColumn("uuid")
+    //uuid!: number;
+
     @PrimaryColumn()
     productId!: number;
 

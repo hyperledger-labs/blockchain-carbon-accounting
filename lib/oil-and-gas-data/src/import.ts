@@ -15,7 +15,8 @@ import {
 } from "./operator";
 
 import {
-  matchAsset
+  matchAsset,
+  matchOperator
 } from "./matchAssets"
 import {
   CATF_COMPANY_NAME_SEARCH
@@ -105,6 +106,79 @@ export const importOilAndGasAssets = async (opts: ParseWorksheetOpts,
   }
 }
 
+const putAssetOperator = async (
+  opts: ParseWorksheetOpts,
+  dbAssetOperator: AssetOperatorDbInterface,
+  asset: OilAndGasAssetInterface, 
+  operator: OperatorInterface,
+  from_date: Date, share: number) => {
+  const ao: AssetOperatorInterface = {
+    uuid: uuidv4(),
+    class: ASSET_OPERATOR_CLASS_IDENTIFIER,
+    assetUuid: asset.uuid,
+    asset,
+    operatorUuid: operator.uuid,
+    operator,
+    // eslint-disable-next-line
+    from_date,
+    share
+  }
+  try{
+    await dbAssetOperator.putAssetOperator(ao);
+  }catch(error){
+    opts.verbose && console.warn(error)
+  }
+}
+
+export const setAssetOperators = async (opts: ParseWorksheetOpts, 
+  progressBar: SingleBar,
+  dbOperator: OperatorDbInterface,
+  dbAsset: OilAndGasAssetDbInterface,
+  dbAssetOperator: AssetOperatorDbInterface,
+  walletAddress: string) => {
+  const companies= Object.keys(CATF_COMPANY_NAME_SEARCH);
+  const loader = new LoadInfo('asset_operators', '', progressBar, companies.length);
+
+  for( const company of  companies){
+    const operator = await createOperator(opts, dbOperator, company, walletAddress);
+    const names = CATF_COMPANY_NAME_SEARCH[company];
+    const queries=[];
+    if(names){
+      let name_index=1;
+      let fieldSuffix='';
+      for(const name of names){
+        fieldSuffix = name_index.toString(); 
+        queries.push({
+          field: 'operator',
+          fieldType: 'string',
+          value: name,
+          op: 'like',
+          fieldSuffix 
+        })
+        queries.push({
+          field: 'name',
+          fieldType: 'string',
+          value: name,
+          op: 'like',
+          fieldSuffix
+        })
+        name_index+=1;
+      }
+    }
+    const assets:OilAndGasAssetInterface[] = await dbAsset.select(queries);
+    if(assets.length==0){
+      opts.verbose && console.log('No assets found for company : ', company)
+    } 
+
+    for (const asset of assets) {
+      await putAssetOperator(opts, dbAssetOperator,asset,operator,new Date(),1)
+    }
+    loader.incLoaded();
+  }
+  loader.done();
+  return
+}
+
 export const importProductData = async (opts: ParseWorksheetOpts, 
   progressBar: SingleBar, 
   db: ProductDbInterface, 
@@ -158,17 +232,37 @@ export const importProductData = async (opts: ParseWorksheetOpts,
       };
       d['from_date'] = setFromDate(opts,loader,d);
       d['thru_date'] = setThruDate(opts,loader,d);
-      const asset = await matchAsset(
-        dbAsset,
-        row["Latitude"],
-        row["Longitude"],
-        country
-      ); 
-      if(asset){ d['assets']=[asset] }
-      try{
-        await db.putProduct(d);
-      }catch(error){
-        opts.verbose && console.warn(error)
+      if(["United States", "Canada"].includes(country)){
+
+        const asset = await matchAsset(
+          dbAsset,
+          row["Latitude"],
+          row["Longitude"],
+          country
+        ); 
+        if(asset){ 
+          d['assets']=[asset]
+          if(asset.assetOperators === undefined || asset.assetOperators?.length===0){
+            const assetOperator = await matchOperator(
+              dbAsset,
+              dbAssetOperator,
+              row["Latitude"],
+              row["Longitude"],
+              country
+            ); 
+            if(assetOperator){
+              const operator = await dbOperator.getOperator(assetOperator.operatorUuid)
+              await putAssetOperator(opts, 
+                dbAssetOperator,asset,operator!,
+                new Date(Date.UTC(Number(opts?.year),0)),1)
+            }
+          }
+        }
+        try{
+          await db.putProduct(d);
+        }catch(error){
+          opts.verbose && console.warn(error)
+        }
       }
       loader.incLoaded();
     }
@@ -321,28 +415,14 @@ export const importProductData = async (opts: ParseWorksheetOpts,
 
         if(!operator){
           // check for  operators already stored in DB
-          operator = await getOpertor(opts, dbOperator, row['company_name'],walletAddress);
+          operator = await getOperator(opts, dbOperator, row['company_name'],walletAddress);
         }
         
         // D'ont associate the asset level (lat/long) product data direclty to the pperator!
         //if(operator){d['operator']=operator}
 
         if(operator && asset){
-          const ao: AssetOperatorInterface = {
-            uuid: uuidv4(),
-            class: ASSET_OPERATOR_CLASS_IDENTIFIER,
-            assetUuid: asset.uuid,
-            operatorUuid: operator.uuid,
-            operator,
-            // eslint-disable-next-line
-            from_date: d['from_date']!,//new Date(row["month"]),
-            share: 1
-          }
-          try{
-            await dbAssetOperator.putAssetOperator(ao);
-          }catch(error){
-            opts.verbose && console.warn(error)
-          }
+          await putAssetOperator(opts, dbAssetOperator,asset,operator, d['from_date']!,1)
         }
         const metadata = {
           type: row["type"],
@@ -378,7 +458,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         }
         if (!type) { loader.incIgnored('Undefined type'); continue; }
         d['type']=type
-        const operator = await getOpertor(opts, dbOperator, row["company_name"],walletAddress);
+        const operator = await getOperator(opts, dbOperator, row["company_name"],walletAddress);
         if(operator){d["operator"]=operator;}
         if (row["basin"]){
           d["division_type"]="basin";
@@ -505,21 +585,9 @@ export const importProductData = async (opts: ParseWorksheetOpts,
         const names = CATF_COMPANY_NAME_SEARCH[row["Company"]];
         const queries=[];
         if(names){
-          for(const name of names){
-            queries.push({
-              field: 'operator',
-              fieldType: 'string',
-              value: name,
-              op: 'like'              
-            })
-            queries.push({
-              field: 'name',
-              fieldType: 'string',
-              value: name,
-              op: 'like'              
-            })
-          }
+          // do nothing. this is done in setAssetOperators
         }else if (row["Company"].length>0){
+          // find assets for company names not handled by setAssetOperators 
           queries.push({
             field: 'operator',
             fieldType: 'string',
@@ -531,30 +599,17 @@ export const importProductData = async (opts: ParseWorksheetOpts,
             fieldType: 'string',
             value: row["Company"],
             op: 'like'              
-          })         
+          })   
+          const assets:OilAndGasAssetInterface[] = 
+            await dbAsset.select(queries);
+          if(assets.length==0){
+            opts.verbose && console.log('No assets found for company : ', row["Company"])
+          } 
+          for (const asset of assets) {
+            putAssetOperator(opts, dbAssetOperator,asset,operator, d['from_date']!,1)
+          }      
         } 
-        const assets:OilAndGasAssetInterface[] = 
-          await dbAsset.select(queries);
-        if(assets.length==0){
-          opts.verbose && console.log('No assets found for company : ', row["Company"])
-        } 
-        for (const asset of assets) {
-          const ao: AssetOperatorInterface = {
-            uuid: uuidv4(),
-            class: ASSET_OPERATOR_CLASS_IDENTIFIER,
-            assetUuid: asset.uuid,
-            operatorUuid: operator.uuid,
-            operator,
-            // eslint-disable-next-line
-            from_date: d['from_date']!,
-            share: 1
-          }
-          try{
-            await dbAssetOperator.putAssetOperator(ao);
-          }catch(error){
-            opts.verbose && console.warn(error)
-          }
-        }
+
       }
     }
     loader.done();
@@ -562,7 +617,7 @@ export const importProductData = async (opts: ParseWorksheetOpts,
   }
 }
 
-const getOpertor = async(
+const getOperator = async(
   opts: ParseWorksheetOpts,
   db: OperatorDbInterface, 
   name: string,

@@ -9,6 +9,11 @@ curl -L -c cookies.txt 'https://docs.google.com/uc?export=download&id='$fileId \
 curl -L -b cookies.txt -o $fileName \
      'https://docs.google.com/uc?export=download&id='$fileId'&confirm='$(<confirm.txt)
 rm -f confirm.txt cookies.txt
+echo "Downloading postgres table backup..."
+curl \
+-L -o 'asset_operator' 'https://docs.google.com/uc?export=download&id=1ME0XIz065OEMReqfvsVOl7oW5ye2BmUl' \
+-L -o 'operator' 'https://docs.google.com/uc?export=download&id=1MHKrkMvq9FZCw_RYsiIrXi1rRmfLmSD7' \
+-L -o 'oil_and_gas_asset' 'https://docs.google.com/uc?export=download&id=1VPYAKasx3SJ9l3wuW99CMMFHEGU-4Dfr'
 
 echo "Downloading oil and gas product data from google drive..."
 echo "VIIRS flaring data..."

@@ -4,6 +4,7 @@ import {
 } from "@blockchain-carbon-accounting/data-common"
 import { 
   importOilAndGasAssets, 
+  setAssetOperators,
   importProductData,
   updateProductDates 
 } from "@blockchain-carbon-accounting/oil-and-gas-data-lib"
@@ -155,9 +156,28 @@ const progressBar = new SingleBar(
           const count = await db.getOilAndGasAssetRepo().count([])
           console.log(`=== Done, we now have ${count} OilAndGasAssets in the DB`)
           await db.close()
+
         })
       }
-
+    }
+  )
+  .command(
+    "set_asset_operators",
+    "assign operator to asset by operator name in oil_and_gas asset table",
+    // eslint-disable-next-line
+    (yargs: any) => {
+      yargs
+    },
+    // eslint-disable-next-line
+    async (argv: any) => {
+      console.log("=== Starting set_asset_operators ...")
+      const db = await init(parseCommonYargsOptions(argv))
+      await setAssetOperators(
+        argv, progressBar, 
+        db.getOperatorRepo(),
+        db.getOilAndGasAssetRepo(),
+        db.getAssetOperatorRepo(),
+        "0xf3AF07FdA6F11b55e60AB3574B3947e54DebADf7")
     }
   )
   .command(
@@ -220,7 +240,8 @@ const progressBar = new SingleBar(
       // generate the ETH wallet
       //const newAccount = ethers.Wallet.createRandom();
       const name: string | undefined = 'Operator Repository';
-      const wallet = await db.getWalletRepo().insertWallet({
+      let wallet = await db.getWalletRepo().selectWallet("0xbDA5747bFD65F08deb54cb465eB87D40e51B197E")
+      if(!wallet) {wallet = await db.getWalletRepo().insertWallet({
         email: "bertrand@tworavens.consulting",
         organization: 'Two Ravens Energy & Climate Consulting Ltd.',
         address: "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
@@ -232,7 +253,7 @@ const progressBar = new SingleBar(
         verification_token_sent_at: new Date(),
         email_verified: true,
         name,
-      })
+      })}
       await importProductData(argv, progressBar, 
         db.getProductRepo(),
         db.getOperatorRepo(),

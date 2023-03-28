@@ -182,7 +182,7 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
         <div className="mt-4">
           <h2 style={{display: 'inline'}}>
             Operator: {operator?.name}&nbsp;
-            {assetCount} Assets&nbsp;
+            {operator?.assetsCount} ({assetCount}) Assets &nbsp;
           </h2>
           &nbsp;
           <Button className="mb-3" onClick={switchQueryBuilder} variant={(showQueryBuilder) ? 'dark' : 'outline-dark'}><BsFunnel /></Button>
@@ -197,6 +197,7 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Operator</th>
                 <th>State</th>
                 <th>Status</th>
                 <th></th>
@@ -206,7 +207,8 @@ const RegisteredOperator: ForwardRefRenderFunction<AssetsHandle, AssetProps> = (
               {!!selectedAssets &&
                 selectedAssets.map((asset,index) => (
                   <tr key={[asset?.name,index].join('_')} onClick={() => handleOpenOperatorInfoModal(asset)} onMouseOver={pointerHover}>
-                    <td> {asset.name}</td>
+                    <td>{asset.name}</td>
+                    <td>{asset?.operator}</td>
                     <td>{asset?.division_name}</td>
                     <td>{asset?.status}</td>
                     <td>

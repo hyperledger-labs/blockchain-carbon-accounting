@@ -33,8 +33,11 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
   ): Promise<Array<OilAndGasAssetInterface>> => {
     let selectBuilder: SelectQueryBuilder<OilAndGasAsset> = await this._db.getRepository(OilAndGasAsset).createQueryBuilder("oil_and_gas_asset")
     // category by issuer address
-    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles)
-    return selectBuilder.getMany();
+    selectBuilder = buildQueries('oil_and_gas_asset', selectBuilder, bundles 
+        )//,[OilAndGasAsset, AssetOperator])
+    return selectBuilder    
+      //.innerJoin("oil_and_gas_asset.asset_operators", "asset_operator")
+      .getMany();
   }
 
   public selectPaginated = async (
@@ -50,7 +53,7 @@ export class OilAndGasAssetRepo implements OilAndGasAssetDbInterface {
       .limit(limit)
       .offset(offset)
       .innerJoin("oil_and_gas_asset.asset_operators", "asset_operator")
-      .orderBy('oil_and_gas_asset.name', 'ASC')
+      .orderBy('oil_and_gas_asset.operator', 'ASC')
       .getMany();
   }
 

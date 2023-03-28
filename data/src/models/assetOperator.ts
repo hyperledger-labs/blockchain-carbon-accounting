@@ -3,6 +3,7 @@ import type {
 } from '@blockchain-carbon-accounting/oil-and-gas-data-lib';
 import {
   Column, Entity,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
@@ -14,9 +15,9 @@ import { OilAndGasAsset } from './oilAndGasAsset';
 import { Operator } from './operator';
 
 @Entity({name: 'asset_operator'})
-@Unique(['asset', 'operator', 'from_date' ])
-@Unique(['asset', 'operator', 'thru_date' ])
-@Index(["asset"], { unique: true, where: `"thru_date" IS NULL` })
+@Unique(['assetUuid', 'operatorUuid', 'from_date' ])
+@Unique(['assetUuid', 'operatorUuid', 'thru_date' ])
+@Index(['assetUuid', 'operatorUuid'], { unique: true, where: `"thru_date" IS NULL` })
 @Check('"share" >= 0')
 @Check('"share" <= 1')
 export class AssetOperator implements AssetOperatorInterface {
@@ -27,14 +28,14 @@ export class AssetOperator implements AssetOperatorInterface {
   @Column()
   class!: string;
 
-  @Column()
+  @PrimaryColumn()
   assetUuid!: string;
 
   @ManyToOne(() => OilAndGasAsset, (asset) => asset.asset_operators)
   @JoinColumn({name: 'assetUuid'})
   asset!: OilAndGasAsset;
 
-  @Column()
+  @PrimaryColumn()
   operatorUuid!: string;
 
   @ManyToOne(() => Operator, (operator) => operator.asset_operators)

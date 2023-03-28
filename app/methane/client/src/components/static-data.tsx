@@ -1,6 +1,7 @@
 import type { Field } from "@blockchain-carbon-accounting/react-app/src/components/static-data"
 export type Asset = {
   name?: string
+  operator?: string
   latitude: number
   longitude: number
   division_type?: string
@@ -76,6 +77,12 @@ export const ASSET_FIELDS: Field[] = [
     name: 'division_name',
     type: 'string',
     ops: ['eq']
+},
+{
+    alias: 'Operator',
+    name: 'operator',
+    type: 'string',
+    ops: ['like']
 },
 ]
 
