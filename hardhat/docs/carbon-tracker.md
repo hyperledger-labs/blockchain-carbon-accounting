@@ -2,32 +2,26 @@
 
 ## Deploying the emission certificate contract and interface
 
-Here we summarize the deployment process deploying the CarbonTracker contract and DAPP interface. This covers installation and configuration of software in different subdirectoreis of blockchain-carbon-accouting repository. You'll need to make sure you are running version of node >= 16.x.x
+Here we summarize the deployment for the CarbonTracker contract as an extension of the Net Emissions Token (NET) Network. This covers installation and configuration of software in different subdirectoreis of blockchain-carbon-accouting repository. You'll need to make sure you are running version of node >= 16.x.x
 
 First run `npm install` of dependency libraries in the following subdirectories
  
-- [data](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data)This is where the postgres server and tables are configured for convenient storage for on and off-chain data. Follow the [readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data/README.md) for instructions on setting up and seeding the postgres database.
+- [data](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data). This is where the postgres server and tables are configured for convenient storage for on and off-chain data. Follow the [readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/data/README.md) for instructions on setting up and seeding the postgres database.
 
-- Next run the hardhat node in hardhat subdirectory where the contracts (NET &CarbonTracker) are deployed
-```
-npx hardhat node
-```
+- Next run a hardhat node where the contracts (NET & CarbonTracker) are deployed
+`npx hardhat node` from  hardhat\ directory or  `npm run hardhat` from project root.
 [using-the-react-applicaiton readme](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/docs/using-the-contracts.md) provides instructions on seeding the network, e.g.:
 ```npx hardhat setTestAccountRoles --network localhost --contract <NetEmissionsTokeNetwork address>``` 
 to assign roles to network addresses.
-
 ```npx hardhat issueOilAndGasTrackers --network localhost --contract <NetEmissionsTokeNetwork address> --contract <CarbonTracker address>``` 
-to issue example tracker tokens for oil and gas producers.
+to issue  tracker tokens for oil and gas producers.
 
 - Run the api-server for synchronizing postgres database with contract state in app/api-server
-```npm run dev``` 
+`npm run dev` from app/api-server or `npm run frontend` from root
 [README](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/app/api-server/README.md) provides instructions on seeding the postgres database with user and other data.
 
 - Run the node.js react UI
-```
-cd app/frontend/react-app
-npm run build
-```
+`npm run build` from app/frontend/react-app directory or `npm run api-server` from root
 
 ## Setup demo tokens for U.S. Oil & Gas production data
 
@@ -42,7 +36,6 @@ hardhat oilAndGasBenchmarkBasins --network localhost --contract <NetEmissionsTok
 The database includes other public data data sources for flaring of methane gas by oil and gas producers that can be compared against the tokens issued above for accuracy using the Methane App. Following the instructions in [app/methane/](https://github.com/hyperledger-labs/blockchain-carbon-accounting/tree/main/app/methane#methane-emissions-reduction-app)
 
 ```npm run server```
-
 ```npm run client```
 
 
@@ -52,14 +45,13 @@ The Carbon Tracker Contract is used to issue non fungible tokenz (NFT) as emissi
 
 The contract is implemented as ERC1155Holder of the [NET contract](https://github.com/hyperledger-labs/blockchain-carbon-accounting/blob/main/hardhat/contracts/NetEmissionsTokenNetwork.sol). Each Carbon Tracker NFT describes the unique emission profile of a product/facility using different NET types as inputs/outputs:
     
-- emission tokens (tokenTypeId = 4 as transferable emission tokens) 
-- offset credits (retired or transferable)
-- Renewable energy certificates
+- adutied emissions
+- offset credits
+- renewable energy certificates
 
-Each NFT is assigned product tokens used for tracking embodied emissions in trade of products and services. Multiple product tokens are issued to a certicate to describe the ditribution across a facility with multiple product types (e.g. a refinery that produces gasoline and deisel).
+Each NFT is assigned "product" tokens used for tracking embodied emissions in trade of products and services.
 
 The follwoing figure illustrates the features of the CarbonTracker contract. 
-
 
 ![Carbon Tracker Diagram](carbon-tracker.png)
 
@@ -68,16 +60,12 @@ Auditors setup CarbonTracker tokens as emission certificates for a registered in
 - productsUpdate() to assign unique product amounts to a tracker.
 - audit() to mark a tracker as Audited approve an industry'd emission certificate
 
-Registered industry can use the CarbonTracker allow its products to be transfered to other accounts
+Registered industry can use the CarbonTracker to transfer products, representing the embodied scope 3 emissions, to other accounts
 - transferProduct() to another trackee, customer, auditor, ...
 - The entire audited CarbonTracker can  be transffered, e.g., to an emission certificate dealer, ...
 - trackProduct() track a previously issued product to a new tracker ID. Enabables tracking embodiied emission of a products accross product across a supply chain.
 
- See the [CarbonTracker NFT example](#carbon-tracker-nft-example).
-
-
 ### Attribute description  
-
 Each NFT is defined by a unique trackerId with the following attribtues:
 - `_trackerData` details about the certificate
 - `_trackerMappings` listing all the emission and products tokens issued to the certificate
@@ -86,10 +74,8 @@ Each NFT is defined by a unique trackerId with the following attribtues:
 
 ## Carbon tracker NFT applications
 
-This service target industries, and their supply chain counterparts, with commercial advantage (and/or policy mandate) to provide embedded emission transparency. 
+This service target industries, and their supply chain counterparts, with commercial advantage (and/or policy mandate) to provide embedded emissions data. 
 
 For example, the [Carbon Border Adjustement Mechanism drafted by the European Commission](https://ec.europa.eu/info/sites/default/files/carbon_border_adjustment_mechanism_0.pdf). It requires importers of targeted energy intensive commodities (e.g., steel, cement, alumininum, fertilizers) to disclose simple and complex (embedded) emissions. These will be subject to carbon import tariffs equivalent to the price of GHG allowances purchased under the European Unions Emission Trading System (EU ETS).  
 
 Another application is the creation of emission performance certificates issued to fuel and other commodity producers. For exmaple, to certify that a producer has low gas flaring and methane leakage on its production. [Flare Intel](https://flareintel.com/) provoides a service that could be used to verify flaring from facilities on a global scale. The World Bank has also set up an [Imported Flared Gas (IFG) index](https://www.ggfrdata.org/#imported-flare-gas-index) as a measure of the embedded flared emission in international oil trade. The Carbon Tracker NFTs could be issued in conjunction with such an index to prove an importer has committed to lowering its IFG index.
-
-
