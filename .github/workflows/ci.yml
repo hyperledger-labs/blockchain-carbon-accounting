@@ -9,7 +9,7 @@ jobs:
   lint: # Run lint script for all workspaces
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
@@ -40,7 +40,7 @@ jobs:
       run:
         working-directory: ./fabric/chaincode/datalock
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v3
         with:
           go-version: "1.18"
@@ -67,7 +67,7 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
@@ -105,7 +105,7 @@ jobs:
         ports:
           - 5432:5432
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
           node-version: "16.15.0"
@@ -142,7 +142,7 @@ jobs:
       - name: Collect Docker Logs
         if: failure()
         uses: jwalton/gh-docker-logs@v2.2.0
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
           name: test-results
