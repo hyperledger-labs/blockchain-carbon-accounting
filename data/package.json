@@ -33,7 +33,7 @@
     "stream-chain": "^2.2.5",
     "stream-json": "^1.7.4",
     "ts-node": "^10.8.1",
-    "typeorm": "^0.3.6",
+    "typeorm": "^0.3.26",
     "uuid": "^8.3.2",
     "xlsx": "^0.18.5",
     "yargs": "^17.5.1"

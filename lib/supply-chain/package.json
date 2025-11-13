@@ -25,7 +25,7 @@
     "@blockchain-carbon-accounting/blockchain-gateway-lib": "*",
     "@googlemaps/google-maps-services-js": "^3.3.14",
     "@metamask/eth-sig-util": "^4.0.1",
-    "axios": "^0.27.2",
+    "axios": "^1.13.2",
     "bignumber.js": "^9.0.2",
     "ipfs-http-client": "^56.0.3",
     "ups-nodejs-sdk": "^1.0.0"
